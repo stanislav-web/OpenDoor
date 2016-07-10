@@ -1,4 +1,4 @@
-#    OpenDoor Web Vulnerability Scanner
+#    OpenDoor Web Directory Scanner
 #    Copyright (C) 2016  Stanislav Menshov
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -16,3 +16,7 @@
 #    Development Team:
 #
 #    Stanislav Menshov (Stanislav WEB) since version 1.0
+
+import Libraries;
+
+Libraries.Http().connect();
