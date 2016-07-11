@@ -8,7 +8,7 @@ except ImportError:
                 or run pip install httplib2 socket .""")
 
 class Http:
-    """A simple example class"""
+    """Http mapper class"""
     i = 12345
 
     def connect(url):
