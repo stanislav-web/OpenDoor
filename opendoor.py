@@ -17,10 +17,11 @@
 #
 #    Stanislav Menshov (Stanislav WEB) since version 1.0
 
-from Libraries import Http, Args;
+from Libraries import Http, Args, FileReader;
 from Vendors import Version, Colors;
 
 VERSION = Version.get_versions().get('version');
+FileReader = FileReader();
 
 print '############################################################'
 print '#                                                          #'
@@ -32,7 +33,14 @@ print '#                                                          #'
 print '#  '+ Colors.colored(VERSION, 'green') +'\t\t\t           #'
 print '############################################################'
 
+# Init argument's helper
 Args();
+
+# FileReader functions
+FileReader.get_user_agent()
+FileReader.get_random_user_agent()
+
+# Http functions
 Http().connect();
 
 

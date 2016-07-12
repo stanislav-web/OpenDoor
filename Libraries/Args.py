@@ -11,5 +11,4 @@ class Args:
         parser.add_argument('-d', '--delay', help="Delay between requests")
         parser.add_argument('-r', '--random-agents', help="Use random user agents")
         parser.add_argument('-p', '--proxy-list', help="Proxy list")
-        args = parser.parse_args()
-        return args
+        parser.parse_args()
