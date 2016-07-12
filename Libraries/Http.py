@@ -9,7 +9,6 @@ except ImportError:
 
 class Http:
     """Http mapper class"""
-    i = 12345
 
     def connect(url):
         print "It Works!"

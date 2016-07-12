@@ -17,7 +17,7 @@
 #
 #    Stanislav Menshov (Stanislav WEB) since version 1.0
 
-from Libraries import Http, Help;
+from Libraries import Http, Args;
 from Vendors import Version, Colors;
 
 VERSION = Version.get_versions().get('version');
@@ -32,7 +32,7 @@ print '#                                                          #'
 print '#  '+ Colors.colored(VERSION, 'green') +'\t\t\t           #'
 print '############################################################'
 
-Help();
+Args();
 Http().connect();
 
 
