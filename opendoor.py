@@ -17,11 +17,12 @@
 #
 #    Stanislav Menshov (Stanislav WEB) since version 1.0
 
-from Libraries import Http, Args, FileReader;
+from Libraries import Http, Args, FileReader, Project;
 from Vendors import Version, Colors;
 
 VERSION = Version.get_versions().get('version');
 FileReader = FileReader();
+Project = Project();
 
 print '############################################################'
 print '#                                                          #'
@@ -40,6 +41,7 @@ Args();
 FileReader.get_user_agent()
 FileReader.get_random_user_agent()
 
+Project.update();
 # Http functions
 Http().connect();
 
