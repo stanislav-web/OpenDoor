@@ -1,6 +1,6 @@
 import argparse
 
-class Args:
+class Command:
     """Console helper class"""
     def __init__(self):
         parser = argparse.ArgumentParser(description=__doc__,
@@ -12,3 +12,15 @@ class Args:
         parser.add_argument('-r', '--random-agents', help="Use random user agents")
         parser.add_argument('-p', '--proxy-list', help="Proxy list")
         parser.parse_args()
+        self.parser = parser;
+
+    def get_arg_values(self):
+        command_list = {}
+        arguments = self.parser.parse_args()
+        for arg,value in vars(arguments).iteritems():
+            if value :
+                command_list[arg] = value
+        if not command_list:
+            self.parser.print_help()
+        else:
+            return command_list

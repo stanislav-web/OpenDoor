@@ -17,12 +17,12 @@
 #
 #    Stanislav Menshov (Stanislav WEB) since version 1.0
 
-from Libraries import Http, Args, FileReader, Project;
-from Vendors import Version, Colors;
+from Libraries import Http, Command, FileReader;
+from Vendors import Colors, get_version, update;
 
-VERSION = Version.get_versions().get('version');
+VERSION = get_version()
 FileReader = FileReader();
-Project = Project();
+Command = Command();
 
 print '############################################################'
 print '#                                                          #'
@@ -35,14 +35,14 @@ print '#  '+ Colors.colored(VERSION, 'green') +'\t\t\t           #'
 print '############################################################'
 
 # Init argument's helper
-Args();
+
 
 # FileReader functions
 FileReader.get_user_agent()
 FileReader.get_random_user_agent()
 
-Project.update();
+#update();
 # Http functions
 Http().connect();
 
-
+print 'Query string:', Command.get_arg_values()
