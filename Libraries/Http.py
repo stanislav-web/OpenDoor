@@ -1,11 +1,10 @@
 try:
-    import httplib2
-    import socket
     import sys
+    import urllib3
 except ImportError:
-    sys.exit("""You need httplib2, socket!
+    sys.exit("""You need urllib3!
                 install it from http://pypi.python.org/pypi
-                or run pip install httplib2 socket .""")
+                or run pip install urllib3""")
 
 class Http:
     """Http mapper class"""

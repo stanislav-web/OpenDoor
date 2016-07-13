@@ -17,12 +17,13 @@
 #
 #    Stanislav Menshov (Stanislav WEB) since version 1.0
 
-from Libraries import Http, Command, FileReader;
+from Libraries import Http, Command, FileReader, Filter;
 from Vendors import Colors, get_version, update;
 
 VERSION = get_version()
 FileReader = FileReader();
 Command = Command();
+Filter = Filter();
 
 print '############################################################'
 print '#                                                          #'
@@ -41,8 +42,9 @@ print '############################################################'
 FileReader.get_user_agent()
 FileReader.get_random_user_agent()
 
-#update();
+# User for update command update();
 # Http functions
 Http().connect();
 
-print 'Query string:', Command.get_arg_values()
+if Command.get_arg_values() :
+    Filter.call(Command)
