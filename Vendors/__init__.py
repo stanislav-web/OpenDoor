@@ -23,7 +23,7 @@ def get_version():
 def get_full_version():
     str = "============================================================\n"
     str += Colors.colored("\tOpendoor hackware\n", 'blue')
-    str += Colors.colored("\tVersion: " + get_versions()['version'] + "\n", 'green')
+    str += Colors.colored("\tVersion: " + get_versions()['version'] + "\n", 'blue')
     str += "============================================================\n"
-    print str
-    exit()
+    return str
+
