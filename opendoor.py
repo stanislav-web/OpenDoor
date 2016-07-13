@@ -17,13 +17,10 @@
 #
 #    Stanislav Menshov (Stanislav WEB) since version 1.0
 
-from Libraries import Http, Command, FileReader, Filter;
-from Vendors import Colors, get_version, update;
+from Libraries import Command, FileReader, Filter, Controller;
+from Vendors import Colors, get_version;
 
-VERSION = get_version()
-FileReader = FileReader();
-Command = Command();
-Filter = Filter();
+Version = get_version()
 
 print '############################################################'
 print '#                                                          #'
@@ -32,19 +29,16 @@ print '#  (  _  )(  _ \( ___)( \( )  (  _ \ (  _  )(  _  )(  _ \  #'
 print '#   )(_)(  )___/ )__)  )  (    )(_) ) )(_)(  )(_)(  )   /  #'
 print '#  (_____)(__)  (____)(_)\_)  (____/ (_____)(_____)(_)\_)  #'
 print '#                                                          #'
-print '#  '+ Colors.colored(VERSION, 'green') +'\t\t\t           #'
+print '#  ' + Colors.colored(Version, 'green') + '\t\t\t           #'
 print '############################################################'
 
-# Init argument's helper
+# Init libraries
+FileReader = FileReader();
+Command = Command();
+Filter = Filter();
+InputArguments = []
 
-
-# FileReader functions
-FileReader.get_user_agent()
-FileReader.get_random_user_agent()
-
-# User for update command update();
-# Http functions
-Http().connect();
-
-if Command.get_arg_values() :
-    Filter.call(Command)
+# Parse input arguments
+if Command.get_arg_values():
+    InputArguments = Filter.call(Command)
+    Controller(InputArguments)
