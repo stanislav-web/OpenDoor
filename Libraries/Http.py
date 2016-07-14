@@ -13,12 +13,15 @@ except ImportError:
 class Http:
     """Http mapper class"""
 
-    DEFAULT_THREADS = 1
+    DEFAULT_THREADS = 2
     DEFAULT_HTTP_METHOD = 'HEAD'
     DEFAULT_HTTP_PROTOCOL = 'http://'
 
     def __init__(self):
         self.reader = FileReader()
+        self.urls = 0;
+        self.success = 0;
+        self.possibly = 0;
 
     def get(self, host, threads = DEFAULT_THREADS):
         """Get metadata by url"""
@@ -26,22 +29,37 @@ class Http:
         urls = self.get_urls(host);
         pool = threadpool.ThreadPool(threads)
         requests = threadpool.makeRequests(self.request, urls)
-        [pool.putRequest(req) for req in requests]
+        for req in requests:
+            pool.putRequest(req)
         pool.wait()
+
+        # Threads : pool.workers.__len__()
+        # All urls : urls.__len__()
 
         return
 
     def request(self, url):
-        """Get the request to url"""
+        """
+        Get the request to url
+        :param url: request url
+        :type url: str
+        :return: urllib3.response.HTTPResponse
+        :rtype: urllib3.response.HTTPResponse
+        """
         conn = connection_from_url(url, timeout=10.0, maxsize=10, block=True)
 
         headers = {
             'user-agent': self._get_user_agent()
         }
-        response = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers)
-        print url, response
-        print "Done!"
+        HTTPResponse = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers)
+        return self.response(HTTPResponse)
 
+    def response(self, HTTPResponse):
+        pass
+        #print HTTPResponse.status
+        #print HTTPResponse.version
+        #print HTTPResponse.reason
+        #print HTTPResponse.headers
 
     def get_urls(self, host):
         """Get urls"""
