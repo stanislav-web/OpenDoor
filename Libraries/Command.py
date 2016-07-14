@@ -1,4 +1,5 @@
 from argparse import ArgumentParser , RawDescriptionHelpFormatter
+from Version import get_examples
 
 class Command:
     """Console helper class"""
@@ -30,6 +31,7 @@ class Command:
                 command_list[arg] = value
 
         if not command_list:
+            #print get_examples()
             self.parser.print_help()
         else:
             return command_list

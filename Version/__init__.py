@@ -34,7 +34,7 @@ def get_local_version():
 def get_full_version():
     config = FileReader().get_config()
 
-    BANNER = """
+    banner = """
 ============================================================
   %s
   {%s} -> {%s}
@@ -48,7 +48,7 @@ def get_full_version():
                 colored(config.get('info', 'repository'), 'blue'),
                 colored(config.get('info', 'license'), 'blue')
             )
-    return BANNER
+    return banner
 
 def get_remote_version():
     config = FileReader().get_config()
@@ -74,8 +74,20 @@ def get_current_version():
         version = colored('v' + local, 'green')
     return version
 
-def get_banner():
-    BANNER = """
+def get_examples():
+    examples = """
+    Examples:
+        ./opendoor.py --url "http://owasp.com"
+        ./opendoor.py --url "http://owasp.com" --threads 10
+        ./opendoor.py --url "http://owasp.com" --threads 10 --check="dir" (sub)
+        ./opendoor.py --url "http://owasp.com" --threads 1 --dalay 10 --check="dir" (sub. dir is default)
+        ./opendoor.py --url "http://owasp.com" --threads 1 --dalay 10 --random-agents
+        ./opendoor.py --url "http://owasp.com" --threads 1 --dalay 10 --random-agents --proxy-list="proxy.dat"
+        """
+    return examples
+
+def print_banner():
+    banner = """
     ############################################################
     #                                                          #
     #   _____  ____  ____  _  _    ____   _____  _____  ____   #
@@ -86,4 +98,4 @@ def get_banner():
     #  {%s}                                                    #
     ############################################################
     """ % get_current_version()
-    return BANNER
+    print banner

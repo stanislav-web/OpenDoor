@@ -18,9 +18,9 @@
 #    Stanislav Menshov (Stanislav WEB) since version 1.0
 
 from Libraries import Command, Filter, Controller;
-from Version import get_banner;
+from Version import print_banner;
 
-print(get_banner())
+print_banner()
 
 # Init libraries
 Command = Command();
