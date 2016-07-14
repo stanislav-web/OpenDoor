@@ -47,8 +47,8 @@ def get_full_version():
                 colored(config.get('info', 'name'), 'blue'),
                 get_current_version(),
                 colored('v' +get_remote_version(), 'green'),
-                colored(config.get('info', 'repository'), 'blue'),
-                colored(config.get('info', 'license'), 'blue')
+                colored("Repo: " + config.get('info', 'repository'), 'yellow'),
+                colored(config.get('info', 'license'), 'yellow')
             )
     return banner
 
