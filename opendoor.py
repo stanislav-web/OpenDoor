@@ -17,23 +17,26 @@
 #
 #    Stanislav Menshov (Stanislav WEB) since version 1.0
 
-from Libraries import Command, FileReader, Filter, Controller;
-from Vendors import Colors, get_version;
+from Libraries import Command, Filter, Controller;
+from Vendors import get_version, colored;
 
-Version = get_version()
+VERSION = get_version()
 
-print '############################################################'
-print '#                                                          #'
-print '#   _____  ____  ____  _  _    ____   _____  _____  ____   #'
-print '#  (  _  )(  _ \( ___)( \( )  (  _ \ (  _  )(  _  )(  _ \  #'
-print '#   )(_)(  )___/ )__)  )  (    )(_) ) )(_)(  )(_)(  )   /  #'
-print '#  (_____)(__)  (____)(_)\_)  (____/ (_____)(_____)(_)\_)  #'
-print '#                                                          #'
-print '#  ' + Colors.colored(Version, 'green') + '\t\t\t           #'
-print '############################################################'
+BANNER = """
+############################################################
+#                                                          #
+#   _____  ____  ____  _  _    ____   _____  _____  ____   #
+#  (  _  )(  _ \( ___)( \( )  (  _ \ (  _  )(  _  )(  _ \  #
+#   )(_)(  )___/ )__)  )  (    )(_) ) )(_)(  )(_)(  )   /  #
+#  (_____)(__)  (____)(_)\_)  (____/ (_____)(_____)(_)\_)  #
+#                                                          #
+#  %s                                                      #
+############################################################
+""" % (colored(VERSION, 'green'))
+
+print(BANNER)
 
 # Init libraries
-FileReader = FileReader();
 Command = Command();
 Filter = Filter();
 InputArguments = []

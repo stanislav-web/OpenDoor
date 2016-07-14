@@ -18,9 +18,11 @@ class Controller:
 
     def update_action(self):
         update()
+        exit()
 
     def version_action(self):
         print get_full_version()
+        exit()
 
     def url_action(self, url):
         print Http().get(url)

@@ -1,7 +1,19 @@
-import subprocess
-import os
-from Version import get_versions
-from Colors import init
+try:
+    import sys
+    import subprocess
+    import os
+    import json
+    import urllib3
+
+    from colorama import init
+    from termcolor import colored
+    from Version import get_versions
+    from Libraries.FileReader import FileReader
+
+except ImportError:
+    sys.exit("""You need colorama and termcolor!
+                install it from http://pypi.python.org/pypi
+                or run pip install colorama termcolor .""")
 
 init()
 
@@ -19,11 +31,28 @@ def update():
 def get_version():
     return get_versions()['version']
 
-
 def get_full_version():
-    str = "============================================================\n"
-    str += Colors.colored("\tOpendoor hackware\n", 'blue')
-    str += Colors.colored("\tVersion: " + get_versions()['version'] + "\n", 'blue')
-    str += "============================================================\n"
-    return str
+    config = FileReader().get_config()
+
+    BANNER = """
+============================================================
+  %s
+  %s
+  %s
+  %s
+============================================================
+    """ %   (
+                colored(config.get('info', 'name'), 'blue'),
+                colored(get_versions()['version'], 'blue'),
+                colored(config.get('info', 'repository'), 'blue'),
+                colored(config.get('info', 'license'), 'blue')
+            )
+    return BANNER
+
+def load_remote_version():
+    config = FileReader().get_config()
+    r = urllib3.connection_from_url(config.get('info', 'setup'))
+    response = r.request('GET', '/')
+    data = json.load(response)
+    print data
 

@@ -14,13 +14,7 @@ class FileReader:
 
     def __init__(self):
 
-        config = ConfigParser.RawConfigParser()
-        config_file = os.getcwd() + '/setup.cfg'
-
-        if not os.path.isfile(config_file) and not os.access(config_file, os.R_OK):
-            sys.exit("""Configuration file setup.cfg can not be read """)
-
-        config.read(config_file)
+        config = self.get_config()
 
         # Files useragents.dat
         useragents_file_path = config.get('opendoor', 'useragents')
@@ -53,3 +47,14 @@ class FileReader:
 
     def get_directories(self):
         return self.__directories_file
+
+    def get_config(self):
+        config = ConfigParser.RawConfigParser()
+        config_file = os.getcwd() + '/setup.cfg'
+
+        if not os.path.isfile(config_file) and not os.access(config_file, os.R_OK):
+            sys.exit("""Configuration file setup.cfg can not be read """)
+
+        config.read(config_file)
+
+        return config
