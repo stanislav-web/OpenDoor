@@ -5,9 +5,9 @@ try:
     from FileReader import FileReader
 
 except ImportError:
-    sys.exit("""You need urllib3!
+    sys.exit("""You need urllib3 , threadpool!
                 install it from http://pypi.python.org/pypi
-                or run pip install urllib3""")
+                or run pip install urllib3 threadpool""")
 
 
 class Http:

@@ -8,14 +8,15 @@ class Command:
 
         parser = ArgumentParser(description=__doc__,
                                          formatter_class=RawDescriptionHelpFormatter)
-        parser.add_argument('-u', '--url', help="URL or page to scan; -u http://example.com")
+        requiredNamed = parser.add_argument_group('required named arguments')
+        requiredNamed.add_argument('-u', '--url', help="URL or page to scan; -u http://example.com", required=True)
         parser.add_argument('--update', default=False, action='store_true', help="Update from version control")
         parser.add_argument('--version', default=False, action='store_true', help="Get current version")
         parser.add_argument('-c', '--check', help="Directory scan eg --check=dir or subdomains --check=sub")
         parser.add_argument('-t', '--threads', help="Allowed threads", type=int)
         parser.add_argument('-d', '--delay', help="Delay between requests", type=int)
-        parser.add_argument('-r', '--random-agents', help="Use random user agents")
-        parser.add_argument('-p', '--proxy-list', help="Proxy list")
+        parser.add_argument('-r', '--random-agents', default=False, action='store_true', help="Use random user agents")
+        parser.add_argument('-p', '--proxy', default=False, action='store_true', help="Use proxy list")
 
         parser.parse_args()
         self.parser = parser;

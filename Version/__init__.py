@@ -10,9 +10,9 @@ try:
     from Libraries.FileReader import FileReader
 
 except ImportError:
-    sys.exit("""You need colorama and termcolor!
+    sys.exit("""You need urllib3, colorama and termcolor!
                 install it from http://pypi.python.org/pypi
-                or run pip install colorama termcolor .""")
+                or run pip install colorama termcolor urllib3.""")
 
 init()
 
@@ -26,6 +26,9 @@ def update():
     print "Error : " + str(error)
     print "out : " + str(out)
 
+def get_license():
+    config = FileReader().get_config()
+    return config.get('info', 'license')
 
 def get_local_version():
     config = FileReader().get_config()
@@ -53,11 +56,7 @@ def get_remote_version():
     config = FileReader().get_config()
 
     http = urllib3.PoolManager()
-    http.headers[':authority:'] = 'bitbucket.org'
-    http.headers[':method:'] = 'GET'
-    http.headers[':path:'] = '/stanislav-web/opendoor/raw/master/setup.cfg'
-    http.headers[':scheme:'] = 'http'
-
+    urllib3.disable_warnings()
     response = http.request('GET', config.get('info', 'setup'))
 
     config = FileReader().get_config_raw(response.data)
@@ -94,7 +93,7 @@ def print_banner():
     #   )(_)(  )___/ )__)  )  (    )(_) ) )(_)(  )(_)(  )   /  #
     #  (_____)(__)  (____)(_)\_)  (____/ (_____)(_____)(_)\_)  #
     #                                                          #
-    #  {%s}                                                    #
+    #  %s                     #
     ############################################################
-    """ % get_current_version()
+    """ % colored(get_license(), 'yellow')
     print banner

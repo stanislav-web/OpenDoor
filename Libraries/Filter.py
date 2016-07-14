@@ -33,6 +33,26 @@ class Filter:
 
         return url
 
+    def threads(self, threads):
+
+        if 0 == threads:
+            threads = 1
+        return threads
+
+    def check(self, type):
+        if type not in ['dir', 'sub']:
+            type = 'dir'
+        return type
+
+    def delay(self, delay):
+        return delay
+
+    def random_agents(self, noarg):
+        return True
+
+    def proxy(self, noarg):
+        return True
+
     def update(self, noarg):
         pass
 
