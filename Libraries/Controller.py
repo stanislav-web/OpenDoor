@@ -23,4 +23,4 @@ class Controller:
         print get_full_version()
 
     def url_action(self, url):
-        print Http().connect(url)
+        print Http().get(url)
