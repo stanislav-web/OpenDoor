@@ -1,8 +1,10 @@
 try:
-    import ConfigParser
     import os, sys, errno
+    import StringIO
+    import ConfigParser
     from random import randint
     from linereader import copen
+
 except ImportError:
     sys.exit("""You need linereader!
                 install it from http://pypi.python.org/pypi
@@ -57,4 +59,10 @@ class FileReader:
 
         config.read(config_file)
 
+        return config
+
+    def get_config_raw(self, s_config):
+        buf = StringIO.StringIO(s_config)
+        config = ConfigParser.ConfigParser()
+        config.readfp(buf)
         return config

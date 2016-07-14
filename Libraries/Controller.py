@@ -1,5 +1,5 @@
 import sys
-from Vendors import update, get_full_version;
+from Version import update, get_full_version;
 from Libraries import Http;
 
 class Controller:
