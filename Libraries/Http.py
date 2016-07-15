@@ -1,6 +1,11 @@
 try:
     import sys
     import threadpool
+    import time
+    import Queue
+    import multiprocessing
+    import httplib
+
     from urllib3 import connection_from_url
     from FileReader import FileReader
 
@@ -9,29 +14,48 @@ except ImportError:
                 install it from http://pypi.python.org/pypi
                 or run pip install urllib3 threadpool""")
 
-
 class Http:
     """Http mapper class"""
 
-    DEFAULT_THREADS = 2
     DEFAULT_HTTP_METHOD = 'HEAD'
     DEFAULT_HTTP_PROTOCOL = 'http://'
+    DEFAULT_THREADS = 1
+    DEFAULT_REQUEST_TIMEOUT  = 10
+    DEFAULT_REQUEST_DELAY  = 0
 
     def __init__(self):
         self.reader = FileReader()
+        self.cpu_cnt = multiprocessing.cpu_count();
         self.urls = 0;
         self.success = 0;
         self.possibly = 0;
+        self.errors = 0;
 
-    def get(self, host, threads = DEFAULT_THREADS):
+
+    def get(self, host, params = ()):
         """Get metadata by url"""
 
+        self.threads = params.get('threads', self.DEFAULT_THREADS)
+        self.rest = params.get('rest', self.DEFAULT_REQUEST_TIMEOUT)
+        self.delay = params.get('delay', self.DEFAULT_REQUEST_DELAY)
+
+
+        if self.cpu_cnt < self.threads:
+            sys.exit('Pass ' + str(self.cpu_cnt) + ' threads max')
+
         urls = self.get_urls(host);
-        pool = threadpool.ThreadPool(threads)
-        requests = threadpool.makeRequests(self.request, urls)
-        for req in requests:
-            pool.putRequest(req)
-        pool.wait()
+        self.iterator = 0
+        self.urlslen = urls.__len__();
+
+        try:
+            pool = threadpool.ThreadPool(self.threads)
+            requests = threadpool.makeRequests(self.request, urls)
+            for req in requests:
+                pool.putRequest(req)
+            time.sleep(1)
+            pool.wait()
+        except (Exception , SystemExit, Queue.Empty):
+            pass
 
         # Threads : pool.workers.__len__()
         # All urls : urls.__len__()
@@ -39,27 +63,30 @@ class Http:
         return
 
     def request(self, url):
-        """
-        Get the request to url
-        :param url: request url
-        :type url: str
-        :return: urllib3.response.HTTPResponse
-        :rtype: urllib3.response.HTTPResponse
-        """
-        conn = connection_from_url(url, timeout=10.0, maxsize=10, block=True)
+        conn = connection_from_url(url, maxsize=10, block=True, timeout=self.rest)
 
         headers = {
             'user-agent': self._get_user_agent()
         }
+        #httplib.HTTPConnection.debuglevel = 1
         HTTPResponse = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers)
+        time.sleep(self.delay)
+
         return self.response(HTTPResponse)
 
     def response(self, HTTPResponse):
-        pass
-        #print HTTPResponse.status
-        #print HTTPResponse.version
-        #print HTTPResponse.reason
-        #print HTTPResponse.headers
+        """Response handler"""
+
+        #TODO
+        self.iterator = self.iterator + 1
+        sys.stdout.write("\r%d%%" % self.iterator)
+        sys.stdout.flush()
+        if HTTPResponse == None:
+            pass
+        # print HTTPResponse.status
+        # print HTTPResponse.version
+        # print HTTPResponse.reason
+        # print HTTPResponse.headers
 
     def get_urls(self, host):
         """Get urls"""
@@ -68,24 +95,24 @@ class Http:
 
         return urls
 
-    def __path_resolve(self, path):
-        """Directory path resolve"""
-
-        path = path.replace("\n", "")
-        if "/" != path[0]:
-            path = '/' + path
-
-        return path
-
     def __urls_resolves(self, host, directories):
         """Urls path resolve"""
-
         resolve_dirs = []
         for path in directories:
-            resolve_dirs.append(self.DEFAULT_HTTP_PROTOCOL + host + self.__path_resolve(path))
+            path = path.replace("\n", "")
+            if "/" != path[0]:
+                path = '/' + path
+            resolve_dirs.append(self.DEFAULT_HTTP_PROTOCOL + host + path)
 
         return resolve_dirs
 
     def _get_user_agent(self):
         """Get random user agent from FileReader"""
         return self.reader.get_random_user_agent()[0];
+
+
+# class DevNull:
+#     def write(self, msg):
+#         pass
+
+#sys.stderr = DevNull()

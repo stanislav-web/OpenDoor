@@ -5,13 +5,15 @@ from Libraries import Http;
 class Controller:
     """Controller class"""
     def __init__(self, InputArguments):
+
         for action, args in InputArguments.iteritems():
             try:
                 # dymanic function call
                 if not args:
                     getattr(self, '%s_action' % action)()
                 else:
-                    getattr(self, '%s_action' % action)(args)
+                    getattr(self, '%s_action' % action)(args, InputArguments)
+                    break
 
             except AttributeError:
                 sys.exit(action + """ action does not exist in Controllers""")
@@ -24,5 +26,5 @@ class Controller:
         print get_full_version()
         exit()
 
-    def url_action(self, url):
-        print Http().get(url)
+    def url_action(self, url, params=()):
+        return Http().get(url, params)
