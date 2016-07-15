@@ -1,3 +1,5 @@
+from Libraries.Logger import Logger as log
+
 try:
     import sys
     import subprocess
@@ -10,7 +12,7 @@ try:
     from Libraries.FileReader import FileReader
 
 except ImportError:
-    sys.exit("""You need urllib3, colorama and termcolor!
+    log.critical("""You need urllib3, colorama and termcolor!
                 install it from http://pypi.python.org/pypi
                 or run pip install colorama termcolor urllib3.""")
 
@@ -23,8 +25,8 @@ def update():
     pr = subprocess.Popen(CMD, cwd=os.getcwd(),
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (out, error) = pr.communicate()
-    print "Error : " + str(error)
-    print "out : " + str(out)
+    log.success(str(out))
+
 
 def get_license():
     config = FileReader().get_config()

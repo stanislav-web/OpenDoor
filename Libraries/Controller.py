@@ -1,6 +1,6 @@
-import sys
 from Version import update, get_full_version;
 from Libraries import Http;
+from Logger import Logger as log
 
 class Controller:
     """Controller class"""
@@ -16,7 +16,7 @@ class Controller:
                     break
 
             except AttributeError:
-                sys.exit(action + """ action does not exist in Controllers""")
+                log.critical(action + """ action does not exist in Controller""")
 
     def update_action(self):
         update()

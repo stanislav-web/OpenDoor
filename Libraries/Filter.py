@@ -1,11 +1,11 @@
-import sys, re
+import re
 from urlparse import urlparse
-
+from Logger import Logger as log
 
 class Filter:
-    URL_REGEX = "^(?:[-A-Za-z0-9]+\.)+([A-Za-z]|(?u)\w){2,6}$"
-
     """Filter args class"""
+
+    URL_REGEX = "^(?:[-A-Za-z0-9]+\.)+([A-Za-z]|(?u)\w){2,6}$"
 
     def call(self, Command):
 
@@ -16,7 +16,7 @@ class Filter:
                 # dymanic function call
                 filtered[key] = getattr(self, '%s' % key)(value)
             except AttributeError:
-                sys.exit(key + """ function does not exist in Filter class""")
+                log.critical(key + """ function does not exist in Filter class""")
 
         return filtered
 
@@ -29,7 +29,7 @@ class Filter:
 
         regex = re.compile(r"" + self.URL_REGEX + "")
         if not regex.match(url):
-            sys.exit(url + """ is invalid url. """)
+            log.critical("\"" + url + "\""" is invalid url. """)
 
         return url
 
@@ -47,10 +47,10 @@ class Filter:
     def delay(self, delay):
         return delay
 
-    def random_agents(self, noarg):
-        return True
+    def rest(self, rest):
+        return rest
 
-    def proxy(self, noarg):
+    def proxy(self):
         return True
 
     def update(self, noarg):

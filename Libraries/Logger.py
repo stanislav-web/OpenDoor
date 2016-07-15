@@ -1,3 +1,4 @@
+import sys
 import coloredlogs
 
 class Logger:
@@ -8,14 +9,14 @@ class Logger:
         level = 'INFO'
         coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
         logger = Logger.log(level);
-        logger.success(string);
+        logger.info(string);
         pass
 
     @staticmethod
     def warning(string):
         level = 'WARNING'
         coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
-        logger = Logger.log();
+        logger = Logger.log(level);
         logger.warning(string);
         pass
 
@@ -48,16 +49,23 @@ class Logger:
         level = 'VERBOSE'
         coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
         logger = Logger.log(level);
-        logger.debug(string);
+        logger.verbose(string);
         pass
 
     @classmethod
     def log(cls, level):
 
-        import logging
+        try:
+            import logging
+            import verboselogs
+
+        except ImportError:
+            sys.exit("""You need logging , verboselogs!
+                            install it from http://pypi.python.org/pypi
+                            or run pip install logging verboselogs""")
 
         # set logger level from parent class
-        logger = logging.getLogger()
+        logger =  verboselogs.VerboseLogger('')
         # add the handlers to the logger
         logger.setLevel(getattr(logging, level))
 

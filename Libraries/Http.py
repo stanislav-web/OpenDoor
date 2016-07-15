@@ -1,3 +1,5 @@
+from Logger import Logger as log
+
 try:
     import sys
     import threadpool
@@ -8,9 +10,10 @@ try:
 
     from urllib3 import connection_from_url
     from FileReader import FileReader
+    from Progress import Progress
 
 except ImportError:
-    sys.exit("""You need urllib3 , threadpool!
+    log.critical("""You need urllib3 , threadpool!
                 install it from http://pypi.python.org/pypi
                 or run pip install urllib3 threadpool""")
 
@@ -41,7 +44,7 @@ class Http:
 
 
         if self.cpu_cnt < self.threads:
-            sys.exit('Pass ' + str(self.cpu_cnt) + ' threads max')
+            log.critical('Pass ' + str(self.cpu_cnt) + ' threads max')
 
         urls = self.get_urls(host);
         self.iterator = 0
@@ -55,6 +58,7 @@ class Http:
             time.sleep(1)
             pool.wait()
         except (Exception , SystemExit, Queue.Empty):
+            #TODO Eception handle
             pass
 
         # Threads : pool.workers.__len__()
@@ -77,10 +81,8 @@ class Http:
     def response(self, HTTPResponse):
         """Response handler"""
 
-        #TODO
-        self.iterator = self.iterator + 1
-        sys.stdout.write("\r%d%%" % self.iterator)
-        sys.stdout.flush()
+        self.iterator = Progress.run(self.iterator)
+
         if HTTPResponse == None:
             pass
         # print HTTPResponse.status
