@@ -5,47 +5,49 @@ class Logger:
 
     @staticmethod
     def success(string):
-        coloredlogs.install(level='INFO', fmt='[%(asctime)s] %(levelname)s : %(message)s')
-        coloredlogs.install(level='INFO')
-        logger = Logger.log('INFO');
+        level = 'INFO'
+        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        logger = Logger.log(level);
         logger.success(string);
         pass
 
     @staticmethod
     def warning(string):
-        coloredlogs.install(level='WARNING', fmt='[%(asctime)s] %(levelname)s : %(message)s')
-        coloredlogs.install(level='WARNING')
-        logger = Logger.log('WARNING');
+        level = 'WARNING'
+        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        logger = Logger.log();
         logger.warning(string);
         pass
 
     @staticmethod
     def error(string):
-        coloredlogs.install(level='ERROR', fmt='[%(asctime)s] %(levelname)s : %(message)s')
-        coloredlogs.install(level='ERROR')
-        logger = Logger.log('ERROR');
+        level = 'ERROR'
+        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        logger = Logger.log(level);
         logger.error(string);
         pass
 
     @staticmethod
     def critical(string):
-        coloredlogs.install(level='CRITICAL', fmt='[%(asctime)s] %(levelname)s : %(message)s')
-        logger = Logger.log('CRITICAL');
+        level = 'CRITICAL'
+        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        logger = Logger.log(level);
         logger.critical(string);
         exit();
 
     @staticmethod
     def debug(string):
-        coloredlogs.install(level='DEBUG', fmt='[%(asctime)s] %(levelname)s : %(message)s')
-        logger = Logger.log('DEBUG');
+        level = 'DEBUG'
+        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        logger = Logger.log(level);
         logger.debug(string);
         pass
 
     @staticmethod
     def verbose(string):
-        coloredlogs.install(level='VERBOSE', fmt='[%(asctime)s] %(levelname)s : %(message)s')
-        coloredlogs.install(level='VERBOSE')
-        logger = Logger.log('DEBUG');
+        level = 'VERBOSE'
+        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        logger = Logger.log(level);
         logger.debug(string);
         pass
 
