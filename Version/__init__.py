@@ -56,7 +56,6 @@ def get_remote_version():
     config = FileReader().get_config()
 
     http = urllib3.PoolManager()
-    urllib3.disable_warnings()
     response = http.request('GET', config.get('info', 'setup'))
 
     config = FileReader().get_config_raw(response.data)

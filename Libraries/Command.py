@@ -1,5 +1,5 @@
 from argparse import ArgumentParser , RawDescriptionHelpFormatter
-from Version import get_examples
+from Logger import Logger as log
 
 class Command:
     """Console helper class"""
@@ -17,6 +17,7 @@ class Command:
         parser.add_argument('-d', '--delay', help="Delay between requests", type=int)
         parser.add_argument('-r', '--rest', help="Max request timeout ", type=int)
         parser.add_argument('-p', '--proxy', default=False, action='store_true', help="Use proxy list")
+        parser.add_argument('-l', '--logs', default=False, action='store_true', help="Use proxy list")
         parser.parse_args()
         self.parser = parser;
 
@@ -26,7 +27,7 @@ class Command:
         arguments = self.parser.parse_args()
 
         if not arguments.url and not arguments.version and not arguments.update:
-            self.parser.error("error: argument -u/--url is required")
+            log.critical("argument -u/--url is required")
 
         for arg, value in vars(arguments).iteritems():
 
