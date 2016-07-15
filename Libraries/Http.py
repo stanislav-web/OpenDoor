@@ -27,6 +27,7 @@ class Http:
     DEFAULT_REQUEST_DELAY  = 0
 
     def __init__(self):
+        """Init constructor"""
         self.reader = FileReader()
         self.cpu_cnt = multiprocessing.cpu_count();
         self.urls = 0;
@@ -34,20 +35,11 @@ class Http:
         self.possibly = 0;
         self.errors = 0;
 
-
     def get(self, host, params = ()):
         """Get metadata by url"""
 
-        self.threads = params.get('threads', self.DEFAULT_THREADS)
-        self.rest = params.get('rest', self.DEFAULT_REQUEST_TIMEOUT)
-        self.delay = params.get('delay', self.DEFAULT_REQUEST_DELAY)
-
-
-        if self.cpu_cnt < self.threads:
-            log.critical('Pass ' + str(self.cpu_cnt) + ' threads max')
-
         urls = self.get_urls(host);
-        self.iterator = 0
+        self._parse_params(params)
         self.urlslen = urls.__len__();
 
         try:
@@ -67,15 +59,14 @@ class Http:
         return
 
     def request(self, url):
-        conn = connection_from_url(url, maxsize=10, block=True, timeout=self.rest)
-
+        conn = connection_from_url(url, maxsize=10, block=True, timeout=self.rest, assert_same_host=True, redirect=True)
+        #TODO HostChangedError. assert_same_host=True
         headers = {
             'user-agent': self._get_user_agent()
         }
         #httplib.HTTPConnection.debuglevel = 1
         HTTPResponse = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers)
         time.sleep(self.delay)
-
         return self.response(HTTPResponse)
 
     def response(self, HTTPResponse):
@@ -94,7 +85,6 @@ class Http:
         """Get urls"""
         dirs = self.reader.get_directories();
         urls = self.__urls_resolves(host, dirs);
-
         return urls
 
     def __urls_resolves(self, host, directories):
@@ -105,12 +95,23 @@ class Http:
             if "/" != path[0]:
                 path = '/' + path
             resolve_dirs.append(self.DEFAULT_HTTP_PROTOCOL + host + path)
-
         return resolve_dirs
 
     def _get_user_agent(self):
         """Get random user agent from FileReader"""
         return self.reader.get_random_user_agent()[0];
+
+    def _parse_params(self, params):
+        """Parse additional params"""
+        self.threads = params.get('threads', self.DEFAULT_THREADS)
+        self.rest = params.get('rest', self.DEFAULT_REQUEST_TIMEOUT)
+        self.delay = params.get('delay', self.DEFAULT_REQUEST_DELAY)
+        self.iterator = 0
+        if self.cpu_cnt < self.threads:
+            log.critical('Pass ' + str(self.cpu_cnt) + ' threads max')
+
+
+
 
 
 # class DevNull:
