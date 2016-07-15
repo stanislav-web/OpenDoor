@@ -22,6 +22,7 @@ CMD = '/usr/bin/git pull origin master'
 
 
 def update():
+    log.success('Checking for updates...')
     pr = subprocess.Popen(CMD, cwd=os.getcwd(),
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (out, error) = pr.communicate()

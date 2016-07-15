@@ -59,8 +59,9 @@ class Http:
         return
 
     def request(self, url):
-        conn = connection_from_url(url, maxsize=10, block=True, timeout=self.rest, assert_same_host=True, redirect=True)
-        #TODO HostChangedError. assert_same_host=True
+        conn = connection_from_url(url, maxsize=10, block=True, timeout=self.rest, assert_same_host=True, redirect=True, retries=3)
+        #TODO HostChangedError. assert_same_host=True ,  MaxRetryError= retries
+
         headers = {
             'user-agent': self._get_user_agent()
         }
