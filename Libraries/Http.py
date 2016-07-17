@@ -49,7 +49,7 @@ class Http:
         self.__parse_params(params)
 
         try:
-
+            urllib3.disable_warnings()
             pool = threadpool.ThreadPool(self.threads)
             requests = threadpool.makeRequests(self.request, self.urls)
             for req in requests:
