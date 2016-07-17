@@ -4,14 +4,13 @@ try:
     import os
     import StringIO
     import ConfigParser
-    from random import randint
+    from random import randrange
     from linereader import copen
 
 except ImportError:
-    log.critical("""You need linereader!
+    log.critical("""\t\t[!] You need linereader!
                 install it from http://pypi.python.org/pypi
                 or run pip install linereader """)
-
 
 class FileReader:
     """Filereader class"""
@@ -19,42 +18,23 @@ class FileReader:
     def __init__(self):
 
         try:
-            config = self.get_config()
+            self.config = self.get_config()
         except ConfigParser.ParsingError as e:
             log.critical(e.message)
 
-        # Files useragents.dat
-        useragents_file_path = config.get('opendoor', 'useragents')
-        useragents_file = os.getcwd() + '/' + useragents_file_path;
-        if not os.path.isfile(useragents_file) and not os.access(useragents_file, os.R_OK):
-            log.critical(useragents_file_path + """ file can not be read """)
-        self.__useragents_file = copen(useragents_file)
-        self.__useragents_file_lines = self.__useragents_file.count('\n')
+        self.__useragents = self.get_file_data('useragents')
+        self.__directories = self.get_file_data('directories')
+        self.__subdomains = self.get_file_data('subdomains')
 
-        # Files directories
-        directories_file_path = config.get('opendoor', 'directories')
-        directories_file = os.getcwd() + '/' + directories_file_path;
-        if not os.path.isfile(directories_file) and not os.access(directories_file, os.R_OK):
-            log.critical(directories_file_path + """ file can not be read """)
-            log.critical(directories_file_path + """ file can not be read """)
-        with open(directories_file) as f_handler:
-            self.__directories_file = f_handler.readlines()
-            self.__directories_file_lines = self.__directories_file.__len__()
-
-    def get_user_agent(self):
-
-        user_agent = self.__useragents_file.getline(1)
-
-        return user_agent
-
-    def get_random_user_agent(self):
-
-        random_user_agent = self.__useragents_file.getline(randint(1, self.__useragents_file_lines)).splitlines()
-
-        return random_user_agent
-
-    def get_directories(self):
-        return self.__directories_file
+    def get_file_data(self, target):
+        """ Get target file data"""
+        file_path = self.config.get('opendoor', target)
+        file = os.getcwd() + '/' + file_path;
+        if not os.path.isfile(file) and not os.access(file, os.R_OK):
+            log.critical(file + """ file can not be read """)
+        with open(file) as f_handler:
+            data = f_handler.readlines()
+        return data
 
     def get_config(self):
         config = ConfigParser.RawConfigParser()
@@ -74,3 +54,13 @@ class FileReader:
         config = ConfigParser.ConfigParser()
         config.readfp(buf)
         return config
+
+
+    def get_user_agent(self):
+        user_agent = self.__useragents[0]
+        return user_agent
+
+    def get_random_user_agent(self):
+
+        index = randrange(0,len(self.__useragents))
+        return self.__useragents[index].rstrip()

@@ -1,21 +1,24 @@
+import sys
+import socket
+import time
+import logging
+import Queue
+import multiprocessing
+
 from Logger import Logger as log
 
 try:
-    import sys
-    import threadpool
-    import time
-    import Queue
-    import multiprocessing
-    import httplib
 
-    from urllib3 import connection_from_url
-    from FileReader import FileReader
-    from Progress import Progress
+    import threadpool
+    import urllib3
 
 except ImportError:
-    log.critical("""You need urllib3 , threadpool!
+    log.critical("""\t\t[!] You need urllib3 , threadpool!
                 install it from http://pypi.python.org/pypi
                 or run pip install urllib3 threadpool""")
+
+from FileReader import FileReader
+from Progress import Progress
 
 class Http:
     """Http mapper class"""
@@ -25,6 +28,9 @@ class Http:
     DEFAULT_THREADS = 1
     DEFAULT_REQUEST_TIMEOUT  = 10
     DEFAULT_REQUEST_DELAY  = 0
+    DEFAULT_HTTP_SUCCESS_STATUSES = [100,101,200,201,204]
+    DEFAULT_HTTP_FAILED_STATUSES = [404,500,501,502,503,504]
+    DEFAULT_HTTP_UNRESOLVED_STATUSES = [401,403]
 
     def __init__(self):
         """Init constructor"""
@@ -38,53 +44,84 @@ class Http:
     def get(self, host, params = ()):
         """Get metadata by url"""
 
-        urls = self.get_urls(host);
-        self._parse_params(params)
-        self.urlslen = urls.__len__();
+        self.__is_server_online(host)
+        self.__disable_verbose();
+        self.urls = self.__get_urls(host);
+        self.__parse_params(params)
 
         try:
+
             pool = threadpool.ThreadPool(self.threads)
-            requests = threadpool.makeRequests(self.request, urls)
+            requests = threadpool.makeRequests(self.request, self.urls)
             for req in requests:
                 pool.putRequest(req)
             time.sleep(1)
             pool.wait()
-        except (Exception , SystemExit, Queue.Empty):
-            #TODO Eception handle
-            pass
+        except (Exception , SystemExit, Queue.Empty) as e:
+            exit('First: ' + e)
+        except (Exception , SystemExit, Queue.Empty) as e:
+            exit('Seconf: ' + e)
 
         # Threads : pool.workers.__len__()
-        # All urls : urls.__len__()
+        # All urls : self.urls.__len__()
 
         return
 
     def request(self, url):
-        conn = connection_from_url(url, maxsize=10, block=True, timeout=self.rest, assert_same_host=True, redirect=True, retries=3)
-        #TODO HostChangedError. assert_same_host=True ,  MaxRetryError= retries
+        conn = urllib3.connection_from_url(url, maxsize=10, block=True, timeout=self.rest, retries=3)
 
         headers = {
-            'user-agent': self._get_user_agent()
+            'user-agent': self.reader.get_random_user_agent()
         }
-        #httplib.HTTPConnection.debuglevel = 1
-        HTTPResponse = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers)
+        try :
+            HTTPResponse = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers)
+        except urllib3.exceptions.HostChangedError as e:
+            HTTPResponse = None
+            self.iterator = Progress.line(url + ' -> ' +e.message, self.urls.__len__(), 'warning', self.iterator)
+
         time.sleep(self.delay)
-        return self.response(HTTPResponse)
+        return self.response(HTTPResponse, url)
 
-    def response(self, HTTPResponse):
+    def response(self, HTTPResponse, url):
         """Response handler"""
-
-        self.iterator = Progress.run(self.iterator)
+        # print HTTPResponse.status
+        # print HTTPResponse.status
+        # print HTTPResponse.reason
+        # print HTTPResponse.pool
 
         if HTTPResponse == None:
-            pass
+            return
+
+        if HTTPResponse.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
+            self.iterator = Progress.line(url, self.urls.__len__(), 'success', self.iterator)
+        if HTTPResponse.status in self.DEFAULT_HTTP_UNRESOLVED_STATUSES:
+            self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
+        if HTTPResponse.status in self.DEFAULT_HTTP_FAILED_STATUSES:
+            self.iterator = Progress.line(url, self.urls.__len__(), 'error', self.iterator)
+
+
         # print HTTPResponse.status
         # print HTTPResponse.version
         # print HTTPResponse.reason
         # print HTTPResponse.headers
 
-    def get_urls(self, host):
+    def __disable_verbose(self):
+        """ Disbale verbose warnings info"""
+        level = 'WARNING'
+        logging.getLogger("urllib3").setLevel(level)
+
+    def __is_server_online(self, host):
+        """ Check if server is online"""
+        try:
+            socket.gethostbyname(host)
+            log.success('Server : '+ host +' is online')
+            log.success('Scanning ' + host + ' ...')
+        except socket.error:
+            log.critical('Oops Error occured, Server offline or invalid URL or response')
+
+    def __get_urls(self, host):
         """Get urls"""
-        dirs = self.reader.get_directories();
+        dirs = self.reader.get_file_data('directories');
         urls = self.__urls_resolves(host, dirs);
         return urls
 
@@ -98,19 +135,16 @@ class Http:
             resolve_dirs.append(self.DEFAULT_HTTP_PROTOCOL + host + path)
         return resolve_dirs
 
-    def _get_user_agent(self):
-        """Get random user agent from FileReader"""
-        return self.reader.get_random_user_agent()[0];
-
-    def _parse_params(self, params):
+    def __parse_params(self, params):
         """Parse additional params"""
         self.threads = params.get('threads', self.DEFAULT_THREADS)
         self.rest = params.get('rest', self.DEFAULT_REQUEST_TIMEOUT)
         self.delay = params.get('delay', self.DEFAULT_REQUEST_DELAY)
         self.iterator = 0
         if self.cpu_cnt < self.threads:
-            log.critical('Pass ' + str(self.cpu_cnt) + ' threads max')
-
+            self.threads = self.cpu_cnt
+            log.warning('Passed ' + str(self.cpu_cnt) + ' threads max for your possibility')
+            pass
 
 
 

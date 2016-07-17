@@ -17,14 +17,13 @@ class Command:
             parser.add_argument('-c', '--check', help="Directory scan eg --check=dir or subdomains --check=sub")
             parser.add_argument('-t', '--threads', help="Allowed threads", type=int)
             parser.add_argument('-d', '--delay', help="Delay between requests", type=int)
-            parser.add_argument('-r', '--rest', help="Max request timeout ", type=int)
+            parser.add_argument('-r', '--rest', help="Request timeout ", type=int)
             parser.add_argument('-p', '--proxy', default=False, action='store_true', help="Use proxy list")
             parser.add_argument('-l', '--logs', default=False, action='store_true', help="Use proxy list")
             parser.parse_args()
             self.parser = parser;
         except (ArgumentParserError) as e:
             log.critical(e.message)
-
 
     def get_arg_values(self):
 

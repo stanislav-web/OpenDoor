@@ -1,7 +1,8 @@
-0 ) Check server available
+0.1.4-dev + 0 ) Check server available
+0.1.5-dev 3 ) Progress line
+
 1 ) Handling all possible exceptions
 2 ) Add debug level for HTTP httplib.HTTPConnection.debuglevel = 1
-3 ) Progress line
 4 ) Statistics banner
 5 ) Log result
 6) Follow redirects http://www.diveintopython.net/http_web_services/redirects.html

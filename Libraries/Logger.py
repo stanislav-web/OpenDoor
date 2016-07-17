@@ -1,5 +1,11 @@
 import sys
-import coloredlogs
+
+try:
+    import coloredlogs
+except ImportError:
+    sys.exit("""\t\t[!] You need coloredlogs!
+                install it from http://pypi.python.org/pypi
+                or run pip install coloredlogs.""")
 
 class Logger:
     """Message helper class"""

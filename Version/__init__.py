@@ -28,7 +28,6 @@ def update():
     (out, error) = pr.communicate()
     log.success(str(out))
 
-
 def get_license():
     config = FileReader().get_config()
     return config.get('info', 'license')
@@ -56,12 +55,12 @@ def get_full_version():
     return banner
 
 def get_remote_version():
-    config = FileReader().get_config()
+    config = FileReader()
 
     http = urllib3.PoolManager()
-    response = http.request('GET', config.get('info', 'setup'))
+    response = http.request('GET', config.get_config().get('info', 'setup'))
 
-    config = FileReader().get_config_raw(response.data)
+    config = config.get_config_raw(response.data)
     return config.get('info', 'version')
 
 def get_current_version():
@@ -73,6 +72,13 @@ def get_current_version():
     else:
         version = colored('v' + local, 'green')
     return version
+
+def get_directories_count():
+    return FileReader().get_file_data('directories').__len__()
+
+def get_subdomains_count():
+    return FileReader().get_file_data('subdomains').__len__()
+
 
 def get_examples():
     examples = """
@@ -95,7 +101,14 @@ def print_banner():
     #   )(_)(  )___/ )__)  )  (    )(_) ) )(_)(  )(_)(  )   /  #
     #  (_____)(__)  (____)(_)\_)  (____/ (_____)(_____)(_)\_)  #
     #                                                          #
+    #  %s\t\t                       #
+    #  %s\t\t\t                       #
     #  %s                     #
     ############################################################
-    """ % colored(get_license(), 'yellow')
+    """ % (
+                colored('DB Directories: ' + str(get_directories_count()), 'yellow'),
+                colored('DB Subdomains: ' + str(get_subdomains_count()), 'yellow'),
+                colored(get_license(), 'yellow'),
+          )
+
     print banner
