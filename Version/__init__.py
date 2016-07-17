@@ -57,6 +57,7 @@ def get_full_version():
 def get_remote_version():
     config = FileReader()
 
+    urllib3.disable_warnings()
     http = urllib3.PoolManager()
     response = http.request('GET', config.get_config().get('info', 'setup'))
 
