@@ -1,61 +1,74 @@
 import sys
+from datetime import datetime
 
 try:
     import coloredlogs
+    from termcolor import colored
 except ImportError:
-    sys.exit("""\t\t[!] You need coloredlogs!
+    sys.exit("""\t\t[!] You need coloredlogs and termcolor!
                 install it from http://pypi.python.org/pypi
-                or run pip install coloredlogs.""")
+                or run pip install coloredlogs termcolor.""")
 
 class Logger:
     """Message helper class"""
 
     @staticmethod
-    def success(string):
+    def success(message):
+        currdate = datetime.now().strftime('[%Y-%m-%d %H:%M:%S] ')
+        date = colored(currdate, 'green')
+        status = colored('SUCCESS', attrs = ['bold'])
+        dot = ' : '
+        message = colored(message, 'green')
+        output = "%s%s%s%s" % (date, status, dot, message)
+        print (output)
+        pass
+
+    @staticmethod
+    def info(message):
         level = 'INFO'
         coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
         logger = Logger.log(level);
-        logger.info(string);
+        logger.info(message);
         pass
 
     @staticmethod
-    def warning(string):
+    def warning(message):
         level = 'WARNING'
         coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
         logger = Logger.log(level);
-        logger.warning(string);
+        logger.warning(message);
         pass
 
     @staticmethod
-    def error(string):
+    def error(message):
         level = 'ERROR'
         coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
         logger = Logger.log(level);
-        logger.error(string);
+        logger.error(message);
         pass
 
     @staticmethod
-    def critical(string):
+    def critical(message):
         level = 'CRITICAL'
         coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
         logger = Logger.log(level);
-        logger.critical(string);
+        logger.critical(message);
         exit();
 
     @staticmethod
-    def debug(string):
+    def debug(message):
         level = 'DEBUG'
         coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
         logger = Logger.log(level);
-        logger.debug(string);
+        logger.debug(message);
         pass
 
     @staticmethod
-    def verbose(string):
+    def verbose(message):
         level = 'VERBOSE'
         coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
         logger = Logger.log(level);
-        logger.verbose(string);
+        logger.verbose(message);
         pass
 
     @classmethod

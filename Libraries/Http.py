@@ -2,9 +2,9 @@ import sys
 import socket
 import time
 import logging
-import Queue
 import multiprocessing
-
+import exceptions
+import collections
 from Logger import Logger as log
 
 try:
@@ -28,18 +28,17 @@ class Http:
     DEFAULT_THREADS = 1
     DEFAULT_REQUEST_TIMEOUT  = 10
     DEFAULT_REQUEST_DELAY  = 0
-    DEFAULT_HTTP_SUCCESS_STATUSES = [100,101,200,201,204]
+    DEFAULT_HTTP_SUCCESS_STATUSES = [100,101,200,201,202,203,204,205,206,207,208]
+    DEFAULT_HTTP_REDIRECT_STATUSES = [301,302,303,304,307,308]
     DEFAULT_HTTP_FAILED_STATUSES = [404,500,501,502,503,504]
     DEFAULT_HTTP_UNRESOLVED_STATUSES = [401,403]
 
     def __init__(self):
         """Init constructor"""
+
         self.reader = FileReader()
         self.cpu_cnt = multiprocessing.cpu_count();
-        self.urls = 0;
-        self.success = 0;
-        self.possibly = 0;
-        self.errors = 0;
+        self.counter = collections.Counter()
 
     def get(self, host, params = ()):
         """Get metadata by url"""
@@ -57,15 +56,16 @@ class Http:
                 pool.putRequest(req)
             time.sleep(1)
             pool.wait()
-        except (Exception , SystemExit, Queue.Empty) as e:
-            exit('First: ' + e)
-        except (Exception , SystemExit, Queue.Empty) as e:
-            exit('Seconf: ' + e)
+        except (exceptions.AttributeError) as e:
+            log.critical(e.message)
+        except KeyboardInterrupt:
+            log.warning('Session canceled')
+            sys.exit();
 
-        # Threads : pool.workers.__len__()
-        # All urls : self.urls.__len__()
+        self.counter['total'] = self.urls.__len__()
+        self.counter['pools'] = pool.workers.__len__()
 
-        return
+        return self.counter
 
     def request(self, url):
         conn = urllib3.connection_from_url(url, maxsize=10, block=True, timeout=self.rest, retries=3)
@@ -78,32 +78,30 @@ class Http:
         except urllib3.exceptions.HostChangedError as e:
             HTTPResponse = None
             self.iterator = Progress.line(url + ' -> ' +e.message, self.urls.__len__(), 'warning', self.iterator)
-
+        except exceptions.AttributeError as e:
+            log.critical(e.message)
         time.sleep(self.delay)
         return self.response(HTTPResponse, url)
 
     def response(self, HTTPResponse, url):
         """Response handler"""
-        # print HTTPResponse.status
-        # print HTTPResponse.status
-        # print HTTPResponse.reason
-        # print HTTPResponse.pool
 
-        if HTTPResponse == None:
-            return
-
-        if HTTPResponse.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
-            self.iterator = Progress.line(url, self.urls.__len__(), 'success', self.iterator)
-        if HTTPResponse.status in self.DEFAULT_HTTP_UNRESOLVED_STATUSES:
-            self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
+        self.counter.update(("completed",))
         if HTTPResponse.status in self.DEFAULT_HTTP_FAILED_STATUSES:
             self.iterator = Progress.line(url, self.urls.__len__(), 'error', self.iterator)
-
-
-        # print HTTPResponse.status
-        # print HTTPResponse.version
-        # print HTTPResponse.reason
-        # print HTTPResponse.headers
+            self.counter.update(("failed",))
+        elif HTTPResponse.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
+            self.iterator = Progress.line(url, self.urls.__len__(), 'success', self.iterator)
+            self.counter.update(("success",))
+        elif HTTPResponse.status in self.DEFAULT_HTTP_UNRESOLVED_STATUSES:
+            self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
+            self.counter.update(("possible",))
+        elif HTTPResponse.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
+            self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
+            self.counter.update(("redirects",))
+        else:
+            self.counter.update(("undefined",))
+            return
 
     def __disable_verbose(self):
         """ Disbale verbose warnings info"""
@@ -114,8 +112,8 @@ class Http:
         """ Check if server is online"""
         try:
             socket.gethostbyname(host)
-            log.success('Server : '+ host +' is online')
-            log.success('Scanning ' + host + ' ...')
+            log.info('Server : '+ host +' is online')
+            log.info('Scanning ' + host + ' ...')
         except socket.error:
             log.critical('Oops Error occured, Server offline or invalid URL or response')
 
