@@ -1,5 +1,4 @@
-0.1.4-dev + 0 ) Check server available
-0.1.5-dev 3 ) Progress line
+0.2.6-dev - Handling timeouts
 
 1 ) Handling all possible exceptions
 2 ) Add debug level for HTTP httplib.HTTPConnection.debuglevel = 1

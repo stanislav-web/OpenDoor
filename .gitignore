@@ -1,6 +1,4 @@
 .idea
-Libraries/Filter.pyc
-Libraries/Http.pyc
-Libraries/Controller.pyc
-Libraries/Command.pyc
-/Libraries/FileReader.pyc
+*.pyc
+*~
+*.swp

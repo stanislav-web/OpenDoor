@@ -49,7 +49,9 @@ class Http:
         self.__parse_params(params)
 
         try:
-            urllib3.disable_warnings()
+            if hasattr(urllib3, 'disable_warnings'):
+                urllib3.disable_warnings()
+
             pool = threadpool.ThreadPool(self.threads)
             requests = threadpool.makeRequests(self.request, self.urls)
             for req in requests:
@@ -68,13 +70,16 @@ class Http:
         return self.counter
 
     def request(self, url):
-        conn = urllib3.connection_from_url(url, maxsize=10, block=True, timeout=self.rest, retries=3)
+        conn = urllib3.connection_from_url(url, maxsize=10, block=True, timeout=self.rest)
 
         headers = {
             'user-agent': self.reader.get_random_user_agent()
         }
         try :
             HTTPResponse = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers)
+        except urllib3.exceptions.ConnectTimeoutError as e:
+            HTTPResponse = None
+            self.iterator = Progress.line(url + ' -> ' + e.message, self.urls.__len__(), 'warning', self.iterator)
         except urllib3.exceptions.HostChangedError as e:
             HTTPResponse = None
             self.iterator = Progress.line(url + ' -> ' +e.message, self.urls.__len__(), 'warning', self.iterator)
@@ -87,21 +92,25 @@ class Http:
         """Response handler"""
 
         self.counter.update(("completed",))
-        if HTTPResponse.status in self.DEFAULT_HTTP_FAILED_STATUSES:
-            self.iterator = Progress.line(url, self.urls.__len__(), 'error', self.iterator)
-            self.counter.update(("failed",))
-        elif HTTPResponse.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
-            self.iterator = Progress.line(url, self.urls.__len__(), 'success', self.iterator)
-            self.counter.update(("success",))
-        elif HTTPResponse.status in self.DEFAULT_HTTP_UNRESOLVED_STATUSES:
-            self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
-            self.counter.update(("possible",))
-        elif HTTPResponse.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
-            self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
-            self.counter.update(("redirects",))
+        if hasattr(HTTPResponse, 'status'):
+            if HTTPResponse.status in self.DEFAULT_HTTP_FAILED_STATUSES:
+                self.iterator = Progress.line(url, self.urls.__len__(), 'error', self.iterator)
+                self.counter.update(("failed",))
+            elif HTTPResponse.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
+                self.iterator = Progress.line(url, self.urls.__len__(), 'success', self.iterator)
+                self.counter.update(("success",))
+            elif HTTPResponse.status in self.DEFAULT_HTTP_UNRESOLVED_STATUSES:
+                self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
+                self.counter.update(("possible",))
+            elif HTTPResponse.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
+                self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
+                self.counter.update(("redirects",))
+            else:
+                self.counter.update(("undefined",))
+                return
         else:
-            self.counter.update(("undefined",))
             return
+
 
     def __disable_verbose(self):
         """ Disbale verbose warnings info"""

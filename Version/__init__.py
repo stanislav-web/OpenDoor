@@ -5,6 +5,7 @@ try:
     import subprocess
     import os
     import urllib3
+    import httplib2
     from distutils.version import LooseVersion
 
     from colorama import init
@@ -27,6 +28,8 @@ def update():
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (out, error) = pr.communicate()
     log.success(str(out))
+    log.info(str(error))
+
 
 def get_license():
     config = FileReader().get_config()
@@ -56,8 +59,8 @@ def get_full_version():
 
 def get_remote_version():
     config = FileReader()
-
-    urllib3.disable_warnings()
+    if hasattr(urllib3, 'disable_warnings'):
+        urllib3.disable_warnings()
     http = urllib3.PoolManager()
     response = http.request('GET', config.get_config().get('info', 'setup'))
 
