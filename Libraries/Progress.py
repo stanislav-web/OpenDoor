@@ -5,12 +5,12 @@ class Progress:
     """Progress helper class"""
 
     @staticmethod
-    def line(message, countall, status, iterator):
+    def line(message, httpstatus, countall, status, iterator):
 
         iterator += 1
         iterator = int(iterator)
         indicator = iterator * 100 / countall;
 
-        getattr(Logger, '%s' % status)(str(indicator) + "% " + message)
+        getattr(Logger, '%s' % status)(str(indicator) + "% " + str(httpstatus) + " " + message)
         sys.stdout.flush()
         return iterator

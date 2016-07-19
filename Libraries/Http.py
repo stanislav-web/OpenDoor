@@ -30,7 +30,7 @@ class Http:
     DEFAULT_REQUEST_DELAY  = 0
     DEFAULT_HTTP_SUCCESS_STATUSES = [100,101,200,201,202,203,204,205,206,207,208]
     DEFAULT_HTTP_REDIRECT_STATUSES = [301,302,303,304,307,308]
-    DEFAULT_HTTP_FAILED_STATUSES = [404,500,501,502,503,504]
+    DEFAULT_HTTP_FAILED_STATUSES = [404,429,500,501,502,503,504]
     DEFAULT_HTTP_UNRESOLVED_STATUSES = [401,403]
 
     def __init__(self):
@@ -39,6 +39,8 @@ class Http:
         self.reader = FileReader()
         self.cpu_cnt = multiprocessing.cpu_count();
         self.counter = collections.Counter()
+        self.result = collections.defaultdict(list)
+        self.result.default_factory
 
     def get(self, host, params = ()):
         """Get metadata by url"""
@@ -66,10 +68,12 @@ class Http:
 
         self.counter['total'] = self.urls.__len__()
         self.counter['pools'] = pool.workers.__len__()
+        self.result['count'] = self.counter
 
-        return self.counter
+        return self.result
 
     def request(self, url):
+        """Request handler"""
         conn = urllib3.connection_from_url(url, maxsize=10, block=True, timeout=self.rest)
 
         headers = {
@@ -94,20 +98,22 @@ class Http:
         self.counter.update(("completed",))
         if hasattr(HTTPResponse, 'status'):
             if HTTPResponse.status in self.DEFAULT_HTTP_FAILED_STATUSES:
-                self.iterator = Progress.line(url, self.urls.__len__(), 'error', self.iterator)
+                self.iterator = Progress.line(url, HTTPResponse.status, self.urls.__len__(), 'error', self.iterator)
                 self.counter.update(("failed",))
             elif HTTPResponse.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
-                self.iterator = Progress.line(url, self.urls.__len__(), 'success', self.iterator)
+                self.iterator = Progress.line(url, HTTPResponse.status, self.urls.__len__(), 'success', self.iterator)
                 self.counter.update(("success",))
             elif HTTPResponse.status in self.DEFAULT_HTTP_UNRESOLVED_STATUSES:
-                self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
+                self.iterator = Progress.line(url, HTTPResponse.status, self.urls.__len__(), 'warning', self.iterator)
                 self.counter.update(("possible",))
             elif HTTPResponse.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
-                self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
+                self.iterator = Progress.line(url, HTTPResponse.status, self.urls.__len__(), 'warning', self.iterator)
                 self.counter.update(("redirects",))
             else:
                 self.counter.update(("undefined",))
                 return
+            self.result[HTTPResponse.status].append(url)
+
         else:
             return
 
