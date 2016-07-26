@@ -27,4 +27,10 @@ class Controller:
         exit()
 
     def url_action(self, url, params=()):
-        return Http().get(url, params)
+
+        http = Http();
+
+        response =  http.get(url, params)
+        count = response.get('count');
+        result = response.get('result');
+        print result

@@ -49,6 +49,7 @@ class Http:
         self.__disable_verbose();
         self.urls = self.__get_urls(host);
         self.__parse_params(params)
+        response = {};
 
         try:
             if hasattr(urllib3, 'disable_warnings'):
@@ -60,7 +61,7 @@ class Http:
                 pool.putRequest(req)
             time.sleep(1)
             pool.wait()
-        except (exceptions.AttributeError) as e:
+        except exceptions.AttributeError as e:
             log.critical(e.message)
         except KeyboardInterrupt:
             log.warning('Session canceled')
@@ -68,9 +69,11 @@ class Http:
 
         self.counter['total'] = self.urls.__len__()
         self.counter['pools'] = pool.workers.__len__()
-        self.result['count'] = self.counter
 
-        return self.result
+        response['count'] = self.counter
+        response['result'] = self.result
+
+        return response
 
     def request(self, url):
         """Request handler"""
