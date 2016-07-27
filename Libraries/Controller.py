@@ -1,6 +1,7 @@
 from Version import update, get_full_version;
 from Libraries import Http;
 from Logger import Logger as log
+from Progress import Progress
 
 class Controller:
     """Controller class"""
@@ -27,4 +28,7 @@ class Controller:
         exit()
 
     def url_action(self, url, params=()):
-        return Http().get(url, params)
+        result = Http().get(url, params);
+
+        Progress.view(result)
+        exit()
