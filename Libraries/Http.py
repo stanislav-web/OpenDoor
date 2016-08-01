@@ -117,7 +117,6 @@ class Http:
         else:
             return
 
-
     def __disable_verbose(self):
         """ Disbale verbose warnings info"""
         level = 'WARNING'
@@ -158,12 +157,3 @@ class Http:
             self.threads = self.cpu_cnt
             log.warning('Passed ' + str(self.cpu_cnt) + ' threads max for your possibility')
             pass
-
-
-
-
-# class DevNull:
-#     def write(self, msg):
-#         pass
-
-#sys.stderr = DevNull()

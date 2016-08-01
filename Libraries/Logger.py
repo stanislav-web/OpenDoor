@@ -13,60 +13,83 @@ class Logger:
     """Message helper class"""
 
     @staticmethod
-    def success(message):
-        currdate = datetime.now().strftime('[%Y-%m-%d %H:%M:%S] ')
-        date = colored(currdate, 'green')
+    def success(message, putdate=True):
+
         status = colored('SUCCESS', attrs = ['bold'])
         dot = ' : '
         message = colored(message, 'green')
-        output = "%s%s%s%s" % (date, status, dot, message)
+
+        if True == putdate:
+            currdate = datetime.now().strftime('[%Y-%m-%d %H:%M:%S] ')
+            date = colored(currdate, 'green')
+            output = "%s%s%s%s" % (date, status, dot, message)
+        else:
+            output = "%s" % (message)
         print (output)
         pass
 
     @staticmethod
-    def info(message):
+    def info(message, putdate=True):
         level = 'INFO'
-        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        if True == putdate:
+            coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        else:
+            coloredlogs.install(level=level, fmt='%(message)s')
         logger = Logger.log(level);
         logger.info(message);
         pass
 
     @staticmethod
-    def warning(message):
+    def warning(message, putdate=True):
         level = 'WARNING'
-        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        if True == putdate:
+            coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        else:
+            coloredlogs.install(level=level, fmt='%(message)s')
         logger = Logger.log(level);
         logger.warning(message);
         pass
 
     @staticmethod
-    def error(message):
+    def error(message, putdate=True):
         level = 'ERROR'
-        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        if True == putdate:
+            coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        else:
+            coloredlogs.install(level=level, fmt='%(message)s')
         logger = Logger.log(level);
         logger.error(message);
         pass
 
     @staticmethod
-    def critical(message):
+    def critical(message, putdate=True):
         level = 'CRITICAL'
-        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        if True == putdate:
+            coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        else:
+            coloredlogs.install(level=level, fmt='%(message)s')
         logger = Logger.log(level);
         logger.critical(message);
         exit();
 
     @staticmethod
-    def debug(message):
+    def debug(message, putdate=True):
         level = 'DEBUG'
-        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        if True == putdate:
+            coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        else:
+            coloredlogs.install(level=level, fmt='%(message)s')
         logger = Logger.log(level);
         logger.debug(message);
         pass
 
     @staticmethod
-    def verbose(message):
+    def verbose(message, putdate=True):
         level = 'VERBOSE'
-        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        if True == putdate:
+            coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        else:
+            coloredlogs.install(level=level, fmt='%(message)s')
         logger = Logger.log(level);
         logger.verbose(message);
         pass
