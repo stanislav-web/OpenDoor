@@ -8,7 +8,7 @@ class Filter:
     URL_REGEX = "^(?:[-A-Za-z0-9]+\.)+([A-Za-z]|(?u)\w){2,6}$"
 
     def call(self, Command):
-
+        """ Filter commands """
         args = Command.get_arg_values()
         filtered = {}
         for key, value in args.iteritems():
@@ -44,11 +44,17 @@ class Filter:
             type = 'dir'
         return type
 
+    def debug(self, debug):
+        return debug
+
     def delay(self, delay):
         return delay
 
     def rest(self, rest):
         return rest
+
+    def log(self, log):
+        return log
 
     def proxy(self):
         return True

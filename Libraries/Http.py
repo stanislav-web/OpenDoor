@@ -5,6 +5,7 @@ import logging
 import multiprocessing
 import exceptions
 import collections
+import httplib
 from Logger import Logger as log
 
 try:
@@ -26,6 +27,7 @@ class Http:
     DEFAULT_HTTP_METHOD = 'HEAD'
     DEFAULT_HTTP_PROTOCOL = 'http://'
     DEFAULT_THREADS = 1
+    DEFAULT_DEBUG_LEVEL = 0
     DEFAULT_REQUEST_TIMEOUT  = 10
     DEFAULT_REQUEST_DELAY  = 0
     DEFAULT_HTTP_SUCCESS_STATUSES = [100,101,200,201,202,203,204,205,206,207,208]
@@ -52,6 +54,8 @@ class Http:
         response = {};
 
         try:
+            httplib.HTTPConnection.debuglevel = self.debug
+
             if hasattr(urllib3, 'disable_warnings'):
                 urllib3.disable_warnings()
 
@@ -101,16 +105,16 @@ class Http:
         self.counter.update(("completed",))
         if hasattr(HTTPResponse, 'status'):
             if HTTPResponse.status in self.DEFAULT_HTTP_FAILED_STATUSES:
-                self.iterator = Progress.line(url, HTTPResponse.status, self.urls.__len__(), 'error', self.iterator)
+                self.iterator = Progress.line(url, self.urls.__len__(), 'error', self.iterator)
                 self.counter.update(("failed",))
             elif HTTPResponse.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
-                self.iterator = Progress.line(url, HTTPResponse.status, self.urls.__len__(), 'success', self.iterator)
+                self.iterator = Progress.line(url, self.urls.__len__(), 'success', self.iterator)
                 self.counter.update(("success",))
             elif HTTPResponse.status in self.DEFAULT_HTTP_UNRESOLVED_STATUSES:
-                self.iterator = Progress.line(url, HTTPResponse.status, self.urls.__len__(), 'warning', self.iterator)
+                self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
                 self.counter.update(("possible",))
             elif HTTPResponse.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
-                self.iterator = Progress.line(url, HTTPResponse.status, self.urls.__len__(), 'warning', self.iterator)
+                self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
                 self.counter.update(("redirects",))
             else:
                 self.counter.update(("undefined",))
@@ -119,7 +123,6 @@ class Http:
 
         else:
             return
-
 
     def __disable_verbose(self):
         """ Disbale verbose warnings info"""
@@ -156,17 +159,10 @@ class Http:
         self.threads = params.get('threads', self.DEFAULT_THREADS)
         self.rest = params.get('rest', self.DEFAULT_REQUEST_TIMEOUT)
         self.delay = params.get('delay', self.DEFAULT_REQUEST_DELAY)
+        self.debug = params.get('debug', self.DEFAULT_DEBUG_LEVEL)
         self.iterator = 0
+
         if self.cpu_cnt < self.threads:
             self.threads = self.cpu_cnt
             log.warning('Passed ' + str(self.cpu_cnt) + ' threads max for your possibility')
             pass
-
-
-
-
-# class DevNull:
-#     def write(self, msg):
-#         pass
-
-#sys.stderr = DevNull()

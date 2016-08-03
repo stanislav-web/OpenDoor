@@ -1,8 +1,12 @@
 from Version import update, get_full_version;
 from Libraries import Http;
 from Logger import Logger as log
+from Progress import Progress
 
 class Controller:
+
+    DEFAULT_LOGGING = False
+
     """Controller class"""
     def __init__(self, InputArguments):
 
@@ -28,9 +32,11 @@ class Controller:
 
     def url_action(self, url, params=()):
 
-        http = Http();
+        result = Http().get(url, params);
+        if result :
+            Progress.view(result)
+            isLogging =  params.get('log', self.DEFAULT_LOGGING)
 
-        response =  http.get(url, params)
-        count = response.get('count');
-        result = response.get('result');
-        print result
+            if True == isLogging:
+                log.syslog(url, result)
+        exit()

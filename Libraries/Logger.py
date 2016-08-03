@@ -1,5 +1,7 @@
 import sys
+import os
 from datetime import datetime
+import Http as Status
 
 try:
     import coloredlogs
@@ -13,62 +15,102 @@ class Logger:
     """Message helper class"""
 
     @staticmethod
-    def success(message):
-        currdate = datetime.now().strftime('[%Y-%m-%d %H:%M:%S] ')
-        date = colored(currdate, 'green')
-        status = colored('SUCCESS', attrs = ['bold'])
-        dot = ' : '
+    def success(message, showtime=True, showlevel=True):
+
+        if True == showtime:
+            asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
+        else:
+            asctime = ""
+        if True == showlevel:
+            level = colored('SUCCESS', attrs=['bold']) + " : "
+        else:
+            level = ""
+
         message = colored(message, 'green')
-        output = "%s%s%s%s" % (date, status, dot, message)
-        print (output)
+
+        print "%s%s%s" % (asctime, level, message)
         pass
 
     @staticmethod
-    def info(message):
+    def info(message, showtime=True, title=True):
         level = 'INFO'
-        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        if True == showtime:
+            coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        else:
+            coloredlogs.install(level=level, fmt='%(message)s')
         logger = Logger.log(level);
         logger.info(message);
         pass
 
     @staticmethod
-    def warning(message):
-        level = 'WARNING'
-        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
-        logger = Logger.log(level);
-        logger.warning(message);
+    def warning(message, showtime=True, showlevel=True):
+
+        if True == showtime:
+            asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
+        else:
+            asctime = ""
+        if True == showlevel:
+            level = colored('WARNING', attrs=['bold']) + " : "
+        else:
+            level = ""
+
+        message = colored(message, 'yellow')
+        print "%s%s%s" % (asctime, level, message)
         pass
 
     @staticmethod
-    def error(message):
-        level = 'ERROR'
-        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
-        logger = Logger.log(level);
-        logger.error(message);
+    def error(message, showtime=True, showlevel=True):
+
+        if True == showtime:
+            asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
+        else:
+            asctime = ""
+        if True == showlevel:
+            level = colored('ERROR', attrs=['bold']) + " : "
+        else:
+            level = ""
+
+        message = colored(message, 'red')
+        print "%s%s%s" % (asctime, level, message)
         pass
 
     @staticmethod
-    def critical(message):
+    def critical(message, showtime=True, title=True):
         level = 'CRITICAL'
-        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        if True == showtime:
+            coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        else:
+            coloredlogs.install(level=level, fmt='%(message)s')
         logger = Logger.log(level);
         logger.critical(message);
         exit();
 
     @staticmethod
-    def debug(message):
+    def debug(message, showtime=True):
         level = 'DEBUG'
-        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        if True == showtime:
+            coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+        else:
+            coloredlogs.install(level=level, fmt='%(message)s')
         logger = Logger.log(level);
         logger.debug(message);
         pass
 
     @staticmethod
-    def verbose(message):
-        level = 'VERBOSE'
-        coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
-        logger = Logger.log(level);
-        logger.verbose(message);
+    def verbose(message, showtime=True, showlevel=True):
+
+        if True == showtime:
+            asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
+        else:
+            asctime = ""
+        if True == showlevel:
+            level = colored('VERBOSE', attrs=['bold']) + " : "
+        else:
+            level = ""
+
+        message = colored(message, 'blue')
+
+        print "%s%s%s" % (asctime, level, message)
         pass
 
     @classmethod
@@ -89,3 +131,36 @@ class Logger:
         logger.setLevel(getattr(logging, level))
 
         return logger
+
+    @staticmethod
+    def syslog(key, params):
+
+        path = os.path.join('Logs', key);
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        params.pop("count", None)
+        result = params.get('result')
+
+        for status in result:
+
+            if status in Status.Http.DEFAULT_HTTP_REDIRECT_STATUSES:
+                # have redirects urls log
+                file = open(os.path.join(path, 'redirects.log'), 'w')
+                for url in result[status]:
+                    file.write("%s\n" % url)
+                file.close()
+
+            if status in Status.Http.DEFAULT_HTTP_UNRESOLVED_STATUSES:
+                # unresolved urls log
+                file = open(os.path.join(path, 'possible.log'), 'w')
+                for url in result[status]:
+                    file.write("%s\n" % url)
+                file.close()
+
+            if status in Status.Http.DEFAULT_HTTP_SUCCESS_STATUSES:
+                # success urls print
+                file = open(os.path.join(path, 'success.log'), 'w')
+                for url in result[status]:
+                    file.write("%s\n" % url)
+                file.close()
