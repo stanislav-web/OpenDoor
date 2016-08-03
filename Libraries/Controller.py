@@ -29,6 +29,6 @@ class Controller:
 
     def url_action(self, url, params=()):
         result = Http().get(url, params);
-
-        Progress.view(result)
-        exit()
+        if result :
+            Progress.view(result)
+            exit()

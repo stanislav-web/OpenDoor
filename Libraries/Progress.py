@@ -16,14 +16,14 @@ class Progress:
     """Progress helper class"""
 
     @staticmethod
-    def line(message, httpstatus, countall, status, iterator):
+    def line(message, countall, status, iterator):
         """Progress line"""
 
         iterator += 1
         iterator = int(iterator)
         indicator = iterator * 100 / countall;
 
-        getattr(Logger, '%s' % status)(str(indicator) + "% " + str(httpstatus) + " " + message)
+        getattr(Logger, '%s' % status)(str(indicator) + "% " + message)
         sys.stdout.flush()
         return iterator
 
@@ -33,7 +33,6 @@ class Progress:
 
         count = result.get('count').items()
         result.pop("count", None)
-
         for status in result:
 
             if status in Status.Http.DEFAULT_HTTP_FAILED_STATUSES:

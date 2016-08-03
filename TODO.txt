@@ -1,6 +1,8 @@
 - Handling all possible exceptions
-- Add debug level for HTTP httplib.HTTPConnection.debuglevel = 1
 - Log result
+- sub checks
 - Follow redirects http://www.diveintopython.net/http_web_services/redirects.html
 - Add examples
 - Tests
+- Add proxy
+- Fill readme

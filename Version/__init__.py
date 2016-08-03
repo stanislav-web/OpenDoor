@@ -87,12 +87,11 @@ def get_subdomains_count():
 def get_examples():
     examples = """
     Examples:
-        ./opendoor.py --url "http://owasp.com"
-        ./opendoor.py --url "http://owasp.com" --threads 10
-        ./opendoor.py --url "http://owasp.com" --threads 10 --check="dir" (sub)
-        ./opendoor.py --url "http://owasp.com" --threads 1 --dalay 10 --check="dir" (sub. dir is default)
-        ./opendoor.py --url "http://owasp.com" --threads 1 --dalay 10 --random-agents
-        ./opendoor.py --url "http://owasp.com" --threads 1 --dalay 10 --random-agents --proxy-list="proxy.dat"
+        python ./opendoor.py --url "http://joomla-ua.org"
+        python ./opendoor.py --url "http://joomla-ua.org" --threads 10
+        python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10
+        python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10 --rest 10
+        python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10 --rest 10 --debug 1
         """
     return examples
 
