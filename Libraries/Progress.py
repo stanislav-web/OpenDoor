@@ -55,7 +55,7 @@ class Progress:
 
             if status in Status.Http.DEFAULT_HTTP_SUCCESS_STATUSES:
                 # success urls print
-                print colored('SUCCESS ', 'green', attrs=['bold'], showtime=False, showlevel=False)
+                print colored('SUCCESS ', 'green', attrs=['bold'])
                 for url in result[status]:
                     Logger.success(str(status) + " : " + url, showtime=False, showlevel=False);
 

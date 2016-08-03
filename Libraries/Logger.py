@@ -16,13 +16,13 @@ class Logger:
 
     @staticmethod
     def success(message, showtime=True, showlevel=True):
-
+        level = 'SUCCESS'
         if True == showtime:
             asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
         else:
             asctime = ""
         if True == showlevel:
-            level = colored('SUCCESS', attrs=['bold']) + " : "
+            level = colored(level=level, attrs=['bold']) + " : "
         else:
             level = ""
 
@@ -44,13 +44,13 @@ class Logger:
 
     @staticmethod
     def warning(message, showtime=True, showlevel=True):
-
+        level = 'WARNING'
         if True == showtime:
             asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
         else:
             asctime = ""
         if True == showlevel:
-            level = colored('WARNING', attrs=['bold']) + " : "
+            level = colored(level=level, attrs=['bold']) + " : "
         else:
             level = ""
 
@@ -60,13 +60,13 @@ class Logger:
 
     @staticmethod
     def error(message, showtime=True, showlevel=True):
-
+        level = 'ERROR'
         if True == showtime:
             asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
         else:
             asctime = ""
         if True == showlevel:
-            level = colored('ERROR', attrs=['bold']) + " : "
+            level = colored(level=level, attrs=['bold']) + " : "
         else:
             level = ""
 
