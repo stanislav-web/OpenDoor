@@ -64,3 +64,6 @@ class Filter:
 
     def version(self, noarg):
         pass
+
+    def examples(self, noarg):
+        pass

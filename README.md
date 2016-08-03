@@ -22,6 +22,7 @@ sudo pip install linereader urllib3 threadpool coloredlogs termcolor logging ver
 * multithreading
 * filesystem log
 * detect redirects
+* random user agent
 * verbose mode
 
 ##### Changelog
@@ -33,6 +34,9 @@ sudo pip install linereader urllib3 threadpool coloredlogs termcolor logging ver
 
 *v1.2.1*
     - add filesystem logger (param --log )
+
+*v1.2.2*
+    - add example of usage (param --examples )
 
 ##### Basic usage
 ```

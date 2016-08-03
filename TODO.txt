@@ -1,8 +1,5 @@
-- Handling all possible exceptions
-- Log result
 - sub checks
 - Follow redirects http://www.diveintopython.net/http_web_services/redirects.html
-- Add examples
 - Tests
 - Add proxy
 - Fill readme

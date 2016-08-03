@@ -40,3 +40,18 @@ class Controller:
             if True == isLogging:
                 log.syslog(url, result)
         exit()
+
+    def examples_action(self):
+        examples = """
+            Examples:
+                python ./opendoor.py  --examples
+                python ./opendoor.py  --update
+                python ./opendoor.py  --version
+                python ./opendoor.py --url "http://joomla-ua.org"
+                python ./opendoor.py --url "http://joomla-ua.org" --threads 10
+                python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10
+                python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10 --rest 10
+                python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10 --rest 10 --debug 1
+                python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10 --rest 10 --debug 1 --log
+            """
+        exit(examples)

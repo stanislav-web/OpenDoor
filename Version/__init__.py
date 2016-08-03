@@ -83,18 +83,6 @@ def get_directories_count():
 def get_subdomains_count():
     return FileReader().get_file_data('subdomains').__len__()
 
-def get_examples():
-    examples = """
-    Examples:
-        python ./opendoor.py --url "http://joomla-ua.org"
-        python ./opendoor.py --url "http://joomla-ua.org" --threads 10
-        python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10
-        python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10 --rest 10
-        python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10 --rest 10 --debug 1
-        python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10 --rest 10 --debug 1 --log
-        """
-    return examples
-
 def print_banner():
     banner = """
     ############################################################
