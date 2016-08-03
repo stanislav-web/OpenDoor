@@ -63,7 +63,6 @@ def get_remote_version():
         urllib3.disable_warnings()
     http = urllib3.PoolManager()
     response = http.request('GET', config.get_config().get('info', 'setup'))
-
     config = config.get_config_raw(response.data)
     return config.get('info', 'version')
 

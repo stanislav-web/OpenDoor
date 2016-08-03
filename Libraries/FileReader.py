@@ -51,10 +51,12 @@ class FileReader:
 
     def get_config_raw(self, s_config):
         buf = StringIO.StringIO(s_config)
-        config = ConfigParser.ConfigParser()
-        config.readfp(buf)
-        return config
-
+        try:
+            config = ConfigParser.ConfigParser()
+            config.readfp(buf)
+            return config
+        except ConfigParser.Error as e:
+            log.critical(e.message)
 
     def get_user_agent(self):
         user_agent = self.__useragents[0]
