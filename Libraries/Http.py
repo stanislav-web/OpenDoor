@@ -102,7 +102,10 @@ class Http:
             HTTPResponse = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers)
         except (urllib3.exceptions.ConnectTimeoutError ,
                 urllib3.exceptions.MaxRetryError,
-                urllib3.exceptions.HostChangedError ) as e:
+                urllib3.exceptions.HostChangedError,
+                urllib3.exceptions.ReadTimeoutError,
+                urllib3.exceptions.ProxyError
+                ) as e:
             HTTPResponse = None
             self.iterator = Progress.line(url + ' -> ' + e.message, self.urls.__len__(), 'warning', self.iterator)
         except exceptions.AttributeError as e:

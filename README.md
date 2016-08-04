@@ -37,6 +37,7 @@ sudo pip install -r requirements.txt
 * *v1.3.2* - added posibility to use random proxy from proxylist (param --proxy)
 * *v1.3.3* - simplify dependency installation    
 * *v1.3.4* - added code quality watcher    
+* *v1.3.5* - added ReadTimeoutError ProxyError handlers
 
 ##### Basic usage
 ```
