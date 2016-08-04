@@ -23,6 +23,7 @@ sudo pip install linereader urllib3 threadpool coloredlogs termcolor logging ver
 * filesystem log
 * detect redirects
 * random user agent
+* random proxy from proxy list
 * verbose mode
 
 ##### Changelog
