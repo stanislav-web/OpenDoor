@@ -49,6 +49,7 @@ class Controller:
                 python ./opendoor.py  --version
                 python ./opendoor.py --url "http://joomla-ua.org"
                 python ./opendoor.py --url "http://joomla-ua.org" --threads 10
+                python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --proxy
                 python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10
                 python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10 --rest 10
                 python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10 --rest 10 --debug 1

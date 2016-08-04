@@ -22,7 +22,7 @@ class Logger:
         else:
             asctime = ""
         if True == showlevel:
-            level = colored(level=level, attrs=['bold']) + " : "
+            level = colored(level, attrs=['bold']) + " : "
         else:
             level = ""
 
@@ -50,7 +50,7 @@ class Logger:
         else:
             asctime = ""
         if True == showlevel:
-            level = colored(level=level, attrs=['bold']) + " : "
+            level = colored(level, attrs=['bold']) + " : "
         else:
             level = ""
 
@@ -66,7 +66,7 @@ class Logger:
         else:
             asctime = ""
         if True == showlevel:
-            level = colored(level=level, attrs=['bold']) + " : "
+            level = colored(level, attrs=['bold']) + " : "
         else:
             level = ""
 
@@ -82,8 +82,7 @@ class Logger:
         else:
             coloredlogs.install(level=level, fmt='%(message)s')
         logger = Logger.log(level);
-        logger.critical(message);
-        exit();
+        sys.exit(logger.critical(message));
 
     @staticmethod
     def debug(message, showtime=True):

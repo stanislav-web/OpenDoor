@@ -23,6 +23,7 @@ class FileReader:
             log.critical(e.message)
 
         self.__useragents = self.get_file_data('useragents')
+        self.__proxy = self.get_file_data('proxy')
         self.__directories = self.get_file_data('directories')
         self.__subdomains = self.get_file_data('subdomains')
 
@@ -66,3 +67,8 @@ class FileReader:
 
         index = randrange(0,len(self.__useragents))
         return self.__useragents[index].rstrip()
+
+    def get_random_proxy(self):
+
+        index = randrange(0,len(self.__proxy))
+        return self.__proxy[index].rstrip()

@@ -56,8 +56,8 @@ class Filter:
     def log(self, log):
         return log
 
-    def proxy(self):
-        return True
+    def proxy(self, proxy):
+        return proxy
 
     def update(self, noarg):
         pass

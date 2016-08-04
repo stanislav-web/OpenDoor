@@ -30,6 +30,7 @@ class Http:
     DEFAULT_DEBUG_LEVEL = 0
     DEFAULT_REQUEST_TIMEOUT  = 10
     DEFAULT_REQUEST_DELAY  = 0
+    DEFAULT_USE_PROXY = False
     DEFAULT_HTTP_SUCCESS_STATUSES = [100,101,200,201,202,203,204,205,206,207,208]
     DEFAULT_HTTP_REDIRECT_STATUSES = [301,302,303,304,307,308]
     DEFAULT_HTTP_FAILED_STATUSES = [404,429,500,501,502,503,504]
@@ -81,7 +82,15 @@ class Http:
 
     def request(self, url):
         """Request handler"""
-        conn = urllib3.connection_from_url(url, maxsize=10, block=True, timeout=self.rest)
+
+        if True == self.proxy:
+            proxyserver = self.reader.get_random_proxy()
+            try:
+                conn = urllib3.proxy_from_url(proxyserver, maxsize=10, block=True, timeout=self.rest)
+            except urllib3.exceptions.ProxySchemeUnknown as e:
+                log.critical(e.message + ": " + proxyserver)
+        else:
+            conn = urllib3.connection_from_url(url, maxsize=10, block=True, timeout=self.rest)
 
         headers = {
             'accept-encoding' :'gzip, deflate, sdch',
@@ -91,14 +100,16 @@ class Http:
         }
         try :
             HTTPResponse = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers)
-        except urllib3.exceptions.ConnectTimeoutError as e:
+        except (urllib3.exceptions.ConnectTimeoutError ,
+                urllib3.exceptions.MaxRetryError,
+                urllib3.exceptions.HostChangedError ) as e:
             HTTPResponse = None
             self.iterator = Progress.line(url + ' -> ' + e.message, self.urls.__len__(), 'warning', self.iterator)
-        except urllib3.exceptions.HostChangedError as e:
-            HTTPResponse = None
-            self.iterator = Progress.line(url + ' -> ' +e.message, self.urls.__len__(), 'warning', self.iterator)
         except exceptions.AttributeError as e:
             log.critical(e.message)
+        except TypeError as e:
+            log.critical(e.message)
+
         time.sleep(self.delay)
         return self.response(HTTPResponse, url)
 
@@ -166,6 +177,7 @@ class Http:
         self.rest = params.get('rest', self.DEFAULT_REQUEST_TIMEOUT)
         self.delay = params.get('delay', self.DEFAULT_REQUEST_DELAY)
         self.debug = params.get('debug', self.DEFAULT_DEBUG_LEVEL)
+        self.proxy = params.get('proxy', self.DEFAULT_USE_PROXY)
         self.iterator = 0
 
         if self.cpu_cnt < self.threads:
