@@ -40,8 +40,8 @@ class Filter:
         return threads
 
     def check(self, type):
-        if type not in ['dir', 'sub']:
-            type = 'dir'
+        if type not in ['directories', 'subdomains']:
+            type = 'directories'
         return type
 
     def debug(self, debug):

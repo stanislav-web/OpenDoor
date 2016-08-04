@@ -31,6 +31,7 @@ class Http:
     DEFAULT_REQUEST_TIMEOUT  = 10
     DEFAULT_REQUEST_DELAY  = 0
     DEFAULT_USE_PROXY = False
+    DEFAULT_CHECK = 'directories'
     DEFAULT_HTTP_SUCCESS_STATUSES = [100,101,200,201,202,203,204,205,206,207,208]
     DEFAULT_HTTP_REDIRECT_STATUSES = [301,302,303,304,307,308]
     DEFAULT_HTTP_FAILED_STATUSES = [404,429,500,501,502,503,504]
@@ -50,8 +51,8 @@ class Http:
 
         self.__is_server_online(host)
         self.__disable_verbose();
-        self.urls = self.__get_urls(host);
         self.__parse_params(params)
+        self.urls = self.__get_urls(host);
         response = {};
 
         try:
@@ -160,8 +161,13 @@ class Http:
 
     def __get_urls(self, host):
         """Get urls"""
-        dirs = self.reader.get_file_data('directories');
-        urls = self.__urls_resolves(host, dirs);
+
+        lines = self.reader.get_file_data(self.check);
+
+        if self.DEFAULT_CHECK == self.check:
+            urls = self.__urls_resolves(host, lines);
+        else:
+            urls = self.__subdomains_resolves(host, lines);
         return urls
 
     def __urls_resolves(self, host, directories):
@@ -174,6 +180,14 @@ class Http:
             resolve_dirs.append(self.DEFAULT_HTTP_PROTOCOL + host + path)
         return resolve_dirs
 
+    def __subdomains_resolves(self, host, subdomains):
+        """Subdomains path resolve"""
+        resolve_subs = []
+        for sub in subdomains:
+            sub = sub.replace("\n", "")
+            resolve_subs.append(self.DEFAULT_HTTP_PROTOCOL + sub + "." + host)
+        return resolve_subs
+
     def __parse_params(self, params):
         """Parse additional params"""
         self.threads = params.get('threads', self.DEFAULT_THREADS)
@@ -181,6 +195,7 @@ class Http:
         self.delay = params.get('delay', self.DEFAULT_REQUEST_DELAY)
         self.debug = params.get('debug', self.DEFAULT_DEBUG_LEVEL)
         self.proxy = params.get('proxy', self.DEFAULT_USE_PROXY)
+        self.check = params.get('check', self.DEFAULT_CHECK)
         self.iterator = 0
 
         if self.cpu_cnt < self.threads:

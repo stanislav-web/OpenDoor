@@ -16,7 +16,7 @@ class Command:
             parser.add_argument('--update', default=False, action='store_true', help="Update from version control")
             parser.add_argument('--examples', default=False, action='store_true', help="Examples of usage")
             parser.add_argument('-v', '--version', default=False, action='store_true', help="Get current version")
-            parser.add_argument('-c', '--check', help="Directory scan eg --check=dir or subdomains --check=sub (Not implement yet, dir by default)")
+            parser.add_argument('-c', '--check', help="Directory scan eg --check=directories or subdomains --check=subdomains (Not implement yet, directories by default)")
             parser.add_argument('-t', '--threads', help="Allowed threads", type=int)
             parser.add_argument('-d', '--delay', help="Delay between requests", type=int)
             parser.add_argument('-r', '--rest', help="Request timeout ", type=int)
