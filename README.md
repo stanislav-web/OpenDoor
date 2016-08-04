@@ -2,6 +2,8 @@ OWASP Directory Access scanner
 ==================================
 ![Alt text](http://dl2.joxi.net/drive/2016/08/04/0001/0378/90490/90/4b4470c268.jpg "Hackware")
 
+[![Code Issues](https://www.quantifiedcode.com/api/v1/project/19d4e9523661432c8fcdc640c1000f94/badge.svg)](https://www.quantifiedcode.com/app/project/19d4e9523661432c8fcdc640c1000f94)
+
 This application scans the site directories and find all possible ways to login, empty directories and entry points.
 Scans conducted in the dictionary that is included in this application.
 This software is written for informational purposes and is an open source product under the GPL license.
@@ -9,6 +11,7 @@ This software is written for informational purposes and is an open source produc
 ***Testing of the software on the commercial systems and organizations is prohibited!***
 
 ![Alt text](http://dl2.joxi.net/drive/2016/08/04/0001/0378/90490/90/a33fce8024.jpg "Hackware")
+
 
 ##### Requirements
 * Python 2.7.x
@@ -33,6 +36,7 @@ sudo pip install -r requirements.txt
 * *v1.2.2* - added example of usage (param --examples)
 * *v1.3.2* - added posibility to use random proxy from proxylist (param --proxy)
 * *v1.3.3* - simplify dependency installation    
+* *v1.3.4* - added code quality watcher    
 
 ##### Basic usage
 ```

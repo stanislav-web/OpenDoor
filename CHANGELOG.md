@@ -3,4 +3,5 @@
 * *v1.2.1* - added filesystem logger (param --log)
 * *v1.2.2* - added example of usage (param --examples)
 * *v1.3.2* - added posibility to use random proxy from proxylist (param --proxy)
-* *v1.3.3* - simplify dependency installation   
+* *v1.3.3* - simplify dependency installation
+* *v1.3.4* - added code quality watcher    
