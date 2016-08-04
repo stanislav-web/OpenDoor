@@ -3,3 +3,5 @@
 *~
 *.swp
 /TODO.txt
+/Data/directories.dat
+Logs/

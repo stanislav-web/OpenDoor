@@ -84,6 +84,9 @@ class Http:
         conn = urllib3.connection_from_url(url, maxsize=10, block=True, timeout=self.rest)
 
         headers = {
+            'accept-encoding' :'gzip, deflate, sdch',
+            'accept-language' : 'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4,uk;q=0.2,es;q=0.2',
+            'cache-control' : 'no-cache',
             'user-agent': self.reader.get_random_user_agent()
         }
         try :
@@ -101,6 +104,9 @@ class Http:
 
     def response(self, HTTPResponse, url):
         """Response handler"""
+
+        # TODO
+        #print HTTPResponse.getheader('content-length');
 
         self.counter.update(("completed",))
         if hasattr(HTTPResponse, 'status'):
