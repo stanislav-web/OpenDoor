@@ -1,3 +1,0 @@
-- sub checks
-- Follow redirects http://www.diveintopython.net/http_web_services/redirects.html
-- Tests

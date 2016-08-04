@@ -13,9 +13,9 @@ This software is written for informational purposes and is an open source produc
 ##### Requirements
 * Python 2.7.x
 
-##### Dependencies
+##### Install Dependencies
 ```
-sudo pip install linereader urllib3 threadpool coloredlogs termcolor logging verboselogs tabulate
+sudo pip install -r requirements.txt
 ```
 
 ##### Implements

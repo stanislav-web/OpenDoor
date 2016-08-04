@@ -1,0 +1,8 @@
+urllib3
+threadpool
+linereader
+coloredlogs
+termcolor
+logging
+verboselogs
+tabulate
