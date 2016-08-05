@@ -100,14 +100,14 @@ class Http:
             'user-agent': self.reader.get_random_user_agent()
         }
         try :
-            HTTPResponse = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers)
+            response = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers)
         except (urllib3.exceptions.ConnectTimeoutError ,
                 urllib3.exceptions.MaxRetryError,
                 urllib3.exceptions.HostChangedError,
                 urllib3.exceptions.ReadTimeoutError,
                 urllib3.exceptions.ProxyError
                 ) as e:
-            HTTPResponse = None
+            response = None
             self.iterator = Progress.line(url + ' -> ' + e.message, self.urls.__len__(), 'warning', self.iterator)
         except exceptions.AttributeError as e:
             log.critical(e.message)
@@ -115,32 +115,29 @@ class Http:
             log.critical(e.message)
 
         time.sleep(self.delay)
-        return self.response(HTTPResponse, url)
+        return self.response(response, url)
 
-    def response(self, HTTPResponse, url):
+    def response(self, response, url):
         """Response handler"""
 
-        # TODO
-        #print HTTPResponse.getheader('content-length');
-
         self.counter.update(("completed",))
-        if hasattr(HTTPResponse, 'status'):
-            if HTTPResponse.status in self.DEFAULT_HTTP_FAILED_STATUSES:
+        if hasattr(response, 'status'):
+            if response.status in self.DEFAULT_HTTP_FAILED_STATUSES:
                 self.iterator = Progress.line(url, self.urls.__len__(), 'error', self.iterator)
                 self.counter.update(("failed",))
-            elif HTTPResponse.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
+            elif response.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
                 self.iterator = Progress.line(url, self.urls.__len__(), 'success', self.iterator)
                 self.counter.update(("success",))
-            elif HTTPResponse.status in self.DEFAULT_HTTP_UNRESOLVED_STATUSES:
+            elif response.status in self.DEFAULT_HTTP_UNRESOLVED_STATUSES:
                 self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
                 self.counter.update(("possible",))
-            elif HTTPResponse.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
+            elif response.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
                 self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
                 self.counter.update(("redirects",))
             else:
                 self.counter.update(("undefined",))
                 return
-            self.result[HTTPResponse.status].append(url)
+            self.result[response.status].append(url)
 
         else:
             return

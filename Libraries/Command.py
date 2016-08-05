@@ -11,8 +11,8 @@ class Command:
         try:
             parser = ThrowingArgumentParser(description=__doc__,
                                             formatter_class=RawDescriptionHelpFormatter)
-            requiredNamed = parser.add_argument_group('required named arguments')
-            requiredNamed.add_argument('-u', '--url', help="URL or page to scan; -u http://example.com")
+            required_named = parser.add_argument_group('required named arguments')
+            required_named.add_argument('-u', '--url', help="URL or page to scan; -u http://example.com")
             parser.add_argument('--update', default=False, action='store_true', help="Update from version control")
             parser.add_argument('--examples', default=False, action='store_true', help="Examples of usage")
             parser.add_argument('-v', '--version', default=False, action='store_true', help="Get current version")

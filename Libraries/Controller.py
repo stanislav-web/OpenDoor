@@ -35,9 +35,9 @@ class Controller:
         result = Http().get(url, params);
         if result :
             Progress.view(result)
-            isLogging =  params.get('log', self.DEFAULT_LOGGING)
+            is_logging =  params.get('log', self.DEFAULT_LOGGING)
 
-            if True == isLogging:
+            if True == is_logging:
                 log.syslog(url, result)
         exit()
 

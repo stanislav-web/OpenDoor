@@ -1,3 +1,11 @@
+"""
+This example module shows various types of documentation available for use
+with pydoc.  To generate HTML documentation for this module issue the
+command:
+
+    pydoc -w foo
+
+"""
 from Libraries.Logger import Logger as log
 
 try:
@@ -82,7 +90,7 @@ def get_directories_count():
 def get_subdomains_count():
     return FileReader().get_file_data('subdomains').__len__()
 
-def print_banner():
+def banner():
     banner = """
     ############################################################
     #                                                          #

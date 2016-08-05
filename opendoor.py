@@ -18,16 +18,14 @@
 #    Stanislav Menshov (Stanislav WEB) since version 1.0
 
 from Libraries import Command, Filter, Controller;
-from Version import print_banner;
+from Version import banner;
 
-print_banner()
+banner()
 
-# Init libraries
-Command = Command();
-Filter = Filter();
-InputArguments = []
+command = Command();
+filter = Filter();
+args = []
 
-# Parse input arguments
-if Command.get_arg_values():
-    InputArguments = Filter.call(Command)
-    Controller(InputArguments)
+if command.get_arg_values():
+    args = filter.call(command)
+    Controller(args)
