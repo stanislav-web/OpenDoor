@@ -17,13 +17,13 @@
 #
 #    Stanislav Menshov (Stanislav WEB) since version 1.0
 
-from Libraries import Command, Filter, Controller;
+from Libraries import Command, Filter as FilterArgs, Controller;
 from Version import banner;
 
 banner()
 
 command = Command();
-filter = Filter();
+filter = FilterArgs();
 args = []
 
 if command.get_arg_values():

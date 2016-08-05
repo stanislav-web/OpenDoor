@@ -4,10 +4,10 @@ from Logger import Logger as log
 from Progress import Progress
 
 class Controller:
+    """Controller class"""
 
     DEFAULT_LOGGING = False
 
-    """Controller class"""
     def __init__(self, InputArguments):
 
         for action, args in InputArguments.iteritems():
