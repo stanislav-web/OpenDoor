@@ -39,25 +39,25 @@ class Progress:
                 # failed urls print
                 print colored('FAILED ', 'red', attrs=['bold'])
                 for url in result[status]:
-                    Logger.error(str(status) + " : " + url, showtime=False, showlevel=False);
+                    Logger.error('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
             if status in Status.Http.DEFAULT_HTTP_REDIRECT_STATUSES:
                 # have redirects urls print
                 print colored('REDIRECTS ', 'yellow', attrs=['bold'])
                 for url in result[status]:
-                    Logger.verbose(str(status) + " : " + url, showtime=False, showlevel=False);
+                    Logger.verbose('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
             if status in Status.Http.DEFAULT_HTTP_UNRESOLVED_STATUSES:
                 # unresolved urls print
                 print colored('POSSIBLE ', 'yellow', attrs=['bold'])
                 for url in result[status]:
-                    Logger.warning(str(status) + " : " + url, showtime=False, showlevel=False);
+                    Logger.warning('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
             if status in Status.Http.DEFAULT_HTTP_SUCCESS_STATUSES:
                 # success urls print
                 print colored('SUCCESS ', 'green', attrs=['bold'])
                 for url in result[status]:
-                    Logger.success(str(status) + " : " + url, showtime=False, showlevel=False);
+                    Logger.success('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
         print tabulate(count, headers=[colored('Statistics', attrs=['bold']),colored('Summary', attrs=['bold'])], tablefmt="fancy_grid")
         sys.exit

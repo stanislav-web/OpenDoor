@@ -9,4 +9,6 @@ class ThrowingArgumentParser(ArgumentParser):
 
     @staticmethod
     def error(message):
+        """Error raiser"""
+
         raise ArgumentParserError(message)

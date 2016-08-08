@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='opendoor',
-    version='1.3.51',
+    version='1.3.52',
     packages=['opendoor'],
     url='https://github.com/stanislav-web/OpenDoor',
     license='GPL',

@@ -29,6 +29,7 @@ class FileReader:
 
     def get_file_data(self, target):
         """ Get target file data"""
+
         file_path = self.config.get('opendoor', target)
         file = os.path.join(os.getcwd(), file_path);
         if not os.path.isfile(file):
@@ -41,6 +42,8 @@ class FileReader:
 
     @staticmethod
     def get_config():
+        """ Get configuration file data """
+
         config = ConfigParser.RawConfigParser()
 
         config_file = os.path.join(os.getcwd(), 'setup.cfg');
@@ -57,6 +60,8 @@ class FileReader:
 
     @staticmethod
     def get_config_raw(s_config):
+        """ Get configuration file data as raw format"""
+
         buf = StringIO.StringIO(s_config)
         try:
             config = ConfigParser.ConfigParser()
@@ -65,16 +70,14 @@ class FileReader:
         except ConfigParser.Error as e:
             log.critical(e.message)
 
-    def get_user_agent(self):
-        user_agent = self.__useragents[0]
-        return user_agent
-
     def get_random_user_agent(self):
+        """ Get random user agent from user-agents list"""
 
         index = randrange(0,len(self.__useragents))
         return self.__useragents[index].rstrip()
 
     def get_random_proxy(self):
+        """ Get random proxy from proxy list"""
 
         index = randrange(0,len(self.__proxy))
         return self.__proxy[index].rstrip()

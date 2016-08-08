@@ -44,8 +44,7 @@ class Controller:
         exit()
 
     @staticmethod
-
-    def examples_action(self):
+    def examples_action():
         examples = """
             Examples:
                 python ./opendoor.py  --examples

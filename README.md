@@ -39,6 +39,7 @@ sudo pip install -r requirements.txt
 * *v1.3.4* - added code quality watcher    
 * *v1.3.5* - added ReadTimeoutError ProxyError handlers
 * *v1.3.51* - fixed code style, resolve file read errors
+* *v1.3.52* - code docstyle added
 
 ##### Basic usage
 ```

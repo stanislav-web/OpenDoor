@@ -31,6 +31,8 @@ CMD = '/usr/bin/git pull origin master'
 
 
 def update():
+    """ Checking for app update"""
+
     log.success('Checking for updates...')
     pr = subprocess.Popen(CMD, cwd=os.getcwd(),
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -40,14 +42,20 @@ def update():
 
 
 def get_license():
+    """ Show license """
+
     config = FileReader().get_config()
     return config.get('info', 'license')
 
 def get_local_version():
+    """ Show local version """
+
     config = FileReader().get_config()
     return config.get('info', 'version')
 
 def get_full_version():
+    """ Show full-version banner"""
+
     config = FileReader().get_config()
 
     banner = """
@@ -66,6 +74,8 @@ def get_full_version():
     return banner
 
 def get_remote_version():
+    """ Show remote version """
+
     config = FileReader()
     if hasattr(urllib3, 'disable_warnings'):
         urllib3.disable_warnings()
@@ -75,6 +85,8 @@ def get_remote_version():
     return config.get('info', 'version')
 
 def get_current_version():
+    """ Get current app version """
+
     remote = get_remote_version()
     local = get_local_version()
 
@@ -85,18 +97,27 @@ def get_current_version():
     return version
 
 def get_directories_count():
+    """ Get directories counter from directories list"""
+
     return FileReader().get_file_data('directories').__len__()
 
 def get_subdomains_count():
+    """ Get subdomains counter from subdomains list"""
+
     return FileReader().get_file_data('subdomains').__len__()
 
 def get_user_agents_count():
+    """ Get user agents counter from user-agents list"""
+
     return FileReader().get_file_data('useragents').__len__()
 
 def get_proxy_count():
+    """ Get proxy counter from proxy list """
+
     return FileReader().get_file_data('proxy').__len__()
 
 def banner():
+    """ Load application banner """
     banner = """
     ############################################################
     #                                                          #

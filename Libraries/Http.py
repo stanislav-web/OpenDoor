@@ -145,12 +145,14 @@ class Http:
     @staticmethod
     def __disable_verbose():
         """ Disbale verbose warnings info"""
+
         level = 'WARNING'
         logging.getLogger("urllib3").setLevel(level)
 
     @staticmethod
     def __is_server_online(host):
         """ Check if server is online"""
+
         try:
             socket.gethostbyname(host)
             log.info('Server : '+ host +' is online')
@@ -171,6 +173,7 @@ class Http:
 
     def __urls_resolves(self, host, directories):
         """Urls path resolve"""
+
         resolve_dirs = []
         for path in directories:
             path = path.replace("\n", "")
@@ -181,6 +184,7 @@ class Http:
 
     def __subdomains_resolves(self, host, subdomains):
         """Subdomains path resolve"""
+
         resolve_subs = []
         for sub in subdomains:
             sub = sub.replace("\n", "")
@@ -189,6 +193,7 @@ class Http:
 
     def __parse_params(self, params):
         """Parse additional params"""
+
         self.threads = params.get('threads', self.DEFAULT_THREADS)
         self.rest = params.get('rest', self.DEFAULT_REQUEST_TIMEOUT)
         self.delay = params.get('delay', self.DEFAULT_REQUEST_DELAY)

@@ -17,7 +17,7 @@
 #
 #    Development Team:
 #
-#    Stanislav Menshov (Stanislav WEB) since version 1.0
+#    Stanislav Menshov (Stanislav WEB) since version 1.3.52
 
 from Libraries import Command, Filter as FilterArgs, Controller;
 from Version import banner;

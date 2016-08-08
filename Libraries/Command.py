@@ -29,6 +29,7 @@ class Command:
             log.critical(e.message)
 
     def get_arg_values(self):
+        """Get used input arguments"""
 
         command_list = {}
 

@@ -16,6 +16,8 @@ class Logger:
 
     @staticmethod
     def success(message, showtime=True, showlevel=True):
+        """Success level message"""
+
         level = 'SUCCESS'
         if True == showtime:
             asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
@@ -33,6 +35,8 @@ class Logger:
 
     @staticmethod
     def info(message, showtime=True, title=True):
+        """Info level message"""
+
         level = 'INFO'
         if True == showtime:
             coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
@@ -44,6 +48,8 @@ class Logger:
 
     @staticmethod
     def warning(message, showtime=True, showlevel=True):
+        """Warning level message"""
+
         level = 'WARNING'
         if True == showtime:
             asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
@@ -60,6 +66,8 @@ class Logger:
 
     @staticmethod
     def error(message, showtime=True, showlevel=True):
+        """Error level message"""
+
         level = 'ERROR'
         if True == showtime:
             asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
@@ -76,6 +84,8 @@ class Logger:
 
     @staticmethod
     def critical(message, showtime=True, title=True):
+        """Critical level message"""
+
         level = 'CRITICAL'
         if True == showtime:
             coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
@@ -86,6 +96,8 @@ class Logger:
 
     @staticmethod
     def debug(message, showtime=True):
+        """Debug level message"""
+
         level = 'DEBUG'
         if True == showtime:
             coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
@@ -97,6 +109,7 @@ class Logger:
 
     @staticmethod
     def verbose(message, showtime=True, showlevel=True):
+        """Verbose level message"""
 
         if True == showtime:
             asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
@@ -114,6 +127,7 @@ class Logger:
 
     @staticmethod
     def log(level):
+        """Log verbose setter message"""
 
         try:
             import logging
@@ -133,6 +147,7 @@ class Logger:
 
     @staticmethod
     def syslog(key, params):
+        """System log (file log)"""
 
         path = os.path.join('Logs', key);
         if not os.path.exists(path):
