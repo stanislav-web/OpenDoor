@@ -14,9 +14,9 @@ class Controller:
             try:
                 # dymanic function call
                 if not args:
-                    getattr(self, '%s_action' % action)()
+                    getattr(self, '{func}_action'.format(func=action))()
                 else:
-                    getattr(self, '%s_action' % action)(args, InputArguments)
+                    getattr(self, '{func}_action'.format(func=action))(args, InputArguments)
                     break
 
             except AttributeError:
@@ -44,7 +44,8 @@ class Controller:
         exit()
 
     @staticmethod
-    def examples_action():
+
+    def examples_action(self):
         examples = """
             Examples:
                 python ./opendoor.py  --examples

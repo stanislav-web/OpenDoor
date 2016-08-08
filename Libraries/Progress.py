@@ -22,7 +22,7 @@ class Progress:
         iterator += 1
         iterator = int(iterator)
         indicator = iterator * 100 / countall;
-        getattr(Logger, '%s' % status)(str(indicator) + "% " + message, showtime = True, showlevel = False)
+        getattr(Logger, '{}'.format(status))('{}% {}'.format(str(indicator), message), showtime = True, showlevel = False)
         sys.stdout.flush()
         return iterator
 

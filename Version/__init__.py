@@ -52,11 +52,11 @@ def get_full_version():
 
     banner = """
 ============================================================
-  %s {%s} -> {%s}
-  %s
-  %s
+  {0} {1} -> {2}
+  {3}
+  {4}
 ============================================================
-    """ %   (
+    """.format(
                 colored(config.get('info', 'name'), 'blue'),
                 get_current_version(),
                 colored('v' +get_remote_version(), 'green'),
@@ -105,18 +105,17 @@ def banner():
     #   )(_)(  )___/ )__)  )  (    )(_) ) )(_)(  )(_)(  )   /  #
     #  (_____)(__)  (____)(_)\_)  (____/ (_____)(_____)(_)\_)  #
     #                                                          #
-    #  %s\t\t\t                       #
-    #  %s\t\t\t                       #
-    #  %s\t\t\t                       #
-    #  %s\t\t\t                       #
-    #  %s                     #
+    #  {0}\t\t\t                       #
+    #  {1}\t\t\t                       #
+    #  {2}\t\t\t                       #
+    #  {3}\t\t\t                       #
+    #  {4}                     #
     ############################################################
-    """ % (
-                colored('Directories: ' + str(get_directories_count()), 'yellow'),
-                colored('Subdomains: ' + str(get_subdomains_count()), 'yellow'),
-                colored('Browsers: ' + str(get_user_agents_count()), 'yellow'),
-                colored('Proxies: ' + str(get_proxy_count()), 'yellow'),
-                colored(get_license(), 'yellow'),
-          )
-
+        """.format(
+        colored('Directories: ' + str(get_directories_count()), 'yellow'),
+        colored('Subdomains: ' + str(get_subdomains_count()), 'yellow'),
+        colored('Browsers: ' + str(get_user_agents_count()), 'yellow'),
+        colored('Proxies: ' + str(get_proxy_count()), 'yellow'),
+        colored(get_license(), 'yellow'),
+    )
     print banner

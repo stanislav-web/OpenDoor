@@ -28,7 +28,7 @@ class Logger:
 
         message = colored(message, 'green')
 
-        print "%s%s%s" % (asctime, level, message)
+        print '{}{}{}'.format(asctime, level, message);
         pass
 
     @staticmethod
@@ -55,7 +55,7 @@ class Logger:
             level = ""
 
         message = colored(message, 'yellow')
-        print "%s%s%s" % (asctime, level, message)
+        print '{}{}{}'.format(asctime, level, message);
         pass
 
     @staticmethod
@@ -71,7 +71,7 @@ class Logger:
             level = ""
 
         message = colored(message, 'red')
-        print "%s%s%s" % (asctime, level, message)
+        print '{}{}{}'.format(asctime, level, message);
         pass
 
     @staticmethod
@@ -109,7 +109,7 @@ class Logger:
 
         message = colored(message, 'blue')
 
-        print "%s%s%s" % (asctime, level, message)
+        print '{}{}{}'.format(asctime, level, message);
         pass
 
     @staticmethod
@@ -147,19 +147,19 @@ class Logger:
                 # have redirects urls log
                 file = open(os.path.join(path, 'redirects.log'), 'w')
                 for url in result[status]:
-                    file.write("%s\n" % url)
+                    file.write('{}\n'.format(url))
                 file.close()
 
             if status in Status.Http.DEFAULT_HTTP_UNRESOLVED_STATUSES:
                 # unresolved urls log
                 file = open(os.path.join(path, 'possible.log'), 'w')
                 for url in result[status]:
-                    file.write("%s\n" % url)
+                    file.write('{}\n'.format(url))
                 file.close()
 
             if status in Status.Http.DEFAULT_HTTP_SUCCESS_STATUSES:
                 # success urls print
                 file = open(os.path.join(path, 'success.log'), 'w')
                 for url in result[status]:
-                    file.write("%s\n" % url)
+                    file.write('{}\n'.format(url))
                 file.close()

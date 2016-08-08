@@ -14,7 +14,7 @@ class Filter:
         for key, value in args.iteritems():
             try:
                 # dymanic function call
-                filtered[key] = getattr(self, '%s' % key)(value)
+                filtered[key] = getattr(self, '{}'.format(key))(value)
             except AttributeError:
                 log.critical(key + """ function does not exist in Filter class""")
 
