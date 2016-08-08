@@ -90,6 +90,12 @@ def get_directories_count():
 def get_subdomains_count():
     return FileReader().get_file_data('subdomains').__len__()
 
+def get_user_agents_count():
+    return FileReader().get_file_data('useragents').__len__()
+
+def get_proxy_count():
+    return FileReader().get_file_data('proxy').__len__()
+
 def banner():
     banner = """
     ############################################################
@@ -99,13 +105,17 @@ def banner():
     #   )(_)(  )___/ )__)  )  (    )(_) ) )(_)(  )(_)(  )   /  #
     #  (_____)(__)  (____)(_)\_)  (____/ (_____)(_____)(_)\_)  #
     #                                                          #
-    #  %s\t\t                       #
+    #  %s\t\t\t                       #
+    #  %s\t\t\t                       #
+    #  %s\t\t\t                       #
     #  %s\t\t\t                       #
     #  %s                     #
     ############################################################
     """ % (
-                colored('DB Directories: ' + str(get_directories_count()), 'yellow'),
-                colored('DB Subdomains: ' + str(get_subdomains_count()), 'yellow'),
+                colored('Directories: ' + str(get_directories_count()), 'yellow'),
+                colored('Subdomains: ' + str(get_subdomains_count()), 'yellow'),
+                colored('Browsers: ' + str(get_user_agents_count()), 'yellow'),
+                colored('Proxies: ' + str(get_proxy_count()), 'yellow'),
                 colored(get_license(), 'yellow'),
           )
 

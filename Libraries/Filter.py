@@ -33,37 +33,47 @@ class Filter:
 
         return url
 
-    def threads(self, threads):
+    @staticmethod
+    def threads(threads):
 
         if 0 == threads:
             threads = 1
         return threads
 
-    def check(self, type):
+    @staticmethod
+    def check(type):
         if type not in ['directories', 'subdomains']:
             type = 'directories'
         return type
 
-    def debug(self, debug):
+    @staticmethod
+    def debug(debug):
         return debug
 
-    def delay(self, delay):
+    @staticmethod
+    def delay(delay):
         return delay
 
-    def rest(self, rest):
+    @staticmethod
+    def rest(rest):
         return rest
 
-    def log(self, log):
+    @staticmethod
+    def log(log):
         return log
 
-    def proxy(self, proxy):
+    @staticmethod
+    def proxy( proxy):
         return proxy
 
-    def update(self, noarg):
+    @staticmethod
+    def update(noarg):
         pass
 
-    def version(self, noarg):
+    @staticmethod
+    def version( noarg):
         pass
 
-    def examples(self, noarg):
+    @staticmethod
+    def examples(noarg):
         pass

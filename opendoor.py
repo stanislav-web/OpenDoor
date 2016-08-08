@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 #    OpenDoor Web Directory Scanner
 #    Copyright (C) 2016  Stanislav Menshov
 #
@@ -23,9 +25,9 @@ from Version import banner;
 banner()
 
 command = Command();
-filter = FilterArgs();
+filter_args = FilterArgs();
 args = []
 
 if command.get_arg_values():
-    args = filter.call(command)
+    args = filter_args.call(command)
     Controller(args)

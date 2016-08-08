@@ -1,0 +1,21 @@
+language: python
+python: '2.7'
+sudo: false
+
+before_install:
+  - python --version
+  - uname -a
+  - lsb_release -a
+install:
+  - pip install -r requirements.txt
+notifications:
+  email:
+    on_success: never
+    on_failure: never
+
+# change from 'script: python setup.py test' to this
+script:
+  coverage run --source=opendoor setup.py test
+
+after_success:
+    coveralls

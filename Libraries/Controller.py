@@ -22,11 +22,13 @@ class Controller:
             except AttributeError:
                 log.critical(action + """ action does not exist in Controller""")
 
-    def update_action(self):
+    @staticmethod
+    def update_action():
         update()
         exit()
 
-    def version_action(self):
+    @staticmethod
+    def version_action():
         print get_full_version()
         exit()
 
@@ -41,7 +43,8 @@ class Controller:
                 log.syslog(url, result)
         exit()
 
-    def examples_action(self):
+    @staticmethod
+    def examples_action():
         examples = """
             Examples:
                 python ./opendoor.py  --examples

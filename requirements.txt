@@ -6,3 +6,4 @@ termcolor
 logging
 verboselogs
 tabulate
+coverage

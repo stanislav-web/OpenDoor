@@ -112,7 +112,7 @@ class Logger:
         print "%s%s%s" % (asctime, level, message)
         pass
 
-    @classmethod
+    @staticmethod
     def log(cls, level):
 
         try:

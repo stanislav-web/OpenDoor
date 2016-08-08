@@ -142,7 +142,8 @@ class Http:
         else:
             return
 
-    def __disable_verbose(self):
+    @staticmethod
+    def __disable_verbose():
         """ Disbale verbose warnings info"""
         level = 'WARNING'
         logging.getLogger("urllib3").setLevel(level)

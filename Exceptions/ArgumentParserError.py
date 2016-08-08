@@ -7,5 +7,6 @@ class ArgumentParserError(Exception):
 class ThrowingArgumentParser(ArgumentParser):
     """ThrowingArgumentParser class"""
 
-    def error(self, message):
+    @staticmethod
+    def error(message):
         raise ArgumentParserError(message)

@@ -30,19 +30,24 @@ class FileReader:
     def get_file_data(self, target):
         """ Get target file data"""
         file_path = self.config.get('opendoor', target)
-        file = os.getcwd() + '/' + file_path;
-        if not os.path.isfile(file) and not os.access(file, os.R_OK):
-            log.critical(file + """ file can not be read """)
+        file = os.path.join(os.getcwd(), file_path);
+        if not os.path.isfile(file):
+            log.critical(file + """ is not a file""")
+        if not os.access(file, os.R_OK):
+            log.critical(file + """ file can not be read. Run chmod 0644 """ + file)
         with open(file) as f_handler:
             data = f_handler.readlines()
         return data
 
-    def get_config(self):
+    @staticmethod
+    def get_config():
         config = ConfigParser.RawConfigParser()
-        config_file = os.getcwd() + '/setup.cfg'
 
-        if not os.path.isfile(config_file) and not os.access(config_file, os.R_OK):
-            log.critical("""Configuration file setup.cfg can not be read """)
+        config_file = os.path.join(os.getcwd(), 'setup.cfg');
+        if not os.path.isfile(config_file):
+            log.critical(file + """ is not a file""")
+        if not os.access(config_file, os.R_OK):
+            log.critical(""" Configuration file setup.cfg can not be read. Run chmod 0644 """ + config_file)
 
         try:
             config.read(config_file)
@@ -50,7 +55,8 @@ class FileReader:
         except ConfigParser.ParsingError as e:
             log.critical(e.message)
 
-    def get_config_raw(self, s_config):
+    @staticmethod
+    def get_config_raw(s_config):
         buf = StringIO.StringIO(s_config)
         try:
             config = ConfigParser.ConfigParser()
