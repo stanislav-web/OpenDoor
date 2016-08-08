@@ -148,7 +148,8 @@ class Http:
         level = 'WARNING'
         logging.getLogger("urllib3").setLevel(level)
 
-    def __is_server_online(self, host):
+    @staticmethod
+    def __is_server_online(host):
         """ Check if server is online"""
         try:
             socket.gethostbyname(host)

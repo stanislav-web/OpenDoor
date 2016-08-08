@@ -113,7 +113,7 @@ class Logger:
         pass
 
     @staticmethod
-    def log(cls, level):
+    def log(level):
 
         try:
             import logging
