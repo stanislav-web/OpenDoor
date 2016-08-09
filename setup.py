@@ -1,17 +1,20 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='opendoor',
     version='1.3.52',
-    packages=['opendoor'],
+    packages=find_packages(),
     url='https://github.com/stanislav-web/OpenDoor',
     license='GPL',
+    test_suite='tests',
     author='Stanislav Menshov',
     author_email='stanisov@gmail.com',
     description='OWASP Directory Access scanner',
-    long_description=open('README.md').read() + '\n\n' + open('CHANGELOG.md').read(),
+    long_description=open('README.md').read(),
+    include_package_data=True,
     entry_points={
         'console_scripts': [
+            'opendoor = opendoor',
             'coveralls = coveralls.cli:main',
         ],
     },

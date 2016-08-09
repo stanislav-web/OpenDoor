@@ -24,15 +24,18 @@ class Controller:
 
     @staticmethod
     def update_action():
+        """ Update action """
         update()
         exit()
 
     @staticmethod
     def version_action():
+        """ Show version action """
         print get_full_version()
         exit()
 
     def url_action(self, url, params=()):
+        """ Load by url action """
 
         result = Http().get(url, params);
         if result :
@@ -45,6 +48,8 @@ class Controller:
 
     @staticmethod
     def examples_action():
+        """ Show examples action """
+
         examples = """
             Examples:
                 python ./opendoor.py  --examples
