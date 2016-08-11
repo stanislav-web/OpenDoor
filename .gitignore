@@ -2,7 +2,6 @@
 *.pyc
 *~
 *.swp
-/TODO.txt
 Logs/
 .eggs/
 Tests/

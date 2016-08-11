@@ -1,7 +1,8 @@
-from Version import update, get_full_version;
-from Libraries import Http;
-from Logger import Logger as log
+import sys
 from Progress import Progress
+from Logger import Logger as log
+from Version import Version
+from Http import Http
 
 class Controller:
     """Controller class"""
@@ -12,7 +13,8 @@ class Controller:
 
         for action, args in InputArguments.iteritems():
             try:
-                # dymanic function call
+                # dynamic function call
+
                 if not args:
                     getattr(self, '{func}_action'.format(func=action))()
                 else:
@@ -25,14 +27,15 @@ class Controller:
     @staticmethod
     def update_action():
         """ Update action """
-        update()
+
+        Version.update()
         exit()
 
     @staticmethod
     def version_action():
         """ Show version action """
-        print get_full_version()
-        exit()
+
+        sys.exit(Version().get_full_version())
 
     def url_action(self, url, params=()):
         """ Load by url action """
@@ -56,6 +59,7 @@ class Controller:
                 python ./opendoor.py  --update
                 python ./opendoor.py  --version
                 python ./opendoor.py --url "http://joomla-ua.org"
+                python ./opendoor.py --url "http://joomla-ua.org" --check subdomains
                 python ./opendoor.py --url "http://joomla-ua.org" --threads 10
                 python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --proxy
                 python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10

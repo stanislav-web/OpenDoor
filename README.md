@@ -28,6 +28,7 @@ sudo pip install -r requirements.txt
 * random user agent
 * random proxy from proxy list
 * verbose mode
+* subdomains scanner
 
 ##### Changelog
 * *v1.0.0* - all the basic functionality is available
@@ -40,6 +41,7 @@ sudo pip install -r requirements.txt
 * *v1.3.5* - added ReadTimeoutError ProxyError handlers
 * *v1.3.51* - fixed code style, resolve file read errors
 * *v1.3.52* - code docstyle added
+* *v2.3.52* - subdomains scan available! (param --check subdomains). Added databases
 
 ##### Basic usage
 ```
@@ -56,8 +58,8 @@ optional arguments:
   --examples            Examples of usage
   -v, --version         Get current version
   -c CHECK, --check CHECK
-                        Directory scan eg --check=dir or subdomains
-                        --check=sub (Not implement yet, dir by default)
+                        Directory scan eg --check=directories or subdomains
+                         (directories by default)
   -t THREADS, --threads THREADS
                         Allowed threads
   -d DELAY, --delay DELAY

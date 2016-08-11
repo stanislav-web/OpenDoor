@@ -19,14 +19,14 @@
 #
 #    Stanislav Menshov (Stanislav WEB) since version 1.3.52
 
-from Libraries import Command, Filter as FilterArgs, Controller;
-from Version import banner;
+from Libraries import Command, Filter as FilterArgs, Controller, Version;
 
-banner()
-
+version = Version();
 command = Command();
 filter_args = FilterArgs();
 args = []
+
+version.banner();
 
 if command.get_arg_values():
     args = filter_args.call(command)

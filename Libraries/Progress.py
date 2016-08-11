@@ -1,5 +1,5 @@
 import sys
-from Logger import Logger
+from Logger import Logger as log
 import Http as Status
 
 try:
@@ -22,7 +22,7 @@ class Progress:
         iterator += 1
         iterator = int(iterator)
         indicator = iterator * 100 / countall;
-        getattr(Logger, '{}'.format(status))('{}% {}'.format(str(indicator), message), showtime = True, showlevel = False)
+        getattr(log, '{}'.format(status))('{}% {}'.format(str(indicator), message), showtime = True, showlevel = False)
         sys.stdout.flush()
         return iterator
 
@@ -39,25 +39,25 @@ class Progress:
                 # failed urls print
                 print colored('FAILED ', 'red', attrs=['bold'])
                 for url in result[status]:
-                    Logger.error('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
+                    log.error('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
             if status in Status.Http.DEFAULT_HTTP_REDIRECT_STATUSES:
                 # have redirects urls print
                 print colored('REDIRECTS ', 'yellow', attrs=['bold'])
                 for url in result[status]:
-                    Logger.verbose('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
+                    log.verbose('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
             if status in Status.Http.DEFAULT_HTTP_UNRESOLVED_STATUSES:
                 # unresolved urls print
                 print colored('POSSIBLE ', 'yellow', attrs=['bold'])
                 for url in result[status]:
-                    Logger.warning('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
+                    log.warning('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
             if status in Status.Http.DEFAULT_HTTP_SUCCESS_STATUSES:
                 # success urls print
                 print colored('SUCCESS ', 'green', attrs=['bold'])
                 for url in result[status]:
-                    Logger.success('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
+                    log.success('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
         print tabulate(count, headers=[colored('Statistics', attrs=['bold']),colored('Summary', attrs=['bold'])], tablefmt="fancy_grid")
         sys.exit

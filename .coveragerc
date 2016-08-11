@@ -8,13 +8,11 @@ concurrency = multiprocessing
 source = opendoor.py
         /Exceptions/*
         /Libraries/*
-        /Version/*
 
 [paths]
 source = opendoor.py
         /Exceptions/*
         /Libraries/*
-        /Version/*
 
 [report]
 ignore_errors = True
@@ -23,7 +21,6 @@ include =
         opendoor.py
         /Exceptions/*
         /Libraries/*
-        /Version/*
 
 [html]
 directory = Tests/reports/html
