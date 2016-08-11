@@ -10,7 +10,7 @@ This software is written for informational purposes and is an open source produc
 
 ***Testing of the software on the commercial systems and organizations is prohibited!***
 
-![Alt text](http://dl2.joxi.net/drive/2016/08/04/0001/0378/90490/90/a33fce8024.jpg "Hackware")
+![Alt text](http://dl2.joxi.net/drive/2016/08/12/0001/0378/90490/90/25658c11fe.jpg "OpenDoor")
 
 
 ##### Requirements
