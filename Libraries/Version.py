@@ -5,7 +5,6 @@ try:
     import subprocess
     import os
     import urllib3
-    import httplib2
     from distutils.version import LooseVersion
 
     from colorama import init
