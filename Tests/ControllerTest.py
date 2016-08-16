@@ -2,7 +2,7 @@ import unittest
 from Libraries import Controller;
 
 class ControllerTest(unittest.TestCase):
-
+    """ Controller test"""
     @unittest.skip("update_action")
     def test_update_action(self):
         Controller.update_action();
