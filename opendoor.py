@@ -15,9 +15,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#    Development Team:
-#
-#    Stanislav Menshov (Stanislav WEB) since version 1.3.52
+#    Development Team: Stanislav Menshov (Stanislav WEB)
 
 from Libraries import Command, Filter as FilterArgs, Controller, Version;
 

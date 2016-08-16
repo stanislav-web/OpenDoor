@@ -2,7 +2,6 @@ from argparse import RawDescriptionHelpFormatter
 from Logger import Logger as log
 from Exceptions import ArgumentParserError, ThrowingArgumentParser
 
-
 class Command:
     """Console helper class"""
 
