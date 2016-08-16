@@ -1,24 +1,11 @@
 # .coveragerc to control coverage.py
 [run]
-source = /Exceptions/*
-         /Libraries/*
+source = /Libraries
 concurrency = multiprocessing
-data_file= Tests/reports/.coverage
-debug = data
+data_file= Reports/.coverage
 
 [paths]
-source = /Exceptions/*
-         /Libraries/*
+source = /Libraries
 
 [report]
-ignore_errors = True
-show_missing = True
-include =
-        /Exceptions/*
-        /Libraries/*
-
-[html]
-directory = Tests/reports/html
-
-[xml]
-output = Tests/reports/coverage.xml
+include = /Libraries

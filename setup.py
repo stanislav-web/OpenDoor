@@ -26,7 +26,7 @@ setup(
     packages=find_packages(),
     url='https://github.com/stanislav-web/OpenDoor',
     license='GPL',
-    test_suite='Tests',
+    test_suite='tests',
     author='Stanislav Menshov',
     author_email='stanisov@gmail.com',
     description='OWASP Directory Access scanner',

@@ -8,6 +8,9 @@ before_install:
   - lsb_release -a
 install:
   - pip install -r requirements.txt
+  - pip install python-coveralls
+  - pip install coverage
+  - pip install nose
 notifications:
   email:
     on_success: never
@@ -15,7 +18,7 @@ notifications:
 
 # change from 'script: python setup.py test' to this
 script:
-  coverage run --source=opendoor setup.py test
-
+  - coverage run --source=opendoor setup.py test
+  - nosetests --with-coverage
 after_success:
     coveralls

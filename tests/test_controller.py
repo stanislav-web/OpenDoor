@@ -1,8 +1,9 @@
 import unittest
 from Libraries import Controller;
 
-class ControllerTest(unittest.TestCase):
+class TestController(unittest.TestCase):
     """ Controller test"""
+
     @unittest.skip("update_action")
     def test_update_action(self):
         Controller.update_action();
@@ -22,3 +23,6 @@ class ControllerTest(unittest.TestCase):
     def test_examples_action(self):
         Controller.examples_action()
         pass
+
+if __name__ == "__main__":
+    unittest.main()

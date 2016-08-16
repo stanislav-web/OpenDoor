@@ -4,4 +4,4 @@
 *.swp
 Logs/
 opendoor.egg-info/
-.coverage.*
+/Reports/.coverage
