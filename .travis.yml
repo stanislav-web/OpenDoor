@@ -19,6 +19,5 @@ notifications:
 # change from 'script: python setup.py test' to this
 script:
   - coverage run --source=opendoor setup.py test
-  - nosetests --with-coverage
 after_success:
     coveralls
