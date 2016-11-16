@@ -3,5 +3,4 @@
 *~
 *.swp
 Logs/
-.eggs/
-Tests/
+opendoor.egg-info/

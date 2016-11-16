@@ -5,6 +5,7 @@ from Logger import Logger as Log
 from Version import Version
 from Http import Http
 
+
 class Controller:
     """Controller class"""
 
@@ -42,9 +43,9 @@ class Controller:
         """ Load by url action """
 
         result = Http().get(url, params);
-        if result :
+        if result:
             Progress.view(result)
-            is_logging =  params.get('log', self.DEFAULT_LOGGING)
+            is_logging = params.get('log', self.DEFAULT_LOGGING)
 
             if True == is_logging:
                 Log.syslog(url, result)

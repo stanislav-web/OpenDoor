@@ -1,9 +1,9 @@
 urllib3
 threadpool
 linereader
+colorama
 coloredlogs
 termcolor
 logging
 verboselogs
 tabulate
-coverage

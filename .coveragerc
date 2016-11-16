@@ -1,29 +1,11 @@
 # .coveragerc to control coverage.py
 [run]
-branch = True
-parallel = true
-debug = data
-data_file= Tests/coverage
+source = /Libraries
 concurrency = multiprocessing
-source = opendoor.py
-        /Exceptions/*
-        /Libraries/*
+data_file= Reports/.coverage
 
 [paths]
-source = opendoor.py
-        /Exceptions/*
-        /Libraries/*
+source = /Libraries
 
 [report]
-ignore_errors = True
-show_missing = True
-include =
-        opendoor.py
-        /Exceptions/*
-        /Libraries/*
-
-[html]
-directory = Tests/reports/html
-
-[xml]
-output = Tests/reports/xml/coverage.xml
+include = /Libraries

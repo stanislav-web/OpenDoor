@@ -13,6 +13,7 @@ except ImportError:
                 install it from http://pypi.python.org/pypi
                 or run pip install linereader """)
 
+
 class FileReader:
     """Filereader class"""
 
@@ -47,7 +48,7 @@ class FileReader:
 
         config = ConfigParser.RawConfigParser()
 
-        config_file = os.path.join(os.getcwd(), 'setup.cfg');
+        config_file = os.path.join(os.getcwd(), 'setup.cfg')
         if not os.path.isfile(config_file):
             Log.critical(file + """ is not a file""")
         if not os.access(config_file, os.R_OK):
@@ -74,11 +75,11 @@ class FileReader:
     def get_random_user_agent(self):
         """ Get random user agent from user-agents list"""
 
-        index = randrange(0,len(self.__useragents))
+        index = randrange(0, len(self.__useragents))
         return self.__useragents[index].rstrip()
 
     def get_random_proxy(self):
         """ Get random proxy from proxy list"""
 
-        index = randrange(0,len(self.__proxy))
+        index = randrange(0, len(self.__proxy))
         return self.__proxy[index].rstrip()
