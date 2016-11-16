@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 import socket
 import time
@@ -6,7 +7,7 @@ import multiprocessing
 import exceptions
 import collections
 import httplib
-from Logger import Logger as log
+from Logger import Logger as Log
 
 try:
 
@@ -14,7 +15,7 @@ try:
     import urllib3
 
 except ImportError:
-    log.critical("""\t\t[!] You need urllib3 , threadpool!
+    Log.critical("""\t\t[!] You need urllib3 , threadpool!
                 install it from http://pypi.python.org/pypi
                 or run pip install urllib3 threadpool""")
 
@@ -26,6 +27,7 @@ class Http:
 
     DEFAULT_HTTP_METHOD = 'HEAD'
     DEFAULT_HTTP_PROTOCOL = 'http://'
+    DEFAULT_HTTP_PORT = 80
     DEFAULT_THREADS = 1
     DEFAULT_DEBUG_LEVEL = 0
     DEFAULT_REQUEST_TIMEOUT  = 10
@@ -68,9 +70,9 @@ class Http:
             time.sleep(1)
             pool.wait()
         except exceptions.AttributeError as e:
-            log.critical(e.message)
+            Log.critical(e.message)
         except KeyboardInterrupt:
-            log.warning('Session canceled')
+            Log.warning('Session canceled')
             sys.exit();
 
         self.counter['total'] = self.urls.__len__()
@@ -89,9 +91,13 @@ class Http:
             try:
                 conn = urllib3.proxy_from_url(proxyserver, maxsize=10, block=True, timeout=self.rest)
             except urllib3.exceptions.ProxySchemeUnknown as e:
-                log.critical(e.message + ": " + proxyserver)
+                Log.critical(e.message + ": " + proxyserver)
         else:
-            conn = urllib3.connection_from_url(url, maxsize=10, block=True, timeout=self.rest)
+            try:
+                conn = urllib3.connection_from_url(url, maxsize=10, block=True,
+                                                   timeout=self.rest)
+            except TypeError as e:
+                Log.critical(e.message)
 
         headers = {
             'accept-encoding' :'gzip, deflate, sdch',
@@ -110,9 +116,9 @@ class Http:
             response = None
             self.iterator = Progress.line(url + ' -> ' + e.message, self.urls.__len__(), 'warning', self.iterator)
         except exceptions.AttributeError as e:
-            log.critical(e.message)
+            Log.critical(e.message)
         except TypeError as e:
-            log.critical(e.message)
+            Log.critical(e.message)
 
         time.sleep(self.delay)
         return self.response(response, url)
@@ -155,10 +161,10 @@ class Http:
 
         try:
             socket.gethostbyname(host)
-            log.info('Server : '+ host +' is online')
-            log.info('Scanning ' + host + ' ...')
+            Log.info('Server : '+ host +' is online')
+            Log.info('Scanning ' + host + ' ...')
         except socket.error:
-            log.critical('Oops Error occured, Server offline or invalid URL or response')
+            Log.critical('Oops Error occured, Server offline or invalid URL or response')
 
     def __get_urls(self, host):
         """Get urls"""
@@ -166,12 +172,12 @@ class Http:
         lines = self.reader.get_file_data(self.check);
 
         if self.DEFAULT_CHECK == self.check:
-            urls = self.__urls_resolves(host, lines);
+            urls = self.__urls_resolves(host, self.port, lines);
         else:
             urls = self.__subdomains_resolves(host, lines);
         return urls
 
-    def __urls_resolves(self, host, directories):
+    def __urls_resolves(self, host, port, directories):
         """Urls path resolve"""
 
         resolve_dirs = []
@@ -179,7 +185,11 @@ class Http:
             path = path.replace("\n", "")
             if "/" != path[0]:
                 path = '/' + path
-            resolve_dirs.append(self.DEFAULT_HTTP_PROTOCOL + host + path)
+
+            if self.DEFAULT_HTTP_PORT != port:
+                resolve_dirs.append(self.DEFAULT_HTTP_PROTOCOL + host + ":" + str(port) + path)
+            else:
+                resolve_dirs.append(self.DEFAULT_HTTP_PROTOCOL + host + path)
         return resolve_dirs
 
     def __subdomains_resolves(self, host, subdomains):
@@ -199,10 +209,11 @@ class Http:
         self.delay = params.get('delay', self.DEFAULT_REQUEST_DELAY)
         self.debug = params.get('debug', self.DEFAULT_DEBUG_LEVEL)
         self.proxy = params.get('proxy', self.DEFAULT_USE_PROXY)
+        self.port = params.get('port', self.DEFAULT_HTTP_PORT)
         self.check = params.get('check', self.DEFAULT_CHECK)
         self.iterator = 0
 
         if self.cpu_cnt < self.threads:
             self.threads = self.cpu_cnt
-            log.warning('Passed ' + str(self.cpu_cnt) + ' threads max for your possibility')
+            Log.warning('Passed ' + str(self.cpu_cnt) + ' threads max for your possibility')
             pass

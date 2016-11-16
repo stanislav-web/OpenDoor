@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 import re
 from urlparse import urlparse
-from Logger import Logger as log
+from Logger import Logger as Log
 
 class Filter:
     """Filter args class"""
@@ -17,7 +18,7 @@ class Filter:
                 # dymanic function call
                 filtered[key] = getattr(self, '{}'.format(key))(value)
             except AttributeError:
-                log.critical(key + """ function does not exist in Filter class""")
+                Log.critical(key + """ function does not exist in Filter class""")
 
         return filtered
 
@@ -31,7 +32,7 @@ class Filter:
 
         regex = re.compile(r"" + self.URL_REGEX + "")
         if not regex.match(url):
-            log.critical("\"" + url + "\""" is invalid url. """)
+            Log.critical("\"" + url + "\""" is invalid url. """)
 
         return url
 
@@ -42,6 +43,14 @@ class Filter:
         if 0 == threads:
             threads = 1
         return threads
+
+    @staticmethod
+    def port(port):
+        """ Input `threads` param filter """
+
+        if 0 == port:
+            port = 80
+        return port
 
     @staticmethod
     def check(type):

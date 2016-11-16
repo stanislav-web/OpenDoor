@@ -1,4 +1,5 @@
-from Logger import Logger as log
+# -*- coding: utf-8 -*-
+from Logger import Logger as Log
 
 try:
     import sys
@@ -13,7 +14,7 @@ try:
     from Libraries.FileReader import FileReader
 
 except ImportError:
-    log.critical("""You need urllib3, colorama and termcolor!
+    Log.critical("""You need urllib3, colorama and termcolor!
                 install it from http://pypi.python.org/pypi
                 or run pip install colorama termcolor urllib3.""")
 
@@ -28,12 +29,12 @@ class Version:
         """ Checking for app update"""
 
         CMD = '/usr/bin/git pull origin master'
-        log.success('Checking for updates...')
+        Log.success('Checking for updates...')
         pr = subprocess.Popen(CMD, cwd=os.getcwd(),
                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (out, error) = pr.communicate()
-        log.success(str(out))
-        log.info(str(error))
+        Log.success(str(out))
+        Log.info(str(error))
 
     @staticmethod
     def get_license():

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 import sys
 from Progress import Progress
-from Logger import Logger as log
+from Logger import Logger as Log
 from Version import Version
 from Http import Http
 
@@ -22,7 +23,7 @@ class Controller:
                     break
 
             except AttributeError:
-                log.critical(action + """ action does not exist in Controller""")
+                Log.critical(action + """ action does not exist in Controller""")
 
     @staticmethod
     def update_action():
@@ -46,7 +47,7 @@ class Controller:
             is_logging =  params.get('log', self.DEFAULT_LOGGING)
 
             if True == is_logging:
-                log.syslog(url, result)
+                Log.syslog(url, result)
         exit()
 
     @staticmethod
@@ -59,6 +60,7 @@ class Controller:
                 python ./opendoor.py  --update
                 python ./opendoor.py  --version
                 python ./opendoor.py --url "http://joomla-ua.org"
+                python ./opendoor.py --url "http://joomla-ua.org" --port 8080
                 python ./opendoor.py --url "http://joomla-ua.org" --check subdomains
                 python ./opendoor.py --url "http://joomla-ua.org" --threads 10
                 python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --proxy

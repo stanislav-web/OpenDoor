@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from argparse import ArgumentParser
 
 class ArgumentParserError(Exception):

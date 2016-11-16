@@ -17,16 +17,16 @@
 #
 #    Development Team:
 #
-#    Stanislav Menshov (Stanislav WEB) since version 1.3.52
+#    Stanislav Menshov (Stanislav WEB) https://vk.com/stanislav_web
 
-from Libraries import Command, Filter as FilterArgs, Controller, Version;
+from Libraries import Command, Filter as FilterArgs, Controller, Version
 
-version = Version();
-command = Command();
-filter_args = FilterArgs();
+version = Version()
+command = Command()
+filter_args = FilterArgs()
 args = []
 
-version.banner();
+Version().banner()
 
 if command.get_arg_values():
     args = filter_args.call(command)

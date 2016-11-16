@@ -1,4 +1,5 @@
-from Logger import Logger as log
+# -*- coding: utf-8 -*-
+from Logger import Logger as Log
 
 try:
     import os
@@ -8,7 +9,7 @@ try:
     from linereader import copen
 
 except ImportError:
-    log.critical("""\t\t[!] You need linereader!
+    Log.critical("""\t\t[!] You need linereader!
                 install it from http://pypi.python.org/pypi
                 or run pip install linereader """)
 
@@ -20,7 +21,7 @@ class FileReader:
         try:
             self.config = self.get_config()
         except ConfigParser.ParsingError as e:
-            log.critical(e.message)
+            Log.critical(e.message)
 
         self.__useragents = self.get_file_data('useragents')
         self.__proxy = self.get_file_data('proxy')
@@ -33,9 +34,9 @@ class FileReader:
         file_path = self.config.get('opendoor', target)
         file = os.path.join(os.getcwd(), file_path);
         if not os.path.isfile(file):
-            log.critical(file + """ is not a file""")
+            Log.critical(file + """ is not a file""")
         if not os.access(file, os.R_OK):
-            log.critical(file + """ file can not be read. Run chmod 0644 """ + file)
+            Log.critical(file + """ file can not be read. Run chmod 0644 """ + file)
         with open(file) as f_handler:
             data = f_handler.readlines()
         return data
@@ -48,15 +49,15 @@ class FileReader:
 
         config_file = os.path.join(os.getcwd(), 'setup.cfg');
         if not os.path.isfile(config_file):
-            log.critical(file + """ is not a file""")
+            Log.critical(file + """ is not a file""")
         if not os.access(config_file, os.R_OK):
-            log.critical(""" Configuration file setup.cfg can not be read. Run chmod 0644 """ + config_file)
+            Log.critical(""" Configuration file setup.cfg can not be read. Run chmod 0644 """ + config_file)
 
         try:
             config.read(config_file)
             return config
         except ConfigParser.ParsingError as e:
-            log.critical(e.message)
+            Log.critical(e.message)
 
     @staticmethod
     def get_config_raw(s_config):
@@ -68,7 +69,7 @@ class FileReader:
             config.readfp(buf)
             return config
         except ConfigParser.Error as e:
-            log.critical(e.message)
+            Log.critical(e.message)
 
     def get_random_user_agent(self):
         """ Get random user agent from user-agents list"""
