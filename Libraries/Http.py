@@ -217,3 +217,4 @@ class Http:
             self.threads = self.cpu_cnt
             Log.warning('Passed ' + str(self.cpu_cnt) + ' threads max for your possibility')
             pass
+        

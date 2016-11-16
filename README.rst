@@ -49,6 +49,8 @@ Changelog
     * *v1.3.51* - fixed code style, resolve file read errors
     * *v1.3.52* - code docstyle added
     * *v2.3.52* - subdomains scan available! (param --check subdomains). Added databases
+    * *v2.3.54* - disabled treads error. Refactored
+    * *v2.4.62* - change port is available now! (param --port 8080). Code style fixes
 
 Basic usage
 ------------
@@ -56,11 +58,13 @@ Basic usage
 
 Help
 ------------
-    usage: opendoor.py [-h] [-u URL] [--update] [--examples] [-v] [-c CHECK]
-                   [-t THREADS] [-d DELAY] [-r REST] [--debug DEBUG] [-p] [-l]
+    usage: opendoor.py [-h] [-u URL] [--port PORT] [--update] [--examples] [-v]
+                   [-c CHECK] [-t THREADS] [-d DELAY] [-r REST]
+                   [--debug DEBUG] [-p] [-l]
 
     optional arguments:
-      -h, --help            show this help message and exit
+      -h, --help            Show this help message and exit
+      --port PORT           Custom port (default 80)
       --update              Update from version control
       --examples            Examples of usage
       -v, --version         Get current version

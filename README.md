@@ -2,6 +2,7 @@ OWASP Directory Access scanner
 ==================================
 ![Alt text](http://dl2.joxi.net/drive/2016/08/04/0001/0378/90490/90/4b4470c268.jpg "Hackware")
 
+[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)
 [![Code Issues](https://www.quantifiedcode.com/api/v1/project/19d4e9523661432c8fcdc640c1000f94/badge.svg)](https://www.quantifiedcode.com/app/project/19d4e9523661432c8fcdc640c1000f94)
 
 This application scans the site directories and find all possible ways to login, empty directories and entry points.
@@ -42,6 +43,7 @@ sudo pip install -r requirements.txt
 * *v1.3.51* - fixed code style, resolve file read errors
 * *v1.3.52* - code docstyle added
 * *v2.3.52* - subdomains scan available! (param --check subdomains). Added databases
+* *v2.3.54* - disabled treads error. Refactored
 * *v2.4.62* - change port is available now! (param --port 8080). Code style fixes
 
 ##### Basic usage
@@ -55,7 +57,7 @@ usage: opendoor.py [-h] [-u URL] [--port PORT] [--update] [--examples] [-v]
                    [--debug DEBUG] [-p] [-l]
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h, --help            Show this help message and exit
   --port PORT           Custom port (default 80)
   --update              Update from version control
   --examples            Examples of usage
