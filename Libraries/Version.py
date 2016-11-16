@@ -16,6 +16,7 @@ except ImportError:
                 install it from http://pypi.python.org/pypi
                 or run pip install colorama termcolor urllib3.""")
 
+
 class Version:
     """Version class"""
 
@@ -29,7 +30,7 @@ class Version:
         CMD = '/usr/bin/git pull origin master'
         log.success('Checking for updates...')
         pr = subprocess.Popen(CMD, cwd=os.getcwd(),
-                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                              shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (out, error) = pr.communicate()
         log.success(str(out))
         log.info(str(error))
@@ -60,12 +61,12 @@ class Version:
   {4}
 ============================================================
     """.format(
-                colored(config.get('info', 'name'), 'blue'),
-                self.get_current_version(),
-                colored('v' +self.get_remote_version(), 'green'),
-                colored("Repo: " + config.get('info', 'repository'), 'yellow'),
-                colored(config.get('info', 'license'), 'yellow')
-            )
+            colored(config.get('info', 'name'), 'blue'),
+            self.get_current_version(),
+            colored('v' + self.get_remote_version(), 'green'),
+            colored("Repo: " + config.get('info', 'repository'), 'yellow'),
+            colored(config.get('info', 'license'), 'yellow')
+        )
         return banner
 
     @staticmethod
@@ -134,10 +135,10 @@ class Version:
     #  {4}                     #
     ############################################################
         """.format(
-        colored('Directories: ' + str(self.get_directories_count()), 'yellow'),
-        colored('Subdomains: ' + str(self.get_subdomains_count()), 'yellow'),
-        colored('Browsers: ' + str(self.get_user_agents_count()), 'yellow'),
-        colored('Proxies: ' + str(self.get_proxy_count()), 'yellow'),
-        colored(self.get_license(), 'yellow'),
-    )
+            colored('Directories: ' + str(self.get_directories_count()), 'yellow'),
+            colored('Subdomains: ' + str(self.get_subdomains_count()), 'yellow'),
+            colored('Browsers: ' + str(self.get_user_agents_count()), 'yellow'),
+            colored('Proxies: ' + str(self.get_proxy_count()), 'yellow'),
+            colored(self.get_license(), 'yellow'),
+        )
         print banner

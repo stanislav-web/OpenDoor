@@ -11,6 +11,7 @@ except ImportError:
                 install it from http://pypi.python.org/pypi
                 or run pip install coloredlogs termcolor.""")
 
+
 class Logger:
     """Message helper class"""
 
@@ -139,7 +140,7 @@ class Logger:
                             or run pip install logging verboselogs""")
 
         # set logger level from parent class
-        logger =  verboselogs.VerboseLogger('')
+        logger = verboselogs.VerboseLogger('')
         # add the handlers to the logger
         logger.setLevel(getattr(logging, level))
 

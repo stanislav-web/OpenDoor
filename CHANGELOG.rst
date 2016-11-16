@@ -11,3 +11,4 @@ Changelog
     * *v1.3.51* - fixed code style, resolve file read errors
     * *v1.3.52* - code docstyle added
     * *v2.3.52* - subdomains scan available! (param --check subdomains). Added databases
+    * *v2.3.54* - Disabled treads error. Refactored

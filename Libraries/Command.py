@@ -2,6 +2,7 @@ from argparse import RawDescriptionHelpFormatter
 from Logger import Logger as log
 from Exceptions import ArgumentParserError, ThrowingArgumentParser
 
+
 class Command:
     """Console helper class"""
 
@@ -15,7 +16,9 @@ class Command:
             parser.add_argument('--update', default=False, action='store_true', help="Update from version control")
             parser.add_argument('--examples', default=False, action='store_true', help="Examples of usage")
             parser.add_argument('-v', '--version', default=False, action='store_true', help="Get current version")
-            parser.add_argument('-c', '--check', help="Directory scan eg --check=directories or subdomains --check=subdomains (directories by default)")
+            parser.add_argument('-c', '--check',
+                                help="Directory scan eg --check=dirs or subdomains "
+                                     "--check=subdomains (dirs by default)")
             parser.add_argument('-t', '--threads', help="Allowed threads", type=int)
             parser.add_argument('-d', '--delay', help="Delay between requests", type=int)
             parser.add_argument('-r', '--rest', help="Request timeout ", type=int)
@@ -23,8 +26,8 @@ class Command:
             parser.add_argument('-p', '--proxy', default=False, action='store_true', help="Use proxy list")
             parser.add_argument('-l', '--log', default=False, action='store_true', help="Use filesystem log")
             parser.parse_args()
-            self.parser = parser;
-        except (ArgumentParserError) as e:
+            self.parser = parser
+        except ArgumentParserError as e:
             log.critical(e.message)
 
     def get_arg_values(self):

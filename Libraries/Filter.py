@@ -2,6 +2,7 @@ import re
 from urlparse import urlparse
 from Logger import Logger as log
 
+
 class Filter:
     """Filter args class"""
 
@@ -76,7 +77,7 @@ class Filter:
         return log
 
     @staticmethod
-    def proxy( proxy):
+    def proxy(proxy):
         """ Input `proxy` param filter """
 
         return proxy
@@ -88,7 +89,7 @@ class Filter:
         pass
 
     @staticmethod
-    def version( noarg):
+    def version(noarg):
         """ Input `version` param filter """
 
         pass

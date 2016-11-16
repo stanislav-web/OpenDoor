@@ -21,6 +21,7 @@ except ImportError:
 from FileReader import FileReader
 from Progress import Progress
 
+
 class Http:
     """Http mapper class"""
 
@@ -28,32 +29,31 @@ class Http:
     DEFAULT_HTTP_PROTOCOL = 'http://'
     DEFAULT_THREADS = 1
     DEFAULT_DEBUG_LEVEL = 0
-    DEFAULT_REQUEST_TIMEOUT  = 10
-    DEFAULT_REQUEST_DELAY  = 0
+    DEFAULT_REQUEST_TIMEOUT = 10
+    DEFAULT_REQUEST_DELAY = 0
     DEFAULT_USE_PROXY = False
     DEFAULT_CHECK = 'directories'
-    DEFAULT_HTTP_SUCCESS_STATUSES = [100,101,200,201,202,203,204,205,206,207,208]
-    DEFAULT_HTTP_REDIRECT_STATUSES = [301,302,303,304,307,308]
-    DEFAULT_HTTP_FAILED_STATUSES = [404,429,500,501,502,503,504]
-    DEFAULT_HTTP_UNRESOLVED_STATUSES = [401,403]
+    DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
+    DEFAULT_HTTP_REDIRECT_STATUSES = [301, 302, 303, 304, 307, 308]
+    DEFAULT_HTTP_FAILED_STATUSES = [404, 429, 500, 501, 502, 503, 504]
+    DEFAULT_HTTP_UNRESOLVED_STATUSES = [401, 403]
 
     def __init__(self):
         """Init constructor"""
 
         self.reader = FileReader()
-        self.cpu_cnt = multiprocessing.cpu_count();
+        self.cpu_cnt = multiprocessing.cpu_count()
         self.counter = collections.Counter()
         self.result = collections.defaultdict(list)
-        self.result.default_factory
 
-    def get(self, host, params = ()):
+    def get(self, host, params=()):
         """Get metadata by url"""
 
         self.__is_server_online(host)
-        self.__disable_verbose();
+        self.__disable_verbose()
         self.__parse_params(params)
-        self.urls = self.__get_urls(host);
-        response = {};
+        self.urls = self.__get_urls(host)
+        response = {}
 
         try:
             httplib.HTTPConnection.debuglevel = self.debug
@@ -67,11 +67,13 @@ class Http:
                 pool.putRequest(req)
             time.sleep(1)
             pool.wait()
+        except exceptions.SystemExit:
+            pass
         except exceptions.AttributeError as e:
             log.critical(e.message)
         except KeyboardInterrupt:
             log.warning('Session canceled')
-            sys.exit();
+            sys.exit()
 
         self.counter['total'] = self.urls.__len__()
         self.counter['pools'] = pool.workers.__len__()
@@ -88,20 +90,22 @@ class Http:
             proxyserver = self.reader.get_random_proxy()
             try:
                 conn = urllib3.proxy_from_url(proxyserver, maxsize=10, block=True, timeout=self.rest)
+            except exceptions.SystemExit:
+                pass
             except urllib3.exceptions.ProxySchemeUnknown as e:
                 log.critical(e.message + ": " + proxyserver)
         else:
             conn = urllib3.connection_from_url(url, maxsize=10, block=True, timeout=self.rest)
 
         headers = {
-            'accept-encoding' :'gzip, deflate, sdch',
-            'accept-language' : 'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4,uk;q=0.2,es;q=0.2',
-            'cache-control' : 'no-cache',
+            'accept-encoding': 'gzip, deflate, sdch',
+            'accept-language': 'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4,uk;q=0.2,es;q=0.2',
+            'cache-control': 'no-cache',
             'user-agent': self.reader.get_random_user_agent()
         }
-        try :
+        try:
             response = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers)
-        except (urllib3.exceptions.ConnectTimeoutError ,
+        except (urllib3.exceptions.ConnectTimeoutError,
                 urllib3.exceptions.MaxRetryError,
                 urllib3.exceptions.HostChangedError,
                 urllib3.exceptions.ReadTimeoutError,
@@ -109,6 +113,8 @@ class Http:
                 ) as e:
             response = None
             self.iterator = Progress.line(url + ' -> ' + e.message, self.urls.__len__(), 'warning', self.iterator)
+        except exceptions.SystemExit:
+            pass
         except exceptions.AttributeError as e:
             log.critical(e.message)
         except TypeError as e:
@@ -155,7 +161,7 @@ class Http:
 
         try:
             socket.gethostbyname(host)
-            log.info('Server : '+ host +' is online')
+            log.info('Server : ' + host + ' is online')
             log.info('Scanning ' + host + ' ...')
         except socket.error:
             log.critical('Oops Error occured, Server offline or invalid URL or response')
@@ -163,12 +169,12 @@ class Http:
     def __get_urls(self, host):
         """Get urls"""
 
-        lines = self.reader.get_file_data(self.check);
+        lines = self.reader.get_file_data(self.check)
 
         if self.DEFAULT_CHECK == self.check:
-            urls = self.__urls_resolves(host, lines);
+            urls = self.__urls_resolves(host, lines)
         else:
-            urls = self.__subdomains_resolves(host, lines);
+            urls = self.__subdomains_resolves(host, lines)
         return urls
 
     def __urls_resolves(self, host, directories):

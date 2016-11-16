@@ -12,6 +12,7 @@ except ImportError:
                 install it from http://pypi.python.org/pypi
                 or run pip install coloredlogs termcolor tabulate.""")
 
+
 class Progress:
     """Progress helper class"""
 
@@ -22,7 +23,7 @@ class Progress:
         iterator += 1
         iterator = int(iterator)
         indicator = iterator * 100 / countall;
-        getattr(log, '{}'.format(status))('{}% {}'.format(str(indicator), message), showtime = True, showlevel = False)
+        getattr(log, '{}'.format(status))('{}% {}'.format(str(indicator), message), showtime=True, showlevel=False)
         sys.stdout.flush()
         return iterator
 
@@ -59,5 +60,6 @@ class Progress:
                 for url in result[status]:
                     log.success('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
-        print tabulate(count, headers=[colored('Statistics', attrs=['bold']),colored('Summary', attrs=['bold'])], tablefmt="fancy_grid")
+        print tabulate(count, headers=[colored('Statistics', attrs=['bold']), colored('Summary', attrs=['bold'])],
+                       tablefmt="fancy_grid")
         sys.exit
