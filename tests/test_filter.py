@@ -6,25 +6,20 @@ from Libraries import Filter;
 class TestFilter(unittest.TestCase):
     """ Filter test"""
 
-    @staticmethod
-    def isNumeric(val):
-        ''' check for numbers '''
-
-        if isinstance(val, (int, float)):
-            return True
-        try:
-            float(val)
-        except ValueError:
-            return False
-        else:
-            return True
-
     def test_threads(self):
         ''' filter threads test '''
 
         threads = Filter.threads(0)
-        self.assertTrue(self.isNumeric(threads));
-        self.assertGreater(threads, 0)
+
+        if isinstance(threads, (int, float)):
+            self.assertTrue(self.is_numeric(threads));
+            self.assertGreater(threads, 0)
+        try:
+            float(threads)
+        except ValueError:
+            return False
+        else:
+            return True
 
     def test_check(self):
         ''' filter check test '''
@@ -32,7 +27,7 @@ class TestFilter(unittest.TestCase):
         check = Filter.check('unknown')
         self.assertEqual(check, 'directories')
 
-    def test_debug(self):
+    def test_port(self):
         ''' filter port test '''
 
         port = Filter.port(8080)
