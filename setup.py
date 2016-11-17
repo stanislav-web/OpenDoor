@@ -31,6 +31,7 @@ setup(
     author_email='stanisov@gmail.com',
     description='OWASP Directory Access scanner',
     long_description=open('README.rst').read(),
+    keywords=['owasp scanner', 'directory scanner', 'access directory scanner', 'web spider', 'auth scanner'],
     entry_points={
         'console_scripts': [
             'coveralls = coveralls.cli:main',

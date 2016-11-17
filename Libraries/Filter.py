@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+"""Filter class"""
+
 import re
 from urlparse import urlparse
 from Logger import Logger as Log

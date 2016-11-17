@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+"""Controller class"""
+
 import sys
 from Progress import Progress
 from Logger import Logger as Log

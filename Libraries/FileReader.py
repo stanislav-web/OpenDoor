@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+"""Filereader class"""
+
 from Logger import Logger as Log
 
 try:

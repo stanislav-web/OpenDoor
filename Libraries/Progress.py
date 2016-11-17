@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+"""Progress class"""
+
 import sys
 from Logger import Logger as Log
 import Http as Status

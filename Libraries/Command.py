@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+"""Command class"""
+
 from argparse import RawDescriptionHelpFormatter
 from Logger import Logger as Log
 from Exceptions import ArgumentParserError, ThrowingArgumentParser

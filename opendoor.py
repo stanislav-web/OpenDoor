@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+""" OWASP OpenDoor launcher """
+
 #    OpenDoor Web Directory Scanner
 #    Copyright (C) 2016  Stanislav Menshov
 #
