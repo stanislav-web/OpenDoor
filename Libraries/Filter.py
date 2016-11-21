@@ -21,19 +21,34 @@ class Filter:
             try:
                 # dymanic function call
                 filtered[key] = getattr(self, '{}'.format(key))(value)
+                if 'url' == key:
+                    filtered['scheme'] = self.scheme(value)
             except AttributeError:
                 Log.critical(key + """ function does not exist in Filter class""")
 
+
+
         return filtered
+
+    def scheme(self, url):
+        """ Get `url` scheme """
+
+        scheme = urlparse(url).scheme
+        if not scheme:
+            scheme='http'
+        return scheme+"://"
+
 
     def url(self, url):
         """ Input `url` param filter """
 
         if not re.search('http', url, re.IGNORECASE):
-            url = "http://" + url
+            if re.search('https', url, re.IGNORECASE):
+                url = "https://" + url
+            else:
+                url = "http://" + url
 
         url = urlparse(url).netloc
-
         regex = re.compile(r"" + self.URL_REGEX + "")
         if not regex.match(url):
             Log.critical("\"" + url + "\""" is invalid url. """)

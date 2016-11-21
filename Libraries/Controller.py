@@ -64,6 +64,7 @@ class Controller:
                 python ./opendoor.py  --update
                 python ./opendoor.py  --version
                 python ./opendoor.py --url "http://joomla-ua.org"
+                python ./opendoor.py --url "https://joomla-ua.org"
                 python ./opendoor.py --url "http://joomla-ua.org" --port 8080
                 python ./opendoor.py --url "http://joomla-ua.org" --check subdomains
                 python ./opendoor.py --url "http://joomla-ua.org" --threads 10

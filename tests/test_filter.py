@@ -6,6 +6,19 @@ from Libraries import Filter;
 class TestFilter(unittest.TestCase):
     """ Filter test"""
 
+    @staticmethod
+    def is_numeric(val):
+        ''' check for numbers '''
+
+        if isinstance(val, (int, float)):
+            return True
+        try:
+            float(val)
+        except ValueError:
+            return False
+        else:
+            return True
+
     def test_threads(self):
         ''' filter threads test '''
 

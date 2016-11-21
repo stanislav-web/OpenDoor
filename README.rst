@@ -51,6 +51,7 @@ Changelog
     * *v2.3.52* - subdomains scan available! (param --check subdomains). Added databases
     * *v2.3.54* - disabled treads error. Refactored
     * *v2.4.62* - change port is available now! (param --port 8080). Code style fixes
+    * *v2.5.62* - Added HTTPS support!
 
 Basic usage
 ------------

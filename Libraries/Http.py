@@ -190,9 +190,9 @@ class Http:
                 path = '/' + path
 
             if self.DEFAULT_HTTP_PORT != port:
-                resolve_dirs.append(self.DEFAULT_HTTP_PROTOCOL + host + ":" + str(port) + path)
+                resolve_dirs.append(self.scheme + host + ":" + str(port) + path)
             else:
-                resolve_dirs.append(self.DEFAULT_HTTP_PROTOCOL + host + path)
+                resolve_dirs.append(self.scheme + host + path)
         return resolve_dirs
 
     def __subdomains_resolves(self, host, subdomains):
@@ -201,7 +201,7 @@ class Http:
         resolve_subs = []
         for sub in subdomains:
             sub = sub.replace("\n", "")
-            resolve_subs.append(self.DEFAULT_HTTP_PROTOCOL + sub + "." + host)
+            resolve_subs.append(self.scheme + sub + "." + host)
         return resolve_subs
 
     def __parse_params(self, params):
@@ -212,6 +212,7 @@ class Http:
         self.delay = params.get('delay', self.DEFAULT_REQUEST_DELAY)
         self.debug = params.get('debug', self.DEFAULT_DEBUG_LEVEL)
         self.proxy = params.get('proxy', self.DEFAULT_USE_PROXY)
+        self.scheme = params.get('scheme', self.DEFAULT_HTTP_PROTOCOL)
         self.port = params.get('port', self.DEFAULT_HTTP_PORT)
         self.check = params.get('check', self.DEFAULT_CHECK)
         self.iterator = 0
