@@ -29,6 +29,7 @@ sudo pip install -r requirements.txt
 * random proxy from proxy list
 * verbose mode
 * subdomains scanner
+* HTTP/HTTPS support
 
 ##### Changelog
 * *v1.0.0* - all the basic functionality is available

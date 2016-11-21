@@ -35,6 +35,7 @@ Implements
     * random proxy from proxy list
     * verbose mode
     * subdomains scanner
+    * HTTP/HTTPS support
 
 Changelog
 ------------
