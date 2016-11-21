@@ -46,6 +46,7 @@ sudo pip install -r requirements.txt
 * *v2.3.54* - disabled treads error. Refactored
 * *v2.4.62* - change port is available now! (param --port 8080). Code style fixes
 * *v2.5.62* - HTTPS support added
+* *v2.6.62* - added 19000 Possible directories!
 
 ##### Basic usage
 ```
