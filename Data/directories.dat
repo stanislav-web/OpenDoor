@@ -2151,6 +2151,7 @@ admin/index
 admin/index.asp
 admin/index.html
 admin/index.php
+admin/index2.php
 admin/login
 admin/login.asp
 admin/login.htm
@@ -12099,6 +12100,8 @@ mana/
 manage.php
 manage/
 managebilling/
+register/this_avto.php
+register/avto.php
 managed/
 management.php
 management/

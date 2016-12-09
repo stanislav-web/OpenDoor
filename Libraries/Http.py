@@ -16,7 +16,7 @@ try:
 
     import threadpool
     import urllib3
-
+    from urlparse import urlparse
 except ImportError:
     Log.critical("""\t\t[!] You need urllib3 , threadpool!
                 install it from http://pypi.python.org/pypi
@@ -88,7 +88,6 @@ class Http:
 
     def request(self, url):
         """Request handler"""
-
         if True == self.proxy:
             proxyserver = self.reader.get_random_proxy()
             try:
@@ -97,6 +96,7 @@ class Http:
                 Log.critical(e.message + ": " + proxyserver)
         else:
             try:
+
                 conn = urllib3.connection_from_url(url, maxsize=10, block=True,
                                                    timeout=self.rest)
             except TypeError as e:
@@ -109,9 +109,8 @@ class Http:
             'user-agent': self.reader.get_random_user_agent()
         }
         try :
-            response = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers)
+            response = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers, redirect=False)
         except (urllib3.exceptions.ConnectTimeoutError ,
-                urllib3.exceptions.MaxRetryError,
                 urllib3.exceptions.HostChangedError,
                 urllib3.exceptions.ReadTimeoutError,
                 urllib3.exceptions.ProxyError
@@ -128,7 +127,6 @@ class Http:
 
     def response(self, response, url):
         """Response handler"""
-
         self.counter.update(("completed",))
         if hasattr(response, 'status'):
             if response.status in self.DEFAULT_HTTP_FAILED_STATUSES:
@@ -143,6 +141,8 @@ class Http:
             elif response.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
                 self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
                 self.counter.update(("redirects",))
+                url = self.__get_redirect_url(url, response)
+                self.request(url)
             else:
                 self.counter.update(("undefined",))
                 return
@@ -168,6 +168,15 @@ class Http:
             Log.info('Scanning ' + host + ' ...')
         except socket.error:
             Log.critical('Oops Error occured, Server offline or invalid URL or response')
+
+    @staticmethod
+    def __get_redirect_url(url, response):
+        """ Create redirect url """
+
+        urlp = urlparse(url)
+        redirect_url = urlp.scheme + '://' + urlp.netloc + response.get_redirect_location()
+        Log.info('Redirect to : ' + redirect_url);
+        return redirect_url;
 
     def __get_urls(self, host):
         """Get urls"""
