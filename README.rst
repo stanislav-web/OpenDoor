@@ -36,6 +36,7 @@ Implements
     * verbose mode
     * subdomains scanner
     * HTTP/HTTPS support
+    * Detection of redirect and follow (beta)
 
 Changelog
 ------------

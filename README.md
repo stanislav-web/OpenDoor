@@ -30,6 +30,7 @@ sudo pip install -r requirements.txt
 * verbose mode
 * subdomains scanner
 * HTTP/HTTPS support
+* Detection of redirect and follow (beta)
 
 ##### Changelog
 * *v1.0.0* - all the basic functionality is available
