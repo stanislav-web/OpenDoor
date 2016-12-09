@@ -87,6 +87,7 @@ class Http:
         return response
 
     def request(self, url):
+
         """Request handler"""
         if True == self.proxy:
             proxyserver = self.reader.get_random_proxy()
@@ -117,6 +118,8 @@ class Http:
                 ) as e:
             response = None
             self.iterator = Progress.line(url + ' -> ' + e.message, self.urls.__len__(), 'warning', self.iterator)
+        except urllib3.exceptions.MaxRetryError:
+            pass
         except exceptions.AttributeError as e:
             Log.critical(e.message)
         except TypeError as e:
@@ -141,8 +144,7 @@ class Http:
             elif response.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
                 self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
                 self.counter.update(("redirects",))
-                url = self.__get_redirect_url(url, response)
-                self.request(url)
+                self.__handle_redirect_url(url, response)
             else:
                 self.counter.update(("undefined",))
                 return
@@ -169,14 +171,20 @@ class Http:
         except socket.error:
             Log.critical('Oops Error occured, Server offline or invalid URL or response')
 
-    @staticmethod
-    def __get_redirect_url(url, response):
-        """ Create redirect url """
+    def __handle_redirect_url(self, url, response):
+        """ Handle redirect url """
 
         urlp = urlparse(url)
         redirect_url = urlp.scheme + '://' + urlp.netloc + response.get_redirect_location()
         Log.info('Redirect to : ' + redirect_url);
-        return redirect_url;
+        http = urllib3.PoolManager()
+
+        try:
+            response_red = http.request(self.DEFAULT_HTTP_METHOD, redirect_url, redirect=True)
+            time.sleep(self.delay)
+            self.response(response_red, redirect_url);
+        except urllib3.exceptions.MaxRetryError:
+            pass
 
     def __get_urls(self, host):
         """Get urls"""
