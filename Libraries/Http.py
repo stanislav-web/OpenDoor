@@ -5,6 +5,7 @@
 import sys
 import socket
 import time
+import re
 import logging
 import multiprocessing
 import exceptions
@@ -70,7 +71,6 @@ class Http:
             requests = threadpool.makeRequests(self.request, self.urls)
             for req in requests:
                 pool.putRequest(req)
-            time.sleep(1)
             pool.wait()
         except exceptions.AttributeError as e:
             Log.critical(e.message)
@@ -114,7 +114,8 @@ class Http:
         except (urllib3.exceptions.ConnectTimeoutError ,
                 urllib3.exceptions.HostChangedError,
                 urllib3.exceptions.ReadTimeoutError,
-                urllib3.exceptions.ProxyError
+                urllib3.exceptions.ProxyError,
+                urllib3.exceptions.NewConnectionError
                 ) as e:
             response = None
             self.iterator = Progress.line(url + ' -> ' + e.message, self.urls.__len__(), 'warning', self.iterator)
@@ -133,7 +134,7 @@ class Http:
         self.counter.update(("completed",))
         if hasattr(response, 'status'):
             if response.status in self.DEFAULT_HTTP_FAILED_STATUSES:
-                self.iterator = Progress.line(url, self.urls.__len__(), 'error', self.iterator)
+                self.iterator = Progress.line(url, self.urls.__len__(), 'error', self.iterator, False)
                 self.counter.update(("failed",))
             elif response.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
                 self.iterator = Progress.line(url, self.urls.__len__(), 'success', self.iterator)
@@ -173,16 +174,21 @@ class Http:
 
     def __handle_redirect_url(self, url, response):
         """ Handle redirect url """
+        location = response.get_redirect_location()
+        a = re.search("(?P<url>https?://[^\s]+)", location)
+        if None != a.group("url"):
+            redirect_url = a.group("url")
+        else:
+            urlp = urlparse(url)
+            redirect_url = urlp.scheme + '://' + urlp.netloc + location
 
-        urlp = urlparse(url)
-        redirect_url = urlp.scheme + '://' + urlp.netloc + response.get_redirect_location()
-        Log.info('Redirect to : ' + redirect_url);
+        Log.verbose('Redirect to : ' + redirect_url);
         http = urllib3.PoolManager()
 
         try:
             response_red = http.request(self.DEFAULT_HTTP_METHOD, redirect_url, redirect=True)
             time.sleep(self.delay)
-            self.response(response_red, redirect_url);
+            self.response(response_red, redirect_url)
         except urllib3.exceptions.MaxRetryError:
             pass
 
@@ -233,6 +239,9 @@ class Http:
         self.port = params.get('port', self.DEFAULT_HTTP_PORT)
         self.check = params.get('check', self.DEFAULT_CHECK)
         self.iterator = 0
+
+        if 'log' not in params:
+            Log.debug('Use --log param to save scan result');
 
         if self.cpu_cnt < self.threads:
             self.threads = self.cpu_cnt

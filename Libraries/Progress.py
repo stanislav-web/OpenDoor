@@ -20,13 +20,14 @@ class Progress:
     """Progress helper class"""
 
     @staticmethod
-    def line(message, countall, status, iterator):
+    def line(message, countall, status, iterator, show=True):
         """Progress line"""
 
         iterator += 1
         iterator = int(iterator)
         indicator = iterator * 100 / countall;
-        getattr(Log, '{}'.format(status))('{}% {}'.format(str(indicator), message), showtime = True, showlevel = False)
+        if True == show:
+            getattr(Log, '{}'.format(status))('{}% {}'.format(str(indicator), message), showtime = True, showlevel = False)
         sys.stdout.flush()
         return iterator
 
@@ -39,11 +40,11 @@ class Progress:
         result = result.get('result')
         for status in result:
 
-            if status in Status.Http.DEFAULT_HTTP_FAILED_STATUSES:
+            #if status in Status.Http.DEFAULT_HTTP_FAILED_STATUSES:
                 # failed urls print
-                print colored('FAILED ', 'red', attrs=['bold'])
-                for url in result[status]:
-                    Log.error('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
+                #print colored('FAILED ', 'red', attrs=['bold'])
+                #for url in result[status]:
+                #    Log.error('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
             if status in Status.Http.DEFAULT_HTTP_REDIRECT_STATUSES:
                 # have redirects urls print
