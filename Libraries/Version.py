@@ -31,13 +31,19 @@ class Version:
     def update():
         """ Checking for app update"""
 
-        CMD = '/usr/bin/git pull origin master'
+        CMDUP = '/usr/bin/git pull origin master'
+        CMDLOG = '/usr/bin/git log --oneline -n 1'
         Log.success('Checking for updates...')
-        pr = subprocess.Popen(CMD, cwd=os.getcwd(),
+        pr = subprocess.Popen(CMDUP, cwd=os.getcwd(),
                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (out, error) = pr.communicate()
-        Log.success(str(out))
-        Log.info(str(error))
+        Log.success(str(out).rstrip())
+        Log.info(str(error).rstrip())
+        prlog = subprocess.Popen(CMDLOG, cwd=os.getcwd(),
+                              shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        (out, error) = prlog.communicate()
+        Log.info(str(out).rstrip())
 
     @staticmethod
     def get_license():
