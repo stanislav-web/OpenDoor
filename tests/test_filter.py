@@ -26,6 +26,12 @@ class TestFilter(unittest.TestCase):
         check = Filter.check('unknown')
         self.assertEqual(check, 'directories')
 
+    def test_sheme(self):
+        ''' filter sheme test '''
+
+        url = Filter.scheme('test.com')
+        self.assertRegexpMatches(url, r'^http')
+
     def test_port(self):
         ''' filter port test '''
 
