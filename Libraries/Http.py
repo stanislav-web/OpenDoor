@@ -175,9 +175,9 @@ class Http:
     def __handle_redirect_url(self, url, response):
         """ Handle redirect url """
         location = response.get_redirect_location()
-        a = re.search("(?P<url>https?://[^\s]+)", location)
-        if None != a.group("url"):
-            redirect_url = a.group("url")
+        matches = re.search("(?P<url>https?://[^\s]+)", location)
+        if None != matches.group("url"):
+            redirect_url = matches.group("url")
         else:
             urlp = urlparse(url)
             redirect_url = urlp.scheme + '://' + urlp.netloc + location

@@ -27,7 +27,8 @@ class Progress:
         iterator = int(iterator)
         indicator = iterator * 100 / countall;
         if True == show:
-            getattr(Log, '{}'.format(status))('{}% {}'.format(str(indicator), message), showtime = True, showlevel = False)
+            message = '{}% {}'.format(str(indicator), message)
+            getattr(Log, '{}'.format(status))(message, showtime = True, showlevel = False)
         sys.stdout.flush()
         return iterator
 
@@ -64,4 +65,5 @@ class Progress:
                 for url in result[status]:
                     Log.success('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
-        print tabulate(count, headers=[colored('Statistics', attrs=['bold']),colored('Summary', attrs=['bold'])], tablefmt="fancy_grid")
+        headers = [colored('Statistics', attrs=['bold']), colored('Summary', attrs=['bold'])]
+        print tabulate(count, headers=headers, tablefmt="fancy_grid")

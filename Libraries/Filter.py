@@ -30,7 +30,8 @@ class Filter:
 
         return filtered
 
-    def scheme(self, url):
+    @staticmethod
+    def scheme(url):
         """ Get `url` scheme """
 
         scheme = urlparse(url).scheme
