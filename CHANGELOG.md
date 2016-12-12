@@ -15,3 +15,4 @@
 * *v2.6.62* - added 19000 Possible directories!
 * *v2.7.62* - added redirect handler (Beta)
 * *v2.7.72* - added 52 directories, small changes for UI
+* *v2.7.82* - added 683 directories

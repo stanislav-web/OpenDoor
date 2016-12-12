@@ -13,7 +13,8 @@ This application scans the site directories and find all possible ways to login,
 Scans conducted in the dictionary that is included in this application.
 This software is written for informational purposes and is an open source product under the GPL license.
 
-* *Last v2.7.72*
+* *Current v2.7.72*
+
     * Directories - 21686
     * Subdomains - 101000
 
@@ -61,6 +62,7 @@ Changelog
     * *v2.6.62* - added 19000 Possible directories!
     * *v2.7.62* - added redirect handler (Beta)
     * *v2.7.72* - added 52 directories , small changes for UI
+    * *v2.7.82* - added 683 directories
 
 Basic usage
 ------------
