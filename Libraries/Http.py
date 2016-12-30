@@ -49,11 +49,11 @@ class Http:
     def get(self, host, params = ()):
         """Get metadata by url"""
 
-        self.__is_server_online(host)
-        self.__disable_verbose();
         self.__parse_params(params)
-        self.urls = self.__get_urls(host);
-        response = {};
+        self.__is_server_online(host, self.port)
+        self.__disable_verbose()
+        self.urls = self.__get_urls(host)
+        response = {}
 
         try:
             httplib.HTTPConnection.debuglevel = self.debug
@@ -156,15 +156,24 @@ class Http:
         logging.getLogger("urllib3").setLevel(level)
 
     @staticmethod
-    def __is_server_online(host):
+    def __is_server_online(host, port):
         """ Check if server is online"""
 
+        s = socket.socket()
+
         try:
-            socket.gethostbyname(host)
-            Log.info('Server : '+ host +' is online')
+            ip = socket.gethostbyname(host)
+
+            print socket.gethostbyaddr(ip)
+            s.settimeout(3)
+            s.connect((host, port))
+
+            Log.info('Server {0} {1}:{2} is online'.format(host,ip,port))
             Log.info('Scanning ' + host + ' ...')
-        except socket.error:
-            Log.critical('Oops Error occured, Server offline or invalid URL or response')
+        except (socket.gaierror,socket.timeout) as e:
+            Log.critical('Oops Error occured, Server offline or invalid URL. Reason: {}'.format(e))
+        finally:
+            s.close()
 
     def __handle_redirect_url(self, url, response):
         """ Handle redirect url """
