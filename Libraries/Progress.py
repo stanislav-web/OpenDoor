@@ -3,18 +3,10 @@
 """Progress class"""
 
 import sys
-from Logger import Logger as Log
-import Http as Status
+from .Logger import Logger as Log
+from tabulate import tabulate
+from termcolor import colored
 
-try:
-    from tabulate import tabulate
-    import coloredlogs
-    from termcolor import colored
-
-except ImportError:
-    sys.exit("""\t\t[!] You need coloredlogs termcolor and tabulate!
-                install it from http://pypi.python.org/pypi
-                or run pip install coloredlogs termcolor tabulate.""")
 
 class Progress:
     """Progress helper class"""

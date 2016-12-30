@@ -21,15 +21,20 @@
 #
 #    Stanislav Menshov (Stanislav WEB) https://vk.com/stanislav_web
 
-from Libraries import Command, Filter as FilterArgs, Controller, Version
+if __name__ == "__main__":
+    from Libraries.Command import Command
+    from Libraries.Controller import Controller
+    from Libraries.Version import Version
+    from Libraries.Filter import Filter as FilterArgs
 
-version = Version()
-command = Command()
-filter_args = FilterArgs()
-args = []
+    version = Version()
+    command = Command()
+    filter_args = FilterArgs()
+    args_values = command.get_arg_values()
+    args = []
 
-Version().banner()
+    version.banner()
 
-if command.get_arg_values():
-    args = filter_args.call(command)
-    Controller(args)
+    if args_values:
+        args = filter_args.call(command)
+        Controller(args)

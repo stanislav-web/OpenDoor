@@ -2,19 +2,11 @@
 
 """Filereader class"""
 
-from Logger import Logger as Log
-
-try:
-    import os
-    import StringIO
-    import ConfigParser
-    from random import randrange
-    from linereader import copen
-
-except ImportError:
-    Log.critical("""\t\t[!] You need linereader!
-                install it from http://pypi.python.org/pypi
-                or run pip install linereader """)
+import os
+import StringIO
+import ConfigParser
+from random import randrange
+from .Logger import Logger as Log
 
 
 class FileReader:

@@ -4,16 +4,11 @@
 
 import sys
 import os
+import logging
+import verboselogs
+import coloredlogs
 from datetime import datetime
-import Http as Status
-
-try:
-    import coloredlogs
-    from termcolor import colored
-except ImportError:
-    sys.exit("""\t\t[!] You need coloredlogs and termcolor!
-                install it from http://pypi.python.org/pypi
-                or run pip install coloredlogs termcolor.""")
+from termcolor import colored
 
 
 class Logger:
@@ -133,15 +128,6 @@ class Logger:
     @staticmethod
     def log(level):
         """Log verbose setter message"""
-
-        try:
-            import logging
-            import verboselogs
-
-        except ImportError:
-            sys.exit("""You need logging , verboselogs!
-                            install it from http://pypi.python.org/pypi
-                            or run pip install logging verboselogs""")
 
         # set logger level from parent class
         logger = verboselogs.VerboseLogger('')

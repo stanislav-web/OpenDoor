@@ -3,12 +3,12 @@
 """Command class"""
 
 from argparse import RawDescriptionHelpFormatter
-from Logger import Logger as Log
+from .Logger import Logger as Log
 from Exceptions import ArgumentParserError, ThrowingArgumentParser
 
 
 class Command:
-    """Console helper class"""
+    """Command helper class"""
 
     def __init__(self):
 

@@ -3,10 +3,10 @@
 """Controller class"""
 
 import sys
-from Progress import Progress
-from Logger import Logger as Log
-from Version import Version
-from Http import Http
+from .Progress import Progress
+from .Logger import Logger as Log
+from .Version import Version
+from .Http import Http
 
 
 class Controller:

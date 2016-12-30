@@ -11,20 +11,14 @@ import multiprocessing
 import exceptions
 import collections
 import httplib
-from Logger import Logger as Log
+import threadpool
+import urllib3
+from urlparse import urlparse
+from .Logger import Logger as Log
+from .FileReader import FileReader
+from .Progress import Progress
 
-try:
 
-    import threadpool
-    import urllib3
-    from urlparse import urlparse
-except ImportError:
-    Log.critical("""\t\t[!] You need urllib3 , threadpool!
-                install it from http://pypi.python.org/pypi
-                or run pip install urllib3 threadpool""")
-
-from FileReader import FileReader
-from Progress import Progress
 
 class Http:
     """Http mapper class"""

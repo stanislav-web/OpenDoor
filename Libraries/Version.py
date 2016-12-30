@@ -2,23 +2,14 @@
 
 """Version class"""
 
-from Logger import Logger as Log
-
-try:
-    import sys
-    import subprocess
-    import os
-    import urllib3
-    from distutils.version import LooseVersion
-
-    from colorama import init
-    from termcolor import colored
-    from Libraries.FileReader import FileReader
-
-except ImportError:
-    Log.critical("""You need urllib3, colorama and termcolor!
-                install it from http://pypi.python.org/pypi
-                or run pip install colorama termcolor urllib3.""")
+import subprocess
+import os
+import urllib3
+from distutils.version import LooseVersion
+from colorama import init
+from termcolor import colored
+from .Logger import Logger as Log
+from .FileReader import FileReader
 
 
 class Version:

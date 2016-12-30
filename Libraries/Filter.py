@@ -4,7 +4,7 @@
 
 import re
 from urlparse import urlparse
-from Logger import Logger as Log
+from .Logger import Logger as Log
 
 
 class Filter:
