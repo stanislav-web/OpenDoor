@@ -21,6 +21,21 @@
 #
 #    Stanislav Menshov (Stanislav WEB) https://vk.com/stanislav_web
 
+try:
+    import urllib3
+    import threadpool
+    import linereader
+    import colorama
+    import coloredlogs
+    import termcolor
+    import logging
+    import verboselogs
+    import tabulate
+
+except ImportError:
+    Log.critical("""\t\t[!] Several dependencies wasn't installed!
+                Please run sudo pip install -r requirements.txt """)
+
 from Libraries import Command, Filter as FilterArgs, Controller, Version
 
 version = Version()

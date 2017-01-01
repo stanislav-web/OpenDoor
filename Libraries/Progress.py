@@ -4,17 +4,9 @@
 
 import sys
 from Logger import Logger as Log
-import Http as Status
-
-try:
-    from tabulate import tabulate
-    import coloredlogs
-    from termcolor import colored
-
-except ImportError:
-    sys.exit("""\t\t[!] You need coloredlogs termcolor and tabulate!
-                install it from http://pypi.python.org/pypi
-                or run pip install coloredlogs termcolor tabulate.""")
+from HttpConfig import HttpConfig as Status
+from tabulate import tabulate
+from termcolor import colored
 
 class Progress:
     """Progress helper class"""
@@ -41,25 +33,25 @@ class Progress:
         result = result.get('result')
         for status in result:
 
-            #if status in Status.Http.DEFAULT_HTTP_FAILED_STATUSES:
-                # failed urls print
-                #print colored('FAILED ', 'red', attrs=['bold'])
-                #for url in result[status]:
-                #    Log.error('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
+            # if status in Status.DEFAULT_HTTP_FAILED_STATUSES:
+            #     # failed urls print
+            #     print colored('FAILED ', 'red', attrs=['bold'])
+            #     for url in result[status]:
+            #        Log.error('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
-            if status in Status.Http.DEFAULT_HTTP_REDIRECT_STATUSES:
+            if status in Status.DEFAULT_HTTP_REDIRECT_STATUSES:
                 # have redirects urls print
                 print colored('REDIRECTS ', 'yellow', attrs=['bold'])
                 for url in result[status]:
                     Log.verbose('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
-            if status in Status.Http.DEFAULT_HTTP_UNRESOLVED_STATUSES:
+            if status in Status.DEFAULT_HTTP_UNRESOLVED_STATUSES:
                 # unresolved urls print
                 print colored('POSSIBLE ', 'yellow', attrs=['bold'])
                 for url in result[status]:
                     Log.warning('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
 
-            if status in Status.Http.DEFAULT_HTTP_SUCCESS_STATUSES:
+            if status in Status.DEFAULT_HTTP_SUCCESS_STATUSES:
                 # success urls print
                 print colored('SUCCESS ', 'green', attrs=['bold'])
                 for url in result[status]:

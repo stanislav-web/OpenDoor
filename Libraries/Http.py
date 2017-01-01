@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Http class"""
+"""Http mapper class"""
 
 import sys
 import socket
@@ -11,55 +11,40 @@ import multiprocessing
 import exceptions
 import collections
 import httplib
+import threadpool
+import urllib3
+from urlparse import urlparse
+from HttpConfig import HttpConfig as config
 from Logger import Logger as Log
-
-try:
-
-    import threadpool
-    import urllib3
-    from urlparse import urlparse
-except ImportError:
-    Log.critical("""\t\t[!] You need urllib3 , threadpool!
-                install it from http://pypi.python.org/pypi
-                or run pip install urllib3 threadpool""")
-
+from Message import Message
 from FileReader import FileReader
 from Progress import Progress
+from Formatter import Formatter
 
 class Http:
     """Http mapper class"""
 
-    DEFAULT_HTTP_METHOD = 'HEAD'
-    DEFAULT_HTTP_PROTOCOL = 'http://'
-    DEFAULT_HTTP_PORT = 80
-    DEFAULT_THREADS = 1
-    DEFAULT_DEBUG_LEVEL = 0
-    DEFAULT_REQUEST_TIMEOUT  = 10
-    DEFAULT_REQUEST_DELAY  = 0
-    DEFAULT_USE_PROXY = False
-    DEFAULT_CHECK = 'directories'
-    DEFAULT_HTTP_SUCCESS_STATUSES = [100,101,200,201,202,203,204,205,206,207,208]
-    DEFAULT_HTTP_REDIRECT_STATUSES = [301,302,303,304,307,308]
-    DEFAULT_HTTP_FAILED_STATUSES = [404,429,500,501,502,503,504]
-    DEFAULT_HTTP_UNRESOLVED_STATUSES = [401,403]
-
     def __init__(self):
         """Init constructor"""
 
+        self.message = Message()
         self.reader = FileReader()
-        self.cpu_cnt = multiprocessing.cpu_count();
+        self.cpu_cnt = multiprocessing.cpu_count()
         self.counter = collections.Counter()
         self.result = collections.defaultdict(list)
         self.result.default_factory
+        self.exclusions = []
 
     def get(self, host, params = ()):
         """Get metadata by url"""
 
         self.__is_server_online(host)
-        self.__disable_verbose();
+        self.__disable_verbose()
         self.__parse_params(params)
-        self.urls = self.__get_urls(host);
-        response = {};
+        self.urls = self.__get_urls(host)
+        self.exclusions = self.__get_exclusions()
+
+        response = {}
 
         try:
             httplib.HTTPConnection.debuglevel = self.debug
@@ -76,7 +61,7 @@ class Http:
             Log.critical(e.message)
         except KeyboardInterrupt:
             Log.warning('Session canceled')
-            sys.exit();
+            sys.exit()
 
         self.counter['total'] = self.urls.__len__()
         self.counter['pools'] = pool.workers.__len__()
@@ -94,7 +79,7 @@ class Http:
             try:
                 conn = urllib3.proxy_from_url(proxyserver, maxsize=10, block=True, timeout=self.rest)
             except urllib3.exceptions.ProxySchemeUnknown as e:
-                Log.critical(e.message + ": " + proxyserver)
+                Log.critical('{} : {}'.format(e.message, proxyserver))
         else:
             try:
 
@@ -110,55 +95,82 @@ class Http:
             'user-agent': self.reader.get_random_user_agent()
         }
         try :
-            response = conn.request(self.DEFAULT_HTTP_METHOD, url, headers=headers, redirect=False)
+            response = conn.request(config.DEFAULT_HTTP_METHOD, url, headers=headers, redirect=False)
         except (urllib3.exceptions.ConnectTimeoutError ,
                 urllib3.exceptions.HostChangedError,
                 urllib3.exceptions.ReadTimeoutError,
                 urllib3.exceptions.ProxyError,
-                urllib3.exceptions.NewConnectionError
                 ) as e:
             response = None
             self.iterator = Progress.line(url + ' -> ' + e.message, self.urls.__len__(), 'warning', self.iterator)
         except urllib3.exceptions.MaxRetryError:
             pass
+        except urllib3.exceptions.NewConnectionError as e:
+            Log.critical(e.message)
         except exceptions.AttributeError as e:
             Log.critical(e.message)
         except TypeError as e:
             Log.critical(e.message)
 
-        time.sleep(self.delay)
-        return self.response(response, url)
+        try :
+            time.sleep(self.delay)
+            return self.response(response, url)
+        except exceptions.UnboundLocalError:
+            message = '{} : {}'.format('Unresponsible path', url)
+            Log.warning(message)
+            pass
 
     def response(self, response, url):
         """Response handler"""
-        self.counter.update(("completed",))
-        if hasattr(response, 'status'):
-            if response.status in self.DEFAULT_HTTP_FAILED_STATUSES:
-                self.iterator = Progress.line(url, self.urls.__len__(), 'error', self.iterator, False)
-                self.counter.update(("failed",))
-            elif response.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
-                self.iterator = Progress.line(url, self.urls.__len__(), 'success', self.iterator)
-                self.counter.update(("success",))
-            elif response.status in self.DEFAULT_HTTP_UNRESOLVED_STATUSES:
-                self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
-                self.counter.update(("possible",))
-            elif response.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
-                self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
-                self.counter.update(("redirects",))
-                self.__handle_redirect_url(url, response)
-            else:
-                self.counter.update(("undefined",))
-                return
-            self.result[response.status].append(url)
 
-        else:
+        if True == self.__is_excluded(url):
+
+            Log.info('Excluded : '+ url)
+            self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator, False)
+            self.counter.update(("excluded",))
             return
+        else:
+            if hasattr(response, 'status'):
+                if response.status in config.DEFAULT_HTTP_FAILED_STATUSES:
+                    self.iterator = Progress.line(url, self.urls.__len__(), 'error', self.iterator, False)
+                    self.counter.update(("failed",))
+                elif response.status in config.DEFAULT_HTTP_SUCCESS_STATUSES:
+                    if 'Content-Length' in response.headers:
+                        if config.DEFAULT_SOURCE_DETECT_MIN_SIZE <= int(response.headers['Content-Length']):
+                            size = Formatter.get_readable_size(response.headers['Content-Length'])
+                            message = self.message.get('file_detected').format(url, size)
+                            self.iterator = Progress.line(message, self.urls.__len__(), 'success', self.iterator)
+                            self.counter.update(("sources",))
+                        else:
+                            self.iterator = Progress.line(url, self.urls.__len__(), 'success', self.iterator)
+                            self.counter.update(("success",))
+                    else:
+                        self.iterator = Progress.line(url, self.urls.__len__(), 'success', self.iterator)
+                        self.counter.update(("success",))
+                elif response.status in config.DEFAULT_HTTP_UNRESOLVED_STATUSES:
+                    self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
+                    self.counter.update(("possible",))
+                elif response.status in config.DEFAULT_HTTP_REDIRECT_STATUSES:
+                    self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
+                    self.counter.update(("redirects",))
+                    self.__handle_redirect_url(url, response)
+                elif response.status in config.DEFAULT_HTTP_BAD_REQUEST_STATUSES:
+                    self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator)
+                    self.counter.update(("bad requests",))
+                    self.__handle_redirect_url(url, response)
+                else:
+                    self.counter.update(("undefined",))
+                    return
+                self.result[response.status].append(url)
+
+            else:
+                return
 
     @staticmethod
     def __disable_verbose():
         """ Disbale verbose warnings info"""
 
-        level = 'WARNING'
+        level = 'ERROR'
         logging.getLogger("urllib3").setLevel(level)
 
     @staticmethod
@@ -174,49 +186,80 @@ class Http:
 
     def __handle_redirect_url(self, url, response):
         """ Handle redirect url """
-        location = response.get_redirect_location()
-        matches = re.search("(?P<url>https?://[^\s]+)", location)
-        if None != matches.group("url"):
-            redirect_url = matches.group("url")
-        else:
-            urlp = urlparse(url)
-            redirect_url = urlp.scheme + '://' + urlp.netloc + location
-
-        Log.verbose('Redirect to : ' + redirect_url);
-        http = urllib3.PoolManager()
 
         try:
-            response_red = http.request(self.DEFAULT_HTTP_METHOD, redirect_url, redirect=True)
-            time.sleep(self.delay)
-            self.response(response_red, redirect_url)
-        except urllib3.exceptions.MaxRetryError:
+            location = response.get_redirect_location()
+
+            if False != location:
+
+                matches = re.search("(?P<url>https?://[^\s]+)", location)
+                if None != matches.group("url"):
+                    redirect_url = matches.group("url")
+                else:
+                    urlp = urlparse(url)
+                    redirect_url = urlp.scheme + '://' + urlp.netloc + location
+
+                Log.info('Redirect ' + url + ' --> ' + redirect_url)
+                http = urllib3.PoolManager()
+
+            try:
+                if redirect_url:
+                    response_red = http.request(config.DEFAULT_HTTP_METHOD, redirect_url, redirect=True)
+                    time.sleep(self.delay)
+                    self.response(response_red, redirect_url)
+            except urllib3.exceptions.MaxRetryError:
+                pass
+        except exceptions.AttributeError:
             pass
 
     def __get_urls(self, host):
         """Get urls"""
 
-        lines = self.reader.get_file_data(self.check);
+        lines = self.reader.get_file_data(self.check)
 
-        if self.DEFAULT_CHECK == self.check:
-            urls = self.__urls_resolves(host, self.port, lines);
+        if config.DEFAULT_CHECK == self.check:
+            urls = self.__urls_resolves(host, self.port, lines)
         else:
-            urls = self.__subdomains_resolves(host, lines);
+            urls = self.__subdomains_resolves(host, lines)
         return urls
+
+    def __get_exclusions(self):
+        """Get exclusions for redirect pages"""
+
+        exlusionsList = []
+        if not self.exclusions:
+            lines = self.reader.get_file_data('excludes')
+            for item in lines:
+                item = item.replace("\n", "")
+                if "/" == item[0]:
+                    item = item.strip('/')
+                exlusionsList.append(item)
+        return exlusionsList
+
+    def __is_excluded(self, url):
+        """Check if url has been excluded"""
+
+        path = urlparse(url).path.strip("/")
+
+        if path in self.exclusions:
+            return True
+        else:
+            return False
 
     def __urls_resolves(self, host, port, directories):
         """Urls path resolve"""
 
-        resolve_dirs = []
+        resolved_dirs = []
         for path in directories:
             path = path.replace("\n", "")
             if "/" != path[0]:
                 path = '/' + path
 
-            if self.DEFAULT_HTTP_PORT != port:
-                resolve_dirs.append(self.scheme + host + ":" + str(port) + path)
+            if config.DEFAULT_HTTP_PORT != port:
+                resolved_dirs.append(self.scheme + host + ":" + str(port) + path)
             else:
-                resolve_dirs.append(self.scheme + host + path)
-        return resolve_dirs
+                resolved_dirs.append(self.scheme + host + path)
+        return resolved_dirs
 
     def __subdomains_resolves(self, host, subdomains):
         """Subdomains path resolve"""
@@ -230,18 +273,18 @@ class Http:
     def __parse_params(self, params):
         """Parse additional params"""
 
-        self.threads = params.get('threads', self.DEFAULT_THREADS)
-        self.rest = params.get('rest', self.DEFAULT_REQUEST_TIMEOUT)
-        self.delay = params.get('delay', self.DEFAULT_REQUEST_DELAY)
-        self.debug = params.get('debug', self.DEFAULT_DEBUG_LEVEL)
-        self.proxy = params.get('proxy', self.DEFAULT_USE_PROXY)
-        self.scheme = params.get('scheme', self.DEFAULT_HTTP_PROTOCOL)
-        self.port = params.get('port', self.DEFAULT_HTTP_PORT)
-        self.check = params.get('check', self.DEFAULT_CHECK)
+        self.threads = params.get('threads', config.DEFAULT_THREADS)
+        self.rest = params.get('rest', config.DEFAULT_REQUEST_TIMEOUT)
+        self.delay = params.get('delay', config.DEFAULT_REQUEST_DELAY)
+        self.debug = params.get('debug', config.DEFAULT_DEBUG_LEVEL)
+        self.proxy = params.get('proxy', config.DEFAULT_USE_PROXY)
+        self.scheme = params.get('scheme', config.DEFAULT_HTTP_PROTOCOL)
+        self.port = params.get('port', config.DEFAULT_HTTP_PORT)
+        self.check = params.get('check', config.DEFAULT_CHECK)
         self.iterator = 0
 
         if 'log' not in params:
-            Log.debug('Use --log param to save scan result');
+            Log.debug('Use --log param to save scan result')
 
         if self.cpu_cnt < self.threads:
             self.threads = self.cpu_cnt

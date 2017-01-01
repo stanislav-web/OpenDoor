@@ -3,19 +3,10 @@
 """Filereader class"""
 
 from Logger import Logger as Log
-
-try:
-    import os
-    import StringIO
-    import ConfigParser
-    from random import randrange
-    from linereader import copen
-
-except ImportError:
-    Log.critical("""\t\t[!] You need linereader!
-                install it from http://pypi.python.org/pypi
-                or run pip install linereader """)
-
+import os
+import StringIO
+import ConfigParser
+from random import randrange
 
 class FileReader:
     """Filereader class"""
@@ -50,7 +41,6 @@ class FileReader:
         """ Get configuration file data """
 
         config = ConfigParser.RawConfigParser()
-
         config_file = os.path.join(os.getcwd(), 'setup.cfg')
         if not os.path.isfile(config_file):
             Log.critical(file + """ is not a file""")

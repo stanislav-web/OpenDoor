@@ -27,7 +27,7 @@ sudo pip install -r requirements.txt
 
 ##### Implements
 * multithreading
-* filesystem log
+* reporting
 * detect redirects
 * random user agent
 * random proxy from proxy list

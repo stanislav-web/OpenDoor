@@ -5,19 +5,15 @@
 import sys
 import os
 from datetime import datetime
-import Http as Status
-
-try:
-    import coloredlogs
-    from termcolor import colored
-except ImportError:
-    sys.exit("""\t\t[!] You need coloredlogs and termcolor!
-                install it from http://pypi.python.org/pypi
-                or run pip install coloredlogs termcolor.""")
+import coloredlogs
+import logging
+import verboselogs
+from termcolor import colored
+from HttpConfig import HttpConfig as Status
 
 
 class Logger:
-    """Message helper class"""
+    """Logger helper class"""
 
     @staticmethod
     def success(message, showtime=True, showlevel=True):
@@ -134,15 +130,6 @@ class Logger:
     def log(level):
         """Log verbose setter message"""
 
-        try:
-            import logging
-            import verboselogs
-
-        except ImportError:
-            sys.exit("""You need logging , verboselogs!
-                            install it from http://pypi.python.org/pypi
-                            or run pip install logging verboselogs""")
-
         # set logger level from parent class
         logger = verboselogs.VerboseLogger('')
         # add the handlers to the logger
@@ -160,26 +147,27 @@ class Logger:
 
         params.pop("count", None)
         result = params.get('result')
-
         for status in result:
 
-            if status in Status.Http.DEFAULT_HTTP_REDIRECT_STATUSES:
+            if status in Status.DEFAULT_HTTP_REDIRECT_STATUSES:
                 # have redirects urls log
                 file = open(os.path.join(path, 'redirects.log'), 'w')
                 for url in result[status]:
                     file.write('{}\n'.format(url))
                 file.close()
 
-            if status in Status.Http.DEFAULT_HTTP_UNRESOLVED_STATUSES:
+            if status in Status.DEFAULT_HTTP_UNRESOLVED_STATUSES:
                 # unresolved urls log
                 file = open(os.path.join(path, 'possible.log'), 'w')
                 for url in result[status]:
                     file.write('{}\n'.format(url))
                 file.close()
 
-            if status in Status.Http.DEFAULT_HTTP_SUCCESS_STATUSES:
+            if status in Status.DEFAULT_HTTP_SUCCESS_STATUSES:
                 # success urls print
                 file = open(os.path.join(path, 'success.log'), 'w')
                 for url in result[status]:
                     file.write('{}\n'.format(url))
                 file.close()
+
+        Logger.info('Your results logs has been created in ' + path)

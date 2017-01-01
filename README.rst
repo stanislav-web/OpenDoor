@@ -34,7 +34,7 @@ Install Dependencies
 Implements
 ------------
     * multithreading
-    * filesystem log
+    * reporting
     * detect redirects
     * random user agent
     * random proxy from proxy list
