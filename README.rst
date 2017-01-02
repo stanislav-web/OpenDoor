@@ -1,13 +1,13 @@
 OWASP Directory Access scanner
 ====================
 .. image:: http://dl2.joxi.net/drive/2016/08/04/0001/0378/90490/90/4b4470c268.jpg
-    :target: http://dl2.joxi.net/drive/2016/08/04/0001/0378/90490/90/4b4470c268.jpg
+:target: http://dl2.joxi.net/drive/2016/08/04/0001/0378/90490/90/4b4470c268.jpg
     
 
 .. image:: https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master
-    :target: https://travis-ci.org/stanislav-web/OpenDoor
+:target: https://travis-ci.org/stanislav-web/OpenDoor
 .. image:: https://badge.fury.io/py/opendoor.svg
-    :target: https://badge.fury.io/py/opendoor
+:target: https://badge.fury.io/py/opendoor
         
 This application scans the site directories and find all possible ways to login, empty directories and entry points.
 Scans conducted in the dictionary that is included in this application.
@@ -21,7 +21,7 @@ This software is written for informational purposes and is an open source produc
 **Testing of the software on the commercial systems and organizations is prohibited!**
 
 .. image:: http://dl2.joxi.net/drive/2016/12/12/0001/0378/90490/90/29ae6dade2.jpg
-    :target: http://dl2.joxi.net/drive/2016/12/12/0001/0378/90490/90/29ae6dade2.jpg
+:target: http://dl2.joxi.net/drive/2016/12/12/0001/0378/90490/90/29ae6dade2.jpg
     
 Requirements
 ------------
@@ -35,13 +35,13 @@ Implements
 ------------
     * multithreading
     * reporting
-    * detect redirects
     * random user agent
     * random proxy from proxy list
     * verbose mode
     * subdomains scanner
     * HTTP/HTTPS support
-    * Detection of redirect and follow (beta)
+    * detection of redirect and follow
+    * exclusion list
 
 Changelog
 ------------
@@ -50,8 +50,8 @@ Changelog
     * *v1.2.1* - added filesystem logger (param --log)
     * *v1.2.2* - added example of usage (param --examples)
     * *v1.3.2* - added posibility to use random proxy from proxylist (param --proxy)
-    * *v1.3.3* - simplify dependency installation    
-    * *v1.3.4* - added code quality watcher    
+    * *v1.3.3* - simplify dependency installation
+    * *v1.3.4* - added code quality watcher
     * *v1.3.5* - added ReadTimeoutError ProxyError handlers
     * *v1.3.51* - fixed code style, resolve file read errors
     * *v1.3.52* - code docstyle added
@@ -63,6 +63,7 @@ Changelog
     * *v2.7.62* - added redirect handler (Beta)
     * *v2.7.72* - added 52 directories , small changes for UI
     * *v2.7.82* - added 683 directories
+    * *v2.7.92* - exclusion list added Data/exclusions.dat
 
 Basic usage
 ------------

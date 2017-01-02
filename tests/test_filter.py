@@ -1,7 +1,9 @@
 """Filter class test"""
 
 import unittest
+
 from Libraries import Filter;
+
 
 class TestFilter(unittest.TestCase):
     """ Filter test"""
@@ -49,6 +51,7 @@ class TestFilter(unittest.TestCase):
 
         delay = Filter.delay(1)
         self.assertEqual(delay, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

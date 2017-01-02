@@ -18,6 +18,7 @@
 #    Development Team: Stanislav Menshov (Stanislav WEB)
 
 from setuptools import setup, find_packages
+
 from Libraries import Version
 
 setup(
@@ -37,7 +38,7 @@ setup(
             'coveralls = coveralls.cli:main',
         ],
     },
-    scripts = ['opendoor.py'],
+    scripts=['opendoor.py'],
     install_requires=[line.rstrip('\n') for line in open('requirements.txt')],
 
     classifiers=[

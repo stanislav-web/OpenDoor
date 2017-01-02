@@ -2,6 +2,7 @@
 
 """Formatter class"""
 
+
 class Formatter:
     """Formatter args class"""
 

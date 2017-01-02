@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-"""Filter class"""
+"""Filter args class"""
 
 import re
 from urlparse import urlparse
-from Logger import Logger as Log
+
+from .Logger import Logger as Log
 
 
 class Filter:
@@ -24,9 +25,7 @@ class Filter:
                 if 'url' == key:
                     filtered['scheme'] = self.scheme(value)
             except AttributeError:
-                Log.critical(key + """ function does not exist in Filter class""")
-
-
+                Log.critical("{0} function does not exist in Filter class".format(key))
 
         return filtered
 
@@ -36,9 +35,8 @@ class Filter:
 
         scheme = urlparse(url).scheme
         if not scheme:
-            scheme='http'
-        return scheme+"://"
-
+            scheme = 'http'
+        return scheme + "://"
 
     def url(self, url):
         """ Input `url` param filter """
@@ -52,7 +50,7 @@ class Filter:
         url = urlparse(url).netloc
         regex = re.compile(r"" + self.URL_REGEX + "")
         if not regex.match(url):
-            Log.critical("\"" + url + "\""" is invalid url. """)
+            Log.critical("\"{0}\" is invalid url. ".format(url))
 
         return url
 

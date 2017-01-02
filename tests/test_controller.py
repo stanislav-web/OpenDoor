@@ -1,7 +1,9 @@
 """Controller class test"""
 
 import unittest
+
 from Libraries import Controller;
+
 
 class TestController(unittest.TestCase):
     """ Controller test"""
@@ -33,6 +35,7 @@ class TestController(unittest.TestCase):
 
         Controller.examples_action()
         pass
+
 
 if __name__ == "__main__":
     unittest.main()

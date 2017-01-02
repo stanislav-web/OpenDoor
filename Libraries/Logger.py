@@ -2,18 +2,20 @@
 
 """Logger class"""
 
-import sys
-import os
-from datetime import datetime
-import coloredlogs
 import logging
-import verboselogs
+import os
+import sys
+from datetime import datetime
 from termcolor import colored
+
+import coloredlogs
+import verboselogs
+
 from HttpConfig import HttpConfig as Status
 
 
 class Logger:
-    """Logger helper class"""
+    """Logger class"""
 
     @staticmethod
     def success(message, showtime=True, showlevel=True):

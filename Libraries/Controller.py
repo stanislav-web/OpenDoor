@@ -3,10 +3,11 @@
 """Controller class"""
 
 import sys
-from Progress import Progress
-from Logger import Logger as Log
-from Version import Version
-from Http import Http
+
+from .Http import Http
+from .Logger import Logger as Log
+from .Progress import Progress
+from .Version import Version
 
 
 class Controller:
@@ -27,7 +28,7 @@ class Controller:
                     break
 
             except AttributeError:
-                Log.critical(action + """ action does not exist in Controller""")
+                Log.critical("{0} action does not exist in Controller".format(action))
 
     @staticmethod
     def update_action():
@@ -45,12 +46,12 @@ class Controller:
     def url_action(self, url, params=()):
         """ Load by url action """
 
-        result = Http().get(url, params);
+        result = Http().get(url, params)
         if result:
             Progress.view(result)
             is_logging = params.get('log', self.DEFAULT_LOGGING)
 
-            if True == is_logging:
+            if True is is_logging:
                 Log.syslog(url, result)
         exit()
 

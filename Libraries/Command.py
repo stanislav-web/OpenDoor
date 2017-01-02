@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
-"""Command class"""
+"""Command helper class"""
 
 from argparse import RawDescriptionHelpFormatter
-from Logger import Logger as Log
+
 from Exceptions import ArgumentParserError, ThrowingArgumentParser
+from .Logger import Logger as Log
 
 
 class Command:
-    """Console helper class"""
+    """Command helper class"""
 
     def __init__(self):
 
@@ -31,7 +32,7 @@ class Command:
             parser.add_argument('-l', '--log', default=False, action='store_true', help="Use filesystem log")
             parser.parse_args()
             self.parser = parser
-        except (ArgumentParserError) as e:
+        except ArgumentParserError as e:
             Log.critical(e.message)
 
     def get_arg_values(self):

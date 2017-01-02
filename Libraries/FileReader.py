@@ -2,13 +2,15 @@
 
 """Filereader class"""
 
-from Logger import Logger as Log
-import os
-import StringIO
 import ConfigParser
+import StringIO
+import os
 from random import randrange
 
-class FileReader:
+from .Logger import Logger as Log
+
+
+class FileReader(object):
     """Filereader class"""
 
     def __init__(self):
@@ -27,7 +29,7 @@ class FileReader:
         """ Get target file data"""
 
         file_path = self.config.get('opendoor', target)
-        file = os.path.join(os.getcwd(), file_path);
+        file = os.path.join(os.getcwd(), file_path)
         if not os.path.isfile(file):
             Log.critical(file + """ is not a file""")
         if not os.access(file, os.R_OK):
@@ -43,9 +45,9 @@ class FileReader:
         config = ConfigParser.RawConfigParser()
         config_file = os.path.join(os.getcwd(), 'setup.cfg')
         if not os.path.isfile(config_file):
-            Log.critical(file + """ is not a file""")
+            Log.critical("{0} is not a file".format('setup.cfg'))
         if not os.access(config_file, os.R_OK):
-            Log.critical(""" Configuration file setup.cfg can not be read. Run chmod 0644 """ + config_file)
+            Log.critical("Configuration file setup.cfg can not be read. Add chmod 0644 {0}".format(config_file))
 
         try:
             config.read(config_file)

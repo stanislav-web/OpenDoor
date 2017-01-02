@@ -3,13 +3,16 @@
 """Progress class"""
 
 import sys
-from Logger import Logger as Log
-from HttpConfig import HttpConfig as Status
-from tabulate import tabulate
 from termcolor import colored
 
+from tabulate import tabulate
+
+from .HttpConfig import HttpConfig as Status
+from .Logger import Logger as Log
+
+
 class Progress:
-    """Progress helper class"""
+    """Progress class"""
 
     @staticmethod
     def line(message, countall, status, iterator, show=True):
@@ -20,7 +23,7 @@ class Progress:
         indicator = iterator * 100 / countall;
         if True == show:
             message = '{}% {}'.format(str(indicator), message)
-            getattr(Log, '{}'.format(status))(message, showtime = True, showlevel = False)
+            getattr(Log, '{}'.format(status))(message, showtime=True, showlevel=False)
         sys.stdout.flush()
         return iterator
 

@@ -2,16 +2,17 @@
 
 """Version class"""
 
-import sys
-import subprocess
 import os
-import urllib3
-from distutils.version import LooseVersion
-
+import subprocess
 from colorama import init
+from distutils.version import LooseVersion
 from termcolor import colored
-from FileReader import FileReader
-from Logger import Logger as Log
+
+import urllib3
+
+from .FileReader import FileReader
+from .Logger import Logger as Log
+
 
 class Version:
     """Version class"""
@@ -32,7 +33,7 @@ class Version:
         Log.success(str(out).rstrip())
         Log.info(str(error).rstrip())
         prlog = subprocess.Popen(CMDLOG, cwd=os.getcwd(),
-                              shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                 shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         (out, error) = prlog.communicate()
         Log.info(str(out).rstrip())

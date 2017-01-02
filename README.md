@@ -28,13 +28,13 @@ sudo pip install -r requirements.txt
 ##### Implements
 * multithreading
 * reporting
-* detect redirects
 * random user agent
 * random proxy from proxy list
 * verbose mode
 * subdomains scanner
 * HTTP/HTTPS support
-* Detection of redirect and follow (beta)
+* detection of redirect and follow
+* exclusion list
 
 ##### Changelog
 * *v1.0.0* - all the basic functionality is available
@@ -55,6 +55,7 @@ sudo pip install -r requirements.txt
 * *v2.7.62* - added redirect handler (Beta)
 * *v2.7.72* - added 52 directories, small changes for UI
 * *v2.7.82* - added 683 directories
+* *v2.7.92* - exclusion list added Data/exclusions.dat
 
 ##### Basic usage
 ```

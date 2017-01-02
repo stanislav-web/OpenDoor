@@ -1,49 +1,51 @@
 # -*- coding: utf-8 -*-
 
-"""Http mapper class"""
+"""Http class"""
 
-import sys
-import socket
-import time
-import re
+import collections
+import exceptions
+import httplib
 import logging
 import multiprocessing
-import exceptions
-import collections
-import httplib
+import re
+import socket
+import sys
+import time
+from urlparse import urlparse
+
 import threadpool
 import urllib3
-from urlparse import urlparse
-from HttpConfig import HttpConfig as config
-from Logger import Logger as Log
-from Message import Message
-from FileReader import FileReader
-from Progress import Progress
-from Formatter import Formatter
+
+from .FileReader import FileReader
+from .Formatter import Formatter
+from .HttpConfig import HttpConfig as config
+from .Logger import Logger as Log
+from .Message import Message
+from .Progress import Progress
+
 
 class Http:
-    """Http mapper class"""
+    """Http class"""
 
     def __init__(self):
         """Init constructor"""
 
         self.message = Message()
         self.reader = FileReader()
-        self.cpu_cnt = multiprocessing.cpu_count()
+        self.cpu_cnt = multiprocessing.cpu_count();
         self.counter = collections.Counter()
         self.result = collections.defaultdict(list)
-        self.result.default_factory
         self.exclusions = []
+        self.result.default_factory
 
-    def get(self, host, params = ()):
+    def get(self, host, params=()):
         """Get metadata by url"""
 
-        self.__is_server_online(host)
-        self.__disable_verbose()
         self.__parse_params(params)
+        self.__is_server_online(host, self.port)
+        self.__disable_verbose()
         self.urls = self.__get_urls(host)
         self.exclusions = self.__get_exclusions()
-
         response = {}
 
         try:
@@ -60,7 +62,7 @@ class Http:
         except exceptions.AttributeError as e:
             Log.critical(e.message)
         except KeyboardInterrupt:
-            Log.warning('Session canceled')
+            Log.warning(self.message.get('abort'))
             sys.exit()
 
         self.counter['total'] = self.urls.__len__()
@@ -89,14 +91,14 @@ class Http:
                 Log.critical(e.message)
 
         headers = {
-            'accept-encoding' :'gzip, deflate, sdch',
-            'accept-language' : 'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4,uk;q=0.2,es;q=0.2',
-            'cache-control' : 'no-cache',
+            'accept-encoding': 'gzip, deflate, sdch',
+            'accept-language': 'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4,uk;q=0.2,es;q=0.2',
+            'cache-control': 'no-cache',
             'user-agent': self.reader.get_random_user_agent()
         }
-        try :
+        try:
             response = conn.request(config.DEFAULT_HTTP_METHOD, url, headers=headers, redirect=False)
-        except (urllib3.exceptions.ConnectTimeoutError ,
+        except (urllib3.exceptions.ConnectTimeoutError,
                 urllib3.exceptions.HostChangedError,
                 urllib3.exceptions.ReadTimeoutError,
                 urllib3.exceptions.ProxyError,
@@ -112,12 +114,11 @@ class Http:
         except TypeError as e:
             Log.critical(e.message)
 
-        try :
+        try:
             time.sleep(self.delay)
             return self.response(response, url)
         except exceptions.UnboundLocalError:
-            message = '{} : {}'.format('Unresponsible path', url)
-            Log.warning(message)
+            Log.warning(self.message.get('unresponsible').format(url))
             pass
 
     def response(self, response, url):
@@ -125,7 +126,7 @@ class Http:
 
         if True == self.__is_excluded(url):
 
-            Log.info('Excluded : '+ url)
+            Log.info(self.message.get('excluded').format(url))
             self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator, False)
             self.counter.update(("excluded",))
             return
@@ -174,15 +175,23 @@ class Http:
         logging.getLogger("urllib3").setLevel(level)
 
     @staticmethod
-    def __is_server_online(host):
+    def __is_server_online(host, port):
         """ Check if server is online"""
 
+        s = socket.socket()
+
         try:
-            socket.gethostbyname(host)
-            Log.info('Server : '+ host +' is online')
-            Log.info('Scanning ' + host + ' ...')
-        except socket.error:
-            Log.critical('Oops Error occured, Server offline or invalid URL or response')
+            ip = socket.gethostbyname(host)
+
+            s.settimeout(10)
+            s.connect((host, port))
+
+            Log.info(self.message.get('online').format(host, ip, port))
+            Log.info(self.message.get('scanning').format(host))
+        except (socket.gaierror, socket.timeout) as e:
+            Log.critical(self.message.get('offline').format(e))
+        finally:
+            s.close()
 
     def __handle_redirect_url(self, url, response):
         """ Handle redirect url """
@@ -199,7 +208,7 @@ class Http:
                     urlp = urlparse(url)
                     redirect_url = urlp.scheme + '://' + urlp.netloc + location
 
-                Log.info('Redirect ' + url + ' --> ' + redirect_url)
+                Log.info(self.message.get('redirect').format(url, redirect_url))
                 http = urllib3.PoolManager()
 
             try:
@@ -284,10 +293,9 @@ class Http:
         self.iterator = 0
 
         if 'log' not in params:
-            Log.debug('Use --log param to save scan result')
+            Log.debug(self.message.get('use_log'))
 
         if self.cpu_cnt < self.threads:
             self.threads = self.cpu_cnt
-            Log.warning('Passed ' + str(self.cpu_cnt) + ' threads max for your possibility')
+            Log.warning(self.message.get('max_threads').format(self.threads))
             pass
-        
