@@ -27,7 +27,7 @@ class Command:
             parser.add_argument('-t', '--threads', help="Allowed threads", type=int)
             parser.add_argument('-d', '--delay', help="Delay between requests", type=int)
             parser.add_argument('-r', '--rest', help="Request timeout ", type=int)
-            parser.add_argument('--debug', help="Debug level (0 by default) ", type=int)
+            parser.add_argument('--debug', help="Debug level (0-1-2, 0 by default) ", type=int)
             parser.add_argument('-p', '--proxy', default=False, action='store_true', help="Use proxy list")
             parser.add_argument('-l', '--log', default=False, action='store_true', help="Use filesystem log")
             parser.parse_args()

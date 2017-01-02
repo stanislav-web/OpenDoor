@@ -13,9 +13,9 @@ This application scans the site directories and find all possible ways to login,
 Scans conducted in the dictionary that is included in this application.
 This software is written for informational purposes and is an open source product under the GPL license.
 
-* *Current v2.7.72*
+* *Current v2.7.95*
 
-    * Directories - 21686
+    * Directories - 26590
     * Subdomains - 101000
 
 **Testing of the software on the commercial systems and organizations is prohibited!**
@@ -30,6 +30,7 @@ Requirements
 Install Dependencies
 ------------
     sudo pip install -r requirements.txt
+    chmod +x opendoor.py
 
 Implements
 ------------
@@ -65,6 +66,7 @@ Changelog
     * *v2.7.82* - added 683 directories
     * *v2.7.92* - exclusion list added Data/exclusions.dat
     * *v2.7.95* - added 4241 directories , large files definitions , bad requests detection handler
+    * *v2.7.96* - optimize debug levels (0 - 1 - 2 param --debug) , optimize imports
 
 Basic usage
 ------------

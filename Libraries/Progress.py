@@ -14,6 +14,8 @@ from .Logger import Logger as Log
 class Progress:
     """Progress class"""
 
+    lastInLine = False
+
     @staticmethod
     def line(message, countall, status, iterator, show=True):
         """Progress line"""
@@ -35,12 +37,6 @@ class Progress:
         result.pop("count", None)
         result = result.get('result')
         for status in result:
-
-            # if status in Status.DEFAULT_HTTP_FAILED_STATUSES:
-            #     # failed urls print
-            #     print colored('FAILED ', 'red', attrs=['bold'])
-            #     for url in result[status]:
-            #        Log.error('{} : {}'.format(str(status), url), showtime=False, showlevel=False)
 
             if status in Status.DEFAULT_HTTP_BAD_REQUEST_STATUSES:
                 # have redirects urls print

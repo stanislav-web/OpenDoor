@@ -49,7 +49,8 @@ class Http:
         response = {}
 
         try:
-            httplib.HTTPConnection.debuglevel = self.debug
+            if 2 is self.debug:
+                httplib.HTTPConnection.debuglevel = self.debug
 
             if hasattr(urllib3, 'disable_warnings'):
                 urllib3.disable_warnings()
@@ -133,7 +134,8 @@ class Http:
         else:
             if hasattr(response, 'status'):
                 if response.status in config.DEFAULT_HTTP_FAILED_STATUSES:
-                    self.iterator = Progress.line(url, self.urls.__len__(), 'error', self.iterator, False)
+                    show = True if self.debug in [1,2] else False
+                    self.iterator = Progress().line(url, self.urls.__len__(), 'error', self.iterator, show)
                     self.counter.update(("failed",))
                 elif response.status in config.DEFAULT_HTTP_SUCCESS_STATUSES:
                     if 'Content-Length' in response.headers:
@@ -182,7 +184,7 @@ class Http:
         try:
             ip = socket.gethostbyname(host)
 
-            s.settimeout(10)
+            s.settimeout(config.DEFAULT_REQUEST_TIMEOUT)
             s.connect((host, port))
 
             Log.info(self.message.get('online').format(host, ip, port))
