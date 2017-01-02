@@ -32,7 +32,7 @@ class Http:
 
         self.message = Message()
         self.reader = FileReader()
-        self.cpu_cnt = multiprocessing.cpu_count();
+        self.cpu_cnt = multiprocessing.cpu_count()
         self.counter = collections.Counter()
         self.result = collections.defaultdict(list)
         self.exclusions = []
@@ -174,8 +174,7 @@ class Http:
         level = 'ERROR'
         logging.getLogger("urllib3").setLevel(level)
 
-    @staticmethod
-    def __is_server_online(host, port):
+    def __is_server_online(self, host, port):
         """ Check if server is online"""
 
         s = socket.socket()

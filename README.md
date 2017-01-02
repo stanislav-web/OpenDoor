@@ -8,8 +8,8 @@ This application scans the site directories and find all possible ways to login,
 Scans conducted in the dictionary that is included in this application.
 This software is written for informational purposes and is an open source product under the GPL license.
 
-* *Current v2.7.82*
-    - Directories - 22349
+* *Current v2.7.95*
+    - Directories - 26590
     - Subdomains - 101000
 
 ***Testing of the software on the commercial systems and organizations is prohibited!***
@@ -56,6 +56,7 @@ sudo pip install -r requirements.txt
 * *v2.7.72* - added 52 directories, small changes for UI
 * *v2.7.82* - added 683 directories
 * *v2.7.92* - exclusion list added Data/exclusions.dat
+* *v2.7.95* - added 4241 directories , large files definitions , bad requests detection handler
 
 ##### Basic usage
 ```

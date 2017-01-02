@@ -40,25 +40,31 @@ class Progress:
             #     # failed urls print
             #     print colored('FAILED ', 'red', attrs=['bold'])
             #     for url in result[status]:
-            #        Log.error('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
+            #        Log.error('{} : {}'.format(str(status), url), showtime=False, showlevel=False)
+
+            if status in Status.DEFAULT_HTTP_BAD_REQUEST_STATUSES:
+                # have redirects urls print
+                print colored('BAD REQUESTS ', 'yellow', attrs=['bold'])
+                for url in result[status]:
+                    Log.verbose('{} : {}'.format(str(status), url), showtime=False, showlevel=False)
 
             if status in Status.DEFAULT_HTTP_REDIRECT_STATUSES:
                 # have redirects urls print
                 print colored('REDIRECTS ', 'yellow', attrs=['bold'])
                 for url in result[status]:
-                    Log.verbose('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
+                    Log.verbose('{} : {}'.format(str(status), url), showtime=False, showlevel=False)
 
             if status in Status.DEFAULT_HTTP_UNRESOLVED_STATUSES:
                 # unresolved urls print
                 print colored('POSSIBLE ', 'yellow', attrs=['bold'])
                 for url in result[status]:
-                    Log.warning('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
+                    Log.warning('{} : {}'.format(str(status), url), showtime=False, showlevel=False)
 
             if status in Status.DEFAULT_HTTP_SUCCESS_STATUSES:
                 # success urls print
                 print colored('SUCCESS ', 'green', attrs=['bold'])
                 for url in result[status]:
-                    Log.success('{} : {}'.format(str(status), url), showtime=False, showlevel=False);
+                    Log.success('{} : {}'.format(str(status), url), showtime=False, showlevel=False)
 
         headers = [colored('Statistics', attrs=['bold']), colored('Summary', attrs=['bold'])]
         print tabulate(count, headers=headers, tablefmt="fancy_grid")

@@ -33,7 +33,7 @@ class Logger:
 
         message = colored(message, 'green')
 
-        print '{}{}{}'.format(asctime, level, message);
+        print '{}{}{}'.format(asctime, level, message)
         pass
 
     @staticmethod
@@ -45,8 +45,8 @@ class Logger:
             coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
         else:
             coloredlogs.install(level=level, fmt='%(message)s')
-        logger = Logger.log(level);
-        logger.info(message);
+        logger = Logger.log(level)
+        logger.info(message)
         pass
 
     @staticmethod
@@ -64,7 +64,7 @@ class Logger:
             level = ""
 
         message = colored(message, 'yellow')
-        print '{}{}{}'.format(asctime, level, message);
+        print '{}{}{}'.format(asctime, level, message)
         pass
 
     @staticmethod
@@ -82,7 +82,7 @@ class Logger:
             level = ""
 
         message = colored(message, 'red')
-        print '{}{}{}'.format(asctime, level, message);
+        print '{}{}{}'.format(asctime, level, message)
         pass
 
     @staticmethod
@@ -94,8 +94,8 @@ class Logger:
             coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
         else:
             coloredlogs.install(level=level, fmt='%(message)s')
-        logger = Logger.log(level);
-        sys.exit(logger.critical(message));
+        logger = Logger.log(level)
+        sys.exit(logger.critical(message))
 
     @staticmethod
     def debug(message, showtime=True):
@@ -106,8 +106,8 @@ class Logger:
             coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
         else:
             coloredlogs.install(level=level, fmt='%(message)s')
-        logger = Logger.log(level);
-        logger.debug(message);
+        logger = Logger.log(level)
+        logger.debug(message)
         pass
 
     @staticmethod
@@ -125,7 +125,7 @@ class Logger:
 
         message = colored(message, 'blue')
 
-        print '{}{}{}'.format(asctime, level, message);
+        print '{}{}{}'.format(asctime, level, message)
         pass
 
     @staticmethod
@@ -143,13 +143,20 @@ class Logger:
     def syslog(key, params):
         """System log (file log)"""
 
-        path = os.path.join('Logs', key);
+        path = os.path.join('Logs', key)
         if not os.path.exists(path):
             os.makedirs(path)
 
         params.pop("count", None)
         result = params.get('result')
         for status in result:
+
+            if status in Status.DEFAULT_HTTP_BAD_REQUEST_STATUSES:
+                # have redirects urls log
+                file = open(os.path.join(path, 'badreqests.log'), 'w')
+                for url in result[status]:
+                    file.write('{}\n'.format(url))
+                file.close()
 
             if status in Status.DEFAULT_HTTP_REDIRECT_STATUSES:
                 # have redirects urls log
