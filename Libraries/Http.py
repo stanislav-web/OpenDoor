@@ -61,10 +61,9 @@ class Http:
                 pool.putRequest(req)
             pool.wait()
         except exceptions.AttributeError as e:
-            Log.critical(e.message)
+            sys.exit(Log.error(e.message))
         except KeyboardInterrupt:
-            Log.warning(self.message.get('abort'))
-            sys.exit()
+            sys.exit("{0}".format(Log.warning(self.message.get('abort'))))
 
         self.counter['total'] = self.urls.__len__()
         self.counter['pools'] = pool.workers.__len__()
@@ -82,14 +81,14 @@ class Http:
             try:
                 conn = urllib3.proxy_from_url(proxyserver, maxsize=10, block=True, timeout=self.rest)
             except urllib3.exceptions.ProxySchemeUnknown as e:
-                Log.critical('{} : {}'.format(e.message, proxyserver))
+                sys.stdout.write(Log.warning('{} : {}'.format(e.message, proxyserver)))
         else:
             try:
 
                 conn = urllib3.connection_from_url(url, maxsize=10, block=True,
                                                    timeout=self.rest)
             except TypeError as e:
-                Log.critical(e.message)
+                sys.exit(Log.error(e.message))
 
         headers = {
             'accept-encoding': 'gzip, deflate, sdch',
@@ -99,27 +98,29 @@ class Http:
         }
         try:
             response = conn.request(config.DEFAULT_HTTP_METHOD, url, headers=headers, redirect=False)
-        except (urllib3.exceptions.ConnectTimeoutError,
-                urllib3.exceptions.HostChangedError,
+        except (urllib3.exceptions.HostChangedError,
                 urllib3.exceptions.ReadTimeoutError,
                 urllib3.exceptions.ProxyError,
                 ) as e:
             response = None
             self.iterator = Progress.line(url + ' -> ' + e.message, self.urls.__len__(), 'warning', self.iterator)
+        except urllib3.exceptions.ConnectTimeoutError:
+            sys.stdout.write(Log.warning(self.message.get('timeout').format(url)))
+            pass
         except urllib3.exceptions.MaxRetryError:
             pass
         except urllib3.exceptions.NewConnectionError as e:
-            Log.critical(e.message)
+            sys.exit(Log.error(e.message))
         except exceptions.AttributeError as e:
-            Log.critical(e.message)
+            sys.exit(Log.error(e.message))
         except TypeError as e:
-            Log.critical(e.message)
+            sys.exit(Log.error(e.message))
 
         try:
             time.sleep(self.delay)
             return self.response(response, url)
-        except exceptions.UnboundLocalError:
-            Log.warning(self.message.get('unresponsible').format(url))
+        except exceptions.UnboundLocalError as e:
+            sys.stdout.write(Log.warning(self.message.get('unresponsible').format(url)))
             pass
 
     def response(self, response, url):
@@ -127,7 +128,7 @@ class Http:
 
         if True == self.__is_excluded(url):
 
-            Log.info(self.message.get('excluded').format(url))
+            sys.stdout.write(Log.info(self.message.get('excluded').format(url)))
             self.iterator = Progress.line(url, self.urls.__len__(), 'warning', self.iterator, False)
             self.counter.update(("excluded",))
             return
@@ -173,8 +174,7 @@ class Http:
     def __disable_verbose():
         """ Disbale verbose warnings info"""
 
-        level = 'ERROR'
-        logging.getLogger("urllib3").setLevel(level)
+        logging.getLogger("urllib3").setLevel('ERROR')
 
     def __is_server_online(self, host, port):
         """ Check if server is online"""
@@ -187,10 +187,10 @@ class Http:
             s.settimeout(config.DEFAULT_REQUEST_TIMEOUT)
             s.connect((host, port))
 
-            Log.info(self.message.get('online').format(host, ip, port))
-            Log.info(self.message.get('scanning').format(host))
+            sys.stdout.write(Log.info(self.message.get('online').format(host, ip, port)))
+            sys.stdout.write(Log.info(self.message.get('scanning').format(host)))
         except (socket.gaierror, socket.timeout) as e:
-            Log.critical(self.message.get('offline').format(e))
+            sys.stdout.exit(Log.error(self.message.get('offline').format(e)))
         finally:
             s.close()
 
@@ -209,7 +209,7 @@ class Http:
                     urlp = urlparse(url)
                     redirect_url = urlp.scheme + '://' + urlp.netloc + location
 
-                Log.info(self.message.get('redirect').format(url, redirect_url))
+                sys.stdout.write(Log.info(self.message.get('redirect').format(url, redirect_url)))
                 http = urllib3.PoolManager()
 
             try:
@@ -294,9 +294,9 @@ class Http:
         self.iterator = 0
 
         if 'log' not in params:
-            Log.debug(self.message.get('use_log'))
+            sys.stdout.write(Log.notice(self.message.get('use_log')))
 
         if self.cpu_cnt < self.threads:
             self.threads = self.cpu_cnt
-            Log.warning(self.message.get('max_threads').format(self.threads))
+            sys.stdout.write(Log.warning(self.message.get('max_threads').format(self.threads)))
             pass

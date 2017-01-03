@@ -2,7 +2,7 @@
 
 import unittest
 
-from Libraries import Filter;
+from Libraries.Filter import Filter
 
 
 class TestFilter(unittest.TestCase):

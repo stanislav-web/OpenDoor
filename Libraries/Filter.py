@@ -3,6 +3,7 @@
 """Filter args class"""
 
 import re
+import sys
 from urlparse import urlparse
 
 from .Logger import Logger as Log
@@ -19,13 +20,9 @@ class Filter:
         args = Command.get_arg_values()
         filtered = {}
         for key, value in args.iteritems():
-            try:
-                # dymanic function call
-                filtered[key] = getattr(self, '{}'.format(key))(value)
-                if 'url' == key:
-                    filtered['scheme'] = self.scheme(value)
-            except AttributeError:
-                Log.critical("{0} function does not exist in Filter class".format(key))
+            filtered[key] = getattr(self, '{}'.format(key))(value)
+            if 'url' == key:
+                filtered['scheme'] = self.scheme(value)
 
         return filtered
 
@@ -50,7 +47,7 @@ class Filter:
         url = urlparse(url).netloc
         regex = re.compile(r"" + self.URL_REGEX + "")
         if not regex.match(url):
-            Log.critical("\"{0}\" is invalid url. ".format(url))
+            sys.exit(Log.error("\"{0}\" is invalid url. ".format(url)))
 
         return url
 

@@ -5,5 +5,4 @@ colorama
 coloredlogs
 termcolor
 logging
-verboselogs
 tabulate

@@ -6,6 +6,7 @@ import sys
 
 from .Http import Http
 from .Logger import Logger as Log
+from .Message import Message
 from .Progress import Progress
 from .Version import Version
 
@@ -18,24 +19,19 @@ class Controller:
     def __init__(self, InputArguments):
 
         for action, args in InputArguments.iteritems():
-            try:
-                # dynamic function call
 
-                if not args:
-                    getattr(self, '{func}_action'.format(func=action))()
-                else:
-                    getattr(self, '{func}_action'.format(func=action))(args, InputArguments)
-                    break
-
-            except AttributeError:
-                Log.critical("{0} action does not exist in Controller".format(action))
+            if not args:
+                getattr(self, '{func}_action'.format(func=action))()
+            else:
+                getattr(self, '{func}_action'.format(func=action))(args, InputArguments)
+            break
 
     @staticmethod
     def update_action():
         """ Update action """
 
         Version.update()
-        exit()
+        sys.exit()
 
     @staticmethod
     def version_action():
@@ -46,14 +42,30 @@ class Controller:
     def url_action(self, url, params=()):
         """ Load by url action """
 
-        result = Http().get(url, params)
-        if result:
-            Progress.view(result)
-            is_logging = params.get('log', self.DEFAULT_LOGGING)
+        scan = True
 
-            if True is is_logging:
-                Log.syslog(url, result)
-        exit()
+        if True is Log.is_logged(url):
+
+            message = Message().get('has_scanned').format(url).strip("\t")
+
+            try:
+                text = raw_input(message)
+                if text == "":
+                    scan = True
+                else:
+                    scan = False
+            except KeyboardInterrupt as e:
+                sys.exit("\n {0}".format(Log.warning(Message().get('abort'))))
+
+        if True is scan:
+            result = Http().get(url, params)
+            if result:
+                Progress.view(result)
+                is_logging = params.get('log', self.DEFAULT_LOGGING)
+
+                if True is is_logging:
+                    sys.stdout.write(Log.syslog(url, result))
+        sys.exit()
 
     @staticmethod
     def examples_action():
@@ -75,4 +87,4 @@ class Controller:
                 python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10 --rest 10 --debug 1
                 python ./opendoor.py --url "http://joomla-ua.org" --threads 10 --delay 10 --rest 10 --debug 1 --log
             """
-        exit(examples)
+        sys.exit(examples)

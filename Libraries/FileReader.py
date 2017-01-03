@@ -5,6 +5,7 @@
 import ConfigParser
 import StringIO
 import os
+import sys
 from random import randrange
 
 from .Logger import Logger as Log
@@ -18,7 +19,7 @@ class FileReader(object):
         try:
             self.config = self.get_config()
         except ConfigParser.ParsingError as e:
-            Log.critical(e.message)
+            sys.exit(Log.error(e.message))
 
         self.__useragents = self.get_file_data('useragents')
         self.__proxy = self.get_file_data('proxy')
@@ -31,9 +32,9 @@ class FileReader(object):
         file_path = self.config.get('opendoor', target)
         file = os.path.join(os.getcwd(), file_path)
         if not os.path.isfile(file):
-            Log.critical(file + """ is not a file""")
+            sys.exit(Log.error("{0} is not a file".format(file)))
         if not os.access(file, os.R_OK):
-            Log.critical(file + """ file can not be read. Run chmod 0644 """ + file)
+            sys.exit(Log.error("{0} file can not be read. Setup chmod 0644 ".format(file)))
         with open(file) as f_handler:
             data = f_handler.readlines()
         return data
@@ -45,15 +46,15 @@ class FileReader(object):
         config = ConfigParser.RawConfigParser()
         config_file = os.path.join(os.getcwd(), 'setup.cfg')
         if not os.path.isfile(config_file):
-            Log.critical("{0} is not a file".format('setup.cfg'))
+            sys.exit(Log.error("{0} is not a file ".format(config_file)))
         if not os.access(config_file, os.R_OK):
-            Log.critical("Configuration file setup.cfg can not be read. Add chmod 0644 {0}".format(config_file))
+            sys.exit(Log.error("Configuration file {0} can not be read. Setup chmod 0644".format(config_file)))
 
         try:
             config.read(config_file)
             return config
         except ConfigParser.ParsingError as e:
-            Log.critical(e.message)
+            sys.exit(Log.error(e.message))
 
     @staticmethod
     def get_config_raw(s_config):
@@ -65,7 +66,7 @@ class FileReader(object):
             config.readfp(buf)
             return config
         except ConfigParser.Error as e:
-            Log.critical(e.message)
+            sys.exit(Log.error(e.message))
 
     def get_random_user_agent(self):
         """ Get random user agent from user-agents list"""

@@ -2,15 +2,11 @@
 
 """Logger class"""
 
-import logging
 import os
 import sys
 from datetime import datetime
 from termcolor import colored
-
 import coloredlogs
-import verboselogs
-
 from HttpConfig import HttpConfig as Status
 
 
@@ -33,21 +29,40 @@ class Logger:
 
         message = colored(message, 'green')
 
-        print '{}{}{}'.format(asctime, level, message)
-        pass
+        return "{}{}{}\n".format(asctime, level, message)
 
     @staticmethod
-    def info(message, showtime=True, title=True):
+    def notice(message, showtime=True, title=True, showlevel=True):
+        """Notice level message"""
+
+        level = 'NOTICE'
+        if True == showtime:
+            asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
+        else:
+            asctime = ""
+        if True == showlevel:
+            level = colored(level, attrs=['bold']) + " : "
+        else:
+            level = ""
+        message = colored(message, 'green')
+
+        return "{}{}{}\n".format(asctime, level, message)
+
+    @staticmethod
+    def info(message, showtime=True, title=True, showlevel=True):
         """Info level message"""
 
         level = 'INFO'
         if True == showtime:
-            coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
+            asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
         else:
-            coloredlogs.install(level=level, fmt='%(message)s')
-        logger = Logger.log(level)
-        logger.info(message)
-        pass
+            asctime = ""
+        if True == showlevel:
+            level = colored(level, attrs=['bold']) + " : "
+        else:
+            level = ""
+
+        return "{}{}{}\n".format(asctime, level, message)
 
     @staticmethod
     def warning(message, showtime=True, showlevel=True):
@@ -64,8 +79,7 @@ class Logger:
             level = ""
 
         message = colored(message, 'yellow')
-        print '{}{}{}'.format(asctime, level, message)
-        pass
+        return "{}{}{}\n".format(asctime, level, message)
 
     @staticmethod
     def error(message, showtime=True, showlevel=True):
@@ -82,62 +96,50 @@ class Logger:
             level = ""
 
         message = colored(message, 'red')
-        print '{}{}{}'.format(asctime, level, message)
-        pass
+        return "{}{}{}\n".format(asctime, level, message)
 
     @staticmethod
-    def critical(message, showtime=True, title=True):
-        """Critical level message"""
-
-        level = 'CRITICAL'
-        if True == showtime:
-            coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
-        else:
-            coloredlogs.install(level=level, fmt='%(message)s')
-        logger = Logger.log(level)
-        sys.exit(logger.critical(message))
-
-    @staticmethod
-    def debug(message, showtime=True):
+    def debug(message, showtime=True, showlevel=True):
         """Debug level message"""
 
         level = 'DEBUG'
-        if True == showtime:
-            coloredlogs.install(level=level, fmt='[%(asctime)s] %(levelname)s : %(message)s')
-        else:
-            coloredlogs.install(level=level, fmt='%(message)s')
-        logger = Logger.log(level)
-        logger.debug(message)
-        pass
-
-    @staticmethod
-    def verbose(message, showtime=True, showlevel=True):
-        """Verbose level message"""
-
         if True == showtime:
             asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
         else:
             asctime = ""
         if True == showlevel:
-            level = colored('VERBOSE', attrs=['bold']) + " : "
+            level = colored(level, attrs=['bold']) + " : "
+        else:
+            level = ""
+
+        message = colored(message, 'green')
+        return "{}{}{}\n".format(asctime, level, message)
+
+    @staticmethod
+    def verbose(message, showtime=True, showlevel=True):
+        """Verbose level message"""
+
+        level = 'VERBOSE'
+        if True == showtime:
+            asctime = colored(datetime.now().strftime('[%Y-%m-%d %H:%M:%S] '), 'green')
+        else:
+            asctime = ""
+        if True == showlevel:
+            level = colored(level, attrs=['bold']) + " : "
         else:
             level = ""
 
         message = colored(message, 'blue')
-
-        print '{}{}{}'.format(asctime, level, message)
-        pass
+        return "{}{}{}\n".format(asctime, level, message)
 
     @staticmethod
-    def log(level):
-        """Log verbose setter message"""
-
-        # set logger level from parent class
-        logger = verboselogs.VerboseLogger('')
-        # add the handlers to the logger
-        logger.setLevel(getattr(logging, level))
-
-        return logger
+    def is_logged(hostname):
+        """Check host in logfile"""
+        path = os.path.join('Logs', hostname)
+        if not os.path.exists(path):
+            return False
+        else:
+            return True
 
     @staticmethod
     def syslog(key, params):
@@ -179,4 +181,4 @@ class Logger:
                     file.write('{}\n'.format(url))
                 file.close()
 
-        Logger.info('Your results logs has been created in ' + path)
+        sys.exit(Logger.info("Your results logs has been created in {0}".format(path)))

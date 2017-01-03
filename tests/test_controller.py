@@ -2,7 +2,7 @@
 
 import unittest
 
-from Libraries import Controller;
+from Libraries.Controller import Controller
 
 
 class TestController(unittest.TestCase):
@@ -12,7 +12,7 @@ class TestController(unittest.TestCase):
     def test_update_action(self):
         ''' update action test '''
 
-        Controller.update_action();
+        Controller.update_action()
         pass
 
     @unittest.skip("update_action")

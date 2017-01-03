@@ -19,6 +19,7 @@
 #
 #    Development Team: Stanislav Menshov
 #
+import sys
 
 try:
     import urllib3
@@ -28,11 +29,10 @@ try:
     import coloredlogs
     import termcolor
     import logging
-    import verboselogs
     import tabulate
 
 except ImportError:
-    exit("""\t\t[!] Several dependencies wasn't installed!
+    sys.exit("""\t\t[!] Several dependencies wasn't installed!
                 Please run sudo pip install -r requirements.txt """)
 
 if __name__ == "__main__":

@@ -4,7 +4,6 @@
 
 import sys
 from termcolor import colored
-
 from tabulate import tabulate
 
 from .HttpConfig import HttpConfig as Status
@@ -14,20 +13,23 @@ from .Logger import Logger as Log
 class Progress:
     """Progress class"""
 
-    lastInLine = False
-
     @staticmethod
-    def line(message, countall, status, iterator, show=True):
+    def line(message, countall, status, iterator, show=True, inline=True):
         """Progress line"""
 
         iterator += 1
         iterator = int(iterator)
-        indicator = iterator * 100 / countall;
+        indicator = iterator * 100 / countall
         if True == show:
             message = '{}% {}'.format(str(indicator), message)
             getattr(Log, '{}'.format(status))(message, showtime=True, showlevel=False)
         sys.stdout.flush()
         return iterator
+
+    @staticmethod
+    def clear():
+        sys.stdout.write('\033[1K')
+        sys.stdout.write('\033[0G')
 
     @staticmethod
     def view(result):

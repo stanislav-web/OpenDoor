@@ -2,6 +2,7 @@
 
 """Command helper class"""
 
+import sys
 from argparse import RawDescriptionHelpFormatter
 
 from Exceptions import ArgumentParserError, ThrowingArgumentParser
@@ -33,7 +34,7 @@ class Command:
             parser.parse_args()
             self.parser = parser
         except ArgumentParserError as e:
-            Log.critical(e.message)
+            sys.exit(Log.error(e.message))
 
     def get_arg_values(self):
         """Get used input arguments"""
@@ -43,7 +44,7 @@ class Command:
         arguments = self.parser.parse_args()
 
         if not arguments.url and not arguments.version and not arguments.update and not arguments.examples:
-            Log.critical("argument -u/--url is required")
+            sys.exit(Log.error("argument -u/--url is required"))
 
         for arg, value in vars(arguments).iteritems():
 

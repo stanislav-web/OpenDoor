@@ -3,6 +3,7 @@
 """Version class"""
 
 import os
+import sys
 import subprocess
 from colorama import init
 from distutils.version import LooseVersion
@@ -30,13 +31,13 @@ class Version:
         pr = subprocess.Popen(CMDUP, cwd=os.getcwd(),
                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (out, error) = pr.communicate()
-        Log.success(str(out).rstrip())
-        Log.info(str(error).rstrip())
+        sys.stdout.write(Log.success(str(out).rstrip()))
+        sys.stdout.write(Log.info(str(error).rstrip()))
         prlog = subprocess.Popen(CMDLOG, cwd=os.getcwd(),
                                  shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         (out, error) = prlog.communicate()
-        Log.info(str(out).rstrip())
+        sys.stdout.write(Log.info(str(out).strip()))
 
     @staticmethod
     def get_license():
@@ -144,4 +145,4 @@ class Version:
             colored('Proxies: ' + str(self.get_proxy_count()), 'yellow'),
             colored(self.get_license(), 'yellow'),
         )
-        print banner
+        sys.stdout.write("{0}\n".format(banner))
