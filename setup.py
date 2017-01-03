@@ -18,7 +18,7 @@
 #    Development Team: Stanislav Menshov (Stanislav WEB)
 
 from setuptools import setup, find_packages
-from Libraries.Version import Version
+from src.Version import Version
 
 setup(
     name='opendoor',
@@ -44,6 +44,6 @@ setup(
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Software Development :: src :: Python Modules',
     ],
 )

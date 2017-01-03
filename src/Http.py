@@ -9,16 +9,16 @@ import logging
 import multiprocessing
 import re
 import socket
-import sys
-import time
+import urllib3
 from urlparse import urlparse
 
+import sys
 import threadpool
-import urllib3
+import time
 
+from src.Configs.HttpConfig import HttpConfig as config
 from .FileReader import FileReader
 from .Formatter import Formatter
-from .HttpConfig import HttpConfig as config
 from .Logger import Logger as Log
 from .Message import Message
 from .Progress import Progress

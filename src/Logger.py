@@ -3,11 +3,12 @@
 """Logger class"""
 
 import os
-import sys
 from datetime import datetime
+
+import sys
 from termcolor import colored
-import coloredlogs
-from HttpConfig import HttpConfig as Status
+
+from src.Configs.HttpConfig import HttpConfig as Status
 
 
 class Logger:
@@ -135,7 +136,7 @@ class Logger:
     @staticmethod
     def is_logged(hostname):
         """Check host in logfile"""
-        path = os.path.join('Logs', hostname)
+        path = os.path.join('logs', hostname)
         if not os.path.exists(path):
             return False
         else:
@@ -145,7 +146,7 @@ class Logger:
     def syslog(key, params):
         """System log (file log)"""
 
-        path = os.path.join('Logs', key)
+        path = os.path.join('logs', key)
         if not os.path.exists(path):
             os.makedirs(path)
 

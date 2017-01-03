@@ -2,7 +2,7 @@
 
 import unittest
 
-from Libraries.Controller import Controller
+from src.Controller import Controller
 
 
 class TestController(unittest.TestCase):

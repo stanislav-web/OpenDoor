@@ -6,8 +6,7 @@
 class Message:
     """Message class"""
 
-    def __init__(self):
-        self.dictionary = {
+    dictionary = {
             'online'        :   "Server {0} {1}:{2} is online",
             'offline'       :   "Oops Error occured, Server offline or invalid URL. Reason: {}",
             'redirect'      :   "Redirect {0} --> {1}",
@@ -18,14 +17,15 @@ class Message:
             'unresponsible' :   "Unresponsible path : {0}",
             'use_log'       :   "Use --log param to save scan result",
             'max_threads'   :   "Passed {0} threads max for your possibility",
-            'has_scanned'   :   "You already have the results for {0} saved in Logs directory.\nWould you like to rescan? Press [ENTER] to continue: ",
+            'has_scanned'   :   "You already have the results for {0} saved in logs directory.\nWould you like to rescan? Press [ENTER] to continue: ",
             'file_detected' :   "Probably you found important filesource {0} {1}"
         }
 
-    def get(self, key):
+    @staticmethod
+    def get(key):
         """ Get row message by key"""
 
         row = ''
-        if key in self.dictionary:
-            row = self.dictionary[key]
+        if key in Message.dictionary:
+            row = Message.dictionary[key]
         return row

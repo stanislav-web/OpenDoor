@@ -36,10 +36,10 @@ except ImportError:
                 Please run sudo pip install -r requirements.txt """)
 
 if __name__ == "__main__":
-    from Libraries.Command import Command
-    from Libraries.Controller import Controller
-    from Libraries.Version import Version
-    from Libraries.Filter import Filter as FilterArgs
+    from src.Libraries.Command import Command
+    from src.Controller import Controller
+    from src.Version import Version
+    from src.Filter import Filter as FilterArgs
 
     version = Version()
     command = Command()

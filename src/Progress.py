@@ -3,10 +3,10 @@
 """Progress class"""
 
 import sys
-from termcolor import colored
 from tabulate import tabulate
+from termcolor import colored
 
-from .HttpConfig import HttpConfig as Status
+from src.Configs.HttpConfig import HttpConfig as Status
 from .Logger import Logger as Log
 
 
