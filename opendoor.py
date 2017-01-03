@@ -36,19 +36,25 @@ except ImportError:
                 Please run sudo pip install -r requirements.txt """)
 
 if __name__ == "__main__":
-    from src.Libraries.Command import Command
-    from src.Controller import Controller
-    from src.Version import Version
-    from src.Filter import Filter as FilterArgs
 
-    version = Version()
-    command = Command()
-    filter_args = FilterArgs()
-    args_values = command.get_arg_values()
-    args = []
+    from src.lib.options import Options
 
-    version.banner()
-
-    if args_values:
-        args = filter_args.call(command)
+    options = Options()
+    args = options.get_arg_values()
+    if args:
         Controller(args)
+
+    # from src.Controller import Controller
+    # from src.Version import Version
+    # from src.Filter import Filter as FilterArgs
+    #
+    # version = Version()
+    # options = Options()
+    # filter_args = FilterArgs()
+    # args = options.get_arg_values()
+    #
+    # version.banner()
+    #
+    # if args_values:
+    #     args = filter_args.call(command)
+    #     Controller(args)

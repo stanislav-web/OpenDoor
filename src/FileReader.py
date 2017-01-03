@@ -5,10 +5,11 @@
 import ConfigParser
 import StringIO
 import os
-import sys
 from random import randrange
 
-from .Logger import Logger as Log
+import sys
+
+from src.lib.logger.logger import Logger as Log
 
 
 class FileReader(object):

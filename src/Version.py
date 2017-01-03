@@ -3,16 +3,16 @@
 """Version class"""
 
 import os
-import sys
 import subprocess
+import urllib3
 from colorama import init
 from distutils.version import LooseVersion
+
+import sys
 from termcolor import colored
 
-import urllib3
-
+from src.lib.logger.logger import Logger as Log
 from .FileReader import FileReader
-from .Logger import Logger as Log
 
 
 class Version:

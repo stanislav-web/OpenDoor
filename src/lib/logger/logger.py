@@ -3,12 +3,9 @@
 """Logger class"""
 
 import os
-from datetime import datetime
-
 import sys
+from datetime import datetime
 from termcolor import colored
-
-from src.Configs.HttpConfig import HttpConfig as Status
 
 
 class Logger:
@@ -134,52 +131,70 @@ class Logger:
         return "{}{}{}\n".format(asctime, level, message)
 
     @staticmethod
-    def is_logged(hostname):
+    def is_logged(filename):
         """Check host in logfile"""
-        path = os.path.join('logs', hostname)
+
+        path = os.path.join('logs', filename)
         if not os.path.exists(path):
             return False
         else:
             return True
 
     @staticmethod
-    def syslog(key, params):
+    def syslog(directory, filename, items):
         """System log (file log)"""
 
-        path = os.path.join('logs', key)
+        path = os.path.join('logs', directory)
         if not os.path.exists(path):
-            os.makedirs(path)
-
-        params.pop("count", None)
-        result = params.get('result')
-        for status in result:
-
-            if status in Status.DEFAULT_HTTP_BAD_REQUEST_STATUSES:
-                # have redirects urls log
-                file = open(os.path.join(path, 'badreqests.log'), 'w')
-                for url in result[status]:
-                    file.write('{}\n'.format(url))
+            try:
+                os.makedirs(path)
+                file = open(os.path.join(path, filename), 'w')
+                for item in items:
+                    file.write('{}\n'.format(item))
                 file.close()
+            except OSError as e:
+                sys.exit(e.message)
 
-            if status in Status.DEFAULT_HTTP_REDIRECT_STATUSES:
-                # have redirects urls log
-                file = open(os.path.join(path, 'redirects.log'), 'w')
-                for url in result[status]:
-                    file.write('{}\n'.format(url))
-                file.close()
 
-            if status in Status.DEFAULT_HTTP_UNRESOLVED_STATUSES:
-                # unresolved urls log
-                file = open(os.path.join(path, 'possible.log'), 'w')
-                for url in result[status]:
-                    file.write('{}\n'.format(url))
-                file.close()
 
-            if status in Status.DEFAULT_HTTP_SUCCESS_STATUSES:
-                # success urls print
-                file = open(os.path.join(path, 'success.log'), 'w')
-                for url in result[status]:
-                    file.write('{}\n'.format(url))
-                file.close()
-
-        sys.exit(Logger.info("Your results logs has been created in {0}".format(path)))
+    # @staticmethod
+    # def syslog(key, params):
+    #     """System log (file log)"""
+    #
+    #     path = os.path.join('logs', key)
+    #     if not os.path.exists(path):
+    #         os.makedirs(path)
+    #
+    #     params.pop("count", None)
+    #     result = params.get('result')
+    #     for status in result:
+    #
+    #         if status in Status.DEFAULT_HTTP_BAD_REQUEST_STATUSES:
+    #             # have redirects urls log
+    #             file = open(os.path.join(path, 'badreqests.log'), 'w')
+    #             for url in result[status]:
+    #                 file.write('{}\n'.format(url))
+    #             file.close()
+    #
+    #         if status in Status.DEFAULT_HTTP_REDIRECT_STATUSES:
+    #             # have redirects urls log
+    #             file = open(os.path.join(path, 'redirects.log'), 'w')
+    #             for url in result[status]:
+    #                 file.write('{}\n'.format(url))
+    #             file.close()
+    #
+    #         if status in Status.DEFAULT_HTTP_UNRESOLVED_STATUSES:
+    #             # unresolved urls log
+    #             file = open(os.path.join(path, 'possible.log'), 'w')
+    #             for url in result[status]:
+    #                 file.write('{}\n'.format(url))
+    #             file.close()
+    #
+    #         if status in Status.DEFAULT_HTTP_SUCCESS_STATUSES:
+    #             # success urls print
+    #             file = open(os.path.join(path, 'success.log'), 'w')
+    #             for url in result[status]:
+    #                 file.write('{}\n'.format(url))
+    #             file.close()
+    #
+    #     sys.exit(Logger.info("Your results logs has been created in {0}".format(path)))

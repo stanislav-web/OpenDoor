@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-"""ArgumentsConfig class"""
+"""Config class"""
 
-class ArgumentsConfig:
-    """ArgumentsConfig class"""
+class Config:
+    """Config class"""
 
     arguments = [
         {

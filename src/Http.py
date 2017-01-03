@@ -16,10 +16,10 @@ import sys
 import threadpool
 import time
 
-from src.Configs.HttpConfig import HttpConfig as config
+from src.lib.connect.HttpConfig import HttpConfig as config
+from src.lib.logger.logger import Logger as Log
 from .FileReader import FileReader
 from .Formatter import Formatter
-from .Logger import Logger as Log
 from .Message import Message
 from .Progress import Progress
 

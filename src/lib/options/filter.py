@@ -1,23 +1,19 @@
 # -*- coding: utf-8 -*-
 
-"""Filter args class"""
+"""Filter class"""
 
 import re
 import sys
 from urlparse import urlparse
 
-from .Logger import Logger as Log
-
-
 class Filter:
-    """Filter args class"""
+    """Filter class"""
 
     URL_REGEX = "^(?:[-A-Za-z0-9]+\.)+([A-Za-z]|(?u)\w){2,6}$"
 
-    def call(self, Command):
-        """ Filter commands """
+    def filter(self, args):
+        """ Filter options """
 
-        args = Command.get_arg_values()
         filtered = {}
         for key, value in args.iteritems():
             filtered[key] = getattr(self, '{}'.format(key))(value)

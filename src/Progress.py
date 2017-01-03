@@ -6,8 +6,8 @@ import sys
 from tabulate import tabulate
 from termcolor import colored
 
-from src.Configs.HttpConfig import HttpConfig as Status
-from .Logger import Logger as Log
+from src.lib.connect.HttpConfig import HttpConfig as Status
+from src.lib.logger.logger import Logger as Log
 
 
 class Progress:

@@ -4,8 +4,8 @@
 
 import sys
 
+from src.lib.logger.logger import Logger as Log
 from .Http import Http
-from .Logger import Logger as Log
 from .Message import Message
 from .Progress import Progress
 from .Version import Version
