@@ -37,12 +37,12 @@ except ImportError:
 
 if __name__ == "__main__":
 
-    from src.lib.options import Options
+    from src import Controller
 
-    options = Options()
-    args = options.get_arg_values()
-    if args:
-        Controller(args)
+    bootstrap = Controller()
+    bootstrap.run()
+
+
 
     # from src.Controller import Controller
     # from src.Version import Version

@@ -2,13 +2,11 @@
 
 """Options class"""
 
-import sys
 from argparse import RawDescriptionHelpFormatter
 from textwrap import dedent
-from .exceptions import ArgumentParserError, ThrowingArgumentParser
+from .exceptions import ArgumentParserError, ThrowingArgumentParser, OptionsError, FilterError
 from .config import Config
 from .filter import Filter
-#from src.Logger import Logger as Log
 
 class Options:
     """Options class"""
@@ -17,7 +15,7 @@ class Options:
 
         try:
             parser = ThrowingArgumentParser(description=dedent('''
-            \tInstructions for use
+            \tInstructions of use
             \t--------------------------------'''),
                                             formatter_class=RawDescriptionHelpFormatter)
             required_named = parser.add_argument_group('required named options')
@@ -38,28 +36,27 @@ class Options:
             parser.parse_args()
             self.parser = parser
         except ArgumentParserError as e:
-            sys.exit(Log.error(e.message))
+           raise OptionsError(e.message)
 
     def get_arg_values(self):
         """Get used input options"""
 
-        command_list = {}
+        args = {}
 
         try:
             arguments = self.parser.parse_args()
 
             if not arguments.url and not arguments.version and not arguments.update and not arguments.examples:
-                sys.exit(Log.error("argument -u/--url is required"))
+                raise OptionsError("argument -u/--url is required")
 
             for arg, value in vars(arguments).iteritems():
 
                 if value:
-                    command_list[arg] = value
+                    args[arg] = value
 
-            if not command_list:
+            if not args:
                 self.parser.print_help()
             else:
-                return Filter.filter(command_list)
-
-        except AttributeError as e:
-            sys.exit(Log.error(e.message))
+                return Filter.filter(args)
+        except (AttributeError, FilterError) as e:
+            raise OptionsError(e.message)

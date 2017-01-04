@@ -18,7 +18,8 @@
 #    Development Team: Stanislav Menshov (Stanislav WEB)
 
 from setuptools import setup, find_packages
-from src.Version import Version
+
+from src.lib.package import Version
 
 setup(
     name='opendoor',

@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-pass
+from .output import Output

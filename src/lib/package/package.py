@@ -1,39 +1,31 @@
 # -*- coding: utf-8 -*-
 
-"""Version class"""
+"""Package class"""
 
-import os
-import subprocess
-import urllib3
-from colorama import init
-from distutils.version import LooseVersion
+from src.core import sys
 
-import sys
-from termcolor import colored
+from .config import Config
 
-from src.lib.logger.logger import Logger as Log
-from .FileReader import FileReader
+class Package:
+    """Package class"""
 
+    @staticmethod
+    def load_examples():
+        """ load usage examples """
 
-class Version:
-    """Version class"""
-
-    def __init__(self):
-        init()
+        sys.exit(Config.params['examples'])
 
     @staticmethod
     def update():
         """ Checking for app update"""
 
-        CMDUP = '/usr/bin/git pull origin master'
-        CMDLOG = '/usr/bin/git log --oneline -n 1'
         Log.success('Checking for updates...')
-        pr = subprocess.Popen(CMDUP, cwd=os.getcwd(),
+        pr = subprocess.Popen(Config.params['cvsupdate'], cwd=os.getcwd(),
                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (out, error) = pr.communicate()
         sys.stdout.write(Log.success(str(out).rstrip()))
         sys.stdout.write(Log.info(str(error).rstrip()))
-        prlog = subprocess.Popen(CMDLOG, cwd=os.getcwd(),
+        prlog = subprocess.Popen(Config.params['cvslog'], cwd=os.getcwd(),
                                  shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         (out, error) = prlog.communicate()

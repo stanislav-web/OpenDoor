@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Filereader class"""
+"""Reader class"""
 
 import ConfigParser
 import StringIO
@@ -12,8 +12,12 @@ import sys
 from src.lib.logger.logger import Logger as Log
 
 
-class FileReader(object):
-    """Filereader class"""
+class Reader(object):
+    """Reader class"""
+
+    @staticmethod
+    def read_file(filename):
+        dir = os.path.dirname(os.path.realpath(__file__))
 
     def __init__(self):
 
