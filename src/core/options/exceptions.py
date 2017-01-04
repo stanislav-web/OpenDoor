@@ -23,13 +23,11 @@ class ThrowingArgumentParser(ArgumentParser):
 class OptionsError(Exception):
     """OptionsError class"""
 
-    def __init__(self, message, errors):
+    def __init__(self, message):
         super(OptionsError, self).__init__(message)
-        self.errors = errors
 
 class FilterError(Exception):
     """FilterError class"""
 
-    def __init__(self, message, errors):
+    def __init__(self, message):
         super(FilterError, self).__init__(message)
-        self.errors = errors

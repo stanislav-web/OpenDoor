@@ -15,13 +15,13 @@ from urlparse import urlparse
 import sys
 import threadpool
 import time
-
-from src.lib.connect.HttpConfig import HttpConfig as config
 from src.lib.logger.logger import Logger as Log
 from .FileReader import FileReader
-from src.Formatter import Formatter
 from .Message import Message
-from src.Progress import Progress
+
+from src.core.helper.Formatter import Formatter
+from src.core.helper.Progress import Progress
+from src.lib.connect.HttpConfig import HttpConfig as config
 
 
 class Http:

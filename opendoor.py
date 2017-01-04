@@ -19,7 +19,6 @@
 #
 #    Development Team: Stanislav Menshov
 #
-import sys
 
 try:
     import urllib3
@@ -32,29 +31,17 @@ try:
     import tabulate
 
 except ImportError:
-    sys.exit("""\t\t[!] Several dependencies wasn't installed!
+    exit("""\t\t[!] Several dependencies wasn't installed!
                 Please run sudo pip install -r requirements.txt """)
 
 if __name__ == "__main__":
 
-    from src import Controller
+    from src import Controller , SrcError
 
-    bootstrap = Controller()
-    bootstrap.run()
+    try:
 
+        bootstrap = Controller()
+        bootstrap.run()
+    except SrcError as e:
+        exit(e.message)
 
-
-    # from src.Controller import Controller
-    # from src.Version import Version
-    # from src.Filter import Filter as FilterArgs
-    #
-    # version = Version()
-    # options = Options()
-    # filter_args = FilterArgs()
-    # args = options.get_arg_values()
-    #
-    # version.banner()
-    #
-    # if args_values:
-    #     args = filter_args.call(command)
-    #     Controller(args)

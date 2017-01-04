@@ -7,5 +7,4 @@ from .system import System as sys
 from .system import Process as process
 from .tpl import Tpl as tpl
 from .helper import Helper as helper
-from .exceptions import CoreError
 

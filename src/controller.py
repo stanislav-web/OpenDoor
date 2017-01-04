@@ -5,16 +5,19 @@
 from src.lib import args
 from src.lib import package
 from src.lib import LibError
+from .exceptions import SrcError
+
 
 class Controller:
     """Controller class"""
 
     def __init__(self):
         """init constructor"""
+
         try :
-            self.ioargs = args().get()
+            self.ioargs = args().get_arguments()
         except LibError as e:
-            print e.message
+            raise SrcError(e.message)
 
     def run(self):
         """ run action """
