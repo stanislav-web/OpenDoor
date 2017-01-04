@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Arguments class"""
-from src.core import options , OptionsError
-from src.core import sys
+from src.core import options , OptionsError, CoreError
 
 class Arguments:
     """Arguments class"""
@@ -13,6 +12,7 @@ class Arguments:
             args = options().get_arg_values()
             return args
         except OptionsError as e:
-            sys.exit(e.message)
+            print e
+            raise CoreError(e.message)
 
 

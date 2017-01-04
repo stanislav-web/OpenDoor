@@ -2,7 +2,7 @@
 
 """Package class"""
 
-from src.core import sys
+from src.core import sys, process, filesystem, helper
 
 from .config import Config
 
@@ -16,78 +16,49 @@ class Package:
         sys.exit(Config.params['examples'])
 
     @staticmethod
+    def banner():
+        """ load application banner """
+
+        banner = Config.params['banner'].format(
+           'Directories: ' + str(0),
+            'Subdomains: ' + str(0),
+            'Browsers: ' + str(0),
+            'Proxies: ' + str(0),
+            str(0), 'yellow')
+
+        sys.writeln(banner)
+
+    @staticmethod
+    def version():
+        """ load application version """
+
+        banner = Config.params['version'].format(
+            Package.__app_name(),
+            Package.__current_version(),
+            Package.__remote_version(),
+            Package.__repo(),
+            Package.__license(),
+            'yellow')
+
+        sys.writeln(banner)
+
+
+    @staticmethod
     def update():
-        """ Checking for app update"""
+        """ check for update"""
 
-        Log.success('Checking for updates...')
-        pr = subprocess.Popen(Config.params['cvsupdate'], cwd=os.getcwd(),
-                              shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        (out, error) = pr.communicate()
-        sys.stdout.write(Log.success(str(out).rstrip()))
-        sys.stdout.write(Log.info(str(error).rstrip()))
-        prlog = subprocess.Popen(Config.params['cvslog'], cwd=os.getcwd(),
-                                 shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #Log.success('Checking for updates...')
+        status = process.open(Config.params['cvsupdate'])
 
-        (out, error) = prlog.communicate()
-        sys.stdout.write(Log.info(str(out).strip()))
+        sys.writeln(str(status[0]).rstrip())
+        sys.writeln(str(status[1]).rstrip())
+        # sys.stdout.write(Log.success(str(out).rstrip()))
+        # sys.stdout.write(Log.info(str(error).rstrip()))
 
-    @staticmethod
-    def get_license():
-        """ Show license """
+        status = process.open(Config.params['cvslog'])
+        sys.exit(str(status[0]).rstrip())
+        #sys.stdout.write(Log.info(str(out).strip()))
 
-        config = FileReader().get_config()
-        return config.get('info', 'license')
-
-    @staticmethod
-    def get_local_version():
-        """ Show local version """
-
-        config = FileReader().get_config()
-        return config.get('info', 'version')
-
-    def get_full_version(self):
-        """ Show full-version banner"""
-
-        config = FileReader().get_config()
-
-        banner = """
-============================================================
-  {0} {1} -> {2}
-  {3}
-  {4}
-============================================================
-    """.format(
-            colored(config.get('info', 'name'), 'blue'),
-            self.get_current_version(),
-            colored('v' + self.get_remote_version(), 'green'),
-            colored("Repo: " + config.get('info', 'repository'), 'yellow'),
-            colored(config.get('info', 'license'), 'yellow')
-        )
-        return banner
-
-    @staticmethod
-    def get_remote_version():
-        """ Show remote version """
-
-        config = FileReader()
-        if hasattr(urllib3, 'disable_warnings'):
-            urllib3.disable_warnings()
-        http = urllib3.PoolManager()
-        response = http.request('GET', config.get_config().get('info', 'setup'))
-        config = config.get_config_raw(response.data)
-        return config.get('info', 'version')
-
-    def get_current_version(self):
-        """ Get current app version """
-
-        remote = self.get_remote_version()
-        local = self.get_local_version()
-
-        if LooseVersion(local) < LooseVersion(remote):
-            version = colored('v' + local, 'red')
-        else:
-            version = colored('v' + local, 'green')
-        return version
 
     @staticmethod
     def get_directories_count():
@@ -113,28 +84,61 @@ class Package:
 
         return FileReader().get_file_data('proxy').__len__()
 
-    def banner(self):
-        """ Load application banner """
 
-        banner = """
-    ############################################################
-    #                                                          #
-    #   _____  ____  ____  _  _    ____   _____  _____  ____   #
-    #  (  _  )(  _ \( ___)( \( )  (  _ \ (  _  )(  _  )(  _ \  #
-    #   )(_)(  )___/ )__)  )  (    )(_) ) )(_)(  )(_)(  )   /  #
-    #  (_____)(__)  (____)(_)\_)  (____/ (_____)(_____)(_)\_)  #
-    #                                                          #
-    #  {0}\t\t                       #
-    #  {1}\t\t                       #
-    #  {2}\t\t\t                       #
-    #  {3}\t\t\t                       #
-    #  {4}                     #
-    ############################################################
-        """.format(
-            colored('Directories: ' + str(self.get_directories_count()), 'yellow'),
-            colored('Subdomains: ' + str(self.get_subdomains_count()), 'yellow'),
-            colored('Browsers: ' + str(self.get_user_agents_count()), 'yellow'),
-            colored('Proxies: ' + str(self.get_proxy_count()), 'yellow'),
-            colored(self.get_license(), 'yellow'),
-        )
-        sys.stdout.write("{0}\n".format(banner))
+
+    @staticmethod
+    def __app_name():
+        """ get app name """
+
+        config = filesystem.readcfg(Config.params['cfg'])
+        return config.get('info', 'name')
+
+    @staticmethod
+    def __local_version():
+        """ get local version """
+
+        config = filesystem.readcfg(Config.params['cfg'])
+        return config.get('info', 'version')
+
+    @staticmethod
+    def __remote_version():
+        """ get remote version """
+
+        config = filesystem.readcfg(Config.params['cfg'])
+        request_uri = config.get('info', 'setup')
+
+        # @TODO
+        # response = http.request('GET', request_uri)
+        # raw = filesystem.readraw(response.data)
+        # return raw.get('info', 'version')
+
+        return "2.1"
+
+    @staticmethod
+    def __current_version():
+        """ get current version """
+
+        local = Package.__local_version()
+        remote = Package.__remote_version()
+
+        if True is helper.is_less(local, remote):
+            # @TODO red
+            version = local
+        else:
+            # @TODO green
+            version = local
+        return version
+
+    @staticmethod
+    def __repo():
+        """ get repo """
+
+        config = filesystem.readcfg(Config.params['cfg'])
+        return config.get('info', 'repository')
+
+    @staticmethod
+    def __license():
+        """ get license """
+
+        config = filesystem.readcfg(Config.params['cfg'])
+        return config.get('info', 'license')

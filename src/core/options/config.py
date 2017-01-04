@@ -5,9 +5,15 @@
 class Config:
     """Config class"""
 
+    standalone = [
+        "version",
+        "update",
+        "examples"
+    ]
+
     arguments = [
         {
-            "args": None,
+            "args": "-p",
             "argl": "--port",
             "default": 80,
             "action": "store",
@@ -47,8 +53,8 @@ class Config:
             "type": int
         },
         {
-            "args": "-p",
-            "argl": "--proxy",
+            "args": None,
+            "argl": "--tor",
             "default": False,
             "action": "store_true",
             "help": "Using proxylist",
@@ -79,7 +85,7 @@ class Config:
             "type": bool
         },
         {
-            "args": "-v",
+            "args": None,
             "argl": "--version",
             "default": False,
             "action": "store_true",

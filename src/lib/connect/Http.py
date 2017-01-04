@@ -19,9 +19,9 @@ import time
 from src.lib.connect.HttpConfig import HttpConfig as config
 from src.lib.logger.logger import Logger as Log
 from .FileReader import FileReader
-from .Formatter import Formatter
+from src.Formatter import Formatter
 from .Message import Message
-from .Progress import Progress
+from src.Progress import Progress
 
 
 class Http:

@@ -15,10 +15,6 @@ from src.lib.logger.logger import Logger as Log
 class Reader(object):
     """Reader class"""
 
-    @staticmethod
-    def read_file(filename):
-        dir = os.path.dirname(os.path.realpath(__file__))
-
     def __init__(self):
 
         try:
@@ -43,35 +39,6 @@ class Reader(object):
         with open(file) as f_handler:
             data = f_handler.readlines()
         return data
-
-    @staticmethod
-    def get_config():
-        """ Get configuration file data """
-
-        config = ConfigParser.RawConfigParser()
-        config_file = os.path.join(os.getcwd(), 'setup.cfg')
-        if not os.path.isfile(config_file):
-            sys.exit(Log.error("{0} is not a file ".format(config_file)))
-        if not os.access(config_file, os.R_OK):
-            sys.exit(Log.error("Configuration file {0} can not be read. Setup chmod 0644".format(config_file)))
-
-        try:
-            config.read(config_file)
-            return config
-        except ConfigParser.ParsingError as e:
-            sys.exit(Log.error(e.message))
-
-    @staticmethod
-    def get_config_raw(s_config):
-        """ Get configuration file data as raw format"""
-
-        buf = StringIO.StringIO(s_config)
-        try:
-            config = ConfigParser.ConfigParser()
-            config.readfp(buf)
-            return config
-        except ConfigParser.Error as e:
-            sys.exit(Log.error(e.message))
 
     def get_random_user_agent(self):
         """ Get random user agent from user-agents list"""

@@ -35,7 +35,7 @@ class Options:
                         parser.add_argument(arg['args'], arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'], type=arg['type'])
             parser.parse_args()
             self.parser = parser
-        except ArgumentParserError as e:
+        except (ArgumentParserError) as e:
            raise OptionsError(e.message)
 
     def get_arg_values(self):
@@ -46,17 +46,30 @@ class Options:
         try:
             arguments = self.parser.parse_args()
 
-            if not arguments.url and not arguments.version and not arguments.update and not arguments.examples:
+            if not arguments.url \
+                    and True is not arguments.version \
+                    and True is not arguments.update \
+                    and True is not arguments.examples:
                 raise OptionsError("argument -u/--url is required")
 
-            for arg, value in vars(arguments).iteritems():
-
-                if value:
-                    args[arg] = value
-
-            if not args:
-                self.parser.print_help()
+            if True is arguments.version \
+                    or True is arguments.update \
+                    or True is arguments.examples:
+                for arg, value in vars(arguments).iteritems():
+                    if arg in Config.standalone and True is value:
+                        args[arg] = value
+                        break
             else:
-                return Filter.filter(args)
+
+                for arg, value in vars(arguments).iteritems():
+
+                    if value:
+                        args[arg] = value
+
+                if not args:
+                    self.parser.print_help()
+                    return Filter.filter(args)
+            return args
+
         except (AttributeError, FilterError) as e:
             raise OptionsError(e.message)

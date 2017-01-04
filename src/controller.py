@@ -4,18 +4,22 @@
 
 from src.lib import args
 from src.lib import package
+from src.lib import LibError
 
 class Controller:
     """Controller class"""
 
     def __init__(self):
         """init constructor"""
-
-        self.ioargs = args().get()
+        try :
+            self.ioargs = args().get()
+        except LibError as e:
+            print e.message
 
     def run(self):
         """ run action """
 
+        package.banner()
         for action, args in self.ioargs.iteritems():
 
             if 'url' is not action:
@@ -32,16 +36,15 @@ class Controller:
 
     @staticmethod
     def update_action():
-        """ Update action """
+        """ update action """
 
-        Version.update()
-        sys.exit()
+        package.update()
 
     @staticmethod
     def version_action():
-        """ Show version action """
+        """ show version action """
 
-        sys.exit(Version().get_full_version())
+        package.version()
 
     def url_action(self, url, params=()):
         """ Load by url action """
