@@ -1,4 +1,4 @@
-OWASP Directory Access scanner
+OWASP Directory Access scanner (Currently on redesign)
 ==================================
 ![Alt text](http://dl2.joxi.net/drive/2016/08/04/0001/0378/90490/90/4b4470c268.jpg "Hackware")
 
