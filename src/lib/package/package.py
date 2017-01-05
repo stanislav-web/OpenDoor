@@ -3,14 +3,15 @@
 """Package class"""
 
 from src.core import sys, process, filesystem, helper
-
 from .config import Config
 
 class Package:
     """Package class"""
 
+    remote_version = None
+
     @staticmethod
-    def load_examples():
+    def examples():
         """ load usage examples """
 
         sys.exit(Config.params['examples'])
@@ -20,11 +21,11 @@ class Package:
         """ load application banner """
 
         banner = Config.params['banner'].format(
-           'Directories: ' + str(0),
-            'Subdomains: ' + str(0),
-            'Browsers: ' + str(0),
-            'Proxies: ' + str(0),
-            str(0), 'yellow')
+            'Directories: {0}'.format(Package.__directories_count()),
+            'Subdomains: {0}'.format(Package.__subdomains_count()),
+            'Browsers: {0}'.format(Package.__browsers_count()),
+            'Proxies: {0}'.format(Package.__proxies_count()),
+            Package.__license(), 'yellow')
 
         sys.writeln(banner)
 
@@ -42,7 +43,6 @@ class Package:
 
         sys.writeln(banner)
 
-
     @staticmethod
     def update():
         """ check for update"""
@@ -58,33 +58,6 @@ class Package:
         status = process.open(Config.params['cvslog'])
         sys.exit(str(status[0]).rstrip())
         #sys.stdout.write(Log.info(str(out).strip()))
-
-
-    @staticmethod
-    def get_directories_count():
-        """ Get directories counter from directories list"""
-
-        return FileReader().get_file_data('directories').__len__()
-
-    @staticmethod
-    def get_subdomains_count():
-        """ Get subdomains counter from subdomains list"""
-
-        return FileReader().get_file_data('subdomains').__len__()
-
-    @staticmethod
-    def get_user_agents_count():
-        """ Get user agents counter from user-agents list"""
-
-        return FileReader().get_file_data('useragents').__len__()
-
-    @staticmethod
-    def get_proxy_count():
-        """ Get proxy counter from proxy list """
-
-        return FileReader().get_file_data('proxy').__len__()
-
-
 
     @staticmethod
     def __app_name():
@@ -104,15 +77,15 @@ class Package:
     def __remote_version():
         """ get remote version """
 
-        config = filesystem.readcfg(Config.params['cfg'])
-        request_uri = config.get('info', 'setup')
-
-        # @TODO
-        # response = http.request('GET', request_uri)
-        # raw = filesystem.readraw(response.data)
-        # return raw.get('info', 'version')
-
-        return "2.1"
+        if None is Package.remote_version:
+            config = filesystem.readcfg(Config.params['cfg'])
+            request_uri = config.get('info', 'setup')
+            result = process.open('curl -sb GET {uri}'.format(uri = request_uri))
+            raw = filesystem.readraw(result[0])
+            Package.remote_version = raw.get('info', 'version')
+            return Package.remote_version
+        else:
+            return Package.remote_version
 
     @staticmethod
     def __current_version():
@@ -142,3 +115,43 @@ class Package:
 
         config = filesystem.readcfg(Config.params['cfg'])
         return config.get('info', 'license')
+
+    @staticmethod
+    def __directories_count():
+        """ Get number of directories in basic wordlist"""
+
+        config = filesystem.readcfg(Config.params['cfg'])
+        filename = config.get('opendoor', 'directories')
+        count = filesystem.read(filename).__len__()
+
+        return count
+
+    @staticmethod
+    def __subdomains_count():
+        """ Get number of subdomains in basic wordlist"""
+
+        config = filesystem.readcfg(Config.params['cfg'])
+        filename = config.get('opendoor', 'subdomains')
+        count = filesystem.read(filename).__len__()
+
+        return count
+
+    @staticmethod
+    def __browsers_count():
+        """ Get number of browsers in basic wordlist"""
+
+        config = filesystem.readcfg(Config.params['cfg'])
+        filename = config.get('opendoor', 'useragents')
+        count = filesystem.read(filename).__len__()
+
+        return count
+
+    @staticmethod
+    def __proxies_count():
+        """ Get number of proxy servers in basic wordlist"""
+
+        config = filesystem.readcfg(Config.params['cfg'])
+        filename = config.get('opendoor', 'proxy')
+        count = filesystem.read(filename).__len__()
+
+        return count

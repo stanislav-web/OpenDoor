@@ -15,4 +15,3 @@ class Helper:
         else:
             return False
 
-

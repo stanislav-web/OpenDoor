@@ -8,7 +8,7 @@ import httplib
 import logging
 import multiprocessing
 import re
-import socket
+import socks
 import urllib3
 from urlparse import urlparse
 
@@ -179,17 +179,17 @@ class Http:
     def __is_server_online(self, host, port):
         """ Check if server is online"""
 
-        s = socket.socket()
+        s = socks.socket()
 
         try:
-            ip = socket.gethostbyname(host)
+            ip = socks.gethostbyname(host)
 
             s.settimeout(config.DEFAULT_REQUEST_TIMEOUT)
             s.connect((host, port))
 
             sys.stdout.write(Log.info(self.message.get('online').format(host, ip, port)))
             sys.stdout.write(Log.info(self.message.get('scanning').format(host)))
-        except (socket.gaierror, socket.timeout) as e:
+        except (socks.gaierror, socks.timeout) as e:
             sys.stdout.exit(Log.error(self.message.get('offline').format(e)))
         finally:
             s.close()

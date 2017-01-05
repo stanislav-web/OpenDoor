@@ -22,7 +22,9 @@ class FileSystem:
         if not os.access(file, os.R_OK):
             raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(file))
 
-        return file
+        with open(file) as f_handler:
+            data = f_handler.readlines()
+        return data
 
     @staticmethod
     def readcfg(filename):

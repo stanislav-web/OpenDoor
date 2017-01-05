@@ -35,7 +35,7 @@ class Controller:
     def examples_action():
         """ show examples action """
 
-        package.load_examples()
+        package.examples()
 
     @staticmethod
     def update_action():

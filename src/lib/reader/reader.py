@@ -3,7 +3,6 @@
 """Reader class"""
 
 import ConfigParser
-import StringIO
 import os
 from random import randrange
 
