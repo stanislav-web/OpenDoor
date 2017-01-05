@@ -493,7 +493,7 @@
 1.htpasswd
 1.jsp
 1.php
-1.php 
+1.php
 1.sql
 1.tar.gz
 1.txt
@@ -1605,18 +1605,17 @@ CREDITS
 CSV
 CVS
 CVS/
-CVS/Entries
-CVS/Repository
-CVS/Root
+CVS/Entries/
+CVS/Repository/
+CVS/Root/
 CYBERDOCS/
 CYBERDOCS25/
 CYBERDOCS31/
 Cabinet/
 Cakefile
 Capfile
-Certificate
+Certificate/
 Cgishell.pl
-ChangeLog
 ChangeLog.txt
 ChangeLog/
 Changelog.txt
@@ -1631,7 +1630,7 @@ Cms/
 Cms/typo3/
 Computers/
 Config/
-Connections
+Connections/
 Console/login/
 ConsoleHelp
 ConsoleHelp/
@@ -1990,8 +1989,7 @@ Privacy/
 PrivacyPolicy/
 Products
 Products/
-Profile
-Program Files
+Profile/
 Progra~1
 Projects/
 Prova/
@@ -2001,19 +1999,16 @@ Public/
 Publications/
 R/
 RCS/
-README
 README.htm
 README.html
 README.md
 README.txt
 README/
-README_VELOCE
 RELEASE_NOTES.txt
-RLcQq
 RSS/
 Rakefile/
 Rcjakar/admin/login.php
-Read
+Read/
 Read_Me.txt
 Readme.txt
 Readme/
@@ -7922,7 +7917,7 @@ config.bak
 config.codekit
 config.core
 config.dat
-config.dat 
+config.dat
 config.inc
 config.inc.bak
 config.inc.old
@@ -7932,7 +7927,7 @@ config.inc.php~
 config.inc.txt
 config.inc~
 config.ini
-config.ini 
+config.ini
 config.ini.bak
 config.ini.old
 config.ini.txt
@@ -13948,7 +13943,7 @@ jimages/
 jimbo/
 jing/
 jira/
-jira/ 
+jira/
 jiudian/
 jiveservlet/
 jixian/
@@ -22360,7 +22355,7 @@ sqlmanager/
 sqlmigrate.php
 sqlnet
 sqlnet.log
-sqlnet.log 
+sqlnet.log
 sqlnet/
 sqlscripts/
 sqlweb/
