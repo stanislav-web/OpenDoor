@@ -4,6 +4,7 @@
 
 import subprocess
 import os
+from .exceptions import SystemError
 
 
 class Process:
@@ -11,8 +12,13 @@ class Process:
 
     @staticmethod
     def open(command):
-        pr = subprocess.Popen(command, cwd=os.getcwd(),
-                              shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        (out, error) = pr.communicate()
-        return (out, error)
+        try:
+            pr = subprocess.Popen(command, cwd=os.getcwd(),
+                                  shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            (out, error) = pr.communicate()
+            return (out, error)
+
+        except subprocess.CalledProcessError as e:
+            raise SystemError(e)

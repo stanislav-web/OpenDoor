@@ -4,6 +4,8 @@
 
 from src.core import sys, process, filesystem, helper
 from .config import Config
+#TODO
+from ...lib.exceptions import LibError
 
 class Package:
     """Package class"""
