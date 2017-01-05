@@ -3,7 +3,6 @@
 """Options class"""
 
 from argparse import RawDescriptionHelpFormatter
-from textwrap import dedent
 from .exceptions import ArgumentParserError, ThrowingArgumentParser, OptionsError, FilterError
 from .config import Config
 from .filter import Filter
@@ -14,15 +13,15 @@ class Options:
     def __init__(self):
 
         try:
-            parser = ThrowingArgumentParser(description=dedent('''
-            \tInstructions of use
-            \t--------------------------------'''),
-                                            formatter_class=RawDescriptionHelpFormatter)
+            parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
             required_named = parser.add_argument_group('required named options')
             required_named.add_argument('-u', '--url', help="URL or page to scan; -u http://example.com")
 
-            for i in range(len(Config.arguments)):
-                arg = Config.arguments[i]
+            config_arguments = Config.arguments
+            config_arguments_len = len(config_arguments)
+
+            for i in range(config_arguments_len):
+                arg = config_arguments[i]
                 if arg['args'] is None:
                     if bool == arg['type']:
                         parser.add_argument(arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'])

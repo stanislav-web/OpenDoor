@@ -4,9 +4,9 @@
 
 from .exceptions import TplError
 from .config import Config
+from .color import Color
 
-
-class Tpl:
+class Tpl(Color):
     """Tpl class"""
 
     def __init__(self, modulename):
@@ -29,6 +29,5 @@ class Tpl:
 
     def _log(self, option, args):
         """ apply arguments to tpl """
-
         pass
 

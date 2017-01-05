@@ -4,7 +4,7 @@
 """RegistryManager class"""
 
 from .registry import Plugin
-from plugins import *
+from plugins import logger
 from .exceptions import PluginError
 
 class RegistryManager:
