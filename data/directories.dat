@@ -202,13 +202,11 @@
 .htpasswd-old
 .htpasswd.bak
 .htpasswd.inc
-.htpasswd/
 .htpasswd_test
 .htpasswds
 .htpasswrd
 .htusers
 .idea
-.idea/
 .idea/.name
 .idea/Sites.iml
 .idea/compiler.xml
@@ -1632,7 +1630,6 @@ Cmirserver/
 Cms/
 Cms/typo3
 Computers/
-Config
 Config/
 Connections
 Console/login/
@@ -1643,11 +1640,11 @@ ContactUs/
 Content/
 Control.php
 Control/
-ControllerServlet
+ControllerServlet/
 Controlpanel.html
 Controlpanel.php
-CookieExample
-Counter
+CookieExample/
+Counter/
 Cp.html
 Cp.php
 Cp/
@@ -1655,36 +1652,33 @@ Cpanel.php
 Creatives/
 CuteEditor/
 D/
-DAD
-DB
+DAD/
+DB/
 DB/
 DEMO/
 DMSDump/
-DP
+DP/
 Dashboard/
 Data/
 DataBackup/
 Database_Administration/
 Database_Backup/
-DateServlet
-Default
+DateServlet/
+Default/
 Default/
 DefaultWebApp
 Demo/
 Desktop.ini
-Documents and Settings
-Download
 Download/
-Downloads
 Downloads/
-Drupal
-DynaCacheESI
-DynaCacheESI/esiInavlidator
-DynamicQuery/EmployeeFinder
+Drupal/
+DynaCacheESI/
+DynaCacheESI/esiInavlidator/
+DynamicQuery/EmployeeFinder/
 E/
 ESYSManager/
-EWbutton_Community
-EWbutton_GuestBook
+EWbutton_Community/
+EWbutton_GuestBook/
 Edit/editor/
 Editor/
 Editor/Include/
@@ -1790,9 +1784,8 @@ HelloWMLError.jsp
 HelloWorld
 HelloWorldServlet
 Help/
-HitCount
+HitCount/
 HitCount.jsp
-Home
 Home.html
 Home.php
 Home/
@@ -1814,13 +1807,12 @@ INSTALL.txt
 INSTALL_admin
 INSTALL_admin/
 Image/
-Images
 Images/
 Include/ewebeditor/
 Index/
 Indy_admin/
 Instadmin/
-Install
+Install/
 Install.txt
 Install_dotCMS_Release.txt
 Internet/
@@ -7360,7 +7352,6 @@ class/
 classadmin.php
 classads/
 classe/
-classes
 classes/
 classes/cookie.txt
 classes/gladius/README.TXT
@@ -8058,13 +8049,10 @@ consultation/
 consultations/
 consulting/
 consultoria/
-consumer
 consumer/
 consumers/
 cont/
 conta/
-contact
-contact us
 contact-author/
 contact-form/
 contact-info/
@@ -8082,7 +8070,6 @@ contact_info/
 contact_request/
 contact_seller/
 contact_thanks/
-contact_us
 contact_us/
 contact_us_form/
 contactanos/
@@ -8112,7 +8099,6 @@ contatti/
 contenedor/
 contenido/
 contenidos/
-content
 content-form/
 content-images/
 content.php
@@ -8130,7 +8116,6 @@ contentmanager/
 contentmgmt/
 contentmgr/
 contentrotator/
-contents
 contents/
 contentserver/
 contentservice/
@@ -9894,7 +9879,7 @@ editme_images/
 editmember/
 editmysite/
 edito/
-editor
+editor-site/
 editor-panel/
 editor.php
 editor/
@@ -10679,7 +10664,8 @@ exterior/
 extern-data/
 extern/
 extern_js/
-external files
+external_files/
+external-files/
 external-link/
 external/
 external_ref/
@@ -12548,8 +12534,8 @@ holidaysaving/
 holidaytheft/
 holly/
 hollywood/
-home
-home page
+home/
+home_page/
 home-insurance/
 home-page/
 home.html
@@ -13217,18 +13203,16 @@ imprint/
 improve/
 imr/
 ims/
-in
 in-the-news/
 in/
 in2site/
 in_process/
 inactive/
-inadmin
+inadmin/
 inauguration/
 inbound/
 inbox/
-inc
-inc-admin
+inc-admin/
 inc/
 inc/config.inc
 inc/db/
@@ -13894,7 +13878,6 @@ javadoc/
 javagames/
 javaincludes/
 javas/
-javascript
 javascript/
 javascript/editors/fckeditor
 javascript/tiny_mce
@@ -13912,7 +13895,7 @@ jbossas/
 jbossws/
 jbs/
 jc/
-jcadmin
+jcadmin/
 jcarousel/
 jcart/
 jcomments/
@@ -14886,7 +14869,6 @@ lisa/
 lisence/
 lisense/
 lisp/
-list
 list-create/
 list-edit/
 list-search/
@@ -16534,7 +16516,7 @@ mvc/
 mvmcontrollercmd/
 mw-config/
 mw/
-mwaextraadmin4
+mwaextraadmin4/
 mwaextraedit2/
 mwf/
 mwiki/
@@ -16542,9 +16524,10 @@ mwp/
 mx-gb/
 mx/
 mx_/
-my project
+myproject/
+my-project/
+my_project/
 my-account/
-my-admin
 my-admin/
 my-components/
 my-gift-registry/
@@ -16559,7 +16542,6 @@ my.php
 my/
 my97datepicker/
 my_account/
-my_admin
 my_admin/
 my_cache/
 my_files/
@@ -18706,7 +18688,6 @@ pjimages/
 pjirc/
 pk/
 pkg/
-pkginfo
 pkginfo/
 pkgs/
 pki/
@@ -18726,7 +18707,6 @@ plaintext/
 plan/
 plane/
 planet/
-planned giving
 planner/
 planners/
 planning/
@@ -19124,8 +19104,8 @@ presentations/
 presents/
 preserve/
 president/
-press
-press releases
+press/
+press_releases/
 press-center/
 press-release/
 press-releases/
@@ -19215,8 +19195,8 @@ priv/
 priv8.php
 priv_stats/
 privacidad/
-privacy
-privacy policy
+privacy/
+privacy_policy/
 privacy-policy/
 privacy/
 privacy_policy
@@ -21815,7 +21795,8 @@ sistema/
 sistemas/
 sistemes/
 sit/
-site map
+site-map/
+sitemap/
 site-admin
 site-admin/
 site-config/
