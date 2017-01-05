@@ -18,12 +18,17 @@
 #    Development Team: Stanislav Menshov (Stanislav WEB)
 
 from setuptools import setup, find_packages
+import pypandoc
+from src import Controller
 
-from src.lib import package
+try:
+    long_description = pypandoc.convert('README.md', 'rst')
+except(IOError, ImportError):
+    long_description = open('README.md').read()
 
 setup(
     name='opendoor',
-    version=package.get_local_version(),
+    version=Controller.local_version(),
     packages=find_packages(),
     url='https://github.com/stanislav-web/OpenDoor',
     license='GPL',
@@ -31,7 +36,7 @@ setup(
     author='Stanislav Menshov',
     author_email='stanisov@gmail.com',
     description='OWASP Directory Access scanner',
-    long_description=open('README.rst').read(),
+    long_description=long_description,
     keywords=['owasp scanner', 'directory scanner', 'access directory scanner', 'web spider', 'auth scanner', 'dir search'],
     entry_points={
         'console_scripts': [
@@ -43,8 +48,8 @@ setup(
 
     classifiers=[
         'Intended Audience :: Developers',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking'
         'Topic :: Software Development :: src :: Python Modules',
     ],
 )

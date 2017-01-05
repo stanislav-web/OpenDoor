@@ -6,7 +6,7 @@ from src.lib import args
 from src.lib import package
 from src.lib import LibError
 from .exceptions import SrcError
-
+from registry_manager import RegistryManager
 
 class Controller:
     """Controller class"""
@@ -23,6 +23,7 @@ class Controller:
         """ run action """
 
         package.banner()
+
         for action, args in self.ioargs.iteritems():
 
             if 'url' is not action:
@@ -49,9 +50,16 @@ class Controller:
 
         package.version()
 
-    def url_action(self, url, params=()):
-        """ Load by url action """
+    @staticmethod
+    def local_version():
+        """ show local version """
+        return package.local_version()
 
+    def url_action(self, url, params=()):
+        """ load by url action """
+
+        print RegistryManager.load('Logger')
+        exit()
         scan = True
 
         if True is Log.is_logged(url):

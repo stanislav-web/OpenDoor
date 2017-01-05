@@ -62,18 +62,19 @@ class Package:
         #sys.stdout.write(Log.info(str(out).strip()))
 
     @staticmethod
+    def local_version():
+        """ get local version """
+
+        config = filesystem.readcfg(Config.params['cfg'])
+        return config.get('info', 'version')
+
+    @staticmethod
     def __app_name():
         """ get app name """
 
         config = filesystem.readcfg(Config.params['cfg'])
         return config.get('info', 'name')
 
-    @staticmethod
-    def __local_version():
-        """ get local version """
-
-        config = filesystem.readcfg(Config.params['cfg'])
-        return config.get('info', 'version')
 
     @staticmethod
     def __remote_version():
@@ -93,7 +94,7 @@ class Package:
     def __current_version():
         """ get current version """
 
-        local = Package.__local_version()
+        local = Package.local_version()
         remote = Package.__remote_version()
 
         if True is helper.is_less(local, remote):
