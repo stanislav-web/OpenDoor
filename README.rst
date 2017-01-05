@@ -25,6 +25,7 @@ This software is written for informational purposes and is an open source produc
     
 Requirements
 ------------
+    * Unix, Mac OS
     * Python 2.7.x
 
 Install Dependencies
@@ -38,7 +39,6 @@ Implements
     * reporting
     * random user agent
     * random proxy from proxy list
-    * verbose mode
     * subdomains scanner
     * HTTP/HTTPS support
     * detection of redirect and follow

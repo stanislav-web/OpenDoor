@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 #    OpenDoor Web Directory Scanner
-#    Copyright (C) 2016  Stanislav Menshov
+#    Copyright (C) 2017  Stanislav Menshov
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -19,11 +19,11 @@
 
 from setuptools import setup, find_packages
 
-from src.lib.package import Version
+from src.lib import package
 
 setup(
     name='opendoor',
-    version=Version.get_local_version(),
+    version=package.get_local_version(),
     packages=find_packages(),
     url='https://github.com/stanislav-web/OpenDoor',
     license='GPL',
@@ -32,7 +32,7 @@ setup(
     author_email='stanisov@gmail.com',
     description='OWASP Directory Access scanner',
     long_description=open('README.rst').read(),
-    keywords=['owasp scanner', 'directory scanner', 'access directory scanner', 'web spider', 'auth scanner'],
+    keywords=['owasp scanner', 'directory scanner', 'access directory scanner', 'web spider', 'auth scanner', 'dir search'],
     entry_points={
         'console_scripts': [
             'coveralls = coveralls.cli:main',

@@ -3,7 +3,7 @@
 """ OWASP OpenDoor launcher """
 
 #    OpenDoor Web Directory Scanner
-#    Copyright (C) 2016  Stanislav Menshov
+#    Copyright (C) 2017  Stanislav Menshov
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
