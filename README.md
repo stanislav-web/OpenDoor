@@ -9,7 +9,7 @@ Scans conducted in the dictionary that is included in this application.
 This software is written for informational purposes and is an open source product under the GPL license.
 
 * *Current v2.7.95*
-    - Directories - 26590
+    - Directories - 26427
     - Subdomains - 101000
 
 ***Testing of the software on the commercial systems and organizations is prohibited!***
