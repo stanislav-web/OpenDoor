@@ -24,15 +24,22 @@ class Controller:
     def run(self):
         """ run action """
 
-        package.banner()
+        try:
 
-        if 'url' in self.ioargs:
-            getattr(self, 'url_action')(self.ioargs)
-        else:
-            for action, args in self.ioargs.iteritems():
-                if hasattr(self, '{0}_action'.format(action)) and callable(getattr(self, '{0}_action'.format(action))):
-                    getattr(self, '{func}_action'.format(func=action))()
-                    break
+            package.banner()
+
+            if 'url' in self.ioargs:
+                getattr(self, 'url_action')(self.ioargs)
+            else:
+                for action, args in self.ioargs.iteritems():
+                    if hasattr(self, '{0}_action'.format(action)) and callable(
+                            getattr(self, '{0}_action'.format(action))):
+                        getattr(self, '{func}_action'.format(func=action))()
+                        break
+
+        except LibError as e:
+            raise SrcError(e)
+
 
     @staticmethod
     def examples_action():

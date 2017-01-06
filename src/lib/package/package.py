@@ -23,20 +23,26 @@ class Package:
     def banner():
         """ load application banner """
 
-        banner = Config.params['banner'].format(
-            'Directories: {0}'.format(Package.__directories_count()),
-            'Subdomains: {0}'.format(Package.__subdomains_count()),
-            'Browsers: {0}'.format(Package.__browsers_count()),
-            'Proxies: {0}'.format(Package.__proxies_count()),
-            Package.__license(), 'yellow')
+        try:
 
-        sys.writeln(banner)
+            banner = Config.params['banner'].format(
+                'Directories: {0}'.format(Package.__directories_count()),
+                'Subdomains: {0}'.format(Package.__subdomains_count()),
+                'Browsers: {0}'.format(Package.__browsers_count()),
+                'Proxies: {0}'.format(Package.__proxies_count()),
+                Package.__license(), 'yellow')
+
+            sys.writeln(banner)
+        except (FileSystemError, SystemError, LibError) as e:
+            raise LibError(e)
 
     @staticmethod
     def version():
         """ load application version """
 
-        banner = Config.params['version'].format(
+        try:
+
+            banner = Config.params['version'].format(
             Package.__app_name(),
             Package.__current_version(),
             Package.__remote_version(),
@@ -44,7 +50,9 @@ class Package:
             Package.__license(),
             'yellow')
 
-        sys.writeln(banner)
+            sys.writeln(banner)
+        except (FileSystemError, SystemError, LibError) as e:
+            raise LibError(e)
 
     @staticmethod
     def update():
