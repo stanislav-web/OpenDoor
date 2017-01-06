@@ -25,7 +25,7 @@ class Config:
             "argl": "--threads",
             "default": 1,
             "action": "store",
-            "help": "Allowed threads (limited by CPU cores)",
+            "help": "Allowed threads",
             "type": int
         },
         {

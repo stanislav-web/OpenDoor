@@ -7,7 +7,7 @@ class Config:
 
     template = [
             {
-                "connect" : {
+                "http" : {
                     'online': "Server {0} {1}:{2} is online",
                     'offline': "Oops Error occured, Server offline or invalid URL. Reason: {}",
                     'redirect': "Redirect {0} --> {1}",

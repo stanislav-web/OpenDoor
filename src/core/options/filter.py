@@ -15,13 +15,18 @@ class Filter:
     def filter(args):
         """ Filter options """
 
+        filtered = {}
+
         for key, value in args.iteritems():
             if 'scan' == key:
-                args['scan'] = Filter.scan(value)
-            if 'url' == key:
-                args['scheme'] = Filter.scheme(value)
+                filtered['scan'] = Filter.scan(value)
+            elif 'url' == key:
+                filtered['url'] = Filter.url(value)
+                filtered['scheme'] = Filter.scheme(value)
+            else:
+                filtered[key] = value
 
-        return args
+        return filtered
 
     @staticmethod
     def scheme(url):
@@ -46,7 +51,6 @@ class Filter:
         regex = re.compile(r"" + Filter.URL_REGEX + "")
         if not regex.match(url):
             raise FilterError("\"{0}\" is invalid url. ".format(url))
-
         return url
 
     @staticmethod

@@ -21,7 +21,7 @@ from .Message import Message
 
 from src.core.helper.Formatter import Formatter
 from src.core.helper.Progress import Progress
-from src.lib.connect.HttpConfig import HttpConfig as config
+from src.lib.browser.HttpConfig import HttpConfig as config
 
 
 class Http:

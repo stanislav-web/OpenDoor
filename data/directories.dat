@@ -1,4 +1,3 @@
-
 !.gitignore
 !.htaccess
 !.htpasswd
@@ -203,13 +202,11 @@
 .htpasswd-old
 .htpasswd.bak
 .htpasswd.inc
-.htpasswd/
 .htpasswd_test
 .htpasswds
 .htpasswrd
 .htusers
 .idea
-.idea/
 .idea/.name
 .idea/Sites.iml
 .idea/compiler.xml
@@ -496,7 +493,7 @@
 1.htpasswd
 1.jsp
 1.php
-1.php 
+1.php
 1.sql
 1.tar.gz
 1.txt
@@ -1628,14 +1625,13 @@ Citrix/AccessPlatform/auth/clientscripts/login.js
 Citrix/PNAgent/config.xml
 Classpath/
 ClientAccessPolicy.xml
-ClusterRollout
+ClusterRollout/
 Cmirserver/
 Cms/
-Cms/typo3
+Cms/typo3/
 Computers/
-Config
 Config/
-Connections
+Connections/
 Console/login/
 ConsoleHelp
 ConsoleHelp/
@@ -1644,11 +1640,11 @@ ContactUs/
 Content/
 Control.php
 Control/
-ControllerServlet
+ControllerServlet/
 Controlpanel.html
 Controlpanel.php
-CookieExample
-Counter
+CookieExample/
+Counter/
 Cp.html
 Cp.php
 Cp/
@@ -1656,36 +1652,31 @@ Cpanel.php
 Creatives/
 CuteEditor/
 D/
-DAD
-DB
+DAD/
 DB/
 DEMO/
 DMSDump/
-DP
+DP/
 Dashboard/
 Data/
 DataBackup/
 Database_Administration/
 Database_Backup/
-DateServlet
-Default
+DateServlet/
 Default/
 DefaultWebApp
 Demo/
 Desktop.ini
-Documents and Settings
-Download
 Download/
-Downloads
 Downloads/
-Drupal
-DynaCacheESI
-DynaCacheESI/esiInavlidator
-DynamicQuery/EmployeeFinder
+Drupal/
+DynaCacheESI/
+DynaCacheESI/esiInavlidator/
+DynamicQuery/EmployeeFinder/
 E/
 ESYSManager/
-EWbutton_Community
-EWbutton_GuestBook
+EWbutton_Community/
+EWbutton_GuestBook/
 Edit/editor/
 Editor/
 Editor/Include/
@@ -1791,9 +1782,8 @@ HelloWMLError.jsp
 HelloWorld
 HelloWorldServlet
 Help/
-HitCount
 HitCount.jsp
-Home
+HitCount/
 Home.html
 Home.php
 Home/
@@ -1815,14 +1805,13 @@ INSTALL.txt
 INSTALL_admin
 INSTALL_admin/
 Image/
-Images
 Images/
 Include/ewebeditor/
 Index/
 Indy_admin/
 Instadmin/
-Install
 Install.txt
+Install/
 Install_dotCMS_Release.txt
 Internet/
 J/
@@ -3011,8 +3000,8 @@ account/login.php
 account/login.py
 account/login.rb
 account/login.shtml
-account/logon
-account/signin
+account/logon/
+account/signin/
 account_/
 account_edit/
 account_history/
@@ -3031,7 +3020,7 @@ accounts.py
 accounts.rb
 accounts.txt
 accounts/
-accounts/login
+accounts/login/
 accounts/login.htm
 accounts/login.html
 accounts/login.jsp
@@ -3039,8 +3028,8 @@ accounts/login.php
 accounts/login.py
 accounts/login.rb
 accounts/login.shtml
-accounts/logon
-accounts/signin
+accounts/logon/
+accounts/signin/
 accountsettings/
 accreditation/
 acct/
@@ -3068,7 +3057,6 @@ acne/
 acp/
 acquisitions/
 acrobat/
-acs-admin
 acs-admin/
 acs-lang/
 acs/
@@ -7361,7 +7349,6 @@ class/
 classadmin.php
 classads/
 classe/
-classes
 classes/
 classes/cookie.txt
 classes/gladius/README.TXT
@@ -7934,7 +7921,7 @@ config.bak
 config.codekit
 config.core
 config.dat
-config.dat 
+config.dat
 config.inc
 config.inc.bak
 config.inc.old
@@ -7944,7 +7931,7 @@ config.inc.php~
 config.inc.txt
 config.inc~
 config.ini
-config.ini 
+config.ini
 config.ini.bak
 config.ini.old
 config.ini.txt
@@ -8059,13 +8046,10 @@ consultation/
 consultations/
 consulting/
 consultoria/
-consumer
 consumer/
 consumers/
 cont/
 conta/
-contact
-contact us
 contact-author/
 contact-form/
 contact-info/
@@ -8083,7 +8067,6 @@ contact_info/
 contact_request/
 contact_seller/
 contact_thanks/
-contact_us
 contact_us/
 contact_us_form/
 contactanos/
@@ -8113,7 +8096,6 @@ contatti/
 contenedor/
 contenido/
 contenidos/
-content
 content-form/
 content-images/
 content.php
@@ -8131,7 +8113,6 @@ contentmanager/
 contentmgmt/
 contentmgr/
 contentrotator/
-contents
 contents/
 contentserver/
 contentservice/
@@ -8721,17 +8702,17 @@ data.sqlite
 data.tsv
 data.txt
 data/
-data/users.json
-data/payments.json
-data/login.json
 data/auth.json
-data/pay.json
-data/config.json
 data/backups/
+data/config.json
 data/debug/
 data/files/
+data/login.json
 data/logs/
+data/pay.json
+data/payments.json
 data/tmp/
+data/users.json
 data1/
 data2/
 data8888/
@@ -9895,8 +9876,8 @@ editme_images/
 editmember/
 editmysite/
 edito/
-editor
 editor-panel/
+editor-site/
 editor.php
 editor/
 editor/FCKeditor
@@ -10680,9 +10661,10 @@ exterior/
 extern-data/
 extern/
 extern_js/
-external files
+external-files/
 external-link/
 external/
+external_files/
 external_ref/
 externalid/
 externalisation/
@@ -12549,8 +12531,6 @@ holidaysaving/
 holidaytheft/
 holly/
 hollywood/
-home
-home page
 home-insurance/
 home-page/
 home.html
@@ -13218,18 +13198,16 @@ imprint/
 improve/
 imr/
 ims/
-in
 in-the-news/
 in/
 in2site/
 in_process/
 inactive/
-inadmin
+inadmin/
 inauguration/
 inbound/
 inbox/
-inc
-inc-admin
+inc-admin/
 inc/
 inc/config.inc
 inc/db/
@@ -13895,7 +13873,6 @@ javadoc/
 javagames/
 javaincludes/
 javas/
-javascript
 javascript/
 javascript/editors/fckeditor
 javascript/tiny_mce
@@ -13913,7 +13890,7 @@ jbossas/
 jbossws/
 jbs/
 jc/
-jcadmin
+jcadmin/
 jcarousel/
 jcart/
 jcomments/
@@ -13970,7 +13947,7 @@ jimages/
 jimbo/
 jing/
 jira/
-jira/ 
+jira/
 jiudian/
 jiveservlet/
 jixian/
@@ -14887,7 +14864,6 @@ lisa/
 lisence/
 lisense/
 lisp/
-list
 list-create/
 list-edit/
 list-search/
@@ -16535,7 +16511,7 @@ mvc/
 mvmcontrollercmd/
 mw-config/
 mw/
-mwaextraadmin4
+mwaextraadmin4/
 mwaextraedit2/
 mwf/
 mwiki/
@@ -16543,14 +16519,13 @@ mwp/
 mx-gb/
 mx/
 mx_/
-my project
 my-account/
-my-admin
 my-admin/
 my-components/
 my-gift-registry/
 my-plugins/
 my-profile/
+my-project/
 my-remote/
 my-reviews/
 my-sql/
@@ -16560,7 +16535,6 @@ my.php
 my/
 my97datepicker/
 my_account/
-my_admin
 my_admin/
 my_cache/
 my_files/
@@ -16568,6 +16542,7 @@ my_images/
 my_page/
 my_playlists/
 my_profile/
+my_project/
 my_videos/
 myaccount.php
 myaccount/
@@ -16641,6 +16616,7 @@ myplan/
 mypoints/
 myportal/
 myprofile/
+myproject/
 mypub/
 myreviews/
 myscripts/
@@ -18707,7 +18683,6 @@ pjimages/
 pjirc/
 pk/
 pkg/
-pkginfo
 pkginfo/
 pkgs/
 pki/
@@ -18727,7 +18702,6 @@ plaintext/
 plan/
 plane/
 planet/
-planned giving
 planner/
 planners/
 planning/
@@ -19125,8 +19099,6 @@ presentations/
 presents/
 preserve/
 president/
-press
-press releases
 press-center/
 press-release/
 press-releases/
@@ -19216,8 +19188,6 @@ priv/
 priv8.php
 priv_stats/
 privacidad/
-privacy
-privacy policy
 privacy-policy/
 privacy/
 privacy_policy
@@ -20944,7 +20914,6 @@ schedule/
 scheduled/
 scheduled_tasks/
 scheduledtasks/
-scheduler
 scheduler/
 scheduler/docs/
 schedules/
@@ -20968,7 +20937,6 @@ schule/
 schulung/
 schweiz/
 sci/
-science
 science/
 scipts/
 scj/
@@ -21074,7 +21042,7 @@ sdk/
 sdmenu/
 sdo/
 sdx/
-sdzxadmin
+sdzxadmin/
 se-gb/
 se/
 sea/
@@ -21816,7 +21784,6 @@ sistema/
 sistemas/
 sistemes/
 sit/
-site map
 site-admin
 site-admin/
 site-config/
@@ -22390,7 +22357,7 @@ sqlmanager/
 sqlmigrate.php
 sqlnet
 sqlnet.log
-sqlnet.log 
+sqlnet.log
 sqlnet/
 sqlscripts/
 sqlweb/

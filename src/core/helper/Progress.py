@@ -6,7 +6,7 @@ import sys
 from tabulate import tabulate
 from termcolor import colored
 
-from src.lib.connect.HttpConfig import HttpConfig as Status
+from src.lib.browser.HttpConfig import HttpConfig as Status
 from src.lib.logger.logger import Logger as Log
 
 

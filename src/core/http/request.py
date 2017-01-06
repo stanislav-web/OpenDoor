@@ -2,6 +2,7 @@
 
 """Request class"""
 
+import requests
 from .exceptions import RequestError
 
 

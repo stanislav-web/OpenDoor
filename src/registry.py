@@ -29,7 +29,7 @@ class PluginRegistry(type):
         # save the plugin reference
         cls.plugins[plugin.__name__] = instance
 
-        # apply plugin logic - in this case connect the plugin to blinker signals
+        # apply plugin logic - in this case http the plugin to blinker signals
         # this must be defined in the derived class
         instance.register_signals()
 

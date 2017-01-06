@@ -64,10 +64,8 @@ class Options:
 
                     if value:
                         args[arg] = value
+                args = Filter.filter(args)
 
-                if not args:
-                    self.parser.print_help()
-                    return Filter.filter(args)
             return args
 
         except (AttributeError, FilterError) as e:

@@ -13,6 +13,16 @@ class FileSystem:
     """FileSystem class"""
 
     @staticmethod
+    def is_exist(dir, filename):
+        """check if file is exist """
+
+        path = os.path.join(dir, filename)
+        if not os.path.exists(path):
+            return False
+        else:
+            return True
+
+    @staticmethod
     def read(filename):
         """ read txt file """
 
