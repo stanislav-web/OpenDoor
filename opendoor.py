@@ -18,17 +18,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #    Development Team: Stanislav Menshov
-#
 
 try:
     import urllib3
-    import threadpool
-    import linereader
-    import colorama
-    import coloredlogs
-    import termcolor
-    import logging
-    import tabulate
 
 except ImportError:
     exit("""\t\t[!] Several dependencies wasn't installed!

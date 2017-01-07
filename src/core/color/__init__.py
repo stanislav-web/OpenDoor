@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-from logger import logger
+from .color import Color

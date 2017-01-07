@@ -1,9 +1,24 @@
 # -*- coding: utf-8 -*-
 
-"""Package class"""
+"""
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License.
 
-from src.core import sys, process, filesystem, helper
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Development Team: Stanislav Menshov
+"""
+
+from src.core import process, filesystem, helper
 from src.core import SystemError, FileSystemError
+from src.lib import tpl
 
 from .config import Config
 from ...lib.exceptions import LibError
@@ -15,69 +30,103 @@ class Package:
 
     @staticmethod
     def examples():
-        """ load usage examples """
+        """Load examples of usage
 
-        sys.exit(Config.params['examples'])
+        Returns:
+            None: print examples of usage
+
+        """
+
+        tpl().message(Config.params['examples'])
 
     @staticmethod
     def banner():
-        """ load application banner """
+        """Load application banner
+
+        Returns:
+            None: print app banner
+
+        Raises:
+            LibError : src.lib.LibError
+
+        """
 
         try:
 
             banner = Config.params['banner'].format(
-                'Directories: {0}'.format(Package.__directories_count()),
-                'Subdomains: {0}'.format(Package.__subdomains_count()),
-                'Browsers: {0}'.format(Package.__browsers_count()),
-                'Proxies: {0}'.format(Package.__proxies_count()),
-                Package.__license(), 'yellow')
+                tpl.inline('Directories: {0}'.format(Package.__directories_count()), color='blue'),
+                tpl.inline('Subdomains: {0}'.format(Package.__subdomains_count()), color='blue'),
+                tpl.inline('Browsers: {0}'.format(Package.__browsers_count()), color='blue'),
+                tpl.inline('Proxies: {0}'.format(Package.__proxies_count()), color='blue'),
+                tpl.inline(Package.__license(), color='blue'))
 
-            sys.writeln(banner)
+            tpl().message(banner)
         except (FileSystemError, SystemError, LibError) as e:
             raise LibError(e)
 
     @staticmethod
     def version():
-        """ load application version """
+        """Load application version
+
+        Returns:
+            None: print app version
+
+        Raises:
+            LibError : src.lib.LibError
+
+        """
 
         try:
 
-            banner = Config.params['version'].format(
-            Package.__app_name(),
-            Package.__current_version(),
-            Package.__remote_version(),
-            Package.__repo(),
-            Package.__license(),
-            'yellow')
+            version = Config.params['version'].format(
+                Package.__app_name(),
+                Package.__current_version(),
+                Package.__remote_version(),
+                Package.__repo(),
+                Package.__license())
 
-            sys.writeln(banner)
+            tpl().message(version)
+
         except (FileSystemError, SystemError, LibError) as e:
             raise LibError(e)
 
     @staticmethod
     def update():
-        """ check for update"""
+        """Check for app update
+
+        Returns:
+            None: update app from CVS
+
+        Raises:
+            LibError: src.lib.LibError
+
+        """
 
         try:
-            # Log.success('Checking for updates...')
             status = process.open(Config.params['cvsupdate'])
+            upd_status = tpl.inline(status[0], color='green')
+            upd_reason = tpl.inline(status[1], color='black')
 
-            sys.writeln(str(status[0]).rstrip())
-            sys.writeln(str(status[1]).rstrip())
-            # sys.stdout.write(Log.success(str(out).rstrip()))
-            # sys.stdout.write(Log.info(str(error).rstrip()))
+            banner = Config.params['update'].format(
+                status=upd_status,
+                reasons=upd_reason)
 
-            status = process.open(Config.params['cvslog'])
-            sys.exit(str(status[0]).rstrip())
-            # sys.stdout.write(Log.info(str(out).strip()))
+            tpl().message(banner)
 
         except SystemError as e:
             raise LibError(e)
 
-
     @staticmethod
     def local_version():
-        """ get local version """
+        """Get local version
+
+        Returns:
+            string: app local version
+
+        Raises:
+            LibError: src.lib.LibError
+
+        """
 
         try :
             config = filesystem.readcfg(Config.params['cfg'])
@@ -87,7 +136,15 @@ class Package:
 
     @staticmethod
     def __app_name():
-        """ get app name """
+        """Get application name
+
+        Returns:
+            string: app name
+
+        Raises:
+            LibError: src.lib.LibError
+
+        """
 
         try :
             config = filesystem.readcfg(Config.params['cfg'])
@@ -95,10 +152,17 @@ class Package:
         except FileSystemError as e:
             raise LibError(e)
 
-
     @staticmethod
     def __remote_version():
-        """ get remote version """
+        """Get app remote version
+
+        Returns:
+            string: app version from CVS
+
+        Raises:
+            LibError: src.lib.LibError
+
+        """
 
         if None is Package.remote_version:
 
@@ -116,18 +180,24 @@ class Package:
 
     @staticmethod
     def __current_version():
-        """ get current version """
+        """Get app current version
+
+        Returns:
+            string: app current version
+
+        Raises:
+            LibError: src.lib.LibError
+
+        """
 
         try :
             local = Package.local_version()
             remote = Package.__remote_version()
 
             if True is helper.is_less(local, remote):
-                # @TODO red
-                version = local
+                version = tpl.inline(local, color='red')
             else:
-                # @TODO green
-                version = local
+                version = tpl.inline(local, color='green')
             return version
 
         except (FileSystemError, SystemError, LibError) as e:
@@ -135,7 +205,15 @@ class Package:
 
     @staticmethod
     def __repo():
-        """ get repo """
+        """Get app repository url
+
+        Returns:
+            string: repository url
+
+        Raises:
+            LibError: src.lib.LibError
+
+        """
 
         try :
             config = filesystem.readcfg(Config.params['cfg'])
@@ -145,7 +223,15 @@ class Package:
 
     @staticmethod
     def __license():
-        """ get license """
+        """Get application license
+
+        Returns:
+            string: app license text
+
+        Raises:
+            LibError: src.lib.LibError
+
+        """
 
         try :
             config = filesystem.readcfg(Config.params['cfg'])
@@ -155,7 +241,15 @@ class Package:
 
     @staticmethod
     def __directories_count():
-        """ get number of directories in basic wordlist"""
+        """Get number of directories in basic wordlist
+
+        Returns:
+            int: derectories counter
+
+        Raises:
+            LibError: src.lib.LibError
+
+        """
 
         try :
             config = filesystem.readcfg(Config.params['cfg'])
@@ -168,7 +262,15 @@ class Package:
 
     @staticmethod
     def __subdomains_count():
-        """ get number of subdomains in basic wordlist"""
+        """Get number of subdomains in basic wordlist
+
+        Returns:
+            int: subdomains counter
+
+        Raises:
+            LibError: src.lib.LibError
+
+        """
 
         try :
             config = filesystem.readcfg(Config.params['cfg'])
@@ -182,7 +284,15 @@ class Package:
 
     @staticmethod
     def __browsers_count():
-        """ get number of browsers in basic wordlist"""
+        """Get number of browsers in basic wordlist
+
+        Returns:
+            int: browsers counter
+
+        Raises:
+            LibError: src.lib.LibError
+
+        """
 
         try :
             config = filesystem.readcfg(Config.params['cfg'])
@@ -196,7 +306,15 @@ class Package:
 
     @staticmethod
     def __proxies_count():
-        """ get number of proxy servers in basic wordlist"""
+        """Get number of proxy in basic wordlist
+
+        Returns:
+            int: proxy counter
+
+        Raises:
+            LibError: src.lib.LibError
+
+        """
 
         try :
             config = filesystem.readcfg(Config.params['cfg'])
@@ -207,4 +325,3 @@ class Package:
 
         except FileSystemError as e:
             raise LibError(e)
-

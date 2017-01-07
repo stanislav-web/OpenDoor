@@ -5,9 +5,9 @@
 from src.lib import args
 from src.lib import package
 from src.lib import browser
+from src.lib import applogger
 from src.lib import LibError
 from .exceptions import SrcError
-from registry_manager import RegistryManager
 
 class Controller:
     """Controller class"""
@@ -15,7 +15,6 @@ class Controller:
     def __init__(self):
         """init constructor"""
 
-        self.logger = RegistryManager.load('Logger')
         try :
             self.ioargs = args().get_arguments()
         except LibError as e:
@@ -78,7 +77,7 @@ class Controller:
     def url_action(self, params=()):
         """ load by url action """
 
-        if False is self.logger.is_logged(params.get('url')):
+        if False is applogger.is_logged(params.get('url')):
 
             browser.ping(params.get('url'), params.get('port'))
             pass
