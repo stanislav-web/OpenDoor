@@ -45,6 +45,7 @@ class Tpl(sys, colour):
 
     def __log(self, message, args={}):
         """ apply arguments to tpl """
+        #@TODO
         return self.logger
         if not len(args):
             self.logger.info(message)

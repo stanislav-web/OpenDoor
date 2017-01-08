@@ -7,9 +7,3 @@ class SrcError(Exception):
 
     def __init__(self, message):
         super(SrcError, self).__init__(message)
-
-class PluginError(Exception):
-    """PluginError class"""
-
-    def __init__(self, message):
-        super(PluginError, self).__init__(message)

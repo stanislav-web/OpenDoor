@@ -5,8 +5,6 @@
 import logging
 import logging.config
 
-from config import Config
-from src.core import filesystem
 from colorize import ColorizingStreamHandler
 
 class Logger():

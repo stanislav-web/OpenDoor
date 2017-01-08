@@ -6,7 +6,7 @@
 class Config:
     """Config class"""
 
-    package = {
+    browser = {
 
     }
     # template = {

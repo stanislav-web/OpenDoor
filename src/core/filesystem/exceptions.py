@@ -2,7 +2,6 @@
 
 """FileSystemError class"""
 
-
 class FileSystemError(Exception):
     """FileSystemError class"""
 
