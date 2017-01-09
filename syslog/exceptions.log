@@ -1072,3 +1072,7 @@ SocketError: failed
 2017-01-09 03:11:25 [ERROR] : SocketError: [Errno -2] Name or service not known in /home/stanislav/PycharmProjects/opendoor/src/lib/exceptions.py -> __init__() line 10
 2017-01-09 03:12:37 [ERROR] : SocketError: [Errno -2] Name or service not known in /home/stanislav/PycharmProjects/opendoor/src/lib/exceptions.py -> __init__() line 10
 2017-01-09 03:12:56 [ERROR] : SocketError: [Errno -2] Name or service not known in /home/stanislav/PycharmProjects/opendoor/src/lib/exceptions.py -> __init__() line 10
+2017-01-09 04:27:58 [ERROR] : FileSystemError: /home/stanislav/PycharmProjects/opendoor/data/proxies.dat is not a file  in /home/stanislav/PycharmProjects/opendoor/src/lib/exceptions.py -> __init__() line 10
+2017-01-09 05:49:53 [ERROR] : str: unrecognized arguments: --check subdomains in /home/stanislav/PycharmProjects/opendoor/src/lib/exceptions.py -> __init__() line 10
+2017-01-09 05:53:20 [ERROR] : str: unrecognized arguments: --check subdomains in /home/stanislav/PycharmProjects/opendoor/src/lib/exceptions.py -> __init__() line 10
+2017-01-09 05:56:43 [ERROR] : str: unrecognized arguments: --check subdomains in /home/stanislav/PycharmProjects/opendoor/src/lib/exceptions.py -> __init__() line 10

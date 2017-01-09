@@ -10,7 +10,13 @@ class Config:
         'use_log'  : 'Use --log param to store your scan results',
         'logged' : 'The {host} has been stored. Press ENTER to rescan or CTRL+C to exit: ',
         'online': 'Server {host}:{port} ({ip}) is online!',
-        'scanning': 'Scanning {host} ...'
+        'scanning': 'Scanning {host} ...',
+        'debug': 'Starting debug level {level} ...',
+        'browser': 'Fetching user-agent: {browser}',
+        'directories': 'Read directories list by line',
+        'subdomains': 'Read subdomains list by line',
+        'random_browser': 'Fetching random user-agent per request...',
+        'proxy': 'Fetching proxies...'
     }
 
     browser = {

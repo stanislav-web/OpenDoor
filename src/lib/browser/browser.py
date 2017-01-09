@@ -8,15 +8,18 @@ from src.lib.exceptions import LibError
 from src.lib import tpl
 from src.lib.reader import Reader
 from .config import Config
-class Browser(Config, Reader):
+from .debug import Debug
+class Browser(Config, Reader, Debug):
     """Browser class"""
 
     def __init__(self, params):
 
         try:
+            self.debugger = None
 
             Config.__init__(self, params)
             Reader.__init__(self)
+            Debug.__init__(self)
 
 
         except LibError as e:
@@ -30,25 +33,34 @@ class Browser(Config, Reader):
             socket.ping(self._host, self._port)
 
             tpl.info(key='online', host=self._host, port=self._port, ip=socket.get_ip_address(self._host))
-            tpl.info(key='scanning', host=self._host)
 
         except SocketError as e:
             raise LibError(e)
 
-    def scan(self):
+    def _process_directories(self, line):
+        """ process with directories list """
 
+        self._debug_line(line)
+        pass
+
+    def _process_subdomains(self, line):
+        """ process with subdomains list """
+
+        self._debug_line(line)
+        pass
+
+    def scan(self):
         """ scan host with params """
 
-        print self._scan
-        print self._host
-        print self._port
-        print self._method
-        print self._threads
-        print self._delay
-        print self._timeout
-        print self._debug
-        print self._is_proxy
-        print self._is_indexof
-        print self._is_random_user_agent
+        self._debug_user_agents()
+        self._debug_proxy()
+        self._debug_list()
+
+        tpl.info(key='scanning', host=self._host)
+
+        self._get_list(self._scan,
+            params={'host' : self._host, 'port' : self._port, 'scheme' : self._scheme},
+            callback= getattr(self, '_process_{0}'.format(self._scan))
+        )
         pass
 

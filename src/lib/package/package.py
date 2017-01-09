@@ -318,7 +318,7 @@ class Package:
 
         try :
             config = filesystem.readcfg(Config.params['cfg'])
-            filename = config.get('opendoor', 'proxy')
+            filename = config.get('opendoor', 'proxies')
             count = filesystem.read(filename).__len__()
 
             return count

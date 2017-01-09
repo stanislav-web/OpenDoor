@@ -4,7 +4,6 @@
 
 import sys
 
-
 class System:
     """System class"""
 
@@ -42,3 +41,4 @@ class System:
 
         sys.stdout.write('\033[1K')
         sys.stdout.write('\033[0G')
+

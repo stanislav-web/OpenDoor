@@ -2,6 +2,7 @@
 
 """Reader class"""
 
+from random import randrange
 from .config import Config
 from src.core import filesystem
 from src.core import FileSystemError
@@ -13,15 +14,10 @@ class Reader():
 
     def __init__(self):
 
-        self.config =  self.__load_config()
+        self.__config =  self.__load_config()
+        self.__useragents = []
+        self.__proxies = []
 
-        # try:
-        #     self.config = self.get_config()
-        # except ConfigParser.ParsingError as e:
-        #     sys.exit(Log.error(e.message))
-        #
-        # self.__useragents = self.get_file_data('useragents')
-        # self.__proxy = self.get_file_data('proxy')
         # self.__directories = self.get_file_data('directories')
         # self.__subdomains = self.get_file_data('subdomains')
 
@@ -36,29 +32,73 @@ class Reader():
             raise LibError(e)
 
 
+    def _get_random_user_agent(self):
+        """ get random user agent from user-agents list"""
+
+        if not len(self.__useragents):
+            self.__useragents = filesystem.read(self.__config.get('opendoor','useragents'))
+
+        index = randrange(0, len(self.__useragents))
+        return self.__useragents[index].strip()
+
+    def _get_random_proxy(self):
+        """ get random proxy from proxy list"""
+
+        if not len(self.__proxies):
+            self.__proxies = filesystem.read(self.__config.get('opendoor', 'proxies'))
+
+        index = randrange(0, len(self.__proxies))
+        return self.__proxies[index].strip()
+
+    def _get_list(self, list, params, callback):
+        """ read list """
+
+        dirlist = self.__config.get('opendoor', list)
+        filesystem.readliner(dirlist, resolver=getattr(self, '_{0}__line'.format(self._scan)),
+                             params=params,
+                             callback=callback)
 
 
-    # def get_file_data(self, target):
-    #     """ Get target file data"""
-    #
-    #     file_path = self.config.get('opendoor', target)
-    #     file = os.path.join(os.getcwd(), file_path)
-    #     if not os.path.isfile(file):
-    #         sys.exit(Log.error("{0} is not a file".format(file)))
-    #     if not os.access(file, os.R_OK):
-    #         sys.exit(Log.error("{0} file can not be read. Setup chmod 0644 ".format(file)))
-    #     with open(file) as f_handler:
-    #         data = f_handler.readlines()
-    #     return data
-    #
-    # def get_random_user_agent(self):
-    #     """ Get random user agent from user-agents list"""
-    #
-    #     index = randrange(0, len(self.__useragents))
-    #     return self.__useragents[index].rstrip()
-    #
-    # def get_random_proxy(self):
-    #     """ Get random proxy from proxy list"""
-    #
-    #     index = randrange(0, len(self.__proxy))
-    #     return self.__proxy[index].rstrip()
+    def _subdomains__line(self, line, params):
+        """ resolve subdomains line"""
+
+        line = line.strip("\n")
+        line.strip('/')
+
+        host = params.get('host')
+        port = params.get('port')
+
+        if 'www.' in host:
+            host = host.replace("www.", "")
+
+        if Config.port is port:
+            port = ''
+        else:
+            port = ':{0}'.format(port)
+
+        return "{scheme}{sub}.{host}{port}".format(
+            scheme=params.get('scheme'),
+            host=host,
+            port=port,
+            sub=line,
+        )
+
+    def _directories__line(self, line, params):
+        """ resolve directories line """
+
+        line = line.strip("\n")
+        line.lstrip('/')
+
+        port = params.get('port')
+
+        if Config.port is port:
+            port = ''
+        else:
+            port = ':{0}'.format(port)
+
+        return "{scheme}{host}{port}/{uri}".format(
+            scheme=params.get('scheme'),
+            host=params.get('host'),
+            port=port,
+            uri=line,
+        )

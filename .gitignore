@@ -5,4 +5,4 @@
 logs/
 opendoor.egg-info/
 /dist/
-/phpmailer.py
+/syslog/exceptions.log

@@ -18,14 +18,24 @@ class Tpl():
         sys.exit(logger.log().warning(message))
 
     @staticmethod
+    def line(message='', key='', color='white', **args):
+        """ stored colored message """
+
+        if key:
+            message = Tpl.__message(key, args=args)
+        sys.writels(Tpl.info(message))
+
+    @staticmethod
     def inline(message='', key='',  color='white', **args):
         """ stored colored message """
+
         if key:
             message = Tpl.__message(key, args=args)
         return colour.colored(message, color=color)
 
     @staticmethod
     def message(string, args={} , color='white'):
+
         """ colored message """
         sys.writeln(colour.colored(string.format(**args), color=color))
 

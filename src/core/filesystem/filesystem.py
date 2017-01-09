@@ -8,7 +8,6 @@ import os
 
 from .exceptions import FileSystemError
 
-
 class FileSystem:
     """FileSystem class"""
 
@@ -23,6 +22,21 @@ class FileSystem:
             return True
 
     @staticmethod
+    def readliner(filename, resolver, params, callback):
+        """ read txt file by line """
+
+        file = os.path.join(os.getcwd(), filename)
+        if not os.path.isfile(file):
+            raise FileSystemError("{0} is not a file ".format(file))
+        if not os.access(file, os.R_OK):
+            raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(file))
+
+        with open(file, "r") as f_handler:
+            for i, line in enumerate(f_handler):
+                line = resolver(line, params)
+                callback(line)
+
+    @staticmethod
     def read(filename):
         """ read txt file """
 
@@ -32,7 +46,7 @@ class FileSystem:
         if not os.access(file, os.R_OK):
             raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(file))
 
-        with open(file) as f_handler:
+        with open(file, "r") as f_handler:
             data = f_handler.readlines()
         return data
 

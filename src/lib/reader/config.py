@@ -7,3 +7,4 @@ class Config:
     """Config class"""
 
     setup = 'setup.cfg'
+    port = 80
