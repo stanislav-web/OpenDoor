@@ -21,6 +21,14 @@ class Config:
             "type" : int
         },
         {
+            "args": "-m",
+            "argl": "--method",
+            "default": "HEAD",
+            "action": "store",
+            "help": "HTTP method (use HEAD as default)",
+            "type": str
+        },
+        {
             "args": "-t",
             "argl": "--threads",
             "default": 1,
@@ -74,6 +82,22 @@ class Config:
             "default": False,
             "action": "store_true",
             "help": "Scan logging",
+            "type": bool
+        },
+        {
+            "args": None,
+            "argl": "--random-agent",
+            "default": False,
+            "action": "store_true",
+            "help": "Scan logging",
+            "type": bool
+        },
+        {
+            "args": "-i",
+            "argl": "--indexof",
+            "default": False,
+            "action": "store_true",
+            "help": "Detect  Index of/",
             "type": bool
         },
         {

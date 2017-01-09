@@ -15,7 +15,7 @@ class Options:
         try:
             parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
             required_named = parser.add_argument_group('required named options')
-            required_named.add_argument('-u', '--url', help="URL or page to scan; -u http://example.com")
+            required_named.add_argument('--host', help="Target host; -host http://example.com")
 
             config_arguments = Config.arguments
             config_arguments_len = len(config_arguments)
@@ -45,11 +45,11 @@ class Options:
         try:
             arguments = self.parser.parse_args()
 
-            if not arguments.url \
+            if not arguments.host \
                     and True is not arguments.version \
                     and True is not arguments.update \
                     and True is not arguments.examples:
-                raise OptionsError("argument -u/--url is required")
+                raise OptionsError("argument --host is required")
 
             if True is arguments.version \
                     or True is arguments.update \

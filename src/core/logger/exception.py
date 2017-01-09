@@ -15,8 +15,6 @@ class Exception():
         try:
 
             logging.config.dictConfig(Config.exceptions)
-
-            # create logger
             logger = logging.getLogger('exceptions')
 
 
@@ -30,6 +28,6 @@ class Exception():
                 func=func.co_name,
                 line=func.co_firstlineno
             )
-            logger.error(message, exc_info=True)
+            logger.error(message)
         except ValueError as e:
             raise e

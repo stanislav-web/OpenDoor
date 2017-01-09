@@ -20,8 +20,8 @@ class Filter:
         for key, value in args.iteritems():
             if 'scan' == key:
                 filtered['scan'] = Filter.scan(value)
-            elif 'url' == key:
-                filtered['url'] = Filter.url(value)
+            elif 'host' == key:
+                filtered['host'] = Filter.host(value)
                 filtered['scheme'] = Filter.scheme(value)
             else:
                 filtered[key] = value
@@ -29,29 +29,29 @@ class Filter:
         return filtered
 
     @staticmethod
-    def scheme(url):
-        """ Get `url` scheme """
+    def scheme(host):
+        """ Get `host` scheme """
 
-        scheme = urlparse(url).scheme
+        scheme = urlparse(host).scheme
         if not scheme:
             scheme = 'http'
         return scheme + "://"
 
     @staticmethod
-    def url(url):
-        """ Input `url` param filter """
+    def host(host):
+        """ Input `host` param filter """
 
-        if not re.search('http', url, re.IGNORECASE):
-            if re.search('https', url, re.IGNORECASE):
-                url = "https://" + url
+        if not re.search('http', host, re.IGNORECASE):
+            if re.search('https', host, re.IGNORECASE):
+                host = "https://" + host
             else:
-                url = "http://" + url
+                host = "http://" + host
 
-        url = urlparse(url).netloc
+        host = urlparse(host).netloc
         regex = re.compile(r"" + Filter.URL_REGEX + "")
-        if not regex.match(url):
-            raise FilterError("\"{0}\" is invalid url. ".format(url))
-        return url
+        if not regex.match(host):
+            raise FilterError("\"{0}\" is invalid host. ".format(host))
+        return host
 
     @staticmethod
     def scan(type):

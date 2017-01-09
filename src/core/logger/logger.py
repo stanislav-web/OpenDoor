@@ -2,32 +2,25 @@
 
 """Logger classes"""
 
+import sys
 import logging
 import logging.config
-
-from colorize import ColorizingStreamHandler
+from rainbow import RainbowLoggingHandler
 
 class Logger():
     """ Logger class"""
-    def __init__(self):
-        pass
 
     @staticmethod
-    def set(logger_name=''):
+    def log(name=__name__):
 
-        root = logging.getLogger()
-        root.setLevel(logging.DEBUG)
-        root.addHandler(ColorizingStreamHandler())
+        logger = logging.getLogger(name)
 
+        if not len(logger.handlers):
+            logger.setLevel(logging.ERROR)
+            logger.setLevel(logging.INFO)
+            logger.setLevel(logging.WARNING)
+            logger.setLevel(logging.DEBUG)
+            handler = RainbowLoggingHandler(sys.stdout)
+            logger.addHandler(handler)
 
-
-        logging.debug('DEBUG')
-        logging.info('INFO')
-        logging.warning('WARNING')
-        logging.error('ERROR')
-        logging.critical('CRITICAL')
-
-
-
-
-        return root
+        return logger

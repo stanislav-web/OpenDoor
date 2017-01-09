@@ -8,46 +8,84 @@ from src.core import sys
 from .config import Config
 from .exceptions import TplError
 
-class Tpl(sys, colour):
+class Tpl():
     """Tpl class"""
 
-    def __init__(self, modulename=None):
-        """ init module name """
-
-        if None is not modulename:
-            self.logger = logger.set(modulename)
-            self.modulename = modulename
+    @staticmethod
+    def cancel(message='', key='', **args):
+        if key:
+            message = Tpl.__message(key, args=args)
+        sys.exit(logger.log().warning(message))
 
     @staticmethod
-    def inline(string, args={} , color=colour.WHITE):
+    def inline(message='', key='',  color='white', **args):
         """ stored colored message """
+        if key:
+            message = Tpl.__message(key, args=args)
+        return colour.colored(message, color=color)
 
-        return colour.colored(string.format(args), color=color)
-
-    def message(self, string, args={} , color=colour.WHITE):
+    @staticmethod
+    def message(string, args={} , color='white'):
         """ colored message """
+        sys.writeln(colour.colored(string.format(**args), color=color))
 
-        self.writeln(colour.colored(string.format(args), color=color))
+    @staticmethod
+    def error(message='', key='', **args):
+
+        message = str(message)
+
+        if key:
+            message = Tpl.__message(key, args=args)
+
+        logger.log().error(message)
+
+    @staticmethod
+    def warning(message='', key='', **args):
+
+        message = str(message)
+
+        if key:
+            message = Tpl.__message(key, args=args)
+        logger.log().warning(message)
+
+    @staticmethod
+    def info(message='', key='', **args):
+
+        message = str(message)
+
+        if key:
+            message = Tpl.__message(key, args=args)
+        logger.log().info(message)
 
 
-    def log(self, option, args={}):
+    @staticmethod
+    def debug(message='', key='', **args):
+
+        message = str(message)
+
+        if key:
+            message = Tpl.__message(key, args=args)
+        logger.log().debug(message)
+
+    @staticmethod
+    def __message(key, **args):
         """ apply option to log message """
 
         try:
-            tpl = getattr(Config, self.modulename)
-            if option not in tpl:
-                raise TplError('Could not find tpl option `{0}`'.format(option))
-            message = tpl[option]
-        except (AttributeError , TplError):
-            message = option
 
-        return self.logger
+            message = Tpl.__tpl_message(key)
+            args = args.get('args')
+            if not len(args):
+                return message
+            else:
+                return message.format(**args)
+        except (AttributeError, TplError) as e:
+            raise TplError(e)
 
-    def __log(self, message, args={}):
-        """ apply arguments to tpl """
-        #@TODO
-        return self.logger
-        if not len(args):
-            self.logger.info(message)
-        else:
-            self.logger.info(message, args)
+    @staticmethod
+    def __tpl_message(key, **args):
+        tpl = getattr(Config, 'templates')
+        if key not in tpl:
+            raise TplError('Could not find tpl option `{0}`'.format(**args))
+        message = tpl[key]
+        return message

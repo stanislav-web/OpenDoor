@@ -34,4 +34,3 @@ class Logger:
         """
 
         return filesystem.is_exist(Config.scan['log_dir'], resource)
-

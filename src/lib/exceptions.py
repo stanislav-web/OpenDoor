@@ -11,6 +11,7 @@ class LibError(Exception):
 
         class_name = type(message).__name__
 
-        exception.log(class_name=class_name, message=message)
+        if self.__class__.__name__ is not class_name:
+            exception.log(class_name=class_name, message=message)
 
-        super(LibError, self).__init__(message)
+        super(LibError, self).__init__("{}: {}".format(class_name,message))

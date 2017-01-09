@@ -19,11 +19,13 @@
 #
 #    Development Team: Stanislav Menshov
 
+import sys
+
 try:
     import urllib3
 
 except ImportError:
-    exit("""\t\t[!] Several dependencies wasn't installed!
+    sys.exit("""\t\t[!] Several dependencies wasn't installed!
                 Please run sudo pip install -r requirements.txt """)
 
 if __name__ == "__main__":
@@ -35,5 +37,5 @@ if __name__ == "__main__":
         bootstrap = Controller()
         bootstrap.run()
     except SrcError as e:
-        exit(e.message)
+        sys.exit(e.message)
 

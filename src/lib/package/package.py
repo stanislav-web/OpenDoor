@@ -37,7 +37,7 @@ class Package:
 
         """
 
-        tpl().message(Config.params['examples'])
+        tpl.message(Config.params['examples'])
 
     @staticmethod
     def banner():
@@ -59,7 +59,7 @@ class Package:
                 tpl.inline('Browsers: {0}'.format(Package.__browsers_count()), color='blue'),
                 tpl.inline('Proxies: {0}'.format(Package.__proxies_count()), color='blue'),
                 tpl.inline(Package.__license(), color='blue'))
-            tpl().message(banner)
+            tpl.message(banner)
 
         except (FileSystemError, SystemError, LibError) as e:
             raise LibError(e)
@@ -85,7 +85,7 @@ class Package:
                 Package.__repo(),
                 Package.__license())
 
-            tpl().message(version)
+            tpl.message(version)
 
         except (FileSystemError, SystemError, LibError) as e:
             raise LibError(e)
@@ -111,7 +111,7 @@ class Package:
                 status=upd_status,
                 reasons=upd_reason)
 
-            tpl().message(banner)
+            tpl.message(banner)
 
         except SystemError as e:
             raise LibError(e)

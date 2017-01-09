@@ -16,20 +16,17 @@ class Socket:
         sock = socket.socket()
 
         try:
-            ip = Socket.__get_ip_address(host)
 
             sock.settimeout(config.get('timeout'))
             sock.connect((host, port))
 
-            #sys.stdout.write(Log.info(self.message.get('online').format(host, ip, port)))
-            #sys.stdout.write(Log.info(self.message.get('scanning').format(host)))
         except (socket.gaierror, socket.timeout, SocketError) as e:
             raise SocketError(e)
         finally:
             sock.close()
 
     @staticmethod
-    def __get_ip_address(host):
+    def get_ip_address(host):
         """ get ip address """
 
         try:

@@ -2,9 +2,16 @@
 
 """Config class"""
 
-
 class Config:
     """Config class"""
+
+    templates = {
+        'abort'  : 'Session canceled',
+        'use_log'  : 'Use --log param to store your scan results',
+        'logged' : 'The {host} has been stored. Press ENTER to rescan or CTRL+C to exit: ',
+        'online': 'Server {host}:{port} ({ip}) is online!',
+        'scanning': 'Scanning {host} ...'
+    }
 
     browser = {
 

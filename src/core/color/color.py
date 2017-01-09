@@ -27,9 +27,12 @@ class Color:
 
     @staticmethod
     def colored(text, color):
+
+        if type(text) is not str:
+            text = str(text)
         if Color.has_colors(sys.stdout):
             text = text.strip('\n')
-            seq = "\x1b[1;%dm" % (30 + Config.get(color)) + text + "\x1b[0m"
+            seq = "\x1b[%dm" % (30 + Config.get(color)) + text + "\x1b[0m"
             return seq
         else:
             return text
