@@ -30,25 +30,21 @@ class Package:
 
     @staticmethod
     def examples():
-        """Load examples of usage
+        """
+        Load examples of usage
 
-        Returns:
-            None: print examples of usage
-
+        :return: None
         """
 
         tpl.message(Config.params['examples'])
 
     @staticmethod
     def banner():
-        """Load application banner
+        """
+        Load application banner
 
-        Returns:
-            None: print app banner
-
-        Raises:
-            LibError : src.lib.LibError
-
+        :raise LibError
+        :return: None
         """
 
         try:
@@ -66,14 +62,11 @@ class Package:
 
     @staticmethod
     def version():
-        """Load application version
+        """
+        Load application version
 
-        Returns:
-            None: print app version
-
-        Raises:
-            LibError : src.lib.LibError
-
+        :raise LibError
+        :return: None
         """
 
         try:
@@ -92,18 +85,15 @@ class Package:
 
     @staticmethod
     def update():
-        """Check for app update
+        """
+        Check for update
 
-        Returns:
-            None: update app from CVS
-
-        Raises:
-            LibError: src.lib.LibError
-
+        :raise LibError
+        :return: None
         """
 
         try:
-            status = process.open(Config.params['cvsupdate'])
+            status = process.execute(Config.params['cvsupdate'])
             upd_status = tpl.inline(status[0], color='green')
             upd_reason = tpl.inline(status[1], color='black')
 
@@ -118,14 +108,11 @@ class Package:
 
     @staticmethod
     def local_version():
-        """Get local version
+        """
+        Get application local version
 
-        Returns:
-            string: app local version
-
-        Raises:
-            LibError: src.lib.LibError
-
+        :raise LibError
+        :return: str
         """
 
         try :
@@ -136,14 +123,11 @@ class Package:
 
     @staticmethod
     def __app_name():
-        """Get application name
+        """
+        Get application name
 
-        Returns:
-            string: app name
-
-        Raises:
-            LibError: src.lib.LibError
-
+        :raise LibError
+        :return: str
         """
 
         try :
@@ -154,14 +138,11 @@ class Package:
 
     @staticmethod
     def __remote_version():
-        """Get app remote version
+        """
+        Get application remote version
 
-        Returns:
-            string: app version from CVS
-
-        Raises:
-            LibError: src.lib.LibError
-
+        :raise LibError
+        :return: str
         """
 
         if None is Package.remote_version:
@@ -169,7 +150,7 @@ class Package:
             try:
                 config = filesystem.readcfg(Config.params['cfg'])
                 request_uri = config.get('info', 'setup')
-                result = process.open('curl -sb GET {uri}'.format(uri=request_uri))
+                result = process.execute('curl -sb GET {uri}'.format(uri=request_uri))
                 raw = filesystem.readraw(result[0])
                 Package.remote_version = raw.get('info', 'version')
                 return Package.remote_version
@@ -180,14 +161,11 @@ class Package:
 
     @staticmethod
     def __current_version():
-        """Get app current version
+        """
+        Get application current version
 
-        Returns:
-            string: app current version
-
-        Raises:
-            LibError: src.lib.LibError
-
+        :raise LibError
+        :return: str
         """
 
         try :
@@ -205,14 +183,11 @@ class Package:
 
     @staticmethod
     def __repo():
-        """Get app repository url
+        """
+        Get application repository url
 
-        Returns:
-            string: repository url
-
-        Raises:
-            LibError: src.lib.LibError
-
+        :raise LibError
+        :return: str
         """
 
         try :
@@ -223,14 +198,11 @@ class Package:
 
     @staticmethod
     def __license():
-        """Get application license
+        """
+        Get application license
 
-        Returns:
-            string: app license text
-
-        Raises:
-            LibError: src.lib.LibError
-
+        :raise LibError
+        :return: str
         """
 
         try :
@@ -241,14 +213,11 @@ class Package:
 
     @staticmethod
     def __directories_count():
-        """Get number of directories in basic wordlist
+        """
+        Get number of directories in basic wordlist
 
-        Returns:
-            int: derectories counter
-
-        Raises:
-            LibError: src.lib.LibError
-
+        :raise LibError
+        :return: int
         """
 
         try :
@@ -262,14 +231,11 @@ class Package:
 
     @staticmethod
     def __subdomains_count():
-        """Get number of subdomains in basic wordlist
+        """
+        Get number of subdomains in basic wordlist
 
-        Returns:
-            int: subdomains counter
-
-        Raises:
-            LibError: src.lib.LibError
-
+        :raise LibError
+        :return: int
         """
 
         try :
@@ -284,14 +250,11 @@ class Package:
 
     @staticmethod
     def __browsers_count():
-        """Get number of browsers in basic wordlist
+        """
+        Get number of browsers in basic wordlist
 
-        Returns:
-            int: browsers counter
-
-        Raises:
-            LibError: src.lib.LibError
-
+        :raise LibError
+        :return: int
         """
 
         try :
@@ -306,14 +269,11 @@ class Package:
 
     @staticmethod
     def __proxies_count():
-        """Get number of proxy in basic wordlist
+        """
+        Get number of proxies in basic wordlist
 
-        Returns:
-            int: proxy counter
-
-        Raises:
-            LibError: src.lib.LibError
-
+        :raise LibError
+        :return: int
         """
 
         try :

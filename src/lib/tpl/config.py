@@ -1,6 +1,20 @@
 # -*- coding: utf-8 -*-
 
-"""Config class"""
+"""
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Development Team: Stanislav Menshov
+"""
 
 class Config:
     """Config class"""
@@ -19,10 +33,6 @@ class Config:
         'proxy': 'Fetching proxies...'
     }
 
-    browser = {
-
-    }
-    # template = {
     #                "http": {
     #                    'online': "Server {0} {1}:{2} is online",
     #                    'offline': "Oops Error occured, Server offline or invalid URL. Reason: {}",
@@ -38,13 +48,5 @@ class Config:
     #                    'file_detected': "Probably you found important filesource {0} {1}"
     #                }
     #            },
-    # {
-    #     "io": {}
-    # },
-    # {
-    #     "package": {}
-    # },
-    # {
-    #     "reader": {}
-    # }
+
 

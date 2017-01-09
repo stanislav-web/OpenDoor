@@ -1,6 +1,20 @@
 # -*- coding: utf-8 -*-
 
-"""Filter class"""
+"""
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Development Team: Stanislav Menshov
+"""
 
 import re
 from .exceptions import FilterError
@@ -13,7 +27,12 @@ class Filter:
 
     @staticmethod
     def filter(args):
-        """ Filter options """
+        """
+        Filter options
+
+        :param dict args:
+        :return: dict
+        """
 
         filtered = {}
 
@@ -30,7 +49,12 @@ class Filter:
 
     @staticmethod
     def scheme(host):
-        """ Get `host` scheme """
+        """
+        Get `host` scheme from input
+
+        :param str host:
+        :return: str
+        """
 
         scheme = urlparse(host).scheme
         if not scheme:
@@ -39,7 +63,13 @@ class Filter:
 
     @staticmethod
     def host(host):
-        """ Input `host` param filter """
+        """
+        Input `host` param filter
+
+        :param str host:
+        :raise FilterError
+        :return: str
+        """
 
         if not re.search('http', host, re.IGNORECASE):
             if re.search('https', host, re.IGNORECASE):
@@ -55,7 +85,12 @@ class Filter:
 
     @staticmethod
     def scan(type):
-        """ Input `scan` param filter """
+        """
+        Input `scan` type filter
+
+        :param str type:
+        :return: str
+        """
 
         if type not in ['directories', 'subdomains']:
             type = 'directories'

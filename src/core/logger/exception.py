@@ -1,10 +1,25 @@
 # -*- coding: utf-8 -*-
 
-"""Logger classes"""
+"""
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Development Team: Stanislav Menshov
+"""
 
 import logging
 import logging.config
 import inspect
+from exceptions import Exception as Error
 
 from .config import Config
 
@@ -12,13 +27,19 @@ class Exception():
 
     @staticmethod
     def log(class_name='Error', message=''):
+        """
+        Syslog error handler
+
+        :param str class_name: log name
+        :param str message: log message
+        :raise Error
+        :return: None
+        """
         try:
 
             logging.config.dictConfig(Config.exceptions)
             logger = logging.getLogger('exceptions')
 
-
-            # dump the message + the name of this function to the log.
             func = inspect.currentframe().f_back.f_code
 
             message = "{class_name}: {message} in {file} -> {func}() line {line}".format(
@@ -30,4 +51,4 @@ class Exception():
             )
             logger.error(message)
         except ValueError as e:
-            raise e
+            raise Error(e)

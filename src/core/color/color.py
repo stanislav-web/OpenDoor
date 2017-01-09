@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Color class"""
+
 import sys
 from .config import Config
 

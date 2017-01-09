@@ -1,6 +1,20 @@
 # -*- coding: utf-8 -*-
 
-"""FileSystem class"""
+"""
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Development Team: Stanislav Menshov
+"""
 
 import ConfigParser
 import StringIO
@@ -13,7 +27,13 @@ class FileSystem:
 
     @staticmethod
     def is_exist(dir, filename):
-        """check if file is exist """
+        """
+        Check if file is exist
+
+        :param str dir: directory
+        :param str filename: filename
+        :return: bool
+        """
 
         path = os.path.join(dir, filename)
         if not os.path.exists(path):
@@ -23,7 +43,16 @@ class FileSystem:
 
     @staticmethod
     def readliner(filename, resolver, params, callback):
-        """ read txt file by line """
+        """
+        Read txt file by line line
+
+        :param str filename: source file name
+        :param buffer resolver: line format resolver
+        :param dict params: additional params for line format
+        :param buffer callback: "transfer" function
+        :raise FileSystemError
+        :return: None
+        """
 
         file = os.path.join(os.getcwd(), filename)
         if not os.path.isfile(file):
@@ -38,7 +67,13 @@ class FileSystem:
 
     @staticmethod
     def read(filename):
-        """ read txt file """
+        """
+        Read .txt file
+
+        :param str filename: read filename
+        :raise FileSystemError
+        :return: list
+        """
 
         file = os.path.join(os.getcwd(), filename)
         if not os.path.isfile(file):
@@ -52,7 +87,13 @@ class FileSystem:
 
     @staticmethod
     def readcfg(filename):
-        """ read .cfg file """
+        """
+        Read .cfg file
+
+        :param str filename: read filename
+        :raise FileSystemError
+        :return: ConfigParser
+        """
 
         file = os.path.join(os.getcwd(), filename)
         if not os.path.isfile(file):
@@ -69,7 +110,13 @@ class FileSystem:
 
     @staticmethod
     def readraw(data):
-        """ read raw data """
+        """
+        Read .cfg raw data file
+
+        :param str data: file data
+        :raise FileSystemError
+        :return: ConfigParser
+        """
 
         buf = StringIO.StringIO(data)
         try:

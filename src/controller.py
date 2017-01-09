@@ -1,6 +1,20 @@
 # -*- coding: utf-8 -*-
 
-"""Controller class"""
+"""
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Development Team: Stanislav Menshov
+"""
 
 from src.lib import args
 from src.lib import package
@@ -15,7 +29,11 @@ class Controller:
     """Controller class"""
 
     def __init__(self):
-        """init constructor"""
+        """
+        Init cnstructor
+
+        :raise LibError
+        """
 
         try :
             self.ioargs = args().get_arguments()
@@ -23,14 +41,19 @@ class Controller:
             raise SrcError(tpl.error(e.message))
 
     def run(self):
-        """ run action """
+        """
+        Contriller bootstrap action
+
+        :raise SrcError
+        :return: None
+        """
 
         try:
 
             package.banner()
 
             if 'host' in self.ioargs:
-                getattr(self, 'host_action')(self.ioargs)
+                getattr(self, 'scan_action')(self.ioargs)
             else:
                 for action, args in self.ioargs.iteritems():
                     if hasattr(self, '{0}_action'.format(action)) and callable(
@@ -44,13 +67,22 @@ class Controller:
 
     @staticmethod
     def examples_action():
-        """ show examples action """
+        """
+        Show examples action
+
+        :return: None
+        """
 
         package.examples()
 
     @staticmethod
     def update_action():
-        """ update action """
+        """
+        App update action
+
+        :raise LibError
+        :return: None
+        """
 
         try:
             package.update()
@@ -59,7 +91,12 @@ class Controller:
 
     @staticmethod
     def version_action():
-        """ show version action """
+        """
+        Show app version action
+
+        :raise SrcError
+        :return: None
+        """
 
         try:
             package.version()
@@ -68,7 +105,12 @@ class Controller:
 
     @staticmethod
     def local_version():
-        """ show local version """
+        """
+        Show app local version
+
+        :raise SrcError
+        :return: None
+        """
 
         try:
             return package.local_version()
@@ -76,8 +118,14 @@ class Controller:
             raise SrcError(e)
 
 
-    def host_action(self, params=()):
-        """ load by host action """
+    def scan_action(self, params=()):
+        """
+        Host scan action
+
+        :param dict params: console input args
+        :raise SrcError
+        :return: None
+        """
 
         brows = browser(params)
         if False is applog.is_logged(params.get('host')):
