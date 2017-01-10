@@ -19,13 +19,24 @@
 import sys
 import logging
 import logging.config
+from colorize import ColorizingStreamHandler
 from rainbow import RainbowLoggingHandler
 
 class Logger():
     """ Logger class"""
 
     @staticmethod
-    def log(name=__name__):
+    def get_colorized_line(message, level=logging.INFO):
+
+        record = type('', (), {})()
+        record.levelno = level
+        color = ColorizingStreamHandler()
+        print color.is_tty
+        color.output_colorized(message)
+        return color.colorize(message, record)
+
+    @staticmethod
+    def log(name=__name__, use_stream=False):
         """
         Library log handler
 
@@ -36,6 +47,7 @@ class Logger():
         logger = logging.getLogger(name)
 
         if not len(logger.handlers):
+
             logger.setLevel(logging.ERROR)
             logger.setLevel(logging.INFO)
             logger.setLevel(logging.WARNING)

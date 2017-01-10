@@ -40,7 +40,7 @@ class Browser(Config, Reader, Debug, Pool):
             self.debugger = None
 
             Config.__init__(self, params)
-            Pool.__init__(self)
+            Pool.__init__(self, params.get('threads'))
             Reader.__init__(self, self.get_pool_instance())
             Debug.__init__(self)
 
@@ -71,10 +71,9 @@ class Browser(Config, Reader, Debug, Pool):
         :return: None
         """
 
-        if self._total_lines() == self.count_in_queue():
+        if self._total_lines == self.count_in_queue():
             tpl.info(key='scanning', host=self._host)
-            self.join_to_queue()
-
+            self.read_from_queue(process=self.__request)
         pass
 
     def _process_subdomains(self):
@@ -84,10 +83,8 @@ class Browser(Config, Reader, Debug, Pool):
         :return: None
         """
 
-        if self._total_lines() == self.count_in_queue():
-            self._debug_finish_queue()
+        if self._total_lines == self.count_in_queue():
             tpl.info(key='scanning', host=self._host)
-            self.join_to_queue()
         pass
 
     def scan(self):
@@ -107,4 +104,7 @@ class Browser(Config, Reader, Debug, Pool):
             callback= getattr(self, '_process_{0}'.format(self._scan))
         )
 
+        pass
+
+    def __request(self, url):
         pass

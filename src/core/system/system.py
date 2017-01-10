@@ -44,7 +44,7 @@ class System:
         """
 
         System.__clean()
-        sys.stdout.write(msg)
+        sys.stdout.write(str(msg))
         sys.stdout.flush()
         System.lastln = True
 

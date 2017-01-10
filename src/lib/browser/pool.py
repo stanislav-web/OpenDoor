@@ -15,38 +15,43 @@
 
     Development Team: Stanislav Menshov
 """
-from Queue import LifoQueue
+from Queue import Queue
 from threading import Thread
 
 class Pool:
     """Pool class"""
 
-    def __init__(self):
-        self.queue = LifoQueue()
+    def __init__(self, threads):
+        self.queue = Queue()
+        self.threads = threads
 
     def get_pool_instance(self):
         return self
 
-    def set_pool_threads(self, threads):
-        self.threads = threads
-
     def add_to_queue(self, item):
         self.queue.put(item)
 
-    def join_to_queue(self):
+    def queue_join(self):
         self.queue.join()
 
     def count_in_queue(self):
         return self.queue.qsize()
 
-    def read_from_queue(self):
+    def read_from_queue(self, process):
+        self.callback = process
+
         for i in range(self.threads):
-            t1 = Thread(target=self._process)
-            t1.start()
+            worker = Thread(target=self.process_queue, args=(i, self.queue))
+            worker.setDaemon(True)
+            worker.start()
+        self.queue_join()
 
-    def process_queue(self):
-        while not self.queue.empty():  # check that the queue isn't empty
+    def process_queue(self, i, q):
 
-            item = self.queue.get()  # get the item from the queue
-            print item
-            self.queue.task_done()  # specify that you are done with the item
+        while not q.empty():  # check that the queue isn't empty
+            print '%s: Looking for the next enclosure' % i
+            item = q.get()  # get the item from the queue
+            print '%s: Downloading:' % i, item
+            self.callback(item)
+            q.task_done()
+

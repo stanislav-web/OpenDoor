@@ -198,6 +198,7 @@ class Reader():
         except FileSystemError as e:
             raise LibError(e)
 
+    @property
     def _total_lines(self):
 
         """
