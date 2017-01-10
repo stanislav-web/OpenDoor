@@ -21,16 +21,16 @@ from src.core import exception
 class LibError(Exception):
     """LibError class"""
 
-    def __init__(self, message):
+    def __init__(self, error):
         """
         LibError class constructor
 
-        :param str message: error message
+        :param Exception exception: error
         """
 
-        class_name = type(message).__name__
+        class_name = type(error).__name__
 
         if self.__class__.__name__ is not class_name:
-            exception.log(class_name=class_name, message=message)
+            exception.log(class_name=class_name, message=error)
 
-        super(LibError, self).__init__("{}: {}".format(class_name,message))
+        super(LibError, self).__init__("{}: {}".format(class_name,error))

@@ -27,10 +27,12 @@ class Config:
         'scanning': 'Scanning {host} ...',
         'debug': 'Starting debug level {level} ...',
         'browser': 'Fetching user-agent: {browser}',
-        'directories': 'Read directories list by line',
-        'subdomains': 'Read subdomains list by line',
+        'directories': 'Read {total} directories list by line...',
+        'create_queue': 'Wait please. Create queue with {threads} thread(s)...',
+        'subdomains': 'Read {total} subdomains list by line...',
         'random_browser': 'Fetching random user-agent per request...',
-        'proxy': 'Fetching proxies...'
+        'proxy': 'Fetching proxies...',
+        'addtopool'  : 'Adding {total} lines to queue...'
     }
 
     #                "http": {

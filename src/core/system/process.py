@@ -30,6 +30,7 @@ class Process:
         Excecute OS command
 
         :param str command: os command
+        :raise SystemError
         :return: dic
         """
         try:

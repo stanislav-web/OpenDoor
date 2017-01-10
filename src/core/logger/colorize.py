@@ -1,8 +1,28 @@
+# -*- coding: utf-8 -*-
+
+"""
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Development Team: Stanislav Menshov
+"""
+
 import ctypes
 import logging
 import os
 
 class ColorizingStreamHandler(logging.StreamHandler):
+    """ ColorizingStreamHandler class"""
+
     # color names to indices
     color_map = {
         'black': 0,
@@ -37,10 +57,23 @@ class ColorizingStreamHandler(logging.StreamHandler):
 
     @property
     def is_tty(self):
+        """
+        Is tty output check
+
+        :return: bool
+        """
         isatty = getattr(self.stream, 'isatty', None)
         return isatty and isatty()
 
     def emit(self, record):
+        """
+        Emmit message
+
+        :param str record: message
+        :raise Error
+        :return: None
+        """
+
         try:
             message = self.format(record)
             stream = self.stream
@@ -74,6 +107,13 @@ class ColorizingStreamHandler(logging.StreamHandler):
         }
 
         def output_colorized(self, message):
+            """
+            Prepare colorized string
+
+            :param str message: message
+            :return: None
+            """
+
             parts = self.ansi_esc.split(message)
             write = self.stream.write
             h = None
@@ -105,6 +145,14 @@ class ColorizingStreamHandler(logging.StreamHandler):
                         ctypes.windll.kernel32.SetConsoleTextAttribute(h, color)
 
     def colorize(self, message, record):
+        """
+        Output colorized message
+
+        :param str message: text message
+        :param object record: message handler
+        :return: str
+        """
+
         if record.levelno in self.level_map:
             bg, fg, bold = self.level_map[record.levelno]
             params = []
@@ -120,6 +168,13 @@ class ColorizingStreamHandler(logging.StreamHandler):
         return message
 
     def format(self, record):
+        """
+        Format text message
+
+        :param object record: message handler
+        :return: string
+        """
+
         message = logging.StreamHandler.format(self, record)
         if self.is_tty:
             # Don't colorize any traceback

@@ -42,9 +42,9 @@ class FileSystem:
             return True
 
     @staticmethod
-    def readliner(filename, resolver, params, callback):
+    def readliner(filename, processor, params, callback):
         """
-        Read txt file by line line
+        Read txt file line by line
 
         :param str filename: source file name
         :param buffer resolver: line format resolver
@@ -62,8 +62,8 @@ class FileSystem:
 
         with open(file, "r") as f_handler:
             for i, line in enumerate(f_handler):
-                line = resolver(line, params)
-                callback(line)
+                processor(line, params)
+                callback()
 
     @staticmethod
     def read(filename):
@@ -92,7 +92,7 @@ class FileSystem:
 
         :param str filename: read filename
         :raise FileSystemError
-        :return: ConfigParser
+        :return: ConfigParser.RawConfigParser
         """
 
         file = os.path.join(os.getcwd(), filename)
@@ -115,7 +115,7 @@ class FileSystem:
 
         :param str data: file data
         :raise FileSystemError
-        :return: ConfigParser
+        :return: ConfigParser.RawConfigParser
         """
 
         buf = StringIO.StringIO(data)

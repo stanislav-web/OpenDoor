@@ -26,18 +26,28 @@ class Reader():
 
     """Reader class"""
 
-    def __init__(self):
+    def __init__(self, Pool):
+        """
+        Reader constructor
+
+        :param src.lib.browser.Pool Pool: queue manager
+        """
+
+        self.__pool = Pool
 
         self.__config =  self.__load_config()
         self.__useragents = []
         self.__proxies = []
-
-        # self.__directories = self.get_file_data('directories')
-        # self.__subdomains = self.get_file_data('subdomains')
+        self.__counter = 0
 
     @staticmethod
     def __load_config():
-        """ load configuration file """
+        """
+        Load main configuration file
+
+        :raise LibError
+        :return: ConfigParser.RawConfigParser
+        """
 
         try :
             config = filesystem.readcfg(Config.setup)
@@ -47,34 +57,75 @@ class Reader():
 
 
     def _get_random_user_agent(self):
-        """ get random user agent from user-agents list"""
+        """
+        Get random user agent from user-agents list
 
-        if not len(self.__useragents):
-            self.__useragents = filesystem.read(self.__config.get('opendoor','useragents'))
+        :raise LibError
+        :return: str
+        """
 
-        index = randrange(0, len(self.__useragents))
-        return self.__useragents[index].strip()
+        try:
+
+            if not len(self.__useragents):
+                self.__useragents = filesystem.read(self.__config.get('opendoor', 'useragents'))
+
+            index = randrange(0, len(self.__useragents))
+            return self.__useragents[index].strip()
+
+        except FileSystemError as e:
+            raise LibError(e)
+
 
     def _get_random_proxy(self):
-        """ get random proxy from proxy list"""
+        """
+        Get random proxy from proxy list
 
-        if not len(self.__proxies):
-            self.__proxies = filesystem.read(self.__config.get('opendoor', 'proxies'))
+        :raise LibError
+        :return: str
+        """
 
-        index = randrange(0, len(self.__proxies))
-        return self.__proxies[index].strip()
+        try:
 
-    def _get_list(self, list, params, callback):
-        """ read list """
+            if not len(self.__proxies):
+                self.__proxies = filesystem.read(self.__config.get('opendoor', 'proxies'))
 
-        dirlist = self.__config.get('opendoor', list)
-        filesystem.readliner(dirlist, resolver=getattr(self, '_{0}__line'.format(self._scan)),
-                             params=params,
-                             callback=callback)
+            index = randrange(0, len(self.__proxies))
+            return self.__proxies[index].strip()
+
+        except FileSystemError as e:
+            raise LibError(e)
+
+    def _get_lines(self, listname, params, callback):
+        """
+        Read lines from large file
+
+        :param str listname: list name
+        :param dict params: input params
+        :param funct callback:  callback function
+        :raise LibError
+        :return: None
+        """
+
+        dirlist = self.__config.get('opendoor', listname)
+
+        try:
+
+            filesystem.readliner(dirlist, processor=getattr(self, '_{0}__line'.format(self._scan)),
+                                 params=params,
+                                 callback=callback)
+
+        except FileSystemError as e:
+            raise LibError(e)
 
 
     def _subdomains__line(self, line, params):
-        """ resolve subdomains line"""
+        """
+        Read lines from subdomains file
+
+        :param str line: single line
+        :param dict params: input params
+        :return: str
+        """
 
         line = line.strip("\n")
         line.strip('/')
@@ -90,15 +141,23 @@ class Reader():
         else:
             port = ':{0}'.format(port)
 
-        return "{scheme}{sub}.{host}{port}".format(
+        line = "{scheme}{sub}.{host}{port}".format(
             scheme=params.get('scheme'),
             host=host,
             port=port,
             sub=line,
         )
 
+        self.__pool.add_to_queue(line)
+
     def _directories__line(self, line, params):
-        """ resolve directories line """
+        """
+        Read lines from directories file
+
+        :param str line: single line
+        :param dict params: input params
+        :return: str
+        """
 
         line = line.strip("\n")
         line.lstrip('/')
@@ -110,9 +169,42 @@ class Reader():
         else:
             port = ':{0}'.format(port)
 
-        return "{scheme}{host}{port}/{uri}".format(
+        line = "{scheme}{host}{port}/{uri}".format(
             scheme=params.get('scheme'),
             host=params.get('host'),
             port=port,
             uri=line,
         )
+
+        self.__pool.add_to_queue(line)
+
+    def _count_total_lines(self, listname):
+
+        """
+        Count total lines inside wordlist
+
+        :param string listname:
+        :raise LibError
+        :return: int
+        """
+        try:
+
+            if 0 is self.__counter:
+                dirlist = self.__config.get('opendoor', listname)
+                self.__counter = filesystem.read(dirlist).__len__()
+
+            return self.__counter
+
+        except FileSystemError as e:
+            raise LibError(e)
+
+    def _total_lines(self):
+
+        """
+        Return total lines
+
+        :return: int
+        """
+
+        return self.__counter
+

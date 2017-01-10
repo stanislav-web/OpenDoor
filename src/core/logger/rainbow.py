@@ -1,23 +1,26 @@
+# -*- coding: utf-8 -*-
+
+"""
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Development Team: Stanislav Menshov
+"""
+
 import logging
 from colorize import ColorizingStreamHandler
 
 class RainbowLoggingHandler(ColorizingStreamHandler):
-    """ A colorful logging handler optimized for terminal debugging aestetichs.
-
-    - Designed for diagnosis and debug mode output - not for disk logs
-
-    - Highlight the content of logging message in more readable manner
-
-    - Show function and line, so you can trace where your logging messages
-      are coming from
-
-    - Keep timestamp compact
-
-    - Extra module/function output for traceability
-
-    The class provide few options as member variables you
-    would might want to customize after instiating the handler.
-    """
+    """ Class RainbowLoggingHandler """
 
     # Define color for message payload
     level_map = {
@@ -40,11 +43,9 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         """
         Construct a terminal color code
 
-        :param fg: Symbolic name of foreground color
-
-        :param bg: Symbolic name of background color
-
-        :param bold: Brightness bit
+        :param str fg: Symbolic name of foreground color
+        :param str bg: Symbolic name of background color
+        :param str bold: Brightness bit
         """
         params = []
         if bg in self.color_map:
@@ -60,7 +61,10 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
 
     def colorize(self, record):
         """
-        Get a special format string with ASCII color codes.
+        Get a special format string with ASCII color codes
+
+        :param object record:
+        :return: str
         """
 
         # Dynamic message color based on logging level
@@ -72,8 +76,6 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
             fg = "white"
             bold = False
 
-        # Magician's hat
-        # https://www.youtube.com/watch?v=1HRa4X07jdE
         template = [
             "[",
             self.get_color("black", None, True),
@@ -120,7 +122,11 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
 
     def colorize_traceback(self, formatter, record):
         """
-        Turn traceback text to red.
+        Turn traceback text to red
+
+        :param object formatter:
+        :param object record:
+        :return: None
         """
         if record.exc_info:
             # Cache the traceback text to avoid converting it multiple times
@@ -134,9 +140,12 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
     def format(self, record):
         """
         Formats a record for output.
-
         Takes a custom formatting path on a terminal.
+
+        :param str record: input message
+        :return: str
         """
+
         if self.is_tty:
             message = self.colorize(record)
         else:

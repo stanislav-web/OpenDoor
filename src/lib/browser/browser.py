@@ -16,23 +16,32 @@
     Development Team: Stanislav Menshov
 """
 
-from src.core import socket, request, response
+from src.core import socket
 from src.core import SocketError
 from src.lib.exceptions import LibError
 from src.lib import tpl
 from src.lib.reader import Reader
 from .config import Config
 from .debug import Debug
-class Browser(Config, Reader, Debug):
-    """Browser class"""
+from .pool import Pool
+
+class Browser(Config, Reader, Debug, Pool):
+    """ Browser class """
 
     def __init__(self, params):
+        """
+        Browser constructor
+
+        :param dict params: filtered input params
+        :raise LibError
+        """
 
         try:
             self.debugger = None
 
             Config.__init__(self, params)
-            Reader.__init__(self)
+            Pool.__init__(self)
+            Reader.__init__(self, self.get_pool_instance())
             Debug.__init__(self)
 
 
@@ -40,7 +49,11 @@ class Browser(Config, Reader, Debug):
             raise LibError(e)
 
     def ping(self):
-        """ ping host:port for available """
+        """
+        Check remote host for available
+        :raise: LibError
+        :return: None
+        """
 
         try:
 
@@ -51,30 +64,47 @@ class Browser(Config, Reader, Debug):
         except SocketError as e:
             raise LibError(e)
 
-    def _process_directories(self, line):
-        """ process with directories list """
+    def _process_directories(self):
+        """
+        Process with directories list
 
-        self._debug_line(line)
+        :return: None
+        """
+
+        if self._total_lines() == self.count_in_queue():
+            tpl.info(key='scanning', host=self._host)
+            self.join_to_queue()
+
         pass
 
-    def _process_subdomains(self, line):
-        """ process with subdomains list """
+    def _process_subdomains(self):
+        """
+        Process with subdomains list
 
-        self._debug_line(line)
+        :return: None
+        """
+
+        if self._total_lines() == self.count_in_queue():
+            self._debug_finish_queue()
+            tpl.info(key='scanning', host=self._host)
+            self.join_to_queue()
         pass
 
     def scan(self):
-        """ scan host with params """
+        """
+        Scanner
+
+        :raise LibError
+        :return: None
+        """
 
         self._debug_user_agents()
         self._debug_proxy()
         self._debug_list()
 
-        tpl.info(key='scanning', host=self._host)
-
-        self._get_list(self._scan,
+        self._get_lines(self._scan,
             params={'host' : self._host, 'port' : self._port, 'scheme' : self._scheme},
             callback= getattr(self, '_process_{0}'.format(self._scan))
         )
-        pass
 
+        pass

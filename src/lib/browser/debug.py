@@ -22,12 +22,22 @@ class Debug:
     """Debug class"""
 
     def __init__(self):
+        """
+        Debug constructor
+        """
+
         if 0 < self._debug:
             tpl.debug(key='debug', level=self._debug)
         pass
 
 
     def _debug_user_agents(self):
+        """
+        Debug info for user agent
+
+        :return: None
+        """
+
         if 0 >= self._debug:
             pass
         else:
@@ -38,25 +48,38 @@ class Debug:
 
 
     def _debug_proxy(self):
-        if 0 >= self._debug:
-            pass
-        else:
+        """
+        Debug info for proxy
+
+        :return: None
+        """
+
+        if 0 < self._debug:
             if True is self._is_proxy:
                 tpl.debug(key='proxy')
+        else:
+            pass
+
 
     def _debug_list(self):
-        if 0 >= self._debug:
-            pass
-        else:
-            if self._default_scan is self._scan:
-                tpl.debug(key='directories')
-            else :
-                tpl.debug(key='subdomains')
+        total = self._count_total_lines(self._scan)
 
+        if 0 < self._debug:
+            if self._default_scan is self._scan:
+                tpl.debug(key='directories', total=total)
+            else:
+                tpl.debug(key='subdomains', total=total)
+            tpl.debug(key='create_queue', threads=self._threads)
 
     def _debug_line(self, line):
-        if 0 >= self._debug:
-            tpl.line(line)
-        else:
+        """
+        Debug info for target line
+        :param str line
+        :return: None
+        """
+
+        if 0 < self._debug:
             tpl.info(line)
+        else:
+            tpl.line(line)
 

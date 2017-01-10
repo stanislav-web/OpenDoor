@@ -22,6 +22,7 @@ class Config:
     def __init__(self, params):
         """
         Read filtered input params
+
         :param params:
         """
 
