@@ -20,7 +20,7 @@ import random
 from .config import Config
 from src.core import process
 from src.core import filesystem
-from src.core import FileSystemError
+from src.core import FileSystemError , SystemError
 from ...lib.exceptions import LibError
 
 class Reader():

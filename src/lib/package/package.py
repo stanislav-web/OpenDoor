@@ -16,7 +16,7 @@
     Development Team: Stanislav Menshov
 """
 
-from src.core import process, filesystem, helper
+from src.core import process, filesystem, helper, sys
 from src.core import SystemError, FileSystemError
 from src.lib import tpl
 
@@ -29,6 +29,28 @@ class Package:
     remote_version = None
 
     @staticmethod
+    def check_interpreter():
+        """
+        Get interpreter version
+
+        :return: dict or bool
+        """
+
+        expected_version = Config.params.get('required_version')
+        actual_version = sys.version()
+
+        if True is helper.is_less(expected_version, actual_version)\
+            or True is helper.is_more(expected_version, actual_version):
+
+            return {
+                'status' : False,
+                'actual' : actual_version,
+                'expected' : expected_version
+            }
+        else:
+            return True
+
+    @staticmethod
     def examples():
         """
         Load examples of usage
@@ -36,7 +58,7 @@ class Package:
         :return: None
         """
 
-        tpl.message(Config.params['examples'])
+        tpl.message(Config.params.get('examples'))
 
     @staticmethod
     def banner():
@@ -49,7 +71,7 @@ class Package:
 
         try:
 
-            banner = Config.params['banner'].format(
+            banner = Config.params.get('banner').format(
                 tpl.line('Directories: {0}'.format(Package.__directories_count()), color='blue'),
                 tpl.line('Subdomains: {0}'.format(Package.__subdomains_count()), color='blue'),
                 tpl.line('Browsers: {0}'.format(Package.__browsers_count()), color='blue'),
@@ -71,7 +93,7 @@ class Package:
 
         try:
 
-            version = Config.params['version'].format(
+            version = Config.params.get('version').format(
                 Package.__app_name(),
                 Package.__current_version(),
                 Package.__remote_version(),
@@ -93,11 +115,11 @@ class Package:
         """
 
         try:
-            status = process.execute(Config.params['cvsupdate'])
+            status = process.execute(Config.params.get('cvsupdate'))
             upd_status = tpl.line(status[0], color='green')
             upd_reason = tpl.line(status[1], color='black')
 
-            banner = Config.params['update'].format(
+            banner = Config.params.get('update').format(
                 status=upd_status,
                 reasons=upd_reason)
 
@@ -116,7 +138,7 @@ class Package:
         """
 
         try :
-            config = filesystem.readcfg(Config.params['cfg'])
+            config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'version')
         except FileSystemError as e:
             raise LibError(e)
@@ -131,7 +153,7 @@ class Package:
         """
 
         try :
-            config = filesystem.readcfg(Config.params['cfg'])
+            config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'name')
         except FileSystemError as e:
             raise LibError(e)
@@ -148,7 +170,7 @@ class Package:
         if None is Package.remote_version:
 
             try:
-                config = filesystem.readcfg(Config.params['cfg'])
+                config = filesystem.readcfg(Config.params.get('cfg'))
                 request_uri = config.get('info', 'setup')
                 result = process.execute('curl -sb GET {uri}'.format(uri=request_uri))
                 raw = filesystem.readraw(result[0])
@@ -191,7 +213,7 @@ class Package:
         """
 
         try :
-            config = filesystem.readcfg(Config.params['cfg'])
+            config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'repository')
         except FileSystemError as e:
             raise LibError(e)
@@ -206,7 +228,7 @@ class Package:
         """
 
         try :
-            config = filesystem.readcfg(Config.params['cfg'])
+            config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'license')
         except FileSystemError as e:
             raise LibError(e)
@@ -221,7 +243,7 @@ class Package:
         """
 
         try :
-            config = filesystem.readcfg(Config.params['cfg'])
+            config = filesystem.readcfg(Config.params.get('cfg'))
             filename = config.get('opendoor', 'directories')
             count = filesystem.read(filename).__len__()
             return count
@@ -239,7 +261,7 @@ class Package:
         """
 
         try :
-            config = filesystem.readcfg(Config.params['cfg'])
+            config = filesystem.readcfg(Config.params.get('cfg'))
             filename = config.get('opendoor', 'subdomains')
             count = filesystem.read(filename).__len__()
 
@@ -258,7 +280,7 @@ class Package:
         """
 
         try :
-            config = filesystem.readcfg(Config.params['cfg'])
+            config = filesystem.readcfg(Config.params.get('cfg'))
             filename = config.get('opendoor', 'useragents')
             count = filesystem.read(filename).__len__()
 
@@ -277,7 +299,7 @@ class Package:
         """
 
         try :
-            config = filesystem.readcfg(Config.params['cfg'])
+            config = filesystem.readcfg(Config.params.get('cfg'))
             filename = config.get('opendoor', 'proxies')
             count = filesystem.read(filename).__len__()
 

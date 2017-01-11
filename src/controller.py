@@ -36,6 +36,12 @@ class Controller:
         """
 
         try :
+
+            interpreter = package.check_interpreter()
+
+            if True != interpreter:
+                raise SrcError(tpl.error(key='unsupported', actual=interpreter.get('actual'), expected=interpreter.get('expected')))
+
             self.ioargs = args().get_arguments()
         except LibError as e:
             raise SrcError(tpl.error(e.message))

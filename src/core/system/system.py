@@ -17,6 +17,7 @@
 """
 
 import sys
+import platform
 
 class System:
     """System class"""
@@ -54,5 +55,18 @@ class System:
         """
 
         sys.stdout.write('{0}\n'.format(msg))
+
+    @staticmethod
+    def version():
+        """
+        Interpreter version
+
+        :return: string
+        """
+
+        version = platform.python_version().split(".")
+
+        return "{0}.{1}".format(version[0], version[1])
+
 
 

@@ -94,9 +94,8 @@ class Browser(Config, Reader, Debug, Pool):
         """
 
         if self._total_lines() == self.count_in_queue():
-            tpl.info("\r")
             tpl.info(key='scanning', host=self._host)
             # self.join_to_queue()
         else:
             self._debug_progress(self.count_in_queue(), self._total_lines())
-        pass
+            pass

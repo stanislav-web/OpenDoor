@@ -16,7 +16,7 @@
     Development Team: Stanislav Menshov
 """
 
-from distutils.version import LooseVersion
+from distutils.version import LooseVersion, StrictVersion
 
 class Helper:
     """Helper class"""
@@ -24,13 +24,28 @@ class Helper:
     @staticmethod
     def is_less(arg1, arg2):
         """
-        Compare two numbers
+        Compare two numbers (< less)
 
         :param int arg1:
         :param int arg2:
         :return: bool
         """
-        if LooseVersion(arg1) < LooseVersion(arg2):
+        if StrictVersion(arg1) < StrictVersion(arg2):
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def is_more(arg1, arg2):
+        """
+        Compare two numbers (more >)
+
+        :param int arg1:
+        :param int arg2:
+        :return: bool
+        """
+
+        if StrictVersion(arg1) > StrictVersion(arg2):
             return True
         else:
             return False

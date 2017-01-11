@@ -20,6 +20,7 @@ class Config:
     """Config class"""
 
     templates = {
+        'unsupported': 'Your version v {actual} is not supported by this application. Please consider v{expected}',
         'abort'  : 'Session canceled',
         'use_log'  : 'Use --log param to store your scan results',
         'logged' : 'The {host} has been stored. Press ENTER to rescan or CTRL+C to exit: ',

@@ -36,9 +36,11 @@ class Process:
         try:
             pr = subprocess.Popen(command, cwd=os.getcwd(),
                                   shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
             (out, error) = pr.communicate()
-            return (out, error)
 
-        except subprocess.CalledProcessError as e:
+            if error:
+                raise OSError(error.strip())
+
+            return out
+        except (subprocess.CalledProcessError, OSError) as e:
             raise SystemError(e)
