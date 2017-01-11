@@ -15,19 +15,56 @@
 
     Development Team: Stanislav Menshov
 """
-
+import time
 import sys
 import logging
 import logging.config
+from inspect import currentframe
 from rainbow import RainbowLoggingHandler
 
 class Logger():
     """ Logger class"""
 
+    _record = None
+
+    _levels = {
+        'error' : 40,
+        'warning' : 30,
+        'info' : 20,
+        'debug' : 10
+    }
+    @staticmethod
+    def inline(msg='', status='info'):
+        """
+        Formatted log message for inline console stdout
+
+        :param str msg: formatted message
+        :param str name: title
+        :return: str
+        """
+
+        if None is Logger._record:
+            Logger._record = type('record', (object,), dict(
+                exc_info=False,
+                exc_text=False,
+                name='',
+                levelno = Logger._levels.get(status),
+                funcName = status,
+                lineno=currentframe().f_back.f_lineno
+            ))
+
+        Logger._record.created = time.time()
+
+        def getMessage(__class__):
+            return msg
+        setattr(Logger._record, 'getMessage', classmethod(getMessage))
+        message = RainbowLoggingHandler().colorize(Logger._record)
+        return message
+
     @staticmethod
     def log(name=__name__):
         """
-        Library log handler
+        Log handler
 
         :param str name: log name
         :return: logging

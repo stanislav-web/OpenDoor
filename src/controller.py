@@ -138,11 +138,13 @@ class Controller:
                 brows.scan()
             except LibError as e:
                 raise SrcError(e)
+            except (KeyboardInterrupt, SystemExit):
+                tpl.cancel(key='abort')
 
         else:
             try:
                 raw_input(
-                    tpl.inline(key='logged', color='yellow',host=params.get('host'))
+                    tpl.line(key='logged', color='yellow',host=params.get('host'))
                 )
             except KeyboardInterrupt:
                 tpl.cancel(key='abort')

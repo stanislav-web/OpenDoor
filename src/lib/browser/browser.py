@@ -64,32 +64,6 @@ class Browser(Config, Reader, Debug, Pool):
         except SocketError as e:
             raise LibError(e)
 
-    def _process_directories(self):
-        """
-        Process with directories list
-
-        :return: None
-        """
-
-        if self._total_lines() == self.count_in_queue():
-            tpl.info(key='scanning', host=self._host)
-            self.join_to_queue()
-
-        pass
-
-    def _process_subdomains(self):
-        """
-        Process with subdomains list
-
-        :return: None
-        """
-
-        if self._total_lines() == self.count_in_queue():
-            self._debug_finish_queue()
-            tpl.info(key='scanning', host=self._host)
-            self.join_to_queue()
-        pass
-
     def scan(self):
         """
         Scanner
@@ -104,7 +78,22 @@ class Browser(Config, Reader, Debug, Pool):
 
         self._get_lines(self._scan,
             params={'host' : self._host, 'port' : self._port, 'scheme' : self._scheme},
-            callback= getattr(self, '_process_{0}'.format(self._scan))
+            callback= getattr(self, '_process'.format())
         )
 
+        pass
+
+
+    def _process(self):
+        """
+        Process adding items into queue pool
+
+        :return: None
+        """
+
+        if self._total_lines() == self.count_in_queue():
+            tpl.info(key='scanning', host=self._host)
+            # self.join_to_queue()
+        else:
+            self._debug_progress(self.count_in_queue(), self._total_lines())
         pass

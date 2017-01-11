@@ -1,6 +1,20 @@
 # -*- coding: utf-8 -*-
 
-"""Tpl class"""
+"""
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Development Team: Stanislav Menshov
+"""
 
 from src.core import logger
 from src.core import colour
@@ -8,94 +22,202 @@ from src.core import sys
 from .config import Config
 from .exceptions import TplError
 
+
 class Tpl():
     """Tpl class"""
 
     @staticmethod
-    def cancel(message='', key='', **args):
-        if key:
-            message = Tpl.__message(key, args=args)
-        sys.exit(logger.log().warning(message))
+    def cancel(msg='', key='', **args):
+        """
+        Print message and stop propagation
 
-    @staticmethod
-    def line(message='', key='', color='white', **args):
-        """ stored colored message """
-
-        if key:
-            message = Tpl.__message(key, args=args)
-        sys.writels(Tpl.info(message))
-
-    @staticmethod
-    def inline(message='', key='',  color='white', **args):
-        """ stored colored message """
-
-        if key:
-            message = Tpl.__message(key, args=args)
-        return colour.colored(message, color=color)
-
-    @staticmethod
-    def message(string, args={} , color='white'):
-
-        """ colored message """
-        sys.writeln(colour.colored(string.format(**args), color=color))
-
-    @staticmethod
-    def error(message='', key='', **args):
-
-        message = str(message)
-
-        if key:
-            message = Tpl.__message(key, args=args)
-
-        logger.log().error(message)
-
-    @staticmethod
-    def warning(message='', key='', **args):
-
-        message = str(message)
-
-        if key:
-            message = Tpl.__message(key, args=args)
-        logger.log().warning(message)
-
-    @staticmethod
-    def info(message='', key='', **args):
-
-        message = str(message)
-
-        if key:
-            message = Tpl.__message(key, args=args)
-        logger.log().info(message)
-
-
-    @staticmethod
-    def debug(message='', key='', **args):
-
-        message = str(message)
-
-        if key:
-            message = Tpl.__message(key, args=args)
-        logger.log().debug(message)
-
-    @staticmethod
-    def __message(key, **args):
-        """ apply option to log message """
+        :param str msg: text message
+        :param str key: message key for template
+        :param dict args: additional arguments
+        :raise TplError
+        :return: None
+        """
 
         try:
-
-            message = Tpl.__tpl_message(key)
-            args = args.get('args')
-            if not len(args):
-                return message
-            else:
-                return message.format(**args)
+            if key:
+                msg = Tpl.__format_message(key, args=args)
+            sys.exit(logger.log().warning(msg))
         except (AttributeError, TplError) as e:
-            raise TplError(e)
+            raise TplError(e.message)
+
 
     @staticmethod
-    def __tpl_message(key, **args):
+    def line_log(msg='', key='', status='info', **args):
+        """
+        Stored colored log line to variable
+
+        :param str msg: text message
+        :param str key: message key for template
+        :param str status: log status
+        :param dict args: additional arguments
+        :raise TplError
+        :return: None
+        """
+
+        try:
+            if key:
+                msg = Tpl.__format_message(key, args=args)
+            msg = logger.inline(msg=msg, status=status)
+            sys.writels(msg)
+        except (AttributeError, TplError) as e:
+            raise TplError(e.message)
+
+    @staticmethod
+    def line(msg='', key='',  color='white', **args):
+        """
+        Stored colored line to variable
+
+        :param str msg: text message
+        :param str key: message key for template
+        :param str color: color
+        :param dict args: additional arguments
+        :raise TplError
+        :return: str
+        """
+
+        try:
+            if key:
+                msg = Tpl.__format_message(key, args=args)
+            return colour.colored(msg, color=color)
+        except (AttributeError, TplError) as e:
+            raise TplError(e.message)
+
+    @staticmethod
+    def message(msg, args={}, color='white'):
+        """
+        Simple colored message
+
+        :param str msg: text message
+        :param dict args: additional arguments
+        :param str color: color
+        :return: None
+        """
+
+        sys.writeln(colour.colored(msg.format(**args), color=color))
+
+    @staticmethod
+    def error(msg='', key='', **args):
+        """
+        Error log message
+
+        :param str msg: text message
+        :param str key: message key for template
+        :param dict args: additional arguments
+        :raise TplError
+        :return: None
+        """
+
+        msg = str(msg)
+
+        try:
+            if key:
+                msg = Tpl.__format_message(key, args=args)
+
+            logger.log().error(msg)
+        except (AttributeError, TplError) as e:
+            raise TplError(e.message)
+
+    @staticmethod
+    def warning(msg='', key='', **args):
+        """
+        Warning log message
+
+        :param str msg: text message
+        :param str key: message key for template
+        :param dict args: additional arguments
+        :raise TplError
+        :return: None
+        """
+
+        msg = str(msg)
+
+        try:
+            if key:
+                msg = Tpl.__format_message(key, args=args)
+
+            logger.log().warning(msg)
+        except (AttributeError, TplError) as e:
+            raise TplError(e.message)
+
+    @staticmethod
+    def info(msg='', key='', **args):
+        """
+        Info log message
+
+        :param str msg: text message
+        :param str key: message key for template
+        :param dict args: additional arguments
+        :raise TplError
+        :return: None
+        """
+
+        msg = str(msg)
+
+        try:
+            if key:
+                msg = Tpl.__format_message(key, args=args)
+
+            logger.log().info(msg)
+        except (AttributeError, TplError) as e:
+            raise TplError(e.message)
+
+
+    @staticmethod
+    def debug(msg='', key='', **args):
+        """
+        Debug log message
+
+        :param str msg: text message
+        :param str key: message key for template
+        :param dict args: additional arguments
+        :raise TplError
+        :return: None
+        """
+
+        msg = str(msg)
+
+        try:
+            if key:
+                msg = Tpl.__format_message(key, args=args)
+
+            logger.log().debug(msg)
+        except (AttributeError, TplError) as e:
+            raise TplError(e.message)
+
+    @staticmethod
+    def progress(count, total):
+        bar_len = 50
+        filled_len = int(round(bar_len * count / float(total)))
+
+        percents = round(100.0 * count / float(total), 1)
+        bar = '=' * filled_len + '-' * (bar_len - filled_len)
+        bar = '[%s] %s%s' % (bar, percents, '%')
+        Tpl.line_log(bar, status='debug')
+
+    @staticmethod
+    def __format_message(key, **args):
+        """
+        Format message from config key
+
+        :param str key: message
+        :param dict args: additional arguments
+        :raise AttributeError
+        :raise TplError
+        :return: str
+        """
+
         tpl = getattr(Config, 'templates')
         if key not in tpl:
-            raise TplError('Could not find tpl option `{0}`'.format(**args))
-        message = tpl[key]
-        return message
+            raise TplError('Could not find tpl option `{0}`'.format(key))
+        msg = tpl[key]
+
+        args = args.get('args')
+        if not len(args):
+            return msg
+        else:
+            return msg.format(**args)
