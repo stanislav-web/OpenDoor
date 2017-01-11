@@ -37,7 +37,6 @@ class Browser(Config, Reader, Debug, Pool):
         """
 
         try:
-            self.debugger = None
 
             Config.__init__(self, params)
             Pool.__init__(self, params.get('threads'))
@@ -64,29 +63,6 @@ class Browser(Config, Reader, Debug, Pool):
         except SocketError as e:
             raise LibError(e)
 
-    def _process_directories(self):
-        """
-        Process with directories list
-
-        :return: None
-        """
-
-        if self._total_lines == self.count_in_queue():
-            tpl.info(key='scanning', host=self._host)
-            self.read_from_queue(process=self.__request)
-        pass
-
-    def _process_subdomains(self):
-        """
-        Process with subdomains list
-
-        :return: None
-        """
-
-        if self._total_lines == self.count_in_queue():
-            tpl.info(key='scanning', host=self._host)
-        pass
-
     def scan(self):
         """
         Scanner
@@ -97,14 +73,30 @@ class Browser(Config, Reader, Debug, Pool):
 
         self._debug_user_agents()
         self._debug_proxy()
+        if True is self._is_random_list:
+            self._debug_randomizing_list()
+            self._randomize_list(self._scan)
         self._debug_list()
 
         self._get_lines(self._scan,
             params={'host' : self._host, 'port' : self._port, 'scheme' : self._scheme},
-            callback= getattr(self, '_process_{0}'.format(self._scan))
+            callback= getattr(self, '_process'.format())
         )
 
         pass
 
-    def __request(self, url):
+
+    def _process(self):
+        """
+        Process adding items into queue pool
+
+        :return: None
+        """
+
+        if self._total_lines() == self.count_in_queue():
+            tpl.info("\r")
+            tpl.info(key='scanning', host=self._host)
+            # self.join_to_queue()
+        else:
+            self._debug_progress(self.count_in_queue(), self._total_lines())
         pass

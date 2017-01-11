@@ -60,8 +60,22 @@ class Debug:
         else:
             pass
 
+    def _debug_randomizing_list(self):
+        """
+        Debug randomizing list process
+
+        :return:
+        """
+        if 0 < self._debug:
+            tpl.debug(key='randomizing')
+
 
     def _debug_list(self):
+        """
+        Debug list process
+
+        :return:
+        """
         total = self._count_total_lines(self._scan)
 
         if 0 < self._debug:
@@ -74,6 +88,7 @@ class Debug:
     def _debug_line(self, line):
         """
         Debug info for target line
+
         :param str line
         :return: None
         """
@@ -81,5 +96,18 @@ class Debug:
         if 0 < self._debug:
             tpl.info(line)
         else:
-            tpl.line(line)
+            tpl.line_log(line)
+
+    def _debug_progress(self, i, total):
+        """
+        Progress bar
+
+        :param int i: current counter
+        :param int total: total counter
+        :return: None
+        """
+        if 0 < self._debug:
+            tpl.progress(i, total)
+
+
 

@@ -18,7 +18,7 @@
 
 import ConfigParser
 import StringIO
-import os
+import os , errno
 
 from .exceptions import FileSystemError
 
@@ -40,6 +40,68 @@ class FileSystem:
             return False
         else:
             return True
+
+    @staticmethod
+    def makedir(dir, mode=0777):
+        """
+        Create new directory
+
+        :param str dir: directory
+        :param int permission: directory permission
+        :raise: FileSystemError
+        :return: bool
+        """
+
+        if not os.path.exists(dir):
+            try:
+                dir = os.path.join(os.getcwd(), dir)
+
+                os.makedirs(dir, mode=mode)
+                return True
+
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise FileSystemError("Cannot create directory `{0}`. Reason: {1}".format(dir, e.message))
+        else:
+            return False
+
+    @staticmethod
+    def getabsname(filename):
+
+        """
+        Get absolute file path
+
+        :param str filename: directory
+        :return: str
+        """
+
+        filename = os.path.join(os.getcwd(), filename)
+        return os.path.abspath(filename)
+
+    @staticmethod
+    def makefile(filename):
+        """
+        Create new file with context
+
+        :param str filename: directory
+        :param str destination:
+        :param str context:
+        :raise: FileSystemError
+        :return: Bool
+        """
+
+        filename = os.path.join(os.getcwd(), filename)
+
+        if False is os.path.exists(filename):
+            try:
+                FileSystem.makedir(os.path.dirname(filename))
+                open(filename, 'w')
+
+                return True
+            except IOError as e:
+                raise FileSystemError(e)
+        else:
+            return False
 
     @staticmethod
     def readliner(filename, processor, params, callback):

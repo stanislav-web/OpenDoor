@@ -103,7 +103,15 @@ class Config:
             "argl": "--random-agent",
             "default": False,
             "action": "store_true",
-            "help": "Scan logging",
+            "help": "Randomize user-agent per request",
+            "type": bool
+        },
+        {
+            "args": None,
+            "argl": "--random-list",
+            "default": False,
+            "action": "store_true",
+            "help": "Randomize scan list",
             "type": bool
         },
         {

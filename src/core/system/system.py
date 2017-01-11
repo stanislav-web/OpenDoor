@@ -21,8 +21,6 @@ import sys
 class System:
     """System class"""
 
-    lastln = False
-
     @staticmethod
     def exit(msg):
         """
@@ -43,10 +41,8 @@ class System:
         :return: None
         """
 
-        System.__clean()
-        sys.stdout.write(str(msg))
+        sys.stdout.write('{0}\r'.format(msg))
         sys.stdout.flush()
-        System.lastln = True
 
     @staticmethod
     def writeln(msg):
@@ -57,21 +53,6 @@ class System:
         :return: None
         """
 
-        if True is System.lastln:
-            System.__clean()
         sys.stdout.write('{0}\n'.format(msg))
-        sys.stdout.flush()
-        System.lastln = False
-        sys.stdout.flush()
 
-    @staticmethod
-    def __clean():
-        """
-        Clean line
-
-        :return: None
-        """
-
-        sys.stdout.write('\033[1K')
-        sys.stdout.write('\033[0G')
 

@@ -1,5 +1,6 @@
 language: python
 python:
+  - 2.6
   - 2.7
 
 before_install:
@@ -14,7 +15,7 @@ install:
 notifications:
   email:
     on_success: never
-    on_failure: never
+    on_failure: email
 
 # change from 'script: python setup.py test' to this
 script:

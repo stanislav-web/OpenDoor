@@ -50,11 +50,11 @@ class Package:
         try:
 
             banner = Config.params['banner'].format(
-                tpl.inline('Directories: {0}'.format(Package.__directories_count()), color='blue'),
-                tpl.inline('Subdomains: {0}'.format(Package.__subdomains_count()), color='blue'),
-                tpl.inline('Browsers: {0}'.format(Package.__browsers_count()), color='blue'),
-                tpl.inline('Proxies: {0}'.format(Package.__proxies_count()), color='blue'),
-                tpl.inline(Package.__license(), color='blue'))
+                tpl.line('Directories: {0}'.format(Package.__directories_count()), color='blue'),
+                tpl.line('Subdomains: {0}'.format(Package.__subdomains_count()), color='blue'),
+                tpl.line('Browsers: {0}'.format(Package.__browsers_count()), color='blue'),
+                tpl.line('Proxies: {0}'.format(Package.__proxies_count()), color='blue'),
+                tpl.line(Package.__license(), color='blue'))
             tpl.message(banner)
 
         except (FileSystemError, SystemError, LibError) as e:
@@ -94,8 +94,8 @@ class Package:
 
         try:
             status = process.execute(Config.params['cvsupdate'])
-            upd_status = tpl.inline(status[0], color='green')
-            upd_reason = tpl.inline(status[1], color='black')
+            upd_status = tpl.line(status[0], color='green')
+            upd_reason = tpl.line(status[1], color='black')
 
             banner = Config.params['update'].format(
                 status=upd_status,
@@ -173,9 +173,9 @@ class Package:
             remote = Package.__remote_version()
 
             if True is helper.is_less(local, remote):
-                version = tpl.inline(local, color='red')
+                version = tpl.line(local, color='red')
             else:
-                version = tpl.inline(local, color='green')
+                version = tpl.line(local, color='green')
             return version
 
         except (FileSystemError, SystemError, LibError) as e:

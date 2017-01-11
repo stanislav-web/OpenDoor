@@ -40,6 +40,7 @@ class Config:
         self._debug = 0 if params.get('debug')is None else params.get('debug')
         self._is_proxy = params.get('tor')
         self._is_random_user_agent = params.get('random_agent')
+        self._is_random_list = params.get('random_list')
         self._user_agent = 'Opera/9.0 (Windows NT 5.1; U; en)'
 
 

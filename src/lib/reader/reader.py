@@ -16,8 +16,9 @@
     Development Team: Stanislav Menshov
 """
 
-from random import randrange
+import random
 from .config import Config
+from src.core import process
 from src.core import filesystem
 from src.core import FileSystemError
 from ...lib.exceptions import LibError
@@ -69,7 +70,7 @@ class Reader():
             if not len(self.__useragents):
                 self.__useragents = filesystem.read(self.__config.get('opendoor', 'useragents'))
 
-            index = randrange(0, len(self.__useragents))
+            index = random.randrange(0, len(self.__useragents))
             return self.__useragents[index].strip()
 
         except FileSystemError as e:
@@ -89,7 +90,7 @@ class Reader():
             if not len(self.__proxies):
                 self.__proxies = filesystem.read(self.__config.get('opendoor', 'proxies'))
 
-            index = randrange(0, len(self.__proxies))
+            index = random.randrange(0, len(self.__proxies))
             return self.__proxies[index].strip()
 
         except FileSystemError as e:
@@ -150,6 +151,23 @@ class Reader():
 
         self.__pool.add_to_queue(line)
 
+    def _randomize_list(self, target_list):
+        """
+        Randomize scan list
+
+        :param str target_list: target list
+        :return: Null
+        """
+        try:
+
+            target_file = self.__config.get('opendoor', target_list)
+            result_file = self.__config.get('opendoor', 'tmplist')
+            filesystem.makefile(result_file)
+            process.execute('shuf {target} -o {result}'.format(target=target_file, result=result_file))
+        except (SystemError, FileSystemError) as e:
+            raise LibError(e)
+
+
     def _directories__line(self, line, params):
         """
         Read lines from directories file
@@ -198,7 +216,6 @@ class Reader():
         except FileSystemError as e:
             raise LibError(e)
 
-    @property
     def _total_lines(self):
 
         """
@@ -208,4 +225,3 @@ class Reader():
         """
 
         return self.__counter
-

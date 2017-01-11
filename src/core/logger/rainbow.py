@@ -34,10 +34,10 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
     date_format = "%Y-%m-%d %H:%M:%S"
 
     #: How many characters reserve to function name logging
-    who_padding = 22
+    who_padding = 7
 
     #: Show logger name
-    show_name = True
+    show_name = False
 
     def get_color(self, fg=None, bg=None, bold=False):
         """
@@ -47,6 +47,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         :param str bg: Symbolic name of background color
         :param str bold: Brightness bit
         """
+
         params = []
         if bg in self.color_map:
             params.append(str(self.color_map[bg] + 40))
@@ -83,6 +84,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
             self.reset,
             "] ",
             self.get_color("white", None, True) if self.show_name else "",
+            "%(name)s " if self.show_name else "",
             "%(padded_who)s",
             self.reset,
             " ",
@@ -100,16 +102,14 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
                self.get_color("cyan")]
 
         who = "".join(who)
-
         # We need to calculate padding length manualy
         # as color codes mess up string length based calcs
-        unformatted_who = getattr(record, "funcName", "") + "()" + \
-            ":" + str(getattr(record, "lineno", 0))
+        unformatted_who = getattr(record, "funcName", "")
 
         if len(unformatted_who) < self.who_padding:
-            spaces = " " * (self.who_padding - len(unformatted_who)-10)
+            spaces = " " * (self.who_padding - len(unformatted_who))
         else:
-            spaces = "   "
+            spaces = ""
 
         record.padded_who = who + spaces
 
@@ -128,6 +128,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         :param object record:
         :return: None
         """
+
         if record.exc_info:
             # Cache the traceback text to avoid converting it multiple times
             # (it's constant anyway)

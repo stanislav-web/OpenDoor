@@ -26,6 +26,7 @@ class Config:
         'online': 'Server {host}:{port} ({ip}) is online!',
         'scanning': 'Scanning {host} ...',
         'debug': 'Starting debug level {level} ...',
+        'randomizing': 'Randomizing scan list ...',
         'browser': 'Fetching user-agent: {browser}',
         'directories': 'Read {total} directories list by line...',
         'create_queue': 'Wait please. Create queue with {threads} thread(s)...',
