@@ -1,3 +1,17 @@
+Changes
+=======
+
+dev (master)
+------------
+
+* 
+
+
+3.0.1 (2016-11-16)
+------------------
+
+* Test
+
 * *v1.0.0* - all the basic functionality is available
 * *v1.0.1* - added debug level as param --debug
 * *v1.2.1* - added filesystem logger (param --log)
