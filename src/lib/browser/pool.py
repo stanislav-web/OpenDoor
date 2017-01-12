@@ -22,6 +22,8 @@ class Pool:
     """Pool class"""
 
     def __init__(self, threads):
+
+        self.pool = {}
         self.queue = Queue()
         self.threads = threads
 
@@ -30,9 +32,6 @@ class Pool:
 
     def add_to_queue(self, item):
         self.queue.put(item)
-
-    def queue_join(self):
-        self.queue.join()
 
     def count_in_queue(self):
         return self.queue.qsize()
@@ -44,14 +43,23 @@ class Pool:
             worker = Thread(target=self.process_queue, args=(i, self.queue))
             worker.setDaemon(True)
             worker.start()
-        self.queue_join()
+        self.queue.join()
+
+    def is_pooled(self, i):
+
+        if i in self.pool:
+            return True
+        else:
+            return False
 
     def process_queue(self, i, q):
 
         while not q.empty():  # check that the queue isn't empty
-            print '%s: Looking for the next enclosure' % i
+            # print '%s: Looking for the next enclosure' % i
             item = q.get()  # get the item from the queue
-            print '%s: Downloading:' % i, item
-            self.callback(item)
+            if False == self.is_pooled(i):
+                self.pool[i] = True
+            # print '%s: Downloading:' % i, item
+            self.callback(i, item)
             q.task_done()
 

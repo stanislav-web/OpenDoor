@@ -19,6 +19,9 @@
 
 import sys
 
+from pycallgraph import PyCallGraph
+from pycallgraph.output import GraphvizOutput
+
 try:
     import urllib3
 
@@ -31,9 +34,10 @@ if __name__ == "__main__":
     from src import Controller , SrcError
 
     try:
-
-        bootstrap = Controller()
-        bootstrap.run()
+        # using profiler
+        with PyCallGraph(output=GraphvizOutput()):
+            bootstrap = Controller()
+            bootstrap.run()
     except SrcError as e:
         sys.exit(e.message)
 

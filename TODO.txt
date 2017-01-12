@@ -1,3 +1,0 @@
-1) --index of - detecting
-2) --method (DEFault head)
-3) -- Read from shuffled dir list

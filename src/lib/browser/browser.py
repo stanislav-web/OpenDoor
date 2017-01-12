@@ -82,22 +82,33 @@ class Browser(Config, Reader, Debug, Pool):
 
         self._get_lines(self._scan,
             params={'host' : self._host, 'port' : self._port, 'scheme' : self._scheme},
-            callback= getattr(self, '_process'.format())
+            callback= getattr(self, '_create_pool'.format())
         )
 
         pass
 
-
-    def _process(self):
+    def _create_pool(self):
         """
-        Process adding items into queue pool
+        Create items pool
 
         :return: None
         """
 
         if self._total_lines() == self.count_in_queue():
             tpl.info(key='scanning', host=self._host)
-            # self.join_to_queue()
+            self.read_from_queue(self.__load)
         else:
             self._debug_progress(self.count_in_queue(), self._total_lines())
             pass
+
+    def __load(self, threadno, url):
+        """
+        Process adding items into queue pool
+
+        :return: None
+        """
+        if False == self.is_pooled(threadno):
+            tpl.line_log("{0} - {1}".format(threadno, url))
+        else:
+            tpl.message("\n")
+            tpl.info("{0} - {1}".format(threadno, url))
