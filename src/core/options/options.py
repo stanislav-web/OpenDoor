@@ -31,26 +31,32 @@ class Options:
         :raise OptionsError
         """
 
+        groups = {}
+
         try:
             parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
             required_named = parser.add_argument_group('required named options')
             required_named.add_argument('--host', help="Target host; -host http://example.com")
-
             config_arguments = Config.arguments
             config_arguments_len = len(config_arguments)
 
+            for group, description in sorted(Config.groups.iteritems()):
+                groups[group] = parser.add_argument_group(description)
+
             for i in range(config_arguments_len):
                 arg = config_arguments[i]
+
                 if arg['args'] is None:
                     if bool == arg['type']:
-                        parser.add_argument(arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'])
+                        groups[arg['group']].add_argument(arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'])
                     else:
-                        parser.add_argument(arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'], type=arg['type'])
+                        groups[arg['group']].add_argument(arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'], type=arg['type'])
                 else:
                     if bool == arg['type']:
-                        parser.add_argument(arg['args'], arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'])
+                        groups[arg['group']].add_argument(arg['args'], arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'])
                     else:
-                        parser.add_argument(arg['args'], arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'], type=arg['type'])
+                        groups[arg['group']].add_argument(arg['args'], arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'], type=arg['type'])
+
             parser.parse_args()
             self.parser = parser
         except (ArgumentParserError) as e:

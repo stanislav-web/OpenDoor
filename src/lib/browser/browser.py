@@ -40,7 +40,9 @@ class Browser(Config, Reader, Debug, Pool):
 
             Config.__init__(self, params)
             Pool.__init__(self, params.get('threads'))
-            Reader.__init__(self, self.get_pool_instance())
+            Reader.__init__(self, self.get_pool_instance(), browser_config={
+                'use_random' : self._is_random_list
+            })
             Debug.__init__(self)
 
 

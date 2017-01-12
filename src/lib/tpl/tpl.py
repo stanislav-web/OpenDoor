@@ -196,9 +196,9 @@ class Tpl():
 
         percents = round(100.0 * count / float(total), 1)
         bar = '=' * filled_len + '-' * (bar_len - filled_len)
-        bar = '[%s] %s/%s %s%s' % (bar, count+1, total, percents, '%')
+        bar = '%s %s/%s %s%s' % (bar, count+1, total, percents, '%')
         Tpl.line_log(bar, status='debug')
-        if count+1 == total:
+        if count+1 is total:
             Tpl.message("\n")
 
     @staticmethod

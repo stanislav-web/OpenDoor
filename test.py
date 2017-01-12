@@ -1,33 +1,41 @@
-import time
-from functools import wraps
-
-
-def fn_timer(function):
-    @wraps(function)
-    def function_timer(*args, **kwargs):
-        t0 = time.time()
-        result = function(*args, **kwargs)
-        t1 = time.time()
-        print ("Total time running %s: %s seconds" %
-               (function.func_name, str(t1 - t0))
-               )
-        return result
-
-    return function_timer
-#https://pymotw.com/2/Queue/
-
 # System modules
 from Queue import Queue
 from threading import Thread
 import time
 
+# Local modules
+import httplib
 
 # Set up some global variables
 num_fetch_threads = 2
 enclosure_queue = Queue()
 
 # A real app wouldn't use hard-coded data...
-feed_urls = ['http://www.castsampler.com/cast/feed/rss/guest',
+feed_urls = [
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
+'http://www.castsampler.com/cast/feed/rss/guest',
              ]
 
 

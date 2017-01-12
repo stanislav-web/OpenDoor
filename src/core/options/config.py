@@ -16,8 +16,18 @@
     Development Team: Stanislav Menshov
 """
 
+
 class Config:
     """Config class"""
+
+    groups = {
+        'request': "Request tools",
+        'stream': "Stream tools",
+        'debug': "Debug tools",
+        'wordlist': "Wordlist tools",
+        'sniff': "Sniff tools",
+        'app': "Application tools",
+    }
 
     standalone = [
         "version",
@@ -27,14 +37,16 @@ class Config:
 
     arguments = [
         {
+            "group": "request",
             "args": "-p",
             "argl": "--port",
             "default": 80,
             "action": "store",
             "help": "Custom port (Default 80)",
-            "type" : int
+            "type": int
         },
         {
+            "group": "request",
             "args": "-m",
             "argl": "--method",
             "default": "HEAD",
@@ -43,6 +55,7 @@ class Config:
             "type": str
         },
         {
+            "group": "stream",
             "args": "-t",
             "argl": "--threads",
             "default": 1,
@@ -51,6 +64,7 @@ class Config:
             "type": int
         },
         {
+            "group": "request",
             "args": "-d",
             "argl": "--delay",
             "default": 0,
@@ -59,6 +73,7 @@ class Config:
             "type": int
         },
         {
+            "group": "request",
             "args": None,
             "argl": "--timeout",
             "default": 0,
@@ -67,6 +82,7 @@ class Config:
             "type": int
         },
         {
+            "group": "debug",
             "args": None,
             "argl": "--debug",
             "default": 0,
@@ -75,6 +91,7 @@ class Config:
             "type": int
         },
         {
+            "group": "request",
             "args": None,
             "argl": "--tor",
             "default": False,
@@ -83,6 +100,7 @@ class Config:
             "type": bool
         },
         {
+            "group": "wordlist",
             "args": "-s",
             "argl": "--scan",
             "default": "directories",
@@ -91,6 +109,7 @@ class Config:
             "type": str
         },
         {
+            "group": "wordlist",
             "args": "-l",
             "argl": "--log",
             "default": False,
@@ -99,6 +118,7 @@ class Config:
             "type": bool
         },
         {
+            "group": "request",
             "args": None,
             "argl": "--random-agent",
             "default": False,
@@ -107,6 +127,7 @@ class Config:
             "type": bool
         },
         {
+            "group": "wordlist",
             "args": None,
             "argl": "--random-list",
             "default": False,
@@ -115,6 +136,7 @@ class Config:
             "type": bool
         },
         {
+            "group": "sniff",
             "args": "-i",
             "argl": "--indexof",
             "default": False,
@@ -123,14 +145,16 @@ class Config:
             "type": bool
         },
         {
+            "group": "app",
             "args": None,
             "argl": "--update",
-            "default" : False,
-            "action" : "store_true",
+            "default": False,
+            "action": "store_true",
             "help": "Update from CVS",
             "type": bool
         },
         {
+            "group": "app",
             "args": None,
             "argl": "--version",
             "default": False,
@@ -139,6 +163,7 @@ class Config:
             "type": bool
         },
         {
+            "group": "app",
             "args": None,
             "argl": "--examples",
             "default": False,

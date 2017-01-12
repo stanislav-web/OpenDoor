@@ -27,7 +27,7 @@ class Reader():
 
     """Reader class"""
 
-    def __init__(self, Pool):
+    def __init__(self, Pool, browser_config):
         """
         Reader constructor
 
@@ -37,6 +37,7 @@ class Reader():
         self.__pool = Pool
 
         self.__config =  self.__load_config()
+        self.__browser_config =  browser_config
         self.__useragents = []
         self.__proxies = []
         self.__counter = 0
@@ -107,7 +108,10 @@ class Reader():
         :return: None
         """
 
-        dirlist = self.__config.get('opendoor', listname)
+        if True is self.__browser_config.get('use_random'):
+            dirlist = self.__config.get('opendoor', 'tmplist')
+        else:
+            dirlist = self.__config.get('opendoor', listname)
 
         try:
 
@@ -151,23 +155,6 @@ class Reader():
 
         self.__pool.add_to_queue(line)
 
-    def _randomize_list(self, target_list):
-        """
-        Randomize scan list
-
-        :param str target_list: target list
-        :return: Null
-        """
-        try:
-
-            target_file = self.__config.get('opendoor', target_list)
-            result_file = self.__config.get('opendoor', 'tmplist')
-            filesystem.makefile(result_file)
-            process.execute('shuf {target} -o {result}'.format(target=target_file, result=result_file))
-        except (SystemError, FileSystemError) as e:
-            raise LibError(e)
-
-
     def _directories__line(self, line, params):
         """
         Read lines from directories file
@@ -195,6 +182,23 @@ class Reader():
         )
 
         self.__pool.add_to_queue(line)
+
+
+    def _randomize_list(self, target_list):
+        """
+        Randomize scan list
+
+        :param str target_list: target list
+        :return: Null
+        """
+        try:
+
+            target_file = self.__config.get('opendoor', target_list)
+            result_file = self.__config.get('opendoor', 'tmplist')
+            filesystem.makefile(result_file)
+            process.execute('shuf {target} -o {result}'.format(target=target_file, result=result_file))
+        except (SystemError, FileSystemError) as e:
+            raise LibError(e)
 
     def _count_total_lines(self, listname):
 
