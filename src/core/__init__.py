@@ -19,6 +19,7 @@
 from .filesystem import FileSystem as filesystem
 from .filesystem.exceptions import FileSystemError
 from .color import Color as colour
+from .keyboard import KeyCapture as keyboard
 from .logger import Logger as logger
 from .logger import Exception as exception
 from .helper import Helper as helper

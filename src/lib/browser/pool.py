@@ -16,7 +16,7 @@
     Development Team: Stanislav Menshov
 """
 from Queue import Queue
-from threading import Thread
+from threading import Thread, Condition
 
 class Pool:
     """Pool class"""
@@ -26,6 +26,7 @@ class Pool:
         self.pool = {}
         self.queue = Queue()
         self.threads = threads
+        self.condition = Condition()
 
     def get_pool_instance(self):
         return self
@@ -40,7 +41,7 @@ class Pool:
         self.callback = process
 
         for i in range(self.threads):
-            worker = Thread(target=self.process_queue, args=(i, self.queue))
+            worker = Thread(target=self.process_queue, args=(i, self.queue, self.condition))
             worker.setDaemon(True)
             worker.start()
         self.queue.join()
