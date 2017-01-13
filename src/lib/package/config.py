@@ -22,6 +22,7 @@ class Config:
 
     params = {
         'cvsupdate' : '/usr/bin/git pull origin master',
+        'cursor' : 'setterm -cursor {state}',
         'cvslog'    : '/usr/bin/git log --oneline -n 1',
         'cfg'       : 'setup.cfg',
         'required_version': '2.7',
@@ -31,16 +32,16 @@ class Config:
                 python ./opendoor.py  --examples
                 python ./opendoor.py  --update
                 python ./opendoor.py  --version
-                python ./opendoor.py --host "http://joomla-ua.org"
-                python ./opendoor.py --host "https://joomla-ua.org" --port 8080
-                python ./opendoor.py --host "http://joomla-ua.org" --scan subdomains
-                python ./opendoor.py --host "https://joomla-ua.org" --threads 10
-                python ./opendoor.py --host "http://joomla-ua.org" --threads 10 --proxy
-                python ./opendoor.py --host "https://joomla-ua.org" --threads 10 --delay 10
-                python ./opendoor.py --host "http://joomla-ua.org" --threads 10 --delay 10 --rest 10
-                python ./opendoor.py --host "http://joomla-ua.org"  --random-list --threads 10 --delay 10 --rest 10
-                python ./opendoor.py --host "https://joomla-ua.org" --threads 10 --delay 10 --rest 10 --debug 1
-                python ./opendoor.py --host "http://joomla-ua.org" --threads 10 --delay 10 --rest 10 --debug 1 --log
+                python ./opendoor.py --host "http://example.com"
+                python ./opendoor.py --host "http://example.com" --port 8080
+                python ./opendoor.py --host "http://example.com" --scan subdomains
+                python ./opendoor.py --host "http://example.com" --threads 10
+                python ./opendoor.py --host "http://example.com" --threads 10 --proxy
+                python ./opendoor.py --host "http://example.com" --threads 10 --delay 10
+                python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10
+                python ./opendoor.py --host "http://example.com"  --random-list --threads 10 --delay 10 --timeout 10
+                python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1
+                python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1 --log
             """,
         'banner'    :   """
     ############################################################

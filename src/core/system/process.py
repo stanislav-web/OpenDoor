@@ -25,6 +25,22 @@ class Process:
     """Process class"""
 
     @staticmethod
+    def system(command):
+
+        """
+        Call OS command
+
+        :param str command: os command
+        :raise SystemError
+        :return: dic
+        """
+
+        try:
+            os.system(command)
+        except OSError as e:
+            raise SystemError(e)
+
+    @staticmethod
     def execute(command):
         """
         Excecute OS command

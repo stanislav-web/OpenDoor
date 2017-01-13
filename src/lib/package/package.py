@@ -106,6 +106,23 @@ class Package:
             raise LibError(e)
 
     @staticmethod
+    def cursor(state):
+
+        """
+        Set cursor state
+
+        :raise LibError
+        :return: None
+        """
+
+        try:
+
+            process.system(Config.params.get('cursor').format(state=state))
+
+        except SystemError as e:
+            raise LibError(e)
+
+    @staticmethod
     def update():
         """
         Check for update

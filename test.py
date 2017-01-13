@@ -1,31 +1,27 @@
 import time
-import threading
-import datetime as DT
-import logging
-logger = logging.getLogger(__name__)
+import sys
+import os
 
-def worker(cond):
-    i = 0
-    while True:
-        with cond:
-            cond.wait()
-            logger.info(i)
-            time.sleep(0.01)
-            i += 1
+def countd():
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='[%(asctime)s %(threadName)s] %(message)s',
-                    datefmt='%H:%M:%S')
+    seconds = 59
+    minutes = 4
+    five_minutes = 0
 
-cond = threading.Condition()
-t = threading.Thread(target=worker, args=(cond, ))
-t.daemon = True
-t.start()
+    os.system('clear')
+    os.system('setterm -cursor off')
 
-start = DT.datetime.now()
-while True:
-    now = DT.datetime.now()
-    if (now-start).total_seconds() > 60: break
-    if now.second % 2:
-        with cond:
-            cond.notify()
+    while five_minutes != 300:
+        sys.stdout.write("\r%d:%02.f\t" % (minutes, seconds))
+        sys.stdout.flush()
+        seconds -= 1
+        if seconds == -1:
+            minutes -= 1
+            seconds = 59
+
+        five_minutes += 1
+        time.sleep(1)
+
+countd()
+
+os.system('setterm -cursor on')

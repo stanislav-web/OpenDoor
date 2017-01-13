@@ -35,9 +35,8 @@ if __name__ == "__main__":
 
     try:
         # using profiler
-        with PyCallGraph(output=GraphvizOutput()):
+        #with PyCallGraph(output=GraphvizOutput()):
             bootstrap = Controller()
             bootstrap.run()
     except SrcError as e:
         sys.exit(e.message)
-

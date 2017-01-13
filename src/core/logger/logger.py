@@ -33,6 +33,7 @@ class Logger():
         'info' : 20,
         'debug' : 10
     }
+
     @staticmethod
     def inline(msg='', status='info'):
         """
@@ -57,6 +58,7 @@ class Logger():
 
         def getMessage(__class__):
             return msg
+
         setattr(Logger._record, 'getMessage', classmethod(getMessage))
         message = RainbowLoggingHandler().colorize(Logger._record)
         return message

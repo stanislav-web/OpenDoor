@@ -25,4 +25,5 @@ class SrcError(Exception):
 
          :param str message: error message
          """
+
         super(SrcError, self).__init__(message)

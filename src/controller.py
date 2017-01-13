@@ -56,6 +56,7 @@ class Controller:
 
         try:
 
+            package.cursor('off')
             package.banner()
 
             if 'host' in self.ioargs:
@@ -69,7 +70,8 @@ class Controller:
 
         except (LibError, SrcError) as e:
             raise SrcError(tpl.error(e.message))
-
+        finally:
+            package.cursor('on')
 
     @staticmethod
     def examples_action():
@@ -154,3 +156,9 @@ class Controller:
                 )
             except KeyboardInterrupt:
                 tpl.cancel(key='abort')
+
+    @staticmethod
+    def cursor(state):
+        package.c
+
+
