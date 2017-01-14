@@ -19,6 +19,7 @@
 from src.core import logger
 from src.core import colour
 from src.core import sys
+from src.core import helper
 from .config import Config
 from .exceptions import TplError
 
@@ -193,12 +194,12 @@ class Tpl():
     def progress(count, total):
         bar_len = 50
         filled_len = int(round(bar_len * count / float(total)))
-
-        percents = round(100.0 * count / float(total), 1)
+        percents = helper.percent(count, total)
         bar = '=' * filled_len + '-' * (bar_len - filled_len)
         bar = '%s %s/%s %s%s' % (bar, count+1, total, percents, '%')
         Tpl.line_log(bar, status='debug')
-        if count+1 is total:
+
+        if count+1 == total:
             Tpl.message("\n")
 
     @staticmethod

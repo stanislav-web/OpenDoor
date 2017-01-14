@@ -17,16 +17,16 @@
 """
 
 from src.core import socket
-from src.core import process
+from src.core import helper
 from src.core import SocketError
 from src.lib.exceptions import LibError
 from src.lib import tpl
 from src.lib.reader import Reader
 from .config import Config
 from .debug import Debug
-from .pool import Pool
+from .threadpool import ThreadPool
 
-class Browser(Config, Reader, Debug, Pool):
+class Browser(Config, Debug):
     """ Browser class """
 
     def __init__(self, params):
@@ -40,12 +40,14 @@ class Browser(Config, Reader, Debug, Pool):
         try:
 
             Config.__init__(self, params)
-            Pool.__init__(self, params.get('threads'))
-            Reader.__init__(self, self.get_pool_instance(), browser_config={
-                'use_random' : self._is_random_list
-            })
             Debug.__init__(self)
 
+            self.threadpool = ThreadPool(self._threads)
+            self.reader = Reader(browser_config={
+                'list'       : self._scan,
+                'use_random' : self._is_random_list,
+                'threadpool' : self.threadpool.get_queue_instance
+            })
 
         except LibError as e:
             raise LibError(e)
@@ -78,38 +80,49 @@ class Browser(Config, Reader, Debug, Pool):
         self._debug_proxy()
         if True is self._is_random_list:
             self._debug_randomizing_list()
-            self._randomize_list(self._scan)
-        self._debug_list()
+            self.reader._randomize_list(self._scan)
+        self._debug_list(total_lines=self.reader._count_total_lines(self._scan))
+        tpl.info(key='scanning', host=self._host)
 
-        self._get_lines(self._scan,
+        self.reader._get_lines(self._scan,
             params={'host' : self._host, 'port' : self._port, 'scheme' : self._scheme},
-            callback= getattr(self, '_create_pool'.format())
+            loader= getattr(self, '_get_url'.format())
         )
 
         pass
 
-    def _create_pool(self):
+    def __http_request(self, url):
         """
-        Create items pool
+        Make HTTP request
+
+        :param str url: recieved url
+        :return:
+        """
+        import time
+        time.sleep(1)
+
+        if 0 < self._debug:
+
+            tpl.line_log(key='get_item_lvl1',
+                         percent=tpl.line(msg=helper.percent(0, self.reader.total_lines), color='cyan'),
+                         current=self.threadpool.get_pool_items_size,
+                         total=self.reader.total_lines,
+                         item=url,
+                         size='10kb'
+                        )
+        else:
+            tpl.line_log(key='get_item_lvl0',
+                         percent=tpl.line(msg=helper.percent(0, self.reader.total_lines), color='cyan'),
+                         item=url
+                         )
+
+
+    def _get_url(self, url):
+        """
+        Url handler
 
         :return: None
         """
 
-        if self._total_lines() == self.count_in_queue():
-            tpl.info(key='scanning', host=self._host)
-            #self.read_from_queue(self.__load)
-        else:
-            self._debug_progress(self.count_in_queue(), self._total_lines())
-            pass
+        self.threadpool.add(self.__http_request, url)
 
-    def __load(self, threadno, url):
-        """
-        Process adding items into queue pool
-
-        :return: None
-        """
-        if False == self.is_pooled(threadno):
-            tpl.line_log("{0} - {1}".format(threadno, url))
-        else:
-            tpl.message("\n")
-            tpl.info("{0} - {1}".format(threadno, url))

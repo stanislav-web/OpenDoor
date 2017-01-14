@@ -1,27 +1,30 @@
+#!/usr/bin/env python
+
+from multiprocessing import Pool
 import time
-import sys
-import os
+import urllib2
 
-def countd():
 
-    seconds = 59
-    minutes = 4
-    five_minutes = 0
+def millis():
+    return int(round(time.time() * 1000))
 
-    os.system('clear')
-    os.system('setterm -cursor off')
 
-    while five_minutes != 300:
-        sys.stdout.write("\r%d:%02.f\t" % (minutes, seconds))
-        sys.stdout.flush()
-        seconds -= 1
-        if seconds == -1:
-            minutes -= 1
-            seconds = 59
+def http_get(url):
+    start_time = millis()
+    result = {"url": url, "data": urllib2.urlopen(url, timeout=5).read()[:100]}
+    print url + " took " + str(millis() - start_time) + " ms"
+    return result
 
-        five_minutes += 1
-        time.sleep(1)
 
-countd()
+urls = ['http://www.google.com/', 'https://foursquare.com/', 'http://www.yahoo.com/', 'http://www.bing.com/',
+        "https://www.yelp.com/","https://www.yelp.com/","https://www.yelp.com/","https://www.yelp.com/","https://www.yelp.com/","https://www.yelp.com/","https://www.yelp.com/","https://www.yelp.com/","https://www.yelp.com/","https://www.yelp.com/"]
 
-os.system('setterm -cursor on')
+pool = Pool(processes=10)
+
+start_time = millis()
+results = pool.map(http_get, urls)
+
+print "\nTotal took " + str(millis() - start_time) + " ms\n"
+
+for result in results:
+    print result

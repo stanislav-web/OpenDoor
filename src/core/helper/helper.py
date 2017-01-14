@@ -16,10 +16,21 @@
     Development Team: Stanislav Menshov
 """
 
-from distutils.version import LooseVersion, StrictVersion
+from distutils.version import StrictVersion
 
 class Helper:
     """Helper class"""
+
+    @staticmethod
+    def percent(counter, total):
+        """
+        Return percentage
+
+        :param int counter:
+        :param int total:
+        :return: str
+        """
+        return "{percent}%".format(percent=round(100.0 * counter / float(total), 1))
 
     @staticmethod
     def is_less(arg1, arg2):

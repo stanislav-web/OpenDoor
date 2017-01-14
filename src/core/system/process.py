@@ -18,6 +18,7 @@
 
 import subprocess
 import os
+
 from .exceptions import SystemError
 
 
@@ -53,8 +54,7 @@ class Process:
             pr = subprocess.Popen(command, cwd=os.getcwd(),
                                   shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             (out, error) = pr.communicate()
-
-            if error:
+            if pr.returncode != 0:
                 raise OSError(error.strip())
 
             return out

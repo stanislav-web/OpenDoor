@@ -34,6 +34,8 @@ class Config:
         'subdomains': 'Read {total} subdomains list by line...',
         'random_browser': 'Fetching random user-agent per request...',
         'proxy': 'Fetching proxies...',
+        'get_item_lvl0' : '{percent} {item}',
+        'get_item_lvl1' : '{percent} [{current}/{total}] - {size} - {item}',
         'addtopool'  : 'Adding {total} lines to queue...'
     }
 

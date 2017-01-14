@@ -104,16 +104,17 @@ class FileSystem:
             return False
 
     @staticmethod
-    def readliner(filename, processor, params, callback):
+    def readline(filename, handler, handler_params, queue, loader):
         """
         Read txt file line by line
 
         :param str filename: source file name
-        :param buffer resolver: line format resolver
-        :param dict params: additional params for line format
-        :param buffer callback: "transfer" function
+        :param func handler: url handler
+        :param func handler_params: url handler parameters
+        :param Queue queue: pool instance
+        :param func loader: browser
         :raise FileSystemError
-        :return: None
+        :return: str
         """
 
         file = os.path.join(os.getcwd(), filename)
@@ -124,8 +125,9 @@ class FileSystem:
 
         with open(file, "r") as f_handler:
             for i, line in enumerate(f_handler):
-                processor(line, params)
-                callback()
+                line = handler(line, handler_params)
+                loader(line)
+            queue.complete()
 
     @staticmethod
     def read(filename):

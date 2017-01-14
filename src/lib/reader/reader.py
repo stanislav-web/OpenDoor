@@ -27,14 +27,12 @@ class Reader():
 
     """Reader class"""
 
-    def __init__(self, Pool, browser_config):
+    def __init__(self, browser_config):
         """
         Reader constructor
 
-        :param src.lib.browser.Pool Pool: queue manager
+        :param dict browser_config:
         """
-
-        self.__pool = Pool
 
         self.__config =  self.__load_config()
         self.__browser_config =  browser_config
@@ -97,15 +95,15 @@ class Reader():
         except FileSystemError as e:
             raise LibError(e)
 
-    def _get_lines(self, listname, params, callback):
+    def _get_lines(self, listname, params, loader):
         """
         Read lines from large file
 
         :param str listname: list name
         :param dict params: input params
-        :param funct callback:  callback function
+        :param funct loader:  callback function
         :raise LibError
-        :return: None
+        :return: str
         """
 
         if True is self.__browser_config.get('use_random'):
@@ -114,11 +112,14 @@ class Reader():
             dirlist = self.__config.get('opendoor', listname)
 
         try:
-
-            filesystem.readliner(dirlist, processor=getattr(self, '_{0}__line'.format(self._scan)),
-                                 params=params,
-                                 callback=callback)
-
+            filesystem.readline(dirlist,
+                                      handler=getattr(self, '_{0}__line'.format(
+                                                        self.__browser_config.get('list'))
+                                                      ),
+                                      handler_params=params,
+                                      queue = self.__browser_config.get('threadpool'),
+                                      loader=loader
+                                      )
         except FileSystemError as e:
             raise LibError(e)
 
@@ -153,7 +154,7 @@ class Reader():
             sub=line,
         )
 
-        self.__pool.add_to_queue(line)
+        return line
 
     def _directories__line(self, line, params):
         """
@@ -181,8 +182,7 @@ class Reader():
             uri=line,
         )
 
-        self.__pool.add_to_queue(line)
-
+        return line
 
     def _randomize_list(self, target_list):
         """
@@ -220,7 +220,8 @@ class Reader():
         except FileSystemError as e:
             raise LibError(e)
 
-    def _total_lines(self):
+    @property
+    def total_lines(self):
 
         """
         Return total lines

@@ -70,19 +70,18 @@ class Debug:
             tpl.debug(key='randomizing')
 
 
-    def _debug_list(self):
+    def _debug_list(self, total_lines):
         """
         Debug list process
 
         :return:
         """
-        total = self._count_total_lines(self._scan)
 
         if 0 < self._debug:
             if self._default_scan is self._scan:
-                tpl.debug(key='directories', total=total)
+                tpl.debug(key='directories', total=total_lines)
             else:
-                tpl.debug(key='subdomains', total=total)
+                tpl.debug(key='subdomains', total=total_lines)
             tpl.debug(key='create_queue', threads=self._threads)
 
     def _debug_line(self, line):

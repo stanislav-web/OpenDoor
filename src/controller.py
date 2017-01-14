@@ -157,8 +157,4 @@ class Controller:
             except KeyboardInterrupt:
                 tpl.cancel(key='abort')
 
-    @staticmethod
-    def cursor(state):
-        package.c
-
 

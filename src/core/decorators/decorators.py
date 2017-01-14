@@ -16,4 +16,4 @@
     Development Team: Stanislav Menshov
 """
 
-from .keyboard import KeyCapture
+import time

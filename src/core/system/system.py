@@ -41,7 +41,8 @@ class System:
         :param str msg: text message
         :return: None
         """
-
+        sys.stdout.write('\033[1K')
+        sys.stdout.write('\033[0G')
         sys.stdout.write('{0}\r'.format(msg))
         sys.stdout.flush()
 

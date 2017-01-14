@@ -133,12 +133,10 @@ class Package:
 
         try:
             status = process.execute(Config.params.get('cvsupdate'))
-            upd_status = tpl.line(status[0], color='green')
-            upd_reason = tpl.line(status[1], color='black')
+            upd_status = tpl.line(status, color='green')
 
             banner = Config.params.get('update').format(
-                status=upd_status,
-                reasons=upd_reason)
+                status=upd_status)
 
             tpl.message(banner)
 
@@ -183,14 +181,13 @@ class Package:
         :raise LibError
         :return: str
         """
-
         if None is Package.remote_version:
 
             try:
                 config = filesystem.readcfg(Config.params.get('cfg'))
                 request_uri = config.get('info', 'setup')
                 result = process.execute('curl -sb GET {uri}'.format(uri=request_uri))
-                raw = filesystem.readraw(result[0])
+                raw = filesystem.readraw(result)
                 Package.remote_version = raw.get('info', 'version')
                 return Package.remote_version
             except (FileSystemError, SystemError) as e:
