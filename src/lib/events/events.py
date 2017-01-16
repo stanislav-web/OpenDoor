@@ -16,9 +16,18 @@
     Development Team: Stanislav Menshov
 """
 
-class Config:
-    """Config class"""
+from src.core import handler
 
-    scan = {
-        'log_dir': 'logs/'
-    }
+class EventHandler:
+    """EventHandler class"""
+
+    @staticmethod
+    def terminate():
+        """
+        Define termanate handler
+
+        :param funct handler: callback
+        :return: Null
+        """
+
+        handler.termation_handler()

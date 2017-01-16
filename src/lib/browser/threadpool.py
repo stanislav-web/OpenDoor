@@ -18,9 +18,12 @@
 
 from Queue import Queue
 from .worker import Worker
+from .exceptions import WorkerError
+from .exceptions import ThreadPoolError
+from src.lib import tpl
 
-class ThreadPool:
-    """Pool of threads consuming tasks from a queue"""
+class ThreadPool():
+    """ThreadPool class"""
 
     def __init__(self, num_threads):
         """
@@ -31,8 +34,24 @@ class ThreadPool:
         """
 
         self.queue = Queue(num_threads)
-        self.counter = 0
-        for _ in range(num_threads): Worker(self.queue)
+        self.workers = []
+
+        try:
+            for _ in range(num_threads):
+
+                try:
+
+                    worker = Worker(self.queue)
+
+                    if False is worker.isAlive():
+                        worker.daemon = True
+                        worker.start()
+                        self.workers.append(worker)
+
+                except Exception as e:
+                    raise WorkerError(e)
+        except WorkerError as e:
+            raise ThreadPoolError(e)
 
     @property
     def get_queue_instance(self):
@@ -51,8 +70,10 @@ class ThreadPool:
 
         :return: int
         """
-
-        return self.counter
+        counter = 0
+        for worker in self.workers:
+            counter += worker.counter
+        return counter
 
     def add(self, func, *args, **kargs):
         """
@@ -63,11 +84,11 @@ class ThreadPool:
         :param kargs: key arguments
         :return: None
         """
-        self.counter += 1
+
         try:
             self.queue.put((func, args, kargs))
-        except (SystemExit, KeyboardInterrupt) as e:
-            print "Exit"
+        except (SystemExit, KeyboardInterrupt):
+           self.stop()
 
 
     def complete(self):
@@ -77,3 +98,20 @@ class ThreadPool:
         :return: None
         """
         self.queue.join()
+
+    def stop(self):
+
+        tpl.info(key='stop_threads')
+        for worker in self.workers:
+            if True is worker.isAlive():
+                worker.join()
+            else:
+                break
+
+        # start = tpl.prompt(key='resume_threads')
+        # if start:
+        #     print 'OK'
+        start = raw_input('RESUME')
+        if start:
+            print 'OK'
+

@@ -22,7 +22,7 @@ from src.lib import browser
 from src.lib import applog
 from src.lib import tpl
 from src.lib import LibError
-
+from src.lib import events
 from .exceptions import SrcError
 
 class Controller:
@@ -34,6 +34,8 @@ class Controller:
 
         :raise LibError
         """
+
+        events.terminate()
 
         try :
 

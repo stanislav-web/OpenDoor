@@ -25,6 +25,7 @@ from src.lib.reader import Reader
 from .config import Config
 from .debug import Debug
 from .threadpool import ThreadPool
+from .exceptions import ThreadPoolError
 
 class Browser(Config, Debug):
     """ Browser class """
@@ -49,7 +50,8 @@ class Browser(Config, Debug):
                 'threadpool' : self.threadpool.get_queue_instance
             })
 
-        except LibError as e:
+
+        except (ThreadPoolError, LibError) as e:
             raise LibError(e)
 
     def ping(self):
@@ -89,8 +91,6 @@ class Browser(Config, Debug):
             loader= getattr(self, '_get_url'.format())
         )
 
-        pass
-
     def __http_request(self, url):
         """
         Make HTTP request
@@ -103,7 +103,7 @@ class Browser(Config, Debug):
 
         if 0 < self._debug:
 
-            tpl.line_log(key='get_item_lvl1',
+            tpl.info(key='get_item_lvl1',
                          percent=tpl.line(msg=helper.percent(0, self.reader.total_lines), color='cyan'),
                          current=self.threadpool.get_pool_items_size,
                          total=self.reader.total_lines,

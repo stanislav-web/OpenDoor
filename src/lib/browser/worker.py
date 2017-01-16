@@ -18,80 +18,46 @@
 
 import threading
 from Queue import Empty as QueueEmptyError
-from .signals import ThreadWatchHandler
-import signal
+from .exceptions import WorkerError
+from .threadcontrol import ThreadControl
 
 class Worker(threading.Thread):
-    """Thread executing tasks from a given tasks queue"""
+    """Worker class"""
 
     def __init__(self, queue):
+
         """
         Init thread worker
 
         :param Queue.Queue queue:
         """
 
-        threading.Thread.__init__(self)
-
-        self.resume = threading.Event()
-        self.pause = threading.Event()
-        self.busy = threading.Event()
-        self.close = threading.Event()
-
-
-        # Explicitly using Lock over RLock since the use of self.paused
-        # break reentrancy anyway, and I believe using Lock could allow
-        # one thread to pause the worker, while another resumes; haven't
-        # checked if Condition imposes additional limitations that would
-        # prevent that. In Python 2, use of Lock instead of RLock also
-        # boosts performance.
-        self.pause_cond = threading.Condition(threading.Lock())
-
+        super(Worker, self).__init__()
+        self.stoprequest = threading.Event()
         self.queue = queue
-        self.setDaemon(True)
-        self.start()
+        self.counter = 0
 
-    def pause(self):
-        """
-        If in sleep, we acquire immediately, otherwise we wait for thread
-        to release condition. In race, worker will still see self.paused
-        and begin waiting until it's set back to False
-        :return: None
-        """
-
-        self.paused = True
-        self.pause_cond.acquire()
-
-    def resume(self):
-        """
-        Resume thread
-        Notify so thread will wake after lock released
-        Now release the lock
-        :return: None
-        """
-
-        self.paused = False
-        self.pause_cond.notify()
-        self.pause_cond.release()
+    def stop(self, timeout=None):
+        self.stoprequest.set()
+        super(Worker, self).join(timeout)
 
     def run(self):
+
         """
         Run current worker
+
         :return: None
         """
 
-        with ThreadWatchHandler() as watcher:
-            while True:
-                # if watcher.interrupted:
-                #     print "Thread {exit} exiting"
+        while not self.stoprequest.isSet():
 
-                try:
-                    func, args, kargs = self.queue.get()
-                except QueueEmptyError:
-                    continue
-
+            try:
+                func, args, kargs = self.queue.get()
+                self.counter +=1
                 func(*args, **kargs)
                 self.queue.task_done()
+            except QueueEmptyError:
+                break
 
 
 

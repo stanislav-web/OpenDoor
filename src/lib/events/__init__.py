@@ -16,9 +16,4 @@
     Development Team: Stanislav Menshov
 """
 
-class Config:
-    """Config class"""
-
-    scan = {
-        'log_dir': 'logs/'
-    }
+from .events import EventHandler

@@ -22,6 +22,7 @@ from .color import Color as colour
 from .logger import Logger as logger
 from .logger import Exception as exception
 from .helper import Helper as helper
+from .signals import MainHandler as handler
 from .http import Request as request
 from .http import Response as response
 from .http import Socket as socket

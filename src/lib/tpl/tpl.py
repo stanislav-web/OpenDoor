@@ -48,13 +48,14 @@ class Tpl():
 
 
     @staticmethod
-    def line_log(msg='', key='', status='info', **args):
+    def line_log(msg='', key='', status='info', write=True, **args):
         """
         Stored colored log line to variable
 
         :param str msg: text message
         :param str key: message key for template
         :param str status: log status
+        :param bool write:
         :param dict args: additional arguments
         :raise TplError
         :return: None
@@ -64,9 +65,28 @@ class Tpl():
             if key:
                 msg = Tpl.__format_message(key, args=args)
             msg = logger.inline(msg=msg, status=status)
-            sys.writels(msg)
+            if True is write:
+               sys.writels(msg)
+            else:
+                return msg
+
         except (AttributeError, TplError) as e:
             raise TplError(e.message)
+
+    @staticmethod
+    def prompt(msg='', key='', status='info'):
+        """
+        Prompt message
+
+        :param str msg:
+        :param str key:
+        :param str status:
+        :return:str
+        """
+
+        msg = Tpl.line_log(msg=msg, key=key, status=status, write=False)
+        result = raw_input(msg)
+        return result
 
     @staticmethod
     def line(msg='', key='',  color='white', **args):

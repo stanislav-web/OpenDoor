@@ -16,9 +16,21 @@
     Development Team: Stanislav Menshov
 """
 
-class Config:
-    """Config class"""
+import signal
+import os
 
-    scan = {
-        'log_dir': 'logs/'
-    }
+class MainHandler:
+    """MainHandler class"""
+
+    @staticmethod
+    def termation_handler():
+        """
+        Exit Ctrl-Z handler
+
+        :return: None
+        """
+
+        def kill_process(signum, frame):
+            os.kill(os.getpid(), signal.SIGKILL)
+
+        signal.signal(signal.SIGTSTP, kill_process)

@@ -17,23 +17,12 @@
 """
 import signal
 
-class ThreadWatchHandler(object):
-    """ ThreadWatchHandler class """
+class ThreadPauseHandler(object):
 
     def __init__(self, sig=signal.SIGINT):
-        """
-        Define keyboard iterrupt signal
-        :param int sig:
-        """
         self.sig = sig
 
     def __enter__(self):
-        """
-        Init keyboard interception handler using with "with()" statement
-
-        :return: ThreadPauseHandler
-
-        """
 
         self.interrupted = False
         self.released = False
@@ -50,36 +39,17 @@ class ThreadWatchHandler(object):
         return self
 
     def __exit__(self, type, value, tb):
-        """
-        It will be called after the interception
-
-        :param type:
-        :param value:
-        :param tb:
-        :return: bool
-        """
         self.release()
 
     def is_main_thread(self):
-        """
-        Only Main Thread can handle signals
-
-        :return: bool
-        """
-
         try:
             signal.signal(signal.SIGINT, signal.SIG_DFL)
         except ValueError:
+            # Only Main Thread can handle signals
             return False
         return True
 
     def release(self):
-        """
-        Release interceptor
-
-
-        :return: bool
-        """
 
         if self.released:
             return False

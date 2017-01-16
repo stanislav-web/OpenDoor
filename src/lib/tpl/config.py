@@ -35,6 +35,9 @@ class Config:
         'random_browser': 'Fetching random user-agent per request...',
         'proxy': 'Fetching proxies...',
         'get_item_lvl0' : '{percent} {item}',
+        'stop_threads'  : 'Stopping threads, please wait...',
+        'resume_threads'  : 'Press [ENTER] to resume threads: ',
+        'resuming'  : 'Resuming...',
         'get_item_lvl1' : '{percent} [{current}/{total}] - {size} - {item}',
         'addtopool'  : 'Adding {total} lines to queue...'
     }
