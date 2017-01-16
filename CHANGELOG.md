@@ -1,16 +1,14 @@
 Changes
 =======
 
-dev (master)
-------------
-
-* 
 
 
-3.0.1 (2016-11-16)
-------------------
+v3.0.1 (2016-11-16)
+--------------------
 
-* Test
+
+v2.7.96 Before redesign (05.01.2017)
+------------------------------------
 
 * *v1.0.0* - all the basic functionality is available
 * *v1.0.1* - added debug level as param --debug

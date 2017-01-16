@@ -19,8 +19,8 @@
 import logging
 import logging.config
 import inspect
+from src.core import filesystem
 from exceptions import Exception as Error
-
 from .config import Config
 
 class Exception():
@@ -37,6 +37,8 @@ class Exception():
         """
         try:
 
+            filesystem.makedir(Config.logdir)
+
             logging.config.dictConfig(Config.exceptions)
             logger = logging.getLogger('exceptions')
 
@@ -50,5 +52,5 @@ class Exception():
                 line=func.co_firstlineno
             )
             logger.error(message)
-        except ValueError as e:
+        except (Error, ValueError) as e:
             raise Error(e)

@@ -4,6 +4,7 @@ OWASP Directory Access scanner
 
 [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor) [![Code Issues](https://www.quantifiedcode.com/api/v1/project/19d4e9523661432c8fcdc640c1000f94/badge.svg)](https://www.quantifiedcode.com/app/project/19d4e9523661432c8fcdc640c1000f94) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/edc54f96aa9748979f59d414daa978c6)](https://www.codacy.com/app/stanisov/OpenDoor?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=stanislav-web/OpenDoor&amp;utm_campaign=Badge_Grade)
 [![Say Thanks!](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)
+
 This application scans the site directories and find all possible ways to login, empty directories and entry points.
 Scans conducted in the dictionary that is included in this application.
 This software is written for informational purposes and is an open source product under the GPL license.
@@ -22,7 +23,7 @@ This software is written for informational purposes and is an open source produc
 * Python 2.7.x
 
 ##### Maintainers
-- `@stanislav-web <https://github.com/stanislav-web>` (Developer)
+- @stanislav-web <https://github.com/stanislav-web> (Developer)
 ##### Install Dependencies
 ```
 sudo pip install -r requirements.txt
@@ -41,21 +42,21 @@ chmod +x opendoor.py
 
 ##### Changelog
 * *v1.0.0* - all the basic functionality is available
-* *v1.0.1* - added debug level as param --debug
-* *v1.2.1* - added filesystem logger (param --log)
+* *v1.0.1* - added debug level
+* *v1.2.1* - added filesystem logger
 * *v1.2.2* - added example of usage (param --examples)
-* *v1.3.2* - added posibility to use random proxy from proxylist (param --proxy)
+* *v1.3.2* - added posibility to use random proxy from proxylist
 * *v1.3.3* - simplify dependency installation    
 * *v1.3.4* - added code quality watcher    
 * *v1.3.5* - added ReadTimeoutError ProxyError handlers
 * *v1.3.51* - fixed code style, resolve file read errors
 * *v1.3.52* - code docstyle added
-* *v2.3.52* - subdomains scan available! (param --check subdomains). Added databases
+* *v2.3.52* - subdomains scan available!. Added databases
 * *v2.3.54* - disabled treads error. Refactored
-* *v2.4.62* - change port is available now! (param --port 8080). Code style fixes
+* *v2.4.62* - change port is available now!. Code style fixes
 * *v2.5.62* - HTTPS support added
 * *v2.6.62* - added 19000 Possible directories
-* *v2.7.62* - added redirect handler (Beta)
+* *v2.7.62* - added redirect handler
 * *v2.7.72* - added 52 directories, small changes for UI
 * *v2.7.82* - added 683 directories
 * *v2.7.92* - exclusion list added Data/exclusions.dat

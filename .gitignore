@@ -8,3 +8,4 @@ opendoor.egg-info/
 /syslog/exceptions.log
 /tmp/
 /pycallgraph.png
+/syslog/

@@ -49,21 +49,16 @@ class FileSystem:
         :param str dir: directory
         :param int permission: directory permission
         :raise: FileSystemError
-        :return: bool
+        :return: None
         """
-
         if not os.path.exists(dir):
             try:
                 dir = os.path.join(os.getcwd(), dir)
-
-                os.makedirs(dir, mode=mode)
-                return True
-
+                os.makedirs(dir+'/', mode=mode)
             except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise FileSystemError("Cannot create directory `{0}`. Reason: {1}".format(dir, e.message))
-        else:
-            return False
+        pass
 
     @staticmethod
     def getabsname(filename):

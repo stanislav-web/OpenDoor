@@ -16,20 +16,22 @@
     Development Team: Stanislav Menshov
 """
 
-from ..filesystem.filesystem import FileSystem
-
+import os
+from src.core import filesystem
 
 def exception_log():
     """
     Get exception log path
     :return: string
     """
-    config = FileSystem.readcfg('setup.cfg')
+    config = filesystem.readcfg('setup.cfg')
     return config.get('system', 'exceptions_log')
 
 
 class Config:
     """Config class"""
+
+    logdir = os.path.dirname(exception_log())
 
     exceptions = {
         "version" : 1,
