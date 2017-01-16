@@ -50,13 +50,13 @@ class Browser(Config, Debug):
                 'threadpool' : self.threadpool.get_queue_instance
             })
 
-
         except (ThreadPoolError, LibError) as e:
             raise LibError(e)
 
     def ping(self):
         """
         Check remote host for available
+
         :raise: LibError
         :return: None
         """

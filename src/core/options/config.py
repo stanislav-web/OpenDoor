@@ -120,10 +120,10 @@ class Config:
         {
             "group": "wordlist",
             "args": "-l",
-            "argl": "--log",
-            "default": False,
-            "action": "store_true",
-            "help": "Scan logging",
+            "argl": "--reports",
+            "default": None,
+            "action": "store",
+            "help": "Scan reports",
             "type": bool
         },
         {

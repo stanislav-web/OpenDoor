@@ -41,7 +41,7 @@ class Config:
                 python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10
                 python ./opendoor.py --host "http://example.com"  --random-list --threads 10 --delay 10 --timeout 10
                 python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1
-                python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1 --log
+                python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1 --reports
             """,
         'banner'    :   """
 ############################################################

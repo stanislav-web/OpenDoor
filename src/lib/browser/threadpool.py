@@ -119,7 +119,7 @@ class ThreadPool():
                 self.__is_pool_started = False
 
             while True:
-                char = tpl.prompt(key='resume_threads')
+                char = tpl.prompt(key='option_prompt')
                 if char.lower() == 'e':
                     raise KeyboardInterrupt
                 elif char.lower() == 'c':
@@ -131,7 +131,14 @@ class ThreadPool():
             raise KeyboardInterrupt
 
     def resume(self):
+        """
+        Resume threadpool
+
+        :return: None
+        """
+
         if False is self.__is_pool_started:
+            tpl.info(key='resume_threads')
             for worker in self.workers:
                 worker.resume()
             self.__is_pool_started = True

@@ -20,5 +20,5 @@ class Config:
     """Config class"""
 
     scan = {
-        'log_dir': 'logs/'
+        'log_dir': 'reports/'
     }

@@ -22,8 +22,8 @@ class Config:
     templates = {
         'unsupported': 'Your version v {actual} is not supported by this application. Please consider v{expected}',
         'abort'  : 'Session canceled',
-        'use_log'  : 'Use --log param to store your scan results',
-        'logged' : 'The {host} has been stored. Press ENTER to rescan or CTRL+C to exit: ',
+        'use_reports'  : 'Use --log param to store your scan results',
+        'logged' : 'The {host} has been reported. Press ENTER to rescan or CTRL+C to exit: ',
         'online': 'Server {host}:{port} ({ip}) is online!',
         'scanning': 'Scanning {host} ...',
         'debug': 'Starting debug level {level} ...',
@@ -37,23 +37,17 @@ class Config:
         'get_item_lvl0' : '{percent} {item}',
         'total_time_lvl3'  : 'Total time running: {time}',
         'pause_threads'  : 'Stopping threads, please wait...',
-        'resume_threads'  : 'Press [C]ontinue to resume or [E]exit to abort session: ',
-        'resuming'  : 'Resuming...',
+        'option_prompt'  : 'Press "[C]ontinue" to resume or "[E]xit" to abort session: ',
+        'resume_threads'  : 'Resuming scan...',
         'get_item_lvl1' : '{percent} [{current}/{total}] - {size} - {item}',
         'addtopool'  : 'Adding {total} lines to queue...'
     }
 
     #                "http": {
-    #                    'online': "Server {0} {1}:{2} is online",
-    #                    'offline': "Oops Error occured, Server offline or invalid URL. Reason: {}",
     #                    'redirect': "Redirect {0} --> {1}",
-    #                    'scanning': "Scanning {0} ...",
-    #                    'abort': "Session canceled",
     #                    'timeout': "Connection timeout: {0} . Try to increase --delay between requests",
     #                    'excluded': "Excluded path: {0}",
     #                    'unresponsible': "Unresponsible path : {0}",
-    #                    'use_log': "Use --log param to save scan result",
-    #                    'max_threads': "Passed {0} threads max for your possibility",
     #                    'has_scanned': "You already have the results for {0} saved in logs directory.\nWould you like to rescan? Press [ENTER] to continue: ",
     #                    'file_detected': "Probably you found important filesource {0} {1}"
     #                }

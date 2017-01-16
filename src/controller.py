@@ -142,8 +142,8 @@ class Controller:
         brows = browser(params)
         if False is applog.is_logged(params.get('host')):
 
-            if None is params.get('log'):
-                tpl.info(key='use_log')
+            if None is params.get('reports'):
+                tpl.info(key='use_reports')
 
             try:
                 brows.ping()
