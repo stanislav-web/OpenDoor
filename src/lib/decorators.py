@@ -16,4 +16,4 @@
     Development Team: Stanislav Menshov
 """
 
-import time
+from src.core import execution_time

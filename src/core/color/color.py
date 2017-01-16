@@ -27,7 +27,7 @@ class Color:
     has = False
 
     @staticmethod
-    def has_colors(stream):
+    def __has_colors(stream):
         """
         Is tty output check
 
@@ -59,7 +59,7 @@ class Color:
 
         if type(text) is not str:
             text = str(text)
-        if Color.has_colors(sys.stdout):
+        if Color.__has_colors(sys.stdout):
             text = text.strip('\n')
             seq = "\x1b[%dm" % (30 + Config.get(color)) + text + "\x1b[0m"
             return seq

@@ -20,7 +20,9 @@ from Queue import Queue
 from .worker import Worker
 from .exceptions import WorkerError
 from .exceptions import ThreadPoolError
+
 from src.lib import tpl
+from src.core import sys
 
 class ThreadPool():
     """ThreadPool class"""
@@ -35,6 +37,8 @@ class ThreadPool():
 
         self.queue = Queue(num_threads)
         self.workers = []
+
+        self.__is_pool_started = True
 
         try:
             for _ in range(num_threads):
@@ -88,7 +92,7 @@ class ThreadPool():
         try:
             self.queue.put((func, args, kargs))
         except (SystemExit, KeyboardInterrupt):
-           self.stop()
+           self.pause()
 
 
     def complete(self):
@@ -99,19 +103,36 @@ class ThreadPool():
         """
         self.queue.join()
 
-    def stop(self):
+    def pause(self):
+        """
+        ThreadPool pause
 
-        tpl.info(key='stop_threads')
+        :return:
+        """
+
+        tpl.info(key='pause_threads')
         for worker in self.workers:
-            if True is worker.isAlive():
-                worker.join()
-            else:
-                break
+            worker.stop()
 
-        # start = tpl.prompt(key='resume_threads')
-        # if start:
-        #     print 'OK'
-        start = raw_input('RESUME')
-        if start:
-            print 'OK'
+        try:
+            if True is self.__is_pool_started:
+                self.__is_pool_started = False
 
+            while True:
+                char = tpl.prompt(key='resume_threads')
+                if char.lower() == 'e':
+                    raise KeyboardInterrupt
+                elif char.lower() == 'c':
+                    self.resume()
+                    return
+                else:
+                    continue
+        except (SystemExit, KeyboardInterrupt):
+            raise KeyboardInterrupt
+
+    def resume(self):
+        if False is self.__is_pool_started:
+            for worker in self.workers:
+                worker.resume()
+            self.__is_pool_started = True
+        pass

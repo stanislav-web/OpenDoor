@@ -40,15 +40,3 @@ class WorkerError(Exception):
         """
         super(WorkerError, self).__init__(message)
 
-class SignalError(Exception):
-    """SignalError class"""
-
-    def __init__(self, message):
-        """
-        Error message
-
-        :param message: message
-        :return: None
-        """
-        super(SignalError, self).__init__(message)
-

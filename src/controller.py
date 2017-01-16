@@ -23,6 +23,7 @@ from src.lib import applog
 from src.lib import tpl
 from src.lib import LibError
 from src.lib import events
+from src.lib import execution_time
 from .exceptions import SrcError
 
 class Controller:
@@ -48,6 +49,7 @@ class Controller:
         except LibError as e:
             raise SrcError(tpl.error(e.message))
 
+    @execution_time(log=tpl)
     def run(self):
         """
         Contriller bootstrap action

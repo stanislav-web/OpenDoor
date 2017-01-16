@@ -29,8 +29,15 @@ class MainHandler:
 
         :return: None
         """
-
         def kill_process(signum, frame):
-            os.kill(os.getpid(), signal.SIGKILL)
+            """
+
+            :param int signum: signal code
+            :param object frame: frame object
+            :return: None
+            """
+
+            os.kill(os.getpid(), signal.SIGTERM)
 
         signal.signal(signal.SIGTSTP, kill_process)
+        pass

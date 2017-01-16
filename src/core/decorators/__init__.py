@@ -16,4 +16,4 @@
     Development Team: Stanislav Menshov
 """
 
-from .decorators import timeit
+from .timer import execution_time

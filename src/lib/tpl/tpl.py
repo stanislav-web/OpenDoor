@@ -74,7 +74,7 @@ class Tpl():
             raise TplError(e.message)
 
     @staticmethod
-    def prompt(msg='', key='', status='info'):
+    def prompt(key='', status='info'):
         """
         Prompt message
 
@@ -84,7 +84,7 @@ class Tpl():
         :return:str
         """
 
-        msg = Tpl.line_log(msg=msg, key=key, status=status, write=False)
+        msg = Tpl.line_log(key=key, status=status, write=False)
         result = raw_input(msg)
         return result
 

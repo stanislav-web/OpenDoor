@@ -98,6 +98,7 @@ class Browser(Config, Debug):
         :param str url: recieved url
         :return:
         """
+
         import time
         time.sleep(1)
 
@@ -111,7 +112,7 @@ class Browser(Config, Debug):
                          size='10kb'
                         )
         else:
-            tpl.line_log(key='get_item_lvl0',
+            tpl.info(key='get_item_lvl0',
                          percent=tpl.line(msg=helper.percent(0, self.reader.total_lines), color='cyan'),
                          item=url
                          )

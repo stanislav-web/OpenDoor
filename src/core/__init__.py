@@ -20,6 +20,7 @@ from .filesystem import FileSystem as filesystem
 from .filesystem.exceptions import FileSystemError
 from .color import Color as colour
 from .logger import Logger as logger
+from .decorators import execution_time
 from .logger import Exception as exception
 from .helper import Helper as helper
 from .signals import MainHandler as handler

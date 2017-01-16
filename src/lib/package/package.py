@@ -16,12 +16,17 @@
     Development Team: Stanislav Menshov
 """
 
-from src.core import process, filesystem, helper, sys
+from src.core import process
+from src.core import filesystem
+from src.core import helper
+from src.core import sys
 from src.core import SystemError, FileSystemError
+
 from src.lib import tpl
 
 from .config import Config
 from ...lib.exceptions import LibError
+
 
 class Package:
     """Package class"""

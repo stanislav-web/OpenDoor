@@ -24,3 +24,4 @@ from .events import EventHandler as events
 from .browser import Browser as browser
 from .reader import Reader as reader
 from .exceptions import LibError
+from .decorators import execution_time

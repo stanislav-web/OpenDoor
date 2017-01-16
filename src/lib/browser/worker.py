@@ -17,9 +17,9 @@
 """
 
 import threading
+
 from Queue import Empty as QueueEmptyError
-from .exceptions import WorkerError
-from .threadcontrol import ThreadControl
+from threading import Semaphore, Event
 
 class Worker(threading.Thread):
     """Worker class"""
@@ -33,13 +33,27 @@ class Worker(threading.Thread):
         """
 
         super(Worker, self).__init__()
-        self.stoprequest = threading.Event()
+
+        self.__semaphore = Semaphore(0)
+        self.__event = Event()
+        self.__event.set()
+
         self.queue = queue
         self.counter = 0
 
-    def stop(self, timeout=None):
-        self.stoprequest.set()
-        super(Worker, self).join(timeout)
+    def stop(self):
+        """
+        Stop current worker
+
+        :return: None
+        """
+
+        self.__event.clear()
+        if True is self.isAlive():
+            self.__semaphore.acquire()
+
+    def resume(self):
+        self.__event.set()
 
     def run(self):
 
@@ -48,8 +62,9 @@ class Worker(threading.Thread):
 
         :return: None
         """
+        self.__event.wait()
 
-        while not self.stoprequest.isSet():
+        while self.__event.isSet():
 
             try:
                 func, args, kargs = self.queue.get()
@@ -58,6 +73,10 @@ class Worker(threading.Thread):
                 self.queue.task_done()
             except QueueEmptyError:
                 break
+            finally:
+                if not self.__event.isSet():
+                    self.__semaphore.release()
+                    self.__event.wait()
 
 
 
