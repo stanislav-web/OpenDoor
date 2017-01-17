@@ -15,19 +15,18 @@
 
     Development Team: Stanislav Menshov
 """
-
+import time
+import threading
 from Queue import Queue
 from .worker import Worker
 from .exceptions import WorkerError
 from .exceptions import ThreadPoolError
-
 from src.lib import tpl
-from src.core import sys
 
 class ThreadPool():
     """ThreadPool class"""
 
-    def __init__(self, num_threads):
+    def __init__(self, num_threads, total_items):
         """
         Initialize thread pool
 
@@ -37,8 +36,9 @@ class ThreadPool():
 
         self.queue = Queue(num_threads)
         self.workers = []
-
-        self.__is_pool_started = True
+        self.total_items_sizes = total_items
+        self.is_pool_started = True
+        self.is_dialog = False
 
         try:
             for _ in range(num_threads):
@@ -48,7 +48,7 @@ class ThreadPool():
                     worker = Worker(self.queue)
 
                     if False is worker.isAlive():
-                        worker.daemon = True
+                        worker.setDaemon(True)
                         worker.start()
                         self.workers.append(worker)
 
@@ -58,17 +58,7 @@ class ThreadPool():
             raise ThreadPoolError(e)
 
     @property
-    def get_queue_instance(self):
-        """
-        Get queue instance
-
-        :return: Queue
-        """
-
-        return self.queue
-
-    @property
-    def get_pool_items_size(self):
+    def pool_items_size(self):
         """
         Get pool items size
 
@@ -90,43 +80,44 @@ class ThreadPool():
         """
 
         try:
-            self.queue.put((func, args, kargs))
+            if True is self.is_pool_started:
+                if self.pool_items_size < self.total_items_sizes:
+                    self.queue.put((func, args, kargs))
+                else:
+                    self.queue.join()
         except (SystemExit, KeyboardInterrupt):
            self.pause()
-
-
-    def complete(self):
-        """
-        Wait for completion of all the tasks in the queue
-
-        :return: None
-        """
-        self.queue.join()
 
     def pause(self):
         """
         ThreadPool pause
-
-        :return:
+        :raise KeyboardInterrupt
+        :return: None
         """
 
-        tpl.info(key='pause_threads')
-        for worker in self.workers:
-            worker.stop()
+        self.is_pool_started = False
+        tpl.info(key='stop_threads', threads=len(self.workers))
 
         try:
-            if True is self.__is_pool_started:
-                self.__is_pool_started = False
+            while 0 < threading.active_count():
+                if False is self.is_pool_started and False is self.is_dialog:
+                    for worker in threading._enumerate():
+                        if threading.current_thread().__class__.__name__ != '_MainThread':
+                            worker.pause()
+                    time.sleep(3)
 
-            while True:
+                self.is_dialog = True
+
                 char = tpl.prompt(key='option_prompt')
                 if char.lower() == 'e':
                     raise KeyboardInterrupt
                 elif char.lower() == 'c':
                     self.resume()
-                    return
+                    self.is_dialog = False
+                    break
                 else:
                     continue
+
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt
 
@@ -137,9 +128,9 @@ class ThreadPool():
         :return: None
         """
 
-        if False is self.__is_pool_started:
+        if False is self.is_pool_started:
             tpl.info(key='resume_threads')
             for worker in self.workers:
                 worker.resume()
-            self.__is_pool_started = True
+            self.is_pool_started = True
         pass

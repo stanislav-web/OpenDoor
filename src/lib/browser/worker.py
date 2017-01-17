@@ -41,9 +41,9 @@ class Worker(threading.Thread):
         self.queue = queue
         self.counter = 0
 
-    def stop(self):
+    def pause(self):
         """
-        Stop current worker
+        Pause current worker
 
         :return: None
         """
@@ -53,15 +53,22 @@ class Worker(threading.Thread):
             self.__semaphore.acquire()
 
     def resume(self):
+        """
+        Resume current worker
+
+        :return: None
+        """
+
+        self.running = True
         self.__event.set()
 
     def run(self):
-
         """
         Run current worker
 
         :return: None
         """
+
         self.__event.wait()
 
         while self.__event.isSet():

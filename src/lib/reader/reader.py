@@ -117,7 +117,6 @@ class Reader():
                                                         self.__browser_config.get('list'))
                                                       ),
                                       handler_params=params,
-                                      queue = self.__browser_config.get('threadpool'),
                                       loader=loader
                                       )
         except FileSystemError as e:

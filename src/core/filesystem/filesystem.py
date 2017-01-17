@@ -99,14 +99,13 @@ class FileSystem:
             return False
 
     @staticmethod
-    def readline(filename, handler, handler_params, queue, loader):
+    def readline(filename, handler, handler_params, loader):
         """
         Read txt file line by line
 
         :param str filename: source file name
         :param func handler: url handler
         :param func handler_params: url handler parameters
-        :param Queue queue: pool instance
         :param func loader: browser
         :raise FileSystemError
         :return: str
@@ -122,7 +121,6 @@ class FileSystem:
             for i, line in enumerate(f_handler):
                 line = handler(line, handler_params)
                 loader(line)
-            queue.complete()
 
     @staticmethod
     def read(filename):

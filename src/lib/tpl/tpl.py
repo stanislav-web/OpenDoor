@@ -64,7 +64,7 @@ class Tpl():
         try:
             if key:
                 msg = Tpl.__format_message(key, args=args)
-            msg = logger.inline(msg=msg, status=status)
+                msg = logger.inline(msg=msg, status=status)
             if True is write:
                sys.writels(msg)
             else:

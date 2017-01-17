@@ -22,6 +22,19 @@ class Helper:
     """Helper class"""
 
     @staticmethod
+    def cut_string(string, l=50):
+        """
+        Cut string by length
+
+        :param str string:
+        :param int l: max length
+        :return: str
+        """
+
+        string = (string[:l] + '...') if len(string) > l else string
+        return string
+
+    @staticmethod
     def percent(counter, total):
         """
         Return percentage

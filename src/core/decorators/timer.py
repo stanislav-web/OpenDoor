@@ -41,6 +41,7 @@ def execution_time(function=None,log=None):
         :param kwargs: key arguments
         :return: func
         """
+
         t0 = time.time()
         result = function(*args, **kwargs)
         t1 = time.time()

@@ -43,12 +43,13 @@ class Browser(Config, Debug):
             Config.__init__(self, params)
             Debug.__init__(self)
 
-            self.threadpool = ThreadPool(self._threads)
             self.reader = Reader(browser_config={
                 'list'       : self._scan,
-                'use_random' : self._is_random_list,
-                'threadpool' : self.threadpool.get_queue_instance
+                'use_random' : self._is_random_list
             })
+            self.reader._count_total_lines(self._scan)
+            self.threadpool = ThreadPool(self._threads, self.reader.total_lines)
+
 
         except (ThreadPoolError, LibError) as e:
             raise LibError(e)
@@ -83,13 +84,14 @@ class Browser(Config, Debug):
         if True is self._is_random_list:
             self._debug_randomizing_list()
             self.reader._randomize_list(self._scan)
-        self._debug_list(total_lines=self.reader._count_total_lines(self._scan))
+        self._debug_list(total_lines=self.reader.total_lines)
         tpl.info(key='scanning', host=self._host)
 
-        self.reader._get_lines(self._scan,
-            params={'host' : self._host, 'port' : self._port, 'scheme' : self._scheme},
-            loader= getattr(self, '_get_url'.format())
-        )
+        if True is self.threadpool.is_pool_started:
+            self.reader._get_lines(self._scan,
+                params={'host' : self._host, 'port' : self._port, 'scheme' : self._scheme},
+                loader= getattr(self, '_add_url'.format())
+            )
 
     def __http_request(self, url):
         """
@@ -98,32 +100,28 @@ class Browser(Config, Debug):
         :param str url: recieved url
         :return:
         """
-
         import time
-        time.sleep(1)
-
         if 0 < self._debug:
-
-            tpl.info(key='get_item_lvl1',
-                         percent=tpl.line(msg=helper.percent(0, self.reader.total_lines), color='cyan'),
-                         current=self.threadpool.get_pool_items_size,
+            tpl.line_log(key='get_item_lvl1',
+                         percent=tpl.line(msg=helper.percent(self.threadpool.pool_items_size, self.reader.total_lines), color='cyan'),
+                         current=self.threadpool.pool_items_size,
                          total=self.reader.total_lines,
                          item=url,
                          size='10kb'
                         )
         else:
-            tpl.info(key='get_item_lvl0',
+            tpl.line_log(key='get_item_lvl0',
                          percent=tpl.line(msg=helper.percent(0, self.reader.total_lines), color='cyan'),
                          item=url
                          )
 
 
-    def _get_url(self, url):
+    def _add_url(self, url):
         """
         Url handler
-
+        :param str url
         :return: None
         """
-
-        self.threadpool.add(self.__http_request, url)
+        if True is self.threadpool.is_pool_started:
+            self.threadpool.add(self.__http_request, url)
 

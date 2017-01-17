@@ -21,9 +21,25 @@ import os
 
 from .exceptions import SystemError
 
+class Term(type):
 
-class Process:
+    @property
+    def terminal_size(cls):
+        if getattr(cls, 'ts', None) is None:
+
+            (height, width) = subprocess.check_output(['stty', 'size']).split()
+            ts = {
+                'height': height,
+                'width': width
+            }
+            cls.ts = ts
+        return cls.ts
+
+
+class Process(object):
     """Process class"""
+
+    __metaclass__ = Term
 
     @staticmethod
     def system(command):

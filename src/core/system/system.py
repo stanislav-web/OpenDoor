@@ -22,6 +22,8 @@ import platform
 class System:
     """System class"""
 
+    last_line = False
+
     @staticmethod
     def exit(msg):
         """
@@ -36,15 +38,16 @@ class System:
     @staticmethod
     def writels(msg):
         """
-        Write in line
+        Write to stdout on one line dynamically
+
 
         :param str msg: text message
         :return: None
         """
-        sys.stdout.write('\033[1K')
-        sys.stdout.write('\033[0G')
-        sys.stdout.write('{0}\r'.format(msg))
+
+        sys.stdout.write("\r\x1b[K" + msg.__str__())
         sys.stdout.flush()
+        System.last_line = True
 
     @staticmethod
     def writeln(msg):
@@ -55,7 +58,9 @@ class System:
         :return: None
         """
 
-        sys.stdout.write('{0}\n'.format(msg))
+        if True is System.last_line:
+            sys.stdout.write('{0}\n'.format(msg))
+            System.last_line = False
 
     @staticmethod
     def version():

@@ -18,6 +18,7 @@
 
 import logging
 from colorize import ColorizingStreamHandler
+from src.core.system import Process
 
 class RainbowLoggingHandler(ColorizingStreamHandler):
     """ Class RainbowLoggingHandler """
@@ -118,6 +119,10 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         output = formatter.format(record)
         # Clean cache so the color codes of traceback don't leak to other formatters
         record.ext_text = None
+
+        width = int(Process.terminal_size.get('width'))
+        if len(output) > width:
+            output = (output[:(width-3)] + '...') if len(output) > width else output
         return output
 
     def colorize_traceback(self, formatter, record):
