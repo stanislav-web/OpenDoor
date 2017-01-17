@@ -13,13 +13,31 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav Menshov
+    Development Team: Stanislav WEB
 """
 
-import requests
+import urllib3
+import socket
+
 from .exceptions import RequestError
 
+class RequestPool(type):
+    """RequestPool class"""
 
-class Request:
+    @property
+    def _pool(cls, *args, **kargs):
+        if getattr(cls, '_request', None) is None:
+            socket_options = urllib3.connection.HTTPConnection.default_socket_options + [
+                (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1), ]
+            cls._request = urllib3.connection_from_url('http://google.com/', socket_options=socket_options)
+        return cls._request
+
+class Request(object):
     """Request class"""
 
+    def __int__(self, config):
+
+        print config
+        exit()
+        self.__metaclass__._pool(config)
+        pass

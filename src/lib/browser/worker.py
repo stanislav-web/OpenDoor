@@ -13,18 +13,18 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav Menshov
+    Development Team: Stanislav WEB
 """
 
 import threading
 
 from Queue import Empty as QueueEmptyError
-from threading import Semaphore, Event
+from threading import BoundedSemaphore, Event
 
 class Worker(threading.Thread):
     """Worker class"""
 
-    def __init__(self, queue):
+    def __init__(self, queue, num_threads):
 
         """
         Init thread worker
@@ -34,7 +34,7 @@ class Worker(threading.Thread):
 
         super(Worker, self).__init__()
 
-        self.__semaphore = Semaphore(1)
+        self.__semaphore = BoundedSemaphore(num_threads)
         self.__event = Event()
         self.__event.set()
         self.__running = True
@@ -67,6 +67,7 @@ class Worker(threading.Thread):
 
         :return: None
         """
+        self.__event.wait()
 
         while self.__running:
             try:
@@ -74,7 +75,7 @@ class Worker(threading.Thread):
                 self.counter +=1
                 func(*args, **kargs)
                 self.__queue.task_done()
-            except QueueEmptyError as e:
+            except QueueEmptyError:
                 continue
             finally:
                 if not self.__event.isSet():

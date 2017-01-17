@@ -13,7 +13,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav Menshov
+    Development Team: Stanislav WEB
 """
 
 import logging
@@ -27,7 +27,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
     level_map = {
         logging.DEBUG: (None, 'cyan', False),
         logging.INFO: (None, 'white', False),
-        logging.WARNING: (None, 'yellow', True),
+        logging.WARNING: (None, 'yellow', False),
         logging.ERROR: (None, 'red', True),
         logging.CRITICAL: ('red', 'white', True),
     }

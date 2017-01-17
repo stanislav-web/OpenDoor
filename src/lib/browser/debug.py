@@ -13,7 +13,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav Menshov
+    Development Team: Stanislav WEB
 """
 
 from src.lib import tpl
@@ -21,13 +21,17 @@ from src.lib import tpl
 class Debug:
     """Debug class"""
 
-    def __init__(self):
+    def __init__(self, Config):
         """
         Debug constructor
+
+        :param Config: Config
         """
 
-        if 0 < self._debug:
-            tpl.debug(key='debug', level=self._debug)
+        self.__config = Config
+
+        if 0 < self.__config.debug:
+            tpl.debug(key='debug', level=self.__config.debug)
         pass
 
 
@@ -38,13 +42,13 @@ class Debug:
         :return: None
         """
 
-        if 0 >= self._debug:
+        if 0 >= self.__config.debug:
             pass
         else:
-            if True is self._is_random_user_agent:
+            if True is self.__config.is_random_user_agent:
                 tpl.debug(key='random_browser')
             else:
-                tpl.debug(key='browser', browser=self._user_agent)
+                tpl.debug(key='browser', browser=self.__config.user_agent)
 
 
     def _debug_proxy(self):
@@ -54,8 +58,8 @@ class Debug:
         :return: None
         """
 
-        if 0 < self._debug:
-            if True is self._is_proxy:
+        if 0 < self.__config.debug:
+            if True is self.__config.is_proxy:
                 tpl.debug(key='proxy')
         else:
             pass
@@ -66,7 +70,7 @@ class Debug:
 
         :return:
         """
-        if 0 < self._debug:
+        if 0 < self.__config.debug:
             tpl.debug(key='randomizing')
 
 
@@ -77,12 +81,12 @@ class Debug:
         :return:
         """
 
-        if 0 < self._debug:
-            if self._default_scan is self._scan:
+        if 0 < self.__config.debug:
+            if self.__config.default_scan is self.__config.scan:
                 tpl.debug(key='directories', total=total_lines)
             else:
                 tpl.debug(key='subdomains', total=total_lines)
-            tpl.debug(key='create_queue', threads=self._threads)
+            tpl.debug(key='create_queue', threads=self.__config.threads)
 
     def _debug_line(self, line):
         """
@@ -92,7 +96,7 @@ class Debug:
         :return: None
         """
 
-        if 0 < self._debug:
+        if 0 < self.__config.debug:
             tpl.info(line)
         else:
             tpl.line_log(line)
@@ -105,7 +109,7 @@ class Debug:
         :param int total: total counter
         :return: None
         """
-        if 0 < self._debug:
+        if 0 < self.__config.debug:
             tpl.progress(i, total)
 
 

@@ -5,7 +5,6 @@
 logs/
 opendoor.egg-info/
 /dist/
-/syslog/exceptions.log
 /tmp/
 /pycallgraph.png
 /syslog/

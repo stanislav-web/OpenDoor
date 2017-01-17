@@ -13,11 +13,20 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav Menshov
+    Development Team: Stanislav WEB
 """
 
 class Config:
     """Config class"""
+
+    DEFAULT_MAX_THREADS = 15
+    DEFAULT_HTTP_METHOD = 'HEAD'
+    DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
+    DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
+    DEFAULT_HTTP_REDIRECT_STATUSES = [301, 302, 303, 304, 307, 308]
+    DEFAULT_HTTP_FAILED_STATUSES = [404, 429, 500, 501, 502, 503, 504]
+    DEFAULT_HTTP_UNRESOLVED_STATUSES = [401, 403]
+    DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400]
 
     def __init__(self, params):
         """
@@ -42,3 +51,64 @@ class Config:
         self._user_agent = 'Opera/9.0 (Windows NT 5.1; U; en)'
         self._threads = 1 if params.get('threads') is None else params.get('threads')
 
+    @property
+    def default_scan(self):
+        return self._default_scan
+
+    @property
+    def scan(self):
+        return self._scan
+
+    @property
+    def scheme(self):
+        return self._scheme
+
+    @property
+    def host(self):
+        return self._host
+
+    @property
+    def port(self):
+        return self._port
+
+    @property
+    def is_indexof(self):
+        return self._is_indexof
+
+    @property
+    def method(self):
+        return self._method
+
+    @property
+    def delay(self):
+        return self._delay
+
+    @property
+    def timeout(self):
+        return self._timeout
+
+    @property
+    def debug(self):
+        return self._debug
+
+    @property
+    def is_proxy(self):
+        return self._is_proxy
+
+    @property
+    def is_random_user_agent(self):
+        return self._is_random_user_agent
+
+    @property
+    def is_random_list(self):
+        return self._is_random_list
+
+
+    @property
+    def user_agent(self):
+        return self._user_agent
+
+
+    @property
+    def threads(self):
+        return self._threads

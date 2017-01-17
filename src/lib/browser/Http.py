@@ -176,23 +176,6 @@ class Http:
 
         logging.getLogger("urllib3").setLevel('ERROR')
 
-    def __is_server_online(self, host, port):
-        """ Check if server is online"""
-
-        s = socks.socket()
-
-        try:
-            ip = socks.gethostbyname(host)
-
-            s.settimeout(config.DEFAULT_REQUEST_TIMEOUT)
-            s.connect((host, port))
-
-            sys.stdout.write(Log.info(self.message.get('online').format(host, ip, port)))
-            sys.stdout.write(Log.info(self.message.get('scanning').format(host)))
-        except (socks.gaierror, socks.timeout) as e:
-            sys.stdout.exit(Log.error(self.message.get('offline').format(e)))
-        finally:
-            s.close()
 
     def __handle_redirect_url(self, url, response):
         """ Handle redirect url """
@@ -222,16 +205,7 @@ class Http:
         except exceptions.AttributeError:
             pass
 
-    def __get_urls(self, host):
-        """Get urls"""
 
-        lines = self.reader.get_file_data(self.check)
-
-        if config.DEFAULT_CHECK == self.check:
-            urls = self.__urls_resolves(host, self.port, lines)
-        else:
-            urls = self.__subdomains_resolves(host, lines)
-        return urls
 
     def __get_exclusions(self):
         """Get exclusions for redirect pages"""
@@ -256,29 +230,8 @@ class Http:
         else:
             return False
 
-    def __urls_resolves(self, host, port, directories):
-        """Urls path resolve"""
 
-        resolved_dirs = []
-        for path in directories:
-            path = path.replace("\n", "")
-            if "/" != path[0]:
-                path = '/' + path
 
-            if config.DEFAULT_HTTP_PORT != port:
-                resolved_dirs.append(self.scheme + host + ":" + str(port) + path)
-            else:
-                resolved_dirs.append(self.scheme + host + path)
-        return resolved_dirs
-
-    def __subdomains_resolves(self, host, subdomains):
-        """Subdomains path resolve"""
-
-        resolve_subs = []
-        for sub in subdomains:
-            sub = sub.replace("\n", "")
-            resolve_subs.append(self.scheme + sub + "." + host)
-        return resolve_subs
 
     def __parse_params(self, params):
         """Parse additional params"""

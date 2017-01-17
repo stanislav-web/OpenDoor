@@ -13,7 +13,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav Menshov
+    Development Team: Stanislav WEB
 """
 
 class Config:
@@ -36,6 +36,7 @@ class Config:
         'proxy': 'Fetching proxies...',
         'get_item_lvl0' : '{percent} {item}',
         'total_time_lvl3'  : 'Total time running: {time}',
+        'thread_limit'  : 'Threads has been reduced to {max} (max) instead of {threads}',
         'stop_threads'  : 'Stopping threads ({threads}), please wait...',
         'option_prompt'  : 'Press "[C]ontinue" to resume or "[E]xit" to abort session: ',
         'resume_threads'  : 'Resuming scan...',

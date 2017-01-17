@@ -13,7 +13,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav Menshov
+    Development Team: Stanislav WEB
 """
 import time
 import threading
@@ -40,11 +40,12 @@ class ThreadPool():
         self.is_pool_started = True
 
         try:
+
             for _ in range(num_threads):
 
                 try:
 
-                    worker = Worker(self.__queue)
+                    worker = Worker(self.__queue, num_threads)
 
                     if False is worker.isAlive():
                         worker.setDaemon(True)

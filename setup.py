@@ -13,7 +13,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav Menshov
+    Development Team: Stanislav WEB
 """
 
 from setuptools import setup, find_packages
@@ -42,7 +42,7 @@ setup(
     url='https://github.com/stanislav-web/OpenDoor',
 
     # Author details
-    author='Stanislav Menshov',
+    author='Stanislav WEB',
     author_email='stanisov@gmail.com',
 
     # You can just specify the packages manually here if your project is

@@ -16,21 +16,18 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import exception
+from src.lib import tpl
 
-class LibError(Exception):
-    """LibError class"""
+class Filter:
+    """Filter class"""
 
-    def __init__(self, error):
+    def __init__(self, Config):
         """
-        LibError class constructor
+        Filter constructor
 
-        :param Exception exception: error
+        :param Config: Config
         """
 
-        class_name = type(error).__name__
-
-        if self.__class__.__name__ is not class_name:
-            exception.log(class_name=class_name, message=error)
-
-        super(LibError, self).__init__("{}: {}".format(class_name,error))
+        if Config.threads > Config.DEFAULT_MAX_THREADS or Config.threads > self.reader.total_lines:
+            tpl.warning(key='thread_limit', threads=Config.threads, max=Config.DEFAULT_MAX_THREADS)
+            Config.threads = Config.DEFAULT_MAX_THREADS
