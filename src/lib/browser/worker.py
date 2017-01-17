@@ -34,11 +34,11 @@ class Worker(threading.Thread):
 
         super(Worker, self).__init__()
 
-        self.__semaphore = Semaphore(0)
+        self.__semaphore = Semaphore(1)
         self.__event = Event()
         self.__event.set()
-
-        self.queue = queue
+        self.__running = True
+        self.__queue = queue
         self.counter = 0
 
     def pause(self):
@@ -47,7 +47,7 @@ class Worker(threading.Thread):
 
         :return: None
         """
-
+        self.__running = False
         self.__event.clear()
         if True is self.isAlive():
             self.__semaphore.acquire()
@@ -58,8 +58,7 @@ class Worker(threading.Thread):
 
         :return: None
         """
-
-        self.running = True
+        self.__running = True
         self.__event.set()
 
     def run(self):
@@ -69,17 +68,14 @@ class Worker(threading.Thread):
         :return: None
         """
 
-        self.__event.wait()
-
-        while self.__event.isSet():
-
+        while self.__running:
             try:
-                func, args, kargs = self.queue.get()
+                func, args, kargs = self.__queue.get()
                 self.counter +=1
                 func(*args, **kargs)
-                self.queue.task_done()
-            except QueueEmptyError:
-                break
+                self.__queue.task_done()
+            except QueueEmptyError as e:
+                continue
             finally:
                 if not self.__event.isSet():
                     self.__semaphore.release()

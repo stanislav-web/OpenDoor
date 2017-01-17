@@ -25,6 +25,11 @@ class Term(type):
 
     @property
     def terminal_size(cls):
+        """
+        Get terminal window size
+        :return: dict
+        """
+
         if getattr(cls, 'ts', None) is None:
 
             (height, width) = subprocess.check_output(['stty', 'size']).split()

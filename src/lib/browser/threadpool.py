@@ -34,18 +34,17 @@ class ThreadPool():
         :return None
         """
 
-        self.queue = Queue(num_threads)
+        self.__queue = Queue(num_threads)
         self.workers = []
         self.total_items_sizes = total_items
         self.is_pool_started = True
-        self.is_dialog = False
 
         try:
             for _ in range(num_threads):
 
                 try:
 
-                    worker = Worker(self.queue)
+                    worker = Worker(self.__queue)
 
                     if False is worker.isAlive():
                         worker.setDaemon(True)
@@ -82,9 +81,9 @@ class ThreadPool():
         try:
             if True is self.is_pool_started:
                 if self.pool_items_size < self.total_items_sizes:
-                    self.queue.put((func, args, kargs))
+                    self.__queue.put((func, args, kargs))
                 else:
-                    self.queue.join()
+                    self.__queue.join()
         except (SystemExit, KeyboardInterrupt):
            self.pause()
 
@@ -96,24 +95,23 @@ class ThreadPool():
         """
 
         self.is_pool_started = False
+        tpl.message('\n')
         tpl.info(key='stop_threads', threads=len(self.workers))
 
         try:
             while 0 < threading.active_count():
-                if False is self.is_pool_started and False is self.is_dialog:
+                if False is self.is_pool_started and False:
                     for worker in threading._enumerate():
                         if threading.current_thread().__class__.__name__ != '_MainThread':
                             worker.pause()
                     time.sleep(3)
 
-                self.is_dialog = True
 
                 char = tpl.prompt(key='option_prompt')
                 if char.lower() == 'e':
                     raise KeyboardInterrupt
                 elif char.lower() == 'c':
                     self.resume()
-                    self.is_dialog = False
                     break
                 else:
                     continue

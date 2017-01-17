@@ -48,7 +48,7 @@ class Browser(Config, Debug):
                 'use_random' : self._is_random_list
             })
             self.reader._count_total_lines(self._scan)
-            self.threadpool = ThreadPool(self._threads, self.reader.total_lines)
+            self.__threadpool = ThreadPool(self._threads, self.reader.total_lines)
 
 
         except (ThreadPoolError, LibError) as e:
@@ -87,7 +87,7 @@ class Browser(Config, Debug):
         self._debug_list(total_lines=self.reader.total_lines)
         tpl.info(key='scanning', host=self._host)
 
-        if True is self.threadpool.is_pool_started:
+        if True is self.__threadpool.is_pool_started:
             self.reader._get_lines(self._scan,
                 params={'host' : self._host, 'port' : self._port, 'scheme' : self._scheme},
                 loader= getattr(self, '_add_url'.format())
@@ -101,10 +101,12 @@ class Browser(Config, Debug):
         :return:
         """
         import time
+        time.sleep(1)
+
         if 0 < self._debug:
             tpl.line_log(key='get_item_lvl1',
-                         percent=tpl.line(msg=helper.percent(self.threadpool.pool_items_size, self.reader.total_lines), color='cyan'),
-                         current=self.threadpool.pool_items_size,
+                         percent=tpl.line(msg=helper.percent(self.__threadpool.pool_items_size, self.reader.total_lines), color='cyan'),
+                         current=self.__threadpool.pool_items_size,
                          total=self.reader.total_lines,
                          item=url,
                          size='10kb'
@@ -122,6 +124,6 @@ class Browser(Config, Debug):
         :param str url
         :return: None
         """
-        if True is self.threadpool.is_pool_started:
-            self.threadpool.add(self.__http_request, url)
+        if True is self.__threadpool.is_pool_started:
+            self.__threadpool.add(self.__http_request, url)
 

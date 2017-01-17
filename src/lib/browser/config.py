@@ -33,12 +33,12 @@ class Config:
         self._port = params.get('port')
         self._is_indexof = params.get('indexof')
         self._method = params.get('method') if params.get('indexof') is None else 'GET'
-        self._threads = params.get('threads')
         self._delay = 0 if params.get('delay')is None else params.get('delay')
         self._timeout =  0 if params.get('timeout') is None else params.get('timeout')
-        self._threads = 1 if params.get('threads') is None else params.get('threads')
         self._debug = 0 if params.get('debug')is None else params.get('debug')
         self._is_proxy = params.get('tor')
         self._is_random_user_agent = params.get('random_agent')
         self._is_random_list = params.get('random_list')
         self._user_agent = 'Opera/9.0 (Windows NT 5.1; U; en)'
+        self._threads = 1 if params.get('threads') is None else params.get('threads')
+

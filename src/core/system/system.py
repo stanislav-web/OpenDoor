@@ -19,10 +19,9 @@
 import sys
 import platform
 
-class System:
-    """System class"""
 
-    last_line = False
+class System():
+    """System class"""
 
     @staticmethod
     def exit(msg):
@@ -47,7 +46,6 @@ class System:
 
         sys.stdout.write("\r\x1b[K" + msg.__str__())
         sys.stdout.flush()
-        System.last_line = True
 
     @staticmethod
     def writeln(msg):
@@ -58,9 +56,7 @@ class System:
         :return: None
         """
 
-        if True is System.last_line:
-            sys.stdout.write('{0}\n'.format(msg))
-            System.last_line = False
+        sys.stdout.write('{0}\n'.format(msg))
 
     @staticmethod
     def version():
