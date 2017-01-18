@@ -16,22 +16,23 @@
     Development Team: Stanislav WEB
 """
 
+import importlib
 import random
+
 from urllib3 import ProxyManager
+from urllib3.exceptions import DependencyWarning
+
+from .abstract import RequestProvider
 from .exceptions import ProxyRequestError
 
-try :
-    from urllib3.contrib.socks import SOCKSProxyManager
-except ImportError as e:
-    raise ProxyRequestError(e.message)
 
-class Proxy():
+class Proxy(RequestProvider):
     """Proxy class"""
 
     __debug = False
     __cfg = False
-    __pool = None
     __list = None
+    __pm = None
 
     def __init__(self, config, debug=0, **kwargs):
         """
@@ -48,14 +49,16 @@ class Proxy():
             if type(self.__list) is not list or 0 == len(self.__list):
                 raise TypeError('Proxy list empty or has invalid format')
 
-        except (TypeError,ValueError) as e:
+        except (TypeError, ValueError) as e:
             raise ProxyRequestError(e.message)
 
         self.__list = kwargs.get('proxy_list')
 
         self.__cfg = config
         self.__debug = False if debug < 2 else True
-        self.__pool = self.__proxy_pool()
+
+        if True is self.__debug:
+            self.__tpl.debug(key='proxy_pool_start')
 
     def __proxy_pool(self):
         """
@@ -66,23 +69,28 @@ class Proxy():
 
         try:
 
-            if True is self.__debug:
-                self.__tpl.debug(key='proxy_pool_start')
+            proxy_server = self.__get_random_proxyserver()
 
-            server = self.__get_random_server()
-            if self.__get_proxy_type(server) == 'socks':
-                pool = SOCKSProxyManager(server, num_pools=self.__cfg.threads,
-                                    timeout=self.__cfg.timeout, block=True)
+            if self.__get_proxy_type(proxy_server) == 'socks':
+
+                if not self.__pm:
+
+                    module = importlib.import_module('urllib3.contrib.socks')
+                    self.__pm = getattr(module, 'SOCKSProxyManager')
+
+                pool = self.__pm(proxy_server, num_pools=self.__cfg.threads, timeout=self.__cfg.timeout, block=True)
             else:
-                pool = ProxyManager(server, num_pools=self.__cfg.threads,
-                                timeout=self.__cfg.timeout, block=True)
+                pool = ProxyManager(proxy_server, num_pools=self.__cfg.threads, timeout=self.__cfg.timeout, block=True)
             return pool
-        except Exception as e:
+        except (DependencyWarning, ImportError) as e:
             raise ProxyRequestError(e)
 
+    def request(self, url):
+        pool = self.__proxy_pool()
 
+        pass
 
-    def __get_random_server(self):
+    def __get_random_proxyserver(self):
         """
         Get random server from proxy list
         :return: str

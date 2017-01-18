@@ -20,8 +20,8 @@ from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError
 from src.core import SocketError
 from src.core import helper
 from src.core import request_http
-from src.core import request_ssl
 from src.core import request_proxy
+from src.core import request_ssl
 from src.core import socket
 from src.lib.reader import Reader
 from src.lib.reader import ReaderError
@@ -37,7 +37,7 @@ from .threadpool import ThreadPool
 class Browser(Debug, Filter):
     """ Browser class """
 
-    __request = None
+    __client = None
     __config = None
     __reader = None
     __pool = None
@@ -72,7 +72,8 @@ class Browser(Debug, Filter):
         """
 
         try:
-
+            if 0 < self.__config.debug:
+                tpl.debug(key='checking_connect', host=self.__config.host, port=self.__config.port)
             socket.ping(self.__config.host, self.__config.port, self.__config.DEFAULT_SOCKET_TIMEOUT)
             tpl.info(key='online', host=self.__config.host, port=self.__config.port,
                      ip=socket.get_ip_address(self.__config.host))
@@ -98,30 +99,20 @@ class Browser(Debug, Filter):
         try:  # beginning scan process
 
             if True is self.__config.is_proxy:
-                self.__request = request_proxy(self.__config,
-                                                 proxy_list=self.__reader.get_proxies(),
-                                                 debug=self.__config.debug,
-                                                 tpl=tpl
-                                                 )
+                self.__client = request_proxy(self.__config, proxy_list=self.__reader.get_proxies(),
+                                              debug=self.__config.debug, tpl=tpl)
             else:
 
                 if True is self.__config.ssl:
-                    self.__request = request_ssl(self.__config,
-                                                 debug=self.__config.debug,
-                                                 tpl=tpl
-                                                 )
+                    self.__client = request_ssl(self.__config, debug=self.__config.debug, tpl=tpl)
                 else:
-                    self.__request = request_http(self.__config,
-                                                  debug=self.__config.debug,
-                                                  tpl=tpl
-                                                  )
-
+                    self.__client = request_http(self.__config, debug=self.__config.debug, tpl=tpl)
 
             if True is self.__pool.is_started:
                 self.__reader.get_lines(self.__config.scan,
-                                         params={'host': self.__config.host, 'port': self.__config.port,
-                                                 'scheme': self.__config.scheme},
-                                         loader=getattr(self, '_add_url'.format()))
+                                        params={'host': self.__config.host, 'port': self.__config.port,
+                                                'scheme': self.__config.scheme},
+                                        loader=getattr(self, '_add_url'.format()))
         except (HttpRequestError, HttpsRequestError, ProxyRequestError) as e:
             raise BrowserError(e)
 
@@ -131,6 +122,8 @@ class Browser(Debug, Filter):
         :param str url: recieved url
         :return: None
         """
+
+        self.__client.request(url)
 
         if 0 < self.__config.debug:
             tpl.line_log(key='get_item_lvl1',

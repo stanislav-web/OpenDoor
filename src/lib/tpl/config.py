@@ -24,6 +24,7 @@ class Config:
         'abort'  : 'Session canceled',
         'use_reports'  : 'Use --report param to store your scan results',
         'logged' : 'The {host} has been reported. Press ENTER to rescan or CTRL+C to exit: ',
+        'checking_connect' : 'Ping {host}:{port} Please, wait!',
         'online': 'Server {host}:{port} ({ip}) is online!',
         'scanning': 'Scanning {host} ...',
         'debug': 'Starting debug level {level} ...',
@@ -44,7 +45,7 @@ class Config:
         'addtopool'  : 'Adding {total} lines to queue...',
         'http_pool_start' : 'Using HTTP keep-alive connection',
         'https_pool_start' : 'Using SSL keep-alive connection',
-        'ssl_pool_start' : 'Using random proxies',
+        'proxy_pool_start' : 'Using random proxies',
     }
 
     #                "http": {

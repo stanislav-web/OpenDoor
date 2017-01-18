@@ -17,9 +17,12 @@
 """
 
 from urllib3 import HTTPConnectionPool
+
+from .abstract import RequestProvider
 from .exceptions import HttpRequestError
 
-class HttpRequest():
+
+class HttpRequest(RequestProvider):
     """HttpRequest class"""
 
     __debug = False

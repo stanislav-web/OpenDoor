@@ -18,10 +18,11 @@
 
 from urllib3 import HTTPSConnectionPool
 
+from .abstract import RequestProvider
 from .exceptions import HttpsRequestError
 
 
-class HttpsRequest():
+class HttpsRequest(RequestProvider):
     """HttpsRequest class"""
 
     __debug = False
@@ -52,10 +53,10 @@ class HttpsRequest():
         try:
 
             if True is self.__debug:
-                self.__tpl.debug(key='https_pool_start')
+                self.__tpl.debug(key='ssl_pool_start')
 
             pool = HTTPSConnectionPool(self.__cfg.host, port=self.__cfg.port, maxsize=self.__cfg.threads,
-                                      timeout=self.__cfg.timeout, block=True)
+                                       timeout=self.__cfg.timeout, block=True)
             return pool
         except Exception as e:
             raise HttpsRequestError(e)
