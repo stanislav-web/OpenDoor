@@ -21,6 +21,7 @@ import threading
 from Queue import Empty as QueueEmptyError
 from threading import BoundedSemaphore, Event
 
+
 class Worker(threading.Thread):
     """Worker class"""
 
@@ -28,7 +29,6 @@ class Worker(threading.Thread):
 
         """
         Init thread worker
-
         :param Queue.Queue queue:
         """
 
@@ -44,9 +44,9 @@ class Worker(threading.Thread):
     def pause(self):
         """
         Pause current worker
-
         :return: None
         """
+
         self.__running = False
         self.__event.clear()
         if True is self.isAlive():
@@ -55,24 +55,24 @@ class Worker(threading.Thread):
     def resume(self):
         """
         Resume current worker
-
         :return: None
         """
+
         self.__running = True
         self.__event.set()
 
     def run(self):
         """
         Run current worker
-
         :return: None
         """
+
         self.__event.wait()
 
         while self.__running:
             try:
                 func, args, kargs = self.__queue.get()
-                self.counter +=1
+                self.counter += 1
                 func(*args, **kargs)
                 self.__queue.task_done()
             except QueueEmptyError:
@@ -81,6 +81,3 @@ class Worker(threading.Thread):
                 if not self.__event.isSet():
                     self.__semaphore.release()
                     self.__event.wait()
-
-
-

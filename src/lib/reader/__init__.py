@@ -17,3 +17,4 @@
 """
 
 from .reader import Reader
+from .exceptions import ReaderError

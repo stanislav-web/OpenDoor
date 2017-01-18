@@ -16,13 +16,13 @@
     Development Team: Stanislav WEB
 """
 
+
 class SrcError(Exception):
     """SrcError class"""
 
     def __init__(self, message):
         """
          SrcError class constructor
-
          :param str message: error message
          """
 

@@ -18,27 +18,14 @@
 
 from distutils.version import StrictVersion
 
+
 class Helper:
     """Helper class"""
-
-    @staticmethod
-    def cut_string(string, l=50):
-        """
-        Cut string by length
-
-        :param str string:
-        :param int l: max length
-        :return: str
-        """
-
-        string = (string[:l] + '...') if len(string) > l else string
-        return string
 
     @staticmethod
     def percent(counter, total):
         """
         Return percentage
-
         :param int counter:
         :param int total:
         :return: str
@@ -49,7 +36,6 @@ class Helper:
     def is_less(arg1, arg2):
         """
         Compare two numbers (< less)
-
         :param int arg1:
         :param int arg2:
         :return: bool
@@ -62,8 +48,7 @@ class Helper:
     @staticmethod
     def is_more(arg1, arg2):
         """
-        Compare two numbers (more >)
-
+        Compare two numbers (great >)
         :param int arg1:
         :param int arg2:
         :return: bool
@@ -73,4 +58,3 @@ class Helper:
             return True
         else:
             return False
-

@@ -16,6 +16,7 @@
     Development Team: Stanislav WEB
 """
 
+
 class Config:
     """Config class"""
 
@@ -24,26 +25,14 @@ class Config:
     @staticmethod
     def get(key):
         """
-        Get color num
-
+        Get color key
         :param str key: color name
         :return: int
         """
 
-        colorlist = {
-            'black' : 0,
-            'red' : 1,
-            'green' : 2,
-            'yellow' : 3,
-            'blue' : 4,
-            'magenta' : 5,
-            'cyan' : 6,
-            'white' : 7
-        }
+        colorlist = {'black': 0, 'red': 1, 'green': 2, 'yellow': 3, 'blue': 4, 'magenta': 5, 'cyan': 6, 'white': 7}
 
         if key in colorlist:
             return colorlist[key]
         else:
             return colorlist[Config.default]
-
-

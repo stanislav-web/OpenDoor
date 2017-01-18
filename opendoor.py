@@ -19,9 +19,6 @@
 
 import sys
 
-from pycallgraph import PyCallGraph
-from pycallgraph.output import GraphvizOutput
-
 try:
     import urllib3
 
@@ -31,12 +28,10 @@ except ImportError:
 
 if __name__ == "__main__":
 
-    from src import Controller , SrcError
+    from src import Controller, SrcError
 
     try:
-        # using profiler
-        #with PyCallGraph(output=GraphvizOutput()):
-            bootstrap = Controller()
-            bootstrap.run()
+        bootstrap = Controller()
+        bootstrap.run()
     except SrcError as e:
         sys.exit(e.message)

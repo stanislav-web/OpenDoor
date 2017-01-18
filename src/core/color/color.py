@@ -17,7 +17,9 @@
 """
 
 import sys
+
 from .config import Config
+
 
 class Color:
     """Color class"""
@@ -30,7 +32,6 @@ class Color:
     def __has_colors(stream):
         """
         Is tty output check
-
         :param object stream: input stream
         :return: bool
         """
@@ -51,7 +52,6 @@ class Color:
     def colored(text, color):
         """
         Output colorized text
-
         :param str text: message
         :param str color: prefered color
         :return: string

@@ -16,8 +16,9 @@
     Development Team: Stanislav WEB
 """
 
-import signal
 import os
+import signal
+
 
 class MainHandler:
     """MainHandler class"""
@@ -26,12 +27,12 @@ class MainHandler:
     def termation_handler():
         """
         Exit Ctrl-Z handler
-
         :return: None
         """
+
         def kill_process(signum, frame):
             """
-
+            Kill process os signal
             :param int signum: signal code
             :param object frame: frame object
             :return: None

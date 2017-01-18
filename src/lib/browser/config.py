@@ -16,11 +16,17 @@
     Development Team: Stanislav WEB
 """
 
+
 class Config:
     """Config class"""
 
+    DEFAULT_SOCKET_TIMEOUT = 10
     DEFAULT_MAX_THREADS = 15
+    DEFAULT_DEBUG_LEVEL = 0
+    DEFAULT_REQUEST_DELAY = 0
+    DEFAULT_TIMEOUT = 0
     DEFAULT_HTTP_METHOD = 'HEAD'
+    DEFAULT_USER_AGENT = 'Opera/9.0 (Windows NT 5.1; U; en)'
     DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
     DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     DEFAULT_HTTP_REDIRECT_STATUSES = [301, 302, 303, 304, 307, 308]
@@ -31,24 +37,24 @@ class Config:
     def __init__(self, params):
         """
         Read filtered input params
-
         :param params:
         """
 
         self._default_scan = 'directories'
         self._scan = params.get('scan')
         self._scheme = params.get('scheme')
+        self._ssl = params.get('ssl')
         self._host = params.get('host')
         self._port = params.get('port')
         self._is_indexof = params.get('indexof')
         self._method = params.get('method') if params.get('indexof') is None else 'GET'
-        self._delay = 0 if params.get('delay')is None else params.get('delay')
-        self._timeout =  0 if params.get('timeout') is None else params.get('timeout')
-        self._debug = 0 if params.get('debug')is None else params.get('debug')
+        self._delay = self.DEFAULT_REQUEST_DELAY if params.get('delay') is None else params.get('delay')
+        self._timeout = self.DEFAULT_TIMEOUT if params.get('timeout') is None else params.get('timeout')
+        self._debug = self.DEFAULT_DEBUG_LEVEL if params.get('debug') is None else params.get('debug')
         self._is_proxy = params.get('tor')
         self._is_random_user_agent = params.get('random_agent')
         self._is_random_list = params.get('random_list')
-        self._user_agent = 'Opera/9.0 (Windows NT 5.1; U; en)'
+        self._user_agent = self.DEFAULT_USER_AGENT
         self._threads = 1 if params.get('threads') is None else params.get('threads')
 
     @property
@@ -62,6 +68,10 @@ class Config:
     @property
     def scheme(self):
         return self._scheme
+
+    @property
+    def ssl(self):
+        return self._ssl
 
     @property
     def host(self):
@@ -103,11 +113,9 @@ class Config:
     def is_random_list(self):
         return self._is_random_list
 
-
     @property
     def user_agent(self):
         return self._user_agent
-
 
     @property
     def threads(self):

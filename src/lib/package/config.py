@@ -20,13 +20,8 @@
 class Config:
     """Config class"""
 
-    params = {
-        'cvsupdate' : '/usr/bin/git pull origin master',
-        'cursor' : 'setterm -cursor {state}',
-        'cvslog'    : '/usr/bin/git log --oneline -n 1',
-        'cfg'       : 'setup.cfg',
-        'required_version': '2.7',
-        'examples'  :  """
+    params = {'cvsupdate': '/usr/bin/git pull origin master', 'cursor': 'setterm -cursor {state}',
+        'cvslog': '/usr/bin/git log --oneline -n 1', 'cfg': 'setup.cfg', 'required_version': '2.7', 'examples': """
 
             Examples:
                 python ./opendoor.py  --examples
@@ -42,8 +37,7 @@ class Config:
                 python ./opendoor.py --host "http://example.com"  --random-list --threads 10 --delay 10 --timeout 10
                 python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1
                 python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1 --reports
-            """,
-        'banner'    :   """
+            """, 'banner': """
 ############################################################
 #                                                          #
 #   _____  ____  ____  _  _    ____   _____  _____  ____   #
@@ -56,15 +50,12 @@ class Config:
 #  {2}\t\t\t                   #
 #  {3}\t\t\t                           #
 #  {4}                     #
-############################################################""",
-        'version'   :   """
+############################################################""", 'version': """
 
 {0}: {1} -> {2}
 {3}
 {4}
-============================================================""",
-        'update': """
+============================================================""", 'update': """
 
 {status}
-============================================================"""
-    }
+============================================================"""}

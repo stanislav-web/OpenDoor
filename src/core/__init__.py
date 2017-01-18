@@ -16,20 +16,25 @@
     Development Team: Stanislav WEB
 """
 
+from .color import Color as colour
+from .decorators import execution_time
 from .filesystem import FileSystem as filesystem
 from .filesystem.exceptions import FileSystemError
-from .color import Color as colour
-from .logger import Logger as logger
-from .decorators import execution_time
-from .logger import Exception as exception
 from .helper import Helper as helper
-from .signals import MainHandler as handler
-from .http import Request as request
-from .http import Response as response
+from .http import HttpRequest as request_http
+from .http import HttpsRequest as request_ssl
+from .http import Proxy as request_proxy
 from .http import Socket as socket
+from .http.exceptions import HttpRequestError
+from .http.exceptions import HttpsRequestError
+from .http.exceptions import ProxyRequestError
+from .http.exceptions import ResponseError
 from .http.exceptions import SocketError
+from .logger import Exception as exception
+from .logger import Logger as logger
 from .options import Options as options
 from .options.exceptions import OptionsError
+from .signals import MainHandler as handler
 from .system import Process as process
 from .system import System as sys
 from .system.exceptions import SystemError

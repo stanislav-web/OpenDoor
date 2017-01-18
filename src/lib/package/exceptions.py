@@ -15,16 +15,15 @@
 
     Development Team: Stanislav WEB
 """
-
 from src.core import exception
 
-class LibError(Exception):
-    """LibError class"""
+
+class PackageError(Exception):
+    """PackageError class"""
 
     def __init__(self, error):
         """
-        LibError class constructor
-
+        PackageError class constructor
         :param Exception exception: error
         """
 
@@ -33,4 +32,4 @@ class LibError(Exception):
         if self.__class__.__name__ is not class_name:
             exception.log(class_name=class_name, message=error)
 
-        super(LibError, self).__init__("{}: {}".format(class_name,error))
+        super(PackageError, self).__init__("{}: {}".format(class_name, error))

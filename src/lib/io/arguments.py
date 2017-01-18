@@ -16,8 +16,9 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import options , OptionsError
-from ...lib.exceptions import LibError
+from src.core import options, OptionsError
+from .exceptions import ArgumentsError
+
 
 class Arguments:
     """Arguments class"""
@@ -26,7 +27,7 @@ class Arguments:
     def get_arguments():
         """
         Get input arguments with their options
-
+        :raise ArgumentsError
         :return: dict
         """
 
@@ -34,6 +35,4 @@ class Arguments:
             args = options().get_arg_values()
             return args
         except OptionsError as e:
-            raise LibError(e.message)
-
-
+            raise ArgumentsError(e.message)

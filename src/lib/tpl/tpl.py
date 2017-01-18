@@ -16,10 +16,10 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import logger
 from src.core import colour
-from src.core import sys
 from src.core import helper
+from src.core import logger
+from src.core import sys
 from .config import Config
 from .exceptions import TplError
 
@@ -31,7 +31,6 @@ class Tpl():
     def cancel(msg='', key='', **args):
         """
         Print message and stop propagation
-
         :param str msg: text message
         :param str key: message key for template
         :param dict args: additional arguments
@@ -46,12 +45,10 @@ class Tpl():
         except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
-
     @staticmethod
     def line_log(msg='', key='', status='info', write=True, **args):
         """
         Stored colored log line to variable
-
         :param str msg: text message
         :param str key: message key for template
         :param str status: log status
@@ -66,7 +63,7 @@ class Tpl():
                 msg = Tpl.__format_message(key, args=args)
                 msg = logger.inline(msg=msg, status=status)
             if True is write:
-               sys.writels(msg)
+                sys.writels(msg)
             else:
                 return msg
 
@@ -77,7 +74,6 @@ class Tpl():
     def prompt(key='', status='info'):
         """
         Prompt message
-
         :param str msg:
         :param str key:
         :param str status:
@@ -89,10 +85,9 @@ class Tpl():
         return result
 
     @staticmethod
-    def line(msg='', key='',  color='white', **args):
+    def line(msg='', key='', color='white', **args):
         """
         Stored colored line to variable
-
         :param str msg: text message
         :param str key: message key for template
         :param str color: color
@@ -112,7 +107,6 @@ class Tpl():
     def message(msg, args={}, color='white'):
         """
         Simple colored message
-
         :param str msg: text message
         :param dict args: additional arguments
         :param str color: color
@@ -125,7 +119,6 @@ class Tpl():
     def error(msg='', key='', **args):
         """
         Error log message
-
         :param str msg: text message
         :param str key: message key for template
         :param dict args: additional arguments
@@ -147,7 +140,6 @@ class Tpl():
     def warning(msg='', key='', **args):
         """
         Warning log message
-
         :param str msg: text message
         :param str key: message key for template
         :param dict args: additional arguments
@@ -169,7 +161,6 @@ class Tpl():
     def info(msg='', key='', **args):
         """
         Info log message
-
         :param str msg: text message
         :param str key: message key for template
         :param dict args: additional arguments
@@ -187,12 +178,10 @@ class Tpl():
         except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
-
     @staticmethod
     def debug(msg='', key='', **args):
         """
         Debug log message
-
         :param str msg: text message
         :param str key: message key for template
         :param dict args: additional arguments
@@ -212,21 +201,27 @@ class Tpl():
 
     @staticmethod
     def progress(count, total):
+        """
+        Progress bar
+        :param int count: current counter
+        :param int total: total counter
+        :return: None
+        """
+
         bar_len = 50
         filled_len = int(round(bar_len * count / float(total)))
         percents = helper.percent(count, total)
         bar = '=' * filled_len + '-' * (bar_len - filled_len)
-        bar = '%s %s/%s %s%s' % (bar, count+1, total, percents, '%')
+        bar = '%s %s/%s %s%s' % (bar, count + 1, total, percents, '%')
         Tpl.line_log(bar, status='debug')
 
-        if count+1 == total:
+        if count + 1 == total:
             Tpl.message("\n")
 
     @staticmethod
     def __format_message(key, **args):
         """
         Format message from config key
-
         :param str key: message
         :param dict args: additional arguments
         :raise AttributeError

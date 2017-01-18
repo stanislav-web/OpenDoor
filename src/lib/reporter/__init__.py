@@ -16,9 +16,4 @@
     Development Team: Stanislav WEB
 """
 
-from .exceptions import ResponseError
-
-
-class Response:
-    """Response class"""
-
+from .reporter import Reporter

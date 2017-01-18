@@ -17,13 +17,16 @@
 """
 
 import os
+
 from src.core import filesystem
+
 
 def exception_log():
     """
     Get exception log path
     :return: string
     """
+
     config = filesystem.readcfg('setup.cfg')
     return config.get('system', 'exceptions_log')
 
@@ -33,28 +36,8 @@ class Config:
 
     logdir = os.path.dirname(exception_log())
 
-    exceptions = {
-        "version" : 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "exception_format": {
-                "format": "%(asctime)s [%(levelname)s] : %(message)s",
-                "datefmt": "%Y-%m-%d %H:%M:%S"
-            }
-        },
-        "handlers": {
-            "exception_file_handler": {
-                "level": "ERROR",
-                "formatter": "exception_format",
-                "class": "logging.handlers.RotatingFileHandler",
-                "filename": exception_log(),
-                "maxBytes": 10485760,
-                "backupCount" : 10
-            }
-        },
-        "loggers": {
-            "exceptions": {
-                "handlers": ["exception_file_handler"],
-            }
-        }
-    }
+    exceptions = {"version": 1, "disable_existing_loggers": False, "formatters": {
+        "exception_format": {"format": "%(asctime)s [%(levelname)s] : %(message)s", "datefmt": "%Y-%m-%d %H:%M:%S"}},
+        "handlers": {"exception_file_handler": {"level": "ERROR", "formatter": "exception_format",
+            "class": "logging.handlers.RotatingFileHandler", "filename": exception_log(), "maxBytes": 10485760,
+            "backupCount": 10}}, "loggers": {"exceptions": {"handlers": ["exception_file_handler"],}}}

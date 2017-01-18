@@ -31,7 +31,6 @@ class ThrowingArgumentParser(ArgumentParser):
     def error(message):
         """
         Error message
-
         :param message: message
         :raise ArgumentParserError
         :return: None
@@ -46,11 +45,11 @@ class OptionsError(Exception):
     def __init__(self, message):
         """
         Error message
-
         :param message: message
         :return: None
         """
         super(OptionsError, self).__init__(message)
+
 
 class FilterError(Exception):
     """FilterError class"""
@@ -58,7 +57,6 @@ class FilterError(Exception):
     def __init__(self, message):
         """
          Error message
-
          :param message: message
          :return: None
          """

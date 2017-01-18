@@ -22,7 +22,6 @@ class FileSystemError(Exception):
     def __init__(self, message):
         """
         FileSystemError class constructor
-
         :param str message: error message
         """
         super(FileSystemError, self).__init__(message)

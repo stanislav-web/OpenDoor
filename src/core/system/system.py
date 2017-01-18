@@ -16,8 +16,8 @@
     Development Team: Stanislav WEB
 """
 
-import sys
 import platform
+import sys
 
 
 class System():
@@ -27,7 +27,6 @@ class System():
     def exit(msg):
         """
         Abort session
-
         :param str msg: text message
         :return: None
         """
@@ -38,8 +37,6 @@ class System():
     def writels(msg):
         """
         Write to stdout on one line dynamically
-
-
         :param str msg: text message
         :return: None
         """
@@ -51,7 +48,6 @@ class System():
     def writeln(msg):
         """
         Write new line
-
         :param str msg: text message
         :return: None
         """
@@ -62,13 +58,9 @@ class System():
     def version():
         """
         Interpreter version
-
         :return: string
         """
 
         version = platform.python_version().split(".")
 
         return "{0}.{1}".format(version[0], version[1])
-
-
-

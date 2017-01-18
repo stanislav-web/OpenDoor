@@ -18,9 +18,11 @@
 
 import ConfigParser
 import StringIO
-import os , errno
+import errno
+import os
 
 from .exceptions import FileSystemError
+
 
 class FileSystem:
     """FileSystem class"""
@@ -29,7 +31,6 @@ class FileSystem:
     def is_exist(dir, filename):
         """
         Check if file is exist
-
         :param str dir: directory
         :param str filename: filename
         :return: bool
@@ -54,7 +55,7 @@ class FileSystem:
         if not os.path.exists(dir):
             try:
                 dir = os.path.join(os.getcwd(), dir)
-                os.makedirs(dir+'/', mode=mode)
+                os.makedirs(dir + '/', mode=mode)
             except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise FileSystemError("Cannot create directory `{0}`. Reason: {1}".format(dir, e.message))
@@ -65,7 +66,6 @@ class FileSystem:
 
         """
         Get absolute file path
-
         :param str filename: directory
         :return: str
         """
@@ -77,7 +77,6 @@ class FileSystem:
     def makefile(filename):
         """
         Create new file with context
-
         :param str filename: directory
         :param str destination:
         :param str context:
@@ -102,7 +101,6 @@ class FileSystem:
     def readline(filename, handler, handler_params, loader):
         """
         Read txt file line by line
-
         :param str filename: source file name
         :param func handler: url handler
         :param func handler_params: url handler parameters
@@ -126,7 +124,6 @@ class FileSystem:
     def read(filename):
         """
         Read .txt file
-
         :param str filename: read filename
         :raise FileSystemError
         :return: list
@@ -146,7 +143,6 @@ class FileSystem:
     def readcfg(filename):
         """
         Read .cfg file
-
         :param str filename: read filename
         :raise FileSystemError
         :return: ConfigParser.RawConfigParser
@@ -169,7 +165,6 @@ class FileSystem:
     def readraw(data):
         """
         Read .cfg raw data file
-
         :param str data: file data
         :raise FileSystemError
         :return: ConfigParser.RawConfigParser

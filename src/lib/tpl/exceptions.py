@@ -16,13 +16,13 @@
     Development Team: Stanislav WEB
 """
 
+
 class TplError(Exception):
     """TplError class"""
 
     def __init__(self, message):
         """
         TplError class constructor
-
         :param str message: error message
         """
         super(TplError, self).__init__(message)

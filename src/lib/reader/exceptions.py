@@ -15,29 +15,21 @@
 
     Development Team: Stanislav WEB
 """
+from src.core import exception
 
-import urllib3
-import socket
 
-from .exceptions import RequestError
+class ReaderError(Exception):
+    """PackageError class"""
 
-class RequestPool(type):
-    """RequestPool class"""
+    def __init__(self, error):
+        """
+        ReaderError class constructor
+        :param Exception exception: error
+        """
 
-    @property
-    def _pool(cls, *args, **kargs):
-        if getattr(cls, '_request', None) is None:
-            socket_options = urllib3.connection.HTTPConnection.default_socket_options + [
-                (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1), ]
-            cls._request = urllib3.connection_from_url('http://google.com/', socket_options=socket_options)
-        return cls._request
+        class_name = type(error).__name__
 
-class Request(object):
-    """Request class"""
+        if self.__class__.__name__ is not class_name:
+            exception.log(class_name=class_name, message=error)
 
-    def __int__(self, config):
-
-        print config
-        exit()
-        self.__metaclass__._pool(config)
-        pass
+        super(ReaderError, self).__init__("{}: {}".format(class_name, error))

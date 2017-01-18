@@ -17,3 +17,4 @@
 """
 
 from .package import Package
+from .exceptions import PackageError

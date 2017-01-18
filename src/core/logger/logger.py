@@ -38,9 +38,8 @@ class Logger():
     def inline(msg='', status='info'):
         """
         Formatted log message for inline console stdout
-
         :param str msg: formatted message
-        :param str name: title
+        :param str status: title
         :return: str
         """
 
@@ -67,7 +66,6 @@ class Logger():
     def log(name=__name__):
         """
         Log handler
-
         :param str name: log name
         :return: logging
         """

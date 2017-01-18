@@ -30,8 +30,6 @@ class Http:
     def __init__(self):
         """Init constructor"""
 
-        self.message = Message()
-        self.reader = FileReader()
         self.cpu_cnt = multiprocessing.cpu_count()
         self.counter = collections.Counter()
         self.result = collections.defaultdict(list)
@@ -41,10 +39,7 @@ class Http:
     def get(self, host, params=()):
         """Get metadata by url"""
 
-        self.__parse_params(params)
-        self.__is_server_online(host, self.port)
         self.__disable_verbose()
-        self.urls = self.__get_urls(host)
         self.exclusions = self.__get_exclusions()
         response = {}
 

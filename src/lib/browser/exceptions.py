@@ -15,6 +15,25 @@
 
     Development Team: Stanislav WEB
 """
+from src.core import exception
+
+
+class BrowserError(Exception):
+    """BrowserError class"""
+
+    def __init__(self, error):
+        """
+        BrowserError class constructor
+        :param Exception exception: error
+        """
+
+        class_name = type(error).__name__
+
+        if self.__class__.__name__ is not class_name:
+            exception.log(class_name=class_name, message=error)
+
+        super(BrowserError, self).__init__("{}: {}".format(class_name, error))
+
 
 class ThreadPoolError(Exception):
     """ThreadPoolError class"""
@@ -22,11 +41,12 @@ class ThreadPoolError(Exception):
     def __init__(self, message):
         """
         Error message
-
         :param message: message
         :return: None
         """
+
         super(ThreadPoolError, self).__init__(message)
+
 
 class WorkerError(Exception):
     """WorkerError class"""
@@ -34,9 +54,8 @@ class WorkerError(Exception):
     def __init__(self, message):
         """
         Error message
-
         :param message: message
         :return: None
         """
-        super(WorkerError, self).__init__(message)
 
+        super(WorkerError, self).__init__(message)

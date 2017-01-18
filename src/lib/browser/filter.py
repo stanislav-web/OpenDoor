@@ -16,18 +16,18 @@
     Development Team: Stanislav WEB
 """
 
-from src.lib import tpl
+from src.lib.tpl import Tpl as tpl
 
 class Filter:
     """Filter class"""
 
-    def __init__(self, Config):
+    def __init__(self, Config, total_lines):
         """
         Filter constructor
-
         :param Config: Config
+        :param int total_lines: num lines in list
         """
 
-        if Config.threads > Config.DEFAULT_MAX_THREADS or Config.threads > self.reader.total_lines:
+        if Config.threads > Config.DEFAULT_MAX_THREADS or Config.threads > total_lines:
             tpl.warning(key='thread_limit', threads=Config.threads, max=Config.DEFAULT_MAX_THREADS)
             Config.threads = Config.DEFAULT_MAX_THREADS

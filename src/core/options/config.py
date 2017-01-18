@@ -20,164 +20,40 @@
 class Config:
     """Config class"""
 
-    groups = {
-        'request': "Request tools",
-        'stream': "Stream tools",
-        'debug': "Debug tools",
-        'wordlist': "Wordlist tools",
-        'sniff': "Sniff tools",
-        'app': "Application tools",
-    }
+    groups = {'request': "Request tools", 'stream': "Stream tools", 'debug': "Debug tools",
+        'wordlist': "Wordlist tools", 'sniff': "Sniff tools", 'app': "Application tools",}
 
-    standalone = [
-        "version",
-        "update",
-        "examples"
-    ]
+    standalone = ["version", "update", "examples"]
 
-    arguments = [
-        {
-            "group": "request",
-            "args": "-p",
-            "argl": "--port",
-            "default": 80,
-            "action": "store",
-            "help": "Custom port (Default 80)",
-            "type": int
-        },
-        {
-            "group": "request",
-            "args": "-m",
-            "argl": "--method",
-            "default": "HEAD",
-            "action": "store",
-            "help": "HTTP method (use HEAD as default)",
-            "type": str
-        },
-        {
-            "group": "stream",
-            "args": "-t",
-            "argl": "--threads",
-            "default": 1,
-            "action": "store",
-            "help": "Allowed threads",
-            "type": int
-        },
-        {
-            "group": "request",
-            "args": "-d",
-            "argl": "--delay",
-            "default": 0,
-            "action": "store",
-            "help": "Delay between requests",
-            "type": int
-        },
-        {
-            "group": "request",
-            "args": None,
-            "argl": "--timeout",
-            "default": 0,
-            "action": "store",
-            "help": "Request timeout",
-            "type": int
-        },
-        {
-            "group": "request",
-            "args": None,
-            "argl": "--cookies",
-            "default": "",
-            "action": "store",
-            "help": "Request cookies from cookies.txt",
-            "type": str
-        },
-        {
-            "group": "debug",
-            "args": None,
-            "argl": "--debug",
-            "default": 0,
-            "action": "store",
-            "help": "Debug level 1 - 3",
-            "type": int
-        },
-        {
-            "group": "request",
-            "args": None,
-            "argl": "--tor",
-            "default": False,
-            "action": "store_true",
-            "help": "Using proxylist",
-            "type": bool
-        },
-        {
-            "group": "wordlist",
-            "args": "-s",
-            "argl": "--scan",
-            "default": "directories",
-            "action": "store",
-            "help": "Scan type scan=directories or scan=subdomains",
-            "type": str
-        },
-        {
-            "group": "wordlist",
-            "args": "-l",
-            "argl": "--reports",
-            "default": None,
-            "action": "store",
-            "help": "Scan reports",
-            "type": bool
-        },
-        {
-            "group": "request",
-            "args": None,
-            "argl": "--random-agent",
-            "default": False,
-            "action": "store_true",
-            "help": "Randomize user-agent per request",
-            "type": bool
-        },
-        {
-            "group": "wordlist",
-            "args": None,
-            "argl": "--random-list",
-            "default": False,
-            "action": "store_true",
-            "help": "Randomize scan list",
-            "type": bool
-        },
-        {
-            "group": "sniff",
-            "args": "-i",
-            "argl": "--indexof",
-            "default": False,
-            "action": "store_true",
-            "help": "Detect  Index of/",
-            "type": bool
-        },
-        {
-            "group": "app",
-            "args": None,
-            "argl": "--update",
-            "default": False,
-            "action": "store_true",
-            "help": "Update from CVS",
-            "type": bool
-        },
-        {
-            "group": "app",
-            "args": None,
-            "argl": "--version",
-            "default": False,
-            "action": "store_true",
-            "help": "Get current version",
-            "type": bool
-        },
-        {
-            "group": "app",
-            "args": None,
-            "argl": "--examples",
-            "default": False,
-            "action": "store_true",
-            "help": "Examples of usage",
-            "type": bool
-        }
-    ]
+    arguments = [{"group": "request", "args": "-p", "argl": "--port", "default": 80, "action": "store",
+        "help": "Custom port (Default 80)", "type": int},
+        {"group": "request", "args": "-m", "argl": "--method", "default": "HEAD", "action": "store",
+            "help": "HTTP method (use HEAD as default)", "type": str},
+        {"group": "stream", "args": "-t", "argl": "--threads", "default": 1, "action": "store",
+            "help": "Allowed threads", "type": int},
+        {"group": "request", "args": "-d", "argl": "--delay", "default": 0, "action": "store",
+            "help": "Delay between requests", "type": int},
+        {"group": "request", "args": None, "argl": "--timeout", "default": 0, "action": "store",
+            "help": "Request timeout", "type": int},
+        {"group": "request", "args": None, "argl": "--cookies", "default": "", "action": "store",
+            "help": "Request cookies from cookies.txt", "type": str},
+        {"group": "debug", "args": None, "argl": "--debug", "default": 0, "action": "store",
+            "help": "Debug level 1 - 3", "type": int},
+        {"group": "request", "args": None, "argl": "--tor", "default": False, "action": "store_true",
+            "help": "Using proxylist", "type": bool},
+        {"group": "wordlist", "args": "-s", "argl": "--scan", "default": "directories", "action": "store",
+            "help": "Scan type scan=directories or scan=subdomains", "type": str},
+        {"group": "wordlist", "args": "-l", "argl": "--reports", "default": None, "action": "store",
+            "help": "Scan reports", "type": bool},
+        {"group": "request", "args": None, "argl": "--random-agent", "default": False, "action": "store_true",
+            "help": "Randomize user-agent per request", "type": bool},
+        {"group": "wordlist", "args": None, "argl": "--random-list", "default": False, "action": "store_true",
+            "help": "Randomize scan list", "type": bool},
+        {"group": "sniff", "args": "-i", "argl": "--indexof", "default": False, "action": "store_true",
+            "help": "Detect  Index of/", "type": bool},
+        {"group": "app", "args": None, "argl": "--update", "default": False, "action": "store_true",
+            "help": "Update from CVS", "type": bool},
+        {"group": "app", "args": None, "argl": "--version", "default": False, "action": "store_true",
+            "help": "Get current version", "type": bool},
+        {"group": "app", "args": None, "argl": "--examples", "default": False, "action": "store_true",
+            "help": "Examples of usage", "type": bool}]

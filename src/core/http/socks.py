@@ -19,18 +19,18 @@
 import socket
 
 from .exceptions import SocketError
-from .config import SocketConfig as config
+
 
 class Socket:
     """Socket class"""
 
     @staticmethod
-    def ping(host, port):
+    def ping(host, port, timeout=10):
         """
         Ping remote host
-
         :param str host: target  host
         :param int port: target port
+        :param int timeout: connection timeout
         :raise SocketError
         :return: None
         """
@@ -38,7 +38,7 @@ class Socket:
 
         try:
 
-            sock.settimeout(config.timeout)
+            sock.settimeout(timeout)
             sock.connect((host, port))
 
         except (socket.gaierror, socket.timeout, SocketError) as e:
@@ -50,7 +50,6 @@ class Socket:
     def get_ip_address(host):
         """
         Get remote ip address
-
         :param str host: target  host
         :raise SocketError
         :return: str

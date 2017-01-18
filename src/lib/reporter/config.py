@@ -16,9 +16,8 @@
     Development Team: Stanislav WEB
 """
 
+
 class Config:
     """Config class"""
 
-    scan = {
-        'log_dir': 'reports/'
-    }
+    report_dir = 'reports/'

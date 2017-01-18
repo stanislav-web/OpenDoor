@@ -16,13 +16,13 @@
     Development Team: Stanislav WEB
 """
 
-import subprocess
 import os
+import subprocess
 
 from .exceptions import SystemError
 
-class Term(type):
 
+class Term(type):
     @property
     def terminal_size(cls):
         """
@@ -33,10 +33,7 @@ class Term(type):
         if getattr(cls, 'ts', None) is None:
 
             (height, width) = subprocess.check_output(['stty', 'size']).split()
-            ts = {
-                'height': height,
-                'width': width
-            }
+            ts = {'height': height, 'width': width}
             cls.ts = ts
         return cls.ts
 
@@ -50,8 +47,7 @@ class Process(object):
     def system(command):
 
         """
-        Call OS command
-
+        Execute OS command
         :param str command: os command
         :raise SystemError
         :return: dic
@@ -63,17 +59,15 @@ class Process(object):
             raise SystemError(e)
 
     @staticmethod
-    def execute(command):
+    def execute(process):
         """
-        Excecute OS command
-
+        Exceute OS process
         :param str command: os command
         :raise SystemError
         :return: dic
         """
         try:
-            pr = subprocess.Popen(command, cwd=os.getcwd(),
-                                  shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            pr = subprocess.Popen(process, cwd=os.getcwd(), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             (out, error) = pr.communicate()
             if pr.returncode != 0:
                 raise OSError(error.strip())

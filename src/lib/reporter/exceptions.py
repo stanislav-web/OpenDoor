@@ -16,15 +16,15 @@
     Development Team: Stanislav WEB
 """
 
-class SocketConfig:
-    """SocketConfig class"""
 
-    timeout = 10
+class ReporterError(Exception):
+    """ReporterError class"""
 
-class RequestConfig:
-    """SocketConfig class"""
+    def __init__(self, message):
+        """
+        Error message
+        :param message: message
+        :return: None
+        """
 
-class ResponseConfig:
-    """SocketConfig class"""
-
-
+        super(ReporterError, self).__init__(message)

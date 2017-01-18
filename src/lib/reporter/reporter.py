@@ -16,4 +16,19 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import execution_time
+from src.core import filesystem
+from .config import Config
+
+
+class Reporter:
+    """Reporter class"""
+
+    @staticmethod
+    def is_reported(resource):
+        """
+        Check is session already reported
+        :param str resource:
+        :return: bool
+        """
+
+        return filesystem.is_exist(Config.report_dir, resource)

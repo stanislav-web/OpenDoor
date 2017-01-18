@@ -16,9 +16,11 @@
     Development Team: Stanislav WEB
 """
 
-from setuptools import setup, find_packages
-import pypandoc
 import glob
+
+import pypandoc
+from setuptools import setup, find_packages
+
 from src import Controller
 
 try:
@@ -26,8 +28,7 @@ try:
 except(IOError, ImportError):
     long_description = open('README.md').read()
 
-setup(
-    name='opendoor',
+setup(name='opendoor',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -35,36 +36,29 @@ setup(
 
     version=Controller.local_version(),
 
-    description='OWASP Directory Access scanner',
-    long_description=long_description,
+    description='OWASP Directory Access scanner', long_description=long_description,
 
     # The project's main homepage.
     url='https://github.com/stanislav-web/OpenDoor',
 
     # Author details
-    author='Stanislav WEB',
-    author_email='stanisov@gmail.com',
+    author='Stanislav WEB', author_email='stanisov@gmail.com',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     packages=find_packages(),
 
     # Choose your license
-    license='GPL',
-    test_suite='tests',
+    license='GPL', test_suite='tests',
 
     # What does your project relate to?
-    keywords=['owasp scanner', 'directory scanner', 'access directory scanner', 'web spider', 'auth scanner', 'dir search'],
+    keywords=['owasp scanner', 'directory scanner', 'access directory scanner', 'web spider', 'auth scanner',
+              'dir search'],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
-    entry_points={
-        'console_scripts': [
-            'opendoor=opendoor:main',
-            'coveralls = coveralls.cli:main',
-        ],
-    },
+    entry_points={'console_scripts': ['opendoor=opendoor:main', 'coveralls = coveralls.cli:main', ],},
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
@@ -72,13 +66,11 @@ setup(
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
     data_files=[('data', glob.glob("/data/*.dat"))],
 
-    scripts=['opendoor.py'],
-    install_requires=[line.rstrip('\n') for line in open('requirements.txt')],
+    scripts=['opendoor.py'], install_requires=[line.rstrip('\n') for line in open('requirements.txt')],
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
-
+    # How mature is this project? Common values are
     classifiers=[
-        # How mature is this project? Common values are
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
@@ -96,6 +88,4 @@ setup(
 
         # Specify the additional categories
         'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking'
-        'Topic :: Software Development :: src :: Python Modules',
-    ],
-)
+        'Topic :: Software Development :: src :: Python Modules', ], )

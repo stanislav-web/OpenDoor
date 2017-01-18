@@ -17,3 +17,4 @@
 """
 
 from .browser import Browser
+from .exceptions import BrowserError

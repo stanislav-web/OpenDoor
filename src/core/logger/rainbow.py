@@ -16,6 +16,7 @@
     Development Team: Stanislav WEB
 """
 
+import re
 import logging
 from colorize import ColorizingStreamHandler
 from src.core.system import Process
@@ -43,7 +44,6 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
     def get_color(self, fg=None, bg=None, bold=False):
         """
         Construct a terminal color code
-
         :param str fg: Symbolic name of foreground color
         :param str bg: Symbolic name of background color
         :param str bold: Brightness bit
@@ -64,7 +64,6 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
     def colorize(self, record):
         """
         Get a special format string with ASCII color codes
-
         :param object record:
         :return: str
         """
@@ -120,15 +119,27 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         # Clean cache so the color codes of traceback don't leak to other formatters
         record.ext_text = None
 
+
         width = int(Process.terminal_size.get('width'))
-        if len(output) > width:
-            output = (output[:(width-3)] + '...') if len(output) > width else output
-        return output
+        output = (output[:(width-3)] + '...') if len(output) > width else output
+
+        length = width - self.__pure_line_len(output)
+        end = (' ' * length)[:length]
+        return output + end
+
+    def __pure_line_len(self, string):
+        """
+        Get pure line
+        :param str string:
+        :return:
+        """
+
+        ansi_escape = re.compile(r'\x1b[^m]*m')
+        return len(ansi_escape.sub('', string))
 
     def colorize_traceback(self, formatter, record):
         """
         Turn traceback text to red
-
         :param object formatter:
         :param object record:
         :return: None
@@ -147,7 +158,6 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         """
         Formats a record for output.
         Takes a custom formatting path on a terminal.
-
         :param str record: input message
         :return: str
         """

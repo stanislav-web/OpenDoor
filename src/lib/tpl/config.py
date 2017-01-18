@@ -41,7 +41,10 @@ class Config:
         'option_prompt'  : 'Press "[C]ontinue" to resume or "[E]xit" to abort session: ',
         'resume_threads'  : 'Resuming scan...',
         'get_item_lvl1' : '{percent} [{current}/{total}] - {size} - {item}',
-        'addtopool'  : 'Adding {total} lines to queue...'
+        'addtopool'  : 'Adding {total} lines to queue...',
+        'http_pool_start' : 'Using HTTP keep-alive connection',
+        'https_pool_start' : 'Using SSL keep-alive connection',
+        'ssl_pool_start' : 'Using random proxies'
     }
 
     #                "http": {

@@ -17,9 +17,11 @@
 """
 
 from argparse import RawDescriptionHelpFormatter
-from .exceptions import ArgumentParserError, ThrowingArgumentParser, OptionsError, FilterError
+
 from .config import Config
+from .exceptions import ArgumentParserError, ThrowingArgumentParser, OptionsError, FilterError
 from .filter import Filter
+
 
 class Options:
     """Options class"""
@@ -27,7 +29,6 @@ class Options:
     def __init__(self):
         """
         Constructor
-
         :raise OptionsError
         """
 
@@ -48,24 +49,27 @@ class Options:
 
                 if arg['args'] is None:
                     if bool == arg['type']:
-                        groups[arg['group']].add_argument(arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'])
+                        groups[arg['group']].add_argument(arg['argl'], default=arg['default'], action=arg['action'],
+                                                          help=arg['help'])
                     else:
-                        groups[arg['group']].add_argument(arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'], type=arg['type'])
+                        groups[arg['group']].add_argument(arg['argl'], default=arg['default'], action=arg['action'],
+                                                          help=arg['help'], type=arg['type'])
                 else:
                     if bool == arg['type']:
-                        groups[arg['group']].add_argument(arg['args'], arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'])
+                        groups[arg['group']].add_argument(arg['args'], arg['argl'], default=arg['default'],
+                                                          action=arg['action'], help=arg['help'])
                     else:
-                        groups[arg['group']].add_argument(arg['args'], arg['argl'], default=arg['default'], action=arg['action'], help=arg['help'], type=arg['type'])
+                        groups[arg['group']].add_argument(arg['args'], arg['argl'], default=arg['default'],
+                                                          action=arg['action'], help=arg['help'], type=arg['type'])
 
             parser.parse_args()
             self.parser = parser
         except (ArgumentParserError) as e:
-           raise OptionsError(e.message)
+            raise OptionsError(e.message)
 
     def get_arg_values(self):
         """
         Get used input options
-
         :raise OptionsError
         :return: dict
         """
@@ -75,15 +79,10 @@ class Options:
         try:
             arguments = self.parser.parse_args()
 
-            if not arguments.host \
-                    and True is not arguments.version \
-                    and True is not arguments.update \
-                    and True is not arguments.examples:
+            if not arguments.host and True is not arguments.version and True is not arguments.update and True is not arguments.examples:
                 raise OptionsError("argument --host is required")
 
-            if True is arguments.version \
-                    or True is arguments.update \
-                    or True is arguments.examples:
+            if True is arguments.version or True is arguments.update or True is arguments.examples:
                 for arg, value in vars(arguments).iteritems():
                     if arg in Config.standalone and True is value:
                         args[arg] = value

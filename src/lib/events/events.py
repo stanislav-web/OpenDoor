@@ -18,16 +18,15 @@
 
 from src.core import handler
 
+
 class EventHandler:
     """EventHandler class"""
 
     @staticmethod
     def terminate():
         """
-        Define termanate handler
-
-        :param funct handler: callback
-        :return: Null
+        Define terminate event handler
+        :return: None
         """
 
         handler.termation_handler()

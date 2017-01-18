@@ -16,25 +16,26 @@
     Development Team: Stanislav WEB
 """
 
+import inspect
 import logging
 import logging.config
-import inspect
-from src.core import filesystem
 from exceptions import Exception as Error
+
+from src.core import filesystem
 from .config import Config
 
-class Exception():
 
+class Exception():
     @staticmethod
     def log(class_name='Error', message=''):
         """
         Syslog error handler
-
         :param str class_name: log name
         :param str message: log message
         :raise Error
         :return: None
         """
+
         try:
 
             filesystem.makedir(Config.logdir)
@@ -44,13 +45,8 @@ class Exception():
 
             func = inspect.currentframe().f_back.f_code
 
-            message = "{class_name}: {message} in {file} -> {func}() line {line}".format(
-                class_name=class_name,
-                message=message,
-                file=func.co_filename,
-                func=func.co_name,
-                line=func.co_firstlineno
-            )
+            message = "{class_name}: {message} in {file} -> {func}() line {line}".format(class_name=class_name,
+                message=message, file=func.co_filename, func=func.co_name, line=func.co_firstlineno)
             logger.error(message)
         except (Error, ValueError) as e:
             raise Error(e)

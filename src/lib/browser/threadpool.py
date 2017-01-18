@@ -15,13 +15,15 @@
 
     Development Team: Stanislav WEB
 """
-import time
 import threading
+import time
 from Queue import Queue
-from .worker import Worker
-from .exceptions import WorkerError
+
+from src.lib.tpl import Tpl as tpl
 from .exceptions import ThreadPoolError
-from src.lib import tpl
+from .exceptions import WorkerError
+from .worker import Worker
+
 
 class ThreadPool():
     """ThreadPool class"""
@@ -29,15 +31,16 @@ class ThreadPool():
     def __init__(self, num_threads, total_items):
         """
         Initialize thread pool
-
-        :param int num_threads:
+        :param int num_threads: active workers
+        :param int total_items: total items
+        :raise ThreadPoolError
         :return None
         """
 
         self.__queue = Queue(num_threads)
         self.workers = []
         self.total_items_sizes = total_items
-        self.is_pool_started = True
+        self.is_started = True
 
         try:
 
@@ -58,12 +61,12 @@ class ThreadPool():
             raise ThreadPoolError(e)
 
     @property
-    def pool_items_size(self):
+    def size(self):
         """
         Get pool items size
-
         :return: int
         """
+
         counter = 0
         for worker in self.workers:
             counter += worker.counter
@@ -72,7 +75,6 @@ class ThreadPool():
     def add(self, func, *args, **kargs):
         """
         Add a task to the queue
-
         :param func func: callback function
         :param dict args: arguments
         :param kargs: key arguments
@@ -80,13 +82,13 @@ class ThreadPool():
         """
 
         try:
-            if True is self.is_pool_started:
-                if self.pool_items_size < self.total_items_sizes:
+            if True is self.is_started:
+                if self.size < self.total_items_sizes:
                     self.__queue.put((func, args, kargs))
                 else:
                     self.__queue.join()
         except (SystemExit, KeyboardInterrupt):
-           self.pause()
+            self.pause()
 
     def pause(self):
         """
@@ -95,18 +97,17 @@ class ThreadPool():
         :return: None
         """
 
-        self.is_pool_started = False
+        self.is_started = False
         tpl.message('\n')
         tpl.info(key='stop_threads', threads=len(self.workers))
 
         try:
             while 0 < threading.active_count():
-                if False is self.is_pool_started and False:
+                if False is self.is_started and False:
                     for worker in threading._enumerate():
                         if threading.current_thread().__class__.__name__ != '_MainThread':
                             worker.pause()
                     time.sleep(3)
-
 
                 char = tpl.prompt(key='option_prompt')
                 if char.lower() == 'e':
@@ -123,13 +124,12 @@ class ThreadPool():
     def resume(self):
         """
         Resume threadpool
-
         :return: None
         """
 
-        if False is self.is_pool_started:
+        if False is self.is_started:
             tpl.info(key='resume_threads')
             for worker in self.workers:
                 worker.resume()
-            self.is_pool_started = True
+            self.is_started = True
         pass

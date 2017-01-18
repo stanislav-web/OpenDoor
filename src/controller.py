@@ -16,44 +16,46 @@
     Development Team: Stanislav WEB
 """
 
-from src.lib import args
-from src.lib import package
-from src.lib import browser
+from src.lib import ArgumentsError
+from src.lib import BrowserError
+from src.lib import PackageError
 from src.lib import applog
-from src.lib import tpl
-from src.lib import LibError
+from src.lib import args
+from src.lib import browser
 from src.lib import events
-from src.lib import execution_time
+from src.lib import package
+from src.lib import tpl
+from . import execution_time
 from .exceptions import SrcError
+
 
 class Controller:
     """Controller class"""
 
     def __init__(self):
         """
-        Init cnstructor
-
-        :raise LibError
+        Init constructor
+        :raise SrcError
         """
 
         events.terminate()
 
-        try :
+        try:
 
             interpreter = package.check_interpreter()
 
             if True != interpreter:
-                raise SrcError(tpl.error(key='unsupported', actual=interpreter.get('actual'), expected=interpreter.get('expected')))
+                raise SrcError(tpl.error(key='unsupported', actual=interpreter.get('actual'),
+                                         expected=interpreter.get('expected')))
 
             self.ioargs = args().get_arguments()
-        except LibError as e:
+        except ArgumentsError as e:
             raise SrcError(tpl.error(e.message))
 
     @execution_time(log=tpl)
     def run(self):
         """
-        Contriller bootstrap action
-
+        Bootstrap action
         :raise SrcError
         :return: None
         """
@@ -72,7 +74,7 @@ class Controller:
                         getattr(self, '{func}_action'.format(func=action))()
                         break
 
-        except (LibError, SrcError) as e:
+        except (SrcError, PackageError, BrowserError, AttributeError) as e:
             raise SrcError(tpl.error(e.message))
         finally:
             package.cursor('on')
@@ -81,7 +83,6 @@ class Controller:
     def examples_action():
         """
         Show examples action
-
         :return: None
         """
 
@@ -91,14 +92,13 @@ class Controller:
     def update_action():
         """
         App update action
-
-        :raise LibError
+        :raise SrcError
         :return: None
         """
 
         try:
             package.update()
-        except LibError as e:
+        except (AttributeError, PackageError) as e:
             raise SrcError(e)
 
     @staticmethod
@@ -112,35 +112,32 @@ class Controller:
 
         try:
             package.version()
-        except LibError as e:
+        except (AttributeError, PackageError) as e:
             raise SrcError(e)
 
     @staticmethod
     def local_version():
         """
         Show app local version
-
         :raise SrcError
         :return: None
         """
 
         try:
             return package.local_version()
-        except LibError as e:
+        except (AttributeError, PackageError) as e:
             raise SrcError(e)
-
 
     def scan_action(self, params=()):
         """
-        Host scan action
-
+        URL scan action
         :param dict params: console input args
         :raise SrcError
         :return: None
         """
 
         brows = browser(params)
-        if False is applog.is_logged(params.get('host')):
+        if False is applog.is_reported(params.get('host')):
 
             if None is params.get('reports'):
                 tpl.info(key='use_reports')
@@ -148,17 +145,13 @@ class Controller:
             try:
                 brows.ping()
                 brows.scan()
-            except LibError as e:
-                raise SrcError(e)
+            except (AttributeError, BrowserError) as e:
+                raise SrcError(e.message)
             except (KeyboardInterrupt, SystemExit):
                 tpl.cancel(key='abort')
 
         else:
             try:
-                raw_input(
-                    tpl.line(key='logged', color='yellow',host=params.get('host'))
-                )
+                raw_input(tpl.line(key='logged', color='yellow', host=params.get('host')))
             except KeyboardInterrupt:
                 tpl.cancel(key='abort')
-
-

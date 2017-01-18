@@ -16,7 +16,8 @@
     Development Team: Stanislav WEB
 """
 
-from src.lib import tpl
+from src.lib.tpl import Tpl as tpl
+
 
 class Debug:
     """Debug class"""
@@ -24,7 +25,6 @@ class Debug:
     def __init__(self, Config):
         """
         Debug constructor
-
         :param Config: Config
         """
 
@@ -34,11 +34,9 @@ class Debug:
             tpl.debug(key='debug', level=self.__config.debug)
         pass
 
-
     def _debug_user_agents(self):
         """
         Debug info for user agent
-
         :return: None
         """
 
@@ -50,11 +48,9 @@ class Debug:
             else:
                 tpl.debug(key='browser', browser=self.__config.user_agent)
 
-
     def _debug_proxy(self):
         """
         Debug info for proxy
-
         :return: None
         """
 
@@ -67,18 +63,17 @@ class Debug:
     def _debug_randomizing_list(self):
         """
         Debug randomizing list process
-
-        :return:
+        :return: None
         """
+
         if 0 < self.__config.debug:
             tpl.debug(key='randomizing')
-
 
     def _debug_list(self, total_lines):
         """
         Debug list process
-
-        :return:
+        :param int total_lines: list lines
+        :return: None
         """
 
         if 0 < self.__config.debug:
@@ -91,7 +86,6 @@ class Debug:
     def _debug_line(self, line):
         """
         Debug info for target line
-
         :param str line
         :return: None
         """
@@ -104,13 +98,10 @@ class Debug:
     def _debug_progress(self, i, total):
         """
         Progress bar
-
         :param int i: current counter
         :param int total: total counter
         :return: None
         """
+
         if 0 < self.__config.debug:
             tpl.progress(i, total)
-
-
-

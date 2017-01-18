@@ -29,7 +29,6 @@ class Filter:
     def filter(args):
         """
         Filter options
-
         :param dict args:
         :return: dict
         """
@@ -42,6 +41,7 @@ class Filter:
             elif 'host' == key:
                 filtered['host'] = Filter.host(value)
                 filtered['scheme'] = Filter.scheme(value)
+                filtered['ssl'] = Filter.ssl(filtered['scheme'])
             else:
                 filtered[key] = value
 
@@ -51,7 +51,6 @@ class Filter:
     def scheme(host):
         """
         Get `host` scheme from input
-
         :param str host:
         :return: str
         """
@@ -62,10 +61,21 @@ class Filter:
         return scheme + "://"
 
     @staticmethod
+    def ssl(scheme):
+        """
+        If `ssl` in action
+        :param str scheme:
+        :return: bool
+        """
+        if 'https://' == scheme:
+            return True
+        else:
+            return False
+
+    @staticmethod
     def host(host):
         """
         Input `host` param filter
-
         :param str host:
         :raise FilterError
         :return: str
@@ -87,7 +97,6 @@ class Filter:
     def scan(type):
         """
         Input `scan` type filter
-
         :param str type:
         :return: str
         """

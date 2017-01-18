@@ -16,21 +16,15 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import filesystem
-from .config import Config
 
-class Logger:
-    """Logger class"""
+class ArgumentsError(Exception):
+    """ArgumentsError class"""
 
-    @staticmethod
-    def is_logged(resource):
-        """Load application banner
-
-        Args:
-            resource(str):  resource name
-        Returns:
-            bool: True if log data is exists otherwise return False
-
+    def __init__(self, message):
+        """
+        Error message
+        :param message: message
+        :return: None
         """
 
-        return filesystem.is_exist(Config.scan['log_dir'], resource)
+        super(ArgumentsError, self).__init__(message)

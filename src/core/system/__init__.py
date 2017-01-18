@@ -16,5 +16,5 @@
     Development Team: Stanislav WEB
 """
 
-from .system import System
 from .process import Process
+from .system import System

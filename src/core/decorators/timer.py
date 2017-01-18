@@ -16,27 +16,25 @@
     Development Team: Stanislav WEB
 """
 
-import time
 import datetime
 import functools
+import time
 
-def execution_time(function=None,log=None):
+
+def execution_time(function=None, log=None):
     """
     Time execution decorator @execution_time(log=tpl)
-
-
     :param funct function: wrapped function
     :param funct log: logger
     :return: func
     """
-
     if not function:
         return functools.partial(execution_time, log=log)
 
     @functools.wraps(function)
     def function_timer(*args, **kwargs):
         """
-        Timer
+        Function timer
         :param args:  arguments
         :param kwargs: key arguments
         :return: func
@@ -46,6 +44,7 @@ def execution_time(function=None,log=None):
         result = function(*args, **kwargs)
         t1 = time.time()
         timeless = "{:0>8}".format(datetime.timedelta(seconds=(t1 - t0)))
-        log.debug (key='total_time_lvl3', time=timeless)
+        log.debug(key='total_time_lvl3', time=timeless)
         return result
+
     return function_timer

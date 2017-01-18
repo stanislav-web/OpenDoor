@@ -16,3 +16,4 @@
     Development Team: Stanislav WEB
 """
 from .arguments import Arguments
+from .exceptions import ArgumentsError

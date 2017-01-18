@@ -16,13 +16,13 @@
     Development Team: Stanislav WEB
 """
 
+
 class SystemError(Exception):
     """SystemError class"""
 
     def __init__(self, message):
         """
         SystemError class constructor
-
         :param str message: error message
         """
         super(SystemError, self).__init__(message)

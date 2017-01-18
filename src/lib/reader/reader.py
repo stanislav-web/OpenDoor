@@ -17,25 +17,25 @@
 """
 
 import random
-from .config import Config
-from src.core import process
+
+from src.core import FileSystemError, SystemError
 from src.core import filesystem
-from src.core import FileSystemError , SystemError
-from ...lib.exceptions import LibError
+from src.core import process
+from .config import Config
+from .exceptions import ReaderError
+
 
 class Reader():
-
     """Reader class"""
 
     def __init__(self, browser_config):
         """
         Reader constructor
-
         :param dict browser_config:
         """
 
-        self.__config =  self.__load_config()
-        self.__browser_config =  browser_config
+        self.__config = self.__load_config()
+        self.__browser_config = browser_config
         self.__useragents = []
         self.__proxies = []
         self.__counter = 0
@@ -44,23 +44,20 @@ class Reader():
     def __load_config():
         """
         Load main configuration file
-
-        :raise LibError
+        :raise ReaderError
         :return: ConfigParser.RawConfigParser
         """
 
-        try :
+        try:
             config = filesystem.readcfg(Config.setup)
             return config
         except FileSystemError as e:
-            raise LibError(e)
-
+            raise ReaderError(e)
 
     def _get_random_user_agent(self):
         """
         Get random user agent from user-agents list
-
-        :raise LibError
+        :raise ReaderError
         :return: str
         """
 
@@ -73,14 +70,12 @@ class Reader():
             return self.__useragents[index].strip()
 
         except FileSystemError as e:
-            raise LibError(e)
-
+            raise ReaderError(e)
 
     def _get_random_proxy(self):
         """
         Get random proxy from proxy list
-
-        :raise LibError
+        :raise ReaderError
         :return: str
         """
 
@@ -93,16 +88,15 @@ class Reader():
             return self.__proxies[index].strip()
 
         except FileSystemError as e:
-            raise LibError(e)
+            raise ReaderError(e)
 
     def _get_lines(self, listname, params, loader):
         """
         Read lines from large file
-
         :param str listname: list name
         :param dict params: input params
         :param funct loader:  callback function
-        :raise LibError
+        :raise ReaderError
         :return: str
         """
 
@@ -112,21 +106,14 @@ class Reader():
             dirlist = self.__config.get('opendoor', listname)
 
         try:
-            filesystem.readline(dirlist,
-                                      handler=getattr(self, '_{0}__line'.format(
-                                                        self.__browser_config.get('list'))
-                                                      ),
-                                      handler_params=params,
-                                      loader=loader
-                                      )
+            filesystem.readline(dirlist, handler=getattr(self, '_{0}__line'.format(self.__browser_config.get('list'))),
+                                handler_params=params, loader=loader)
         except FileSystemError as e:
-            raise LibError(e)
-
+            raise ReaderError(e)
 
     def _subdomains__line(self, line, params):
         """
         Read lines from subdomains file
-
         :param str line: single line
         :param dict params: input params
         :return: str
@@ -146,19 +133,13 @@ class Reader():
         else:
             port = ':{0}'.format(port)
 
-        line = "{scheme}{sub}.{host}{port}".format(
-            scheme=params.get('scheme'),
-            host=host,
-            port=port,
-            sub=line,
-        )
+        line = "{scheme}{sub}.{host}{port}".format(scheme=params.get('scheme'), host=host, port=port, sub=line, )
 
         return line
 
     def _directories__line(self, line, params):
         """
         Read lines from directories file
-
         :param str line: single line
         :param dict params: input params
         :return: str
@@ -174,21 +155,17 @@ class Reader():
         else:
             port = ':{0}'.format(port)
 
-        line = "{scheme}{host}{port}/{uri}".format(
-            scheme=params.get('scheme'),
-            host=params.get('host'),
-            port=port,
-            uri=line,
-        )
+        line = "{scheme}{host}{port}/{uri}".format(scheme=params.get('scheme'), host=params.get('host'), port=port,
+            uri=line, )
 
         return line
 
     def _randomize_list(self, target_list):
         """
         Randomize scan list
-
         :param str target_list: target list
-        :return: Null
+        :raise ReaderError
+        :return: None
         """
         try:
 
@@ -197,15 +174,13 @@ class Reader():
             filesystem.makefile(result_file)
             process.execute('shuf {target} -o {result}'.format(target=target_file, result=result_file))
         except (SystemError, FileSystemError) as e:
-            raise LibError(e)
+            raise ReaderError(e)
 
     def _count_total_lines(self, listname):
-
         """
         Count total lines inside wordlist
-
         :param string listname:
-        :raise LibError
+        :raise ReaderError
         :return: int
         """
         try:
@@ -217,14 +192,12 @@ class Reader():
             return self.__counter
 
         except FileSystemError as e:
-            raise LibError(e)
+            raise ReaderError(e)
 
     @property
     def total_lines(self):
-
         """
         Return total lines
-
         :return: int
         """
 
