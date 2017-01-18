@@ -24,7 +24,7 @@ class Config:
         'abort'  : 'Session canceled',
         'use_reports'  : 'Use --report param to store your scan results',
         'logged' : 'The {host} has been reported. Press ENTER to rescan or CTRL+C to exit: ',
-        'checking_connect' : 'Wait, please! Ping {host}:{port}',
+        'checking_connect' : 'Wait, please, checking connect to -> {host}:{port} ...',
         'online': 'Server {host}:{port} ({ip}) is online!',
         'scanning': 'Scanning {host} ...',
         'debug': 'Starting debug level {level} ...',

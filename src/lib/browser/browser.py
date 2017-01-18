@@ -72,8 +72,7 @@ class Browser(Debug, Filter):
         """
 
         try:
-            if 0 < self.__config.debug:
-                tpl.debug(key='checking_connect', host=self.__config.host, port=self.__config.port)
+            tpl.info(key='checking_connect', host=self.__config.host, port=self.__config.port)
             socket.ping(self.__config.host, self.__config.port, self.__config.DEFAULT_SOCKET_TIMEOUT)
             tpl.info(key='online', host=self.__config.host, port=self.__config.port,
                      ip=socket.get_ip_address(self.__config.host))
