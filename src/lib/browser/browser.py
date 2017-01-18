@@ -99,24 +99,26 @@ class Browser(Debug, Filter):
 
             if True is self.__config.is_proxy:
                 self.__request = request_proxy(self.__config,
+                                                 proxy_list=self.__reader.get_proxies(),
                                                  debug=self.__config.debug,
                                                  tpl=tpl
                                                  )
             else:
 
-                if False is self.__config.ssl:
-                    self.__request = request_http(self.__config,
-                                                 debug=self.__config.debug,
-                                                 tpl=tpl
-                                                 )
-                else:
+                if True is self.__config.ssl:
                     self.__request = request_ssl(self.__config,
                                                  debug=self.__config.debug,
                                                  tpl=tpl
                                                  )
+                else:
+                    self.__request = request_http(self.__config,
+                                                  debug=self.__config.debug,
+                                                  tpl=tpl
+                                                  )
+
 
             if True is self.__pool.is_started:
-                self.__reader._get_lines(self.__config.scan,
+                self.__reader.get_lines(self.__config.scan,
                                          params={'host': self.__config.host, 'port': self.__config.port,
                                                  'scheme': self.__config.scheme},
                                          loader=getattr(self, '_add_url'.format()))

@@ -54,7 +54,7 @@ class Reader():
         except FileSystemError as e:
             raise ReaderError(e)
 
-    def _get_random_user_agent(self):
+    def get_random_user_agent(self):
         """
         Get random user agent from user-agents list
         :raise ReaderError
@@ -72,9 +72,9 @@ class Reader():
         except FileSystemError as e:
             raise ReaderError(e)
 
-    def _get_random_proxy(self):
+    def get_proxies(self):
         """
-        Get random proxy from proxy list
+        Get proxy list
         :raise ReaderError
         :return: str
         """
@@ -83,14 +83,12 @@ class Reader():
 
             if not len(self.__proxies):
                 self.__proxies = filesystem.read(self.__config.get('opendoor', 'proxies'))
-
-            index = random.randrange(0, len(self.__proxies))
-            return self.__proxies[index].strip()
+            return self.__proxies
 
         except FileSystemError as e:
             raise ReaderError(e)
 
-    def _get_lines(self, listname, params, loader):
+    def get_lines(self, listname, params, loader):
         """
         Read lines from large file
         :param str listname: list name

@@ -26,6 +26,7 @@ This software is written for informational purposes and is an open source produc
 - @stanislav-web <https://github.com/stanislav-web> (Developer)
 ##### Install Dependencies
 ```
+sudo apt-get install python-socksipy
 sudo pip install -r requirements.txt
 chmod +x opendoor.py
 ```
@@ -37,8 +38,9 @@ chmod +x opendoor.py
 * random proxy from proxy list
 * subdomains scanner
 * HTTP/HTTPS support
-* detection of redirect and follow
+* follow redirects
 * exclusion list
+* socks proxies
 
 ##### Changelog
 * *v1.0.0* - all the basic functionality is available

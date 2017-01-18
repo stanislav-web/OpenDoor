@@ -44,7 +44,7 @@ class Config:
         'addtopool'  : 'Adding {total} lines to queue...',
         'http_pool_start' : 'Using HTTP keep-alive connection',
         'https_pool_start' : 'Using SSL keep-alive connection',
-        'ssl_pool_start' : 'Using random proxies'
+        'ssl_pool_start' : 'Using random proxies',
     }
 
     #                "http": {

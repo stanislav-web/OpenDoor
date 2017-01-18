@@ -21,10 +21,11 @@ class Config:
     """Config class"""
 
     DEFAULT_SOCKET_TIMEOUT = 10
+    DEFAULT_MIN_THREADS = 1
     DEFAULT_MAX_THREADS = 15
     DEFAULT_DEBUG_LEVEL = 0
     DEFAULT_REQUEST_DELAY = 0
-    DEFAULT_TIMEOUT = 0
+    DEFAULT_TIMEOUT = None
     DEFAULT_HTTP_METHOD = 'HEAD'
     DEFAULT_USER_AGENT = 'Opera/9.0 (Windows NT 5.1; U; en)'
     DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
@@ -55,7 +56,7 @@ class Config:
         self._is_random_user_agent = params.get('random_agent')
         self._is_random_list = params.get('random_list')
         self._user_agent = self.DEFAULT_USER_AGENT
-        self._threads = 1 if params.get('threads') is None else params.get('threads')
+        self._threads = self.DEFAULT_MIN_THREADS if params.get('threads') is None else params.get('threads')
 
     @property
     def default_scan(self):
