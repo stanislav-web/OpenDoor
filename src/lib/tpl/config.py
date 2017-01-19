@@ -47,6 +47,7 @@ class Config:
         'http_pool_start' : 'Using HTTP keep-alive connection',
         'https_pool_start' : 'Using SSL keep-alive connection',
         'proxy_pool_start' : 'Using random proxies',
+        'max_retry_error'  : 'Skipped. Proxy {server} Max retries exceeded with url: {url}'
     }
 
     #                "http": {

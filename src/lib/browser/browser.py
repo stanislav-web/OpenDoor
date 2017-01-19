@@ -112,7 +112,7 @@ class Browser(Debug, Filter):
                                         params={'host': self.__config.host, 'port': self.__config.port,
                                                 'scheme': self.__config.scheme},
                                         loader=getattr(self, '_add_url'.format()))
-        except (HttpRequestError, HttpsRequestError, ProxyRequestError) as e:
+        except RequestError as e:
             raise BrowserError(e)
 
     def __http_request(self, url):
@@ -122,7 +122,10 @@ class Browser(Debug, Filter):
         :return: None
         """
 
-        self.__client.request(url)
+        try:
+            self.__client.request(url)
+        except (HttpRequestError, HttpsRequestError, ProxyRequestError) as e:
+            raise BrowserError(e)
 
         if 0 < self.__config.debug:
             tpl.line_log(key='get_item_lvl1',
