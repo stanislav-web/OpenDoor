@@ -41,7 +41,7 @@ class Socket:
             sock.settimeout(timeout)
             sock.connect((host, port))
 
-        except (socket.gaierror, socket.timeout, SocketError) as e:
+        except (socket.gaierror, socket.error, socket.timeout, SocketError) as e:
             raise SocketError(e)
         finally:
             sock.close()

@@ -16,7 +16,6 @@
     Development Team: Stanislav WEB
 """
 
-from .http import HttpRequest
-from .ssl import HttpsRequest
-from .proxy import Proxy
-from .socks import Socket
+from .std import StdReporter
+from .csv import CsvReporter
+from .json import JsonReporter

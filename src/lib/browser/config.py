@@ -48,6 +48,7 @@ class Config:
         self._host = params.get('host')
         self._port = params.get('port')
         self._is_indexof = params.get('indexof')
+        self._retries = False if params.get('retries') is None else params.get('retries')
         self._method = params.get('method') if params.get('indexof') is None else 'GET'
         self._delay = self.DEFAULT_REQUEST_DELAY if params.get('delay') is None else params.get('delay')
         self._timeout = self.DEFAULT_TIMEOUT if params.get('timeout') is None else params.get('timeout')
@@ -97,6 +98,10 @@ class Config:
     @property
     def timeout(self):
         return self._timeout
+
+    @property
+    def retries(self):
+        return self._retries
 
     @property
     def debug(self):

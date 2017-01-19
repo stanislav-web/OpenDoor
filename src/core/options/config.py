@@ -35,6 +35,8 @@ class Config:
             "help": "Delay between requests", "type": int},
         {"group": "request", "args": None, "argl": "--timeout", "default": 0, "action": "store",
             "help": "Request timeout", "type": int},
+        {"group": "request", "args": "-r", "argl": "--retries", "default": 3, "action": "store",
+                  "help": "Max retries to reconnect (default 3)", "type": int},
         {"group": "request", "args": None, "argl": "--cookies", "default": "", "action": "store",
             "help": "Request cookies from cookies.txt", "type": str},
         {"group": "debug", "args": None, "argl": "--debug", "default": 0, "action": "store",

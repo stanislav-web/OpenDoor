@@ -16,7 +16,5 @@
     Development Team: Stanislav WEB
 """
 
-from .http import HttpRequest
-from .ssl import HttpsRequest
-from .proxy import Proxy
-from .socks import Socket
+from .request import RequestProvider
+from .header import HeaderProvider

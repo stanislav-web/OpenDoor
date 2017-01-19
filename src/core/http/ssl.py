@@ -18,7 +18,7 @@
 
 from urllib3 import HTTPSConnectionPool
 
-from .abstract import RequestProvider
+from .providers import RequestProvider
 from .exceptions import HttpsRequestError
 
 

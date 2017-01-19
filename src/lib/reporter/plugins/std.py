@@ -16,7 +16,8 @@
     Development Team: Stanislav WEB
 """
 
-from .http import HttpRequest
-from .ssl import HttpsRequest
-from .proxy import Proxy
-from .socks import Socket
+
+class StdReporter:
+    """StdReporter class"""
+
+    report_dir = 'reports/'

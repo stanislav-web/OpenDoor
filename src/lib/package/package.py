@@ -99,22 +99,6 @@ class Package:
             raise PackageError(e)
 
     @staticmethod
-    def cursor(state):
-
-        """
-        Set cursor state
-        :raise PackageError
-        :return: None
-        """
-
-        try:
-
-            process.system(Config.params.get('cursor').format(state=state))
-
-        except SystemError as e:
-            raise PackageError(e)
-
-    @staticmethod
     def update():
         """
         Check for update

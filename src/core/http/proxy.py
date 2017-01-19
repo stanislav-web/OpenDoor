@@ -20,9 +20,9 @@ import importlib
 import random
 
 from urllib3 import ProxyManager
-from urllib3.exceptions import DependencyWarning
+from urllib3.exceptions import DependencyWarning, MaxRetryError
 
-from .abstract import RequestProvider
+from .providers import RequestProvider
 from .exceptions import ProxyRequestError
 
 
@@ -86,9 +86,17 @@ class Proxy(RequestProvider):
             raise ProxyRequestError(e)
 
     def request(self, url):
-        pool = self.__proxy_pool()
 
-        pass
+        try:
+            pool = self.__proxy_pool()
+        except MaxRetryError as e:
+            print e
+            exit()
+        except ProxyRequestError as e:
+            raise ProxyRequestError(e)
+
+        response = pool.request(self.__cfg.method, url, headers=None, retries=self.__cfg.retries)
+        return response
 
     def __get_random_proxyserver(self):
         """
