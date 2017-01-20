@@ -19,7 +19,7 @@
 
 from urllib3 import HTTPConnectionPool
 from urlparse import urlparse
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError
+from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError
 from .providers import RequestProvider, HeaderProvider
 from .exceptions import HttpRequestError
 
@@ -72,17 +72,23 @@ class HttpRequest(RequestProvider, HeaderProvider):
         :param str url: request uri
         :return: urllib3.HTTPResponse
         """
+        #import httplib
+        #httplib.HTTPConnection.debuglevel = 5
 
         try:
             response = self.__pool.request(self.__cfg.method, urlparse(url).path,
-                                           headers=None,
+                                           headers=self._headers,
                                            retries=self.__cfg.retries,
+                                           assert_same_host=True,
                                            redirect=False
                                            )
 
             return response
         except MaxRetryError:
             self.__tpl.warning(key='max_retry_error', url=urlparse(url).path)
+            pass
+        except HostChangedError as e :
+            self.__tpl.warning(key='host_changed_error', details=e)
             pass
         except ReadTimeoutError:
             self.__tpl.warning(key='read_timeout_error', url=urlparse(url).path)

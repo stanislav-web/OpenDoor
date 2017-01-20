@@ -92,7 +92,10 @@ class Proxy(RequestProvider, HeaderProvider):
         pool = self.__proxy_pool()
 
         try:
-            response = pool.request(self.__cfg.method, url, headers=None, retries=self.__cfg.retries, redirect=False)
+            response = pool.request(self.__cfg.method, url,
+                                    headers=self._headers,
+                                    retries=self.__cfg.retries,
+                                    redirect=False)
             return response
         except MaxRetryError:
             self.__tpl.warning(key='proxy_max_retry_error', url=urlparse(url).path, proxy=self.__server)

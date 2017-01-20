@@ -49,6 +49,7 @@ class Config:
         'proxy_pool_start' : 'Using random proxies',
         'max_retry_error'  : 'Skipped. Max retries exceeded: {url}',
         'proxy_max_retry_error': 'Skipped. Proxy {proxy} Max retries exceeded: {url}',
+        'host_changed_error'   : 'Block external redirect -> {details}',
         'read_timeout_error' : 'Connection timeout! {url}. Increase using --timeout option',
     }
 

@@ -22,11 +22,13 @@ class HeaderProvider(object):
     """ HeaderProvider class"""
 
     def __init__(self, config, agent_list=()):
+
+        self.__headers = {}
         self.__config = config
         self.__agent_list = agent_list
 
     @property
-    def user_agent(self):
+    def __user_agent(self):
         """
         Get user agent
         :return: str user-agent
@@ -38,4 +40,27 @@ class HeaderProvider(object):
         else:
             user_agent = self.__config.user_agent
         return user_agent
+
+    def __add_header(self, key, value):
+        """
+        Add custom header
+
+        :param str key:
+        :param str value:
+        :return: HeaderProvider
+        """
+        self.__headers[key] = value
+
+        return self
+
+    @property
+    def _headers(self):
+        """
+        Get Headers
+        :return: dict headers
+        """
+
+        self.__add_header('User-Agent', self.__user_agent)
+        self.__add_header('Cache-Conrol', 'no-cache')
+        return self.__headers
 

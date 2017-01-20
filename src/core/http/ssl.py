@@ -18,7 +18,7 @@
 
 from urllib3 import HTTPSConnectionPool
 from urlparse import urlparse
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError
+from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError
 from .providers import RequestProvider, HeaderProvider
 from .exceptions import HttpsRequestError
 
@@ -75,13 +75,17 @@ class HttpsRequest(RequestProvider, HeaderProvider):
 
         try:
             response = self.__pool.request(self.__cfg.method, urlparse(url).path,
-                                           headers=None,
+                                           headers=self._headers,
                                            retries=self.__cfg.retries,
+                                           assert_same_host=True,
                                            redirect=False
                                            )
             return response
         except MaxRetryError:
             self.__tpl.warning(key='max_retry_error', url=urlparse(url).path)
+            pass
+        except HostChangedError as e:
+            self.__tpl.warning(key='host_changed_error', details=e)
             pass
         except ReadTimeoutError:
             self.__tpl.warning(key='read_timeout_error', url=urlparse(url).path)
