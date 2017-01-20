@@ -71,12 +71,12 @@ class Worker(threading.Thread):
 
         while self.__running:
             try:
-                func, args, kargs = self.__queue.get()
+                func, args, kargs = self.__queue.get(block=False)
                 self.counter += 1
                 func(*args, **kargs)
                 self.__queue.task_done()
             except QueueEmptyError:
-                continue
+                pass
             finally:
                 if not self.__event.isSet():
                     self.__semaphore.release()

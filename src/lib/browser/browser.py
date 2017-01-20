@@ -16,7 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError
+from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError, ProxyWarning
 from src.core import SocketError
 from src.core import helper
 from src.core import request_http
@@ -112,7 +112,7 @@ class Browser(Debug, Filter):
                                         params={'host': self.__config.host, 'port': self.__config.port,
                                                 'scheme': self.__config.scheme},
                                         loader=getattr(self, '_add_url'.format()))
-        except RequestError as e:
+        except (ProxyRequestError, HttpRequestError, HttpsRequestError) as e:
             raise BrowserError(e)
 
     def __http_request(self, url):
@@ -124,17 +124,20 @@ class Browser(Debug, Filter):
 
         try:
             self.__client.request(url)
+
+            if 0 < self.__config.debug:
+                tpl.line_log(key='get_item_lvl1',
+                             percent=tpl.line(msg=helper.percent(self.__pool.size, self.__reader.total_lines),
+                                              color='cyan'), current=self.__pool.size, total=self.__reader.total_lines,
+                             item=url, size='10kb')
+            else:
+                tpl.line_log(key='get_item_lvl0',
+                             percent=tpl.line(msg=helper.percent(0, self.__reader.total_lines), color='cyan'), item=url)
+
         except (HttpRequestError, HttpsRequestError, ProxyRequestError) as e:
             raise BrowserError(e)
 
-        if 0 < self.__config.debug:
-            tpl.line_log(key='get_item_lvl1',
-                         percent=tpl.line(msg=helper.percent(self.__pool.size, self.__reader.total_lines),
-                                          color='cyan'), current=self.__pool.size, total=self.__reader.total_lines,
-                         item=url, size='10kb')
-        else:
-            tpl.line_log(key='get_item_lvl0',
-                         percent=tpl.line(msg=helper.percent(0, self.__reader.total_lines), color='cyan'), item=url)
+        pass
 
     def _add_url(self, url):
         """

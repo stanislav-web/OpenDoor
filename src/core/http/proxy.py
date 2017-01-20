@@ -18,12 +18,14 @@
 
 import importlib
 import random
+from urlparse import urlparse
 
 from urllib3 import ProxyManager
 from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown
 
-from .providers import RequestProvider
 from .exceptions import ProxyRequestError
+from .providers import RequestProvider
+from .warnings import ProxyWarning
 
 
 class Proxy(RequestProvider):
@@ -99,9 +101,9 @@ class Proxy(RequestProvider):
             response = pool.request(self.__cfg.method, url, headers=None, retries=self.__cfg.retries)
             return response
         except MaxRetryError:
-            self.__tpl.warning(key='max_retry_error', url=url, proxy=self.__server)
+            self.__tpl.warning(key='max_retry_error', url=urlparse(url).path, proxy=self.__server)
+        finally:
             pass
-
 
     def __get_random_proxyserver(self):
         """
