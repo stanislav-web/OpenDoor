@@ -54,9 +54,9 @@ class Reader():
         except FileSystemError as e:
             raise ReaderError(e)
 
-    def get_random_user_agent(self):
+    def get_user_agents(self):
         """
-        Get random user agent from user-agents list
+        Get user agents from user-agents list
         :raise ReaderError
         :return: str
         """
@@ -65,9 +65,7 @@ class Reader():
 
             if not len(self.__useragents):
                 self.__useragents = filesystem.read(self.__config.get('opendoor', 'useragents'))
-
-            index = random.randrange(0, len(self.__useragents))
-            return self.__useragents[index].strip()
+            return self.__useragents
 
         except FileSystemError as e:
             raise ReaderError(e)

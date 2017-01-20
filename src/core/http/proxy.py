@@ -21,21 +21,15 @@ import random
 from urlparse import urlparse
 
 from urllib3 import ProxyManager
-from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown
+from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown, ReadTimeoutError
 
 from .exceptions import ProxyRequestError
-from .providers import RequestProvider
-from .warnings import ProxyWarning
+from .providers import RequestProvider, HeaderProvider
 
 
-class Proxy(RequestProvider):
+class Proxy(RequestProvider, HeaderProvider):
     """Proxy class"""
 
-    __debug = False
-    __cfg = False
-    __list = None
-    __server = None
-    __pm = None
 
     def __init__(self, config, debug=0, **kwargs):
         """
@@ -47,15 +41,15 @@ class Proxy(RequestProvider):
 
         try:
             self.__tpl = kwargs.get('tpl')
-            self.__list = kwargs.get('proxy_list')
+            self.__proxylist = kwargs.get('proxy_list')
 
-            if type(self.__list) is not list or 0 == len(self.__list):
+            HeaderProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
+
+            if type(self.__proxylist) is not list or 0 == len(self.__proxylist):
                 raise TypeError('Proxy list empty or has invalid format')
 
         except (TypeError, ValueError) as e:
             raise ProxyRequestError(e.message)
-
-        self.__list = kwargs.get('proxy_list')
 
         self.__cfg = config
         self.__debug = False if debug < 2 else True
@@ -90,19 +84,21 @@ class Proxy(RequestProvider):
 
     def request(self, url):
         """
-        Client request
+        Client request using Proxy
         :param str url: request uri
-        :return: None
+        :return: urllib3.HTTPResponse
         """
 
         pool = self.__proxy_pool()
 
         try:
-            response = pool.request(self.__cfg.method, url, headers=None, retries=self.__cfg.retries)
+            response = pool.request(self.__cfg.method, url, headers=None, retries=self.__cfg.retries, redirect=False)
             return response
         except MaxRetryError:
-            self.__tpl.warning(key='max_retry_error', url=urlparse(url).path, proxy=self.__server)
-        finally:
+            self.__tpl.warning(key='proxy_max_retry_error', url=urlparse(url).path, proxy=self.__server)
+            pass
+        except ReadTimeoutError:
+            self.__tpl.warning(key='read_timeout_error', url=urlparse(url).path)
             pass
 
     def __get_random_proxyserver(self):
@@ -111,8 +107,8 @@ class Proxy(RequestProvider):
         :return: str
         """
 
-        index = random.randrange(0, len(self.__list))
-        server = self.__list[index].strip()
+        index = random.randrange(0, len(self.__proxylist))
+        server = self.__proxylist[index].strip()
 
         return server
 

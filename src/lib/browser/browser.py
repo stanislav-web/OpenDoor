@@ -16,7 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError, ProxyWarning
+from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError
 from src.core import SocketError
 from src.core import helper
 from src.core import request_http
@@ -37,7 +37,7 @@ from .threadpool import ThreadPool
 class Browser(Debug, Filter):
     """ Browser class """
 
-    __client = None
+    __request = None
     __config = None
     __reader = None
     __pool = None
@@ -98,14 +98,26 @@ class Browser(Debug, Filter):
         try:  # beginning scan process
 
             if True is self.__config.is_proxy:
-                self.__client = request_proxy(self.__config, proxy_list=self.__reader.get_proxies(),
-                                              debug=self.__config.debug, tpl=tpl)
+                self.__client = request_proxy(self.__config,
+                                              proxy_list=self.__reader.get_proxies(),
+                                              agent_list=self.__reader.get_user_agents(),
+                                              debug=self.__config.debug,
+                                              tpl=tpl
+                                              )
             else:
 
                 if True is self.__config.ssl:
-                    self.__client = request_ssl(self.__config, debug=self.__config.debug, tpl=tpl)
+                    self.__client = request_ssl(self.__config,
+                                                agent_list=self.__reader.get_user_agents(),
+                                                debug=self.__config.debug,
+                                                tpl=tpl
+                                                )
                 else:
-                    self.__client = request_http(self.__config, debug=self.__config.debug, tpl=tpl)
+                    self.__client = request_http(self.__config,
+                                                agent_list=self.__reader.get_user_agents(),
+                                                debug=self.__config.debug,
+                                                tpl=tpl
+                                                )
 
             if True is self.__pool.is_started:
                 self.__reader.get_lines(self.__config.scan,
@@ -123,21 +135,22 @@ class Browser(Debug, Filter):
         """
 
         try:
-            self.__client.request(url)
+            response = self.__client.request(url)
 
-            if 0 < self.__config.debug:
-                tpl.line_log(key='get_item_lvl1',
+            if hasattr(response, 'status'):
+
+                if 0 < self.__config.debug:
+                    tpl.line_log(key='get_item_lvl1',
                              percent=tpl.line(msg=helper.percent(self.__pool.size, self.__reader.total_lines),
                                               color='cyan'), current=self.__pool.size, total=self.__reader.total_lines,
                              item=url, size='10kb')
-            else:
-                tpl.line_log(key='get_item_lvl0',
-                             percent=tpl.line(msg=helper.percent(0, self.__reader.total_lines), color='cyan'), item=url)
+                else:
+                    tpl.line_log(key='get_item_lvl0',
+                             percent=tpl.line(msg=helper.percent(self.__pool.size, self.__reader.total_lines), color='cyan'), item=url)
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError) as e:
             raise BrowserError(e)
 
-        pass
 
     def _add_url(self, url):
         """

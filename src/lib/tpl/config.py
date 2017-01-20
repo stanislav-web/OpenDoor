@@ -47,12 +47,13 @@ class Config:
         'http_pool_start' : 'Using HTTP keep-alive connection',
         'https_pool_start' : 'Using SSL keep-alive connection',
         'proxy_pool_start' : 'Using random proxies',
-        'max_retry_error'  : 'Skipped. Proxy {proxy} Max retries exceeded: {url}'
+        'max_retry_error'  : 'Skipped. Max retries exceeded: {url}',
+        'proxy_max_retry_error': 'Skipped. Proxy {proxy} Max retries exceeded: {url}',
+        'read_timeout_error' : 'Connection timeout! {url}. Increase using --timeout option',
     }
 
     #                "http": {
     #                    'redirect': "Redirect {0} --> {1}",
-    #                    'timeout': "Connection timeout: {0} . Try to increase --delay between requests",
     #                    'excluded': "Excluded path: {0}",
     #                    'unresponsible': "Unresponsible path : {0}",
     #                    'has_scanned': "You already have the results for {0} saved in logs directory.\nWould you like to rescan? Press [ENTER] to continue: ",

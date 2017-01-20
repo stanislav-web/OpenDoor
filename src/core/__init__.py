@@ -30,7 +30,6 @@ from .http.exceptions import HttpsRequestError
 from .http.exceptions import ProxyRequestError
 from .http.exceptions import ResponseError
 from .http.exceptions import SocketError
-from .http.warnings import ProxyWarning
 from .logger import Exception as exception
 from .logger import Logger as logger
 from .options import Options as options

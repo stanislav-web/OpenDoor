@@ -71,19 +71,13 @@ class Http:
     def request(self, url):
 
         """Request handler"""
-        if True == self.proxy:
-            proxyserver = self.reader.get_random_proxy()
-            try:
-                conn = urllib3.proxy_from_url(proxyserver, maxsize=10, block=True, timeout=self.rest)
-            except urllib3.exceptions.ProxySchemeUnknown as e:
-                sys.stdout.write(Log.warning('{} : {}'.format(e.message, proxyserver)))
-        else:
-            try:
+
+        try:
 
                 conn = urllib3.connection_from_url(url, maxsize=10, block=True,
                                                    timeout=self.rest)
-            except TypeError as e:
-                sys.exit(Log.error(e.message))
+        except TypeError as e:
+            sys.exit(Log.error(e.message))
 
         headers = {
             'accept-encoding': 'gzip, deflate, sdch',
@@ -93,16 +87,12 @@ class Http:
         }
         try:
             response = conn.request(config.DEFAULT_HTTP_METHOD, url, headers=headers, redirect=False)
-        except (urllib3.exceptions.HostChangedError,
-                urllib3.exceptions.ReadTimeoutError,
-                urllib3.exceptions.ProxyError,
+        except (urllib3.exceptions.HostChangedError
                 ) as e:
             response = None
             self.iterator = Progress.line(url + ' -> ' + e.message, self.urls.__len__(), 'warning', self.iterator)
         except urllib3.exceptions.ConnectTimeoutError:
             sys.stdout.write(Log.warning(self.message.get('timeout').format(url)))
-            pass
-        except urllib3.exceptions.MaxRetryError:
             pass
         except urllib3.exceptions.NewConnectionError as e:
             sys.exit(Log.error(e.message))

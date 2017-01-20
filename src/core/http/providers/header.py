@@ -16,8 +16,26 @@
     Development Team: Stanislav WEB
 """
 
+import random
 
 class HeaderProvider(object):
     """ HeaderProvider class"""
-    pass
+
+    def __init__(self, config, agent_list=()):
+        self.__config = config
+        self.__agent_list = agent_list
+
+    @property
+    def user_agent(self):
+        """
+        Get user agent
+        :return: str user-agent
+        """
+
+        if True is self.__config._is_random_user_agent:
+            index = random.randrange(0, len(self.__agent_list))
+            user_agent = self.__agent_list[index].strip()
+        else:
+            user_agent = self.__config.user_agent
+        return user_agent
 

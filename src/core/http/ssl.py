@@ -17,17 +17,15 @@
 """
 
 from urllib3 import HTTPSConnectionPool
-
-from .providers import RequestProvider
+from urlparse import urlparse
+from urllib3.exceptions import MaxRetryError, ReadTimeoutError
+from .providers import RequestProvider, HeaderProvider
 from .exceptions import HttpsRequestError
 
 
-class HttpsRequest(RequestProvider):
+class HttpsRequest(RequestProvider, HeaderProvider):
     """HttpsRequest class"""
 
-    __debug = False
-    __cfg = False
-    __pool = None
 
     def __init__(self, config, debug=0, **kwargs):
         """
@@ -36,8 +34,16 @@ class HttpsRequest(RequestProvider):
         :param int debug: debug flag
         """
 
-        if 'tpl' in kwargs:
-            self.__tpl = kwargs.get('tpl')
+        try:
+
+            if 'tpl' in kwargs:
+                self.__tpl = kwargs.get('tpl')
+
+            HeaderProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
+
+        except (TypeError, ValueError) as e:
+            raise HttpsRequestError(e.message)
+
 
         self.__cfg = config
         self.__debug = False if debug < 2 else True
@@ -51,7 +57,6 @@ class HttpsRequest(RequestProvider):
         """
 
         try:
-
             if True is self.__debug:
                 self.__tpl.debug(key='ssl_pool_start')
 
@@ -60,3 +65,24 @@ class HttpsRequest(RequestProvider):
             return pool
         except Exception as e:
             raise HttpsRequestError(e)
+
+    def request(self, url):
+        """
+        Client request SSL
+        :param str url: request uri
+        :return: urllib3.HTTPResponse
+        """
+
+        try:
+            response = self.__pool.request(self.__cfg.method, urlparse(url).path,
+                                           headers=None,
+                                           retries=self.__cfg.retries,
+                                           redirect=False
+                                           )
+            return response
+        except MaxRetryError:
+            self.__tpl.warning(key='max_retry_error', url=urlparse(url).path)
+            pass
+        except ReadTimeoutError:
+            self.__tpl.warning(key='read_timeout_error', url=urlparse(url).path)
+            pass
