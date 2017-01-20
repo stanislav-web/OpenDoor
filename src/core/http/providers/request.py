@@ -24,7 +24,7 @@ class RequestProvider(object):
         """
         Client request
         :param str url: request uri
-        :return:
+        :return: None
         """
 
         pass

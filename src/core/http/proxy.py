@@ -20,7 +20,7 @@ import importlib
 import random
 
 from urllib3 import ProxyManager
-from urllib3.exceptions import DependencyWarning, MaxRetryError
+from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown
 
 from .providers import RequestProvider
 from .exceptions import ProxyRequestError
@@ -32,6 +32,7 @@ class Proxy(RequestProvider):
     __debug = False
     __cfg = False
     __list = None
+    __server = None
     __pm = None
 
     def __init__(self, config, debug=0, **kwargs):
@@ -69,34 +70,38 @@ class Proxy(RequestProvider):
 
         try:
 
-            proxy_server = self.__get_random_proxyserver()
+            self.__server = self.__get_random_proxyserver()
 
-            if self.__get_proxy_type(proxy_server) == 'socks':
+            if self.__get_proxy_type(self.__server) == 'socks':
 
                 if not self.__pm:
 
                     module = importlib.import_module('urllib3.contrib.socks')
                     self.__pm = getattr(module, 'SOCKSProxyManager')
 
-                pool = self.__pm(proxy_server, num_pools=self.__cfg.threads, timeout=self.__cfg.timeout, block=True)
+                pool = self.__pm(self.__server, num_pools=self.__cfg.threads, timeout=self.__cfg.timeout, block=True)
             else:
-                pool = ProxyManager(proxy_server, num_pools=self.__cfg.threads, timeout=self.__cfg.timeout, block=True)
+                pool = ProxyManager(self.__server, num_pools=self.__cfg.threads, timeout=self.__cfg.timeout, block=True)
             return pool
-        except (DependencyWarning, ImportError) as e:
+        except (DependencyWarning, ProxySchemeUnknown, ImportError) as e:
             raise ProxyRequestError(e)
 
     def request(self, url):
+        """
+        Client request
+        :param str url: request uri
+        :return: None
+        """
+
+        pool = self.__proxy_pool()
 
         try:
-            pool = self.__proxy_pool()
-        except MaxRetryError as e:
-            print e
-            exit()
-        except ProxyRequestError as e:
-            raise ProxyRequestError(e)
+            response = pool.request(self.__cfg.method, url, headers=None, retries=self.__cfg.retries)
+            return response
+        except MaxRetryError:
+            self.__tpl.warning(key='max_retry_error', url=url, proxy=self.__server)
+            pass
 
-        response = pool.request(self.__cfg.method, url, headers=None, retries=self.__cfg.retries)
-        return response
 
     def __get_random_proxyserver(self):
         """
