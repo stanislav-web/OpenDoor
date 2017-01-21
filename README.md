@@ -35,7 +35,7 @@ chmod +x opendoor.py
 * multithreading
 * reporting
 * random user agent
-* random proxy from proxy list
+* random proxy from proxy list (HTTP, HTTPS, SOCKS4 or SOCKS5)
 * subdomains scanner
 * HTTP/HTTPS support
 * follow redirects

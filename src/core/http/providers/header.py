@@ -17,15 +17,23 @@
 """
 
 import random
+from .accept import AcceptHeaderProvider
 
-class HeaderProvider(object):
+class HeaderProvider(AcceptHeaderProvider):
     """ HeaderProvider class"""
 
     def __init__(self, config, agent_list=()):
-
+        """
+        Accept external params
+        :param src.lib.browser.config.Config config: browser configurations
+        :param dict agent_list: user agent list
+        """
         self.__headers = {}
         self.__config = config
         self.__agent_list = agent_list
+
+        AcceptHeaderProvider.__init__(self)
+
 
     @property
     def __user_agent(self):
@@ -45,8 +53,8 @@ class HeaderProvider(object):
         """
         Add custom header
 
-        :param str key:
-        :param str value:
+        :param str key: header name
+        :param str value: header value
         :return: HeaderProvider
         """
         self.__headers[key] = value
@@ -60,7 +68,12 @@ class HeaderProvider(object):
         :return: dict headers
         """
 
-        self.__add_header('User-Agent', self.__user_agent)
-        self.__add_header('Cache-Conrol', 'no-cache')
+        self.__add_header('Accept', self._accept)\
+            .__add_header('Accept-Encoding', self._accept_encoding) \
+            .__add_header('Accept-Language', self._accept_language) \
+            .__add_header('Referer', ''.join([self.__config.scheme, self.__config.host]))\
+            .__add_header('User-Agent', self.__user_agent)\
+            .__add_header('Cache-Conrol', 'no-cache')
+
         return self.__headers
 

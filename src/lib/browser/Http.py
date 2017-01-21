@@ -79,14 +79,9 @@ class Http:
         except TypeError as e:
             sys.exit(Log.error(e.message))
 
-        headers = {
-            'accept-encoding': 'gzip, deflate, sdch',
-            'accept-language': 'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4,uk;q=0.2,es;q=0.2',
-            'cache-control': 'no-cache',
-            'user-agent': self.reader.get_random_user_agent()
-        }
+
         try:
-            response = conn.request(config.DEFAULT_HTTP_METHOD, url, headers=headers, redirect=False)
+            response = conn.request(config.DEFAULT_HTTP_METHOD, url, headers={}, redirect=False)
         except (urllib3.exceptions.HostChangedError
                 ) as e:
             response = None

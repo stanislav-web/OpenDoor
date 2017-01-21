@@ -23,7 +23,7 @@ from urlparse import urlparse
 class Filter:
     """Filter class"""
 
-    URL_REGEX = "^(?:[-A-Za-z0-9]+\.)+([A-Za-z]|(?u)\w){2,6}$"
+    URL_REGEX = "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(?:[-A-Za-z0-9]+\.)+([A-Za-z]|(?u)\w){2,6}$"
 
     @staticmethod
     def filter(args):
@@ -88,9 +88,11 @@ class Filter:
                 host = "http://" + host
 
         host = urlparse(host).netloc
+
         regex = re.compile(r"" + Filter.URL_REGEX + "")
+
         if not regex.match(host):
-            raise FilterError("\"{0}\" is invalid host. ".format(host))
+            raise FilterError("\"{0}\" iis invalid host. Use ip, http(s) or just hostname".format(host))
         return host
 
     @staticmethod
