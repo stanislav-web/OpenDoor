@@ -18,7 +18,7 @@
 
 import re
 from .exceptions import FilterError
-from urlparse import urlparse
+from src.core import helper
 
 class Filter:
     """Filter class"""
@@ -55,7 +55,7 @@ class Filter:
         :return: str
         """
 
-        scheme = urlparse(host).scheme
+        scheme = helper.parse_url(host).scheme
         if not scheme:
             scheme = 'http'
         return scheme + "://"
@@ -87,7 +87,7 @@ class Filter:
             else:
                 host = "http://" + host
 
-        host = urlparse(host).netloc
+        host = helper.parse_url(host).netloc
 
         regex = re.compile(r"" + Filter.URL_REGEX + "")
 

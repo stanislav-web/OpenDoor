@@ -24,8 +24,6 @@ class Config:
     DEFAULT_MIN_THREADS = 1
     DEFAULT_MAX_THREADS = 15
     DEFAULT_DEBUG_LEVEL = 0
-    DEFAULT_REQUEST_DELAY = 0
-    DEFAULT_TIMEOUT = None
     DEFAULT_HTTP_METHOD = 'HEAD'
     DEFAULT_USER_AGENT = 'Opera/9.0 (Windows NT 5.1; U; en)'
     DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
@@ -50,8 +48,8 @@ class Config:
         self._is_indexof = params.get('indexof')
         self._retries = False if params.get('retries') is None else params.get('retries')
         self._method = params.get('method') if params.get('indexof') is None else 'GET'
-        self._delay = self.DEFAULT_REQUEST_DELAY if params.get('delay') is None else params.get('delay')
-        self._timeout = self.DEFAULT_TIMEOUT if params.get('timeout') is None else params.get('timeout')
+        self._delay = params.get('delay')
+        self._timeout = params.get('timeout')
         self._debug = self.DEFAULT_DEBUG_LEVEL if params.get('debug') is None else params.get('debug')
         self._is_proxy = params.get('tor')
         self._is_random_user_agent = params.get('random_agent')

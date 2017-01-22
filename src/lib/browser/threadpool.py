@@ -28,11 +28,12 @@ from .worker import Worker
 class ThreadPool():
     """ThreadPool class"""
 
-    def __init__(self, num_threads, total_items):
+    def __init__(self, num_threads, total_items, delay):
         """
         Initialize thread pool
         :param int num_threads: active workers
         :param int total_items: total items
+        :param int delay: delay betwen threads
         :raise ThreadPoolError
         :return None
         """
@@ -48,7 +49,7 @@ class ThreadPool():
 
                 try:
 
-                    worker = Worker(self.__queue, num_threads)
+                    worker = Worker(self.__queue, num_threads, delay)
 
                     if False is worker.isAlive():
                         worker.setDaemon(True)

@@ -37,7 +37,7 @@ class Options:
         try:
             parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
             required_named = parser.add_argument_group('required named options')
-            required_named.add_argument('--host', help="Target host; -host http://example.com")
+            required_named.add_argument('--host', help="Target host (ip); --host http://example.com")
             config_arguments = Config.arguments
             config_arguments_len = len(config_arguments)
 

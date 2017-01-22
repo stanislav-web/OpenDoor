@@ -17,10 +17,20 @@
 """
 
 from distutils.version import StrictVersion
-
+import urlparse
 
 class Helper:
     """Helper class"""
+
+    @staticmethod
+    def parse_url(url):
+        """
+        Parse url
+
+        :param str url:
+        :return: dict
+        """
+        return urlparse.urlparse(url)
 
     @staticmethod
     def percent(counter, total):

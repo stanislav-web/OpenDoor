@@ -16,8 +16,6 @@ import sys
 import threadpool
 import time
 from src.lib.logger.logger import Logger as Log
-from .FileReader import FileReader
-from .Message import Message
 
 from src.core.helper.Formatter import Formatter
 from src.core.helper.Progress import Progress
@@ -187,32 +185,6 @@ class Http:
 
 
 
-    def __get_exclusions(self):
-        """Get exclusions for redirect pages"""
-
-        exlusionsList = []
-        if not self.exclusions:
-            lines = self.reader.get_file_data('excludes')
-            for item in lines:
-                item = item.replace("\n", "")
-                if "/" == item[0]:
-                    item = item.strip('/')
-                exlusionsList.append(item)
-        return exlusionsList
-
-    def __is_excluded(self, url):
-        """Check if url has been excluded"""
-
-        path = urlparse(url).path.strip("/")
-
-        if path in self.exclusions:
-            return True
-        else:
-            return False
-
-
-
-
     def __parse_params(self, params):
         """Parse additional params"""
 
@@ -226,10 +198,3 @@ class Http:
         self.check = params.get('check', config.DEFAULT_CHECK)
         self.iterator = 0
 
-        if 'log' not in params:
-            sys.stdout.write(Log.notice(self.message.get('use_log')))
-
-        if self.cpu_cnt < self.threads:
-            self.threads = self.cpu_cnt
-            sys.stdout.write(Log.warning(self.message.get('max_threads').format(self.threads)))
-            pass

@@ -59,7 +59,11 @@ class Browser(Debug, Filter):
             Debug.__init__(self, self.__config)
             Filter.__init__(self, self.__config, self.__reader.total_lines)
 
-            self.__pool = ThreadPool(self.__config.threads, self.__reader.total_lines)
+            self.__pool = ThreadPool(
+                                    num_threads=self.__config.threads,
+                                    total_items=self.__reader.total_lines,
+                                    delay=self.__config.delay
+                                    )
 
         except (ThreadPoolError, ReaderError) as e:
             raise BrowserError(e)
@@ -151,16 +155,33 @@ class Browser(Debug, Filter):
         except (HttpRequestError, HttpsRequestError, ProxyRequestError) as e:
             raise BrowserError(e)
 
+    def __is_ignored(self, url):
+        """
+        Check if path will be ignored
+        :param str url:
+        :return: bool
+        """
+
+        path = helper.parse_url(url).path.strip("/")
+        if path in self.__reader.get_ignored_list():
+            return True
+        else:
+            return False
 
     def _add_url(self, url):
         """
-        Add recieved url to threadpool
+        Add recieved url to threadpool or ignored
         :param str url
         :raise KeyboardInterrupt
         :return: None
         """
 
-        try:
-            self.__pool.add(self.__http_request, url)
-        except (SystemExit, KeyboardInterrupt):
-            raise KeyboardInterrupt
+        if False is self.__is_ignored(url):
+
+            try:
+                self.__pool.add(self.__http_request, url)
+            except (SystemExit, KeyboardInterrupt):
+                raise KeyboardInterrupt
+        else:
+            tpl.warning(key='ignored_path', path=helper.parse_url(url).path)
+            pass

@@ -17,7 +17,7 @@
 """
 
 import threading
-
+import time
 from Queue import Empty as QueueEmptyError
 from threading import BoundedSemaphore, Event
 
@@ -25,7 +25,7 @@ from threading import BoundedSemaphore, Event
 class Worker(threading.Thread):
     """Worker class"""
 
-    def __init__(self, queue, num_threads):
+    def __init__(self, queue, num_threads, timeout=None):
 
         """
         Init thread worker
@@ -39,6 +39,7 @@ class Worker(threading.Thread):
         self.__event.set()
         self.__running = True
         self.__queue = queue
+        self.__timeout = timeout
         self.counter = 0
 
     def pause(self):
@@ -70,6 +71,10 @@ class Worker(threading.Thread):
         self.__event.wait()
 
         while self.__running:
+
+            if None is not self.__timeout:
+                time.sleep(self.__timeout)
+
             try:
                 func, args, kargs = self.__queue.get(block=False)
                 self.counter += 1

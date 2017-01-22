@@ -18,8 +18,7 @@
 
 import importlib
 import random
-from urlparse import urlparse
-
+from src.core import helper
 from urllib3 import ProxyManager
 from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown, ReadTimeoutError
 
@@ -98,10 +97,10 @@ class Proxy(RequestProvider, HeaderProvider):
                                     redirect=False)
             return response
         except MaxRetryError:
-            self.__tpl.warning(key='proxy_max_retry_error', url=urlparse(url).path, proxy=self.__server)
+            self.__tpl.warning(key='proxy_max_retry_error', url=helper.parse_url(url).path, proxy=self.__server)
             pass
         except ReadTimeoutError:
-            self.__tpl.warning(key='read_timeout_error', url=urlparse(url).path)
+            self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
             pass
 
     def __get_random_proxyserver(self):

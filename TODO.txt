@@ -1,0 +1,7 @@
+--cookies COOKIES     Request cookies from cookies.txt
+  -i, --indexof         Detect Index of/
+
+Wordlist tools:
+--reports REPORTS
+                        Scan reports
+-s SCAN, --scan SCAN  Scan type scan=subdomains

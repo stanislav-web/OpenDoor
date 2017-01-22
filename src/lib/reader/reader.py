@@ -16,8 +16,6 @@
     Development Team: Stanislav WEB
 """
 
-import random
-
 from src.core import FileSystemError, SystemError
 from src.core import filesystem
 from src.core import process
@@ -38,6 +36,7 @@ class Reader():
         self.__browser_config = browser_config
         self.__useragents = []
         self.__proxies = []
+        self.__ignored = []
         self.__counter = 0
 
     @staticmethod
@@ -58,7 +57,7 @@ class Reader():
         """
         Get user agents from user-agents list
         :raise ReaderError
-        :return: str
+        :return: dict
         """
 
         try:
@@ -70,11 +69,33 @@ class Reader():
         except FileSystemError as e:
             raise ReaderError(e)
 
+    def get_ignored_list(self):
+        """
+        Get ignored dir list
+        :raise ReaderError
+        :return: dict
+        """
+
+        try:
+
+            if not len(self.__ignored):
+                ignored = filesystem.read(self.__config.get('opendoor', 'ignored'))
+                for item in ignored:
+                    item = item.replace("\n", "")
+                    if "/" == item[0]:
+                        item = item.strip('/')
+                    self.__ignored.append(item)
+
+            return self.__ignored
+
+        except FileSystemError as e:
+            raise ReaderError(e)
+
     def get_proxies(self):
         """
         Get proxy list
         :raise ReaderError
-        :return: str
+        :return: dict
         """
 
         try:
@@ -93,7 +114,7 @@ class Reader():
         :param dict params: input params
         :param funct loader:  callback function
         :raise ReaderError
-        :return: str
+        :return: None
         """
 
         if True is self.__browser_config.get('use_random'):

@@ -39,7 +39,7 @@ chmod +x opendoor.py
 * subdomains scanner
 * HTTP/HTTPS support
 * follow redirects
-* exclusion list
+* ignored dir list
 * socks proxies
 
 ##### Changelog
