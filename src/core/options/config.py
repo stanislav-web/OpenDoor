@@ -45,6 +45,8 @@ class Config:
             "help": "Using proxylist", "type": bool},
         {"group": "wordlist", "args": "-s", "argl": "--scan", "default": "directories", "action": "store",
             "help": "Scan type scan=directories or scan=subdomains", "type": str},
+        {"group": "wordlist", "args": "-w", "argl": "--wordlist", "default": None, "action": "store",
+            "help": "Path to your custom wordlist", "type": str},
         {"group": "wordlist", "args": None, "argl": "--reports", "default": None, "action": "store",
             "help": "Scan reports", "type": bool},
         {"group": "request", "args": None, "argl": "--random-agent", "default": False, "action": "store_true",

@@ -40,12 +40,13 @@ class Config:
         """
 
         self._default_scan = 'directories'
-        self._scan = params.get('scan')
+        self._scan = params.get('scan') if params.get('wordlist') is None else params.get('wordlist')
         self._scheme = params.get('scheme')
         self._ssl = params.get('ssl')
         self._host = params.get('host')
         self._accept_cookies = False if params.get('accept_cookies') is None else True
         self._port = params.get('port')
+        self._wordlist = params.get('wordlist')
         self._is_indexof = params.get('indexof')
         self._retries = False if params.get('retries') is None else params.get('retries')
         self._method = params.get('method') if params.get('indexof') is None else 'GET'
@@ -117,6 +118,12 @@ class Config:
     @property
     def is_random_list(self):
         return self._is_random_list
+
+    @property
+    def is_external_wordlist(self):
+        if None is self._wordlist:
+            return False
+        return True
 
     @property
     def user_agent(self):

@@ -89,7 +89,7 @@ class ThreadPool():
                 else:
                     self.__queue.join()
         except (SystemExit, KeyboardInterrupt):
-            time.sleep(1)
+            time.sleep(2)
             self.pause()
 
     def pause(self):

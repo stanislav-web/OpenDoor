@@ -107,24 +107,28 @@ class Reader():
         except FileSystemError as e:
             raise ReaderError(e)
 
-    def get_lines(self, listname, params, loader):
+    def get_lines(self, params, loader):
         """
         Read lines from large file
-        :param str listname: list name
         :param dict params: input params
         :param funct loader:  callback function
         :raise ReaderError
         :return: None
         """
 
-        if True is self.__browser_config.get('use_random'):
-            dirlist = self.__config.get('opendoor', 'tmplist')
-        else:
-            dirlist = self.__config.get('opendoor', listname)
-
         try:
+            if True is self.__browser_config.get('use_random'):
+                dirlist = self.__config.get('opendoor', 'tmplist')
+            else:
+                if True is self.__browser_config.get('is_external_wordlist'):
+                    dirlist = self.__browser_config.get('list')
+                    self.__browser_config.update({'list' : 'externallist'})
+                else:
+                    dirlist = self.__config.get('opendoor', self.__browser_config.get('list'))
+
             filesystem.readline(dirlist, handler=getattr(self, '_{0}__line'.format(self.__browser_config.get('list'))),
                                 handler_params=params, loader=loader)
+
         except FileSystemError as e:
             raise ReaderError(e)
 
@@ -177,6 +181,29 @@ class Reader():
 
         return line
 
+    def _externallist__line(self, line, params):
+        """
+        Read lines from externalwordlist file
+        :param str line: single line
+        :param dict params: input params
+        :return: str
+        """
+
+        line = line.strip("\n")
+        line.lstrip('/')
+
+        port = params.get('port')
+
+        if Config.port is port:
+            port = ''
+        else:
+            port = ':{0}'.format(port)
+
+        line = "{scheme}{host}{port}/{uri}".format(scheme=params.get('scheme'), host=params.get('host'), port=port,
+            uri=line, )
+
+        return line
+
     def _randomize_list(self, target_list):
         """
         Randomize scan list
@@ -193,7 +220,7 @@ class Reader():
         except (SystemError, FileSystemError) as e:
             raise ReaderError(e)
 
-    def _count_total_lines(self, listname):
+    def _count_total_lines(self):
         """
         Count total lines inside wordlist
         :param string listname:
@@ -203,7 +230,10 @@ class Reader():
         try:
 
             if 0 is self.__counter:
-                dirlist = self.__config.get('opendoor', listname)
+                if True is self.__browser_config.get('is_external_wordlist'):
+                    dirlist = self.__browser_config.get('list')
+                else:
+                    dirlist = self.__config.get('opendoor', self.__browser_config.get('list'))
                 self.__counter = filesystem.read(dirlist).__len__()
 
             return self.__counter

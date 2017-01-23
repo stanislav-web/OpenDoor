@@ -50,8 +50,14 @@ class Browser(Debug, Filter):
             self.__config = Config(params)
 
             self.__reader = Reader(
-                browser_config={'list': self.__config.scan, 'use_random': self.__config.is_random_list})
-            self.__reader._count_total_lines(self.__config.scan)
+                browser_config={
+                    'list': self.__config.scan,
+                    'use_random': self.__config.is_random_list,
+                    'is_external_wordlist' : self.__config.is_external_wordlist
+                })
+
+            self.__reader._count_total_lines()
+
             Debug.__init__(self, self.__config)
             Filter.__init__(self, self.__config, self.__reader.total_lines)
 
@@ -111,11 +117,10 @@ class Browser(Debug, Filter):
                                                  debug=self.__config.debug, tpl=tpl)
 
             if True is self.__pool.is_started:
-                self.__reader.get_lines(self.__config.scan,
-                                        params={'host': self.__config.host, 'port': self.__config.port,
+                self.__reader.get_lines(params={'host': self.__config.host, 'port': self.__config.port,
                                                 'scheme': self.__config.scheme},
                                         loader=getattr(self, '_add_url'.format()))
-        except (ProxyRequestError, HttpRequestError, HttpsRequestError) as e:
+        except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as e:
             raise BrowserError(e)
 
     def __http_request(self, url):

@@ -30,7 +30,7 @@ class FileSystem:
     @staticmethod
     def is_exist(dir, filename):
         """
-        Check if file is exist
+        Check if dir-file is exist
         :param str dir: directory
         :param str filename: filename
         :return: bool
