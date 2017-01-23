@@ -36,6 +36,7 @@ class HttpRequest(RequestProvider):
 
         try:
 
+
             if 'tpl' in kwargs:
                 self.__tpl = kwargs.get('tpl')
 
@@ -44,6 +45,7 @@ class HttpRequest(RequestProvider):
         except (TypeError, ValueError) as e:
             raise HttpRequestError(e.message)
 
+        self.__assert_same_host = True if 'directories' == config.scan else False
         self.__cfg = config
         self.__debug = False if debug < 2 else True
         self.__pool = self.__http_pool()
@@ -76,8 +78,11 @@ class HttpRequest(RequestProvider):
         # httplib.HTTPConnection.debuglevel = 5
 
         try:
-            response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path, headers=self._headers,
-                                           retries=self.__cfg.retries, assert_same_host=True, redirect=False)
+            response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path,
+                                           headers=self._headers,
+                                           retries=self.__cfg.retries,
+                                           assert_same_host=self.__assert_same_host,
+                                           redirect=False)
 
             self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             return response

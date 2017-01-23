@@ -16,8 +16,29 @@
     Development Team: Stanislav WEB
 """
 
-from .cookies import CookiesProvider
-from .header import HeaderProvider
-from .request import RequestProvider
-from .response import ResponseProvider
 
+class ResponseProvider():
+    """ ResponseProvider class"""
+
+    def __init__(self, config, tpl):
+        """
+
+        :param dict config: configurations
+        :param tpl: templater interface
+        """
+
+        self._config = config
+        self._tpl = tpl
+
+
+    def handle(self, resp, request_url, pool_size, total_size):
+        """
+        Handle response
+        :param urllib3.response.HTTPResponse response: response object
+        :param str request_url: url from request
+        :param int pool_size: response object
+        :param int total_size: response object
+        :return: @TODO
+        """
+
+        pass

@@ -44,6 +44,7 @@ class HttpsRequest(RequestProvider):
         except (TypeError, ValueError) as e:
             raise HttpsRequestError(e.message)
 
+        self.__assert_same_host = True if 'directories' == config.scan else False
         self.__cfg = config
         self.__debug = False if debug < 2 else True
         self.__pool = self.__https_pool()
@@ -73,8 +74,11 @@ class HttpsRequest(RequestProvider):
         """
 
         try:
-            response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path, headers=self._headers,
-                                           retries=self.__cfg.retries, assert_same_host=True, redirect=False)
+            response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path,
+                                           headers=self._headers,
+                                           retries=self.__cfg.retries,
+                                           assert_same_host=self.__assert_same_host,
+                                           redirect=False)
 
             self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             return response

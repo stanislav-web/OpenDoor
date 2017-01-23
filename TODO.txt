@@ -1,5 +1,3 @@
-3) Check subdirs -s SCAN, --scan SCAN  Scan type scan=subdomains
-
 1 )-i, --indexof         Detect Index of/
 
 2) --reports REPORTS

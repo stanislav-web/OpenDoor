@@ -21,6 +21,7 @@ from src.core import SocketError
 from src.core import helper
 from src.core import request_http
 from src.core import request_proxy
+from src.core import response
 from src.core import request_ssl
 from src.core import socket
 from src.lib.reader import Reader
@@ -54,8 +55,11 @@ class Browser(Debug, Filter):
             Debug.__init__(self, self.__config)
             Filter.__init__(self, self.__config, self.__reader.total_lines)
 
-            self.__pool = ThreadPool(num_threads=self.__config.threads, total_items=self.__reader.total_lines,
-                delay=self.__config.delay)
+            self.__pool = ThreadPool(num_threads=self.__config.threads,
+                                     total_items=self.__reader.total_lines,
+                                     delay=self.__config.delay)
+
+            self.__response = response(config=self.__config, tpl=tpl)
 
         except (ThreadPoolError, ReaderError) as e:
             raise BrowserError(e)
@@ -122,19 +126,13 @@ class Browser(Debug, Filter):
         """
 
         try:
-            response = self.__client.request(url)
+            resp = self.__client.request(url)
 
-            if hasattr(response, 'status'):
-
-                if 0 < self.__config.debug:
-                    tpl.line_log(key='get_item_lvl1',
-                                 percent=tpl.line(msg=helper.percent(self.__pool.size, self.__reader.total_lines),
-                                                  color='cyan'), current=self.__pool.size,
-                                 total=self.__reader.total_lines, item=url, size='10kb')
-                else:
-                    tpl.line_log(key='get_item_lvl0',
-                                 percent=tpl.line(msg=helper.percent(self.__pool.size, self.__reader.total_lines),
-                                                  color='cyan'), item=url)
+            self.__response.handle(resp,
+                                   request_url=url,
+                                   pool_size=self.__pool.size,
+                                   total_size=self.__reader.total_lines
+                                   )
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError) as e:
             raise BrowserError(e)

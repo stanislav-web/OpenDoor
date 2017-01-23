@@ -177,3 +177,12 @@ class FileSystem:
             return config
         except ConfigParser.Error as e:
             raise FileSystemError(e.message)
+
+    @staticmethod
+    def human_size(bytes):
+        base = 1024
+        for x in ['B ', 'KB', 'MB', 'GB']:
+            if bytes < base and bytes > -base:
+                return "%3.0f%s" % (bytes, x)
+            bytes /= base
+        return "%3.0f %s" % (bytes, 'TB')

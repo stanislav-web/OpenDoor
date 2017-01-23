@@ -31,7 +31,7 @@ class Debug:
         self.__config = Config
 
         if 0 < self.__config.debug:
-            tpl.debug(key='debug', level=self.__config.debug)
+            tpl.debug(key='debug', level=self.__config.debug, method=self.__config.method)
         pass
 
     def _debug_user_agents(self):

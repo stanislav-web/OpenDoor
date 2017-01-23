@@ -28,7 +28,7 @@ class Config:
         'slow_connection': 'Too slow connection. Please decrease the number of threads and increase the request timeout',
         'online': 'Server {host}:{port} ({ip}) is online!',
         'scanning': 'Scanning {host} ...',
-        'debug': 'Starting debug level {level} ...',
+        'debug': 'Starting debug level {level} . Using scan method: {method} ...',
         'randomizing': 'Randomizing scan list ...',
         'browser': 'Fetching user-agent: {browser}',
         'directories': 'Read {total} directories list by line',
