@@ -25,7 +25,7 @@ class Response(ResponseProvider):
     def __init__(self, config, tpl):
         """
         Response instance
-        :param dict config: configurations
+        :param src.lib.browser.config.Config config: configurations
         """
         ResponseProvider.__init__(self, config, tpl)
 
@@ -46,7 +46,7 @@ class Response(ResponseProvider):
                 self._tpl.line_log(key='get_item_lvl1',
                              percent=self._tpl.line(msg=helper.percent(pool_size, total_size),
                                               color='cyan'), current=pool_size,
-                             total=total_size, item=request_url, size='10kb')
+                             total=total_size, item=request_url, size=self._get_content_size(resp))
             else:
                 self._tpl.line_log(key='get_item_lvl0',
                              percent=self._tpl.line(msg=helper.percent(pool_size, total_size),

@@ -15,7 +15,7 @@
 
     Development Team: Stanislav WEB
 """
-
+from src.core import filesystem
 
 class ResponseProvider():
     """ ResponseProvider class"""
@@ -23,7 +23,7 @@ class ResponseProvider():
     def __init__(self, config, tpl):
         """
 
-        :param dict config: configurations
+        :param src.lib.browser.config.Config config: configurations
         :param tpl: templater interface
         """
 
@@ -42,3 +42,15 @@ class ResponseProvider():
         """
 
         pass
+
+    def _get_content_size(self, response):
+        """
+        Get content size
+
+        :param urllib3.response.HTTPResponse response: response object
+        :return: str
+        """
+
+        if 'Content-Length' in response.headers:
+            return filesystem.human_size(response.headers['Content-Length'])
+        return '0B'

@@ -3,24 +3,14 @@
 """Http class"""
 
 import collections
-import exceptions
-import httplib
 import logging
 import multiprocessing
 import re
-import socks
 import urllib3
-from urlparse import urlparse
 
 import sys
 import threadpool
 import time
-from src.lib.logger.logger import Logger as Log
-
-from src.core.helper.Formatter import Formatter
-from src.core.helper.Progress import Progress
-from src.lib.browser.HttpConfig import HttpConfig as config
-
 
 class Http:
     """Http class"""
@@ -38,25 +28,7 @@ class Http:
         """Get metadata by url"""
 
         self.__disable_verbose()
-        self.exclusions = self.__get_exclusions()
         response = {}
-
-        try:
-            if 2 is self.debug:
-                httplib.HTTPConnection.debuglevel = self.debug
-
-            if hasattr(urllib3, 'disable_warnings'):
-                urllib3.disable_warnings()
-
-            pool = threadpool.ThreadPool(self.threads)
-            requests = threadpool.makeRequests(self.request, self.urls)
-            for req in requests:
-                pool.putRequest(req)
-            pool.wait()
-        except exceptions.AttributeError as e:
-            sys.exit(Log.error(e.message))
-        except KeyboardInterrupt:
-            sys.exit("{0}".format(Log.warning(self.message.get('abort'))))
 
         self.counter['total'] = self.urls.__len__()
         self.counter['pools'] = pool.workers.__len__()

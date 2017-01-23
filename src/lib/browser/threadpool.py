@@ -99,7 +99,6 @@ class ThreadPool():
         """
 
         self.is_started = False
-        tpl.message('\n')
         tpl.info(key='stop_threads', threads=len(self.workers))
 
         try:

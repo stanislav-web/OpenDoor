@@ -179,10 +179,12 @@ class FileSystem:
             raise FileSystemError(e.message)
 
     @staticmethod
-    def human_size(bytes):
-        base = 1024
-        for x in ['B ', 'KB', 'MB', 'GB']:
-            if bytes < base and bytes > -base:
-                return "%3.0f%s" % (bytes, x)
-            bytes /= base
-        return "%3.0f %s" % (bytes, 'TB')
+    def human_size(size, precision=2):
+        suffixes = ['B', 'KB', 'MB', 'GB', 'TB']
+        suffix_index = 0
+        size = int(size)
+        while size > 1024 and suffix_index < 4:
+            suffix_index += 1
+            size = size / 1024.0
+
+        return "%.*f%s" % (precision, size, suffixes[suffix_index])
