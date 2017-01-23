@@ -15,6 +15,7 @@
 
     Development Team: Stanislav WEB
 """
+
 from .cookies import CookiesProvider
 from .header import HeaderProvider
 
@@ -23,6 +24,12 @@ class RequestProvider(CookiesProvider, HeaderProvider):
     """ RequestProvider class"""
 
     def __init__(self, config, agent_list):
+        """
+        init abstract
+
+        :param src.lib.browser.config.Config config: configurations
+        :param dict agent_list:
+        """
 
         HeaderProvider.__init__(self, config, agent_list)
         CookiesProvider.__init__(self)

@@ -36,10 +36,7 @@ class HttpRequest(RequestProvider):
 
         try:
 
-
-            if 'tpl' in kwargs:
-                self.__tpl = kwargs.get('tpl')
-
+            self.__tpl = kwargs.get('tpl')
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
 
         except (TypeError, ValueError) as e:

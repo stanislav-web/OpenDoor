@@ -89,6 +89,7 @@ class ThreadPool():
                 else:
                     self.__queue.join()
         except (SystemExit, KeyboardInterrupt):
+            time.sleep(1)
             self.pause()
 
     def pause(self):
@@ -107,7 +108,7 @@ class ThreadPool():
                     for worker in threading._enumerate():
                         if threading.current_thread().__class__.__name__ != '_MainThread':
                             worker.pause()
-                    time.sleep(3)
+                    time.sleep(2)
 
                 char = tpl.prompt(key='option_prompt')
                 if char.lower() == 'e':

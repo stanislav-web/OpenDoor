@@ -39,7 +39,7 @@ class Config:
         'get_item_lvl0' : '{percent} {item}',
         'total_time_lvl3'  : 'Total time running: {time}',
         'thread_limit'  : 'Threads has been reduced to {max} (max) instead of {threads}',
-        'stop_threads'  : 'Stopping threads ({threads}), please wait...',
+        'stop_threads'  : 'Stopping threads ({threads})...',
         'option_prompt'  : 'Press "[C]ontinue" to resume or "[E]xit" to abort session: ',
         'resume_threads'  : 'Resuming scan...',
         'get_item_lvl1' : '{percent} [{current}/{total}] - {size} - {item}',
