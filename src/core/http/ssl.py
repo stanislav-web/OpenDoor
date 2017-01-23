@@ -17,15 +17,15 @@
 """
 
 from urllib3 import HTTPSConnectionPool
-from src.core import helper
 from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError
-from .providers import RequestProvider, HeaderProvider
+
+from src.core import helper
 from .exceptions import HttpsRequestError
+from .providers import RequestProvider
 
 
-class HttpsRequest(RequestProvider, HeaderProvider):
+class HttpsRequest(RequestProvider):
     """HttpsRequest class"""
-
 
     def __init__(self, config, debug=0, **kwargs):
         """
@@ -39,11 +39,10 @@ class HttpsRequest(RequestProvider, HeaderProvider):
             if 'tpl' in kwargs:
                 self.__tpl = kwargs.get('tpl')
 
-            HeaderProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
+            RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
 
         except (TypeError, ValueError) as e:
             raise HttpsRequestError(e.message)
-
 
         self.__cfg = config
         self.__debug = False if debug < 2 else True
@@ -74,13 +73,12 @@ class HttpsRequest(RequestProvider, HeaderProvider):
         """
 
         try:
-            response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path,
-                                           headers=self._headers,
-                                           retries=self.__cfg.retries,
-                                           assert_same_host=True,
-                                           redirect=False
-                                           )
+            response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path, headers=self._headers,
+                                           retries=self.__cfg.retries, assert_same_host=True, redirect=False)
+
+            self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             return response
+
         except MaxRetryError:
             self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
             pass

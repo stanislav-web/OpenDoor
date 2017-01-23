@@ -18,17 +18,17 @@
 
 import importlib
 import random
-from src.core import helper
+
 from urllib3 import ProxyManager
 from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown, ReadTimeoutError
 
+from src.core import helper
 from .exceptions import ProxyRequestError
-from .providers import RequestProvider, HeaderProvider
+from .providers import RequestProvider
 
 
-class Proxy(RequestProvider, HeaderProvider):
+class Proxy(RequestProvider):
     """Proxy class"""
-
 
     def __init__(self, config, debug=0, **kwargs):
         """
@@ -42,7 +42,7 @@ class Proxy(RequestProvider, HeaderProvider):
             self.__tpl = kwargs.get('tpl')
             self.__proxylist = kwargs.get('proxy_list')
 
-            HeaderProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
+            RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
 
             if type(self.__proxylist) is not list or 0 == len(self.__proxylist):
                 raise TypeError('Proxy list empty or has invalid format')
@@ -69,7 +69,7 @@ class Proxy(RequestProvider, HeaderProvider):
 
             if self.__get_proxy_type(self.__server) == 'socks':
 
-                if not self.__pm:
+                if not hasattr(self, '__pm'):
 
                     module = importlib.import_module('urllib3.contrib.socks')
                     self.__pm = getattr(module, 'SOCKSProxyManager')
@@ -91,11 +91,12 @@ class Proxy(RequestProvider, HeaderProvider):
         pool = self.__proxy_pool()
 
         try:
-            response = pool.request(self.__cfg.method, url,
-                                    headers=self._headers,
-                                    retries=self.__cfg.retries,
+            response = pool.request(self.__cfg.method, url, headers=self._headers, retries=self.__cfg.retries,
                                     redirect=False)
+
+            self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             return response
+
         except MaxRetryError:
             self.__tpl.warning(key='proxy_max_retry_error', url=helper.parse_url(url).path, proxy=self.__server)
             pass

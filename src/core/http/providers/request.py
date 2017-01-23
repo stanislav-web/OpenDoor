@@ -15,10 +15,17 @@
 
     Development Team: Stanislav WEB
 """
+from .cookies import CookiesProvider
+from .header import HeaderProvider
 
 
-class RequestProvider(object):
+class RequestProvider(CookiesProvider, HeaderProvider):
     """ RequestProvider class"""
+
+    def __init__(self, config, agent_list):
+
+        HeaderProvider.__init__(self, config, agent_list)
+        CookiesProvider.__init__(self)
 
     def request(self, url):
         """
@@ -28,3 +35,15 @@ class RequestProvider(object):
         """
 
         pass
+
+    def cookies_middleware(self, is_accept, response):
+        """
+        Route fetched cookies from first response to the next requests
+        :param urllib3.response.HTTPResponse response: Http response
+        :return: None
+        """
+
+        if True is is_accept and hasattr(response, 'headers'):
+            self._fetch_cookies(response.headers)
+            if True is self._is_cookie_fetched:
+                self._add_header('Cookie', self._push_cookies())

@@ -44,6 +44,7 @@ class Config:
         self._scheme = params.get('scheme')
         self._ssl = params.get('ssl')
         self._host = params.get('host')
+        self._accept_cookies = False if params.get('accept_cookies') is None else True
         self._port = params.get('port')
         self._is_indexof = params.get('indexof')
         self._retries = False if params.get('retries') is None else params.get('retries')
@@ -124,3 +125,7 @@ class Config:
     @property
     def threads(self):
         return self._threads
+
+    @property
+    def accept_cookies(self):
+        return self._accept_cookies

@@ -37,11 +37,6 @@ from .threadpool import ThreadPool
 class Browser(Debug, Filter):
     """ Browser class """
 
-    __request = None
-    __config = None
-    __reader = None
-    __pool = None
-
     def __init__(self, params):
         """
         Browser constructor
@@ -59,11 +54,8 @@ class Browser(Debug, Filter):
             Debug.__init__(self, self.__config)
             Filter.__init__(self, self.__config, self.__reader.total_lines)
 
-            self.__pool = ThreadPool(
-                                    num_threads=self.__config.threads,
-                                    total_items=self.__reader.total_lines,
-                                    delay=self.__config.delay
-                                    )
+            self.__pool = ThreadPool(num_threads=self.__config.threads, total_items=self.__reader.total_lines,
+                delay=self.__config.delay)
 
         except (ThreadPoolError, ReaderError) as e:
             raise BrowserError(e)
@@ -102,26 +94,17 @@ class Browser(Debug, Filter):
         try:  # beginning scan process
 
             if True is self.__config.is_proxy:
-                self.__client = request_proxy(self.__config,
-                                              proxy_list=self.__reader.get_proxies(),
-                                              agent_list=self.__reader.get_user_agents(),
-                                              debug=self.__config.debug,
-                                              tpl=tpl
-                                              )
+                self.__client = request_proxy(self.__config, proxy_list=self.__reader.get_proxies(),
+                                              agent_list=self.__reader.get_user_agents(), debug=self.__config.debug,
+                                              tpl=tpl)
             else:
 
                 if True is self.__config.ssl:
-                    self.__client = request_ssl(self.__config,
-                                                agent_list=self.__reader.get_user_agents(),
-                                                debug=self.__config.debug,
-                                                tpl=tpl
-                                                )
+                    self.__client = request_ssl(self.__config, agent_list=self.__reader.get_user_agents(),
+                                                debug=self.__config.debug, tpl=tpl)
                 else:
-                    self.__client = request_http(self.__config,
-                                                agent_list=self.__reader.get_user_agents(),
-                                                debug=self.__config.debug,
-                                                tpl=tpl
-                                                )
+                    self.__client = request_http(self.__config, agent_list=self.__reader.get_user_agents(),
+                                                 debug=self.__config.debug, tpl=tpl)
 
             if True is self.__pool.is_started:
                 self.__reader.get_lines(self.__config.scan,
@@ -145,12 +128,13 @@ class Browser(Debug, Filter):
 
                 if 0 < self.__config.debug:
                     tpl.line_log(key='get_item_lvl1',
-                             percent=tpl.line(msg=helper.percent(self.__pool.size, self.__reader.total_lines),
-                                              color='cyan'), current=self.__pool.size, total=self.__reader.total_lines,
-                             item=url, size='10kb')
+                                 percent=tpl.line(msg=helper.percent(self.__pool.size, self.__reader.total_lines),
+                                                  color='cyan'), current=self.__pool.size,
+                                 total=self.__reader.total_lines, item=url, size='10kb')
                 else:
                     tpl.line_log(key='get_item_lvl0',
-                             percent=tpl.line(msg=helper.percent(self.__pool.size, self.__reader.total_lines), color='cyan'), item=url)
+                                 percent=tpl.line(msg=helper.percent(self.__pool.size, self.__reader.total_lines),
+                                                  color='cyan'), item=url)
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError) as e:
             raise BrowserError(e)
