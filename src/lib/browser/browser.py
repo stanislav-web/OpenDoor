@@ -109,7 +109,7 @@ class Browser(Debug, Filter):
                                               tpl=tpl)
             else:
 
-                if True is self.__config.ssl:
+                if True is self.__config.is_ssl:
                     self.__client = request_ssl(self.__config, agent_list=self.__reader.get_user_agents(),
                                                 debug=self.__config.debug, tpl=tpl)
                 else:

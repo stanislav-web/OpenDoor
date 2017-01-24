@@ -19,7 +19,7 @@
 import importlib
 import random
 
-from urllib3 import ProxyManager
+from urllib3 import ProxyManager, PoolManager
 from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown, ReadTimeoutError
 
 from src.core import helper
@@ -44,17 +44,19 @@ class Proxy(RequestProvider):
 
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
 
-            if type(self.__proxylist) is not list or 0 == len(self.__proxylist):
-                raise TypeError('Proxy list empty or has invalid format')
+            self.__cfg = config
+            self.__debug = False if debug < 2 else True
+
+            if 0 < len(config.proxy):
+                if True is self.__debug:
+                    self.__tpl.debug(key='custom_proxy', server=self.__cfg.proxy)
+            else:
+                if type(self.__proxylist) is not list or 0 == len(self.__proxylist):
+                    raise TypeError('Proxy list empty or has invalid format')
+                self.__tpl.debug(key='proxy_pool_start')
 
         except (TypeError, ValueError) as e:
             raise ProxyRequestError(e.message)
-
-        self.__cfg = config
-        self.__debug = False if debug < 2 else True
-
-        if True is self.__debug:
-            self.__tpl.debug(key='proxy_pool_start')
 
     def __proxy_pool(self):
         """
@@ -65,7 +67,7 @@ class Proxy(RequestProvider):
 
         try:
 
-            self.__server = self.__get_random_proxyserver()
+            self.__server = self.__cfg.proxy if 0 < len(self.__cfg.proxy) else self.__get_random_proxyserver()
 
             if self.__get_proxy_type(self.__server) == 'socks':
 
@@ -88,6 +90,7 @@ class Proxy(RequestProvider):
         :return: urllib3.HTTPResponse
         """
 
+
         pool = self.__proxy_pool()
 
         try:
@@ -98,10 +101,12 @@ class Proxy(RequestProvider):
             return response
 
         except MaxRetryError:
-            self.__tpl.warning(key='proxy_max_retry_error', url=helper.parse_url(url).path, proxy=self.__server)
+            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
+                self.__tpl.warning(key='proxy_max_retry_error', url=helper.parse_url(url).path, proxy=self.__server)
             pass
         except ReadTimeoutError:
-            self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
+            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
+                self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
             pass
 
     def __get_random_proxyserver(self):

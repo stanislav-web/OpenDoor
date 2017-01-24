@@ -55,7 +55,7 @@ class Debug:
         """
 
         if 0 < self.__config.debug:
-            if True is self.__config.is_proxy:
+            if True is self.__config.is_proxy and 0 == len(self.__config.proxy):
                 tpl.debug(key='proxy')
         else:
             pass

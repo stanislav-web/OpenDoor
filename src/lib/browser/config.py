@@ -24,14 +24,9 @@ class Config:
     DEFAULT_MIN_THREADS = 1
     DEFAULT_MAX_THREADS = 25
     DEFAULT_DEBUG_LEVEL = 0
+    DEFAULT_SCAN = 'directories'
     DEFAULT_HTTP_METHOD = 'HEAD'
     DEFAULT_USER_AGENT = 'Opera/9.0 (Windows NT 5.1; U; en)'
-    DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
-    DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
-    DEFAULT_HTTP_REDIRECT_STATUSES = [301, 302, 303, 304, 307, 308]
-    DEFAULT_HTTP_FAILED_STATUSES = [404, 429, 500, 501, 502, 503, 504]
-    DEFAULT_HTTP_UNRESOLVED_STATUSES = [401, 403]
-    DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400]
 
     def __init__(self, params):
         """
@@ -44,6 +39,7 @@ class Config:
         self._scheme = params.get('scheme')
         self._ssl = params.get('ssl')
         self._host = params.get('host')
+        self._proxy = '' if params.get('proxy') is None else params.get('proxy')
         self._accept_cookies = False if params.get('accept_cookies') is None else True
         self._port = params.get('port')
         self._wordlist = params.get('wordlist')
@@ -61,78 +57,185 @@ class Config:
 
     @property
     def default_scan(self):
+        """
+        Default scan property
+        :return: str
+        """
+
         return self._default_scan
 
     @property
     def scan(self):
+        """
+        Scan property
+        :return: str
+        """
+
         return self._scan
 
     @property
     def scheme(self):
+        """
+        Protocol property
+        :return: str
+        """
+
         return self._scheme
 
     @property
-    def ssl(self):
+    def is_ssl(self):
+        """
+        If using ssl
+        :return: bool
+        """
+
         return self._ssl
 
     @property
     def host(self):
+        """
+        Hostname property
+        :return: str
+        """
+
         return self._host
 
     @property
     def port(self):
+        """
+        Port property
+        :return: int
+        """
+
         return self._port
 
     @property
     def is_indexof(self):
+        """
+        If index of/ scan is available
+        :return: bool
+        """
+
         return self._is_indexof
 
     @property
     def method(self):
+        """
+        Scan method property
+        :return: str
+        """
+
         return self._method
 
     @property
     def delay(self):
+        """
+        Delay property
+        :return: int
+        """
+
         return self._delay
 
     @property
     def timeout(self):
+        """
+        Timeout property
+        :return: int
+        """
+
         return self._timeout
 
     @property
     def retries(self):
+        """
+        Retries property
+        :return: int
+        """
+
         return self._retries
 
     @property
     def debug(self):
+        """
+         Debug level property
+         :return: int
+         """
+
         return self._debug
 
     @property
     def is_proxy(self):
+        """
+        If proxy is available
+        :return: bool
+        """
+
+        if 0 < len(self._proxy):
+            self._is_proxy = True
+
         return self._is_proxy
 
     @property
+    def proxy(self):
+        """
+        Proxy property
+        :return: str
+        """
+        self._is_proxy = True
+        return self._proxy
+
+    @property
     def is_random_user_agent(self):
+        """
+        If ua randomize is available
+        :return: bool
+        """
+
         return self._is_random_user_agent
 
     @property
     def is_random_list(self):
+        """
+        If scan list randomize is available
+        :return: bool
+        """
+
         return self._is_random_list
 
     @property
     def is_external_wordlist(self):
+        """
+        If exteranl word list is available
+        :return: bool
+        """
+
         if None is self._wordlist:
             return False
         return True
 
     @property
     def user_agent(self):
+        """
+        User agent property
+        :return: str
+        """
+
         return self._user_agent
 
     @property
     def threads(self):
+        """
+        Threads property
+        :return: int
+        """
+
         return self._threads
 
     @property
     def accept_cookies(self):
+        """
+        Accept cookies property
+        :return: bool
+        """
+
         return self._accept_cookies

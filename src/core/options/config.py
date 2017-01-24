@@ -43,6 +43,8 @@ class Config:
             "help": "Debug level 1 - 3", "type": int},
         {"group": "request", "args": None, "argl": "--tor", "default": False, "action": "store_true",
             "help": "Using proxylist", "type": bool},
+        {"group": "request", "args": None, "argl": "--proxy", "default": None, "action": "store",
+             "help": "Custom permanent proxy server", "type": str},
         {"group": "wordlist", "args": "-s", "argl": "--scan", "default": "directories", "action": "store",
             "help": "Scan type scan=directories or scan=subdomains", "type": str},
         {"group": "wordlist", "args": "-w", "argl": "--wordlist", "default": None, "action": "store",

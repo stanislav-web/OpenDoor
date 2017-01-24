@@ -16,7 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from urllib3 import HTTPConnectionPool
+from urllib3 import HTTPConnectionPool, PoolManager
 from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError
 
 from src.core import helper
@@ -42,10 +42,11 @@ class HttpRequest(RequestProvider):
         except (TypeError, ValueError) as e:
             raise HttpRequestError(e.message)
 
-        self.__assert_same_host = True if 'directories' == config.scan else False
         self.__cfg = config
         self.__debug = False if debug < 2 else True
-        self.__pool = self.__http_pool()
+
+        if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
+            self.__pool = self.__http_pool()
 
     def __http_pool(self):
         """
@@ -75,21 +76,32 @@ class HttpRequest(RequestProvider):
         # httplib.HTTPConnection.debuglevel = 5
 
         try:
-            response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path,
+
+            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
+
+                response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path,
                                            headers=self._headers,
                                            retries=self.__cfg.retries,
-                                           assert_same_host=self.__assert_same_host,
+                                           assert_same_host=True,
                                            redirect=False)
 
-            self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
+                self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
+            else:
+                response = PoolManager().request(self.__cfg.method, url,
+                                               headers=self._headers,
+                                               retries=self.__cfg.retries,
+                                               assert_same_host=False,
+                                               redirect=False)
             return response
 
         except MaxRetryError:
-            self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
+            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
+                self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
             pass
         except HostChangedError as e:
             self.__tpl.warning(key='host_changed_error', details=e)
             pass
         except ReadTimeoutError:
-            self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
+            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
+                self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
             pass

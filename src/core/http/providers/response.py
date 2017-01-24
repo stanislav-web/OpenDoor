@@ -20,6 +20,13 @@ from src.core import filesystem
 class ResponseProvider():
     """ ResponseProvider class"""
 
+    __DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
+    __DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
+    __DEFAULT_HTTP_REDIRECT_STATUSES = [301, 302, 303, 304, 307, 308]
+    __DEFAULT_HTTP_FAILED_STATUSES = [404, 429, 500, 501, 502, 503, 504]
+    __DEFAULT_HTTP_UNRESOLVED_STATUSES = [401, 403]
+    __DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400]
+
     def __init__(self, config, tpl):
         """
 
@@ -40,7 +47,7 @@ class ResponseProvider():
         :param int total_size: response object
         :return: @TODO
         """
-
+        print resp, request_url, pool_size, total_size
         pass
 
     def _get_content_size(self, response):
@@ -54,3 +61,38 @@ class ResponseProvider():
         if 'Content-Length' in response.headers:
             return filesystem.human_size(response.headers['Content-Length'])
         return '0B'
+
+    def _sucess(self):
+        """
+        Handle success response
+        :return: @TODO
+        """
+        pass
+
+    def _failed(self):
+        """
+        Handle failed response
+        :return: @TODO
+        """
+        pass
+
+    def _redirect(self):
+        """
+        Handle redirect response
+        :return: @TODO
+        """
+        pass
+
+    def _unresolved(self):
+        """
+        Handle unresolved response
+        :return: @TODO
+        """
+        pass
+
+    def _bad(self):
+        """
+        Handle bad response
+        :return: @TODO
+        """
+        pass

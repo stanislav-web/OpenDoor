@@ -17,6 +17,7 @@
 """
 
 import re
+from urlparse import urlparse
 from .exceptions import FilterError
 from src.core import helper
 
@@ -43,7 +44,10 @@ class Filter:
                 filtered['scheme'] = Filter.scheme(value)
                 filtered['ssl'] = Filter.ssl(filtered['scheme'])
             else:
-                filtered[key] = value
+                if 'proxy' == key:
+                    filtered[key] = Filter.proxy(value)
+                else:
+                    filtered[key] = value
 
         return filtered
 
@@ -92,8 +96,23 @@ class Filter:
         regex = re.compile(r"" + Filter.URL_REGEX + "")
 
         if not regex.match(host):
-            raise FilterError("\"{0}\" iis invalid host. Use ip, http(s) or just hostname".format(host))
+            raise FilterError("\"{0}\" is invalid host in --host. Use ip, http(s) or just hostname".format(host))
         return host
+
+    @staticmethod
+    def proxy(proxyaddress):
+        """
+        Input `proxy` param filter
+        :param str proxyaddress:
+        :raise FilterError
+        :return: str
+        """
+
+        proxy = urlparse(proxyaddress)
+
+        if proxy.scheme not in ['http', 'https', 'socks4', 'socks5'] or None is proxy.port:
+            raise FilterError("\"{0}\" is invalid proxy in --proxy. Use scheme:ip:port format".format(proxyaddress))
+        return proxyaddress
 
     @staticmethod
     def scan(type):
