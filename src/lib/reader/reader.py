@@ -122,7 +122,7 @@ class Reader():
             else:
                 if True is self.__browser_config.get('is_external_wordlist'):
                     dirlist = self.__browser_config.get('list')
-                    self.__browser_config.update({'list' : 'externallist'})
+                    self.__browser_config.update({'list' : 'directories'})
                 else:
                     dirlist = self.__config.get('opendoor', self.__browser_config.get('list'))
 
@@ -169,28 +169,8 @@ class Reader():
         line = line.strip("\n")
         line.lstrip('/')
 
-        port = params.get('port')
-
-        if Config.port is port:
-            port = ''
-        else:
-            port = ':{0}'.format(port)
-
-        line = "{scheme}{host}{port}/{uri}".format(scheme=params.get('scheme'), host=params.get('host'), port=port,
-            uri=line, )
-
-        return line
-
-    def _externallist__line(self, line, params):
-        """
-        Read lines from externalwordlist file
-        :param str line: single line
-        :param dict params: input params
-        :return: str
-        """
-
-        line = line.strip("\n")
-        line.lstrip('/')
+        if False is line.endswith('/'):
+            line = '{0}/'.format(line)
 
         port = params.get('port')
 

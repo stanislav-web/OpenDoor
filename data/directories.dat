@@ -2298,7 +2298,6 @@ _admin.html
 _admin/
 _admin2/
 _admin_/
-_admin_/
 _admincp/
 _administracion/
 _administration/
@@ -4042,7 +4041,6 @@ admintable.php
 admintemplates/
 admintest/
 adminth/
-admintool/
 admintool.jsp
 admintool/
 admintools/
@@ -4051,8 +4049,8 @@ adminui/
 adminus/
 adminuser/
 adminuserlogin/
-adminusers/
 adminusers.php
+adminusers/
 adminv/
 adminv2/
 adminv3/
@@ -4697,10 +4695,9 @@ app/src/
 app/sys/
 app/testing/
 app/unschedule.bat
-app/vendor/
 app/vendor-src/
+app/vendor/
 app_/
-app_admin/
 app_admin/
 app_ajax/
 app_browser/
@@ -6478,7 +6475,6 @@ cabinets/
 cabins/
 caboose/
 cac/
-cache
 cache/
 cache/sql_error_latest.cgi
 cache1/
@@ -6498,7 +6494,6 @@ cachemonitor/statistics.jsp
 cachep/
 caches/
 caching/
-cacti
 cacti/
 cactus/
 cad/
@@ -6507,7 +6502,6 @@ caddie/
 cadeau/
 cadeaux/
 cadiz/
-cadmin
 cadmin/
 cadmins
 cadmins/
@@ -6535,7 +6529,6 @@ calculation/
 calculator/
 calculators/
 calcviews/
-calendar
 calendar/
 calendar2/
 calendar_events/
@@ -6564,7 +6557,7 @@ callout/
 calls/
 calvin/
 cam/
-camadmin
+camadmin/
 camaro/
 cambridge/
 camel/
@@ -6685,7 +6678,7 @@ cart32/
 cart_items/
 cart_order/
 carta/
-cartadmin
+cartadmin/
 cartagena/
 cartaya/
 cartconfig/
@@ -6739,13 +6732,13 @@ catall/
 catalog.wci
 catalog/
 catalog2/
-catalog_admin
 catalog_admin.php
+catalog_admin/
 catalog_de/
 catalog_images/
 catalog_old/
 catalog_test/
-catalogadmin
+catalogadmin/
 cataloges/
 catalogimages/
 catalogo/
@@ -6753,7 +6746,6 @@ catalogorderform/
 catalogos/
 catalogrequest/
 catalogs/
-catalogsearch
 catalogsearch/
 catalogue/
 catalogues/
@@ -12396,6 +12388,8 @@ hilary/
 hilfe/
 hillsborough/
 hilton/
+himadmin.php
+himadmin/
 hindi/
 hint/
 hintergrundinfo/
@@ -15430,7 +15424,6 @@ mantisbt/
 mantra/
 manu/
 manual/
-manual/index.html
 manuales/
 manuali/
 manuallogin/
@@ -15455,7 +15448,7 @@ map_topnav/
 mapa-do-site/
 mapa/
 mapabcpoi/
-mapadmin
+mapadmin/
 mapas/
 mapaweb/
 mapdata/
@@ -15648,7 +15641,7 @@ media-kit/
 media-old/
 media/
 media/export-criteo.xml
-media_admin
+media_admin/
 media_center/
 media_new/
 mediabase/
@@ -15698,31 +15691,27 @@ melissa/
 mellon/
 melody/
 mem/
-memadmin
+memadmin/
 memb/
-member
 member-area/
 member-center/
-member-login
 member-login/
 member-only/
 member.php
 member/
-member/login
 member/login.html
 member/login.jsp
 member/login.php
 member/login.py
 member/login.rb
 member/login/
-member/logon
-member/signin
+member/logon/
+member/signin/
 member2/
 member_area/
 member_info/
 member_photos/
 member_search/
-memberadmin
 memberadmin.php
 memberadmin/
 memberarea/
@@ -15733,7 +15722,6 @@ memberlist/
 memberlogin/
 memberresources/
 memberrides/
-members
 members-access/
 members-area/
 members-only/
@@ -15755,10 +15743,10 @@ members.sqlite
 members.txt
 members.xls
 members/
-members/login/
 members/login.html
 members/login.jsp
 members/login.php
+members/login/
 members/logon/
 members/signin/
 members2/
@@ -15794,7 +15782,6 @@ mensajes/
 menshealth/
 mentions-legales/
 mentor/
-menu
 menu-files/
 menu/
 menu1/
@@ -15905,7 +15892,6 @@ microprofile/
 microscope/
 microsite/
 microsites/
-microsoft
 microsoft/
 microsupport/
 mid/
@@ -15947,7 +15933,6 @@ millie/
 million/
 milwaukee/
 mim/
-mime
 mime/
 mimi/
 mimosa-config.coffee
@@ -16035,7 +16020,6 @@ ml2/
 mlb/
 mld/
 mlist/
-mliveadmin
 mliveadmin/
 mlm/
 mls/
@@ -16044,7 +16028,7 @@ mm5/
 mm_casetest4291/
 mm_track/
 mma/
-mmadmin
+mmadmin/
 mmedia/
 mmm/
 mms/
@@ -16063,7 +16047,7 @@ moban/
 mobi/
 mobiel/
 mobil/
-mobile
+mobile/admin.php
 mobile-phones/
 mobile.php
 mobile/
@@ -21489,7 +21473,6 @@ shopinfo/
 shoping-cart/
 shopper/
 shoppers/
-shopping/
 shopping-basket/
 shopping-cart/
 shopping-lists/
@@ -22884,7 +22867,6 @@ syndicate/
 syndicated/
 syndication/
 sypex/dumper.php
-sys-admin/
 sys-admin/
 sys-common/
 sys/
