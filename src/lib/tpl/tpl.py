@@ -16,6 +16,7 @@
     Development Team: Stanislav WEB
 """
 
+import json
 from src.core import colour
 from src.core import helper
 from src.core import logger
@@ -217,6 +218,22 @@ class Tpl():
 
         if count + 1 == total:
             Tpl.message("\n")
+
+    @staticmethod
+    def json(json_thing, sort=True, indents=4):
+        """
+        Json pretty print
+
+        :param str json_thing:
+        :param bool sort:
+        :param int indents:
+        :return:
+        """
+
+        if type(json_thing) is str:
+            return json.dumps(json.loads(json_thing), sort_keys=sort, indent=indents)
+        else:
+            return json.dumps(json_thing, sort_keys=sort, indent=indents)
 
     @staticmethod
     def __format_message(key, **args):

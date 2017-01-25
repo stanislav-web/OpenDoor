@@ -56,11 +56,15 @@ class HttpRequest(RequestProvider):
         """
 
         try:
-            if True is self.__debug:
-                self.__tpl.debug(key='http_pool_start')
+
 
             pool = HTTPConnectionPool(self.__cfg.host, port=self.__cfg.port, maxsize=self.__cfg.threads,
                                       timeout=self.__cfg.timeout, block=True)
+
+            if True is self.__debug:
+                self.__tpl.debug(key='http_pool_start')
+                self.__tpl.debug(pool)
+
             return pool
         except Exception as e:
             raise HttpRequestError(e)
@@ -74,6 +78,10 @@ class HttpRequest(RequestProvider):
 
         # import httplib
         # httplib.HTTPConnection.debuglevel = 5
+
+
+        if True is self.__debug:
+            self.__tpl.debug(key='request_header_dbg', dbg=self.__tpl.json(self._headers))
 
         try:
 
@@ -92,6 +100,7 @@ class HttpRequest(RequestProvider):
                                                retries=self.__cfg.retries,
                                                assert_same_host=False,
                                                redirect=False)
+
             return response
 
         except MaxRetryError:

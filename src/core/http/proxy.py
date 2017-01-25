@@ -93,11 +93,16 @@ class Proxy(RequestProvider):
 
         pool = self.__proxy_pool()
 
+        if True is self.__debug:
+            self.__tpl.debug(key='request_header_dbg', dbg=self.__tpl.json(self._headers))
+
         try:
             response = pool.request(self.__cfg.method, url, headers=self._headers, retries=self.__cfg.retries,
                                     redirect=False)
 
             self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
+
+
             return response
 
         except MaxRetryError:

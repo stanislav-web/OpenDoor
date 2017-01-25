@@ -47,6 +47,7 @@ class Config:
         'http_pool_start' : 'Using HTTP keep-alive connection',
         'https_pool_start' : 'Using SSL keep-alive connection',
         'proxy_pool_start' : 'Using random proxies',
+        'request_header_dbg': 'Request headers:\n{dbg}',
         'custom_proxy'     : 'Using custom proxy server: {server}',
         'ignored_path'     : 'Ignored. The path {path} in ignore list',
         'max_retry_error'  : 'Skipped. Max retries exceeded: {url}',

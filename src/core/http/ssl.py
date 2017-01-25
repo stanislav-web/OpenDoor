@@ -56,11 +56,14 @@ class HttpsRequest(RequestProvider):
         """
 
         try:
-            if True is self.__debug:
-                self.__tpl.debug(key='ssl_pool_start')
 
             pool = HTTPSConnectionPool(self.__cfg.host, port=self.__cfg.port, maxsize=self.__cfg.threads,
                                        timeout=self.__cfg.timeout, block=True)
+
+            if True is self.__debug:
+                self.__tpl.debug(key='ssl_pool_start')
+                self.__tpl.debug(pool)
+
             return pool
         except Exception as e:
             raise HttpsRequestError(e)
@@ -71,6 +74,9 @@ class HttpsRequest(RequestProvider):
         :param str url: request uri
         :return: urllib3.HTTPResponse
         """
+
+        if True is self.__debug:
+            self.__tpl.debug(key='request_header_dbg', dbg=self.__tpl.json(self._headers))
 
         try:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
