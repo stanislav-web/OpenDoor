@@ -39,8 +39,8 @@ class ThreadPool():
         """
 
         self.__queue = Queue(num_threads)
-        self.workers = []
-        self.total_items_sizes = total_items
+        self.__workers = []
+        self.total_items_size = total_items
         self.is_started = True
 
         try:
@@ -54,7 +54,7 @@ class ThreadPool():
                     if False is worker.isAlive():
                         worker.setDaemon(True)
                         worker.start()
-                        self.workers.append(worker)
+                        self.__workers.append(worker)
 
                 except Exception as e:
                     raise WorkerError(e)
@@ -62,14 +62,23 @@ class ThreadPool():
             raise ThreadPoolError(e)
 
     @property
-    def size(self):
+    def workers_size(self):
+        """
+        Get pool workers (threads)
+        :return: int
+        """
+
+        return self.__workers.__len__()
+
+    @property
+    def items_size(self):
         """
         Get pool items size
         :return: int
         """
 
         counter = 0
-        for worker in self.workers:
+        for worker in self.__workers:
             counter += worker.counter
         return counter
 
@@ -84,7 +93,7 @@ class ThreadPool():
 
         try:
             if True is self.is_started:
-                if self.size < self.total_items_sizes:
+                if self.items_size < self.total_items_size:
                     self.__queue.put((func, args, kargs))
                 else:
                     self.__queue.join()
@@ -100,7 +109,7 @@ class ThreadPool():
         """
 
         self.is_started = False
-        tpl.info(key='stop_threads', threads=len(self.workers))
+        tpl.info(key='stop_threads', threads=len(self.__workers))
 
         try:
             while 0 < threading.active_count():
@@ -130,7 +139,7 @@ class ThreadPool():
 
         if False is self.is_started:
             tpl.info(key='resume_threads')
-            for worker in self.workers:
+            for worker in self.__workers:
                 worker.resume()
             self.is_started = True
         pass

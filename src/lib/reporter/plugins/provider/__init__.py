@@ -16,8 +16,4 @@
     Development Team: Stanislav WEB
 """
 
-
-class Config:
-    """Config class"""
-
-    report_dir = 'reports/'
+from provider import PluginProvider

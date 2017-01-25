@@ -68,6 +68,10 @@ class Browser(Debug, Filter):
                                      total_items=self.__reader.total_lines,
                                      delay=self.__config.delay)
 
+            self.__counter = helper.counter()
+            self.__counter['total'] = self.__pool.total_items_size
+            self.__counter['workers'] = self.__pool.workers_size
+
             self.__response = response(config=self.__config, tpl=tpl)
 
         except (ThreadPoolError, ReaderError) as e:
@@ -101,7 +105,7 @@ class Browser(Debug, Filter):
         if True is self.__config.is_random_list:
             self._debug_randomizing_list()
             self.__reader._randomize_list(self.__config.scan)
-        self._debug_list(total_lines=self.__reader.total_lines)
+        self._debug_list(total_lines=self.__counter.get('total'))
         tpl.info(key='scanning', host=self.__config.host)
 
         try:  # beginning scan process
@@ -144,8 +148,8 @@ class Browser(Debug, Filter):
 
             self.__response.handle(resp,
                                    request_url=url,
-                                   pool_size=self.__pool.size,
-                                   total_size=self.__reader.total_lines
+                                   items_size=self.__pool.items_size,
+                                   total_size=self.__counter.get('total')
                                    )
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError) as e:

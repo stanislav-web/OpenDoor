@@ -18,7 +18,6 @@ class Http:
     def __init__(self):
         """Init constructor"""
 
-        self.cpu_cnt = multiprocessing.cpu_count()
         self.counter = collections.Counter()
         self.result = collections.defaultdict(list)
         self.exclusions = []

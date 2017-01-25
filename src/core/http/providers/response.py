@@ -29,9 +29,9 @@ class ResponseProvider():
 
     def __init__(self, config, tpl):
         """
-
+        Response instance
         :param src.lib.browser.config.Config config: configurations
-        :param tpl: templater interface
+        :param src.lib.tpl.tpl.Tpl tpl: templater
         """
 
         self._config = config

@@ -16,6 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from .std import StdReporter
-from .csv import CsvReporter
-from .json import JsonReporter
+
+from .std import StdReportPlugin as std
+from .csv import CsvReportPlugin as csv
+from .json import JsonReportPlugin as json

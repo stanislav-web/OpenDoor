@@ -17,18 +17,37 @@
 """
 
 from src.core import filesystem
-from .config import Config
+from .exceptions import ReporterError
+import importlib
 
-
-class Reporter:
+class Reporter():
     """Reporter class"""
 
     @staticmethod
     def is_reported(resource):
         """
-        Check is session already reported
-        :param str resource:
+        Check if session is already reported
+        :param str resource: target report
         :return: bool
         """
 
-        return filesystem.is_exist(Config.report_dir, resource)
+        config = filesystem.readcfg('setup.cfg')
+        return filesystem.is_exist(config.get('opendoor', 'reports'), resource)
+
+    @staticmethod
+    def get(plugin):
+        """
+        Get report plugin
+        :param str plugin: plugin name
+        :return: src.lib.reporter.plugins.std.StdReportPlugin
+        """
+
+        try:
+
+            module = importlib.import_module('src.lib.reporter.plugins')
+            reporter = getattr(module, plugin)
+
+            return reporter
+
+        except AttributeError:
+            raise ReporterError('Unable to get reporter`{plugin}`'.format(plugin=plugin))

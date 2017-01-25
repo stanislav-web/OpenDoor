@@ -16,8 +16,22 @@
     Development Team: Stanislav WEB
 """
 
+from .provider import PluginProvider
 
-class CsvReporter:
-    """CsvReporter class"""
+class CsvReportPlugin(PluginProvider):
+    """ CsvReportPlugin class"""
 
-    report_dir = 'reports/'
+    def __int__(self):
+        """
+        Init provider
+        :return: None
+        """
+
+        PluginProvider.__init__(self)
+        self.data = {}
+
+    def set_report_data(self, data):
+        self.data = data
+
+    def get_report_data(self):
+        return self.data

@@ -1,4 +1,4 @@
-1 )-i, --indexof         Detect Index of/
+1 ) -i, --indexof         Detect Index of/
 
 2) --reports REPORTS
 

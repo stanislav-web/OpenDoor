@@ -25,5 +25,6 @@ from .package import Package as package
 from .package import PackageError
 from .reader import Reader as reader
 from .reader import ReaderError
-from .reporter import Reporter as applog
+from .reporter import ReporterError
+from .reporter import Reporter as reporter
 from .tpl import Tpl as tpl

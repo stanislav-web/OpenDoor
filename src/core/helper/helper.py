@@ -18,9 +18,30 @@
 
 from distutils.version import StrictVersion
 import urlparse
+import collections
 
 class Helper:
     """Helper class"""
+
+    @staticmethod
+    def counter():
+        """
+        Provide counter collection
+        :return: collections.Counter
+        """
+
+        return collections.Counter()
+
+    @staticmethod
+    def list():
+        """
+        Provide dictionary collection
+        :return: collections.defaultdict
+        """
+
+        container = collections.defaultdict(list)
+        container.default_factory
+        return  container
 
     @staticmethod
     def parse_url(url):
@@ -30,6 +51,7 @@ class Helper:
         :param str url:
         :return: dict
         """
+
         return urlparse.urlparse(url)
 
     @staticmethod
@@ -40,6 +62,7 @@ class Helper:
         :param int total:
         :return: str
         """
+
         return "{percent}%".format(percent=round(100.0 * counter / float(total), 1))
 
     @staticmethod
@@ -50,6 +73,7 @@ class Helper:
         :param int arg2:
         :return: bool
         """
+
         if StrictVersion(arg1) < StrictVersion(arg2):
             return True
         else:

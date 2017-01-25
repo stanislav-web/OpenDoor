@@ -19,7 +19,8 @@
 from src.lib import ArgumentsError
 from src.lib import BrowserError
 from src.lib import PackageError
-from src.lib import applog
+from src.lib import ReporterError
+from src.lib import reporter
 from src.lib import args
 from src.lib import browser
 from src.lib import events
@@ -134,15 +135,19 @@ class Controller:
         """
 
         brows = browser(params)
-        if False is applog.is_reported(params.get('host')):
+
+        if False is reporter.is_reported(params.get('host')):
 
             if None is params.get('reports'):
                 tpl.info(key='use_reports')
 
             try:
+                #reporter.get('std')
+
                 brows.ping()
                 brows.scan()
-            except (AttributeError, BrowserError) as e:
+
+            except (AttributeError, BrowserError, ReporterError) as e:
                 raise SrcError(e.message)
             except (KeyboardInterrupt, SystemExit):
                 tpl.cancel(key='abort')

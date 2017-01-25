@@ -17,3 +17,4 @@
 """
 
 from .reporter import Reporter
+from .exceptions import ReporterError
