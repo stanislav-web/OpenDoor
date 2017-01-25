@@ -47,6 +47,7 @@ class Browser(Debug, Filter):
 
         try:
 
+
             self.__config = Config(params)
 
             self.__reader = Reader(
@@ -62,6 +63,7 @@ class Browser(Debug, Filter):
             Debug.__init__(self, self.__config)
             Filter.__init__(self, self.__config, self.__reader.total_lines)
 
+            self.__client = None
             self.__pool = ThreadPool(num_threads=self.__config.threads,
                                      total_items=self.__reader.total_lines,
                                      delay=self.__config.delay)
