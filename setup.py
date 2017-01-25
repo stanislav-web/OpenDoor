@@ -88,4 +88,4 @@ setup(name='opendoor',
 
         # Specify the additional categories
         'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking'
-        'Topic :: Software Development :: src :: Python Modules', ], )
+    ])
