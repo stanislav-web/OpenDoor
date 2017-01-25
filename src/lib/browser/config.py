@@ -50,6 +50,7 @@ class Config:
         self._timeout = params.get('timeout')
         self._debug = self.DEFAULT_DEBUG_LEVEL if params.get('debug') is None else params.get('debug')
         self._is_proxy = params.get('tor')
+        self._torlist = '' if 'torlist' not in params else params.get('torlist')
         self._is_random_user_agent = params.get('random_agent')
         self._is_random_list = params.get('random_list')
         self._user_agent = self.DEFAULT_USER_AGENT
@@ -170,10 +171,15 @@ class Config:
         :return: bool
         """
 
-        if 0 < len(self._proxy):
-            self._is_proxy = True
+        if True is self._is_proxy:
+            return True
+        elif 0 < len(self._torlist):
+            return True
+        elif  0 < len(self._proxy):
+            return True
 
-        return self._is_proxy
+        return False
+
 
     @property
     def proxy(self):
@@ -181,6 +187,7 @@ class Config:
         Proxy property
         :return: str
         """
+
         self._is_proxy = True
         return self._proxy
 
@@ -201,6 +208,26 @@ class Config:
         """
 
         return self._is_random_list
+
+    @property
+    def is_external_torlist(self):
+        """
+        If external torlist
+        :return: bool
+        """
+
+        if 0 < len(self._torlist):
+            return True
+        return False
+
+    @property
+    def torlist(self):
+        """
+        Torlist property
+        :return: bool
+        """
+
+        return self._torlist
 
     @property
     def is_external_wordlist(self):

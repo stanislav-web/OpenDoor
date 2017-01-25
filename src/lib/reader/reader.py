@@ -100,8 +100,11 @@ class Reader():
 
         try:
 
-            if not len(self.__proxies):
-                self.__proxies = filesystem.read(self.__config.get('opendoor', 'proxies'))
+            if True is self.__browser_config.get('is_external_torlist'):
+                self.__proxies = filesystem.read(self.__browser_config.get('torlist'))
+            else:
+                if not len(self.__proxies):
+                    self.__proxies = filesystem.read(self.__config.get('opendoor', 'proxies'))
             return self.__proxies
 
         except FileSystemError as e:

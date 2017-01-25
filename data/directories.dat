@@ -16131,6 +16131,11 @@ modlogan/
 modperl/
 mods/
 modul/
+_admin/_admin.php
+_admin/_login.php
+_admin/_adm.php
+_admin/_enter.php
+_admin/_sign.php
 module/
 module/tiny_mce/
 module/tinymce/

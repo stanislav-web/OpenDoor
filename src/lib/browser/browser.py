@@ -52,9 +52,10 @@ class Browser(Debug, Filter):
             self.__reader = Reader(
                 browser_config={
                     'list': self.__config.scan,
+                    'torlist': self.__config.torlist,
                     'use_random': self.__config.is_random_list,
-                    'is_external_wordlist' : self.__config.is_external_wordlist
-                })
+                    'is_external_wordlist' : self.__config.is_external_wordlist,
+                    'is_external_torlist': self.__config.is_external_torlist})
 
             self.__reader._count_total_lines()
 
@@ -104,17 +105,23 @@ class Browser(Debug, Filter):
         try:  # beginning scan process
 
             if True is self.__config.is_proxy:
-                self.__client = request_proxy(self.__config, proxy_list=self.__reader.get_proxies(),
-                                              agent_list=self.__reader.get_user_agents(), debug=self.__config.debug,
+                self.__client = request_proxy(self.__config,
+                                              proxy_list=self.__reader.get_proxies(),
+                                              agent_list=self.__reader.get_user_agents(),
+                                              debug=self.__config.debug,
                                               tpl=tpl)
             else:
 
                 if True is self.__config.is_ssl:
-                    self.__client = request_ssl(self.__config, agent_list=self.__reader.get_user_agents(),
-                                                debug=self.__config.debug, tpl=tpl)
+                    self.__client = request_ssl(self.__config,
+                                                agent_list=self.__reader.get_user_agents(),
+                                                debug=self.__config.debug,
+                                                tpl=tpl)
                 else:
-                    self.__client = request_http(self.__config, agent_list=self.__reader.get_user_agents(),
-                                                 debug=self.__config.debug, tpl=tpl)
+                    self.__client = request_http(self.__config,
+                                                 agent_list=self.__reader.get_user_agents(),
+                                                 debug=self.__config.debug,
+                                                 tpl=tpl)
 
             if True is self.__pool.is_started:
                 self.__reader.get_lines(params={'host': self.__config.host, 'port': self.__config.port,
