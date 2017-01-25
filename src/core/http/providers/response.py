@@ -20,6 +20,7 @@ from src.core import filesystem
 class ResponseProvider():
     """ ResponseProvider class"""
 
+    _HTTP_DBG_LEVEL = 3
     __DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
     __DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     __DEFAULT_HTTP_REDIRECT_STATUSES = [301, 302, 303, 304, 307, 308]
@@ -27,7 +28,7 @@ class ResponseProvider():
     __DEFAULT_HTTP_UNRESOLVED_STATUSES = [401, 403]
     __DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400]
 
-    def __init__(self, config, tpl):
+    def __init__(self, config, debug, tpl):
         """
         Response instance
         :param src.lib.browser.config.Config config: configurations
@@ -35,6 +36,7 @@ class ResponseProvider():
         """
 
         self._config = config
+        self._debug = debug
         self._tpl = tpl
 
 

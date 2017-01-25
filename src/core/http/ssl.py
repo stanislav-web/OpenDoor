@@ -22,16 +22,17 @@ from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError
 from src.core import helper
 from .exceptions import HttpsRequestError
 from .providers import RequestProvider
+from .providers import DebugProvider
 
 
-class HttpsRequest(RequestProvider):
+class HttpsRequest(RequestProvider, DebugProvider):
     """HttpsRequest class"""
 
-    def __init__(self, config, debug=0, **kwargs):
+    def __init__(self, config, debug, **kwargs):
         """
         Request instance
         :param src.lib.browser.config.Config config:
-        :param int debug: debug flag
+        :param DebugProvider debug:
         """
 
         try:
@@ -44,7 +45,7 @@ class HttpsRequest(RequestProvider):
             raise HttpsRequestError(e.message)
 
         self.__cfg = config
-        self.__debug = False if debug < 2 else True
+        self.__debug = debug
         if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
             self.__pool = self.__https_pool()
 
@@ -60,9 +61,8 @@ class HttpsRequest(RequestProvider):
             pool = HTTPSConnectionPool(self.__cfg.host, port=self.__cfg.port, maxsize=self.__cfg.threads,
                                        timeout=self.__cfg.timeout, block=True)
 
-            if True is self.__debug:
-                self.__tpl.debug(key='ssl_pool_start')
-                self.__tpl.debug(pool)
+            if self._HTTP_DBG_LEVEL <= self.__debug.level:
+                self.__debug.debug_connection_pool('ssl_pool_start', pool)
 
             return pool
         except Exception as e:
@@ -75,8 +75,8 @@ class HttpsRequest(RequestProvider):
         :return: urllib3.HTTPResponse
         """
 
-        if True is self.__debug:
-            self.__tpl.debug(key='request_header_dbg', dbg=self.__tpl.json(self._headers))
+        if self._HTTP_DBG_LEVEL <= self.__debug.level:
+            self.__debug.debug_request(self._headers)
 
         try:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:

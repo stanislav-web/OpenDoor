@@ -25,35 +25,30 @@ from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnkn
 from src.core import helper
 from .exceptions import ProxyRequestError
 from .providers import RequestProvider
+from .providers import DebugProvider
 
-
-class Proxy(RequestProvider):
+class Proxy(RequestProvider, DebugProvider):
     """Proxy class"""
 
-    def __init__(self, config, debug=0, **kwargs):
+    def __init__(self, config, debug, **kwargs):
         """
         Proxy instance
         :param src.lib.browser.config.Config config:
-        :param int debug: debug flag
+        :param DebugProvider debug:
         :raise ProxyRequestError
         """
 
         try:
             self.__tpl = kwargs.get('tpl')
             self.__proxylist = kwargs.get('proxy_list')
-
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
 
             self.__cfg = config
-            self.__debug = False if debug < 2 else True
+            self.__debug = debug
+            self.__debug.debug_proxy_pool()
 
-            if 0 < len(config.proxy):
-                if True is self.__debug:
-                    self.__tpl.debug(key='custom_proxy', server=self.__cfg.proxy)
-            else:
-                if type(self.__proxylist) is not list or 0 == len(self.__proxylist):
-                    raise TypeError('Proxy list empty or has invalid format')
-                self.__tpl.debug(key='proxy_pool_start')
+            if False is config.is_standalone_proxy and 0 == len(self.__proxylist):
+               raise TypeError('Proxy list empty or has invalid format')
 
         except (TypeError, ValueError) as e:
             raise ProxyRequestError(e.message)
@@ -67,7 +62,7 @@ class Proxy(RequestProvider):
 
         try:
 
-            self.__server = self.__cfg.proxy if 0 < len(self.__cfg.proxy) else self.__get_random_proxyserver()
+            self.__server = self.__cfg.proxy if True is self.__cfg.is_standalone_proxy else self.__get_random_proxyserver()
 
             if self.__get_proxy_type(self.__server) == 'socks':
 
@@ -90,18 +85,16 @@ class Proxy(RequestProvider):
         :return: urllib3.HTTPResponse
         """
 
-
         pool = self.__proxy_pool()
 
-        if True is self.__debug:
-            self.__tpl.debug(key='request_header_dbg', dbg=self.__tpl.json(self._headers))
+        if self._HTTP_DBG_LEVEL <= self.__debug.level:
+            self.__debug.debug_request(self._headers)
 
         try:
             response = pool.request(self.__cfg.method, url, headers=self._headers, retries=self.__cfg.retries,
                                     redirect=False)
 
             self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
-
 
             return response
 

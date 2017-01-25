@@ -35,7 +35,7 @@ from .filter import Filter
 from .threadpool import ThreadPool
 
 
-class Browser(Debug, Filter):
+class Browser(Filter):
     """ Browser class """
 
     def __init__(self, params):
@@ -46,9 +46,10 @@ class Browser(Debug, Filter):
         """
 
         try:
-
-
+            self.__client = None
             self.__config = Config(params)
+            self.__debug = Debug(self.__config)
+            self.__counter = helper.counter()
 
             self.__reader = Reader(
                 browser_config={
@@ -56,23 +57,22 @@ class Browser(Debug, Filter):
                     'torlist': self.__config.torlist,
                     'use_random': self.__config.is_random_list,
                     'is_external_wordlist' : self.__config.is_external_wordlist,
+                    'is_standalone_proxy'  : self.__config.is_standalone_proxy,
                     'is_external_torlist': self.__config.is_external_torlist})
 
             self.__reader._count_total_lines()
 
-            Debug.__init__(self, self.__config)
             Filter.__init__(self, self.__config, self.__reader.total_lines)
 
-            self.__client = None
             self.__pool = ThreadPool(num_threads=self.__config.threads,
                                      total_items=self.__reader.total_lines,
                                      delay=self.__config.delay)
 
-            self.__counter = helper.counter()
             self.__counter['total'] = self.__pool.total_items_size
             self.__counter['workers'] = self.__pool.workers_size
-
-            self.__response = response(config=self.__config, tpl=tpl)
+            self.__response = response(config=self.__config,
+                                       debug=self.__debug,
+                                       tpl=tpl)
 
         except (ThreadPoolError, ReaderError) as e:
             raise BrowserError(e)
@@ -100,12 +100,12 @@ class Browser(Debug, Filter):
         :return: None
         """
 
-        self._debug_user_agents()
-        self._debug_proxy()
+        self.__debug.debug_user_agents()
+        self.__debug.debug_list(total_lines=self.__counter.get('total'))
+
         if True is self.__config.is_random_list:
-            self._debug_randomizing_list()
             self.__reader._randomize_list(self.__config.scan)
-        self._debug_list(total_lines=self.__counter.get('total'))
+
         tpl.info(key='scanning', host=self.__config.host)
 
         try:  # beginning scan process
@@ -114,19 +114,19 @@ class Browser(Debug, Filter):
                 self.__client = request_proxy(self.__config,
                                               proxy_list=self.__reader.get_proxies(),
                                               agent_list=self.__reader.get_user_agents(),
-                                              debug=self.__config.debug,
+                                              debug=self.__debug,
                                               tpl=tpl)
             else:
 
                 if True is self.__config.is_ssl:
                     self.__client = request_ssl(self.__config,
                                                 agent_list=self.__reader.get_user_agents(),
-                                                debug=self.__config.debug,
+                                                debug=self.__debug,
                                                 tpl=tpl)
                 else:
                     self.__client = request_http(self.__config,
                                                  agent_list=self.__reader.get_user_agents(),
-                                                 debug=self.__config.debug,
+                                                 debug=self.__debug,
                                                  tpl=tpl)
 
             if True is self.__pool.is_started:

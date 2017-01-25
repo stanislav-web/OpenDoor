@@ -49,7 +49,7 @@ class Config:
         self._delay = params.get('delay')
         self._timeout = params.get('timeout')
         self._debug = self.DEFAULT_DEBUG_LEVEL if params.get('debug') is None else params.get('debug')
-        self._is_proxy = params.get('tor')
+        self._is_tor = params.get('tor')
         self._torlist = '' if 'torlist' not in params else params.get('torlist')
         self._is_random_user_agent = params.get('random_agent')
         self._is_random_list = params.get('random_list')
@@ -165,13 +165,22 @@ class Config:
         return self._debug
 
     @property
+    def proxy(self):
+        """
+        Standalone proxy property
+        :return: bool
+        """
+
+        return self._proxy
+
+    @property
     def is_proxy(self):
         """
         If proxy is available
         :return: bool
         """
 
-        if True is self._is_proxy:
+        if True is self._is_tor:
             return True
         elif 0 < len(self._torlist):
             return True
@@ -179,17 +188,6 @@ class Config:
             return True
 
         return False
-
-
-    @property
-    def proxy(self):
-        """
-        Proxy property
-        :return: str
-        """
-
-        self._is_proxy = True
-        return self._proxy
 
     @property
     def is_random_user_agent(self):
@@ -208,6 +206,30 @@ class Config:
         """
 
         return self._is_random_list
+
+    @property
+    def is_standalone_proxy(self):
+        """
+        If using standalone proxy
+        :return: bool
+        """
+
+        if True is self.is_proxy and 0 < len(self._proxy):
+            self._torlist = ''
+
+            return True
+        return False
+
+    @property
+    def is_internal_torlist(self):
+        """
+        If internal torlist
+        :return: bool
+        """
+
+        if True is self._is_tor and 0 >= len(self._torlist):
+            return True
+        return False
 
     @property
     def is_external_torlist(self):

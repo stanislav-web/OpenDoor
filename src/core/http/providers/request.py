@@ -23,6 +23,8 @@ from .header import HeaderProvider
 class RequestProvider(CookiesProvider, HeaderProvider):
     """ RequestProvider class"""
 
+    _HTTP_DBG_LEVEL = 2
+
     def __init__(self, config, agent_list):
         """
         init abstract

@@ -17,9 +17,9 @@
 """
 
 from src.lib.tpl import Tpl as tpl
+from src.core.http.providers.debug import DebugProvider
 
-
-class Debug:
+class Debug(DebugProvider):
     """Debug class"""
 
     def __init__(self, Config):
@@ -28,80 +28,98 @@ class Debug:
         :param Config: Config
         """
 
-        self.__config = Config
+        self.__cfg = Config
+        self.__level = self.__cfg.debug
 
-        if 0 < self.__config.debug:
-            tpl.debug(key='debug', level=self.__config.debug, method=self.__config.method)
+        if 0 < self.__level:
+            tpl.debug(key='debug', level=self.__cfg.debug, method=self.__cfg.method)
         pass
 
-    def _debug_user_agents(self):
+    @property
+    def level(self):
+        """
+        Get debug level
+        :return: int
+        """
+
+        return self.__level
+
+    def debug_user_agents(self):
         """
         Debug info for user agent
         :return: None
         """
 
-        if 0 >= self.__config.debug:
+        if 0 < self.__level:
             pass
         else:
-            if True is self.__config.is_random_user_agent:
+            if True is self.__cfg.is_random_user_agent:
                 tpl.debug(key='random_browser')
             else:
-                tpl.debug(key='browser', browser=self.__config.user_agent)
+                tpl.debug(key='browser', browser=self.__cfg.user_agent)
 
-    def _debug_proxy(self):
-        """
-        Debug info for proxy
-        :return: None
-        """
 
-        if 0 < self.__config.debug:
-            if True is self.__config.is_proxy and 0 == len(self.__config.proxy):
-                tpl.debug(key='proxy')
-        else:
-            pass
-
-    def _debug_randomizing_list(self):
+    def debug_list(self, total_lines):
         """
-        Debug randomizing list process
-        :return: None
-        """
-
-        if 0 < self.__config.debug:
-            tpl.debug(key='randomizing')
-
-    def _debug_list(self, total_lines):
-        """
-        Debug list process
+        Debug scan list
         :param int total_lines: list lines
         :return: None
         """
 
-        if 0 < self.__config.debug:
-            if self.__config.default_scan is self.__config.scan:
+        if True is self.__cfg.is_random_list:
+            tpl.debug(key='randomizing')
+
+        if 0 < self.__level:
+            if self.__cfg.default_scan is self.__cfg.scan:
                 tpl.debug(key='directories', total=total_lines)
             else:
                 tpl.debug(key='subdomains', total=total_lines)
-            tpl.debug(key='create_queue', threads=self.__config.threads)
+            tpl.debug(key='create_queue', threads=self.__cfg.threads)
 
-    def _debug_line(self, line):
+    def debug_connection_pool(self, keymsg, pool):
         """
-        Debug info for target line
-        :param str line
+        Debug connection pool message
+
+        :param str keymsg:
+        :param object pool:
         :return: None
         """
 
-        if 0 < self.__config.debug:
-            tpl.info(line)
-        else:
-            tpl.line_log(line)
+        tpl.debug(key=keymsg)
+        if pool:
+            tpl.debug(str(pool))
 
-    def _debug_progress(self, i, total):
+    def debug_proxy_pool(self):
         """
-        Progress bar
-        :param int i: current counter
-        :param int total: total counter
+        Debug proxy pool message
         :return: None
         """
 
-        if 0 < self.__config.debug:
-            tpl.progress(i, total)
+        if True is self.__cfg.is_external_torlist:
+            tpl.debug(key='proxy_pool_external_start')
+
+        elif True is self.__cfg.is_standalone_proxy:
+            tpl.debug(key='proxy_pool_standalone', server=self.__cfg.proxy)
+
+        elif True is self.__cfg.is_internal_torlist:
+            tpl.debug(key='proxy_pool_internal_start')
+
+    def debug_request(self, request_header):
+        """
+        Debug request
+        :param dict request_header: request header
+        :return: None
+        """
+
+        tpl.debug(key='request_header_dbg', dbg=tpl.json(request_header))
+
+
+
+    def debug_response(self, response_header):
+        """
+        Debug response
+        :param dict response_header: response header
+        :return: None
+        """
+        tpl.debug(key='response_header_dbg', dbg=tpl.json(response_header))
+

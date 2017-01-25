@@ -23,13 +23,14 @@ from .exceptions import ResponseError
 class Response(ResponseProvider):
     """Response class"""
 
-    def __init__(self, config, tpl):
+    def __init__(self, config, debug, **kwargs):
         """
         Response instance
         :param src.lib.browser.config.Config config: configurations
         :param src.lib.tpl.tpl.Tpl tpl: templater
         """
-        ResponseProvider.__init__(self, config, tpl)
+
+        ResponseProvider.__init__(self, config, debug, kwargs.get('tpl'))
 
         pass
 
@@ -43,6 +44,10 @@ class Response(ResponseProvider):
         :raise ResponseError
         :return: @TODO
         """
+
+        if self._HTTP_DBG_LEVEL <= self._debug.level:
+            self._debug.debug_response(resp.headers.items())
+
         if hasattr(resp, 'status'):
 
             if 0 < self._config.debug:

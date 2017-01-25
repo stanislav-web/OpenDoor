@@ -22,20 +22,20 @@ from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError
 from src.core import helper
 from .exceptions import HttpRequestError
 from .providers import RequestProvider
+from .providers import DebugProvider
 
 
-class HttpRequest(RequestProvider):
+class HttpRequest(RequestProvider, DebugProvider):
     """HttpRequest class"""
 
-    def __init__(self, config, debug=0, **kwargs):
+    def __init__(self, config, debug, **kwargs):
         """
         Request instance
         :param src.lib.browser.config.Config config:
-        :param int debug: debug flag
+        :param DebugProvider debug:
         """
 
         try:
-
             self.__tpl = kwargs.get('tpl')
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
 
@@ -43,7 +43,7 @@ class HttpRequest(RequestProvider):
             raise HttpRequestError(e.message)
 
         self.__cfg = config
-        self.__debug = False if debug < 2 else True
+        self.__debug = debug
 
         if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
             self.__pool = self.__http_pool()
@@ -61,9 +61,8 @@ class HttpRequest(RequestProvider):
             pool = HTTPConnectionPool(self.__cfg.host, port=self.__cfg.port, maxsize=self.__cfg.threads,
                                       timeout=self.__cfg.timeout, block=True)
 
-            if True is self.__debug:
-                self.__tpl.debug(key='http_pool_start')
-                self.__tpl.debug(pool)
+            if self._HTTP_DBG_LEVEL <= self.__debug.level:
+                self.__debug.debug_connection_pool('http_pool_start', pool)
 
             return pool
         except Exception as e:
@@ -76,12 +75,10 @@ class HttpRequest(RequestProvider):
         :return: urllib3.HTTPResponse
         """
 
-        # import httplib
-        # httplib.HTTPConnection.debuglevel = 5
 
 
-        if True is self.__debug:
-            self.__tpl.debug(key='request_header_dbg', dbg=self.__tpl.json(self._headers))
+        if self._HTTP_DBG_LEVEL <= self.__debug.level:
+            self.__debug.debug_request(self._headers)
 
         try:
 

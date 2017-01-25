@@ -20,4 +20,5 @@ from .cookies import CookiesProvider
 from .header import HeaderProvider
 from .request import RequestProvider
 from .response import ResponseProvider
+from .debug import DebugProvider
 
