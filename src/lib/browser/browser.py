@@ -177,9 +177,10 @@ class Browser(Filter):
         """
 
         if False is self.__is_ignored(url):
-
             try:
+
                 self.__pool.add(self.__http_request, url)
+
             except (SystemExit, KeyboardInterrupt):
                 raise KeyboardInterrupt
         else:

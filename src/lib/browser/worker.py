@@ -17,7 +17,7 @@
 """
 
 import threading
-import time
+
 from Queue import Empty as QueueEmptyError
 from threading import BoundedSemaphore, Event
 
@@ -71,10 +71,6 @@ class Worker(threading.Thread):
         self.__event.wait()
 
         while self.__running:
-
-            if None is not self.__timeout:
-                time.sleep(self.__timeout)
-
             try:
                 func, args, kargs = self.__queue.get(block=False)
                 self.counter += 1
@@ -85,4 +81,4 @@ class Worker(threading.Thread):
             finally:
                 if not self.__event.isSet():
                     self.__semaphore.release()
-                    self.__event.wait()
+                    self.__event.wait(timeout=self.__timeout)

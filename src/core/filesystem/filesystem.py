@@ -116,7 +116,7 @@ class FileSystem:
             raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(file))
 
         with open(file, "r") as f_handler:
-            for i, line in enumerate(f_handler):
+            for line in f_handler:
                 line = handler(line, handler_params)
                 loader(line)
 
