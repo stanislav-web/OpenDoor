@@ -47,6 +47,7 @@ setup(name='opendoor',
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     packages=find_packages(),
+    include_package_data=True,
 
     # Choose your license
     license='GPL', test_suite='tests',
@@ -84,6 +85,7 @@ setup(name='opendoor',
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
+        'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
 
         # Specify the additional categories
