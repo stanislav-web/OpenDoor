@@ -74,6 +74,7 @@ class HeaderProvider(AcceptHeaderProvider):
             ._add_header('Accept-Language', self._accept_language)\
             ._add_header('Referer', ''.join([self.__config.scheme, self.__config.host]))\
             ._add_header('User-Agent', self.__user_agent)\
-            ._add_header('Cache-Conrol', 'no-cache')
+            ._add_header('Cache-Conrol', 'no-cache')\
+            ._add_header('Pragma', 'no-cache')
 
         return self.__headers

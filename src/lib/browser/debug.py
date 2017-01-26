@@ -104,12 +104,17 @@ class Debug(DebugProvider):
         elif True is self.__cfg.is_internal_torlist:
             tpl.debug(key='proxy_pool_internal_start')
 
-    def debug_request(self, request_header):
+    def debug_request(self, request_header, url, method):
         """
         Debug request
         :param dict request_header: request header
+        :param str url: request url
+        :param str method: request method
         :return: None
         """
+
+        request_header.update({'Request URI': url})
+        request_header.update({'Request Method': method})
 
         tpl.debug(key='request_header_dbg', dbg=tpl.json(request_header))
 

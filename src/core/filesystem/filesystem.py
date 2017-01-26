@@ -115,10 +115,11 @@ class FileSystem:
         if not os.access(file, os.R_OK):
             raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(file))
 
+        lines = []
         with open(file, "r") as f_handler:
             for line in f_handler:
-                line = handler(line, handler_params)
-                loader(line)
+                lines.append(handler(line, handler_params))
+            loader(lines)
 
     @staticmethod
     def read(filename):

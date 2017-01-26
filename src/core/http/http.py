@@ -78,7 +78,7 @@ class HttpRequest(RequestProvider, DebugProvider):
 
 
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
-            self.__debug.debug_request(self._headers)
+            self.__debug.debug_request(self._headers, url, self.__cfg.method)
 
         try:
 

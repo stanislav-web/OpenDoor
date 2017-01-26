@@ -224,7 +224,7 @@ class Tpl():
         """
         Json pretty print
 
-        :param str json_thing:
+        :param complex json_thing:
         :param bool sort:
         :param int indents:
         :return:

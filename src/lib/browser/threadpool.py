@@ -29,12 +29,12 @@ from .worker import Worker
 class ThreadPool():
     """ThreadPool class"""
 
-    def __init__(self, num_threads, total_items, delay):
+    def __init__(self, num_threads, total_items, timeout):
         """
         Initialize thread pool
         :param int num_threads: active workers
         :param int total_items: total items
-        :param int delay: delay betwen threads
+        :param int timeout: delay betwen threads
         :raise ThreadPoolError
         :return None
         """
@@ -50,7 +50,7 @@ class ThreadPool():
 
                 try:
 
-                    worker = Worker(self.__queue, num_threads, delay)
+                    worker = Worker(self.__queue, num_threads, timeout)
 
                     if False is worker.isAlive():
                         worker.setDaemon(True)
@@ -59,6 +59,7 @@ class ThreadPool():
 
                 except Exception as e:
                     raise WorkerError(e)
+
         except WorkerError as e:
             raise ThreadPoolError(e)
 
@@ -96,11 +97,16 @@ class ThreadPool():
             if True is self.is_started:
                 if self.items_size < self.total_items_size:
                     self.__queue.put((func, args, kargs))
-                else:
-                    self.__queue.join()
         except (SystemExit, KeyboardInterrupt):
             time.sleep(2)
             self.pause()
+
+    def join(self):
+        """
+        join queue
+        :return: None
+        """
+        self.__queue.join()
 
     def pause(self):
         """

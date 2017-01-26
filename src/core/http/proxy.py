@@ -88,7 +88,7 @@ class Proxy(RequestProvider, DebugProvider):
         pool = self.__proxy_pool()
 
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
-            self.__debug.debug_request(self._headers)
+            self.__debug.debug_request(self._headers, url, self.__cfg.method)
 
         try:
             response = pool.request(self.__cfg.method, url, headers=self._headers, retries=self.__cfg.retries,

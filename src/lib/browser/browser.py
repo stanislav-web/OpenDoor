@@ -66,7 +66,7 @@ class Browser(Filter):
 
             self.__pool = ThreadPool(num_threads=self.__config.threads,
                                      total_items=self.__reader.total_lines,
-                                     delay=self.__config.delay)
+                                     timeout=self.__config.delay)
 
             self.__counter['total'] = self.__pool.total_items_size
             self.__counter['workers'] = self.__pool.workers_size
@@ -132,7 +132,7 @@ class Browser(Filter):
             if True is self.__pool.is_started:
                 self.__reader.get_lines(params={'host': self.__config.host, 'port': self.__config.port,
                                                 'scheme': self.__config.scheme},
-                                        loader=getattr(self, '_add_url'.format()))
+                                        loader=getattr(self, '_add_urls'.format()))
         except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as e:
             raise BrowserError(e)
 
@@ -186,3 +186,19 @@ class Browser(Filter):
         else:
             tpl.warning(key='ignored_path', path=helper.parse_url(url).path)
             pass
+
+    def _add_urls(self, urllist):
+        """
+        Add recieved urllist to threadpool or ignored
+        :param list urllist
+        :raise KeyboardInterrupt
+        :return: None
+        """
+
+        try:
+
+            for url in urllist:
+                self.__pool.add(self.__http_request, url)
+            self.__pool.join()
+        except (SystemExit, KeyboardInterrupt):
+            raise KeyboardInterrupt

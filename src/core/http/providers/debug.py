@@ -65,10 +65,12 @@ class DebugProvider(object):
 
         pass
 
-    def debug_request(self, request_header):
+    def debug_request(self, request_header, url, method):
         """
         Debug request
         :param dict request_header: request header
+        :param str url: request url
+        :param str method: request method
         :return: None
         """
 
