@@ -16,7 +16,6 @@
     Development Team: Stanislav WEB
 """
 
-import json
 from src.core import colour
 from src.core import helper
 from src.core import logger
@@ -199,41 +198,6 @@ class Tpl():
             logger.log().debug(msg)
         except (AttributeError, TplError) as e:
             raise TplError(e.message)
-
-    @staticmethod
-    def progress(count, total):
-        """
-        Progress bar
-        :param int count: current counter
-        :param int total: total counter
-        :return: None
-        """
-
-        bar_len = 50
-        filled_len = int(round(bar_len * count / float(total)))
-        percents = helper.percent(count, total)
-        bar = '=' * filled_len + '-' * (bar_len - filled_len)
-        bar = '%s %s/%s %s%s' % (bar, count + 1, total, percents, '%')
-        Tpl.line_log(bar, status='debug')
-
-        if count + 1 == total:
-            Tpl.message("\n")
-
-    @staticmethod
-    def json(json_thing, sort=True, indents=4):
-        """
-        Json pretty print
-
-        :param complex json_thing:
-        :param bool sort:
-        :param int indents:
-        :return:
-        """
-
-        if type(json_thing) is str:
-            return json.dumps(json.loads(json_thing), sort_keys=sort, indent=indents)
-        else:
-            return json.dumps(json_thing, sort_keys=sort, indent=indents)
 
     @staticmethod
     def __format_message(key, **args):

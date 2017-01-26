@@ -1,68 +1,62 @@
-import os
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import Queue
 import threading
-import urllib2
+import time
 
+exitFlag = 0
 
-########################################################################
-class Downloader(threading.Thread):
-    """Threaded File Downloader"""
-
-    # ----------------------------------------------------------------------
-    def __init__(self, queue):
+class myThread (threading.Thread):
+    def __init__(self, threadID, name, q):
         threading.Thread.__init__(self)
-        self.queue = queue
-
-    # ----------------------------------------------------------------------
+        self.threadID = threadID
+        self.name = name
+        self.q = q
     def run(self):
-        while True:
-            # gets the url from the queue
-            url = self.queue.get()
+        print "Starting " + self.name
+        process_data(self.name, self.q)
+        print "Exiting " + self.name
 
-            # download the file
-            self.download_file(url)
+def process_data(threadName, q):
+    while not exitFlag:
+        queueLock.acquire()
+        if not workQueue.empty():
+            data = q.get()
+            queueLock.release()
+            print "%s processing %s" % (threadName, data)
+        else:
+            queueLock.release()
+        time.sleep(1)
 
-            # send a signal to the queue that the job is done
-            self.queue.task_done()
+threadList = ["Thread-1", "Thread-2", "Thread-3"]
+nameList = ["One", "Two", "Three", "Four", "Five"]
+queueLock = threading.Lock()
+workQueue = Queue.Queue(10)
+threads = []
+threadID = 1
 
-    # ----------------------------------------------------------------------
-    def download_file(self, url):
-        """"""
-        handle = urllib2.urlopen(url)
-        fname = os.path.basename(url)
-        with open(fname, "wb") as f:
-            while True:
-                chunk = handle.read(1024)
-                if not chunk: break
-                f.write(chunk)
+# Ствлрюємо нові потоки
+for tName in threadList:
+    thread = myThread(threadID, tName, workQueue)
+    thread.start()
+    threads.append(thread)
+    threadID += 1
 
+# Заповнюємо чергу
+queueLock.acquire()
+for word in nameList:
+    workQueue.put(word)
+queueLock.release()
 
-# ----------------------------------------------------------------------
-def main(urls):
-    """
-    Run the program
-    """
-    queue = Queue.Queue()
+# Чекаємо порожню чергу
+while not workQueue.empty():
+    pass
 
-    # create a thread pool and give them a queue
-    for i in range(111):
-        t = Downloader(queue)
-        t.setDaemon(True)
-        t.start()
+# "Нагадуємо" потокам про час закінчення
+exitFlag = 1
 
-    # give the queue some data
-    for url in urls:
-        print url
-        queue.put(url)
-
-    # wait for the queue to finish
-    queue.join()
-
-
-if __name__ == "__main__":
-    urls = ["http://www.irs.gov/pub/irs-pdf/f1040.pdf",
-            "http://www.irs.gov/pub/irs-pdf/f1040a.pdf",
-            "http://www.irs.gov/pub/irs-pdf/f1040ez.pdf",
-            "http://www.irs.gov/pub/irs-pdf/f1040es.pdf",
-            "http://www.irs.gov/pub/irs-pdf/f1040sb.pdf"]
-    main(urls)
+# Чекаємо завершення всіх потоків
+for t in threads:
+    t.join()
+print "Exiting Main Thread"

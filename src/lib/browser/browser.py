@@ -26,6 +26,7 @@ from src.core import request_ssl
 from src.core import socket
 from src.lib.reader import Reader
 from src.lib.reader import ReaderError
+from src.lib.reporter import reporter
 from src.lib.tpl import Tpl as tpl
 from .config import Config
 from .debug import Debug
@@ -132,14 +133,16 @@ class Browser(Filter):
             if True is self.__pool.is_started:
                 self.__reader.get_lines(params={'host': self.__config.host, 'port': self.__config.port,
                                                 'scheme': self.__config.scheme},
-                                        loader=getattr(self, '_add_urls'.format()))
+                                                loader=getattr(self, '_add_urls'.format())
+                                        )
+
         except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as e:
             raise BrowserError(e)
 
     def __http_request(self, url):
         """
         Make HTTP request
-        :param str url: recieved url
+        :param str url: received url
         :return: None
         """
 
@@ -168,28 +171,9 @@ class Browser(Filter):
         else:
             return False
 
-    def _add_url(self, url):
-        """
-        Add recieved url to threadpool or ignored
-        :param str url
-        :raise KeyboardInterrupt
-        :return: None
-        """
-
-        if False is self.__is_ignored(url):
-            try:
-
-                self.__pool.add(self.__http_request, url)
-
-            except (SystemExit, KeyboardInterrupt):
-                raise KeyboardInterrupt
-        else:
-            tpl.warning(key='ignored_path', path=helper.parse_url(url).path)
-            pass
-
     def _add_urls(self, urllist):
         """
-        Add recieved urllist to threadpool or ignored
+        Add recieved urllist to threadpool
         :param list urllist
         :raise KeyboardInterrupt
         :return: None
@@ -198,7 +182,24 @@ class Browser(Filter):
         try:
 
             for url in urllist:
-                self.__pool.add(self.__http_request, url)
+                if False is self.__is_ignored(url):
+                    self.__pool.add(self.__http_request, url)
+                else:
+                    tpl.warning(key='ignored_path', path=helper.parse_url(url).path)
+                    pass
             self.__pool.join()
+
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt
+
+    def done(self):
+        """
+        Scan finish action
+        :return: None
+        """
+
+        if 0 == self.__pool.size:
+            print self.__config.reports
+            print(reporter)
+        else:
+            pass

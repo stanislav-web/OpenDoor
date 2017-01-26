@@ -142,10 +142,10 @@ class Controller:
                 tpl.info(key='use_reports')
 
             try:
-                #reporter.get('std')
 
                 brows.ping()
                 brows.scan()
+                brows.done()
 
             except (AttributeError, BrowserError, ReporterError) as e:
                 raise SrcError(e.message)

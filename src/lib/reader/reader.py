@@ -174,9 +174,8 @@ class Reader():
         """
 
         line = line.strip("\n")
-        line.lstrip('/')
 
-        if False is line.endswith('/'):
+        if False is line.endswith('/') and False is filesystem.has_extension(line):
             line = '{0}/'.format(line)
 
         port = params.get('port')

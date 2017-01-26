@@ -19,6 +19,7 @@
 from distutils.version import StrictVersion
 import urlparse
 import collections
+import json
 
 class Helper:
     """Helper class"""
@@ -53,6 +54,23 @@ class Helper:
         """
 
         return urlparse.urlparse(url)
+
+    @staticmethod
+    def to_json(data, sort=True, indents=4):
+        """
+        Json pretty print
+        :param data:
+        :param sort:
+        :param indents:
+        :return: str
+        """
+
+        if type(data) is str:
+            json_data = json.dumps(json.loads(data), sort_keys=sort, indent=indents)
+        else:
+            json_data = json.dumps(data, sort_keys=sort, indent=indents)
+
+        return json_data
 
     @staticmethod
     def percent(counter, total):

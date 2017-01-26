@@ -27,6 +27,7 @@ class Config:
         'checking_connect' : 'Wait, please, checking connect to -> {host}:{port} ...',
         'slow_connection': 'Too slow connection. Please decrease the number of threads and increase the request timeout',
         'online': 'Server {host}:{port} ({ip}) is online!',
+        'create_queue_progress' : 'Create queue {bar}',
         'scanning': 'Scanning {host} ...',
         'debug': 'Starting debug level {level} . Using scan method: {method} ...',
         'randomizing': 'Randomizing scan list ...',

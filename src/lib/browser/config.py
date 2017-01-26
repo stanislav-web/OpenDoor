@@ -24,6 +24,7 @@ class Config:
     DEFAULT_MIN_THREADS = 1
     DEFAULT_MAX_THREADS = 25
     DEFAULT_DEBUG_LEVEL = 0
+    DEFAULT_REPORT = 'std'
     DEFAULT_SCAN = 'directories'
     DEFAULT_HTTP_METHOD = 'HEAD'
     DEFAULT_USER_AGENT = 'Opera/9.0 (Windows NT 5.1; U; en)'
@@ -43,6 +44,7 @@ class Config:
         self._accept_cookies = False if params.get('accept_cookies') is None else True
         self._port = params.get('port')
         self._wordlist = params.get('wordlist')
+        self._reports = params.get('reports')
         self._is_indexof = params.get('indexof')
         self._retries = False if params.get('retries') is None else params.get('retries')
         self._method = params.get('method') if params.get('indexof') is None else 'GET'
@@ -261,6 +263,17 @@ class Config:
         if None is self._wordlist:
             return False
         return True
+
+    @property
+    def reports(self):
+        """
+        Torlist property
+        :return: list
+        """
+        reports = self._reports.split(",")
+        if self.DEFAULT_REPORT not in reports:
+            reports.append( self.DEFAULT_REPORT )
+        return reports
 
     @property
     def user_agent(self):

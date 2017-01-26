@@ -17,8 +17,7 @@
 """
 
 import threading
-import signal
-
+import time
 from Queue import Empty as QueueEmptyError
 from threading import BoundedSemaphore, Event
 
@@ -34,7 +33,6 @@ class Worker(threading.Thread):
         """
 
         super(Worker, self).__init__()
-
         self.__semaphore = BoundedSemaphore(num_threads)
         self.__event = Event()
         self.__event.set()
@@ -42,14 +40,6 @@ class Worker(threading.Thread):
         self.__queue = queue
         self.__timeout = timeout
         self.counter = 0
-
-    def is_main(self):
-        try:
-            signal.signal(signal.SIGINT, signal.SIG_DFL)
-        except ValueError:
-            # Only Main Thread can handle signals
-            return False
-        return True
 
     def pause(self):
         """
@@ -81,16 +71,21 @@ class Worker(threading.Thread):
 
         while self.__running:
 
+            if 0 < self.__timeout:
+                time.sleep(self.__timeout)
+
             try:
+
                 func, args, kargs = self.__queue.get(block=True)
                 self.counter += 1
 
                 func(*args, **kargs)
                 self.__queue.task_done()
+
             except QueueEmptyError:
                 pass
             finally:
 
                 if not self.__event.isSet():
                     self.__semaphore.release()
-                    self.__event.wait(timeout=self.__timeout)
+                    self.__event.wait()

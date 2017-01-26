@@ -74,6 +74,17 @@ class FileSystem:
         return os.path.abspath(filename)
 
     @staticmethod
+    def has_extension(line):
+        """
+        Check line for extension
+        :param str line:
+        :return: bool
+        """
+
+        ext = os.path.splitext(line)[-1]
+        return True if 0 < len(ext) else False
+
+    @staticmethod
     def makefile(filename):
         """
         Create new file with context

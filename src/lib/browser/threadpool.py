@@ -64,6 +64,16 @@ class ThreadPool():
             raise ThreadPoolError(e)
 
     @property
+    def size(self):
+        """
+        Get pool size
+        :return: int
+        """
+
+        return self.__queue.qsize()
+
+
+    @property
     def workers_size(self):
         """
         Get pool workers (threads)
@@ -101,11 +111,26 @@ class ThreadPool():
             time.sleep(2)
             self.pause()
 
+    def complete(self):
+        """
+        Check for threadpool completion
+        :return: bool
+        """
+
+        while len(self.__workers) > 0:
+            for worker in self.__workers:
+                if not worker.isAlive():
+                    worker.join()
+                    self.__workers.remove(worker)
+                    print 'Done!'
+
+
     def join(self):
         """
-        join queue
+        Join queue
         :return: None
         """
+
         self.__queue.join()
 
     def pause(self):

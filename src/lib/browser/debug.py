@@ -17,6 +17,7 @@
 """
 
 from src.lib.tpl import Tpl as tpl
+from src.core import helper
 from src.core.http.providers.debug import DebugProvider
 
 class Debug(DebugProvider):
@@ -116,7 +117,7 @@ class Debug(DebugProvider):
         request_header.update({'Request URI': url})
         request_header.update({'Request Method': method})
 
-        tpl.debug(key='request_header_dbg', dbg=tpl.json(request_header))
+        tpl.debug(key='request_header_dbg', dbg=helper.to_json(request_header))
 
 
 
@@ -126,5 +127,6 @@ class Debug(DebugProvider):
         :param dict response_header: response header
         :return: None
         """
-        tpl.debug(key='response_header_dbg', dbg=tpl.json(response_header))
+
+        tpl.debug(key='response_header_dbg', dbg=helper.to_json(response_header))
 
