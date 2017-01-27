@@ -55,6 +55,18 @@ class ResponseProvider(object):
         else:
             raise Exception('Unknown response status : `{0}`'.format(status_code) )
 
+    def handle(self, response, request_url, items_size, total_size):
+        """
+        Handle response
+        :param urllib3.response.HTTPResponse response: response object
+        :param str request_url: url from request
+        :param int items_size: current items sizes
+        :param int total_size: response object
+        :raise ResponseError
+        :return: dict
+        """
+        pass
+
     def _get_content_size(self, response):
         """
         Get content size

@@ -120,7 +120,6 @@ class Debug(DebugProvider):
         tpl.debug(key='request_header_dbg', dbg=helper.to_json(request_header))
 
 
-
     def debug_response(self, response_header):
         """
         Debug response
@@ -130,3 +129,29 @@ class Debug(DebugProvider):
 
         tpl.debug(key='response_header_dbg', dbg=helper.to_json(response_header))
 
+
+    def debug_request_uri(self, request_uri, items_size, total_size, content_size):
+        """
+        Debug request_uri
+
+        :param str request_uri:
+        :param int items_size:
+        :param int total_size:
+        :param int content_size:
+        :return:
+        """
+
+        if 0 < self.__level:
+            tpl.line_log(key='get_item_lvl1',
+                                percent=tpl.line(
+                                            msg=helper.percent(items_size, total_size),
+                                            color='cyan'),
+                                current=items_size,
+                                total=total_size,
+                                item=request_uri,
+                                size=content_size)
+        else:
+            tpl.line_log(key='get_item_lvl0',
+                                percent=tpl.line(msg=helper.percent(items_size, total_size),
+                                          color='cyan'),
+                                item=request_uri)

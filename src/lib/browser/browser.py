@@ -74,10 +74,6 @@ class Browser(Filter):
             self.__result = {}
             self.__result['total'] = helper.counter()
             self.__result['items'] = helper.list()
-            # self.__result['total']['redirects'] = helper.counter()
-            # self.__result['total']['success'] = helper.counter()
-            # self.__result['total']['items'] = self.__pool.total_items_size
-            # self.__result['total']['workers'] = self.__pool.workers_size
 
 
             self.__response = response(config=self.__config,
@@ -163,7 +159,8 @@ class Browser(Filter):
                                    items_size=self.__pool.items_size,
                                    total_size=self.__pool.total_items_size
                                    )
-            self.__result['total'].update((response,))
+
+            self.catch_report_data(response[0], response[1])
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError) as e:
             raise BrowserError(e)
@@ -196,13 +193,24 @@ class Browser(Filter):
                 if False is self.__is_ignored(url):
                     self.__pool.add(self.__http_request, url)
                 else:
-                    self.__result['total'].update(("ignored",))
+                    self.catch_report_data('ignored', url)
                     tpl.warning(key='ignored_path', path=helper.parse_url(url).path)
                     pass
             self.__pool.join()
 
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt
+
+    def catch_report_data(self, status, url):
+        """
+        Add to basket report pool
+
+        :param status:
+        :param url:
+        :return:
+        """
+        self.__result['total'].update((status,))
+        self.__result['items'][status] += [url]
 
     def done(self):
         """

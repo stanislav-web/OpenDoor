@@ -36,7 +36,6 @@ class Response(ResponseProvider):
         self.__debug = debug
         self.__tpl = kwargs.get('tpl')
 
-
         pass
 
     def handle(self, response, request_url, items_size, total_size):
@@ -54,33 +53,33 @@ class Response(ResponseProvider):
             self.__debug.debug_response(response.headers.items())
 
         if hasattr(response, 'status'):
-            callback_status = super(Response, self).detect(response.status)
-            getattr(self, '_%s' % callback_status)()
-            return callback_status
+            status = super(Response, self).detect(response.status)
 
-            #
-            # if 0 < self.__cfg.debug:
-            #     self.__tpl.line_log(key='get_item_lvl1',
-            #                         percent=self.__tpl.line(msg=helper.percent(items_size, total_size),
-            #                                   color='cyan'),
-            #                         current=items_size,
-            #                         total=total_size,
-            #                         item=request_url,
-            #                         size=self._get_content_size(response))
-            # else:
-            #     self.__tpl.line_log(key='get_item_lvl0',
-            #                         percent=self.__tpl.line(msg=helper.percent(items_size, total_size),
-            #                                   color='cyan'),
-            #                         item=request_url)
+            self.__debug.debug_request_uri(
+                request_uri=request_url,
+                items_size=items_size,
+                total_size=total_size,
+                content_size=self._get_content_size(response)
+            )
+
+            return (status , request_url)
+
         else:
             raise ResponseError('Unable to get response from {url}'.format(url=request_url))
         pass
 
-    def _sucess(self):
+    def _sucess(self, request_url, items_size, total_size, content_size):
         """
         Handle success response
         :return: @TODO
         """
+
+        self.__debug.debug_request_uri(
+            request_uri=request_url,
+            items_size=items_size,
+            total_size=total_size,
+            content_size=content_size
+        )
 
         pass
 
