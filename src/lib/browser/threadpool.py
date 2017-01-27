@@ -111,19 +111,6 @@ class ThreadPool():
             time.sleep(2)
             self.pause()
 
-    def complete(self):
-        """
-        Check for threadpool completion
-        :return: bool
-        """
-
-        while len(self.__workers) > 0:
-            for worker in self.__workers:
-                if not worker.isAlive():
-                    worker.join()
-                    self.__workers.remove(worker)
-                    print 'Done!'
-
 
     def join(self):
         """

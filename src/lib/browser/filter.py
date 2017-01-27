@@ -30,6 +30,6 @@ class Filter:
 
         if Config.threads > Config.DEFAULT_MAX_THREADS or Config.threads > total_lines:
 
-            max = total_lines if Config.DEFAULT_MAX_THREADS > total_lines else Config.DEFAULT_MAX_THREADS
-            tpl.warning(key='thread_limit', threads=Config.threads, max=max)
-            Config.threads = Config.DEFAULT_MAX_THREADS
+            max_threads = total_lines if Config.DEFAULT_MAX_THREADS > total_lines else Config.DEFAULT_MAX_THREADS
+            tpl.warning(key='thread_limit', threads=Config.threads, max=max_threads)
+            Config.threads = max_threads

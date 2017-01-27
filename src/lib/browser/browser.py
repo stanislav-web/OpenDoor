@@ -50,7 +50,7 @@ class Browser(Filter):
             self.__client = None
             self.__config = Config(params)
             self.__debug = Debug(self.__config)
-            self.__counter = helper.counter()
+            self.__result = helper.counter()
 
             self.__reader = Reader(
                 browser_config={
@@ -69,8 +69,8 @@ class Browser(Filter):
                                      total_items=self.__reader.total_lines,
                                      timeout=self.__config.delay)
 
-            self.__counter['total'] = self.__pool.total_items_size
-            self.__counter['workers'] = self.__pool.workers_size
+            self.__result['items'] = self.__pool.total_items_size
+            self.__result['workers'] = self.__pool.workers_size
             self.__response = response(config=self.__config,
                                        debug=self.__debug,
                                        tpl=tpl)
@@ -102,7 +102,7 @@ class Browser(Filter):
         """
 
         self.__debug.debug_user_agents()
-        self.__debug.debug_list(total_lines=self.__counter.get('total'))
+        self.__debug.debug_list(total_lines=self.__pool.total_items_size)
 
         if True is self.__config.is_random_list:
             self.__reader._randomize_list(self.__config.scan)
@@ -152,7 +152,7 @@ class Browser(Filter):
             self.__response.handle(resp,
                                    request_url=url,
                                    items_size=self.__pool.items_size,
-                                   total_size=self.__counter.get('total')
+                                   total_size=self.__pool.total_items_size
                                    )
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError) as e:
@@ -200,6 +200,7 @@ class Browser(Filter):
 
         if 0 == self.__pool.size:
             print self.__config.reports
-            print(reporter)
+            print self.__result
+            #print(reporter)
         else:
             pass
