@@ -43,7 +43,7 @@ class ResponseProvider(object):
         """
 
         if status_code in self.__DEFAULT_HTTP_SUCCESS_STATUSES:
-            return 'sucess'
+            return 'success'
         elif status_code in self.__DEFAULT_HTTP_FAILED_STATUSES:
             return 'failed'
         elif status_code in self.__DEFAULT_HTTP_REDIRECT_STATUSES:
@@ -78,43 +78,3 @@ class ResponseProvider(object):
         if 'Content-Length' in response.headers:
             return filesystem.human_size(response.headers['Content-Length'])
         return '0B'
-
-    def _sucess(self):
-        """
-        Handle success response
-        :return: @TODO
-        """
-
-        pass
-
-    def _failed(self):
-        """
-        Handle failed response
-        :return: @TODO
-        """
-
-        pass
-
-    def _redirect(self):
-        """
-        Handle redirect response
-        :return: @TODO
-        """
-
-        pass
-
-    def _forbidden(self):
-        """
-        Handle forbidden response
-        :return: @TODO
-        """
-
-        pass
-
-    def _bad(self):
-        """
-        Handle bad response
-        :return: @TODO
-        """
-
-        pass

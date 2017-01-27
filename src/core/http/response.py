@@ -56,6 +56,7 @@ class Response(ResponseProvider):
             status = super(Response, self).detect(response.status)
 
             self.__debug.debug_request_uri(
+                status=status,
                 request_uri=request_url,
                 items_size=items_size,
                 total_size=total_size,
@@ -66,50 +67,4 @@ class Response(ResponseProvider):
 
         else:
             raise ResponseError('Unable to get response from {url}'.format(url=request_url))
-        pass
-
-    def _sucess(self, request_url, items_size, total_size, content_size):
-        """
-        Handle success response
-        :return: @TODO
-        """
-
-        self.__debug.debug_request_uri(
-            request_uri=request_url,
-            items_size=items_size,
-            total_size=total_size,
-            content_size=content_size
-        )
-
-        pass
-
-    def _failed(self):
-        """
-        Handle failed response
-        :return: @TODO
-        """
-        pass
-
-    def _redirect(self):
-        """
-        Handle redirect response
-        :return: @TODO
-        """
-
-        pass
-
-    def _forbidden(self):
-        """
-        Handle forbidden response
-        :return: @TODO
-        """
-
-        pass
-
-    def _bad(self):
-        """
-        Handle bad response
-        :return: @TODO
-        """
-
         pass
