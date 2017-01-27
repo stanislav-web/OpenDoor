@@ -35,19 +35,19 @@ class Reporter():
         return filesystem.is_exist(config.get('opendoor', 'reports'), resource)
 
     @staticmethod
-    def get(plugin):
+    def get(plugin_name):
         """
         Get report plugin
-        :param str plugin: plugin name
-        :return: src.lib.reporter.plugins.std.StdReportPlugin
+        :param str plugin_name: plugin name
+        :return: src.lib.reporter.plugins.provider.provider.PluginProvider
         """
 
         try:
 
             module = importlib.import_module('src.lib.reporter.plugins')
-            reporter = getattr(module, plugin)
+            reporter = getattr(module, plugin_name)
 
             return reporter
 
         except AttributeError:
-            raise ReporterError('Unable to get reporter`{plugin}`'.format(plugin=plugin))
+            raise ReporterError('Unable to get reporter`{plugin}`'.format(plugin=plugin_name))

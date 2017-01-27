@@ -50,7 +50,9 @@ class Browser(Filter):
             self.__client = None
             self.__config = Config(params)
             self.__debug = Debug(self.__config)
-            self.__result = helper.counter()
+            self.__result = {}
+            self.__result['total'] = {}
+            self.__result['items'] = {}
 
             self.__reader = Reader(
                 browser_config={
@@ -69,8 +71,15 @@ class Browser(Filter):
                                      total_items=self.__reader.total_lines,
                                      timeout=self.__config.delay)
 
-            self.__result['items'] = self.__pool.total_items_size
-            self.__result['workers'] = self.__pool.workers_size
+            self.__result = {}
+            self.__result['total'] = helper.counter()
+            self.__result['items'] = helper.list()
+            # self.__result['total']['redirects'] = helper.counter()
+            # self.__result['total']['success'] = helper.counter()
+            # self.__result['total']['items'] = self.__pool.total_items_size
+            # self.__result['total']['workers'] = self.__pool.workers_size
+
+
             self.__response = response(config=self.__config,
                                        debug=self.__debug,
                                        tpl=tpl)
@@ -149,11 +158,12 @@ class Browser(Filter):
         try:
             resp = self.__client.request(url)
 
-            self.__response.handle(resp,
+            response = self.__response.handle(resp,
                                    request_url=url,
                                    items_size=self.__pool.items_size,
                                    total_size=self.__pool.total_items_size
                                    )
+            self.__result['total'].update((response,))
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError) as e:
             raise BrowserError(e)
@@ -166,6 +176,7 @@ class Browser(Filter):
         """
 
         path = helper.parse_url(url).path.strip("/")
+
         if path in self.__reader.get_ignored_list():
             return True
         else:
@@ -185,6 +196,7 @@ class Browser(Filter):
                 if False is self.__is_ignored(url):
                     self.__pool.add(self.__http_request, url)
                 else:
+                    self.__result['total'].update(("ignored",))
                     tpl.warning(key='ignored_path', path=helper.parse_url(url).path)
                     pass
             self.__pool.join()
@@ -197,10 +209,13 @@ class Browser(Filter):
         Scan finish action
         :return: None
         """
+        self.__result['total'].update({"items":self.__pool.total_items_size})
+        self.__result['total'].update({"workers":self.__pool.workers_size})
 
         if 0 == self.__pool.size:
-            print self.__config.reports
+            #print self.__config.reports
             print self.__result
+
             #print(reporter)
         else:
             pass

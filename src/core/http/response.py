@@ -27,14 +27,19 @@ class Response(ResponseProvider):
         """
         Response instance
         :param src.lib.browser.config.Config config: configurations
-        :param src.lib.tpl.tpl.Tpl tpl: templater
+        :param src.lib.browser.debug.Debug debug: debugger
         """
 
-        ResponseProvider.__init__(self, config, debug, kwargs.get('tpl'))
+        ResponseProvider.__init__(self)
+
+        self.__cfg = config
+        self.__debug = debug
+        self.__tpl = kwargs.get('tpl')
+
 
         pass
 
-    def handle(self, resp, request_url, items_size, total_size):
+    def handle(self, response, request_url, items_size, total_size):
         """
         Handle response
         :param urllib3.response.HTTPResponse response: response object
@@ -42,27 +47,70 @@ class Response(ResponseProvider):
         :param int items_size: current items sizes
         :param int total_size: response object
         :raise ResponseError
+        :return: dict
+        """
+
+        if self._HTTP_DBG_LEVEL <= self.__debug.level:
+            self.__debug.debug_response(response.headers.items())
+
+        if hasattr(response, 'status'):
+            callback_status = super(Response, self).detect(response.status)
+            getattr(self, '_%s' % callback_status)()
+            return callback_status
+
+            #
+            # if 0 < self.__cfg.debug:
+            #     self.__tpl.line_log(key='get_item_lvl1',
+            #                         percent=self.__tpl.line(msg=helper.percent(items_size, total_size),
+            #                                   color='cyan'),
+            #                         current=items_size,
+            #                         total=total_size,
+            #                         item=request_url,
+            #                         size=self._get_content_size(response))
+            # else:
+            #     self.__tpl.line_log(key='get_item_lvl0',
+            #                         percent=self.__tpl.line(msg=helper.percent(items_size, total_size),
+            #                                   color='cyan'),
+            #                         item=request_url)
+        else:
+            raise ResponseError('Unable to get response from {url}'.format(url=request_url))
+        pass
+
+    def _sucess(self):
+        """
+        Handle success response
         :return: @TODO
         """
 
-        if self._HTTP_DBG_LEVEL <= self._debug.level:
-            self._debug.debug_response(resp.headers.items())
+        pass
 
-        if hasattr(resp, 'status'):
+    def _failed(self):
+        """
+        Handle failed response
+        :return: @TODO
+        """
+        pass
 
-            if 0 < self._config.debug:
-                self._tpl.line_log(key='get_item_lvl1',
-                                    percent=self._tpl.line(msg=helper.percent(items_size, total_size),
-                                              color='cyan'),
-                                    current=items_size,
-                                    total=total_size,
-                                    item=request_url,
-                                    size=self._get_content_size(resp))
-            else:
-                self._tpl.line_log(key='get_item_lvl0',
-                                    percent=self._tpl.line(msg=helper.percent(items_size, total_size),
-                                              color='cyan'),
-                                    item=request_url)
-        else:
-            raise ResponseError('Unable to get response from {url}'.format(url=request_url))
+    def _redirect(self):
+        """
+        Handle redirect response
+        :return: @TODO
+        """
+
+        pass
+
+    def _forbidden(self):
+        """
+        Handle forbidden response
+        :return: @TODO
+        """
+
+        pass
+
+    def _bad(self):
+        """
+        Handle bad response
+        :return: @TODO
+        """
+
         pass

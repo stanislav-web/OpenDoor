@@ -3,6 +3,3 @@ logs/error_log
 logs/access.dat
 logs/debug.dat
 logs/error.dat
-logs2/
-logs_console/
-lol/

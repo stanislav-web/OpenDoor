@@ -15,9 +15,11 @@
 
     Development Team: Stanislav WEB
 """
+
+
 from src.core import filesystem
 
-class ResponseProvider():
+class ResponseProvider(object):
     """ ResponseProvider class"""
 
     _HTTP_DBG_LEVEL = 3
@@ -25,32 +27,33 @@ class ResponseProvider():
     __DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     __DEFAULT_HTTP_REDIRECT_STATUSES = [301, 302, 303, 304, 307, 308]
     __DEFAULT_HTTP_FAILED_STATUSES = [404, 429, 500, 501, 502, 503, 504]
-    __DEFAULT_HTTP_UNRESOLVED_STATUSES = [401, 403]
+    __DEFAULT_HTTP_FORBIDDEN_STATUSES = [401, 403]
     __DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400]
 
-    def __init__(self, config, debug, tpl):
+    def __init__(self):
         """
         Response instance
-        :param src.lib.browser.config.Config config: configurations
-        :param src.lib.tpl.tpl.Tpl tpl: templater
         """
 
-        self._config = config
-        self._debug = debug
-        self._tpl = tpl
-
-
-    def handle(self, resp, request_url, pool_size, total_size):
+    def detect(self, status_code):
         """
-        Handle response
-        :param urllib3.response.HTTPResponse response: response object
-        :param str request_url: url from request
-        :param int pool_size: response object
-        :param int total_size: response object
-        :return: @TODO
+        Detect response by status code
+        :param int status_code: response status
+        :return: str
         """
-        print resp, request_url, pool_size, total_size
-        pass
+
+        if status_code in self.__DEFAULT_HTTP_SUCCESS_STATUSES:
+            return 'sucess'
+        elif status_code in self.__DEFAULT_HTTP_FAILED_STATUSES:
+            return 'failed'
+        elif status_code in self.__DEFAULT_HTTP_REDIRECT_STATUSES:
+            return 'redirect'
+        elif status_code in self.__DEFAULT_HTTP_BAD_REQUEST_STATUSES:
+            return 'bad'
+        elif status_code in self.__DEFAULT_HTTP_FORBIDDEN_STATUSES:
+            return 'forbidden'
+        else:
+            raise Exception('Unknown response status : `{0}`'.format(status_code) )
 
     def _get_content_size(self, response):
         """
@@ -69,6 +72,7 @@ class ResponseProvider():
         Handle success response
         :return: @TODO
         """
+
         pass
 
     def _failed(self):
@@ -76,6 +80,7 @@ class ResponseProvider():
         Handle failed response
         :return: @TODO
         """
+
         pass
 
     def _redirect(self):
@@ -83,13 +88,15 @@ class ResponseProvider():
         Handle redirect response
         :return: @TODO
         """
+
         pass
 
-    def _unresolved(self):
+    def _forbidden(self):
         """
-        Handle unresolved response
+        Handle forbidden response
         :return: @TODO
         """
+
         pass
 
     def _bad(self):
@@ -97,4 +104,5 @@ class ResponseProvider():
         Handle bad response
         :return: @TODO
         """
+
         pass
