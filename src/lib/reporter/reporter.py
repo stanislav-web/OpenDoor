@@ -23,6 +23,8 @@ import importlib
 class Reporter():
     """Reporter class"""
 
+    default = 'std'
+
     @staticmethod
     def is_reported(resource):
         """

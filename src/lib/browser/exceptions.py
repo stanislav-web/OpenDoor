@@ -33,29 +33,3 @@ class BrowserError(Exception):
             exception.log(class_name=class_name, message=error)
 
         super(BrowserError, self).__init__("{}: {}".format(class_name, error))
-
-
-class ThreadPoolError(Exception):
-    """ThreadPoolError class"""
-
-    def __init__(self, message):
-        """
-        Error message
-        :param message: message
-        :return: None
-        """
-
-        super(ThreadPoolError, self).__init__(message)
-
-
-class WorkerError(Exception):
-    """WorkerError class"""
-
-    def __init__(self, message):
-        """
-        Error message
-        :param message: message
-        :return: None
-        """
-
-        super(WorkerError, self).__init__(message)

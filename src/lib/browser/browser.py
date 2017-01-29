@@ -16,7 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError
+from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError
 from src.core import SocketError
 from src.core import helper
 from src.core import request_http
@@ -31,7 +31,6 @@ from src.lib.tpl import Tpl as tpl
 from .config import Config
 from .debug import Debug
 from .exceptions import BrowserError
-from .exceptions import ThreadPoolError
 from .filter import Filter
 from .threadpool import ThreadPool
 
@@ -80,7 +79,7 @@ class Browser(Filter):
                                        debug=self.__debug,
                                        tpl=tpl)
 
-        except (ThreadPoolError, ReaderError) as e:
+        except (ReaderError) as e:
             raise BrowserError(e)
 
     def ping(self):
@@ -162,7 +161,7 @@ class Browser(Filter):
 
             self.catch_report_data(response[0], response[1])
 
-        except (HttpRequestError, HttpsRequestError, ProxyRequestError) as e:
+        except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) as e:
             raise BrowserError(e)
 
     def __is_ignored(self, url):
@@ -221,9 +220,9 @@ class Browser(Filter):
         self.__result['total'].update({"workers":self.__pool.workers_size})
 
         if 0 == self.__pool.size:
+            pass
             #print self.__config.reports
-            print self.__result
-
+            #print self.__result
             #print(reporter)
         else:
             pass

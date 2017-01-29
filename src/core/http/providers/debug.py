@@ -84,3 +84,14 @@ class DebugProvider(object):
         """
 
         pass
+
+    def debug_request_uri(self, status, request_uri, **kwargs):
+        """
+        Debug request_uri
+        :param int status:
+        :param str request_uri:
+        :param **kwargs:
+        :return: None
+        """
+
+        pass

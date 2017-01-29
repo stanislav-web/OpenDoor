@@ -138,7 +138,7 @@ class Controller:
 
         if False is reporter.is_reported(params.get('host')):
 
-            if None is params.get('reports'):
+            if reporter.default is params.get('reports'):
                 tpl.info(key='use_reports')
 
             try:

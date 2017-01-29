@@ -18,8 +18,11 @@
 
 import threading
 import time
+
+from src.core import sys
 from Queue import Empty as QueueEmptyError
 from threading import BoundedSemaphore, Event
+from src.lib.tpl import Tpl as tpl
 
 
 class Worker(threading.Thread):
@@ -37,6 +40,7 @@ class Worker(threading.Thread):
         self.__event = Event()
         self.__event.set()
         self.__running = True
+        self.__exception = None
         self.__queue = queue
         self.__timeout = timeout
         self.counter = 0
@@ -61,31 +65,53 @@ class Worker(threading.Thread):
         self.__running = True
         self.__event.set()
 
+    @property
+    def exception(self):
+        """
+        Return exception message
+        :return:
+        """
+
+        return self.__exception
+
     def run(self):
         """
         Run current worker
         :return: None
         """
 
-        self.__event.wait()
+        try:
 
-        while self.__running:
+            self.__event.wait()
 
-            if 0 < self.__timeout:
-                time.sleep(self.__timeout)
+            while self.__running:
 
-            try:
+                if 0 < self.__timeout:
+                    time.sleep(self.__timeout)
 
-                func, args, kargs = self.__queue.get(block=True)
-                self.counter += 1
+                try:
 
-                func(*args, **kargs)
-                self.__queue.task_done()
+                    func, args, kargs = self.__queue.get(block=True)
+                    self.counter += 1
+                    func(*args, **kargs)
+                    self.__queue.task_done()
 
-            except QueueEmptyError:
-                pass
-            finally:
+                except QueueEmptyError:
+                    pass
 
-                if not self.__event.isSet():
-                    self.__semaphore.release()
-                    self.__event.wait()
+                finally:
+                    if not self.__event.isSet():
+                        self.__semaphore.release()
+                        self.__event.wait()
+        except Exception as e:
+            self.terminate(e)
+
+    def terminate(self, msg):
+        """
+        Terminate thread
+        :return: None
+        """
+        tpl.error(msg)
+        sys.kill()
+
+

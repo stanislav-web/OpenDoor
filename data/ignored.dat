@@ -6,11 +6,9 @@
 404.php
 404.html
 404.asp
-logs/debug.dat
 404/
+goto.php
+goto/
 notfound.php
 notfound.html
 notfound/
-index.php
-index.htm
-index.html

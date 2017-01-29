@@ -16,44 +16,99 @@
     Development Team: Stanislav WEB
 """
 
-
+import re
+from src.core import helper
 from src.core import filesystem
 
 class ResponseProvider(object):
     """ ResponseProvider class"""
 
     _HTTP_DBG_LEVEL = 3
+    __INDEX_OF_TITLE = 'Index of /'
     __DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
     __DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     __DEFAULT_HTTP_REDIRECT_STATUSES = [301, 302, 303, 304, 307, 308]
-    __DEFAULT_HTTP_FAILED_STATUSES = [404, 429, 500, 501, 502, 503, 504]
+    __DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 429, 500, 501, 502, 503, 504]
     __DEFAULT_HTTP_FORBIDDEN_STATUSES = [401, 403]
     __DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400]
 
-    def __init__(self):
+    def __init__(self, config):
+       """
+       Response instance
+       :param src.lib.browser.config.Config config: configurations
+       """
+       self._cfg = config
+
+    @property
+    def is_indexof(self):
         """
-        Response instance
+        Check response as index of/ page
+        :return: bool
         """
 
-    def detect(self, status_code):
+        regex = re.compile('<title>(.*?)</title>', re.IGNORECASE | re.DOTALL)
+        title = regex.search(self.__INDEX_OF_TITLE)
+        if None is not title:
+            return True
+        return False
+
+    def _get_redirect_url(self, url, response):
         """
-        Detect response by status code
-        :param int status_code: response status
+        Get redirect url
+        :param str url:
+        :param urllib3.response.HTTPResponse response:
         :return: str
         """
 
-        if status_code in self.__DEFAULT_HTTP_SUCCESS_STATUSES:
+        redirect_url = None
+        location = response.get_redirect_location()
+
+        if False != location:
+            matches = re.search("(?P<url>https?://[^\s]+)", location)
+            if None != matches.group("url"):
+                redirect_url = matches.group("url")
+            else:
+                urlp = helper.parse_url(url)
+                redirect_url = urlp.scheme + '://' + urlp.netloc + location
+
+        return redirect_url
+
+    def detect(self, request_url, response):
+        """
+        Detect response by status code
+        :param str request_url: request url
+        :param urllib3.response.HTTPResponse response:
+        :raise Exception
+        :return: str
+        """
+
+        if response.status in self.__DEFAULT_HTTP_SUCCESS_STATUSES:
+            if 'Content-Length' in response.headers:
+                if self.__DEFAULT_SOURCE_DETECT_MIN_SIZE <= int(response.headers['Content-Length']):
+                    return 'file'
+                if True is self._cfg.is_indexof:
+                    if True is self.is_indexof:
+                        return 'indexof'
             return 'success'
-        elif status_code in self.__DEFAULT_HTTP_FAILED_STATUSES:
+        elif response.status in self.__DEFAULT_HTTP_FAILED_STATUSES:
             return 'failed'
-        elif status_code in self.__DEFAULT_HTTP_REDIRECT_STATUSES:
+        elif response.status in self.__DEFAULT_HTTP_REDIRECT_STATUSES:
+            if False != response.get_redirect_location():
+                urlfrag = helper.parse_url(request_url)
+                redirect_url = response.get_redirect_location().rstrip('/')
+
+                redirectfrag = helper.parse_url(redirect_url)
+                url = "{0}://{1}".format(urlfrag.scheme, urlfrag.netloc)
+
+                if url == redirect_url or redirectfrag.query in urlfrag.path:
+                    return 'failed'
             return 'redirect'
-        elif status_code in self.__DEFAULT_HTTP_BAD_REQUEST_STATUSES:
+        elif response.status in self.__DEFAULT_HTTP_BAD_REQUEST_STATUSES:
             return 'bad'
-        elif status_code in self.__DEFAULT_HTTP_FORBIDDEN_STATUSES:
+        elif response.status in self.__DEFAULT_HTTP_FORBIDDEN_STATUSES:
             return 'forbidden'
         else:
-            raise Exception('Unknown response status : `{0}`'.format(status_code) )
+            raise Exception('Unknown response status : `{0}`'.format(response.status) )
 
     def handle(self, response, request_url, items_size, total_size):
         """
@@ -76,5 +131,5 @@ class ResponseProvider(object):
         """
 
         if 'Content-Length' in response.headers:
-            return filesystem.human_size(response.headers['Content-Length'])
+            return filesystem.human_size(response.headers['Content-Length'], 0)
         return '0B'

@@ -33,7 +33,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         logging.CRITICAL: ('red', 'white', True),
     }
 
-    date_format = "%Y-%m-%d %H:%M:%S"
+    date_format = "%H:%M:%S"
 
     #: How many characters reserve to function name logging
     who_padding = 7
@@ -123,7 +123,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         width = int(Process.terminal_size.get('width'))
         if record.levelno != logging.DEBUG:
             if len(output) > width and record.levelno != logging.ERROR:
-                output = (output[:(width-3)] + '...')
+                output = (output[:(width)] + '...')
 
         length = width - self.__pure_line_len(output)
         end = (' ' * length)[:length]

@@ -35,7 +35,6 @@ from .logger import Exception as exception
 from .logger import Logger as logger
 from .options import Options as options
 from .options.exceptions import OptionsError
-from .signals import MainHandler as handler
 from .system import Process as process
 from .system import System as sys
 from .system.exceptions import SystemError

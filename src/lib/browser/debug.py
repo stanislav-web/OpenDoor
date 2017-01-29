@@ -18,6 +18,7 @@
 
 from src.lib.tpl import Tpl as tpl
 from src.core import helper
+from src.core import sys
 from src.core.http.providers.debug import DebugProvider
 
 class Debug(DebugProvider):
@@ -29,11 +30,15 @@ class Debug(DebugProvider):
         :param Config: Config
         """
 
+        self.__catched = False
+        self.__clear = False
         self.__cfg = Config
         self.__level = self.__cfg.debug
 
         if 0 < self.__level:
             tpl.debug(key='debug', level=self.__cfg.debug, method=self.__cfg.method)
+            if True is self.__cfg.is_indexof:
+                tpl.debug(key='indexof_act', method=self.__cfg.method)
         pass
 
     @property
@@ -130,40 +135,57 @@ class Debug(DebugProvider):
         tpl.debug(key='response_header_dbg', dbg=helper.to_json(response_header))
 
 
-    def debug_request_uri(self, status, request_uri, items_size, total_size, content_size):
+    def debug_request_uri(self, status, request_uri, **kwargs):
         """
         Debug request_uri
-
-        :param str status:
+        :param int status:
         :param str request_uri:
-        :param int items_size:
-        :param int total_size:
-        :param int content_size:
-        :return:
+        :param **kwargs:
+        :return: None
         """
 
+        percentage = tpl.line(msg=helper.percent(kwargs.get('items_size'), kwargs.get('total_size')), color='cyan')
+
+        if status in ['success']:
+            request_uri = tpl.line(key='success', color='green', url=helper.parse_url(request_uri).path)
+        elif status in ['file']:
+            request_uri = tpl.line(key='file', color='green', url=helper.parse_url(request_uri).path)
+        elif status in ['bad', 'forbidden']:
+            request_uri = tpl.line(key='forbidden', color='yellow', url=helper.parse_url(request_uri).path)
+        elif status in ['redirect']:
+            request_uri = tpl.line(key='redirect', color='blue', url=helper.parse_url(request_uri).path, rurl=kwargs.get('redirect_uri'))
+
+        if False is self.__catched:
+            self.__clear = True
+        else:
+            self.__clear = False
+
         if 0 < self.__level:
-            if status in ['success','redirect','failed']:
+
+            if status in ['success','bad','forbidden','redirect']:
+
                 tpl.info(key='get_item_lvl1',
-                         percent=tpl.line(
-                                msg=helper.percent(items_size, total_size),
-                                color='cyan'),
-                         current=items_size,
-                         total=total_size,
+                         clear=self.__clear,
+                         percent=percentage,
+                         current=kwargs.get('items_size'),
+                         total=kwargs.get('total_size'),
                          item=request_uri,
-                         size=content_size)
+                         size=kwargs.get('content_size'))
+                self.__catched = True
             else:
                 tpl.line_log(key='get_item_lvl1',
-                         percent=tpl.line(
-                                msg=helper.percent(items_size, total_size),
-                                color='cyan'),
-                         current=items_size,
-                         total=total_size,
+                         percent=percentage,
+                         current=kwargs.get('items_size'),
+                         total=kwargs.get('total_size'),
                          item=request_uri,
-                         size=content_size
+                         size=kwargs.get('content_size')
                          )
+                self.__catched = False
+
         else:
-            tpl.line_log(key='get_item_lvl0',
-                                percent=tpl.line(msg=helper.percent(items_size, total_size),
-                                          color='cyan'),
-                                item=request_uri)
+            if status in ['success', 'bad', 'forbidden', 'redirect']:
+                tpl.info(key='get_item_lvl0', clear=self.__clear, percent=percentage,item=request_uri)
+            else:
+                tpl.line_log(key='get_item_lvl0', percent=percentage, item=request_uri)
+
+        pass

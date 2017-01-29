@@ -17,7 +17,6 @@
 """
 
 from src.core import colour
-from src.core import helper
 from src.core import logger
 from src.core import sys
 from .config import Config
@@ -52,7 +51,7 @@ class Tpl():
         :param str msg: text message
         :param str key: message key for template
         :param str status: log status
-        :param bool write:
+        :param bool write: write immediatelly
         :param dict args: additional arguments
         :raise TplError
         :return: None
@@ -158,12 +157,13 @@ class Tpl():
             raise TplError(e.message)
 
     @staticmethod
-    def info(msg='', key='', **args):
+    def info(msg='', key='', clear=False, **args):
         """
         Info log message
         :param str msg: text message
         :param str key: message key for template
         :param dict args: additional arguments
+        :param bool clear: clear prev line
         :raise TplError
         :return: None
         """
@@ -173,7 +173,8 @@ class Tpl():
         try:
             if key:
                 msg = Tpl.__format_message(key, args=args)
-
+            if True is clear:
+                sys.writels("")
             logger.log().info(msg)
         except (AttributeError, TplError) as e:
             raise TplError(e.message)

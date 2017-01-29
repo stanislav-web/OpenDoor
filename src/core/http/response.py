@@ -17,7 +17,6 @@
 """
 
 from .providers import ResponseProvider
-from src.core import helper
 from .exceptions import ResponseError
 
 class Response(ResponseProvider):
@@ -30,9 +29,8 @@ class Response(ResponseProvider):
         :param src.lib.browser.debug.Debug debug: debugger
         """
 
-        ResponseProvider.__init__(self)
+        ResponseProvider.__init__(self, config)
 
-        self.__cfg = config
         self.__debug = debug
         self.__tpl = kwargs.get('tpl')
 
@@ -53,17 +51,24 @@ class Response(ResponseProvider):
             self.__debug.debug_response(response.headers.items())
 
         if hasattr(response, 'status'):
-            status = super(Response, self).detect(response.status)
 
-            self.__debug.debug_request_uri(
-                status=status,
-                request_uri=request_url,
-                items_size=items_size,
-                total_size=total_size,
-                content_size=self._get_content_size(response)
-            )
+            try:
+                status = super(Response, self).detect(request_url, response)
+                redirect_uri = None
 
-            return (status , request_url)
+                if status in ['redirect']:
+                    redirect_uri = self._get_redirect_url(request_url, response)
+                    url = redirect_uri
+                else:
+                    url = request_url
+
+                self.__debug.debug_request_uri(status=status, request_uri=request_url, redirect_uri=redirect_uri,
+                    items_size=items_size, total_size=total_size, content_size=self._get_content_size(response))
+
+                return (status, url)
+
+            except Exception as e:
+                raise ResponseError(e.message)
 
         else:
             raise ResponseError('Unable to get response from {url}'.format(url=request_url))

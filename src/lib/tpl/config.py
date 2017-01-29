@@ -30,6 +30,7 @@ class Config:
         'create_queue_progress' : 'Create queue {bar}',
         'scanning': 'Scanning {host} ...',
         'debug': 'Starting debug level {level} . Using scan method: {method} ...',
+        'indexof_act': 'Apache index of/ pages detecting',
         'randomizing': 'Randomizing scan list ...',
         'browser': 'Fetching user-agent: {browser}',
         'directories': 'Read {total} directories list by line',
@@ -55,15 +56,10 @@ class Config:
         'max_retry_error'  : 'Skipped. Max retries exceeded: {url}',
         'proxy_max_retry_error': 'Skipped. Proxy {proxy} Max retries exceeded: {url}',
         'host_changed_error'   : 'Block external redirect -> {details}',
-        'read_timeout_error' : 'Connection timeout! {url}. Increase using --timeout option',
+        'read_timeout_error': 'Connection timeout! {url}. Increase using --timeout option',
+        'success'   : 'OK {url}',
+        'file' : 'File {url}',
+        'indexof' : 'Index {url}',
+        'forbidden' : 'Denied {url}',
+        'redirect'  : 'Redirect {url} -> {rurl}'
     }
-
-    #                "http": {
-    #                    'redirect': "Redirect {0} --> {1}",
-    #                    'unresponsible': "Unresponsible path : {0}",
-    #                    'has_scanned': "You already have the results for {0} saved in logs directory.\nWould you like to rescan? Press [ENTER] to continue: ",
-    #                    'file_detected': "Probably you found important filesource {0} {1}"
-    #                }
-    #            },
-
-

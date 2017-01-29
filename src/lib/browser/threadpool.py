@@ -21,8 +21,6 @@ import time
 from Queue import Queue
 
 from src.lib.tpl import Tpl as tpl
-from .exceptions import ThreadPoolError
-from .exceptions import WorkerError
 from .worker import Worker
 
 
@@ -35,7 +33,6 @@ class ThreadPool():
         :param int num_threads: active workers
         :param int total_items: total items
         :param int timeout: delay betwen threads
-        :raise ThreadPoolError
         :return None
         """
 
@@ -44,24 +41,13 @@ class ThreadPool():
         self.total_items_size = total_items
         self.is_started = True
 
-        try:
+        for _ in range(num_threads):
 
-            for _ in range(num_threads):
-
-                try:
-
-                    worker = Worker(self.__queue, num_threads, timeout)
-
-                    if False is worker.isAlive():
-                        worker.setDaemon(True)
-                        worker.start()
-                        self.__workers.append(worker)
-
-                except Exception as e:
-                    raise WorkerError(e)
-
-        except WorkerError as e:
-            raise ThreadPoolError(e)
+            worker = Worker(self.__queue, num_threads, timeout)
+            if False is worker.isAlive():
+                worker.setDaemon(True)
+                worker.start()
+                self.__workers.append(worker)
 
     @property
     def size(self):

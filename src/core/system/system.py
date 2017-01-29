@@ -18,10 +18,40 @@
 
 import platform
 import sys
-
+import os
+import signal
 
 class System():
     """System class"""
+
+    @staticmethod
+    def kill():
+        """
+        Immediatelly terminate process
+        :return: None
+        """
+
+        os.kill(os.getpid(), signal.SIGTERM)  # or signal.SIGKILL
+
+    @staticmethod
+    def termination_handler():
+        """
+        Exit Ctrl-Z handler
+        :return: None
+        """
+
+        def kill_process(signum, frame):
+            """
+            Kill process os signal
+            :param int signum: signal code
+            :param object frame: frame object
+            :return: None
+            """
+
+            os.kill(os.getpid(), signal.SIGTERM)
+
+        signal.signal(signal.SIGTSTP, kill_process)
+        pass
 
     @staticmethod
     def exit(msg):
@@ -41,6 +71,7 @@ class System():
         :return: None
         """
 
+        sys.stdout.flush()
         sys.stdout.write("\r\x1b[K" + msg.__str__())
         sys.stdout.flush()
 

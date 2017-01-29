@@ -20,13 +20,8 @@ import sys
 
 from .config import Config
 
-
 class Color:
     """Color class"""
-
-    BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
-
-    has = False
 
     @staticmethod
     def __has_colors(stream):
