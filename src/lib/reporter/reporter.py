@@ -16,11 +16,11 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import filesystem
-from .exceptions import ReporterError
 import importlib
+from src.core import filesystem, FileSystemError
+from .exceptions import ReporterError
 
-class Reporter():
+class Reporter(object):
     """Reporter class"""
 
     default = 'std'
@@ -33,23 +33,30 @@ class Reporter():
         :return: bool
         """
 
-        config = filesystem.readcfg('setup.cfg')
-        return filesystem.is_exist(config.get('opendoor', 'reports'), resource)
+        try:
+            config = filesystem.readcfg('setup.cfg')
+            return filesystem.is_exist(config.get('opendoor', 'reports'), resource)
+        except FileSystemError as e:
+            raise ReporterError(e.message)
+
 
     @staticmethod
-    def get(plugin_name):
+    def load(plugin_name, data):
         """
-        Get report plugin
+        Load report plugin
         :param str plugin_name: plugin name
+        :param dict data: report data
+        :raise ReporterError
         :return: src.lib.reporter.plugins.provider.provider.PluginProvider
         """
 
         try:
-
             module = importlib.import_module('src.lib.reporter.plugins')
-            reporter = getattr(module, plugin_name)
 
-            return reporter
-
-        except AttributeError:
+            try:
+                report = getattr(module, plugin_name)
+                return report(data)
+            except (TypeError, AttributeError) as e:
+                raise ReporterError(e.message)
+        except ImportError:
             raise ReporterError('Unable to get reporter`{plugin}`'.format(plugin=plugin_name))

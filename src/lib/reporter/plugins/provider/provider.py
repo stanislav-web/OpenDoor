@@ -16,16 +16,39 @@
     Development Team: Stanislav WEB
 """
 
-class PluginProvider():
-    """PluginProvider class"""
+class PluginProvider(object):
+    """"PluginProvider class"""
 
-    def __int__(self):
+    def __init__(self, data):
+        """
+        PluginProvider constructor
+        :return: None
+        """
+
+        self._data = {}
+        self.__set_data(data)
         pass
 
-    def set_report_data(self, data):
+    def __set_data(self, data):
+        """
+        Set report data
+
+        :param dict data: report data
+        :return:
+        """
+
+        if False is isinstance(data, dict):
+            raise TypeError("Report data has a wrong type")
+        self._data = data
+
         pass
 
-    def get_report_data(self):
+    def process(self):
+        """
+        Process data
+        :return: mixed
+        """
+
         pass
 
 

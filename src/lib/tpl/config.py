@@ -61,5 +61,5 @@ class Config:
         'file' : 'File {url}',
         'indexof' : 'Index {url}',
         'forbidden' : 'Denied {url}',
-        'redirect'  : 'Redirect {url} -> {rurl}'
+        'redirect'  : 'R {url} -> {rurl}'
     }

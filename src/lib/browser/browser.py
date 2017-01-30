@@ -24,9 +24,8 @@ from src.core import request_proxy
 from src.core import response
 from src.core import request_ssl
 from src.core import socket
-from src.lib.reader import Reader
-from src.lib.reader import ReaderError
-from src.lib.reporter import reporter
+from src.lib.reader import Reader , ReaderError
+from src.lib.reporter import Reporter, ReporterError
 from src.lib.tpl import Tpl as tpl
 from .config import Config
 from .debug import Debug
@@ -220,9 +219,12 @@ class Browser(Filter):
         self.__result['total'].update({"workers":self.__pool.workers_size})
 
         if 0 == self.__pool.size:
-            pass
-            #print self.__config.reports
-            #print self.__result
-            #print(reporter)
+
+            try:
+                for rtype in self.__config.reports:
+                    report = Reporter.load(rtype, self.__result)
+                    report.process()
+            except ReporterError as e:
+                raise BrowserError(e.message)
         else:
             pass

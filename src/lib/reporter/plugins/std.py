@@ -16,23 +16,22 @@
     Development Team: Stanislav WEB
 """
 
+from tabulate import tabulate
 from .provider import PluginProvider
 
 class StdReportPlugin(PluginProvider):
     """ StdReportPlugin class"""
 
-    def __int__(self):
-        """
-        Init provider
-        :return: None
-        """
-        PluginProvider.__init__(self)
-        self.data = {}
+    def __init__(self, data):
+        PluginProvider.__init__(self, data)
 
-    def set_report_data(self, data):
-        self.data = data
+    def process(self):
+        """
+        Process data
+        :return: str
+        """
 
-    def get_report_data(self):
-        return self.data
+        data = self._data.get('total').items()
+        tabulate(data, headers=['Statistics', 'Summary'], tablefmt="orgtbl")
 
 

@@ -16,15 +16,10 @@
     Development Team: Stanislav WEB
 """
 
-from .browser import Browser as browser
-from .browser import BrowserError
+from .browser import Browser as browser , BrowserError
 from .events import EventHandler as events
-from .io import Arguments as args
-from .io import ArgumentsError
-from .package import Package as package
-from .package import PackageError
-from .reader import Reader as reader
-from .reader import ReaderError
-from .reporter import ReporterError
-from .reporter import Reporter as reporter
+from .io import Arguments as args, ArgumentsError
+from .package import Package as package, PackageError
+from .reader import Reader as reader, ReaderError
+from .reporter import Reporter as reporter, ReporterError
 from .tpl import Tpl as tpl

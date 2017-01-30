@@ -1,7 +1,0 @@
-1 ) -i, --indexof         Detect Index of/
-
-2) --reports REPORTS
-
-4) Detect files
-
-5) Handle redirects

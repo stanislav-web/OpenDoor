@@ -2,9 +2,17 @@ Changes
 =======
 
 
-
-v3.0.1 (2016-11-16)
+v3.0.1-alfa (03.02.2017)
 --------------------
+    - relieved of unnecessary dependencies
+    - fully optimized code inside
+    - user-friendly interface
+    - added external wordlists support
+    - added external proxylist support
+    - added wordlist shuffling
+    - added multithreading control
+    - dynamic and smart requests (cookies + accept headers)
+    - apache index of/ and files detect
 
 
 v2.7.96 Before redesign (05.01.2017)

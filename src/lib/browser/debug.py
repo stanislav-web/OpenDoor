@@ -57,8 +57,6 @@ class Debug(DebugProvider):
         """
 
         if 0 < self.__level:
-            pass
-        else:
             if True is self.__cfg.is_random_user_agent:
                 tpl.debug(key='random_browser')
             else:
@@ -181,6 +179,7 @@ class Debug(DebugProvider):
                          size=kwargs.get('content_size')
                          )
                 self.__catched = False
+                sys.writels("", flush=self.__catched)
 
         else:
             if status in ['success', 'bad', 'forbidden', 'redirect']:

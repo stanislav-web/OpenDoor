@@ -64,16 +64,17 @@ class System():
         sys.exit(msg)
 
     @staticmethod
-    def writels(msg):
+    def writels(msg, flush=True):
         """
         Write to stdout on one line dynamically
         :param str msg: text message
+        :param bool flush: force flush
         :return: None
         """
 
-        sys.stdout.flush()
         sys.stdout.write("\r\x1b[K" + msg.__str__())
-        sys.stdout.flush()
+        if True is flush:
+            sys.stdout.flush()
 
     @staticmethod
     def writeln(msg):

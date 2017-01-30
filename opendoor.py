@@ -21,6 +21,7 @@ import sys
 
 try:
     import urllib3
+    import json2html
 
 except ImportError:
     sys.exit("""\t\t[!] Several dependencies wasn't installed!
