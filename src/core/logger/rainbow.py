@@ -36,9 +36,6 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
     #: How many characters reserve to function name logging
     who_padding = 7
 
-    #: Show logger name
-    show_name = False
-
     def get_color(self, fg=None, bold=False):
         """
         Construct a terminal color code
@@ -72,8 +69,11 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
             # Defaults
             bold = False
 
-        template = ["[", self.get_color("black",True), "%(asctime)s", self.reset, "] ",
-            self.get_color("white", None, True) if self.show_name else "", "%(name)s " if self.show_name else "",
+        template = [
+            "[", self.get_color("black",True),
+            "%(asctime)s", self.reset, "] ",
+            "",
+            "",
             "%(padded_who)s", self.reset, " ", self.get_color(fg, bold), "%(message)s", self.reset, ]
 
         format_string = "".join(template)
