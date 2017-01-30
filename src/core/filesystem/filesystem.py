@@ -191,6 +191,13 @@ class FileSystem(object):
 
     @staticmethod
     def human_size(size, precision=2):
+        """
+        Humanize accepted bytes
+        :param int size:
+        :param int precision:
+        :return:
+        """
+
         suffixes = ['B', 'KB', 'MB', 'GB', 'TB']
         suffix_index = 0
         size = int(size)

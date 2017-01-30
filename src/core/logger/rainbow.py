@@ -111,7 +111,8 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         end = (' ' * length)[:length]
         return output + end
 
-    def __pure_line_len(self, string):
+    @classmethod
+    def __pure_line_len(cls, string):
         """
         Get pure line
         :param str string:

@@ -121,7 +121,8 @@ class Proxy(RequestProvider, DebugProvider):
 
         return server
 
-    def __get_proxy_type(self, server):
+    @classmethod
+    def __get_proxy_type(cls, server):
         """
         Set proxy type
         :param str server:

@@ -68,7 +68,7 @@ class Color:
         :return: string
         """
 
-        if type(text) is not str:
+        if False is isinstance(text,str):
             text = str(text)
         if Color.__has_colors(sys.stdout):
             text = text.strip('\n')

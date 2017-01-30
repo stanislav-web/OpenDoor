@@ -26,6 +26,7 @@ from .config import Config
 
 
 class Exception():
+    """ Exception class """
     @staticmethod
     def log(class_name='Error', message=''):
         """

@@ -125,7 +125,10 @@ class Options(object):
         try:
             arguments = self.parser.parse_args()
 
-            if not arguments.host and True is not arguments.version and True is not arguments.update and True is not arguments.examples:
+            if not arguments.host \
+                    and True is not arguments.version \
+                    and True is not arguments.update \
+                    and True is not arguments.examples:
                 raise OptionsError("argument --host is required")
 
             if True is arguments.version or True is arguments.update or True is arguments.examples:

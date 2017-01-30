@@ -25,7 +25,7 @@ class Config:
         'abort': 'Session canceled', 'use_reports': 'Use --report param to store your scan results',
         'logged': 'The {host} has been reported. Press ENTER to rescan or CTRL+C to exit: ',
         'checking_connect': 'Wait, please, checking connect to -> {host}:{port} ...',
-        'slow_connection': 'Too slow connection. Please decrease the number of threads and increase the request timeout',
+        'slow_connection': 'Too slow connection. Please decrease the num of threads and increase the request timeout',
         'online': 'Server {host}:{port} ({ip}) is online!', 'create_queue_progress': 'Create queue {bar}',
         'scanning': 'Scanning {host} ...', 'debug': 'Starting debug level {level} . Using scan method: {method} ...',
         'indexof_act': 'Apache index of/ pages detecting', 'randomizing': 'Randomizing scan list ...',

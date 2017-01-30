@@ -18,12 +18,11 @@
 
 import os
 import subprocess
-
 from .exceptions import CoreSystemError
 
 
 class Term(type):
-    """ Term class """
+    """ Term class"""
 
     @property
     def terminal_size(cls):
@@ -43,6 +42,7 @@ class Term(type):
 class Process(object):
     """Process class"""
 
+    ts = None
     __metaclass__ = Term
 
     @staticmethod

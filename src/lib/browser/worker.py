@@ -106,7 +106,8 @@ class Worker(threading.Thread):
         except Exception , e:
             self.terminate(e)
 
-    def terminate(self, msg):
+    @classmethod
+    def terminate(cls, msg):
         """
         Terminate thread
         :return: None

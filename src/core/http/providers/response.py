@@ -54,7 +54,8 @@ class ResponseProvider(object):
             return True
         return False
 
-    def _get_redirect_url(self, url, response):
+    @classmethod
+    def _get_redirect_url(cls, url, response):
         """
         Get redirect url
         :param str url:

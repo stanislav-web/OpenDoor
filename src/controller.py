@@ -126,7 +126,8 @@ class Controller(object):
         except (AttributeError, PackageError) , e:
             raise SrcError(e)
 
-    def scan_action(self, params=()):
+    @classmethod
+    def scan_action(cls, params=()):
         """
         URL scan action
         :param dict params: console input args

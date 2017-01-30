@@ -139,7 +139,8 @@ class Reader(object):
         except FileSystemError , e:
             raise ReaderError(e)
 
-    def _subdomains__line(self, line, params):
+    @classmethod
+    def _subdomains__line(cls, line, params):
         """
         Read lines from subdomains file
         :param str line: single line
@@ -165,7 +166,8 @@ class Reader(object):
 
         return line
 
-    def _directories__line(self, line, params):
+    @classmethod
+    def _directories__line(cls, line, params):
         """
         Read lines from directories file
         :param str line: single line

@@ -65,7 +65,7 @@ class Helper:
         :return: str
         """
 
-        if type(data) is str:
+        if True is isinstance(data,str):
             json_data = json.dumps(json.loads(data), sort_keys=sort, indent=indents)
         else:
             json_data = json.dumps(data, sort_keys=sort, indent=indents)
