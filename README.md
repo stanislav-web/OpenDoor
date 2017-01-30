@@ -16,17 +16,17 @@ This software is written for informational purposes and is an open source produc
 
 ***Testing of the software on the commercial systems and organizations is prohibited!***
 
-![Alt text](http://dl2.joxi.net/drive/2016/12/12/0001/0378/90490/90/29ae6dade2.jpg "OpenDoor")
+![Alt text](http://dl3.joxi.net/drive/2017/01/30/0001/0378/90490/90/e309742b5c.jpg "OpenDoor OWASP")
 
 
-##### Requirements
+#### Requirements
 * Unix
 * Python 2.7.x
 
-##### Maintainers
+#### Maintainers
 - @stanislav-web <https://github.com/stanislav-web> (Developer)
 
-##### Install Dependencies
+#### Install Dependencies
 ```
 sudo pip install -r requirements.txt
 chmod +x opendoor.py
@@ -36,7 +36,7 @@ Also, you have to install `socksipy` package if you'll use socks as proxy
 sudo apt-get install python-socksipy
 ```
 
-##### Implements
+#### Implements
 - [x] multithreading control
 - [x] debug levels (1-3)
 - [x] scan's reports
@@ -55,10 +55,10 @@ sudo apt-get install python-socksipy
     * wordlists shuffling
 
 
-##### [Changelog](CHANGELOG.md) (last changes)
+#### [Changelog](CHANGELOG.md) (last changes)
 
-v3.0.1-alfa (03.02.2017)
---------------------
+<sub>v3.0.1-alfa (03.02.2017)</sub>
+-------------------------
     - relieved of unnecessary dependencies
     - fully optimized code inside
     - user-friendly interface
@@ -69,11 +69,11 @@ v3.0.1-alfa (03.02.2017)
     - dynamic and smart requests (cookies + accept headers)
     - apache index of/ and files detect
 
-##### Basic usage
+#### Basic usage
 ```
  python opendoor.py --host http://www.example.com
 ```
-##### Help
+#### Help
 ```
 usage: opendoor.py [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
                    [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
@@ -127,7 +127,7 @@ Wordlist tools:
 
 ```
 
-#### Documentation
+### Documentation
 - [Opendoor OWASP Wiki Pages ](https://github.com/stanislav-web/OpenDoor/wiki)
 - [Opendoor OWASP CookBook ](https://github.com/stanislav-web/OpenDoor/wiki)
 - [Issues](https://github.com/stanislav-web/OpenDoor/issues)
