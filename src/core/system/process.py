@@ -24,6 +24,14 @@ from .exceptions import CoreSystemError
 class Term(type):
     """ Term class"""
 
+    def __int__(self):
+        """
+        Init class
+        :return:
+        """
+
+        self.ts = None
+
     @property
     def terminal_size(cls):
         """
@@ -35,6 +43,7 @@ class Term(type):
 
             (height, width) = subprocess.check_output(['stty', 'size']).split()
             ts = {'height': height, 'width': width}
+            print ts
             cls.ts = ts
         return cls.ts
 

@@ -27,9 +27,9 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
     """ Class RainbowLoggingHandler """
 
     # Define color for message payload
-    level_map = {logging.DEBUG: (None, 'cyan', False), logging.INFO: (None, 'white', False),
-        logging.WARNING: (None, 'yellow', False), logging.ERROR: (None, 'red', True),
-        logging.CRITICAL: ('red', 'white', True),}
+    level_map = {logging.DEBUG: ('cyan', False), logging.INFO: ('white', False),
+        logging.WARNING: ('yellow', False), logging.ERROR: ('red', True),
+        logging.CRITICAL: ('red', True)}
 
     date_format = "%H:%M:%S"
 
@@ -66,17 +66,17 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
 
         # Dynamic message color based on logging level
         if record.levelno in self.level_map:
-            fg, bg, bold = self.level_map[record.levelno]
+            fg, bold = self.level_map[record.levelno]
+
         else:
             # Defaults
-            bg = None
             bold = False
 
         template = ["[", self.get_color("black",True), "%(asctime)s", self.reset, "] ",
             self.get_color("white", None, True) if self.show_name else "", "%(name)s " if self.show_name else "",
-            "%(padded_who)s", self.reset, " ", self.get_color(bg, bold), "%(message)s", self.reset, ]
+            "%(padded_who)s", self.reset, " ", self.get_color(fg, bold), "%(message)s", self.reset, ]
 
-        format = "".join(template)
+        format_string = "".join(template)
 
         who = [self.get_color("green"), getattr(record, "funcName", ""), self.get_color("black", True), ":",
                self.get_color("cyan")]
@@ -93,7 +93,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
 
         record.padded_who = who + spaces
 
-        formatter = logging.Formatter(format, self.date_format)
+        formatter = logging.Formatter(format_string, self.date_format)
         self.colorize_traceback(formatter, record)
         output = formatter.format(record)
         # Clean cache so the color codes of traceback don't leak to other formatters
