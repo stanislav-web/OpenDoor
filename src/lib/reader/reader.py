@@ -50,7 +50,7 @@ class Reader(object):
         try:
             config = filesystem.readcfg(Config.setup)
             return config
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise ReaderError(e)
 
     def get_user_agents(self):
@@ -66,7 +66,7 @@ class Reader(object):
                 self.__useragents = filesystem.read(self.__config.get('opendoor', 'useragents'))
             return self.__useragents
 
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise ReaderError(e)
 
     def get_ignored_list(self):
@@ -88,7 +88,7 @@ class Reader(object):
 
             return self.__ignored
 
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise ReaderError(e)
 
     def get_proxies(self):
@@ -111,7 +111,7 @@ class Reader(object):
             else:
                 return []
 
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise ReaderError(e)
 
     def get_lines(self, params, loader):
@@ -136,7 +136,7 @@ class Reader(object):
             filesystem.readline(dirlist, handler=getattr(self, '_{0}__line'.format(self.__browser_config.get('list'))),
                                 handler_params=params, loader=loader)
 
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise ReaderError(e)
 
     @classmethod
@@ -207,7 +207,7 @@ class Reader(object):
             result_file = self.__config.get('opendoor', 'tmplist')
             filesystem.makefile(result_file)
             process.execute('shuf {target} -o {result}'.format(target=target_file, result=result_file))
-        except (CoreSystemError, FileSystemError) , e:
+        except (CoreSystemError, FileSystemError) as e:
             raise ReaderError(e)
 
     def count_total_lines(self):
@@ -228,7 +228,7 @@ class Reader(object):
 
             return self.__counter
 
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise ReaderError(e)
 
     @property

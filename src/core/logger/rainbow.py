@@ -39,17 +39,15 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
     #: Show logger name
     show_name = False
 
-    def get_color(self, fg=None, bg=None, bold=False):
+    def get_color(self, fg=None, bold=False):
         """
         Construct a terminal color code
         :param str fg: Symbolic name of foreground color
-        :param str bg: Symbolic name of background color
         :param str bold: Brightness bit
         """
 
         params = []
-        if bg in self.color_map:
-            params.append(str(self.color_map[bg] + 40))
+
         if fg in self.color_map:
             params.append(str(self.color_map[fg] + 30))
         if bold:
@@ -72,16 +70,15 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         else:
             # Defaults
             bg = None
-            fg = "white"
             bold = False
 
-        template = ["[", self.get_color("black", None, True), "%(asctime)s", self.reset, "] ",
+        template = ["[", self.get_color("black",True), "%(asctime)s", self.reset, "] ",
             self.get_color("white", None, True) if self.show_name else "", "%(name)s " if self.show_name else "",
-            "%(padded_who)s", self.reset, " ", self.get_color(bg, fg, bold), "%(message)s", self.reset, ]
+            "%(padded_who)s", self.reset, " ", self.get_color(bg, bold), "%(message)s", self.reset, ]
 
-        line_format = "".join(template)
+        format = "".join(template)
 
-        who = [self.get_color("green"), getattr(record, "funcName", ""), self.get_color("black", None, True), ":",
+        who = [self.get_color("green"), getattr(record, "funcName", ""), self.get_color("black", True), ":",
                self.get_color("cyan")]
 
         who = "".join(who)
@@ -96,7 +93,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
 
         record.padded_who = who + spaces
 
-        formatter = logging.Formatter(line_format, self.date_format)
+        formatter = logging.Formatter(format, self.date_format)
         self.colorize_traceback(formatter, record)
         output = formatter.format(record)
         # Clean cache so the color codes of traceback don't leak to other formatters
@@ -112,7 +109,8 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         return output + end
 
     @classmethod
-    def __pure_line_len(cls, string):
+
+    def __pure_line_len(self, string):
         """
         Get pure line
         :param str string:

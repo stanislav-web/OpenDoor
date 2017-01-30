@@ -41,7 +41,7 @@ class Tpl(object):
             if key:
                 msg = Tpl.__format_message(key, args=args)
             sys.exit(logger.log().warning(msg))
-        except (AttributeError, TplError) , e:
+        except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
     @staticmethod
@@ -66,7 +66,7 @@ class Tpl(object):
             else:
                 return msg
 
-        except (AttributeError, TplError) , e:
+        except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
     @staticmethod
@@ -99,7 +99,7 @@ class Tpl(object):
             if key:
                 msg = Tpl.__format_message(key, args=args)
             return colour.colored(msg, color=color)
-        except (AttributeError, TplError) , e:
+        except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
     @staticmethod
@@ -135,7 +135,7 @@ class Tpl(object):
                 msg = Tpl.__format_message(key, args=args)
 
             logger.log().error(msg)
-        except (AttributeError, TplError) , e:
+        except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
     @staticmethod
@@ -156,7 +156,7 @@ class Tpl(object):
                 msg = Tpl.__format_message(key, args=args)
 
             logger.log().warning(msg)
-        except (AttributeError, TplError) , e:
+        except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
     @staticmethod
@@ -179,7 +179,7 @@ class Tpl(object):
             if True is clear:
                 sys.writels("")
             logger.log().info(msg)
-        except (AttributeError, TplError) , e:
+        except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
     @staticmethod
@@ -200,7 +200,7 @@ class Tpl(object):
                 msg = Tpl.__format_message(key, args=args)
 
             logger.log().debug(msg)
-        except (AttributeError, TplError) , e:
+        except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
     @staticmethod

@@ -103,7 +103,7 @@ class Worker(threading.Thread):
                     if not self.__event.isSet():
                         self.__semaphore.release()
                         self.__event.wait()
-        except Exception , e:
+        except Exception as e:
             self.terminate(e)
 
     @classmethod

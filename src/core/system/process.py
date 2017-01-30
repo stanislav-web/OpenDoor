@@ -64,7 +64,7 @@ class Process(object):
 
         try:
             os.system(command)
-        except OSError , e:
+        except OSError as e:
             raise CoreSystemError(e)
 
     @staticmethod
@@ -82,5 +82,5 @@ class Process(object):
                 raise OSError(error.strip())
 
             return out
-        except (subprocess.CalledProcessError, OSError) , e:
+        except (subprocess.CalledProcessError, OSError) as e:
             raise CoreSystemError(e)

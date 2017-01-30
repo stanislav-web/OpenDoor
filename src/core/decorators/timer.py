@@ -40,10 +40,10 @@ def execution_time(function=None, log=None):
         :return: func
         """
 
-        t0 = time.time()
+        start = time.time()
         result = function(*args, **kwargs)
-        t1 = time.time()
-        timeless = "{:0>8}".format(datetime.timedelta(seconds=(t1 - t0)))
+        end = time.time()
+        timeless = "{:0>8}".format(datetime.timedelta(seconds=(end - start)))
         log.debug(key='total_time_lvl3', time=timeless)
         return result
 

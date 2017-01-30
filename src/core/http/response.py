@@ -46,7 +46,7 @@ class Response(ResponseProvider):
         :return: dict
         """
 
-        if self._HTTP_DBG_LEVEL <= self.__debug.level:
+        if self.HTTP_DBG_LEVEL <= self.__debug.level:
             self.__debug.debug_response(response.headers.items())
 
         if hasattr(response, 'status'):
@@ -67,7 +67,7 @@ class Response(ResponseProvider):
 
                 return (status, url)
 
-            except Exception , e:
+            except Exception as e:
                 raise ResponseError(e.message)
 
         else:

@@ -76,7 +76,7 @@ class Package(object):
                 tpl.line(Package.__license(), color='blue'))
             tpl.message(banner)
 
-        except (FileSystemError, CoreSystemError, PackageError) , e:
+        except (FileSystemError, CoreSystemError, PackageError) as e:
             raise PackageError(e)
 
     @staticmethod
@@ -95,7 +95,7 @@ class Package(object):
 
             tpl.message(version)
 
-        except (FileSystemError, CoreSystemError, PackageError) , e:
+        except (FileSystemError, CoreSystemError, PackageError) as e:
             raise PackageError(e)
 
     @staticmethod
@@ -114,7 +114,7 @@ class Package(object):
 
             tpl.message(banner)
 
-        except CoreSystemError , e:
+        except CoreSystemError as e:
             raise PackageError(e)
 
     @staticmethod
@@ -128,7 +128,7 @@ class Package(object):
         try:
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'version')
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise PackageError(e)
 
     @staticmethod
@@ -142,7 +142,7 @@ class Package(object):
         try:
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'name')
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise PackageError(e)
 
     @staticmethod
@@ -162,7 +162,7 @@ class Package(object):
                 raw = filesystem.readraw(result)
                 Package.remote_version = raw.get('info', 'version')
                 return Package.remote_version
-            except (FileSystemError, CoreSystemError) , e:
+            except (FileSystemError, CoreSystemError) as e:
                 raise PackageError(e)
         else:
             return Package.remote_version
@@ -185,7 +185,7 @@ class Package(object):
                 version = tpl.line(local, color='green')
             return version
 
-        except (FileSystemError, CoreSystemError, PackageError) , e:
+        except (FileSystemError, CoreSystemError, PackageError) as e:
             raise PackageError(e)
 
     @staticmethod
@@ -199,7 +199,7 @@ class Package(object):
         try:
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'repository')
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise PackageError(e)
 
     @staticmethod
@@ -213,7 +213,7 @@ class Package(object):
         try:
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'license')
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise PackageError(e)
 
     @staticmethod
@@ -230,7 +230,7 @@ class Package(object):
             count = filesystem.read(filename).__len__()
             return count
 
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise PackageError(e)
 
     @staticmethod
@@ -248,7 +248,7 @@ class Package(object):
 
             return count
 
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise PackageError(e)
 
     @staticmethod
@@ -266,7 +266,7 @@ class Package(object):
 
             return count
 
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise PackageError(e)
 
     @staticmethod
@@ -284,5 +284,5 @@ class Package(object):
 
             return count
 
-        except FileSystemError , e:
+        except FileSystemError as e:
             raise PackageError(e)

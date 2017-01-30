@@ -110,7 +110,7 @@ class Options(object):
 
             parser.parse_args()
             self.parser = parser
-        except (ArgumentParserError) , e:
+        except (ArgumentParserError) as e:
             raise OptionsError(e.message)
 
     def get_arg_values(self):
@@ -146,5 +146,5 @@ class Options(object):
 
             return args
 
-        except (AttributeError, FilterError) , e:
+        except (AttributeError, FilterError) as e:
             raise OptionsError(e.message)

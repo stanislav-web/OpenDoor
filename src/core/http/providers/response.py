@@ -25,14 +25,14 @@ from src.core import helper
 class ResponseProvider(object):
     """ ResponseProvider class"""
 
-    _HTTP_DBG_LEVEL = 3
-    _INDEX_OF_TITLE = 'Index of /'
-    _DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
-    _DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
-    _DEFAULT_HTTP_REDIRECT_STATUSES = [301, 302, 303, 304, 307, 308]
-    _DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 429, 500, 501, 502, 503, 504]
-    _DEFAULT_HTTP_FORBIDDEN_STATUSES = [401, 403]
-    _DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400]
+    HTTP_DBG_LEVEL = 3
+    INDEX_OF_TITLE = 'Index of /'
+    DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
+    DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
+    DEFAULT_HTTP_REDIRECT_STATUSES = [301, 302, 303, 304, 307, 308]
+    DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 429, 500, 501, 502, 503, 504]
+    DEFAULT_HTTP_FORBIDDEN_STATUSES = [401, 403]
+    DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400]
 
     def __init__(self, config):
         """
@@ -49,7 +49,7 @@ class ResponseProvider(object):
         """
 
         regex = re.compile('<title>(.*?)</title>', re.IGNORECASE | re.DOTALL)
-        title = regex.search(self._INDEX_OF_TITLE)
+        title = regex.search(self.INDEX_OF_TITLE)
         if None is not title:
             return True
         return False
@@ -85,17 +85,17 @@ class ResponseProvider(object):
         :return: str
         """
 
-        if response.status in self._DEFAULT_HTTP_SUCCESS_STATUSES:
+        if response.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
             if 'Content-Length' in response.headers:
-                if self._DEFAULT_SOURCE_DETECT_MIN_SIZE <= int(response.headers['Content-Length']):
+                if self.DEFAULT_SOURCE_DETECT_MIN_SIZE <= int(response.headers['Content-Length']):
                     return 'file'
                 if True is self._cfg.is_indexof:
                     if True is self.is_indexof:
                         return 'indexof'
             return 'success'
-        elif response.status in self._DEFAULT_HTTP_FAILED_STATUSES:
+        elif response.status in self.DEFAULT_HTTP_FAILED_STATUSES:
             return 'failed'
-        elif response.status in self._DEFAULT_HTTP_REDIRECT_STATUSES:
+        elif response.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
             if False != response.get_redirect_location():
                 urlfrag = helper.parse_url(request_url)
                 redirect_url = response.get_redirect_location().rstrip('/')
@@ -106,9 +106,9 @@ class ResponseProvider(object):
                 if url == redirect_url or redirectfrag.query in urlfrag.path:
                     return 'failed'
             return 'redirect'
-        elif response.status in self._DEFAULT_HTTP_BAD_REQUEST_STATUSES:
+        elif response.status in self.DEFAULT_HTTP_BAD_REQUEST_STATUSES:
             return 'bad'
-        elif response.status in self._DEFAULT_HTTP_FORBIDDEN_STATUSES:
+        elif response.status in self.DEFAULT_HTTP_FORBIDDEN_STATUSES:
             return 'forbidden'
         else:
             raise Exception('Unknown response status : `{0}`'.format(response.status))

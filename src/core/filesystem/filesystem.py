@@ -56,7 +56,7 @@ class FileSystem(object):
             try:
                 directory = os.path.join(os.getcwd(), directory)
                 os.makedirs(directory + '/', mode=mode)
-            except OSError , e:
+            except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise FileSystemError("Cannot create directory `{0}`. Reason: {1}".format(directory, e.message))
 
@@ -102,7 +102,7 @@ class FileSystem(object):
                 open(filename, 'w')
 
                 return True
-            except IOError , e:
+            except IOError as e:
                 raise FileSystemError(e)
         else:
             return False
@@ -140,13 +140,13 @@ class FileSystem(object):
         :return: list
         """
 
-        file = os.path.join(os.getcwd(), filename)
-        if not os.path.isfile(file):
+        filepath = os.path.join(os.getcwd(), filename)
+        if not os.path.isfile(filepath):
             raise FileSystemError("{0} is not a file ".format(file))
-        if not os.access(file, os.R_OK):
-            raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(file))
+        if not os.access(filepath, os.R_OK):
+            raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
 
-        with open(file, "r") as f_handler:
+        with open(filepath, "r") as f_handler:
             data = f_handler.readlines()
         return data
 
@@ -159,17 +159,17 @@ class FileSystem(object):
         :return: ConfigParser.RawConfigParser
         """
 
-        file = os.path.join(os.getcwd(), filename)
-        if not os.path.isfile(file):
-            raise FileSystemError("{0} is not a file ".format(file))
-        if not os.access(file, os.R_OK):
-            raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(file))
+        filepath = os.path.join(os.getcwd(), filename)
+        if not os.path.isfile(filepath):
+            raise FileSystemError("{0} is not a file ".format(filepath))
+        if not os.access(filepath, os.R_OK):
+            raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
 
         try:
             config = ConfigParser.RawConfigParser()
-            config.read(file)
+            config.read(filepath)
             return config
-        except ConfigParser.ParsingError , e:
+        except ConfigParser.ParsingError as e:
             raise FileSystemError(e.message)
 
     @staticmethod
@@ -186,7 +186,7 @@ class FileSystem(object):
             config = ConfigParser.ConfigParser()
             config.readfp(buf)
             return config
-        except ConfigParser.Error , e:
+        except ConfigParser.Error as e:
             raise FileSystemError(e.message)
 
     @staticmethod

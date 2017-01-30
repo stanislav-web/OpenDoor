@@ -50,7 +50,7 @@ class Controller(object):
                                          expected=interpreter.get('expected')))
 
             self.ioargs = args().get_arguments()
-        except ArgumentsError , e:
+        except ArgumentsError as e:
             raise SrcError(tpl.error(e.message))
 
     @execution_time(log=tpl)
@@ -74,7 +74,7 @@ class Controller(object):
                         getattr(self, '{func}_action'.format(func=action))()
                         break
 
-        except (SrcError, PackageError, BrowserError, AttributeError) , e:
+        except (SrcError, PackageError, BrowserError, AttributeError) as e:
             raise SrcError(tpl.error(e.message))
 
     @staticmethod
@@ -96,7 +96,7 @@ class Controller(object):
 
         try:
             package.update()
-        except (AttributeError, PackageError) , e:
+        except (AttributeError, PackageError) as e:
             raise SrcError(e)
 
     @staticmethod
@@ -110,7 +110,7 @@ class Controller(object):
 
         try:
             package.version()
-        except (AttributeError, PackageError) , e:
+        except (AttributeError, PackageError) as e:
             raise SrcError(e)
 
     @staticmethod
@@ -123,7 +123,7 @@ class Controller(object):
 
         try:
             return package.local_version()
-        except (AttributeError, PackageError) , e:
+        except (AttributeError, PackageError) as e:
             raise SrcError(e)
 
     @classmethod
@@ -148,7 +148,7 @@ class Controller(object):
                 brows.scan()
                 brows.done()
 
-            except (AttributeError, BrowserError, ReporterError) , e:
+            except (AttributeError, BrowserError, ReporterError) as e:
                 raise SrcError(e.message)
             except (KeyboardInterrupt, SystemExit):
                 tpl.cancel(key='abort')
