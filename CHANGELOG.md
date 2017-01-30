@@ -12,7 +12,7 @@ v3.0.1-alfa (03.02.2017)
     - added wordlist shuffling
     - added multithreading control
     - dynamic and smart requests (cookies + accept headers)
-    - apache index of/ and files detect
+    - apache index of/ and files detection
 
 
 v2.7.96 Before redesign (05.01.2017)
@@ -24,9 +24,9 @@ v2.7.96 Before redesign (05.01.2017)
 * *v1.2.2* - added example of usage (param --examples)
 * *v1.3.2* - added posibility to use random proxy from proxylist (param --proxy)
 * *v1.3.3* - simplify dependency installation
-* *v1.3.4* - added code quality watcher    
+* *v1.3.4* - added code quality watcher
 * *v1.3.5* - added ReadTimeoutError ProxyError handlers
-* *v1.3.51* - fixed code style, resolve file read errors  
+* *v1.3.51* - fixed code style, resolve file read errors
 * *v1.3.52* - code docstyle added
 * *v2.3.52* - subdomains scan available! (param --check subdomains). Added databases
 * *v2.3.54* - disabled treads error. Refactored

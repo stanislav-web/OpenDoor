@@ -1,4 +1,4 @@
-OWASP Directory Access Scanner <sup>redesign</sup>
+OWASP Directory Access Scanner <sup>(redesigned)</sup>
 ==================================
 ![Alt text](http://dl2.joxi.net/drive/2016/08/04/0001/0378/90490/90/4b4470c268.jpg "Hackware")
 
@@ -67,7 +67,7 @@ sudo apt-get install python-socksipy
     - added wordlist shuffling
     - added multithreading control
     - dynamic and smart requests (cookies + accept headers)
-    - apache index of/ and files detect
+    - apache index of/ and files detection
 
 #### Basic usage
 ```
