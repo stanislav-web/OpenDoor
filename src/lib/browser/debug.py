@@ -16,10 +16,11 @@
     Development Team: Stanislav WEB
 """
 
-from src.lib.tpl import Tpl as tpl
 from src.core import helper
 from src.core import sys
 from src.core.http.providers.debug import DebugProvider
+from src.lib.tpl import Tpl as tpl
+
 
 class Debug(DebugProvider):
     """Debug class"""
@@ -61,7 +62,6 @@ class Debug(DebugProvider):
                 tpl.debug(key='random_browser')
             else:
                 tpl.debug(key='browser', browser=self.__cfg.user_agent)
-
 
     def debug_list(self, total_lines):
         """
@@ -122,7 +122,6 @@ class Debug(DebugProvider):
 
         tpl.debug(key='request_header_dbg', dbg=helper.to_json(request_header))
 
-
     def debug_response(self, response_header):
         """
         Debug response
@@ -131,7 +130,6 @@ class Debug(DebugProvider):
         """
 
         tpl.debug(key='response_header_dbg', dbg=helper.to_json(response_header))
-
 
     def debug_request_uri(self, status, request_uri, **kwargs):
         """
@@ -151,7 +149,8 @@ class Debug(DebugProvider):
         elif status in ['bad', 'forbidden']:
             request_uri = tpl.line(key='forbidden', color='yellow', url=helper.parse_url(request_uri).path)
         elif status in ['redirect']:
-            request_uri = tpl.line(key='redirect', color='blue', url=helper.parse_url(request_uri).path, rurl=kwargs.get('redirect_uri'))
+            request_uri = tpl.line(key='redirect', color='blue', url=helper.parse_url(request_uri).path,
+                                   rurl=kwargs.get('redirect_uri'))
 
         if False is self.__catched:
             self.__clear = True
@@ -160,30 +159,20 @@ class Debug(DebugProvider):
 
         if 0 < self.__level:
 
-            if status in ['success','bad','forbidden','redirect']:
+            if status in ['success', 'bad', 'forbidden', 'redirect']:
 
-                tpl.info(key='get_item_lvl1',
-                         clear=self.__clear,
-                         percent=percentage,
-                         current=kwargs.get('items_size'),
-                         total=kwargs.get('total_size'),
-                         item=request_uri,
-                         size=kwargs.get('content_size'))
+                tpl.info(key='get_item_lvl1', clear=self.__clear, percent=percentage, current=kwargs.get('items_size'),
+                         total=kwargs.get('total_size'), item=request_uri, size=kwargs.get('content_size'))
                 self.__catched = True
             else:
-                tpl.line_log(key='get_item_lvl1',
-                         percent=percentage,
-                         current=kwargs.get('items_size'),
-                         total=kwargs.get('total_size'),
-                         item=request_uri,
-                         size=kwargs.get('content_size')
-                         )
+                tpl.line_log(key='get_item_lvl1', percent=percentage, current=kwargs.get('items_size'),
+                             total=kwargs.get('total_size'), item=request_uri, size=kwargs.get('content_size'))
                 self.__catched = False
                 sys.writels("", flush=self.__catched)
 
         else:
             if status in ['success', 'bad', 'forbidden', 'redirect']:
-                tpl.info(key='get_item_lvl0', clear=self.__clear, percent=percentage,item=request_uri)
+                tpl.info(key='get_item_lvl0', clear=self.__clear, percent=percentage, item=request_uri)
             else:
                 tpl.line_log(key='get_item_lvl0', percent=percentage, item=request_uri)
 

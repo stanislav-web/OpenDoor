@@ -16,22 +16,20 @@
     Development Team: Stanislav WEB
 """
 
-import re
 import logging
+import re
+
 from colorize import ColorizingStreamHandler
 from src.core.system import Process
+
 
 class RainbowLoggingHandler(ColorizingStreamHandler):
     """ Class RainbowLoggingHandler """
 
     # Define color for message payload
-    level_map = {
-        logging.DEBUG: (None, 'cyan', False),
-        logging.INFO: (None, 'white', False),
-        logging.WARNING: (None, 'yellow', False),
-        logging.ERROR: (None, 'red', True),
-        logging.CRITICAL: ('red', 'white', True),
-    }
+    level_map = {logging.DEBUG: (None, 'cyan', False), logging.INFO: (None, 'white', False),
+        logging.WARNING: (None, 'yellow', False), logging.ERROR: (None, 'red', True),
+        logging.CRITICAL: ('red', 'white', True),}
 
     date_format = "%H:%M:%S"
 
@@ -77,28 +75,13 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
             fg = "white"
             bold = False
 
-        template = [
-            "[",
-            self.get_color("black", None, True),
-            "%(asctime)s",
-            self.reset,
-            "] ",
-            self.get_color("white", None, True) if self.show_name else "",
-            "%(name)s " if self.show_name else "",
-            "%(padded_who)s",
-            self.reset,
-            " ",
-            self.get_color(bg, fg, bold),
-            "%(message)s",
-            self.reset,
-        ]
+        template = ["[", self.get_color("black", None, True), "%(asctime)s", self.reset, "] ",
+            self.get_color("white", None, True) if self.show_name else "", "%(name)s " if self.show_name else "",
+            "%(padded_who)s", self.reset, " ", self.get_color(bg, fg, bold), "%(message)s", self.reset, ]
 
         format = "".join(template)
 
-        who = [self.get_color("green"),
-               getattr(record, "funcName", ""),
-               self.get_color("black", None, True),
-               ":",
+        who = [self.get_color("green"), getattr(record, "funcName", ""), self.get_color("black", None, True), ":",
                self.get_color("cyan")]
 
         who = "".join(who)
@@ -118,7 +101,6 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         output = formatter.format(record)
         # Clean cache so the color codes of traceback don't leak to other formatters
         record.ext_text = None
-
 
         width = int(Process.terminal_size.get('width'))
         if record.levelno != logging.DEBUG:
@@ -150,11 +132,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         if record.exc_info:
             # Cache the traceback text to avoid converting it multiple times
             # (it's constant anyway)
-            record.exc_text = "".join([
-                self.get_color("red"),
-                formatter.formatException(record.exc_info),
-                self.reset,
-            ])
+            record.exc_text = "".join([self.get_color("red"), formatter.formatException(record.exc_info), self.reset, ])
 
     def format(self, record):
         """

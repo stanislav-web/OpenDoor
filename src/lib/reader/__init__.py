@@ -16,5 +16,6 @@
     Development Team: Stanislav WEB
 """
 
-from .reader import Reader
 from .exceptions import ReaderError
+from .reader import Reader
+

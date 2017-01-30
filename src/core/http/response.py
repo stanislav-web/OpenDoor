@@ -16,8 +16,9 @@
     Development Team: Stanislav WEB
 """
 
-from .providers import ResponseProvider
 from .exceptions import ResponseError
+from .providers import ResponseProvider
+
 
 class Response(ResponseProvider):
     """Response class"""
@@ -63,7 +64,8 @@ class Response(ResponseProvider):
                     url = request_url
 
                 self.__debug.debug_request_uri(status=status, request_uri=request_url, redirect_uri=redirect_uri,
-                    items_size=items_size, total_size=total_size, content_size=self._get_content_size(response))
+                                               items_size=items_size, total_size=total_size,
+                                               content_size=self._get_content_size(response))
 
                 return (status, url)
 

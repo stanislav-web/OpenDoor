@@ -16,6 +16,7 @@
     Development Team: Stanislav WEB
 """
 
+
 class FileSystemError(Exception):
     """FileSystemError class"""
 

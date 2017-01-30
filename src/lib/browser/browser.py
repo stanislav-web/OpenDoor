@@ -21,10 +21,10 @@ from src.core import SocketError
 from src.core import helper
 from src.core import request_http
 from src.core import request_proxy
-from src.core import response
 from src.core import request_ssl
+from src.core import response
 from src.core import socket
-from src.lib.reader import Reader , ReaderError
+from src.lib.reader import Reader, ReaderError
 from src.lib.reporter import Reporter, ReporterError
 from src.lib.tpl import Tpl as tpl
 from .config import Config
@@ -52,31 +52,23 @@ class Browser(Filter):
             self.__result['total'] = {}
             self.__result['items'] = {}
 
-            self.__reader = Reader(
-                browser_config={
-                    'list': self.__config.scan,
-                    'torlist': self.__config.torlist,
-                    'use_random': self.__config.is_random_list,
-                    'is_external_wordlist' : self.__config.is_external_wordlist,
-                    'is_standalone_proxy'  : self.__config.is_standalone_proxy,
-                    'is_external_torlist': self.__config.is_external_torlist})
+            self.__reader = Reader(browser_config={'list': self.__config.scan, 'torlist': self.__config.torlist,
+                'use_random': self.__config.is_random_list, 'is_external_wordlist': self.__config.is_external_wordlist,
+                'is_standalone_proxy': self.__config.is_standalone_proxy,
+                'is_external_torlist': self.__config.is_external_torlist})
 
             self.__reader._count_total_lines()
 
             Filter.__init__(self, self.__config, self.__reader.total_lines)
 
-            self.__pool = ThreadPool(num_threads=self.__config.threads,
-                                     total_items=self.__reader.total_lines,
+            self.__pool = ThreadPool(num_threads=self.__config.threads, total_items=self.__reader.total_lines,
                                      timeout=self.__config.delay)
 
             self.__result = {}
             self.__result['total'] = helper.counter()
             self.__result['items'] = helper.list()
 
-
-            self.__response = response(config=self.__config,
-                                       debug=self.__debug,
-                                       tpl=tpl)
+            self.__response = response(config=self.__config, debug=self.__debug, tpl=tpl)
 
         except (ReaderError) as e:
             raise BrowserError(e)
@@ -115,29 +107,21 @@ class Browser(Filter):
         try:  # beginning scan process
 
             if True is self.__config.is_proxy:
-                self.__client = request_proxy(self.__config,
-                                              proxy_list=self.__reader.get_proxies(),
-                                              agent_list=self.__reader.get_user_agents(),
-                                              debug=self.__debug,
-                                              tpl=tpl)
+                self.__client = request_proxy(self.__config, proxy_list=self.__reader.get_proxies(),
+                                              agent_list=self.__reader.get_user_agents(), debug=self.__debug, tpl=tpl)
             else:
 
                 if True is self.__config.is_ssl:
-                    self.__client = request_ssl(self.__config,
-                                                agent_list=self.__reader.get_user_agents(),
-                                                debug=self.__debug,
-                                                tpl=tpl)
+                    self.__client = request_ssl(self.__config, agent_list=self.__reader.get_user_agents(),
+                                                debug=self.__debug, tpl=tpl)
                 else:
-                    self.__client = request_http(self.__config,
-                                                 agent_list=self.__reader.get_user_agents(),
-                                                 debug=self.__debug,
-                                                 tpl=tpl)
+                    self.__client = request_http(self.__config, agent_list=self.__reader.get_user_agents(),
+                                                 debug=self.__debug, tpl=tpl)
 
             if True is self.__pool.is_started:
-                self.__reader.get_lines(params={'host': self.__config.host, 'port': self.__config.port,
-                                                'scheme': self.__config.scheme},
-                                                loader=getattr(self, '_add_urls'.format())
-                                        )
+                self.__reader.get_lines(
+                    params={'host': self.__config.host, 'port': self.__config.port, 'scheme': self.__config.scheme},
+                    loader=getattr(self, '_add_urls'.format()))
 
         except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as e:
             raise BrowserError(e)
@@ -152,11 +136,8 @@ class Browser(Filter):
         try:
             resp = self.__client.request(url)
 
-            response = self.__response.handle(resp,
-                                   request_url=url,
-                                   items_size=self.__pool.items_size,
-                                   total_size=self.__pool.total_items_size
-                                   )
+            response = self.__response.handle(resp, request_url=url, items_size=self.__pool.items_size,
+                                              total_size=self.__pool.total_items_size)
 
             self.catch_report_data(response[0], response[1])
 
@@ -215,8 +196,8 @@ class Browser(Filter):
         Scan finish action
         :return: None
         """
-        self.__result['total'].update({"items":self.__pool.total_items_size})
-        self.__result['total'].update({"workers":self.__pool.workers_size})
+        self.__result['total'].update({"items": self.__pool.total_items_size})
+        self.__result['total'].update({"workers": self.__pool.workers_size})
 
         if 0 == self.__pool.size:
 

@@ -186,7 +186,7 @@ class Config:
             return True
         elif 0 < len(self._torlist):
             return True
-        elif  0 < len(self._proxy):
+        elif 0 < len(self._proxy):
             return True
 
         return False
@@ -272,7 +272,7 @@ class Config:
         """
         reports = self._reports.split(",")
         if self.DEFAULT_REPORT not in reports:
-            reports.append( self.DEFAULT_REPORT )
+            reports.append(self.DEFAULT_REPORT)
         return reports
 
     @property

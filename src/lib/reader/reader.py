@@ -129,7 +129,7 @@ class Reader():
             else:
                 if True is self.__browser_config.get('is_external_wordlist'):
                     dirlist = self.__browser_config.get('list')
-                    self.__browser_config.update({'list' : 'directories'})
+                    self.__browser_config.update({'list': 'directories'})
                 else:
                     dirlist = self.__config.get('opendoor', self.__browser_config.get('list'))
 
@@ -177,9 +177,7 @@ class Reader():
         if True is line.startswith('/'):
             line = line[1:]
 
-        if False is line.endswith('/') \
-                and False is filesystem.has_extension(line)\
-                and '.' not in line:
+        if False is line.endswith('/') and False is filesystem.has_extension(line) and '.' not in line:
             line = '{0}/'.format(line)
 
         port = params.get('port')
@@ -190,7 +188,7 @@ class Reader():
             port = ':{0}'.format(port)
 
         line = "{scheme}{host}{port}/{uri}".format(scheme=params.get('scheme'), host=params.get('host'), port=port,
-            uri=line, )
+                                                   uri=line, )
 
         return line
 

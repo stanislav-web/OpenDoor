@@ -18,6 +18,7 @@
 
 from src.lib.tpl import Tpl as tpl
 
+
 class Filter:
     """Filter class"""
 

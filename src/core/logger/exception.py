@@ -46,7 +46,10 @@ class Exception():
             func = inspect.currentframe().f_back.f_code
 
             message = "{class_name}: {message} in {file} -> {func}() line {line}".format(class_name=class_name,
-                message=message, file=func.co_filename, func=func.co_name, line=func.co_firstlineno)
+                                                                                         message=message,
+                                                                                         file=func.co_filename,
+                                                                                         func=func.co_name,
+                                                                                         line=func.co_firstlineno)
             logger.error(message)
         except (Error, ValueError) as e:
             raise Error(e)

@@ -58,7 +58,6 @@ class ThreadPool():
 
         return self.__queue.qsize()
 
-
     @property
     def workers_size(self):
         """
@@ -96,7 +95,6 @@ class ThreadPool():
         except (SystemExit, KeyboardInterrupt):
             time.sleep(2)
             self.pause()
-
 
     def join(self):
         """

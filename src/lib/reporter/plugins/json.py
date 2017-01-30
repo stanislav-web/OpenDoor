@@ -18,6 +18,7 @@
 
 from .provider import PluginProvider
 
+
 class JsonReportPlugin(PluginProvider):
     """ JsonReportPlugin class"""
 

@@ -16,10 +16,11 @@
     Development Team: Stanislav WEB
 """
 
-import platform
-import sys
 import os
+import platform
 import signal
+import sys
+
 
 class System():
     """System class"""

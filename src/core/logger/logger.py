@@ -15,24 +15,21 @@
 
     Development Team: Stanislav WEB
 """
-import time
-import sys
 import logging
 import logging.config
+import sys
+import time
 from inspect import currentframe
+
 from rainbow import RainbowLoggingHandler
+
 
 class Logger():
     """ Logger class"""
 
     _record = None
 
-    _levels = {
-        'error' : 40,
-        'warning' : 30,
-        'info' : 20,
-        'debug' : 10
-    }
+    _levels = {'error': 40, 'warning': 30, 'info': 20, 'debug': 10}
 
     @staticmethod
     def inline(msg='', status='info'):
@@ -44,14 +41,9 @@ class Logger():
         """
 
         if None is Logger._record:
-            Logger._record = type('record', (object,), dict(
-                exc_info=False,
-                exc_text=False,
-                name='',
-                levelno = Logger._levels.get(status),
-                funcName = status,
-                lineno=currentframe().f_back.f_lineno
-            ))
+            Logger._record = type('record', (object,),
+                                  dict(exc_info=False, exc_text=False, name='', levelno=Logger._levels.get(status),
+                                      funcName=status, lineno=currentframe().f_back.f_lineno))
 
         Logger._record.created = time.time()
 

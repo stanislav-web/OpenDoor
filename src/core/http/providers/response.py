@@ -17,8 +17,10 @@
 """
 
 import re
-from src.core import helper
+
 from src.core import filesystem
+from src.core import helper
+
 
 class ResponseProvider(object):
     """ ResponseProvider class"""
@@ -33,11 +35,11 @@ class ResponseProvider(object):
     __DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400]
 
     def __init__(self, config):
-       """
-       Response instance
-       :param src.lib.browser.config.Config config: configurations
-       """
-       self._cfg = config
+        """
+        Response instance
+        :param src.lib.browser.config.Config config: configurations
+        """
+        self._cfg = config
 
     @property
     def is_indexof(self):
@@ -108,7 +110,7 @@ class ResponseProvider(object):
         elif response.status in self.__DEFAULT_HTTP_FORBIDDEN_STATUSES:
             return 'forbidden'
         else:
-            raise Exception('Unknown response status : `{0}`'.format(response.status) )
+            raise Exception('Unknown response status : `{0}`'.format(response.status))
 
     def handle(self, response, request_url, items_size, total_size):
         """

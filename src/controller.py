@@ -20,11 +20,11 @@ from src.lib import ArgumentsError
 from src.lib import BrowserError
 from src.lib import PackageError
 from src.lib import ReporterError
-from src.lib import reporter
 from src.lib import args
 from src.lib import browser
 from src.lib import events
 from src.lib import package
+from src.lib import reporter
 from src.lib import tpl
 from . import execution_time
 from .exceptions import SrcError

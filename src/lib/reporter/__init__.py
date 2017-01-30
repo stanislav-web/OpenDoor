@@ -16,5 +16,6 @@
     Development Team: Stanislav WEB
 """
 
-from .reporter import Reporter
 from .exceptions import ReporterError
+from .reporter import Reporter
+

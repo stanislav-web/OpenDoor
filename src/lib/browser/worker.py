@@ -18,10 +18,10 @@
 
 import threading
 import time
-
-from src.core import sys
 from Queue import Empty as QueueEmptyError
 from threading import BoundedSemaphore, Event
+
+from src.core import sys
 from src.lib.tpl import Tpl as tpl
 
 
@@ -113,5 +113,3 @@ class Worker(threading.Thread):
         """
         tpl.error(msg)
         sys.kill()
-
-

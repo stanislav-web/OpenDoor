@@ -17,8 +17,10 @@
 """
 
 import importlib
+
 from src.core import filesystem, FileSystemError
 from .exceptions import ReporterError
+
 
 class Reporter(object):
     """Reporter class"""
@@ -38,7 +40,6 @@ class Reporter(object):
             return filesystem.is_exist(config.get('opendoor', 'reports'), resource)
         except FileSystemError as e:
             raise ReporterError(e.message)
-
 
     @staticmethod
     def load(plugin_name, data):

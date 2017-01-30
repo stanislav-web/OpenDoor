@@ -21,8 +21,8 @@ from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError
 
 from src.core import helper
 from .exceptions import HttpsRequestError
-from .providers import RequestProvider
 from .providers import DebugProvider
+from .providers import RequestProvider
 
 
 class HttpsRequest(RequestProvider, DebugProvider):
@@ -80,18 +80,12 @@ class HttpsRequest(RequestProvider, DebugProvider):
 
         try:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
-                response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path,
-                                           headers=self._headers,
-                                           retries=self.__cfg.retries,
-                                           assert_same_host=True,
-                                           redirect=False)
+                response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path, headers=self._headers,
+                                               retries=self.__cfg.retries, assert_same_host=True, redirect=False)
                 self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             else:
-                response = PoolManager().request(self.__cfg.method, url,
-                                                 headers=self._headers,
-                                                 retries=self.__cfg.retries,
-                                                 assert_same_host=False,
-                                                 redirect=False)
+                response = PoolManager().request(self.__cfg.method, url, headers=self._headers,
+                                                 retries=self.__cfg.retries, assert_same_host=False, redirect=False)
 
             return response
 

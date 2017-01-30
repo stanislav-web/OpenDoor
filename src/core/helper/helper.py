@@ -16,10 +16,11 @@
     Development Team: Stanislav WEB
 """
 
-from distutils.version import StrictVersion
-import urlparse
 import collections
 import json
+import urlparse
+from distutils.version import StrictVersion
+
 
 class Helper:
     """Helper class"""
@@ -42,7 +43,7 @@ class Helper:
 
         container = collections.defaultdict(list)
         container.default_factory
-        return  container
+        return container
 
     @staticmethod
     def parse_url(url):

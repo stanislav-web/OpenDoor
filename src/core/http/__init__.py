@@ -18,7 +18,7 @@
 
 from .http import HttpRequest
 from .proxy import Proxy
-from .socks import Socket
 from .response import Response
+from .socks import Socket
 from .ssl import HttpsRequest
 

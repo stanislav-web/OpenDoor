@@ -30,12 +30,12 @@ class ColorizingStreamHandler(logging.StreamHandler):
     # levels to (background, foreground, bold/intense)
     if os.name == 'nt':
         level_map = {logging.DEBUG: (None, 'blue', True), logging.INFO: (None, 'white', False),
-            logging.WARNING: (None, 'yellow', True), logging.ERROR: (None, 'red', True),
-            logging.CRITICAL: ('red', 'white', True),}
+                     logging.WARNING: (None, 'yellow', True), logging.ERROR: (None, 'red', True),
+                     logging.CRITICAL: ('red', 'white', True),}
     else:
         level_map = {logging.DEBUG: (None, 'blue', False), logging.INFO: (None, 'black', False),
-            logging.WARNING: (None, 'yellow', False), logging.ERROR: (None, 'red', False),
-            logging.CRITICAL: ('red', 'white', True),}
+                     logging.WARNING: (None, 'yellow', False), logging.ERROR: (None, 'red', False),
+                     logging.CRITICAL: ('red', 'white', True),}
     csi = '\x1b['
     reset = '\x1b[0m'
 
@@ -79,14 +79,13 @@ class ColorizingStreamHandler(logging.StreamHandler):
         ansi_esc = re.compile(r'\x1b\[((?:\d+)(?:;(?:\d+))*)m')
 
         nt_color_map = {0: 0x00,  # black
-            1: 0x04,  # red
-            2: 0x02,  # green
-            3: 0x06,  # yellow
-            4: 0x01,  # blue
-            5: 0x05,  # magenta
-            6: 0x03,  # cyan
-            7: 0x07  # white
-        }
+                        1: 0x04,  # red
+                        2: 0x02,  # green
+                        3: 0x06,  # yellow
+                        4: 0x01,  # blue
+                        5: 0x05,  # magenta
+                        6: 0x03,  # cyan
+                        7: 0x07  # white}
 
         def output_colorized(self, message):
             """

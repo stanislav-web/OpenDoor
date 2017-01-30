@@ -19,13 +19,14 @@
 import importlib
 import random
 
-from urllib3 import ProxyManager, PoolManager
+from urllib3 import ProxyManager
 from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown, ReadTimeoutError
 
 from src.core import helper
 from .exceptions import ProxyRequestError
-from .providers import RequestProvider
 from .providers import DebugProvider
+from .providers import RequestProvider
+
 
 class Proxy(RequestProvider, DebugProvider):
     """Proxy class"""
@@ -48,7 +49,7 @@ class Proxy(RequestProvider, DebugProvider):
             self.__debug.debug_proxy_pool()
 
             if False is config.is_standalone_proxy and 0 == len(self.__proxylist):
-               raise TypeError('Proxy list empty or has invalid format')
+                raise TypeError('Proxy list empty or has invalid format')
 
         except (TypeError, ValueError) as e:
             raise ProxyRequestError(e.message)

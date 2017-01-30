@@ -16,6 +16,7 @@
     Development Team: Stanislav WEB
 """
 
+
 class PluginProvider(object):
     """"PluginProvider class"""
 
@@ -50,5 +51,3 @@ class PluginProvider(object):
         """
 
         pass
-
-

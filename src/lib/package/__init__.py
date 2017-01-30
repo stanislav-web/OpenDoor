@@ -16,5 +16,6 @@
     Development Team: Stanislav WEB
 """
 
-from .package import Package
 from .exceptions import PackageError
+from .package import Package
+

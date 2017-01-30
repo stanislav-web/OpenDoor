@@ -20,6 +20,7 @@ import sys
 
 from .config import Config
 
+
 class Color:
     """Color class"""
 

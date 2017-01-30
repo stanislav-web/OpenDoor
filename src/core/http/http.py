@@ -21,8 +21,8 @@ from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError
 
 from src.core import helper
 from .exceptions import HttpRequestError
-from .providers import RequestProvider
 from .providers import DebugProvider
+from .providers import RequestProvider
 
 
 class HttpRequest(RequestProvider, DebugProvider):
@@ -57,7 +57,6 @@ class HttpRequest(RequestProvider, DebugProvider):
 
         try:
 
-
             pool = HTTPConnectionPool(self.__cfg.host, port=self.__cfg.port, maxsize=self.__cfg.threads,
                                       timeout=self.__cfg.timeout, block=True)
 
@@ -82,19 +81,13 @@ class HttpRequest(RequestProvider, DebugProvider):
 
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
 
-                response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path,
-                                           headers=self._headers,
-                                           retries=self.__cfg.retries,
-                                           assert_same_host=True,
-                                           redirect=False)
+                response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path, headers=self._headers,
+                                               retries=self.__cfg.retries, assert_same_host=True, redirect=False)
 
                 self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             else:
-                response = PoolManager().request(self.__cfg.method, url,
-                                               headers=self._headers,
-                                               retries=self.__cfg.retries,
-                                               assert_same_host=False,
-                                               redirect=False)
+                response = PoolManager().request(self.__cfg.method, url, headers=self._headers,
+                                                 retries=self.__cfg.retries, assert_same_host=False, redirect=False)
 
             return response
 

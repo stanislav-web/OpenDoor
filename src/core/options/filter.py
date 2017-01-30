@@ -18,8 +18,10 @@
 
 import re
 from urlparse import urlparse
-from .exceptions import FilterError
+
 from src.core import helper
+from .exceptions import FilterError
+
 
 class Filter:
     """Filter class"""

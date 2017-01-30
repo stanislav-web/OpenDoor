@@ -20,8 +20,8 @@
 class Config:
     """Config class"""
 
-    params = {'cvsupdate': '/usr/bin/git pull origin master',
-        'cvslog': '/usr/bin/git log --oneline -n 1', 'cfg': 'setup.cfg', 'required_version': '2.7', 'examples': """
+    params = {'cvsupdate': '/usr/bin/git pull origin master', 'cvslog': '/usr/bin/git log --oneline -n 1',
+              'cfg': 'setup.cfg', 'required_version': '2.7', 'examples': """
 
             Examples:
                 python ./opendoor.py  --examples

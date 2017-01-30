@@ -17,7 +17,9 @@
 """
 
 from tabulate import tabulate
+
 from .provider import PluginProvider
+
 
 class StdReportPlugin(PluginProvider):
     """ StdReportPlugin class"""
@@ -33,5 +35,3 @@ class StdReportPlugin(PluginProvider):
 
         data = self._data.get('total').items()
         tabulate(data, headers=['Statistics', 'Summary'], tablefmt="orgtbl")
-
-

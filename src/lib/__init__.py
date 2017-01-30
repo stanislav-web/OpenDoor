@@ -16,7 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from .browser import Browser as browser , BrowserError
+from .browser import Browser as browser, BrowserError
 from .events import EventHandler as events
 from .io import Arguments as args, ArgumentsError
 from .package import Package as package, PackageError
