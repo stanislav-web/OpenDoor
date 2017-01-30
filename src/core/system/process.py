@@ -21,8 +21,17 @@ import subprocess
 from .exceptions import CoreSystemError
 
 
-class Term(type):
+class Term(object):
     """ Term class"""
+
+    def __init__(self, classname=None, typeobj=None, params=None):
+        """
+        Init class
+        :return:
+        """
+
+        del classname, typeobj, params
+        self.ts = None
 
     @property
     def terminal_size(cls):
@@ -43,14 +52,6 @@ class Process(object):
     """Process class"""
 
     __metaclass__ = Term
-
-    def __init__(self):
-        """
-        Init class
-        :return:
-        """
-
-        self.ts = None
 
     @staticmethod
     def system(command):
