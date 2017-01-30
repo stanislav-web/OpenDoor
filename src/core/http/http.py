@@ -94,11 +94,10 @@ class HttpRequest(RequestProvider, DebugProvider):
         except MaxRetryError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
-            pass
+
         except HostChangedError , e:
             self.__tpl.warning(key='host_changed_error', details=e)
-            pass
+
         except ReadTimeoutError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
-            pass

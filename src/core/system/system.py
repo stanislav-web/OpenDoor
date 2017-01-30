@@ -52,7 +52,6 @@ class System():
             os.kill(os.getpid(), signal.SIGTERM)
 
         signal.signal(signal.SIGTSTP, kill_process)
-        pass
 
     @staticmethod
     def exit(msg):
@@ -95,5 +94,4 @@ class System():
         """
 
         version = platform.python_version().split(".")
-
         return "{0}.{1}".format(version[0], version[1])

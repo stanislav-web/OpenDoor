@@ -145,4 +145,3 @@ class ThreadPool():
             for worker in self.__workers:
                 worker.resume()
             self.is_started = True
-        pass

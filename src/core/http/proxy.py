@@ -44,6 +44,7 @@ class Proxy(RequestProvider, DebugProvider):
             self.__proxylist = kwargs.get('proxy_list')
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
 
+            self.__server = None
             self.__pm = None
             self.__cfg = config
             self.__debug = debug
@@ -103,11 +104,11 @@ class Proxy(RequestProvider, DebugProvider):
         except MaxRetryError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='proxy_max_retry_error', url=helper.parse_url(url).path, proxy=self.__server)
-            pass
+
         except ReadTimeoutError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
-            pass
+
 
     def __get_random_proxy(self):
         """

@@ -57,7 +57,7 @@ class Browser(Filter):
                 'is_standalone_proxy': self.__config.is_standalone_proxy,
                 'is_external_torlist': self.__config.is_external_torlist})
 
-            self.__reader._count_total_lines()
+            self.__reader.count_total_lines()
 
             Filter.__init__(self, self.__config, self.__reader.total_lines)
 
@@ -100,7 +100,7 @@ class Browser(Filter):
         self.__debug.debug_list(total_lines=self.__pool.total_items_size)
 
         if True is self.__config.is_random_list:
-            self.__reader._randomize_list(self.__config.scan)
+            self.__reader.randomize_list(self.__config.scan)
 
         tpl.info(key='scanning', host=self.__config.host)
 
@@ -174,7 +174,6 @@ class Browser(Filter):
                 else:
                     self.catch_report_data('ignored', url)
                     tpl.warning(key='ignored_path', path=helper.parse_url(url).path)
-                    pass
             self.__pool.join()
 
         except (SystemExit, KeyboardInterrupt):

@@ -28,7 +28,6 @@ class PluginProvider(object):
 
         self._data = {}
         self.__set_data(data)
-        pass
 
     def __set_data(self, data):
         """
@@ -41,8 +40,6 @@ class PluginProvider(object):
         if False is isinstance(data, dict):
             raise TypeError("Report data has a wrong type")
         self._data = data
-
-        pass
 
     def process(self):
         """

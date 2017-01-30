@@ -192,7 +192,7 @@ class Reader():
 
         return line
 
-    def _randomize_list(self, target_list):
+    def randomize_list(self, target_list):
         """
         Randomize scan list
         :param str target_list: target list
@@ -208,7 +208,7 @@ class Reader():
         except (CoreSystemError, FileSystemError) , e:
             raise ReaderError(e)
 
-    def _count_total_lines(self):
+    def count_total_lines(self):
         """
         Count total lines inside wordlist
         :param string listname:

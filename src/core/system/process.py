@@ -23,6 +23,8 @@ from .exceptions import CoreSystemError
 
 
 class Term(type):
+    """ Term class """
+
     @property
     def terminal_size(cls):
         """

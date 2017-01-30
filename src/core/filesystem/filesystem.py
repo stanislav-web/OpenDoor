@@ -59,7 +59,6 @@ class FileSystem:
             except OSError , e:
                 if e.errno != errno.EEXIST:
                     raise FileSystemError("Cannot create directory `{0}`. Reason: {1}".format(dir, e.message))
-        pass
 
     @staticmethod
     def getabsname(filename):

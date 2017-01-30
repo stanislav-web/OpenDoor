@@ -72,4 +72,4 @@ class Response(ResponseProvider):
 
         else:
             raise ResponseError('Unable to get response from {url}'.format(url=request_url))
-        pass
+

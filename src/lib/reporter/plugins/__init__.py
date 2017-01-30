@@ -16,7 +16,5 @@
     Development Team: Stanislav WEB
 """
 
-from .csv import CsvReportPlugin as csv
-from .json import JsonReportPlugin as json
 from .std import StdReportPlugin as std
 

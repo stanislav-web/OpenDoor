@@ -40,7 +40,6 @@ class Debug(DebugProvider):
             tpl.debug(key='debug', level=self.__cfg.debug, method=self.__cfg.method)
             if True is self.__cfg.is_indexof:
                 tpl.debug(key='indexof_act', method=self.__cfg.method)
-        pass
 
     @property
     def level(self):
