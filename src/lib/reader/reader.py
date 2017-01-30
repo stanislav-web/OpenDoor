@@ -166,8 +166,7 @@ class Reader(object):
 
         return line
 
-    @classmethod
-    def _directories__line(cls, line, params):
+    def _directories__line(self, line, params):
         """
         Read lines from directories file
         :param str line: single line
@@ -178,6 +177,9 @@ class Reader(object):
         line = line.strip("\n")
         if True is line.startswith('/'):
             line = line[1:]
+
+        if 0 < len(self.__browser_config.get('prefix')):
+            line = self.__browser_config.get('prefix') + line
 
         if False is line.endswith('/') and False is filesystem.has_extension(line) and '.' not in line:
             line = '{0}/'.format(line)
@@ -213,7 +215,6 @@ class Reader(object):
     def count_total_lines(self):
         """
         Count total lines inside wordlist
-        :param string listname:
         :raise ReaderError
         :return: int
         """

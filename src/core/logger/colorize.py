@@ -132,27 +132,6 @@ class ColorizingStreamHandler(logging.StreamHandler):
                                 pass  # error condition ignored
                         ctypes.windll.kernel32.SetConsoleTextAttribute(h, color)
 
-    def colorize(self, message, record):
-        """
-        Output colorized message
-        :param str message: text message
-        :param object record: message handler
-        :return: str
-        """
-
-        if record.levelno in self.level_map:
-            bg, fg, bold = self.level_map[record.levelno]
-            params = []
-            if bg in self.color_map:
-                params.append(str(self.color_map[bg] + 40))
-            if fg in self.color_map:
-                params.append(str(self.color_map[fg] + 30))
-            if bold:
-                params.append('1')
-            if params:
-                message = ''.join((self.csi, ';'.join(params), 'm', message, self.reset))
-        return message
-
     def format(self, record):
         """
         Format text message

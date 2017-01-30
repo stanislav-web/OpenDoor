@@ -70,18 +70,30 @@ class Tpl(object):
             raise TplError(e.message)
 
     @staticmethod
-    def prompt(key='', status='info'):
+    def prompt(key='', msg=None, status='info', **kwargs):
         """
         Prompt message
-        :param str msg:
-        :param str key:
-        :param str status:
+        :param str key: tpl message key
+        :param str msg: target message
+        :param str status: message status
+        :param dict kwargs: additional key arguments
+        :raise TplError
         :return:str
         """
 
-        msg = Tpl.line_log(key=key, status=status, write=False)
-        result = raw_input(msg)
-        return result
+        try:
+
+            if 0 < len(key):
+                msg = Tpl.line_log(key=key, status=status, write=False)
+            else:
+                msg = Tpl.line_log(msg, status=status, write=False, **kwargs)
+            result = raw_input(msg)
+
+            return result
+
+        except (AttributeError, TplError) as e:
+            raise TplError(e.message)
+
 
     @staticmethod
     def line(msg='', key='', color='white', **args):

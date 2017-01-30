@@ -22,7 +22,7 @@ import urlparse
 from distutils.version import StrictVersion
 
 
-class Helper:
+class Helper(object):
     """Helper class"""
 
     @staticmethod

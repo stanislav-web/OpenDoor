@@ -2,7 +2,10 @@ OWASP Directory Access Scanner <sup>(redesigned)</sup>
 ==================================
 ![Alt text](http://dl2.joxi.net/drive/2016/08/04/0001/0378/90490/90/4b4470c268.jpg "Hackware")
 
-[![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor) [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)  [![Codacy Badge](https://api.codacy.com/project/badge/Grade/edc54f96aa9748979f59d414daa978c6)](https://www.codacy.com/app/stanisov/OpenDoor?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=stanislav-web/OpenDoor&amp;utm_campaign=Badge_Grade) [![Say Thanks!](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)
+[![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor) [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor) [![Code Health](https://landscape.io/github/stanislav-web/OpenDoor/redesign/landscape.svg?style=flat)](https://landscape.io/github/stanislav-web/OpenDoor/redesign)
+ [![Codacy Badge](https://api.codacy.com/project/badge/Grade/edc54f96aa9748979f59d414daa978c6)](https://www.codacy.com/app/stanisov/OpenDoor?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=stanislav-web/OpenDoor&amp;utm_campaign=Badge_Grade) [![Say Thanks!](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)
+
+
 
 This application scans the site directories and find all possible ways to login, empty directories and entry points.
 Scans conducted in the dictionary that is included in this application.
@@ -36,17 +39,18 @@ sudo apt-get install python-socksipy
 
 #### Implements
 - [x] multithreading control
-- [x] debug levels (1-3)
 - [x] scan's reports
 - [x] directories scanner
 - [x] subdomains scanner
 - [x] HTTP(S) (PORT) support
-- [x] HTTP/HTTPS/SOCKS proxies
+- [x] HTTP(S)/SOCKS proxies
 - [x] dynamic request header
 - [x] detect redirects
 - [x] detect index of/ Apache
 - [x] detect large files
+- [x] custom wordlst's prefixes
 - [x] custom wordlists, proxies, ignore lists
+- [x] debug levels (1-3)
 - [x] randomization techniques
     * random user-agent per request
     * random proxy per request
@@ -63,6 +67,7 @@ sudo apt-get install python-socksipy
     - added external wordlists support
     - added external proxylist support
     - added wordlist shuffling
+    - wordlst's prefixes
     - added multithreading control
     - dynamic and smart requests (cookies + accept headers)
     - apache index of/ and files detection
@@ -77,8 +82,8 @@ usage: opendoor.py [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
                    [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
                    [--accept-cookies] [--debug DEBUG] [--tor]
                    [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
-                   [--reports REPORTS] [--random-agent] [--random-list] [-i]
-                   [--update] [--version] [--examples]
+                   [--reports REPORTS] [--random-agent] [--random-list]
+                   [--prefix PREFIX] [-i] [--update] [--version] [--examples]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -121,9 +126,16 @@ Wordlist tools:
   -w WORDLIST, --wordlist WORDLIST
                         Path to external wordlist
   --reports REPORTS     Scan reports (json,std,plain)
-  --random-list         Randomize scan list
+  --random-list         Shuffle scan list
+  --prefix PREFIX       Append path prefix to scan host
 
 ```
+
+### Contributors
+If  you like to contribute to the development of the project in that case pull requests are open for you.
+Also, you can suggest an ideas and create a task in my track list
+
+[![Issues](https://badge.waffle.io/stanislav-web/OpenDoor.png?label=Ready)](https://waffle.io/stanislav-web/OpenDoor)
 
 ### Documentation
 - [Opendoor OWASP Wiki Pages ](https://github.com/stanislav-web/OpenDoor/wiki)

@@ -17,4 +17,6 @@
 """
 
 from .std import StdReportPlugin as std
+from .txt import TextReportPlugin as txt
+
 

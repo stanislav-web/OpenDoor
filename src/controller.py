@@ -20,6 +20,7 @@ from src.lib import ArgumentsError
 from src.lib import BrowserError
 from src.lib import PackageError
 from src.lib import ReporterError
+from src.lib import TplError
 from src.lib import args
 from src.lib import browser
 from src.lib import events
@@ -45,7 +46,7 @@ class Controller(object):
 
             interpreter = package.check_interpreter()
 
-            if True != interpreter:
+            if interpreter is not True:
                 raise SrcError(tpl.error(key='unsupported', actual=interpreter.get('actual'),
                                          expected=interpreter.get('expected')))
 
@@ -135,26 +136,23 @@ class Controller(object):
         :return: None
         """
 
-        brows = browser(params)
+        try:
+            brows = browser(params)
 
-        if False is reporter.is_reported(params.get('host')):
+            if True is reporter.is_reported(params.get('host')):
+                try:
+                    tpl.prompt(key='logged')
+                except KeyboardInterrupt:
+                    tpl.cancel(key='abort')
 
             if reporter.default is params.get('reports'):
                 tpl.info(key='use_reports')
 
-            try:
+            brows.ping()
+            brows.scan()
+            brows.done()
 
-                brows.ping()
-                brows.scan()
-                brows.done()
-
-            except (AttributeError, BrowserError, ReporterError) as e:
-                raise SrcError(e.message)
-            except (KeyboardInterrupt, SystemExit):
-                tpl.cancel(key='abort')
-
-        else:
-            try:
-                raw_input(tpl.line(key='logged', color='yellow', host=params.get('host')))
-            except KeyboardInterrupt:
-                tpl.cancel(key='abort')
+        except (AttributeError, BrowserError, ReporterError, TplError) as e:
+            raise SrcError(e.message)
+        except (KeyboardInterrupt, SystemExit):
+            tpl.cancel(key='abort')

@@ -55,7 +55,8 @@ class Browser(Filter):
             self.__reader = Reader(browser_config={'list': self.__config.scan, 'torlist': self.__config.torlist,
                 'use_random': self.__config.is_random_list, 'is_external_wordlist': self.__config.is_external_wordlist,
                 'is_standalone_proxy': self.__config.is_standalone_proxy,
-                'is_external_torlist': self.__config.is_external_torlist})
+                'is_external_torlist': self.__config.is_external_torlist,
+                'prefix': self.__config.prefix})
 
             self.__reader.count_total_lines()
 
@@ -198,7 +199,7 @@ class Browser(Filter):
 
             try:
                 for rtype in self.__config.reports:
-                    report = Reporter.load(rtype, self.__result)
+                    report = Reporter.load(rtype, self.__config.host, self.__result)
                     report.process()
             except ReporterError as e:
                 raise BrowserError(e.message)

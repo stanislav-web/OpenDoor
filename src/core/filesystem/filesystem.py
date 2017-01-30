@@ -27,6 +27,8 @@ from .exceptions import FileSystemError
 class FileSystem(object):
     """FileSystem class"""
 
+    sep = os.sep
+
     @staticmethod
     def is_exist(directory, filename):
         """
@@ -52,6 +54,7 @@ class FileSystem(object):
         :raise: FileSystemError
         :return: None
         """
+
         if not os.path.exists(directory):
             try:
                 directory = os.path.join(os.getcwd(), directory)
@@ -62,7 +65,6 @@ class FileSystem(object):
 
     @staticmethod
     def getabsname(filename):
-
         """
         Get absolute file path
         :param str filename: directory
@@ -82,6 +84,25 @@ class FileSystem(object):
 
         ext = os.path.splitext(line)[-1]
         return True if 0 < len(ext) else False
+
+    @staticmethod
+    def clear(directory):
+        """
+        Clear directory
+        :param str filename: directory
+        :raise: FileSystemError
+        :return: Bool
+        """
+
+        if True is os.path.exists(directory):
+            try:
+                for root, dirs, files in os.walk(directory):
+                    for name in files:
+                        os.remove(os.path.join(root, name))
+            except IOError as e:
+                raise FileSystemError(e)
+        else:
+            raise FileSystemError("The directory {0} you want to clear is not exist".format(directory))
 
     @staticmethod
     def makefile(filename):
@@ -171,6 +192,25 @@ class FileSystem(object):
             return config
         except ConfigParser.ParsingError as e:
             raise FileSystemError(e.message)
+
+    @staticmethod
+    def writelist(filename, data):
+        """
+        Write list to file
+        :param str filename: write filename
+        :param list data: list data
+        :raise FileSystemError
+        :return: None
+        """
+
+        filepath = os.path.join(os.getcwd(), filename)
+        if not os.path.isfile(filepath):
+            raise FileSystemError("{0} is not a file ".format(file))
+        if not os.access(filepath, os.W_OK):
+            raise FileSystemError("Targeting file {0} is not writable. Please, check access".format(filepath))
+
+        with open(filepath, "w") as f_handler:
+            f_handler.write("\n".join(data))
 
     @staticmethod
     def readraw(data):

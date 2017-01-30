@@ -10,6 +10,7 @@ v3.0.1-alfa (03.02.2017)
     - added external wordlists support
     - added external proxylist support
     - added wordlist shuffling
+    - wordlst's prefixes
     - added multithreading control
     - dynamic and smart requests (cookies + accept headers)
     - apache index of/ and files detection

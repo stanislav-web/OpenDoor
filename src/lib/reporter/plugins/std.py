@@ -25,8 +25,14 @@ from src.core import sys
 class StdReportPlugin(PluginProvider):
     """ StdReportPlugin class"""
 
-    def __init__(self, data):
-        PluginProvider.__init__(self, data)
+    def __init__(self, taget, data):
+        """
+        PluginProvider constructor
+        :param str taget: target host
+        :param dict data: result set
+        """
+
+        PluginProvider.__init__(self, taget, data)
 
     def process(self):
         """
@@ -35,4 +41,5 @@ class StdReportPlugin(PluginProvider):
         """
 
         data = self._data.get('total').items()
-        sys.writeln(tabulate(data, headers=['Statistics', 'Summary'], tablefmt="psql"))
+        title = 'Statistics ({0})'.format(self._target)
+        sys.writeln(tabulate(data, headers=[title, 'Summary'], tablefmt="psql"))

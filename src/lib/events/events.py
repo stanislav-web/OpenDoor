@@ -19,7 +19,7 @@
 from src.core import sys
 
 
-class EventHandler:
+class EventHandler(object):
     """EventHandler class"""
 
     @staticmethod

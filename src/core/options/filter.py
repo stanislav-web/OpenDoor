@@ -23,7 +23,7 @@ from src.core import helper
 from .exceptions import FilterError
 
 
-class Filter:
+class Filter(object):
     """Filter class"""
 
     URL_REGEX = "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(?:[-A-Za-z0-9]+\.)+([A-Za-z]|(?u)\w){2,6}$"
@@ -38,7 +38,7 @@ class Filter:
 
         filtered = {}
 
-        for key, value in args.iteritems():
+        for key, value in args.items():
             if 'scan' == key:
                 filtered['scan'] = Filter.scan(value)
             elif 'host' == key:

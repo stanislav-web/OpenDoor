@@ -68,7 +68,9 @@ class Options(object):
                  {"group": "request", "args": None, "argl": "--random-agent", "default": False, "action": "store_true",
                   "help": "Randomize user-agent per request", "type": bool},
                  {"group": "wordlist", "args": None, "argl": "--random-list", "default": False, "action": "store_true",
-                  "help": "Randomize scan list", "type": bool},
+                  "help": "Shuffle scan list", "type": bool},
+                 {"group": "wordlist", "args": None, "argl": "--prefix", "default": None,
+                  "action": "store", "help": "Append path prefix to scan host", "type": str},
                  {"group": "sniff", "args": "-i", "argl": "--indexof", "default": False, "action": "store_true",
                   "help": "Detect Apache Index of/", "type": bool},
                  {"group": "app", "args": None, "argl": "--update", "default": False, "action": "store_true",
@@ -87,7 +89,7 @@ class Options(object):
             required_named.add_argument('--host', help="Target host (ip); --host http://example.com")
             arguments_len = len(__arguments)
 
-            for group, description in sorted(__groups.iteritems()):
+            for group, description in sorted(__groups.items()):
                 groupped[group] = parser.add_argument_group(description)
 
             for i in range(arguments_len):
@@ -132,13 +134,13 @@ class Options(object):
                 raise OptionsError("argument --host is required")
 
             if True is arguments.version or True is arguments.update or True is arguments.examples:
-                for arg, value in vars(arguments).iteritems():
+                for arg, value in vars(arguments).items():
                     if arg in self.__standalone and True is value:
                         args[arg] = value
                         break
             else:
 
-                for arg, value in vars(arguments).iteritems():
+                for arg, value in vars(arguments).items():
 
                     if value:
                         args[arg] = value

@@ -24,7 +24,7 @@ from src.lib.tpl import Tpl as tpl
 from .worker import Worker
 
 
-class ThreadPool():
+class ThreadPool(object):
     """ThreadPool class"""
 
     def __init__(self, num_threads, total_items, timeout):

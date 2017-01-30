@@ -22,7 +22,7 @@ import signal
 import sys
 
 
-class System():
+class System(object):
     """System class"""
 
     @staticmethod

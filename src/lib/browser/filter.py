@@ -19,7 +19,7 @@
 from src.lib.tpl import Tpl as tpl
 
 
-class Filter:
+class Filter(object):
     """Filter class"""
 
     def __init__(self, Config, total_lines):

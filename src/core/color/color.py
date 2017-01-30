@@ -19,7 +19,7 @@
 import sys
 
 
-class Color:
+class Color(object):
     """Color class"""
 
     default = 'white'

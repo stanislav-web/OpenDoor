@@ -22,4 +22,4 @@ from .io import Arguments as args, ArgumentsError
 from .package import Package as package, PackageError
 from .reader import Reader as reader, ReaderError
 from .reporter import Reporter as reporter, ReporterError
-from .tpl import Tpl as tpl
+from .tpl import Tpl as tpl, TplError

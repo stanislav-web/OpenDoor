@@ -17,7 +17,7 @@
 """
 
 
-class Config:
+class Config(object):
     """Config class"""
 
     setup = 'setup.cfg'

@@ -42,10 +42,11 @@ class Reporter(object):
             raise ReporterError(e.message)
 
     @staticmethod
-    def load(plugin_name, data):
+    def load(plugin_name, target, data):
         """
         Load report plugin
         :param str plugin_name: plugin name
+        :param str target: target host
         :param dict data: report data
         :raise ReporterError
         :return: src.lib.reporter.plugins.provider.provider.PluginProvider
@@ -56,8 +57,8 @@ class Reporter(object):
 
             try:
                 report = getattr(module, plugin_name)
-                return report(data)
-            except (TypeError, AttributeError) as e:
+                return report(target, data)
+            except (TypeError, AttributeError, Exception) as e:
                 raise ReporterError(e.message)
         except ImportError:
             raise ReporterError('Unable to get reporter`{plugin}`'.format(plugin=plugin_name))

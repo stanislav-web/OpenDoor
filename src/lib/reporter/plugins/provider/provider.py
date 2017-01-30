@@ -20,12 +20,14 @@
 class PluginProvider(object):
     """"PluginProvider class"""
 
-    def __init__(self, data):
+    def __init__(self, taget, data):
         """
         PluginProvider constructor
-        :return: None
+        :param str taget: target host
+        :param dict data: result set
         """
 
+        self._target = str(taget)
         self._data = {}
         self.__set_data(data)
 

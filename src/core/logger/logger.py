@@ -24,7 +24,7 @@ from inspect import currentframe
 from rainbow import RainbowLoggingHandler
 
 
-class Logger():
+class Logger(object):
     """ Logger class"""
 
     _record = None

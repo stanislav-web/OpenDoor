@@ -17,7 +17,7 @@
 """
 
 
-class Config:
+class Config(object):
     """Config class"""
 
     DEFAULT_SOCKET_TIMEOUT = 10
@@ -44,6 +44,7 @@ class Config:
         self._accept_cookies = False if params.get('accept_cookies') is None else True
         self._port = params.get('port')
         self._wordlist = params.get('wordlist')
+        self._prefix = "" if params.get('prefix') is None else params.get('prefix')
         self._reports = params.get('reports')
         self._is_indexof = params.get('indexof')
         self._retries = False if params.get('retries') is None else params.get('retries')
@@ -93,6 +94,15 @@ class Config:
         """
 
         return self._ssl
+
+    @property
+    def prefix(self):
+        """
+        Paths prefix
+        :return: str
+        """
+
+        return self._prefix.lstrip("/")
 
     @property
     def host(self):

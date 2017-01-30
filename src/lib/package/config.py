@@ -17,7 +17,7 @@
 """
 
 
-class Config:
+class Config(object):
     """Config class"""
 
     params = {'cvsupdate': '/usr/bin/git pull origin master', 'cvslog': '/usr/bin/git log --oneline -n 1',

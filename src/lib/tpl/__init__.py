@@ -17,3 +17,4 @@
 """
 
 from .tpl import Tpl
+from .exceptions import TplError

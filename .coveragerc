@@ -2,7 +2,7 @@
 [run]
 source = /src
 concurrency = multiprocessing
-data_file= reports/.coverage
+data_file= tests/reports/.coverage
 
 [paths]
 source = /src

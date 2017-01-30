@@ -96,7 +96,7 @@ class ResponseProvider(object):
         elif response.status in self.DEFAULT_HTTP_FAILED_STATUSES:
             return 'failed'
         elif response.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
-            if False != response.get_redirect_location():
+            if  response.get_redirect_location() is not False:
                 urlfrag = helper.parse_url(request_url)
                 redirect_url = response.get_redirect_location().rstrip('/')
 
