@@ -34,18 +34,18 @@ class Term(object):
         self.ts = None
 
     @property
-    def terminal_size(cls):
+    def terminal_size(self):
         """
         Get terminal window size
         :return: dict
         """
 
-        if getattr(cls, 'ts', None) is None:
+        if getattr(self, 'ts', None) is None:
 
             (height, width) = subprocess.check_output(['stty', 'size']).split()
             ts = {'height': height, 'width': width}
-            cls.ts = ts
-        return cls.ts
+            self.ts = ts
+        return self.ts
 
 
 class Process(object):
