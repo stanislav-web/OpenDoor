@@ -24,9 +24,9 @@ from setuptools import setup, find_packages
 from src import Controller
 
 try:
-    long_description = pypandoc.convert('README.md', 'rst')
+    LONG_DESCRIPTION = pypandoc.convert('README.md', 'rst')
 except(IOError, ImportError):
-    long_description = open('README.md').read()
+    LONG_DESCRIPTION = open('README.md').read()
 
 setup(name='opendoor',
 
@@ -36,7 +36,7 @@ setup(name='opendoor',
 
       version=Controller.local_version(),
 
-      description='OWASP Directory Access scanner', long_description=long_description,
+      description='OWASP Directory Access scanner', long_description=LONG_DESCRIPTION,
 
       # The project's main homepage.
       url='https://github.com/stanislav-web/OpenDoor',
@@ -75,15 +75,26 @@ setup(name='opendoor',
           #   5 - Production/Stable
           'Development Status :: 4 - Beta',
 
+          # Language
+          'Natural Language :: English',
+
           # Indicate who your project is intended for
           'Intended Audience :: Developers',
+
+          # OS which support this package
+          'Operating System :: MacOS',
+          'Operating System :: Unix',
 
           # Pick your license as you wish (should match "license" above)
           'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
 
           # Specify the Python versions you support here. In particular, ensure
           # that you indicate whether you support Python 2, Python 3 or both.
-          'Programming Language :: Python', 'Programming Language :: Python :: 2.7',
+
+          'Programming Language :: Python',
+          'Programming Language :: Python :: 2',
+          'Programming Language :: Python :: 2.6',
+          'Programming Language :: Python :: 2.7',
 
           # Specify the additional categories
           'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking'])

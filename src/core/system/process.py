@@ -35,7 +35,6 @@ class Term(type):
 
             (height, width) = subprocess.check_output(['stty', 'size']).split()
             ts = {'height': height, 'width': width}
-            print ts
             cls.ts = ts
         return cls.ts
 
