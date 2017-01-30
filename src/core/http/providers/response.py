@@ -39,7 +39,6 @@ class ResponseProvider(object):
         Response instance
         :param src.lib.browser.config.Config config: configurations
         """
-        
         self._cfg = config
 
     @property
