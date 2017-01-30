@@ -98,7 +98,7 @@ class FileSystem(object):
             try:
                 for root, dirs, files in os.walk(directory):
                     for name in files:
-                        os.remove(os.path.join(root, name))
+                        os.remove(os.path.join(root, dirs, name))
             except IOError as e:
                 raise FileSystemError(e)
         else:
@@ -211,6 +211,7 @@ class FileSystem(object):
 
         with open(filepath, "w") as f_handler:
             f_handler.write("\n".join(data))
+
 
     @staticmethod
     def readraw(data):

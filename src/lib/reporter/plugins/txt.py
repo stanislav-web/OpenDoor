@@ -38,8 +38,8 @@ class TextReportPlugin(PluginProvider):
 
         try:
             config = filesystem.readcfg('setup.cfg')
-            dir = config.get('opendoor', 'reports')
-            self.__target_dir = "".join((dir, self._target))
+            directory = config.get('opendoor', 'reports')
+            self.__target_dir = "".join((directory, self._target))
             filesystem.makedir(self.__target_dir)
         except FileSystemError as e:
             raise Exception(e)

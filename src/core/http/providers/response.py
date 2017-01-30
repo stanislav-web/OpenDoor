@@ -39,6 +39,7 @@ class ResponseProvider(object):
         Response instance
         :param src.lib.browser.config.Config config: configurations
         """
+        
         self._cfg = config
 
     @property
@@ -66,9 +67,9 @@ class ResponseProvider(object):
         redirect_url = None
         location = response.get_redirect_location()
 
-        if False != location:
+        if location is not False:
             matches = re.search("(?P<url>https?://[^\s]+)", location)
-            if None != matches.group("url"):
+            if matches.group("url") is not None:
                 redirect_url = matches.group("url")
             else:
                 urlp = helper.parse_url(url)
