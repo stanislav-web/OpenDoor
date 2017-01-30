@@ -30,7 +30,7 @@ from . import execution_time
 from .exceptions import SrcError
 
 
-class Controller:
+class Controller(object):
     """Controller class"""
 
     def __init__(self):

@@ -24,7 +24,7 @@ import os
 from .exceptions import FileSystemError
 
 
-class FileSystem:
+class FileSystem(object):
     """FileSystem class"""
 
     @staticmethod

@@ -26,7 +26,7 @@ from .config import Config
 from .exceptions import PackageError
 
 
-class Package:
+class Package(object):
     """Package class"""
 
     remote_version = None

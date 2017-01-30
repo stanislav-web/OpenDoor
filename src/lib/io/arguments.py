@@ -20,7 +20,7 @@ from src.core import options, OptionsError
 from .exceptions import ArgumentsError
 
 
-class Arguments:
+class Arguments(object):
     """Arguments class"""
 
     @staticmethod

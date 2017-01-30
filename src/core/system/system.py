@@ -49,6 +49,9 @@ class System():
             :return: None
             """
 
+            del signum
+            del frame
+
             os.kill(os.getpid(), signal.SIGTERM)
 
         signal.signal(signal.SIGTSTP, kill_process)

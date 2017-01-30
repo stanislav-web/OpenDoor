@@ -38,11 +38,10 @@ class Helper:
     def list():
         """
         Provide dictionary collection
-        :return: collections.defaultdict
+        :return: dict
         """
 
         container = collections.defaultdict(list)
-        container.default_factory
         return container
 
     @staticmethod

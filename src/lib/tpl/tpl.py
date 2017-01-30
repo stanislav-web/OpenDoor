@@ -23,7 +23,7 @@ from .config import Config
 from .exceptions import TplError
 
 
-class Tpl():
+class Tpl(object):
     """Tpl class"""
 
     @staticmethod
@@ -103,7 +103,7 @@ class Tpl():
             raise TplError(e.message)
 
     @staticmethod
-    def message(msg, args={}, color='white'):
+    def message(msg, args=None, color='white'):
         """
         Simple colored message
         :param str msg: text message
@@ -111,6 +111,9 @@ class Tpl():
         :param str color: color
         :return: None
         """
+
+        if None is args:
+            args = {}
 
         sys.writeln(colour.colored(msg.format(**args), color=color))
 

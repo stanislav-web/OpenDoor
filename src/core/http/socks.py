@@ -21,7 +21,7 @@ import socket
 from .exceptions import SocketError
 
 
-class Socket:
+class Socket(object):
     """Socket class"""
 
     @staticmethod

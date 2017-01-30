@@ -22,7 +22,7 @@ from .exceptions import ArgumentParserError, ThrowingArgumentParser, OptionsErro
 from .filter import Filter
 
 
-class Options:
+class Options(object):
     """Options class"""
 
     def __init__(self):

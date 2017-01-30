@@ -23,7 +23,7 @@ from .config import Config
 from .exceptions import ReaderError
 
 
-class Reader():
+class Reader(object):
     """Reader class"""
 
     def __init__(self, browser_config):

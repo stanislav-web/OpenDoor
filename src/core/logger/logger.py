@@ -48,6 +48,15 @@ class Logger():
         Logger._record.created = time.time()
 
         def getMessage(__class__):
+            """
+            Emulate message
+
+            :param __class__:
+            :return: str
+            """
+
+            del __class__
+
             return msg
 
         setattr(Logger._record, 'getMessage', classmethod(getMessage))

@@ -174,5 +174,3 @@ class Debug(DebugProvider):
                 tpl.info(key='get_item_lvl0', clear=self.__clear, percent=percentage, item=request_uri)
             else:
                 tpl.line_log(key='get_item_lvl0', percent=percentage, item=request_uri)
-
-        pass

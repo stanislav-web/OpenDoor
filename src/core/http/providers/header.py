@@ -51,7 +51,7 @@ class HeaderProvider(AcceptHeaderProvider):
             user_agent = self.__cfg.user_agent
         return user_agent
 
-    def _add_header(self, key, value):
+    def add_header(self, key, value):
         """
         Add custom header
 
@@ -70,12 +70,12 @@ class HeaderProvider(AcceptHeaderProvider):
         :return: dict headers
         """
 
-        self._add_header('Accept', self._accept)\
-            ._add_header('Accept-Encoding', self._accept_encoding)\
-            ._add_header('Accept-Language', self._accept_language)\
-            ._add_header('Referer', ''.join([self.__cfg.scheme, self.__cfg.host]))\
-            ._add_header('User-Agent', self.__user_agent)\
-            ._add_header('Cache-Conrol', 'no-cache')\
-            ._add_header('Pragma', 'no-cache')
+        self.add_header('Accept', self._accept)\
+            .add_header('Accept-Encoding', self._accept_encoding)\
+            .add_header('Accept-Language', self._accept_language)\
+            .add_header('Referer', ''.join([self.__cfg.scheme, self.__cfg.host]))\
+            .add_header('User-Agent', self.__user_agent)\
+            .add_header('Cache-Conrol', 'no-cache')\
+            .add_header('Pragma', 'no-cache')
 
         return self.__headers
