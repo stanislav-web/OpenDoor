@@ -92,10 +92,7 @@ class Helper:
         :return: bool
         """
 
-        if StrictVersion(arg1) < StrictVersion(arg2):
-            return True
-        else:
-            return False
+        return StrictVersion(arg1) < StrictVersion(arg2)
 
     @staticmethod
     def is_more(arg1, arg2):
@@ -106,7 +103,5 @@ class Helper:
         :return: bool
         """
 
-        if StrictVersion(arg1) > StrictVersion(arg2):
-            return True
-        else:
-            return False
+        return StrictVersion(arg1) > StrictVersion(arg2)
+

@@ -152,11 +152,7 @@ class Browser(Filter):
         """
 
         path = helper.parse_url(url).path.strip("/")
-
-        if path in self.__reader.get_ignored_list():
-            return True
-        else:
-            return False
+        return path in self.__reader.get_ignored_list()
 
     def _add_urls(self, urllist):
         """

@@ -73,10 +73,7 @@ class Filter:
         :param str scheme:
         :return: bool
         """
-        if 'https://' == scheme:
-            return True
-        else:
-            return False
+        return 'https://' == scheme
 
     @staticmethod
     def host(host):

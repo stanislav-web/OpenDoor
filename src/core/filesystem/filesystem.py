@@ -119,14 +119,14 @@ class FileSystem(object):
         :return: str
         """
 
-        file = os.path.join(os.getcwd(), filename)
-        if not os.path.isfile(file):
-            raise FileSystemError("{0} is not a file ".format(file))
-        if not os.access(file, os.R_OK):
-            raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(file))
+        filepath = os.path.join(os.getcwd(), filename)
+        if not os.path.isfile(filepath):
+            raise FileSystemError("{0} is not a file ".format(filepath))
+        if not os.access(filepath, os.R_OK):
+            raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
 
         lines = []
-        with open(file, "r") as f_handler:
+        with open(filepath, "r") as f_handler:
             for line in f_handler:
                 lines.append(handler(line, handler_params))
             loader(lines)

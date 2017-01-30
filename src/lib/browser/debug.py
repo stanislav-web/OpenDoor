@@ -151,10 +151,7 @@ class Debug(DebugProvider):
             request_uri = tpl.line(key='redirect', color='blue', url=helper.parse_url(request_uri).path,
                                    rurl=kwargs.get('redirect_uri'))
 
-        if False is self.__catched:
-            self.__clear = True
-        else:
-            self.__clear = False
+        self.__clear = True if self.__catched else False
 
         if 0 < self.__level:
 
