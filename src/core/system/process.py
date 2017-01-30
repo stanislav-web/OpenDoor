@@ -42,8 +42,8 @@ class Term(type):
 class Process(object):
     """Process class"""
 
-    ts = None
     __metaclass__ = Term
+    ts = None
 
     @staticmethod
     def system(command):

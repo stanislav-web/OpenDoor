@@ -117,13 +117,13 @@ class Filter:
         return proxyaddress
 
     @staticmethod
-    def scan(type):
+    def scan(choise):
         """
         Input `scan` type filter
-        :param str type:
+        :param str choise:
         :return: str
         """
 
-        if type not in ['directories', 'subdomains']:
-            type = 'directories'
-        return type
+        if choise not in ['directories', 'subdomains']:
+            choise = 'directories'
+        return choise

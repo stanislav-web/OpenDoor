@@ -31,7 +31,7 @@ from .http.exceptions import HttpsRequestError
 from .http.exceptions import ProxyRequestError
 from .http.exceptions import ResponseError
 from .http.exceptions import SocketError
-from .logger import Exception as exception
+from .logger import LoggerException as exception
 from .logger import Logger as logger
 from .options import Options as options
 from .options.exceptions import OptionsError

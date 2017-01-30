@@ -28,37 +28,37 @@ class FileSystem(object):
     """FileSystem class"""
 
     @staticmethod
-    def is_exist(dir, filename):
+    def is_exist(directory, filename):
         """
         Check if dir-file is exist
-        :param str dir: directory
+        :param str directory: directory
         :param str filename: filename
         :return: bool
         """
 
-        path = os.path.join(dir, filename)
+        path = os.path.join(directory, filename)
         if not os.path.exists(path):
             return False
         else:
             return True
 
     @staticmethod
-    def makedir(dir, mode=0777):
+    def makedir(directory, mode=0777):
         """
         Create new directory
 
-        :param str dir: directory
+        :param str directory: directory
         :param int permission: directory permission
         :raise: FileSystemError
         :return: None
         """
-        if not os.path.exists(dir):
+        if not os.path.exists(directory):
             try:
-                dir = os.path.join(os.getcwd(), dir)
-                os.makedirs(dir + '/', mode=mode)
+                directory = os.path.join(os.getcwd(), directory)
+                os.makedirs(directory + '/', mode=mode)
             except OSError , e:
                 if e.errno != errno.EEXIST:
-                    raise FileSystemError("Cannot create directory `{0}`. Reason: {1}".format(dir, e.message))
+                    raise FileSystemError("Cannot create directory `{0}`. Reason: {1}".format(directory, e.message))
 
     @staticmethod
     def getabsname(filename):

@@ -79,7 +79,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
             self.get_color("white", None, True) if self.show_name else "", "%(name)s " if self.show_name else "",
             "%(padded_who)s", self.reset, " ", self.get_color(bg, fg, bold), "%(message)s", self.reset, ]
 
-        format = "".join(template)
+        line_format = "".join(template)
 
         who = [self.get_color("green"), getattr(record, "funcName", ""), self.get_color("black", None, True), ":",
                self.get_color("cyan")]
@@ -96,7 +96,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
 
         record.padded_who = who + spaces
 
-        formatter = logging.Formatter(format, self.date_format)
+        formatter = logging.Formatter(line_format, self.date_format)
         self.colorize_traceback(formatter, record)
         output = formatter.format(record)
         # Clean cache so the color codes of traceback don't leak to other formatters

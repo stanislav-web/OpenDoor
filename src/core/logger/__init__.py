@@ -16,6 +16,6 @@
     Development Team: Stanislav WEB
 """
 
-from .exception import Exception
+from .exception import LoggerException
 from .logger import Logger
 

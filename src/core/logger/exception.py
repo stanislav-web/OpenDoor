@@ -25,8 +25,9 @@ from src.core import filesystem
 from .config import Config
 
 
-class Exception():
+class LoggerException():
     """ Exception class """
+
     @staticmethod
     def log(class_name='Error', message=''):
         """
