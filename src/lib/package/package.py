@@ -16,7 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import SystemError, FileSystemError
+from src.core import CoreSystemError, FileSystemError
 from src.core import filesystem
 from src.core import helper
 from src.core import process
@@ -76,7 +76,7 @@ class Package:
                 tpl.line(Package.__license(), color='blue'))
             tpl.message(banner)
 
-        except (FileSystemError, SystemError, PackageError) as e:
+        except (FileSystemError, CoreSystemError, PackageError) , e:
             raise PackageError(e)
 
     @staticmethod
@@ -95,7 +95,7 @@ class Package:
 
             tpl.message(version)
 
-        except (FileSystemError, SystemError, PackageError) as e:
+        except (FileSystemError, CoreSystemError, PackageError) , e:
             raise PackageError(e)
 
     @staticmethod
@@ -114,7 +114,7 @@ class Package:
 
             tpl.message(banner)
 
-        except SystemError as e:
+        except CoreSystemError , e:
             raise PackageError(e)
 
     @staticmethod
@@ -128,7 +128,7 @@ class Package:
         try:
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'version')
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise PackageError(e)
 
     @staticmethod
@@ -142,7 +142,7 @@ class Package:
         try:
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'name')
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise PackageError(e)
 
     @staticmethod
@@ -162,7 +162,7 @@ class Package:
                 raw = filesystem.readraw(result)
                 Package.remote_version = raw.get('info', 'version')
                 return Package.remote_version
-            except (FileSystemError, SystemError) as e:
+            except (FileSystemError, CoreSystemError) , e:
                 raise PackageError(e)
         else:
             return Package.remote_version
@@ -185,7 +185,7 @@ class Package:
                 version = tpl.line(local, color='green')
             return version
 
-        except (FileSystemError, SystemError, PackageError) as e:
+        except (FileSystemError, CoreSystemError, PackageError) , e:
             raise PackageError(e)
 
     @staticmethod
@@ -199,7 +199,7 @@ class Package:
         try:
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'repository')
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise PackageError(e)
 
     @staticmethod
@@ -213,7 +213,7 @@ class Package:
         try:
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'license')
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise PackageError(e)
 
     @staticmethod
@@ -230,7 +230,7 @@ class Package:
             count = filesystem.read(filename).__len__()
             return count
 
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise PackageError(e)
 
     @staticmethod
@@ -248,7 +248,7 @@ class Package:
 
             return count
 
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise PackageError(e)
 
     @staticmethod
@@ -266,7 +266,7 @@ class Package:
 
             return count
 
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise PackageError(e)
 
     @staticmethod
@@ -284,5 +284,5 @@ class Package:
 
             return count
 
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise PackageError(e)

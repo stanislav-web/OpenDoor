@@ -56,7 +56,7 @@ class FileSystem:
             try:
                 dir = os.path.join(os.getcwd(), dir)
                 os.makedirs(dir + '/', mode=mode)
-            except OSError as e:
+            except OSError , e:
                 if e.errno != errno.EEXIST:
                     raise FileSystemError("Cannot create directory `{0}`. Reason: {1}".format(dir, e.message))
         pass
@@ -103,7 +103,7 @@ class FileSystem:
                 open(filename, 'w')
 
                 return True
-            except IOError as e:
+            except IOError , e:
                 raise FileSystemError(e)
         else:
             return False
@@ -170,7 +170,7 @@ class FileSystem:
             config = ConfigParser.RawConfigParser()
             config.read(file)
             return config
-        except ConfigParser.ParsingError as e:
+        except ConfigParser.ParsingError , e:
             raise FileSystemError(e.message)
 
     @staticmethod
@@ -187,7 +187,7 @@ class FileSystem:
             config = ConfigParser.ConfigParser()
             config.readfp(buf)
             return config
-        except ConfigParser.Error as e:
+        except ConfigParser.Error , e:
             raise FileSystemError(e.message)
 
     @staticmethod

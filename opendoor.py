@@ -19,13 +19,13 @@
 
 import sys
 
-try:
-    import urllib3
-    import json2html
 
-except ImportError:
-    sys.exit("""\t\t[!] Several dependencies wasn't installed!
-                Please run sudo pip install -r requirements.txt """)
+for module in ['urllib3', 'json2html','tabulate']:
+    try:
+        __import__(module)
+    except ImportError:
+        sys.exit("""\t\t[!] Several dependencies wasn't installed!
+            Please run sudo pip install -r requirements.txt """)
 
 if __name__ == "__main__":
 
@@ -34,5 +34,5 @@ if __name__ == "__main__":
     try:
         bootstrap = Controller()
         bootstrap.run()
-    except SrcError as e:
+    except SrcError, e:
         sys.exit(e.message)

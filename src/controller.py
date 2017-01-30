@@ -50,7 +50,7 @@ class Controller:
                                          expected=interpreter.get('expected')))
 
             self.ioargs = args().get_arguments()
-        except ArgumentsError as e:
+        except ArgumentsError , e:
             raise SrcError(tpl.error(e.message))
 
     @execution_time(log=tpl)
@@ -68,13 +68,13 @@ class Controller:
             if 'host' in self.ioargs:
                 getattr(self, 'scan_action')(self.ioargs)
             else:
-                for action, args in self.ioargs.iteritems():
+                for action in self.ioargs.iterkeys():
                     if hasattr(self, '{0}_action'.format(action)) and callable(
                             getattr(self, '{0}_action'.format(action))):
                         getattr(self, '{func}_action'.format(func=action))()
                         break
 
-        except (SrcError, PackageError, BrowserError, AttributeError) as e:
+        except (SrcError, PackageError, BrowserError, AttributeError) , e:
             raise SrcError(tpl.error(e.message))
 
     @staticmethod
@@ -96,7 +96,7 @@ class Controller:
 
         try:
             package.update()
-        except (AttributeError, PackageError) as e:
+        except (AttributeError, PackageError) , e:
             raise SrcError(e)
 
     @staticmethod
@@ -110,7 +110,7 @@ class Controller:
 
         try:
             package.version()
-        except (AttributeError, PackageError) as e:
+        except (AttributeError, PackageError) , e:
             raise SrcError(e)
 
     @staticmethod
@@ -123,7 +123,7 @@ class Controller:
 
         try:
             return package.local_version()
-        except (AttributeError, PackageError) as e:
+        except (AttributeError, PackageError) , e:
             raise SrcError(e)
 
     def scan_action(self, params=()):
@@ -147,7 +147,7 @@ class Controller:
                 brows.scan()
                 brows.done()
 
-            except (AttributeError, BrowserError, ReporterError) as e:
+            except (AttributeError, BrowserError, ReporterError) , e:
                 raise SrcError(e.message)
             except (KeyboardInterrupt, SystemExit):
                 tpl.cancel(key='abort')

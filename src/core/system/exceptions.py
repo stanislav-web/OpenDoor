@@ -17,12 +17,12 @@
 """
 
 
-class SystemError(Exception):
+class CoreSystemError(Exception):
     """SystemError class"""
 
     def __init__(self, message):
         """
-        SystemError class constructor
+        CoreSystemError class constructor
         :param str message: error message
         """
-        super(SystemError, self).__init__(message)
+        super(CoreSystemError, self).__init__(message)

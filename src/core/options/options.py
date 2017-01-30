@@ -18,7 +18,6 @@
 
 from argparse import RawDescriptionHelpFormatter
 
-from .config import Config
 from .exceptions import ArgumentParserError, ThrowingArgumentParser, OptionsError, FilterError
 from .filter import Filter
 
@@ -32,39 +31,86 @@ class Options:
         :raise OptionsError
         """
 
-        groups = {}
+        self.__standalone = ["version", "update", "examples"]
+
+        __groups = {'request': "Request tools", 'stream': "Stream tools", 'debug': "Debug tools",
+                  'wordlist': "Wordlist tools", 'sniff': "Sniff tools", 'app': "Application tools",}
+
+
+        __arguments = [{"group": "request", "args": "-p", "argl": "--port", "default": 80, "action": "store",
+                  "help": "Custom port (Default 80)", "type": int},
+                 {"group": "request", "args": "-m", "argl": "--method", "default": "HEAD", "action": "store",
+                  "help": "HTTP method (use HEAD as default)", "type": str},
+                 {"group": "stream", "args": "-t", "argl": "--threads", "default": 1, "action": "store",
+                  "help": "Allowed threads", "type": int},
+                 {"group": "request", "args": "-d", "argl": "--delay", "default": 0, "action": "store",
+                  "help": "Delay between request's threads", "type": int},
+                 {"group": "request", "args": None, "argl": "--timeout", "default": 30, "action": "store",
+                  "help": "Request timeout (30 sec default)", "type": int},
+                 {"group": "request", "args": "-r", "argl": "--retries", "default": 3, "action": "store",
+                  "help": "Max retries to reconnect (default 3)", "type": int},
+                 {"group": "request", "args": None, "argl": "--accept-cookies", "default": False,
+                  "action": "store_true", "help": "Accept and route cookies from responses", "type": bool},
+                 {"group": "debug", "args": None, "argl": "--debug", "default": 0, "action": "store",
+                  "help": "Debug level 1 - 3", "type": int},
+                 {"group": "request", "args": None, "argl": "--tor", "default": False, "action": "store_true",
+                  "help": "Using proxylist", "type": bool},
+                 {"group": "request", "args": None, "argl": "--torlist", "default": None, "action": "store",
+                  "help": "Path to external proxylist", "type": str},
+                 {"group": "request", "args": None, "argl": "--proxy", "default": None, "action": "store",
+                  "help": "Custom permanent proxy server", "type": str},
+                 {"group": "wordlist", "args": "-s", "argl": "--scan", "default": "directories", "action": "store",
+                  "help": "Scan type scan=directories or scan=subdomains", "type": str},
+                 {"group": "wordlist", "args": "-w", "argl": "--wordlist", "default": None, "action": "store",
+                  "help": "Path to external wordlist", "type": str},
+                 {"group": "wordlist", "args": None, "argl": "--reports", "default": "std", "action": "store",
+                  "help": "Scan reports (json,std,plain)", "type": str},
+                 {"group": "request", "args": None, "argl": "--random-agent", "default": False, "action": "store_true",
+                  "help": "Randomize user-agent per request", "type": bool},
+                 {"group": "wordlist", "args": None, "argl": "--random-list", "default": False, "action": "store_true",
+                  "help": "Randomize scan list", "type": bool},
+                 {"group": "sniff", "args": "-i", "argl": "--indexof", "default": False, "action": "store_true",
+                  "help": "Detect Apache Index of/", "type": bool},
+                 {"group": "app", "args": None, "argl": "--update", "default": False, "action": "store_true",
+                  "help": "Update from CVS", "type": bool},
+                 {"group": "app", "args": None, "argl": "--version", "default": False, "action": "store_true",
+                  "help": "Get current version", "type": bool},
+                 {"group": "app", "args": None, "argl": "--examples", "default": False, "action": "store_true",
+                  "help": "Examples of usage", "type": bool}]
+
+
+        groupped = {}
 
         try:
             parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
             required_named = parser.add_argument_group('required named options')
             required_named.add_argument('--host', help="Target host (ip); --host http://example.com")
-            config_arguments = Config.arguments
-            config_arguments_len = len(config_arguments)
+            arguments_len = len(__arguments)
 
-            for group, description in sorted(Config.groups.iteritems()):
-                groups[group] = parser.add_argument_group(description)
+            for group, description in sorted(__groups.iteritems()):
+                groupped[group] = parser.add_argument_group(description)
 
-            for i in range(config_arguments_len):
-                arg = config_arguments[i]
+            for i in range(arguments_len):
+                arg = __arguments[i]
 
                 if arg['args'] is None:
                     if bool == arg['type']:
-                        groups[arg['group']].add_argument(arg['argl'], default=arg['default'], action=arg['action'],
+                        groupped[arg['group']].add_argument(arg['argl'], default=arg['default'], action=arg['action'],
                                                           help=arg['help'])
                     else:
-                        groups[arg['group']].add_argument(arg['argl'], default=arg['default'], action=arg['action'],
+                        groupped[arg['group']].add_argument(arg['argl'], default=arg['default'], action=arg['action'],
                                                           help=arg['help'], type=arg['type'])
                 else:
                     if bool == arg['type']:
-                        groups[arg['group']].add_argument(arg['args'], arg['argl'], default=arg['default'],
+                        groupped[arg['group']].add_argument(arg['args'], arg['argl'], default=arg['default'],
                                                           action=arg['action'], help=arg['help'])
                     else:
-                        groups[arg['group']].add_argument(arg['args'], arg['argl'], default=arg['default'],
+                        groupped[arg['group']].add_argument(arg['args'], arg['argl'], default=arg['default'],
                                                           action=arg['action'], help=arg['help'], type=arg['type'])
 
             parser.parse_args()
             self.parser = parser
-        except (ArgumentParserError) as e:
+        except (ArgumentParserError) , e:
             raise OptionsError(e.message)
 
     def get_arg_values(self):
@@ -84,7 +130,7 @@ class Options:
 
             if True is arguments.version or True is arguments.update or True is arguments.examples:
                 for arg, value in vars(arguments).iteritems():
-                    if arg in Config.standalone and True is value:
+                    if arg in self.__standalone and True is value:
                         args[arg] = value
                         break
             else:
@@ -97,5 +143,5 @@ class Options:
 
             return args
 
-        except (AttributeError, FilterError) as e:
+        except (AttributeError, FilterError) , e:
             raise OptionsError(e.message)

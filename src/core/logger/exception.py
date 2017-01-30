@@ -51,5 +51,5 @@ class Exception():
                                                                                          func=func.co_name,
                                                                                          line=func.co_firstlineno)
             logger.error(message)
-        except (Error, ValueError) as e:
+        except (Error, ValueError) , e:
             raise Error(e)

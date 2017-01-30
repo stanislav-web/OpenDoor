@@ -70,7 +70,7 @@ class Browser(Filter):
 
             self.__response = response(config=self.__config, debug=self.__debug, tpl=tpl)
 
-        except (ReaderError) as e:
+        except (ReaderError) , e:
             raise BrowserError(e)
 
     def ping(self):
@@ -86,7 +86,7 @@ class Browser(Filter):
             tpl.info(key='online', host=self.__config.host, port=self.__config.port,
                      ip=socket.get_ip_address(self.__config.host))
 
-        except SocketError as e:
+        except SocketError , e:
             raise BrowserError(e)
 
     def scan(self):
@@ -123,7 +123,7 @@ class Browser(Filter):
                     params={'host': self.__config.host, 'port': self.__config.port, 'scheme': self.__config.scheme},
                     loader=getattr(self, '_add_urls'.format()))
 
-        except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as e:
+        except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) , e:
             raise BrowserError(e)
 
     def __http_request(self, url):
@@ -141,7 +141,7 @@ class Browser(Filter):
 
             self.catch_report_data(response[0], response[1])
 
-        except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) as e:
+        except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) , e:
             raise BrowserError(e)
 
     def __is_ignored(self, url):
@@ -205,7 +205,7 @@ class Browser(Filter):
                 for rtype in self.__config.reports:
                     report = Reporter.load(rtype, self.__result)
                     report.process()
-            except ReporterError as e:
+            except ReporterError , e:
                 raise BrowserError(e.message)
         else:
             pass

@@ -35,8 +35,6 @@ class Response(ResponseProvider):
         self.__debug = debug
         self.__tpl = kwargs.get('tpl')
 
-        pass
-
     def handle(self, response, request_url, items_size, total_size):
         """
         Handle response
@@ -65,11 +63,11 @@ class Response(ResponseProvider):
 
                 self.__debug.debug_request_uri(status=status, request_uri=request_url, redirect_uri=redirect_uri,
                                                items_size=items_size, total_size=total_size,
-                                               content_size=self._get_content_size(response))
+                                               content_size=ResponseProvider._get_content_size(response))
 
                 return (status, url)
 
-            except Exception as e:
+            except Exception , e:
                 raise ResponseError(e.message)
 
         else:

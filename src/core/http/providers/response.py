@@ -124,7 +124,8 @@ class ResponseProvider(object):
         """
         pass
 
-    def _get_content_size(self, response):
+    @staticmethod
+    def _get_content_size(response):
         """
         Get content size
 

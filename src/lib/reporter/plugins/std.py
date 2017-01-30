@@ -19,6 +19,7 @@
 from tabulate import tabulate
 
 from .provider import PluginProvider
+from src.core import sys
 
 
 class StdReportPlugin(PluginProvider):
@@ -34,4 +35,4 @@ class StdReportPlugin(PluginProvider):
         """
 
         data = self._data.get('total').items()
-        tabulate(data, headers=['Statistics', 'Summary'], tablefmt="orgtbl")
+        sys.writeln(tabulate(data, headers=['Statistics', 'Summary'], tablefmt="psql"))

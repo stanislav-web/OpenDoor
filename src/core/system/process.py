@@ -19,7 +19,7 @@
 import os
 import subprocess
 
-from .exceptions import SystemError
+from .exceptions import CoreSystemError
 
 
 class Term(type):
@@ -55,8 +55,8 @@ class Process(object):
 
         try:
             os.system(command)
-        except OSError as e:
-            raise SystemError(e)
+        except OSError , e:
+            raise CoreSystemError(e)
 
     @staticmethod
     def execute(process):
@@ -73,5 +73,5 @@ class Process(object):
                 raise OSError(error.strip())
 
             return out
-        except (subprocess.CalledProcessError, OSError) as e:
-            raise SystemError(e)
+        except (subprocess.CalledProcessError, OSError) , e:
+            raise CoreSystemError(e)

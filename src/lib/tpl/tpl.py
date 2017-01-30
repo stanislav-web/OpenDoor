@@ -41,7 +41,7 @@ class Tpl():
             if key:
                 msg = Tpl.__format_message(key, args=args)
             sys.exit(logger.log().warning(msg))
-        except (AttributeError, TplError) as e:
+        except (AttributeError, TplError) , e:
             raise TplError(e.message)
 
     @staticmethod
@@ -66,7 +66,7 @@ class Tpl():
             else:
                 return msg
 
-        except (AttributeError, TplError) as e:
+        except (AttributeError, TplError) , e:
             raise TplError(e.message)
 
     @staticmethod
@@ -99,7 +99,7 @@ class Tpl():
             if key:
                 msg = Tpl.__format_message(key, args=args)
             return colour.colored(msg, color=color)
-        except (AttributeError, TplError) as e:
+        except (AttributeError, TplError) , e:
             raise TplError(e.message)
 
     @staticmethod
@@ -132,7 +132,7 @@ class Tpl():
                 msg = Tpl.__format_message(key, args=args)
 
             logger.log().error(msg)
-        except (AttributeError, TplError) as e:
+        except (AttributeError, TplError) , e:
             raise TplError(e.message)
 
     @staticmethod
@@ -153,7 +153,7 @@ class Tpl():
                 msg = Tpl.__format_message(key, args=args)
 
             logger.log().warning(msg)
-        except (AttributeError, TplError) as e:
+        except (AttributeError, TplError) , e:
             raise TplError(e.message)
 
     @staticmethod
@@ -176,7 +176,7 @@ class Tpl():
             if True is clear:
                 sys.writels("")
             logger.log().info(msg)
-        except (AttributeError, TplError) as e:
+        except (AttributeError, TplError) , e:
             raise TplError(e.message)
 
     @staticmethod
@@ -197,7 +197,7 @@ class Tpl():
                 msg = Tpl.__format_message(key, args=args)
 
             logger.log().debug(msg)
-        except (AttributeError, TplError) as e:
+        except (AttributeError, TplError) , e:
             raise TplError(e.message)
 
     @staticmethod

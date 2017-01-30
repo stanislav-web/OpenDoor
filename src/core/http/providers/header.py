@@ -30,8 +30,9 @@ class HeaderProvider(AcceptHeaderProvider):
         :param src.lib.browser.config.Config config: browser configurations
         :param dict agent_list: user agent list
         """
+
         self.__headers = {}
-        self.__config = config
+        self.__cfg = config
         self.__agent_list = agent_list
 
         AcceptHeaderProvider.__init__(self)
@@ -43,11 +44,11 @@ class HeaderProvider(AcceptHeaderProvider):
         :return: str user-agent
         """
 
-        if True is self.__config._is_random_user_agent:
+        if True is self.__cfg.is_random_user_agent:
             index = random.randrange(0, len(self.__agent_list))
             user_agent = self.__agent_list[index].strip()
         else:
-            user_agent = self.__config.user_agent
+            user_agent = self.__cfg.user_agent
         return user_agent
 
     def _add_header(self, key, value):
@@ -71,7 +72,7 @@ class HeaderProvider(AcceptHeaderProvider):
 
         self._add_header('Accept', self._accept)._add_header('Accept-Encoding', self._accept_encoding)._add_header(
             'Accept-Language', self._accept_language)._add_header('Referer', ''.join(
-            [self.__config.scheme, self.__config.host]))._add_header('User-Agent', self.__user_agent)._add_header(
+            [self.__cfg.scheme, self.__cfg.host]))._add_header('User-Agent', self.__user_agent)._add_header(
             'Cache-Conrol', 'no-cache')._add_header('Pragma', 'no-cache')
 
         return self.__headers

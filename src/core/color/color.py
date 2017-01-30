@@ -18,11 +18,26 @@
 
 import sys
 
-from .config import Config
-
 
 class Color:
     """Color class"""
+
+    default = 'white'
+
+    @staticmethod
+    def get(key):
+        """
+        Get color key
+        :param str key: color name
+        :return: int
+        """
+
+        colorlist = {'black': 0, 'red': 1, 'green': 2, 'yellow': 3, 'blue': 4, 'magenta': 5, 'cyan': 6, 'white': 7}
+
+        if key in colorlist:
+            return colorlist[key]
+        else:
+            return colorlist[Color.default]
 
     @staticmethod
     def __has_colors(stream):
@@ -57,7 +72,7 @@ class Color:
             text = str(text)
         if Color.__has_colors(sys.stdout):
             text = text.strip('\n')
-            seq = "\x1b[%dm" % (30 + Config.get(color)) + text + "\x1b[0m"
+            seq = "\x1b[%dm" % (30 + Color.get(color)) + text + "\x1b[0m"
             return seq
         else:
             return text

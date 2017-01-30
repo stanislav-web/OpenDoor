@@ -16,7 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import FileSystemError, SystemError
+from src.core import FileSystemError, CoreSystemError
 from src.core import filesystem
 from src.core import process
 from .config import Config
@@ -50,7 +50,7 @@ class Reader():
         try:
             config = filesystem.readcfg(Config.setup)
             return config
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise ReaderError(e)
 
     def get_user_agents(self):
@@ -66,7 +66,7 @@ class Reader():
                 self.__useragents = filesystem.read(self.__config.get('opendoor', 'useragents'))
             return self.__useragents
 
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise ReaderError(e)
 
     def get_ignored_list(self):
@@ -88,7 +88,7 @@ class Reader():
 
             return self.__ignored
 
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise ReaderError(e)
 
     def get_proxies(self):
@@ -111,7 +111,7 @@ class Reader():
             else:
                 return []
 
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise ReaderError(e)
 
     def get_lines(self, params, loader):
@@ -136,7 +136,7 @@ class Reader():
             filesystem.readline(dirlist, handler=getattr(self, '_{0}__line'.format(self.__browser_config.get('list'))),
                                 handler_params=params, loader=loader)
 
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise ReaderError(e)
 
     def _subdomains__line(self, line, params):
@@ -205,7 +205,7 @@ class Reader():
             result_file = self.__config.get('opendoor', 'tmplist')
             filesystem.makefile(result_file)
             process.execute('shuf {target} -o {result}'.format(target=target_file, result=result_file))
-        except (SystemError, FileSystemError) as e:
+        except (CoreSystemError, FileSystemError) , e:
             raise ReaderError(e)
 
     def _count_total_lines(self):
@@ -226,7 +226,7 @@ class Reader():
 
             return self.__counter
 
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise ReaderError(e)
 
     @property

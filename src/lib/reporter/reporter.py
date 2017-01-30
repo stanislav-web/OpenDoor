@@ -38,7 +38,7 @@ class Reporter(object):
         try:
             config = filesystem.readcfg('setup.cfg')
             return filesystem.is_exist(config.get('opendoor', 'reports'), resource)
-        except FileSystemError as e:
+        except FileSystemError , e:
             raise ReporterError(e.message)
 
     @staticmethod
@@ -57,7 +57,7 @@ class Reporter(object):
             try:
                 report = getattr(module, plugin_name)
                 return report(data)
-            except (TypeError, AttributeError) as e:
+            except (TypeError, AttributeError) , e:
                 raise ReporterError(e.message)
         except ImportError:
             raise ReporterError('Unable to get reporter`{plugin}`'.format(plugin=plugin_name))
