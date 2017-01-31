@@ -1,4 +1,9 @@
 language: python
+
+os:
+  - linux
+  - osx
+
 python:
   - 2.6
   - 2.7
@@ -18,9 +23,7 @@ addons:
 install:
   - pip install -r requirements.txt
   - pip install python-coveralls
-  - pip install coverage
   - pip install mock
-  - pip install nose
   - pip install unittest2
   - pip install json2html
   - pip install urllib3

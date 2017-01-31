@@ -131,3 +131,4 @@ class ColorizingStreamHandler(logging.StreamHandler):
                             else:
                                 pass  # error condition ignored
                         ctypes.windll.kernel32.SetConsoleTextAttribute(h, color)
+
