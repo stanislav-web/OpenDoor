@@ -20,12 +20,24 @@ import sys
 import unittest2 as unittest
 
 
-class TestEvents(unittest.TestCase):
-    """ TestEvents class"""
+class TestBrowser(unittest.TestCase):
+    """ TestBrowser class"""
 
     @unittest.skip("unresolved")
-    def test_unresolved(self):
-        """ EventHandler.unresolved() test """
+    def test_ping(self):
+        """ Browser.ping() test """
+
+        pass
+
+    @unittest.skip("unresolved")
+    def test_scan(self):
+        """ Browser.scan() test """
+
+        pass
+
+    @unittest.skip("unresolved")
+    def test_done(self):
+        """ Browser.done() test """
 
         pass
 

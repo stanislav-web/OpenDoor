@@ -20,12 +20,18 @@ import sys
 import unittest2 as unittest
 
 
-class TestEvents(unittest.TestCase):
-    """ TestEvents class"""
+class TestReporter(unittest.TestCase):
+    """TestReporter class"""
 
     @unittest.skip("unresolved")
-    def test_unresolved(self):
-        """ EventHandler.unresolved() test """
+    def test_is_reported(self):
+        """ Reporter.is_reported() test """
+
+        pass
+
+    @unittest.skip("unresolved")
+    def test_load(self):
+        """ Reporter.load() test """
 
         pass
 

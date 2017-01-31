@@ -20,12 +20,36 @@ import sys
 import unittest2 as unittest
 
 
-class TestEvents(unittest.TestCase):
-    """ TestEvents class"""
+class TestWorker(unittest.TestCase):
+    """ TestWorker class"""
 
     @unittest.skip("unresolved")
-    def test_unresolved(self):
-        """ EventHandler.unresolved() test """
+    def test_pause(self):
+        """ Worker.pause test """
+
+        pass
+
+    @unittest.skip("unresolved")
+    def test_resume(self):
+        """ Worker.resume test """
+
+        pass
+
+    @unittest.skip("unresolved")
+    def test_exception(self):
+        """ Worker.exception test """
+
+        pass
+
+    @unittest.skip("unresolved")
+    def test_run(self):
+        """ Worker.run test """
+
+        pass
+
+    @unittest.skip("unresolved")
+    def test_terminate(self):
+        """ Worker.terminate test """
 
         pass
 

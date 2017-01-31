@@ -16,14 +16,15 @@
     Development Team: Stanislav WEB
 """
 
-
+import sys
 import unittest2 as unittest
+
 
 class TestArguments(unittest.TestCase):
     """ Arguments class"""
 
-    @unittest.skip("get_arguments")
-    def test_terminate(self):
+    @unittest.skip("unresolved")
+    def test_unresolved(self):
         """ Arguments.get_arguments() test """
 
         pass

@@ -20,14 +20,10 @@ import sys
 import unittest2 as unittest
 
 
-class TestEvents(unittest.TestCase):
-    """ TestEvents class"""
+class TestFilter(unittest.TestCase):
+    """ TestFilter class"""
 
-    @unittest.skip("unresolved")
-    def test_unresolved(self):
-        """ EventHandler.unresolved() test """
-
-        pass
+    pass
 
 if __name__ == "__main__":
     unittest.main()

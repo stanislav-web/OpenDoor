@@ -1,4 +1,4 @@
-OWASP Directory Access Scanner <sup>(redesigned)</sup>
+OWASP Directory Access Scanner
 ==================================
 
 [![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor) [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor) [![Coverage Status](https://coveralls.io/repos/github/stanislav-web/OpenDoor/badge.svg?branch=master)](https://coveralls.io/github/stanislav-web/OpenDoor?branch=master) [![Code Health](https://landscape.io/github/stanislav-web/OpenDoor/master/landscape.svg?style=flat)](https://landscape.io/github/stanislav-web/OpenDoor/master)
@@ -64,7 +64,7 @@ sudo apt-get install python-socksipy
     - relieved of unnecessary dependencies
     - fully optimized code inside
     - user-friendly interface
-    - multiple reporters (std,txt,json)
+    - multiple reporters (std,txt,json,html)
     - added external wordlists support
     - added external proxylist support
     - added wordlist shuffling
@@ -134,7 +134,7 @@ Wordlist tools:
 
 ### Test
 ```
-pip install unittest2
+pip install unittest2 mock
 coverage run --source=opendoor setup.py test
 ```
 

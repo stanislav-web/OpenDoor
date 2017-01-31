@@ -20,6 +20,7 @@ import ConfigParser
 import StringIO
 import errno
 import os
+import re
 
 from .exceptions import FileSystemError
 
@@ -182,7 +183,11 @@ class FileSystem(object):
         :return: ConfigParser.RawConfigParser
         """
 
-        filepath = os.path.join(filename)
+        regex = re.compile('^([\/a-z].*?opendoor)', re.IGNORECASE)
+        cwd = regex.search(os.getcwd())
+        os.chdir(cwd.group())
+        filepath = os.path.join(os.path.sep, os.getcwd(), filename)
+
         if not os.path.isfile(filepath):
             raise FileSystemError("{0} is not a file ".format(filepath))
         if not os.access(filepath, os.R_OK):

@@ -17,7 +17,6 @@
 """
 
 import glob
-
 import pypandoc
 from setuptools import setup, find_packages
 

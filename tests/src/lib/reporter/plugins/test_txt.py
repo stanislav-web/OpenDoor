@@ -20,12 +20,12 @@ import sys
 import unittest2 as unittest
 
 
-class TestEvents(unittest.TestCase):
-    """ TestEvents class"""
+class TestTxtReportPlugin(unittest.TestCase):
+    """ TestTxtReportPlugin class"""
 
     @unittest.skip("unresolved")
-    def test_unresolved(self):
-        """ EventHandler.unresolved() test """
+    def test_process(self):
+        """ TxtReportPlugin.process() test """
 
         pass
 

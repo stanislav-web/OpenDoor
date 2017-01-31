@@ -7,7 +7,7 @@ v3.0.2-beta (31.01.2017)
     - relieved of unnecessary dependencies
     - fully optimized code inside
     - user-friendly interface
-    - multiple reporters (std,txt,json)
+    - multiple reporters (std,txt,json,html)
     - added external wordlists support
     - added external proxylist support
     - added wordlist shuffling
