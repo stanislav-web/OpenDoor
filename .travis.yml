@@ -1,5 +1,4 @@
 language: python
-
 os:
   - linux
   - osx
@@ -23,6 +22,7 @@ addons:
 install:
   - pip install -r requirements.txt
   - pip install python-coveralls
+  - pip install coverage
   - pip install mock
   - pip install unittest2
   - pip install json2html
