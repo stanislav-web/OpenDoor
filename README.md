@@ -136,6 +136,12 @@ Wordlist tools:
 
 ```
 
+### Test
+```
+pip install unittest2
+coverage run --source=opendoor setup.py test
+```
+
 ### Contributors
 If  you like to contribute to the development of the project in that case pull requests are open for you.
 Also, you can suggest an ideas and create a task in my track list
