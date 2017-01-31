@@ -24,8 +24,9 @@ class CookiesProvider(object):
 
     def __init__(self):
         """
-         Init constructor
+        Init interface
         """
+
         self._cookies = None
 
     @property
@@ -50,7 +51,6 @@ class CookiesProvider(object):
     def _push_cookies(self):
         """
         Push cookies to request
-
         :return: str cookies
         """
 

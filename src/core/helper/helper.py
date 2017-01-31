@@ -49,7 +49,7 @@ class Helper(object):
         """
         Parse url
 
-        :param str url:
+        :param str url: input url
         :return: dict
         """
 
@@ -59,13 +59,13 @@ class Helper(object):
     def to_json(data, sort=True, indents=4):
         """
         Json pretty print
-        :param data:
-        :param sort:
-        :param indents:
+        :param dict data: mixed data params
+        :param bool sort: use sort
+        :param int indents: space indents
         :return: str
         """
 
-        if True is isinstance(data,str):
+        if True is isinstance(data, str):
             json_data = json.dumps(json.loads(data), sort_keys=sort, indent=indents)
         else:
             json_data = json.dumps(data, sort_keys=sort, indent=indents)
@@ -76,8 +76,8 @@ class Helper(object):
     def percent(counter, total):
         """
         Return percentage
-        :param int counter:
-        :param int total:
+        :param int counter: current value
+        :param int total: total value
         :return: str
         """
 
@@ -87,8 +87,8 @@ class Helper(object):
     def is_less(arg1, arg2):
         """
         Compare two numbers (< less)
-        :param int arg1:
-        :param int arg2:
+        :param int arg1: right version
+        :param int arg2: left version
         :return: bool
         """
 
@@ -98,8 +98,8 @@ class Helper(object):
     def is_more(arg1, arg2):
         """
         Compare two numbers (great >)
-        :param int arg1:
-        :param int arg2:
+        :param int arg1: right version
+        :param int arg2: left version
         :return: bool
         """
 

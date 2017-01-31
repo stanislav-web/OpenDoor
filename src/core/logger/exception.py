@@ -25,7 +25,7 @@ from src.core import filesystem
 from .config import Config
 
 
-class LoggerException():
+class LoggerException(object):
     """ Exception class """
 
     @staticmethod

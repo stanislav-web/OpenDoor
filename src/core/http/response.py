@@ -37,7 +37,7 @@ class Response(ResponseProvider):
 
     def handle(self, response, request_url, items_size, total_size):
         """
-        Handle response
+        Response handler
         :param urllib3.response.HTTPResponse response: response object
         :param str request_url: url from request
         :param int items_size: current items sizes
@@ -65,7 +65,7 @@ class Response(ResponseProvider):
                                                items_size=items_size, total_size=total_size,
                                                content_size=ResponseProvider._get_content_size(response))
 
-                return (status, url)
+                return status, url
 
             except Exception as e:
                 raise ResponseError(e.message)

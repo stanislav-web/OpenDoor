@@ -23,7 +23,7 @@ class ArgumentsError(Exception):
     def __init__(self, message):
         """
         Error message
-        :param message: message
+        :param str message: error message
         :return: None
         """
 

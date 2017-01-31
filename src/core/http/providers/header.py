@@ -26,7 +26,7 @@ class HeaderProvider(AcceptHeaderProvider):
 
     def __init__(self, config, agent_list=()):
         """
-        Accept external params
+        Init interface. Accept external params
         :param src.lib.browser.config.Config config: browser configurations
         :param dict agent_list: user agent list
         """
@@ -41,7 +41,7 @@ class HeaderProvider(AcceptHeaderProvider):
     def __user_agent(self):
         """
         Get user agent
-        :return: str user-agent
+        :return: str
         """
 
         if True is self.__cfg.is_random_user_agent:
@@ -59,6 +59,7 @@ class HeaderProvider(AcceptHeaderProvider):
         :param str value: header value
         :return: HeaderProvider
         """
+
         self.__headers[key] = value
 
         return self

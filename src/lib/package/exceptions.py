@@ -24,7 +24,7 @@ class PackageError(Exception):
     def __init__(self, error):
         """
         PackageError class constructor
-        :param Exception exception: error
+        :param str error: error message
         """
 
         class_name = type(error).__name__

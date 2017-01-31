@@ -51,7 +51,7 @@ class Reader(object):
             config = filesystem.readcfg(Config.setup)
             return config
         except FileSystemError as e:
-            raise ReaderError(e)
+            raise ReaderError(e.message)
 
     def get_user_agents(self):
         """
@@ -67,7 +67,7 @@ class Reader(object):
             return self.__useragents
 
         except FileSystemError as e:
-            raise ReaderError(e)
+            raise ReaderError(e.message)
 
     def get_ignored_list(self):
         """
@@ -89,7 +89,7 @@ class Reader(object):
             return self.__ignored
 
         except FileSystemError as e:
-            raise ReaderError(e)
+            raise ReaderError(e.message)
 
     def get_proxies(self):
         """
@@ -112,7 +112,7 @@ class Reader(object):
                 return []
 
         except FileSystemError as e:
-            raise ReaderError(e)
+            raise ReaderError(e.message)
 
     def get_lines(self, params, loader):
         """
@@ -137,7 +137,7 @@ class Reader(object):
                                 handler_params=params, loader=loader)
 
         except FileSystemError as e:
-            raise ReaderError(e)
+            raise ReaderError(e.message)
 
     @classmethod
     def _subdomains__line(cls, line, params):
@@ -230,7 +230,7 @@ class Reader(object):
             return self.__counter
 
         except FileSystemError as e:
-            raise ReaderError(e)
+            raise ReaderError(e.message)
 
     @property
     def total_lines(self):

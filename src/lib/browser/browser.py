@@ -52,11 +52,15 @@ class Browser(Filter):
             self.__result['total'] = {}
             self.__result['items'] = {}
 
-            self.__reader = Reader(browser_config={'list': self.__config.scan, 'torlist': self.__config.torlist,
-                'use_random': self.__config.is_random_list, 'is_external_wordlist': self.__config.is_external_wordlist,
+            self.__reader = Reader(browser_config={
+                'list': self.__config.scan,
+                'torlist': self.__config.torlist,
+                'use_random': self.__config.is_random_list,
+                'is_external_wordlist': self.__config.is_external_wordlist,
                 'is_standalone_proxy': self.__config.is_standalone_proxy,
                 'is_external_torlist': self.__config.is_external_torlist,
-                'prefix': self.__config.prefix})
+                'prefix': self.__config.prefix
+            })
 
             self.__reader.count_total_lines()
 
@@ -100,12 +104,13 @@ class Browser(Filter):
         self.__debug.debug_user_agents()
         self.__debug.debug_list(total_lines=self.__pool.total_items_size)
 
-        if True is self.__config.is_random_list:
-            self.__reader.randomize_list(self.__config.scan)
-
-        tpl.info(key='scanning', host=self.__config.host)
-
         try:  # beginning scan process
+
+
+            if True is self.__config.is_random_list:
+                self.__reader.randomize_list(self.__config.scan)
+
+            tpl.info(key='scanning', host=self.__config.host)
 
             if True is self.__config.is_proxy:
                 self.__client = request_proxy(self.__config, proxy_list=self.__reader.get_proxies(),
@@ -140,7 +145,7 @@ class Browser(Filter):
             response = self.__response.handle(resp, request_url=url, items_size=self.__pool.items_size,
                                               total_size=self.__pool.total_items_size)
 
-            self.catch_report_data(response[0], response[1])
+            self.__catch_report_data(response[0], response[1])
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) as e:
             raise BrowserError(e)
@@ -148,7 +153,7 @@ class Browser(Filter):
     def __is_ignored(self, url):
         """
         Check if path will be ignored
-        :param str url:
+        :param str url: recieved url
         :return: bool
         """
 
@@ -158,7 +163,7 @@ class Browser(Filter):
     def _add_urls(self, urllist):
         """
         Add recieved urllist to threadpool
-        :param list urllist
+        :param dict urllist: read from dictionary
         :raise KeyboardInterrupt
         :return: None
         """
@@ -169,29 +174,31 @@ class Browser(Filter):
                 if False is self.__is_ignored(url):
                     self.__pool.add(self.__http_request, url)
                 else:
-                    self.catch_report_data('ignored', url)
+                    self.__catch_report_data('ignored', url)
                     tpl.warning(key='ignored_path', path=helper.parse_url(url).path)
             self.__pool.join()
 
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt
 
-    def catch_report_data(self, status, url):
+    def __catch_report_data(self, status, url):
         """
         Add to basket report pool
-
-        :param status:
-        :param url:
-        :return:
+        :param str status: response status
+        :param url: request url
+        :return: None
         """
+
         self.__result['total'].update((status,))
         self.__result['items'][status] += [url]
 
     def done(self):
         """
         Scan finish action
+        :raise BrowserError
         :return: None
         """
+
         self.__result['total'].update({"items": self.__pool.total_items_size})
         self.__result['total'].update({"workers": self.__pool.workers_size})
 

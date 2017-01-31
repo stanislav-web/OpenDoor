@@ -33,7 +33,6 @@ class ThreadPool(object):
         :param int num_threads: active workers
         :param int total_items: total items
         :param int timeout: delay betwen threads
-        :return None
         """
 
         self.__queue = Queue(num_threads)
@@ -84,7 +83,7 @@ class ThreadPool(object):
         Add a task to the queue
         :param func func: callback function
         :param dict args: arguments
-        :param kargs: key arguments
+        :param kargs: keys arguments
         :return: None
         """
 

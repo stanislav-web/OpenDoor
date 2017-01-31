@@ -82,9 +82,8 @@ class Debug(DebugProvider):
     def debug_connection_pool(self, keymsg, pool):
         """
         Debug connection pool message
-
-        :param str keymsg:
-        :param object pool:
+        :param str keymsg: tpl key
+        :param object pool: pool object
         :return: None
         """
 

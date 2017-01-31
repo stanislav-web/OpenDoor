@@ -40,9 +40,8 @@ class DebugProvider(object):
     def debug_connection_pool(self, keymsg, pool):
         """
         Debug connection pool message
-
-        :param str keymsg:
-        :param object pool:
+        :param str keymsg: tpl key
+        :param object pool: pool object
         :return: None
         """
 
@@ -59,7 +58,7 @@ class DebugProvider(object):
     def debug_list(self, total_lines):
         """
         Debug scan list
-        :param int total_lines: list lines
+        :param int total_lines: total list lines
         :return: None
         """
 
@@ -88,9 +87,9 @@ class DebugProvider(object):
     def debug_request_uri(self, status, request_uri, **kwargs):
         """
         Debug request_uri
-        :param int status:
-        :param str request_uri:
-        :param **kwargs:
+        :param int status: response status
+        :param str request_uri: request urli
+        :param **kwargs: key arguments
         :return: None
         """
 

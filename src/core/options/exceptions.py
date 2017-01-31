@@ -27,8 +27,8 @@ class ArgumentParserError(Exception):
 class ThrowingArgumentParser(ArgumentParser):
     """ThrowingArgumentParser class"""
 
-    @staticmethod
-    def error(message):
+    @classmethod
+    def error(cls, message):
         """
         Error message
         :param message: message
@@ -48,6 +48,7 @@ class OptionsError(Exception):
         :param message: message
         :return: None
         """
+
         super(OptionsError, self).__init__(message)
 
 
@@ -60,4 +61,5 @@ class FilterError(Exception):
          :param message: message
          :return: None
          """
+
         super(FilterError, self).__init__(message)

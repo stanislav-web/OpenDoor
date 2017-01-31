@@ -36,7 +36,7 @@ class Logger(object):
         """
         Formatted log message for inline console stdout
         :param str msg: formatted message
-        :param str status: title
+        :param str status: status name
         :return: str
         """
 
@@ -51,7 +51,7 @@ class Logger(object):
             """
             Emulate message
 
-            :param __class__:
+            :param __class__: current class
             :return: str
             """
 

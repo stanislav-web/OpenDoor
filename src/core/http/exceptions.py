@@ -25,6 +25,7 @@ class SocketError(Exception):
         SocketError class constructor
         :param str message: error message
         """
+
         super(SocketError, self).__init__(message)
 
 
@@ -36,6 +37,7 @@ class ProxyRequestError(Exception):
         ProxyRequestError class constructor
         :param str message: error message
         """
+
         super(ProxyRequestError, self).__init__(message)
 
 
@@ -47,6 +49,7 @@ class HttpRequestError(Exception):
         HttpRequestError class constructor
         :param str message: error message
         """
+
         super(HttpRequestError, self).__init__(message)
 
 
@@ -58,6 +61,7 @@ class HttpsRequestError(Exception):
         HttpsRequestError class constructor
         :param str message: error message
         """
+
         super(HttpsRequestError, self).__init__(message)
 
 
@@ -69,4 +73,5 @@ class ResponseError(Exception):
         ResponseError class constructor
         :param str message: error message
         """
+
         super(ResponseError, self).__init__(message)

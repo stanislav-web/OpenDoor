@@ -1,0 +1,137 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module src.core.http.http</title>
+<meta charset="utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong><a href="src.html"><font color="#ffffff">src</font></a>.<a href="src.core.html"><font color="#ffffff">core</font></a>.<a href="src.core.http.html"><font color="#ffffff">http</font></a>.http</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href="../">index</a><br><a href="file:/home/stanislav/PycharmProjects/opendoor/src/core/http/http.py">/home/stanislav/PycharmProjects/opendoor/src/core/http/http.py</a></font></td></tr></table>
+    <p><tt>This&nbsp;program&nbsp;is&nbsp;free&nbsp;software:&nbsp;you&nbsp;can&nbsp;redistribute&nbsp;it&nbsp;and/or&nbsp;modify<br>
+it&nbsp;under&nbsp;the&nbsp;terms&nbsp;of&nbsp;the&nbsp;GNU&nbsp;General&nbsp;Public&nbsp;License&nbsp;as&nbsp;published&nbsp;by<br>
+the&nbsp;Free&nbsp;Software&nbsp;Foundation,&nbsp;either&nbsp;version&nbsp;3&nbsp;of&nbsp;the&nbsp;License.<br>
+&nbsp;<br>
+This&nbsp;program&nbsp;is&nbsp;distributed&nbsp;in&nbsp;the&nbsp;hope&nbsp;that&nbsp;it&nbsp;will&nbsp;be&nbsp;useful,<br>
+but&nbsp;WITHOUT&nbsp;ANY&nbsp;WARRANTY;&nbsp;without&nbsp;even&nbsp;the&nbsp;implied&nbsp;warranty&nbsp;of<br>
+MERCHANTABILITY&nbsp;or&nbsp;FITNESS&nbsp;FOR&nbsp;A&nbsp;PARTICULAR&nbsp;PURPOSE.&nbsp;&nbsp;See&nbsp;the<br>
+GNU&nbsp;General&nbsp;Public&nbsp;License&nbsp;for&nbsp;more&nbsp;details.<br>
+&nbsp;<br>
+You&nbsp;should&nbsp;have&nbsp;received&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;GNU&nbsp;General&nbsp;Public&nbsp;License<br>
+along&nbsp;with&nbsp;this&nbsp;program.&nbsp;&nbsp;If&nbsp;not,&nbsp;see&nbsp;&lt;<a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.<br>
+&nbsp;<br>
+Development&nbsp;Team:&nbsp;Stanislav&nbsp;WEB</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="src.core.http.providers.debug.html#DebugProvider">src.core.http.providers.debug.DebugProvider</a>(<a href="__builtin__.html#object">__builtin__.object</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="src.core.http.http.html#HttpRequest">HttpRequest</a>(<a href="src.core.http.providers.request.html#RequestProvider">src.core.http.providers.request.RequestProvider</a>, <a href="src.core.http.providers.debug.html#DebugProvider">src.core.http.providers.debug.DebugProvider</a>)
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="src.core.http.providers.request.html#RequestProvider">src.core.http.providers.request.RequestProvider</a>(<a href="src.core.http.providers.cookies.html#CookiesProvider">src.core.http.providers.cookies.CookiesProvider</a>, <a href="src.core.http.providers.header.html#HeaderProvider">src.core.http.providers.header.HeaderProvider</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="src.core.http.http.html#HttpRequest">HttpRequest</a>(<a href="src.core.http.providers.request.html#RequestProvider">src.core.http.providers.request.RequestProvider</a>, <a href="src.core.http.providers.debug.html#DebugProvider">src.core.http.providers.debug.DebugProvider</a>)
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="HttpRequest">class <strong>HttpRequest</strong></a>(<a href="src.core.http.providers.request.html#RequestProvider">src.core.http.providers.request.RequestProvider</a>, <a href="src.core.http.providers.debug.html#DebugProvider">src.core.http.providers.debug.DebugProvider</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#HttpRequest">HttpRequest</a>&nbsp;class<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="src.core.http.http.html#HttpRequest">HttpRequest</a></dd>
+<dd><a href="src.core.http.providers.request.html#RequestProvider">src.core.http.providers.request.RequestProvider</a></dd>
+<dd><a href="src.core.http.providers.cookies.html#CookiesProvider">src.core.http.providers.cookies.CookiesProvider</a></dd>
+<dd><a href="src.core.http.providers.header.html#HeaderProvider">src.core.http.providers.header.HeaderProvider</a></dd>
+<dd><a href="src.core.http.providers.accept.html#AcceptHeaderProvider">src.core.http.providers.accept.AcceptHeaderProvider</a></dd>
+<dd><a href="src.core.http.providers.debug.html#DebugProvider">src.core.http.providers.debug.DebugProvider</a></dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="HttpRequest-__init__"><strong>__init__</strong></a>(self, config, debug, **kwargs)</dt><dd><tt><a href="#HttpRequest">HttpRequest</a>&nbsp;instance<br>
+:param&nbsp;src.lib.browser.config.Config&nbsp;config:&nbsp;global&nbsp;configurations<br>
+:param&nbsp;<a href="src.core.http.providers.debug.html#DebugProvider">DebugProvider</a>&nbsp;debug:&nbsp;debugger</tt></dd></dl>
+
+<dl><dt><a name="HttpRequest-request"><strong>request</strong></a>(self, url)</dt><dd><tt>Client&nbsp;request&nbsp;HTTP<br>
+:param&nbsp;str&nbsp;url:&nbsp;request&nbsp;uri<br>
+:return:&nbsp;urllib3.HTTPResponse</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="src.core.http.providers.request.html#RequestProvider">src.core.http.providers.request.RequestProvider</a>:<br>
+<dl><dt><a name="HttpRequest-cookies_middleware"><strong>cookies_middleware</strong></a>(self, is_accept, response)</dt><dd><tt>Route&nbsp;fetched&nbsp;cookies&nbsp;from&nbsp;first&nbsp;response&nbsp;to&nbsp;the&nbsp;next&nbsp;requests<br>
+:param&nbsp;urllib3.response.HTTPResponse&nbsp;response:&nbsp;Http&nbsp;response<br>
+:return:&nbsp;None</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="src.core.http.providers.cookies.html#CookiesProvider">src.core.http.providers.cookies.CookiesProvider</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<hr>
+Methods inherited from <a href="src.core.http.providers.header.html#HeaderProvider">src.core.http.providers.header.HeaderProvider</a>:<br>
+<dl><dt><a name="HttpRequest-add_header"><strong>add_header</strong></a>(self, key, value)</dt><dd><tt>Add&nbsp;custom&nbsp;header<br>
+&nbsp;<br>
+:param&nbsp;str&nbsp;key:&nbsp;header&nbsp;name<br>
+:param&nbsp;str&nbsp;value:&nbsp;header&nbsp;value<br>
+:return:&nbsp;HeaderProvider</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="src.core.http.providers.debug.html#DebugProvider">src.core.http.providers.debug.DebugProvider</a>:<br>
+<dl><dt><a name="HttpRequest-debug_connection_pool"><strong>debug_connection_pool</strong></a>(self, keymsg, pool)</dt><dd><tt>Debug&nbsp;connection&nbsp;pool&nbsp;message<br>
+:param&nbsp;str&nbsp;keymsg:&nbsp;tpl&nbsp;key<br>
+:param&nbsp;object&nbsp;pool:&nbsp;pool&nbsp;object<br>
+:return:&nbsp;None</tt></dd></dl>
+
+<dl><dt><a name="HttpRequest-debug_list"><strong>debug_list</strong></a>(self, total_lines)</dt><dd><tt>Debug&nbsp;scan&nbsp;list<br>
+:param&nbsp;int&nbsp;total_lines:&nbsp;total&nbsp;list&nbsp;lines<br>
+:return:&nbsp;None</tt></dd></dl>
+
+<dl><dt><a name="HttpRequest-debug_proxy_pool"><strong>debug_proxy_pool</strong></a>(self)</dt><dd><tt>Debug&nbsp;proxy&nbsp;pool&nbsp;message<br>
+:return:&nbsp;None</tt></dd></dl>
+
+<dl><dt><a name="HttpRequest-debug_request"><strong>debug_request</strong></a>(self, request_header, url, method)</dt><dd><tt>Debug&nbsp;request<br>
+:param&nbsp;dict&nbsp;request_header:&nbsp;request&nbsp;header<br>
+:param&nbsp;str&nbsp;url:&nbsp;request&nbsp;url<br>
+:param&nbsp;str&nbsp;method:&nbsp;request&nbsp;method<br>
+:return:&nbsp;None</tt></dd></dl>
+
+<dl><dt><a name="HttpRequest-debug_request_uri"><strong>debug_request_uri</strong></a>(self, status, request_uri, **kwargs)</dt><dd><tt>Debug&nbsp;request_uri<br>
+:param&nbsp;int&nbsp;status:&nbsp;response&nbsp;status<br>
+:param&nbsp;str&nbsp;request_uri:&nbsp;request&nbsp;urli<br>
+:param&nbsp;**kwargs:&nbsp;key&nbsp;arguments<br>
+:return:&nbsp;None</tt></dd></dl>
+
+<dl><dt><a name="HttpRequest-debug_response"><strong>debug_response</strong></a>(self, response_header)</dt><dd><tt>Debug&nbsp;response<br>
+:param&nbsp;dict&nbsp;response_header:&nbsp;response&nbsp;header<br>
+:return:&nbsp;None</tt></dd></dl>
+
+<dl><dt><a name="HttpRequest-debug_user_agents"><strong>debug_user_agents</strong></a>(self)</dt><dd><tt>Debug&nbsp;info&nbsp;for&nbsp;user&nbsp;agent<br>
+:return:&nbsp;None</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="src.core.http.providers.debug.html#DebugProvider">src.core.http.providers.debug.DebugProvider</a>:<br>
+<dl><dt><strong>level</strong></dt>
+<dd><tt>Get&nbsp;debug&nbsp;level<br>
+:return:&nbsp;int</tt></dd>
+</dl>
+</td></tr></table></td></tr></table>
+</body></html>

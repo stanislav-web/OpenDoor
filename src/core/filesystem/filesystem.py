@@ -50,7 +50,7 @@ class FileSystem(object):
         Create new directory
 
         :param str directory: directory
-        :param int permission: directory permission
+        :param int mode: directory permission
         :raise: FileSystemError
         :return: None
         """
@@ -78,7 +78,7 @@ class FileSystem(object):
     def has_extension(line):
         """
         Check line for extension
-        :param str line:
+        :param str line: input string
         :return: bool
         """
 
@@ -89,18 +89,17 @@ class FileSystem(object):
     def clear(directory):
         """
         Clear directory
-        :param str filename: directory
+        :param str directory: os directory
         :raise: FileSystemError
         :return: Bool
         """
 
         if True is os.path.exists(directory):
             try:
-                for root, dirs, files in os.walk(directory):
-                    for name in files:
-                        os.remove(os.path.join(root, dirs, name))
+                for files in os.listdir(directory):
+                    os.remove(os.path.join(directory, files))
             except IOError as e:
-                raise FileSystemError(e)
+                raise FileSystemError(e.message)
         else:
             raise FileSystemError("The directory {0} you want to clear is not exist".format(directory))
 
@@ -108,9 +107,7 @@ class FileSystem(object):
     def makefile(filename):
         """
         Create new file with context
-        :param str filename: directory
-        :param str destination:
-        :param str context:
+        :param str filename: input filename
         :raise: FileSystemError
         :return: Bool
         """
@@ -124,7 +121,7 @@ class FileSystem(object):
 
                 return True
             except IOError as e:
-                raise FileSystemError(e)
+                raise FileSystemError(e.message)
         else:
             return False
 
@@ -156,12 +153,13 @@ class FileSystem(object):
     def read(filename):
         """
         Read .txt file
-        :param str filename: read filename
+        :param str filename: input filename
         :raise FileSystemError
         :return: list
         """
 
         filepath = os.path.join(os.getcwd(), filename)
+
         if not os.path.isfile(filepath):
             raise FileSystemError("{0} is not a file ".format(file))
         if not os.access(filepath, os.R_OK):
@@ -175,7 +173,7 @@ class FileSystem(object):
     def readcfg(filename):
         """
         Read .cfg file
-        :param str filename: read filename
+        :param str filename: input filename
         :raise FileSystemError
         :return: ConfigParser.RawConfigParser
         """
@@ -197,8 +195,8 @@ class FileSystem(object):
     def writelist(filename, data):
         """
         Write list to file
-        :param str filename: write filename
-        :param list data: list data
+        :param str filename: input filename
+        :param list data: record data
         :raise FileSystemError
         :return: None
         """
@@ -211,7 +209,6 @@ class FileSystem(object):
 
         with open(filepath, "w") as f_handler:
             f_handler.write("\n".join(data))
-
 
     @staticmethod
     def readraw(data):
@@ -234,8 +231,8 @@ class FileSystem(object):
     def human_size(size, precision=2):
         """
         Humanize accepted bytes
-        :param int size:
-        :param int precision:
+        :param int size: bytes
+        :param int precision: delimiter
         :return:
         """
 

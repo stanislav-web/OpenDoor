@@ -35,6 +35,6 @@ from .logger import LoggerException as exception
 from .logger import Logger as logger
 from .options import Options as options
 from .options.exceptions import OptionsError
-from .system import Process as process
+from .system import Term as process
 from .system import System as sys
 from .system.exceptions import CoreSystemError

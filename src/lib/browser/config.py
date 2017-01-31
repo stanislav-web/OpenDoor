@@ -32,7 +32,7 @@ class Config(object):
     def __init__(self, params):
         """
         Read filtered input params
-        :param params:
+        :param dict params: input cli arguments
         """
 
         self._default_scan = 'directories'
@@ -204,7 +204,7 @@ class Config(object):
     @property
     def is_random_user_agent(self):
         """
-        If ua randomize is available
+        If ua randomize and is available
         :return: bool
         """
 
@@ -213,7 +213,7 @@ class Config(object):
     @property
     def is_random_list(self):
         """
-        If scan list randomize is available
+        If scan list randomize and is available
         :return: bool
         """
 
@@ -222,7 +222,7 @@ class Config(object):
     @property
     def is_standalone_proxy(self):
         """
-        If using standalone proxy
+        If standalone proxy is available
         :return: bool
         """
 
@@ -235,7 +235,7 @@ class Config(object):
     @property
     def is_internal_torlist(self):
         """
-        If internal torlist
+        If internal torlist is available
         :return: bool
         """
 
@@ -246,7 +246,7 @@ class Config(object):
     @property
     def is_external_torlist(self):
         """
-        If external torlist
+        If external torlist is available
         :return: bool
         """
 
@@ -277,9 +277,10 @@ class Config(object):
     @property
     def reports(self):
         """
-        Torlist property
+        Reports resolves
         :return: list
         """
+
         reports = self._reports.split(",")
         if self.DEFAULT_REPORT not in reports:
             reports.append(self.DEFAULT_REPORT)
@@ -293,6 +294,15 @@ class Config(object):
         """
 
         return self._user_agent
+
+    def set_threads(self, threads):
+        """
+        Threads setter
+        :param int threads
+        :return: int
+        """
+
+        self._threads = threads
 
     @property
     def threads(self):

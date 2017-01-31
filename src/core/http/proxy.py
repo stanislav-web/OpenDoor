@@ -34,9 +34,8 @@ class Proxy(RequestProvider, DebugProvider):
     def __init__(self, config, debug, **kwargs):
         """
         Proxy instance
-        :param src.lib.browser.config.Config config:
-        :param DebugProvider debug:
-        :raise ProxyRequestError
+        :param src.lib.browser.config.Config config: global configurations
+        :param DebugProvider debug: debugger
         """
 
         try:
@@ -109,7 +108,6 @@ class Proxy(RequestProvider, DebugProvider):
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
 
-
     def __get_random_proxy(self):
         """
         Get random server from proxy list
@@ -118,14 +116,13 @@ class Proxy(RequestProvider, DebugProvider):
 
         index = random.randrange(0, len(self.__proxylist))
         server = self.__proxylist[index].strip()
-
         return server
 
     @classmethod
     def __get_proxy_type(cls, server):
         """
         Set proxy type
-        :param str server:
+        :param str server: input proxy server
         :return: str
         """
 

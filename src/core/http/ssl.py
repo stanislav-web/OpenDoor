@@ -30,9 +30,9 @@ class HttpsRequest(RequestProvider, DebugProvider):
 
     def __init__(self, config, debug, **kwargs):
         """
-        Request instance
-        :param src.lib.browser.config.Config config:
-        :param DebugProvider debug:
+        HttpsRequest instance
+        :param src.lib.browser.config.Config config: global configurations
+        :param DebugProvider debug: debugger
         """
 
         try:
@@ -52,7 +52,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
     def __https_pool(self):
         """
         Create HTTP connection pool
-        :raise HttpRequestError
+        :raise HttpsRequestError
         :return: urllib3.HTTPConnectionPool
         """
 

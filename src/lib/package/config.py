@@ -20,8 +20,12 @@
 class Config(object):
     """Config class"""
 
-    params = {'cvsupdate': '/usr/bin/git pull origin master', 'cvslog': '/usr/bin/git log --oneline -n 1',
-              'cfg': 'setup.cfg', 'required_version': '2.7', 'examples': """
+    params = {
+        'cvsupdate': '/usr/bin/git pull origin master',
+        'cvslog': '/usr/bin/git log --oneline -n 1',
+        'cfg': 'setup.cfg',
+        'required_version': '2.7',
+        'examples': """
 
             Examples:
                 python ./opendoor.py  --examples
@@ -33,10 +37,11 @@ class Config(object):
                 python ./opendoor.py --host "http://example.com" --threads 10
                 python ./opendoor.py --host "http://example.com" --threads 10 --tor
                 python ./opendoor.py --host "http://example.com" --threads 10 --delay 10
+                python ./opendoor.py --host "http://example.com" --threads 10 --prefix en/
                 python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10
                 python ./opendoor.py --host "http://example.com"  --random-list --threads 10 --delay 10 --timeout 10
                 python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1
-                python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1 --reports
+                python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1 --reports std,txt
             """, 'banner': """
 ############################################################
 #                                                          #
