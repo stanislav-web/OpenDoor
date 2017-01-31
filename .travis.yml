@@ -17,6 +17,7 @@ addons:
 
 install:
   - pip install -r requirements.txt
+  - '[ "${TRAVIS_PYTHON_VERSION}" = "2.6" ] && pip install importlib || true'
   - pip install python-coveralls
   - pip install coverage
   - pip install nose

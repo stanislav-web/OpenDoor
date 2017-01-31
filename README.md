@@ -21,6 +21,7 @@ This software is written for informational purposes and is an open source produc
 
 #### Requirements
 * Unix
+* Python 2.6.x
 * Python 2.7.x
 
 #### Maintainers
@@ -34,6 +35,10 @@ chmod +x opendoor.py
 Also, you have to install `socksipy` package if you'll use socks as proxy
 ```
 sudo apt-get install python-socksipy
+```
+Python 2.6.x additional requires
+```
+pip install importlib
 ```
 
 #### Implements
