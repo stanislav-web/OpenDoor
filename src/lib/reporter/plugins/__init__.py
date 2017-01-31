@@ -19,5 +19,5 @@
 from .std import StdReportPlugin as std
 from .txt import TextReportPlugin as txt
 from .json import JsonReportPlugin as json
-
+from .html import HtmlReportPlugin as html
 

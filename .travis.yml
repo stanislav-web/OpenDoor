@@ -22,6 +22,9 @@ install:
   - pip install mock
   - pip install nose
   - pip install unittest2
+  - pip install json2html
+  - pip install urllib3
+  - pip install tabulate
   - pip install pypandoc
   - pip install coveralls
 notifications:

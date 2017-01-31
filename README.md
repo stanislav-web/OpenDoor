@@ -59,7 +59,7 @@ sudo apt-get install python-socksipy
 
 #### [Changelog](CHANGELOG.md) (last changes)
 
-<sub>v3.0.1-alfa (31.01.2017)</sub>
+<sub>v3.0.1-beta (31.01.2017)</sub>
 -------------------------
     - relieved of unnecessary dependencies
     - fully optimized code inside

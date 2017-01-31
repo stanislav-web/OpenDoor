@@ -57,7 +57,7 @@ class FileSystem(object):
 
         if not os.path.exists(directory):
             try:
-                directory = os.path.join(os.getcwd(), directory)
+                directory = os.path.join(directory)
                 os.makedirs(directory + '/', mode=mode)
             except OSError as e:
                 if e.errno != errno.EEXIST:
@@ -71,7 +71,7 @@ class FileSystem(object):
         :return: str
         """
 
-        filename = os.path.join(os.getcwd(), filename)
+        filename = os.path.join(filename)
         return os.path.abspath(filename)
 
     @staticmethod
@@ -116,7 +116,7 @@ class FileSystem(object):
         :return: Bool
         """
 
-        filename = os.path.join(os.getcwd(), filename)
+        filename = os.path.join(filename)
 
         if False is os.path.exists(filename):
             try:
@@ -141,7 +141,7 @@ class FileSystem(object):
         :return: str
         """
 
-        filepath = os.path.join(os.getcwd(), filename)
+        filepath = os.path.join(filename)
         if not os.path.isfile(filepath):
             raise FileSystemError("{0} is not a file ".format(filepath))
         if not os.access(filepath, os.R_OK):
@@ -162,7 +162,7 @@ class FileSystem(object):
         :return: list
         """
 
-        filepath = os.path.join(os.getcwd(), filename)
+        filepath = os.path.join(filename)
 
         if not os.path.isfile(filepath):
             raise FileSystemError("{0} is not a file ".format(file))
@@ -182,7 +182,7 @@ class FileSystem(object):
         :return: ConfigParser.RawConfigParser
         """
 
-        filepath = os.path.join(os.getcwd(), filename)
+        filepath = os.path.join(filename)
         if not os.path.isfile(filepath):
             raise FileSystemError("{0} is not a file ".format(filepath))
         if not os.access(filepath, os.R_OK):
@@ -206,7 +206,7 @@ class FileSystem(object):
         :return: None
         """
 
-        filepath = os.path.join(os.getcwd(), filename)
+        filepath = os.path.join(filename)
         if not os.path.isfile(filepath):
             raise FileSystemError("{0} is not a file ".format(file))
         if not os.access(filepath, os.W_OK):

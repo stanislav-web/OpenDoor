@@ -49,7 +49,9 @@ setup(name='opendoor',
       packages=find_packages(), include_package_data=True,
 
       # Choose your license
-      license='GPL', test_suite='tests',
+      license='GPL',
+      # Unittests suite directory
+      test_suite='tests',
 
       # What does your project relate to?
       keywords=['owasp scanner', 'directory scanner', 'access directory scanner', 'web spider', 'auth scanner',
