@@ -2,7 +2,7 @@ OWASP Directory Access Scanner <sup>(redesigned)</sup>
 ==================================
 ![Alt text](http://dl2.joxi.net/drive/2016/08/04/0001/0378/90490/90/4b4470c268.jpg "Hackware")
 
-[![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor) [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor) [![Code Health](https://landscape.io/github/stanislav-web/OpenDoor/redesign/landscape.svg?style=flat)](https://landscape.io/github/stanislav-web/OpenDoor/redesign)
+[![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor) [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor) [![Code Health](https://landscape.io/github/stanislav-web/OpenDoor/master/landscape.svg?style=flat)](https://landscape.io/github/stanislav-web/OpenDoor/master)
  [![Codacy Badge](https://api.codacy.com/project/badge/Grade/edc54f96aa9748979f59d414daa978c6)](https://www.codacy.com/app/stanisov/OpenDoor?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=stanislav-web/OpenDoor&amp;utm_campaign=Badge_Grade) [![Say Thanks!](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)
 
 
@@ -11,8 +11,8 @@ This application scans the site directories and find all possible ways to login,
 Scans conducted in the dictionary that is included in this application.
 This software is written for informational purposes and is an open source product under the GPL license.
 
-* *Current v3.0.1-alfa (03.02.2017)*
-    - Directories - 26398
+* *Current v3.0.1-alfa (31.01.2017)*
+    - Directories - 26322
     - Subdomains - 101000
 
 ***Testing of the software on the commercial systems and organizations is prohibited!***
@@ -59,7 +59,7 @@ sudo apt-get install python-socksipy
 
 #### [Changelog](CHANGELOG.md) (last changes)
 
-<sub>v3.0.1-alfa (03.02.2017)</sub>
+<sub>v3.0.1-alfa (31.01.2017)</sub>
 -------------------------
     - relieved of unnecessary dependencies
     - fully optimized code inside

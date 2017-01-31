@@ -2,7 +2,7 @@ Changes
 =======
 
 
-v3.0.1-alfa (03.02.2017)
+v3.0.1-alfa (31.01.2017)
 --------------------
     - relieved of unnecessary dependencies
     - fully optimized code inside

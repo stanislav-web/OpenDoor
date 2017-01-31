@@ -97,4 +97,5 @@ setup(name='opendoor',
           'Programming Language :: Python :: 2.7',
 
           # Specify the additional categories
-          'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking'])
+          'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking']
+      )
