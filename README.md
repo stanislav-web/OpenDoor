@@ -36,10 +36,6 @@ Also, you have to install `socksipy` package if you'll use socks as proxy
 ```
 sudo apt-get install python-socksipy
 ```
-Python 2.6.x additional requires
-```
-pip install importlib
-```
 
 #### Implements
 - [x] multithreading control
