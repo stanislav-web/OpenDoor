@@ -33,8 +33,14 @@ class Options(object):
 
         self.__standalone = ["version", "update", "examples"]
 
-        __groups = {'request': "Request tools", 'stream': "Stream tools", 'debug': "Debug tools",
-                  'wordlist': "Wordlist tools", 'sniff': "Sniff tools", 'app': "Application tools",}
+        __groups = {
+            'request': "Request tools",
+            'stream': "Stream tools",
+            'debug': "Debug tools",
+            'wordlist': "Wordlist tools",
+            'sniff': "Sniff tools",
+            'app': "Application tools"
+        }
 
 
         __arguments = [{"group": "request", "args": "-p", "argl": "--port", "default": 80, "action": "store",
