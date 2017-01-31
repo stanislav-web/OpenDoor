@@ -18,7 +18,7 @@
 """
 
 import sys
-from src import Controller, SrcError
+
 
 for module in ['urllib3', 'json2html','tabulate']:
     try:
@@ -28,6 +28,8 @@ for module in ['urllib3', 'json2html','tabulate']:
             Please run sudo pip install -r requirements.txt """)
 
 if __name__ == "__main__":
+
+    from src import Controller, SrcError
 
     try:
         bootstrap = Controller()
