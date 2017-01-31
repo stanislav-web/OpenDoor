@@ -1,6 +1,6 @@
 """Controller class test"""
 
-import unittest2
+import unittest2 as unittest
 
 
 class TestController(unittest.TestCase):
