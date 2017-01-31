@@ -5,10 +5,10 @@ OWASP Directory Access Scanner
  [![Codacy Badge](https://api.codacy.com/project/badge/Grade/edc54f96aa9748979f59d414daa978c6)](https://www.codacy.com/app/stanisov/OpenDoor?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=stanislav-web/OpenDoor&amp;utm_campaign=Badge_Grade) [![Say Thanks!](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)
 
 
-
-This application scans the site directories and find all possible ways to login, empty directories and entry points.
-Scans conducted in the dictionary that is included in this application.
+This application scans the site directories and find all possible ways to login, index of/ dirs and entry points.
+The scanning is performed by the dictionary that came with the software. Possiblly to use own dictionaries.
 This software is written for informational purposes and is an open source product under the GPL license.
+
 
 * *Current v3.0.2-beta (31.01.2017)*
     - Directories - 26322
