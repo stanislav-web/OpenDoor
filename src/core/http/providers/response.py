@@ -51,7 +51,7 @@ class ResponseProvider(object):
 
         regex = re.compile('<title>(.*?)</title>', re.IGNORECASE | re.DOTALL)
         title = regex.search(self.INDEX_OF_TITLE)
-        if None is not title:
+        if None is not title.group():
             return True
         return False
 
