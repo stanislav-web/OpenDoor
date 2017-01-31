@@ -60,7 +60,7 @@ class System(object):
     def exit(msg):
         """
         Abort session
-        :param str msg: text message
+        :param str msg: input message
         :return: None
         """
 
@@ -70,8 +70,8 @@ class System(object):
     def writels(msg, flush=True):
         """
         Write to stdout on one line dynamically
-        :param str msg: text message
-        :param bool flush: force flush
+        :param str msg: input message
+        :param bool flush: force clear line
         :return: None
         """
 
@@ -83,7 +83,7 @@ class System(object):
     def writeln(msg):
         """
         Write new line
-        :param str msg: text message
+        :param str msg: input message
         :return: None
         """
 

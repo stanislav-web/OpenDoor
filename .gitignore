@@ -4,7 +4,6 @@
 *.swp
 opendoor.egg-info/
 /syslog/
-/data/directories.dat.back
 /dist/
 /tmp/
 /reports/

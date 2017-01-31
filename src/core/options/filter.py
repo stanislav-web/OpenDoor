@@ -17,7 +17,6 @@
 """
 
 import re
-from urlparse import urlparse
 
 from src.core import helper
 from .exceptions import FilterError
@@ -54,14 +53,14 @@ class Filter(object):
         return filtered
 
     @staticmethod
-    def scheme(host):
+    def scheme(hostname):
         """
         Get `host` scheme from input
-        :param str host:
+        :param str hostname: input hostname
         :return: str
         """
 
-        scheme = helper.parse_url(host).scheme
+        scheme = helper.parse_url(hostname).scheme
         if not scheme:
             scheme = 'http'
         return scheme + "://"
@@ -70,44 +69,45 @@ class Filter(object):
     def ssl(scheme):
         """
         If `ssl` in action
-        :param str scheme:
+        :param str scheme: scheme protocol
         :return: bool
         """
+
         return 'https://' == scheme
 
     @staticmethod
-    def host(host):
+    def host(hostname):
         """
         Input `host` param filter
-        :param str host:
+        :param str hostname: input hostname
         :raise FilterError
         :return: str
         """
 
-        if not re.search('http', host, re.IGNORECASE):
-            if re.search('https', host, re.IGNORECASE):
-                host = "https://" + host
+        if not re.search('http', hostname, re.IGNORECASE):
+            if re.search('https', hostname, re.IGNORECASE):
+                hostname = "https://" + hostname
             else:
-                host = "http://" + host
+                hostname = "http://" + hostname
 
-        host = helper.parse_url(host).netloc
+        hostname = helper.parse_url(hostname).netloc
 
         regex = re.compile(r"" + Filter.URL_REGEX + "")
 
-        if not regex.match(host):
-            raise FilterError("\"{0}\" is invalid host in --host. Use ip, http(s) or just hostname".format(host))
-        return host
+        if not regex.match(hostname):
+            raise FilterError("\"{0}\" is invalid host in --host. Use ip, http(s) or just hostname".format(hostname))
+        return hostname
 
     @staticmethod
     def proxy(proxyaddress):
         """
         Input `proxy` param filter
-        :param str proxyaddress:
+        :param str proxyaddress: input proxy server address
         :raise FilterError
         :return: str
         """
 
-        proxy = urlparse(proxyaddress)
+        proxy = helper.parse_url(proxyaddress)
 
         if proxy.scheme not in ['http', 'https', 'socks4', 'socks5'] or None is proxy.port:
             raise FilterError("\"{0}\" is invalid proxy in --proxy. Use scheme:ip:port format".format(proxyaddress))
@@ -117,7 +117,7 @@ class Filter(object):
     def scan(choise):
         """
         Input `scan` type filter
-        :param str choise:
+        :param str choise: preferred scan type
         :return: str
         """
 

@@ -11,6 +11,7 @@ install:
   - pip install python-coveralls
   - pip install coverage
   - pip install nose
+  - pip install coveralls
 notifications:
   email:
     on_success: never

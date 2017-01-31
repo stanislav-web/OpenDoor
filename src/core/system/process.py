@@ -21,13 +21,15 @@ import subprocess
 from .exceptions import CoreSystemError
 
 
-class Term(object):
-    """ Term class"""
+class Process(object):
+    """ Process class"""
 
     def __init__(self, classname=None, typeobj=None, params=None):
         """
-        Init class
-        :return:
+        Init metaclass
+        :param classname: passed classname
+        :param str typeobj: passed classname type
+        :param dict params: passed params
         """
 
         del classname, typeobj, params
@@ -46,12 +48,6 @@ class Term(object):
             ts = {'height': height, 'width': width}
             self.ts = ts
         return self.ts
-
-
-class Process(object):
-    """Process class"""
-
-    __metaclass__ = Term
 
     @staticmethod
     def system(command):
@@ -72,10 +68,11 @@ class Process(object):
     def execute(process):
         """
         Exceute OS process
-        :param str command: os command
-        :raise SystemError
+        :param str process: os command
+        :raise CoreSystemError
         :return: dic
         """
+
         try:
             pr = subprocess.Popen(process, cwd=os.getcwd(), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             (out, error) = pr.communicate()
@@ -85,3 +82,9 @@ class Process(object):
             return out
         except (subprocess.CalledProcessError, OSError) as e:
             raise CoreSystemError(e)
+
+
+class Term(object):
+    """Term class"""
+
+    __metaclass__ = Process

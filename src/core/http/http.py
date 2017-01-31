@@ -30,9 +30,9 @@ class HttpRequest(RequestProvider, DebugProvider):
 
     def __init__(self, config, debug, **kwargs):
         """
-        Request instance
-        :param src.lib.browser.config.Config config:
-        :param DebugProvider debug:
+        HttpRequest instance
+        :param src.lib.browser.config.Config config: global configurations
+        :param DebugProvider debug: debugger
         """
 
         try:

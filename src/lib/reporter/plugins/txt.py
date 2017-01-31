@@ -50,17 +50,18 @@ class TextReportPlugin(PluginProvider):
         :return: str
         """
 
-        filesystem.clear(self.__target_dir)
         resultset = self._data.get('items').items()
 
         try:
+            filesystem.clear(self.__target_dir, extension=self.EXTENSION_SET)
+
             for status, data in resultset:
 
-                if 'failed' != status:
+                if status not in ['failed','ignored']:
                     filename = "".join((self.__target_dir, filesystem.sep, status, self.EXTENSION_SET))
                     filesystem.makefile(filename)
-                    filesystem.writelist(filename, data)
-                    tpl.info(key='report', plugin=self.PLUGIN_NAME, dest=filename)
+                    filesystem.writelist(filename, data, separator='\n')
+                    tpl.info(key='report', plugin=self.PLUGIN_NAME, dest=filesystem.getabsname(filename))
 
         except FileSystemError as e:
             raise Exception(e)

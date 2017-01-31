@@ -70,7 +70,8 @@ setup(name='opendoor',
 
       # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
       # How mature is this project? Common values are
-      classifiers=[#   3 - Alpha
+      classifiers=[
+          #   3 - Alpha
           #   4 - Beta
           #   5 - Production/Stable
           'Development Status :: 4 - Beta',
@@ -97,4 +98,5 @@ setup(name='opendoor',
           'Programming Language :: Python :: 2.7',
 
           # Specify the additional categories
-          'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking'])
+          'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking'
+      ])

@@ -29,10 +29,11 @@ class Worker(threading.Thread):
     """Worker class"""
 
     def __init__(self, queue, num_threads, timeout=None):
-
         """
         Init thread worker
-        :param Queue.Queue queue:
+        :param Queue.Queue queue: simple queue object
+        :param int num_threads: threads numbers
+        :param int timeout: delay timeout
         """
 
         super(Worker, self).__init__()
@@ -110,7 +111,9 @@ class Worker(threading.Thread):
     def terminate(cls, msg):
         """
         Terminate thread
+        :param str msg: output message
         :return: None
         """
+
         tpl.error(msg)
         sys.kill()

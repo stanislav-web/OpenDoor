@@ -64,7 +64,7 @@ class Options(object):
                  {"group": "wordlist", "args": "-w", "argl": "--wordlist", "default": None, "action": "store",
                   "help": "Path to external wordlist", "type": str},
                  {"group": "wordlist", "args": None, "argl": "--reports", "default": "std", "action": "store",
-                  "help": "Scan reports (json,std,plain)", "type": str},
+                  "help": "Scan reports (json,std,txt)", "type": str},
                  {"group": "request", "args": None, "argl": "--random-agent", "default": False, "action": "store_true",
                   "help": "Randomize user-agent per request", "type": bool},
                  {"group": "wordlist", "args": None, "argl": "--random-list", "default": False, "action": "store_true",

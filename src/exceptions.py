@@ -20,10 +20,10 @@
 class SrcError(Exception):
     """SrcError class"""
 
-    def __init__(self, message):
+    def __init__(self, error):
         """
          SrcError class constructor
-         :param str message: error message
+         :param str error: error message
          """
 
-        super(SrcError, self).__init__(message)
+        super(SrcError, self).__init__(error)

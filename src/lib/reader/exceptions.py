@@ -24,7 +24,7 @@ class ReaderError(Exception):
     def __init__(self, error):
         """
         ReaderError class constructor
-        :param Exception exception: error
+        :param str error: error message
         """
 
         class_name = type(error).__name__

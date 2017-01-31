@@ -24,18 +24,23 @@ class AcceptHeaderProvider(object):
 
     def __init__(self):
         """
-         Init constructor
+        Init interface
         """
 
-        self.__accept = ('*.*, q=0.1', 'text/plain,*/*;q=0.8', 'text/html,*/*;q=0.8',
+        self.__accept = ('*.*, q=0.1',
+                         'text/plain,*/*;q=0.8',
+                         'text/html,*/*;q=0.8',
                          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',)
+                         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+                         )
 
         self.__accept_encoding = ('gzip, deflate, sdch', 'gzip, deflate, br')
 
         self.__accept_language = (
-            'en-US,en;q=0.5,ru-RU,ru;q=0.8', 'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4,uk;q=0.2,es;q=0.2,pl;q=0.2',
-            'da, en-gb;q=0.8, en;q=0.7')
+            'en-US,en;q=0.5,ru-RU,ru;q=0.8',
+            'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4,uk;q=0.2,es;q=0.2,pl;q=0.2',
+            'da, en-gb;q=0.8, en;q=0.7'
+        )
 
     @property
     def _accept(self):

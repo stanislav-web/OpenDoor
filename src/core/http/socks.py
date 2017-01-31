@@ -34,6 +34,7 @@ class Socket(object):
         :raise SocketError
         :return: None
         """
+
         sock = socket.socket()
 
         try:
@@ -50,7 +51,7 @@ class Socket(object):
     def get_ip_address(host):
         """
         Get remote ip address
-        :param str host: target  host
+        :param str host: target host
         :raise SocketError
         :return: str
         """

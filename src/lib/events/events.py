@@ -25,7 +25,7 @@ class EventHandler(object):
     @staticmethod
     def terminate():
         """
-        Define terminate event handler
+        Define termination event handler
         :return: None
         """
 

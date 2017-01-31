@@ -39,6 +39,7 @@ class ResponseProvider(object):
         Response instance
         :param src.lib.browser.config.Config config: configurations
         """
+
         self._cfg = config
 
     @property
@@ -58,8 +59,8 @@ class ResponseProvider(object):
     def _get_redirect_url(cls, url, response):
         """
         Get redirect url
-        :param str url:
-        :param urllib3.response.HTTPResponse response:
+        :param str url: redirect url
+        :param urllib3.response.HTTPResponse response: response object
         :return: str
         """
 
@@ -80,7 +81,7 @@ class ResponseProvider(object):
         """
         Detect response by status code
         :param str request_url: request url
-        :param urllib3.response.HTTPResponse response:
+        :param urllib3.response.HTTPResponse response: response object
         :raise Exception
         :return: str
         """
@@ -96,7 +97,7 @@ class ResponseProvider(object):
         elif response.status in self.DEFAULT_HTTP_FAILED_STATUSES:
             return 'failed'
         elif response.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
-            if  response.get_redirect_location() is not False:
+            if response.get_redirect_location() is not False:
                 urlfrag = helper.parse_url(request_url)
                 redirect_url = response.get_redirect_location().rstrip('/')
 
@@ -115,7 +116,7 @@ class ResponseProvider(object):
 
     def handle(self, response, request_url, items_size, total_size):
         """
-        Handle response
+        Response handler
         :param urllib3.response.HTTPResponse response: response object
         :param str request_url: url from request
         :param int items_size: current items sizes
@@ -123,13 +124,13 @@ class ResponseProvider(object):
         :raise ResponseError
         :return: dict
         """
+
         pass
 
     @staticmethod
     def _get_content_size(response):
         """
         Get content size
-
         :param urllib3.response.HTTPResponse response: response object
         :return: str
         """

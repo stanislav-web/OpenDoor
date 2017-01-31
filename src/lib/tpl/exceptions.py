@@ -25,4 +25,5 @@ class TplError(Exception):
         TplError class constructor
         :param str message: error message
         """
+
         super(TplError, self).__init__(message)

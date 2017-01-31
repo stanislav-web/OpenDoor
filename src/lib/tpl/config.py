@@ -61,4 +61,5 @@ class Config(object):
         'read_timeout_error': 'Connection timeout! {url}. Increase using --timeout option',
         'success': 'OK {url}',
         'file': 'File {url}', 'indexof': 'Index {url}',
-        'forbidden': 'Denied {url}', 'redirect': 'R {url} -> {rurl}'}
+        'forbidden': 'Denied {url}', 'redirect': 'R {url} -> {rurl}'
+    }

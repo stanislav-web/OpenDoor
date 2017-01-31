@@ -28,6 +28,7 @@ def execution_time(function=None, log=None):
     :param funct log: logger
     :return: func
     """
+
     if not function:
         return functools.partial(execution_time, log=log)
 

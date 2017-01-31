@@ -115,7 +115,7 @@ class Package(object):
             tpl.message(banner)
 
         except CoreSystemError as e:
-            raise PackageError(e)
+            raise PackageError(e.message)
 
     @staticmethod
     def local_version():
@@ -129,7 +129,7 @@ class Package(object):
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'version')
         except FileSystemError as e:
-            raise PackageError(e)
+            raise PackageError(e.message)
 
     @staticmethod
     def __app_name():
@@ -143,7 +143,7 @@ class Package(object):
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'name')
         except FileSystemError as e:
-            raise PackageError(e)
+            raise PackageError(e.message)
 
     @staticmethod
     def __remote_version():
@@ -170,7 +170,7 @@ class Package(object):
     @staticmethod
     def __current_version():
         """
-        Get application current version
+        Get current application version
         :raise PackageError
         :return: str
         """
@@ -200,7 +200,7 @@ class Package(object):
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'repository')
         except FileSystemError as e:
-            raise PackageError(e)
+            raise PackageError(e.message)
 
     @staticmethod
     def __license():
@@ -214,7 +214,7 @@ class Package(object):
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'license')
         except FileSystemError as e:
-            raise PackageError(e)
+            raise PackageError(e.message)
 
     @staticmethod
     def __directories_count():
@@ -231,7 +231,7 @@ class Package(object):
             return count
 
         except FileSystemError as e:
-            raise PackageError(e)
+            raise PackageError(e.message)
 
     @staticmethod
     def __subdomains_count():
@@ -249,7 +249,7 @@ class Package(object):
             return count
 
         except FileSystemError as e:
-            raise PackageError(e)
+            raise PackageError(e.message)
 
     @staticmethod
     def __browsers_count():
@@ -267,7 +267,7 @@ class Package(object):
             return count
 
         except FileSystemError as e:
-            raise PackageError(e)
+            raise PackageError(e.message)
 
     @staticmethod
     def __proxies_count():
@@ -285,4 +285,4 @@ class Package(object):
             return count
 
         except FileSystemError as e:
-            raise PackageError(e)
+            raise PackageError(e.message)

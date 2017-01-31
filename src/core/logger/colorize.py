@@ -131,18 +131,3 @@ class ColorizingStreamHandler(logging.StreamHandler):
                             else:
                                 pass  # error condition ignored
                         ctypes.windll.kernel32.SetConsoleTextAttribute(h, color)
-
-    def format(self, record):
-        """
-        Format text message
-        :param object record: message handler
-        :return: string
-        """
-
-        message = logging.StreamHandler.format(self, record)
-        if self.is_tty:
-            # Don't colorize any traceback
-            parts = message.split('\n', 1)
-            parts[0] = self.colorize(parts[0], record)
-            message = '\n'.join(parts)
-        return message

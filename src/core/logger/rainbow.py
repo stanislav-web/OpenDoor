@@ -20,7 +20,7 @@ import logging
 import re
 
 from colorize import ColorizingStreamHandler
-from src.core.system import Process
+from src.core.system import Term
 
 
 class RainbowLoggingHandler(ColorizingStreamHandler):
@@ -99,7 +99,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         # Clean cache so the color codes of traceback don't leak to other formatters
         record.ext_text = None
 
-        width = int(Process.terminal_size.get('width'))
+        width = int(Term.terminal_size.get('width'))
         if record.levelno != logging.DEBUG:
             if len(output) > width and record.levelno != logging.ERROR:
                 output = (output[:(width)] + '...')
@@ -113,8 +113,8 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
     def __pure_line_len(self, string):
         """
         Get pure line
-        :param str string:
-        :return:
+        :param str string: input string
+        :return: str
         """
 
         ansi_escape = re.compile(r'\x1b[^m]*m')
@@ -123,8 +123,8 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
     def colorize_traceback(self, formatter, record):
         """
         Turn traceback text to red
-        :param object formatter:
-        :param object record:
+        :param object formatter: format object
+        :param object record: record meta object
         :return: None
         """
 
@@ -133,17 +133,17 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
             # (it's constant anyway)
             record.exc_text = "".join([self.get_color("red"), formatter.formatException(record.exc_info), self.reset, ])
 
-    def format(self, record):
+    def format(self, string):
         """
         Formats a record for output.
         Takes a custom formatting path on a terminal.
-        :param str record: input message
+        :param str string: input string
         :return: str
         """
 
         if self.is_tty:
-            message = self.colorize(record)
+            message = self.colorize(string)
         else:
-            message = logging.StreamHandler.format(self, record)
+            message = logging.StreamHandler.format(self, string)
 
         return message

@@ -9545,7 +9545,7 @@ drupalit/
 drv/
 ds/
 dsa/
-dsadmin
+dsadmin/
 dsc/
 dsefu/
 dsl/
@@ -9577,7 +9577,7 @@ dulce/
 dummy
 dummy.php
 dummy/
-dump
+dump.phtml
 dump.7z
 dump.inc
 dump.inc.old
@@ -9612,7 +9612,7 @@ dv_plus/
 dvbbs/
 dvd-store/
 dvd/
-dvdadmin
+dvdadmin/
 dvds/
 dvwa/
 dw/
