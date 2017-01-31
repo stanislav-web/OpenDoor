@@ -3,15 +3,24 @@ python:
   - 2.6
   - 2.7
 
+cache:
+  pip: true
+
 before_install:
   - python --version
   - uname -a
+addons:
+  apt:
+    packages:
+    # install pandoc for use with pypandoc for converting the README
+    - pandoc
+
 install:
   - pip install -r requirements.txt
   - pip install python-coveralls
   - pip install coverage
   - pip install nose
-  - pip install pyandoc
+  - pip install pypandoc
   - pip install coveralls
 notifications:
   email:
