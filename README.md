@@ -15,7 +15,7 @@ The scanning is performed by the dictionary that came with the software. Possibl
 This software is written for informational purposes and is an open source product under the GPL license.
 
 
-* *Current v3.0.2-beta (31.01.2017)*
+* *Current v3.0.1-beta (31.01.2017)*
     - Directories - 26322
     - Subdomains - 101000
 
