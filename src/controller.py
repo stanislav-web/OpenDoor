@@ -123,7 +123,7 @@ class Controller(object):
         """
 
         try:
-            return package.local_version()
+            tpl.message(package.local_version())
         except (AttributeError, PackageError) as e:
             raise SrcError(e)
 

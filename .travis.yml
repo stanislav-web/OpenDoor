@@ -21,7 +21,6 @@ addons:
 
 install:
   - pip install -r requirements.txt
-  - pip install python-coveralls
   - pip install coverage
   - pip install mock
   - pip install unittest2
@@ -37,6 +36,6 @@ notifications:
 
 # change from 'script: python setup.py test' to this
 script:
-  - coverage run --source=opendoor setup.py test
+  - coverage run --source=src/ setup.py test
 after_success:
     coveralls

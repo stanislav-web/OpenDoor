@@ -180,10 +180,10 @@ class Package(object):
             remote = Package.__remote_version()
 
             if True is helper.is_less(local, remote):
-                version = tpl.line(local, color='red')
+                current_version = tpl.line(local, color='red')
             else:
-                version = tpl.line(local, color='green')
-            return version
+                current_version = tpl.line(local, color='green')
+            return current_version
 
         except (FileSystemError, CoreSystemError, PackageError) as e:
             raise PackageError(e)
