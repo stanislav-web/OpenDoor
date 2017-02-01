@@ -16,9 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-import sys
 import unittest2 as unittest
-
 
 class TestReader(unittest.TestCase):
     """ TestReader class"""
@@ -30,7 +28,7 @@ class TestReader(unittest.TestCase):
         pass
 
     @unittest.skip("unresolved")
-    def test_get_ignored_agents(self):
+    def test_get_ignored_list(self):
         """ Reader.get_ignored_list() test """
 
         pass

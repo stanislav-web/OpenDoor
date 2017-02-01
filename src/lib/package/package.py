@@ -52,10 +52,11 @@ class Package(object):
     def examples():
         """
         Load examples of usage
-        :return: None
+        :return: str
         """
 
-        tpl.message(Config.params.get('examples'))
+        examples = Config.params.get('examples')
+        return examples
 
     @staticmethod
     def banner():
@@ -63,7 +64,7 @@ class Package(object):
         Load application banner
 
         :raise PackageError
-        :return: None
+        :return: str
         """
 
         try:
@@ -74,7 +75,8 @@ class Package(object):
                 tpl.line('Browsers: {0}'.format(Package.__browsers_count()), color='blue'),
                 tpl.line('Proxies: {0}'.format(Package.__proxies_count()), color='blue'),
                 tpl.line(Package.__license(), color='blue'))
-            tpl.message(banner)
+
+            return banner
 
         except (FileSystemError, CoreSystemError, PackageError) as e:
             raise PackageError(e)
@@ -84,7 +86,7 @@ class Package(object):
         """
         Load application version
         :raise PackageError
-        :return: None
+        :return: str
         """
 
         try:
@@ -93,7 +95,7 @@ class Package(object):
                                                           Package.__remote_version(), Package.__repo(),
                                                           Package.__license())
 
-            tpl.message(version)
+            return version
 
         except (FileSystemError, CoreSystemError, PackageError) as e:
             raise PackageError(e)
@@ -103,16 +105,14 @@ class Package(object):
         """
         Check for update
         :raise PackageError
-        :return: None
+        :return: str
         """
 
         try:
             status = process.execute(Config.params.get('cvsupdate'))
             upd_status = tpl.line(status, color='green')
-
-            banner = Config.params.get('update').format(status=upd_status)
-
-            tpl.message(banner)
+            msg = Config.params.get('update').format(status=upd_status)
+            return msg
 
         except CoreSystemError as e:
             raise PackageError(e.message)

@@ -64,7 +64,7 @@ class Controller(object):
 
         try:
 
-            package.banner()
+            tpl.message(package.banner())
 
             if 'host' in self.ioargs:
                 getattr(self, 'scan_action')(self.ioargs)
@@ -85,7 +85,7 @@ class Controller(object):
         :return: None
         """
 
-        package.examples()
+        tpl.message(package.examples())
 
     @staticmethod
     def update_action():
@@ -96,7 +96,7 @@ class Controller(object):
         """
 
         try:
-            package.update()
+            tpl.message(package.update())
         except (AttributeError, PackageError) as e:
             raise SrcError(e)
 
@@ -110,7 +110,7 @@ class Controller(object):
         """
 
         try:
-            package.version()
+            tpl.message(package.version())
         except (AttributeError, PackageError) as e:
             raise SrcError(e)
 

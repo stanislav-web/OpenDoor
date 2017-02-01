@@ -16,7 +16,6 @@
     Development Team: Stanislav WEB
 """
 
-import sys
 import unittest2 as unittest
 from src.lib.package import Package
 from src.core.filesystem import FileSystem
@@ -30,29 +29,33 @@ class TestPackage(unittest.TestCase):
         expected = Package.check_interpreter()
         self.assertTrue(expected)
 
-    @unittest.skip("unresolved")
     def test_examples(self):
         """ Package.examples() test """
 
-        pass
+        expected = Package.examples()
+        self.assertIsNotNone(expected)
+        self.assertIs(type(expected), str)
 
-    @unittest.skip("unresolved")
     def test_banner(self):
         """ Package.banner() test """
 
-        pass
+        expected = Package.banner()
+        self.assertIsNotNone(expected)
+        self.assertIs(type(expected), str)
 
-    @unittest.skip("unresolved")
     def test_version(self):
         """ Package.version() test """
 
-        pass
+        expected = Package.version()
+        self.assertIsNotNone(expected)
+        self.assertIs(type(expected), str)
 
-    @unittest.skip("unresolved")
     def test_update(self):
         """ Package.update() test """
 
-        pass
+        expected = Package.update()
+        self.assertIsNotNone(expected)
+        self.assertIs(type(expected), str)
 
     def test_local_version(self):
         """ Package.local_version() test """

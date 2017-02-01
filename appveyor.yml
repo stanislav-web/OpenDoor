@@ -1,0 +1,74 @@
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+# version format
+version: '{build}-{branch}'
+
+# branches to build
+branches:
+  # whitelist
+  only:
+    - master
+
+# Do not build on tags (GitHub and BitBucket)
+skip_tags: true
+
+# Skipping commits affecting specific files (GitHub only). More details here: /docs/appveyor-yml
+skip_commits:
+  files:
+    - docs/*
+    - data/*
+
+# Maximum number of concurrent jobs for the project
+max_jobs: 1
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+# clone directory
+clone_folder: C:\projects\opendoor
+
+# set clone depth
+clone_depth: 1
+
+# setting up etc\hosts file
+hosts:
+  web-server: 127.0.0.1
+
+# this is how to allow failing jobs in the matrix
+matrix:
+  fast_finish: true     # set this flag to immediately finish build once one of the jobs fails.
+  allow_failures:
+    - platform: x86
+      configuration: Debug
+    - platform: x64
+      configuration: Debug
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+# build platform, i.e. x86, x64, Any CPU. This setting is optional.
+platform: Any CPU
+
+environment:
+    matrix:
+        - TEST_SUITE: "coverage run --source=opendoor setup.py test"
+
+# to add several configurations to build matrix:
+#configuration:
+#  - Debug
+#  - Release
+
+build: off
+
+#---------------------------------#
+#       tests configuration       #
+#---------------------------------#
+
+
+# to run your custom scripts instead of automatic tests
+test_script:
+   - cmd: "%TEST_SUITE%"
