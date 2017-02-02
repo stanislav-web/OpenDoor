@@ -1,4 +1,3 @@
-Charset: UTF-8
 version: 1.0.{build}
 branches:
   only:
