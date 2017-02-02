@@ -78,7 +78,6 @@ install:
   - "%CMD_IN_ENV% pip install coverage"
   - "%CMD_IN_ENV% pip install mock"
   - "%CMD_IN_ENV% pip install unittest2"
-  - "%CMD_IN_ENV% pip install pypandoc"
   - "%CMD_IN_ENV% pip install coveralls"
 
 build: off

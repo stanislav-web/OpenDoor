@@ -13,17 +13,11 @@ before_install:
   - python --version
   - uname -a
 
-addons:
-  apt:
-    packages:
-      - pandoc
-
 install:
   - pip install -r requirements.txt
   - pip install coverage
   - pip install mock
   - pip install unittest2
-  - pip install pypandoc
   - pip install coveralls
 notifications:
   email:

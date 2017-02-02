@@ -17,15 +17,11 @@
 """
 
 import glob
-import pypandoc
 from setuptools import setup, find_packages
 
 from src import Controller
 
-try:
-    LONG_DESCRIPTION = pypandoc.convert('README.md', 'rst')
-except(IOError, ImportError):
-    LONG_DESCRIPTION = open('README.md').read()
+LONG_DESCRIPTION = open('README.md').read()
 
 setup(name='opendoor',
 
