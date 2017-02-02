@@ -8,27 +8,23 @@ OWASP Directory Access Scanner
 
 |  Python | Linux  |  OSX | Windows  |
 |:-:|:-:|:-:|:-:|
-|2.6|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | ?  |
-|2.7|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | ?  |
+|2.6|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)
+  |
+|2.7|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)
+  |
 
 This application scans the site directories and find all possible ways to login, index of/ dirs and entry points.
 The scanning is performed by the dictionary that came with the software. Possiblly to use own dictionaries.
 This software is written for informational purposes and is an open source product under the GPL license.
 
-
-* *Current v3.0.1-beta (31.01.2017)*
-    - Directories - 26322
+* *Current v3.0.2-beta (02.02.2017)*
+    - Directories - 26506
     - Subdomains - 101000
 
 ***Testing of the software on the commercial systems and organizations is prohibited!***
 
 ![Alt text](http://dl3.joxi.net/drive/2017/01/30/0001/0378/90490/90/e309742b5c.jpg "OpenDoor OWASP")
 
-
-#### Requirements
-* Unix
-* Python 2.6.x
-* Python 2.7.x
 
 #### Maintainers
 - @stanislav-web <https://github.com/stanislav-web> (Developer)
@@ -71,7 +67,7 @@ sudo apt-get install python-socksipy
 
 #### [Changelog](CHANGELOG.md) (last changes)
 
-<sub>v3.0.1-beta (31.01.2017)</sub>
+<sub>v3.0.2-beta (31.01.2017)</sub>
 -------------------------
     - relieved of unnecessary dependencies
     - fully optimized code inside
