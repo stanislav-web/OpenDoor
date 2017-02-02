@@ -2065,7 +2065,7 @@ Site.admin
 SiteMap/
 SiteScope/
 SiteServer/
-SiteServer/Admin
+SiteServer/Admin/
 SiteServer/Admin/commerce/foundation/DSN.php
 SiteServer/Admin/commerce/foundation/driver.php
 SiteServer/Admin/knowledge/dsmgr/default.php
@@ -2100,7 +2100,7 @@ StockQuote/services/xmltoday-delayed-quotes
 StockQuote/services/xmltoday-delayed-quotes/wsdl/
 StockServlet
 SugarCRM
-Super-Admin
+Super-Admin.php
 Super-Admin/
 Superadmin
 Support/
@@ -2109,7 +2109,7 @@ Symlink.php
 Symlink.pl
 SysAdmin/
 SysAdmin2/
-Sysadmin
+Sysadmin.pl
 System.php
 System/
 System/auth/
@@ -2117,7 +2117,7 @@ SystemAdmin/
 SystemAdmin/eWebEdit/
 System_Ctrl/
 T/
-T3AdminMain
+T3AdminMain/
 TEMP/
 TEST/
 TESTS/

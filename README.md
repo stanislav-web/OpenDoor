@@ -2,7 +2,7 @@ OWASP Directory Access Scanner
 ==================================
 
 [![Coverage Status](https://coveralls.io/repos/github/stanislav-web/OpenDoor/badge.svg?branch=master)](https://coveralls.io/github/stanislav-web/OpenDoor?branch=master) [![Code Health](https://landscape.io/github/stanislav-web/OpenDoor/master/landscape.svg?style=flat)](https://landscape.io/github/stanislav-web/OpenDoor/master)
- [![Codacy Badge](https://api.codacy.com/project/badge/Grade/edc54f96aa9748979f59d414daa978c6)](https://www.codacy.com/app/stanisov/OpenDoor?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=stanislav-web/OpenDoor&amp;utm_campaign=Badge_Grade) [![Say Thanks!](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)
+ [![Codacy Badge](https://api.codacy.com/project/badge/Grade/edc54f96aa9748979f59d414daa978c6)](https://www.codacy.com/app/stanisov/OpenDoor?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=stanislav-web/OpenDoor&amp;utm_campaign=Badge_Grade)
 
 
 
@@ -29,7 +29,7 @@ This software is written for informational purposes and is an open source produc
 #### Maintainers
 - @stanislav-web <https://github.com/stanislav-web> (Developer)
 
-#### Dependencies [![Requirements Status](https://requires.io/github/stanislav-web/OpenDoor/requirements.svg?branch=master)](https://requires.io/github/stanislav-web/OpenDoor/requirements/?branch=master)
+#### Dependencies
 * urllib3
 * importlib
 * json2html
@@ -51,6 +51,7 @@ sudo apt-get install python-socksipy
 - [x] directories scanner
 - [x] subdomains scanner
 - [x] HTTP(S) (PORT) support
+- [x] Keep-alive long pooling
 - [x] HTTP(S)/SOCKS proxies
 - [x] dynamic request header
 - [x] detect redirects
@@ -150,7 +151,7 @@ coverage run --source=opendoor setup.py test
 If  you like to contribute to the development of the project in that case pull requests are open for you.
 Also, you can suggest an ideas and create a task in my track list
 
-[![Issues](https://badge.waffle.io/stanislav-web/OpenDoor.png?label=Ready)](https://waffle.io/stanislav-web/OpenDoor) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
+[![Issues](https://badge.waffle.io/stanislav-web/OpenDoor.png?label=Ready)](https://waffle.io/stanislav-web/OpenDoor) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)  [![Say Thanks!](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)
 ### Documentation
 - [API for contributors ](https://pythonhosted.org/opendoor/)
 - [Opendoor OWASP Wiki Pages ](https://github.com/stanislav-web/OpenDoor/wiki)
