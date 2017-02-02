@@ -37,12 +37,12 @@ This software is written for informational purposes and is an open source produc
 
 #### Install Dependencies
 ```
-sudo pip install -r requirements.txt
+pip install -r requirements.txt
 chmod +x opendoor.py
 ```
 Also, you have to install `socksipy` package if you'll use socks as proxy
 ```
-sudo apt-get install python-socksipy
+apt-get install python-socksipy
 ```
 
 #### Implements
