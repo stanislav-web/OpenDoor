@@ -1,7 +1,6 @@
 language: python
 os:
   - linux
-  - osx
 
 python:
   - 2.6
@@ -13,20 +12,17 @@ cache:
 before_install:
   - python --version
   - uname -a
+
 addons:
   apt:
     packages:
-    # install pandoc for use with pypandoc for converting the README
-    - pandoc
+      - pandoc
 
 install:
   - pip install -r requirements.txt
   - pip install coverage
   - pip install mock
   - pip install unittest2
-  - pip install json2html
-  - pip install urllib3
-  - pip install tabulate
   - pip install pypandoc
   - pip install coveralls
 notifications:
@@ -34,8 +30,9 @@ notifications:
     on_success: never
     on_failure: email
 
-# change from 'script: python setup.py test' to this
 script:
   - coverage run --source=src/ setup.py test
+after_script:
+  - coverage report
 after_success:
     coveralls

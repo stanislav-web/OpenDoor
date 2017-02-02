@@ -1,11 +1,13 @@
 # .coveragerc to control coverage.py
 [run]
-branch=true
-source = /src
-data_file= tests/reports/.coverage
-
-[paths]
-source = /src
+omit =
+    *__init__*
+branch = true
+cover_pylib = false
+debug = sys
+source = src/
 
 [report]
-include = /src
+omit =
+    *__init__*
+show_missing = false
