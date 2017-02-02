@@ -87,4 +87,4 @@ test_script:
   - "%CMD_IN_ENV% coverage run --source=src/ setup.py test"
 
 after_test:
-  - "%CMD_IN_ENV% coverage coverage report"
+  - "%CMD_IN_ENV% coverage report"
