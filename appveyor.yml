@@ -81,6 +81,11 @@ install:
   - "%CMD_IN_ENV% pip install pypandoc"
   - "%CMD_IN_ENV% pip install coveralls"
 
+build: off
+
 test_script:
   # Run the project tests
   - "%CMD_IN_ENV% coverage run --source=src/ setup.py test"
+
+after_test:
+  - "%CMD_IN_ENV% coverage coverage report"
