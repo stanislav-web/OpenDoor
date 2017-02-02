@@ -109,9 +109,13 @@ class Package(object):
         """
 
         try:
-            status = process.execute(Config.params.get('cvsupdate'))
-            upd_status = tpl.line(status, color='green')
-            msg = Config.params.get('update').format(status=upd_status)
+
+            if True is sys.is_windows():
+                status = process.execute(Config.params.get('cvsupdate'))
+                upd_status = tpl.line(status, color='green')
+                msg = Config.params.get('update').format(status=upd_status)
+            else:
+                msg = Config.params.get('update').format(status=tpl.line(key='upd_win_stat'))
             return msg
 
         except CoreSystemError as e:
@@ -161,7 +165,9 @@ class Package(object):
                 result = process.execute('curl -sb GET {uri}'.format(uri=request_uri))
                 raw = filesystem.readraw(result)
                 Package.remote_version = raw.get('info', 'version')
+
                 return Package.remote_version
+
             except (FileSystemError, CoreSystemError) as e:
                 raise PackageError(e)
         else:
@@ -228,6 +234,7 @@ class Package(object):
             config = filesystem.readcfg(Config.params.get('cfg'))
             filename = config.get('opendoor', 'directories')
             count = filesystem.read(filename).__len__()
+
             return count
 
         except FileSystemError as e:

@@ -16,7 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import sys
+from src.core import process
 
 
 class EventHandler(object):
@@ -29,4 +29,4 @@ class EventHandler(object):
         :return: None
         """
 
-        sys.termination_handler()
+        process.termination_handler()

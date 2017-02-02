@@ -17,4 +17,4 @@
 """
 
 from .process import Term
-from .system import System
+from .output import Output

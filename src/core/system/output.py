@@ -16,45 +16,11 @@
     Development Team: Stanislav WEB
 """
 
-import os
-import platform
-import signal
 import sys
+import platform
 
-
-class System(object):
-    """System class"""
-
-    @staticmethod
-    def kill():
-        """
-        Immediatelly terminate process
-        :return: None
-        """
-
-        os.kill(os.getpid(), signal.SIGTERM)  # or signal.SIGKILL
-
-    @staticmethod
-    def termination_handler():
-        """
-        Exit Ctrl-Z handler
-        :return: None
-        """
-
-        def kill_process(signum, frame):
-            """
-            Kill process os signal
-            :param int signum: signal code
-            :param object frame: frame object
-            :return: None
-            """
-
-            del signum
-            del frame
-
-            os.kill(os.getpid(), signal.SIGTERM)
-
-        signal.signal(signal.SIGTSTP, kill_process)
+class Output(object):
+    """Output class"""
 
     @staticmethod
     def exit(msg):
@@ -98,3 +64,12 @@ class System(object):
 
         version = platform.python_version().split(".")
         return "{0}.{1}".format(version[0], version[1])
+
+    @staticmethod
+    def is_windows():
+        """
+        Check for windows signature
+        :return: bool
+        """
+
+        return sys.platform.startswith('win')

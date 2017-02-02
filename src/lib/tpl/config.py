@@ -23,6 +23,7 @@ class Config(object):
     templates = {
         'unsupported': 'Your version v {actual} is not supported by this application. Please consider v{expected}',
         'abort': 'Session canceled',
+        'upd_win_stat': 'Win OS does not support --update inside.\nPlease run your GIT binary to fetch data manualy',
         'use_reports': 'Use --report param to store your scan results',
         'report' : '{plugin} : {dest}',
         'logged': 'Scanned host has been reported. Press ENTER to rescan or CTRL+C to exit: ',

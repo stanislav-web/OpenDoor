@@ -17,6 +17,7 @@
 """
 
 import os
+import signal
 import subprocess
 from .exceptions import CoreSystemError
 
@@ -48,6 +49,38 @@ class Process(object):
             ts = {'height': height, 'width': width}
             self.ts = ts
         return self.ts
+
+
+    @staticmethod
+    def termination_handler():
+        """
+        Exit Ctrl-Z handler
+        :return: None
+        """
+
+        def kill_process(signum, frame):
+            """
+            Kill process os signal
+            :param int signum: signal code
+            :param object frame: frame object
+            :return: None
+            """
+
+            del signum
+            del frame
+
+            os.kill(os.getpid(), signal.SIGTERM)
+
+        signal.signal(signal.SIGTSTP, kill_process)
+
+    @staticmethod
+    def kill():
+        """
+        Immediatelly terminate process
+        :return: None
+        """
+
+        os.kill(os.getpid(), signal.SIGTERM)  # or signal.SIGKILL
 
     @staticmethod
     def system(command):
