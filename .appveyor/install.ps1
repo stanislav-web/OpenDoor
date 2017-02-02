@@ -1,4 +1,3 @@
-Charset: UTF-8
 # Sample script to install Python and pip under Windows
 # Authors: Olivier Grisel, Jonathan Helmus, Kyle Kastner, and Alex Willmer
 # License: CC0 1.0 Universal: http://creativecommons.org/publicdomain/zero/1.0/
