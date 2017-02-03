@@ -57,7 +57,7 @@ class Reporter(object):
             try:
                 report = getattr(module, plugin_name)
                 return report(target, data)
-            except (TypeError, AttributeError, Exception) as e:
-                raise ReporterError(e.message)
+            except (TypeError, AttributeError, Exception):
+                raise ReporterError('Unable to get reporter `{plugin}`'.format(plugin=plugin_name))
         except ImportError:
-            raise ReporterError('Unable to get reporter`{plugin}`'.format(plugin=plugin_name))
+            raise ReporterError('Unable to get report\'s plugins`')

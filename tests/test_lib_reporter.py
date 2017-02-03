@@ -17,7 +17,7 @@
 """
 
 import unittest2 as unittest
-from src.lib.reporter import Reporter
+from src.lib.reporter import Reporter, ReporterError
 from src.lib.reporter.plugins.provider import PluginProvider
 from ddt import ddt, data
 
@@ -37,6 +37,14 @@ class TestReporter(unittest.TestCase):
 
         expected = Reporter.load(value, 'test.local', {})
         self.assertIsInstance(expected, PluginProvider)
+
+    def test_load_exception(self):
+        """ Reporter.load() exception test """
+
+        undefined = 'undefined'
+        with self.assertRaises(ReporterError) as context:
+            Reporter.load(undefined,'test.local', {})
+        self.assertTrue('Unable to get reporter `{plugin}`'.format(plugin=undefined) in context.exception)
 
 if __name__ == "__main__":
     unittest.main()
