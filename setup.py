@@ -31,7 +31,7 @@ setup(name='opendoor',
 
       version=Controller.local_version(),
 
-      description='OWASP Directory Access scanner', long_description=LONG_DESCRIPTION,
+      description='OWASP WEB Directory Scanner', long_description=LONG_DESCRIPTION,
 
       # The project's main homepage.
       url='https://github.com/stanislav-web/OpenDoor',

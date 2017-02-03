@@ -75,11 +75,7 @@ install:
   # pip will build them from source using the MSVC compiler matching the
   # target Python version and architecture
   - "%CMD_IN_ENV% pip install -r requirements.txt"
-  - "%CMD_IN_ENV% pip install coverage"
-  - "%CMD_IN_ENV% pip install mock"
-  - "%CMD_IN_ENV% pip install ddt"
-  - "%CMD_IN_ENV% pip install unittest2"
-  - "%CMD_IN_ENV% pip install coveralls"
+  - "%CMD_IN_ENV% pip install -r requirements-dev.txt"
 
 build: off
 

@@ -8,10 +8,8 @@ OWASP Directory Access Scanner
 
 |  Python | Linux  |  OSX | Windows  |
 |:-:|:-:|:-:|:-:|
-|2.6|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)
-  |
-|2.7|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)
-  |
+|2.6|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
+|2.7|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
 
 This application scans the site directories and find all possible ways to login, index of/ dirs and entry points.
 The scanning is performed by the dictionary that came with the software. Possiblly to use own dictionaries.
@@ -143,8 +141,8 @@ Wordlist tools:
 
 ### Test
 ```
-pip install unittest2 mock
-coverage run --source=opendoor setup.py test
+pip install  -r requirements-dev.txt
+coverage run --source=src/ setup.py test
 ```
 
 ### Contributors
@@ -152,9 +150,8 @@ If  you like to contribute to the development of the project in that case pull r
 Also, you can suggest an ideas and create a task in my track list
 
 [![Issues](https://badge.waffle.io/stanislav-web/OpenDoor.png?label=Ready)](https://waffle.io/stanislav-web/OpenDoor) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)  [![Say Thanks!](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)
+
 ### Documentation
-- [API for contributors ](https://pythonhosted.org/opendoor/)
-- [Opendoor OWASP Wiki Pages ](https://github.com/stanislav-web/OpenDoor/wiki)
 - [Opendoor OWASP CookBook ](https://github.com/stanislav-web/OpenDoor/wiki)
 - [Issues](https://github.com/stanislav-web/OpenDoor/issues)
 
