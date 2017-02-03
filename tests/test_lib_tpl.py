@@ -17,18 +17,23 @@
 """
 
 import unittest2 as unittest
-from src.lib.io import Arguments, ArgumentsError
+from mock import patch
+from src.lib.tpl import Tpl
 
 
 class TestArguments(unittest.TestCase):
     """TestArguments class"""
 
-    def test_get_arguments_exception(self):
-        """ Arguments.get_arguments() exception test """
+    def prompt_answer(self):
+        ans = Tpl.prompt(msg='fake')
+        return ans
 
-        with self.assertRaises(ArgumentsError) as context:
-            Arguments.get_arguments()
-        self.assertTrue('unrecognized arguments: test' in context.exception)
+    def test_prompt(self):
+        """ Tpl.prompt() test """
+
+        with patch('__builtin__.raw_input', return_value='fake') as _raw_input:
+            self.assertEqual(self.prompt_answer(), 'fake')
+            _raw_input.assert_called_once_with('fake')
 
 if __name__ == "__main__":
     unittest.main()

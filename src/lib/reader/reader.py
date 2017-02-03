@@ -57,7 +57,7 @@ class Reader(object):
         """
         Get user agents from user-agents list
         :raise ReaderError
-        :return: dict
+        :return: list
         """
 
         try:
@@ -73,7 +73,7 @@ class Reader(object):
         """
         Get ignored dir list
         :raise ReaderError
-        :return: dict
+        :return: list
         """
 
         try:
@@ -95,7 +95,7 @@ class Reader(object):
         """
         Get proxy list
         :raise ReaderError
-        :return: dict
+        :return: list
         """
 
         try:
@@ -203,6 +203,7 @@ class Reader(object):
         :raise ReaderError
         :return: None
         """
+
         try:
 
             target_file = self.__config.get('opendoor', target_list)

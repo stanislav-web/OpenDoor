@@ -64,6 +64,7 @@ class Tpl(object):
             if True is write:
                 sys.writels(msg)
             else:
+                print msg
                 return msg
 
         except (AttributeError, TplError) as e:
@@ -88,7 +89,6 @@ class Tpl(object):
             else:
                 msg = Tpl.line_log(msg, status=status, write=False, **kwargs)
             result = raw_input(msg)
-
             return result
 
         except (AttributeError, TplError) as e:
@@ -127,7 +127,8 @@ class Tpl(object):
         if None is args:
             args = {}
 
-        sys.writeln(colour.colored(msg.format(**args), color=color))
+        msg = colour.colored(msg.format(**args), color=color)
+        sys.writeln(msg)
 
     @staticmethod
     def error(msg='', key='', **args):

@@ -194,10 +194,12 @@ class FileSystem(object):
             raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
 
         try:
+
             config = ConfigParser.RawConfigParser()
             config.read(filepath)
             return config
-        except ConfigParser.ParsingError as e:
+
+        except (ConfigParser.ParsingError, ConfigParser.NoOptionError) as e:
             raise FileSystemError(e.message)
 
     @staticmethod
