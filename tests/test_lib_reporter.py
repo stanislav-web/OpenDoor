@@ -45,6 +45,7 @@ class TestReporter(unittest.TestCase):
         with self.assertRaises(ReporterError) as context:
             Reporter.load(undefined,'test.local', {})
         self.assertTrue('Unable to get reporter `{plugin}`'.format(plugin=undefined) in context.exception)
+        self.assertTrue(ReporterError == context.expected)
 
 if __name__ == "__main__":
     unittest.main()

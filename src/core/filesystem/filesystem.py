@@ -149,7 +149,7 @@ class FileSystem(object):
             raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
 
         lines = []
-        with open(filepath, "r") as f_handler:
+        with open(filepath) as f_handler:
             for line in f_handler:
                 lines.append(handler(line, handler_params))
             loader(lines)
@@ -253,6 +253,6 @@ class FileSystem(object):
         size = int(size)
         while size > 1024 and suffix_index < 4:
             suffix_index += 1
-            size = size / 1024.0
+            size = size / 1024
 
         return "%.*f%s" % (precision, size, suffixes[suffix_index])

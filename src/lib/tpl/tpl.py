@@ -146,7 +146,7 @@ class Tpl(object):
             if key:
                 msg = Tpl.__format_message(key, args=args)
 
-            logger.log().error(msg)
+            logger.log('error').error(msg)
         except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
@@ -167,7 +167,7 @@ class Tpl(object):
             if key:
                 msg = Tpl.__format_message(key, args=args)
 
-            logger.log().warning(msg)
+            logger.log('warning').warning(msg)
         except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
@@ -190,7 +190,7 @@ class Tpl(object):
                 msg = Tpl.__format_message(key, args=args)
             if True is clear:
                 sys.writels("")
-            logger.log().info(msg)
+            logger.log('info').info(msg)
         except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
@@ -211,7 +211,7 @@ class Tpl(object):
             if key:
                 msg = Tpl.__format_message(key, args=args)
 
-            logger.log().debug(msg)
+            logger.log('debug').debug(msg)
         except (AttributeError, TplError) as e:
             raise TplError(e.message)
 

@@ -16,21 +16,22 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import exception
+from mock import Mock
+from src.lib.browser.config import Config
 
 
-class ArgumentsError(Exception):
-    """ArgumentsError class"""
+class ConfigMock(Mock):
+    """ConfigMock class"""
 
-    def __init__(self, error):
+    def __init__(self):
         """
-        ArgumentsError class constructor
-        :param str error: error message
+        BrowserConfig constructor
         """
+        
+        super(Mock, self).__init__()
 
-        class_name = type(error).__name__
-
-        if self.__class__.__name__ is not class_name:
-            exception.log(class_name=class_name, message=error)
-
-        super(ArgumentsError, self).__init__("{}: {}".format(class_name, error))
+        self.__browser_config = self.mock_add_spec(spec=Config)
+    
+    @property
+    def browser_config(self):
+        return self.__browser_config

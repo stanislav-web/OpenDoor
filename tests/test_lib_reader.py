@@ -17,34 +17,42 @@
 """
 
 import unittest2 as unittest
-from src.lib.reader import Reader, ReaderError
-
+import mock
+from src.lib.reader import Reader
+import ConfigParser
+import os
 
 class TestReader(unittest.TestCase):
     """TestReader class"""
-
-    def setUp(self):
-        self.reader = Reader(browser_config={})
-
+    
+    def __load_config(self):
+        config = ConfigParser.RawConfigParser()
+        config.read(os.path.join(os.getcwd(), 'tests', 'mocks','setup.cfg'))
+        return config
+    
     def test_total_lines(self):
         """ Reader.total_lines test """
-
-        self.assertIs(type(self.reader.total_lines), int)
-
+        
+        empty_reader = Reader(browser_config={})
+        self.assertIs(type(empty_reader.total_lines), int)
+    
     def test_get_user_agents_empty(self):
         """ Reader.get_user_agents() empty test """
-
-        self.assertIs(type(self.reader.get_user_agents()), list)
+        
+        empty_reader = Reader(browser_config={})
+        self.assertIs(type(empty_reader.get_user_agents()), list)
 
     def test_get_ignored_list_empty(self):
         """ Reader.get_ignored_list() empty test """
-
-        self.assertIs(type(self.reader.get_ignored_list()), list)
+        
+        empty_reader = Reader(browser_config={})
+        self.assertIs(type(empty_reader.get_ignored_list()), list)
 
     def test_get_proxies_empty(self):
         """ Reader.get_proxies() empty test """
-
-        self.assertIs(type(self.reader.get_user_agents()), list)
+        
+        empty_reader = Reader(browser_config={})
+        self.assertIs(type(empty_reader.get_user_agents()), list)
 
 if __name__ == "__main__":
     unittest.main()

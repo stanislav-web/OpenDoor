@@ -1,0 +1,17 @@
+doc-warnings: true
+test-warnings: false
+strictness: veryhigh
+max-line-length: 120
+autodetect: true
+pep8:
+  full: true
+requirements:
+  - requiremonts.txt
+  - requiremonts-dev.txt
+ignore-paths:
+  - .appveyor
+  - data
+  - docs
+  - tests
+python-targets:
+  - 2

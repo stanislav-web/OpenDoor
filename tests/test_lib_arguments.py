@@ -15,7 +15,7 @@
 
     Development Team: Stanislav WEB
 """
-
+from __future__ import absolute_import
 import unittest2 as unittest
 from src.lib.io import Arguments, ArgumentsError
 
@@ -25,10 +25,11 @@ class TestArguments(unittest.TestCase):
 
     def test_get_arguments_exception(self):
         """ Arguments.get_arguments() exception test """
-
+		
         with self.assertRaises(ArgumentsError) as context:
             Arguments.get_arguments()
-        self.assertTrue('unrecognized arguments: test' in context.exception)
-
+        self.assertTrue('OptionsError' in str(context.exception))
+        self.assertTrue(ArgumentsError == context.expected)
+        
 if __name__ == "__main__":
     unittest.main()

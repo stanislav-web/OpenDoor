@@ -16,21 +16,4 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import exception
-
-
-class ArgumentsError(Exception):
-    """ArgumentsError class"""
-
-    def __init__(self, error):
-        """
-        ArgumentsError class constructor
-        :param str error: error message
-        """
-
-        class_name = type(error).__name__
-
-        if self.__class__.__name__ is not class_name:
-            exception.log(class_name=class_name, message=error)
-
-        super(ArgumentsError, self).__init__("{}: {}".format(class_name, error))
+pass

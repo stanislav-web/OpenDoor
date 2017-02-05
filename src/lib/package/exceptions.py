@@ -15,6 +15,7 @@
 
     Development Team: Stanislav WEB
 """
+
 from src.core import exception
 
 
