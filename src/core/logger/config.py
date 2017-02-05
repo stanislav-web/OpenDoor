@@ -35,11 +35,30 @@ class Config(object):
     """Config class"""
 
     logdir = os.path.dirname(exception_log())
-
-    exceptions = {"version": 1, "disable_existing_loggers": False, "formatters": {
-        "exception_format": {"format": "%(asctime)s [%(levelname)s] : %(message)s", "datefmt": "%Y-%m-%d %H:%M:%S"}},
-                  "handlers": {"exception_file_handler": {"level": "ERROR", "formatter": "exception_format",
-                                                          "class": "logging.handlers.RotatingFileHandler",
-                                                          "filename": exception_log(), "maxBytes": 10485760,
-                                                          "backupCount": 10}},
-                  "loggers": {"exceptions": {"handlers": ["exception_file_handler"],}}}
+    legacy_config = "{0}{1}{2}".format(os.path.dirname(__file__), filesystem.sep, 'legacy.conf')
+    
+    exceptions = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "exception_format": {
+                "format": "%(asctime)s [%(levelname)s] : %(message)s",
+                "datefmt": "%Y-%m-%d %H:%M:%S"
+            }
+        },
+        "handlers": {
+            "exception_file_handler": {
+                "level": "ERROR",
+                "formatter": "exception_format",
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": exception_log(),
+                "maxBytes": 10485760,
+                "backupCount": 10
+            }
+        },
+        "loggers": {
+            "exceptions": {
+                "handlers": ["exception_file_handler"]
+            }
+        }
+    }

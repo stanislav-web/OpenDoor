@@ -32,4 +32,4 @@ class ReaderError(Exception):
         if self.__class__.__name__ is not class_name:
             exception.log(class_name=class_name, message=error)
 
-        super(ReaderError, self).__init__("{}: {}".format(class_name, error))
+        super(ReaderError, self).__init__("{}: {}".format(class_name, str(error)))

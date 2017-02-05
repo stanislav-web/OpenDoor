@@ -33,4 +33,4 @@ class ArgumentsError(Exception):
         if self.__class__.__name__ is not class_name:
             exception.log(class_name=class_name, message=error)
 
-        super(ArgumentsError, self).__init__("{}: {}".format(class_name, error))
+        super(ArgumentsError, self).__init__("{}: {}".format(class_name, str(error)))
