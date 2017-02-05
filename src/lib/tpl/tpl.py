@@ -64,7 +64,6 @@ class Tpl(object):
             if True is write:
                 sys.writels(msg)
             else:
-                print msg
                 return msg
 
         except (AttributeError, TplError) as e:
