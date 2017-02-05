@@ -17,10 +17,9 @@
 """
 
 import unittest2 as unittest
-import sys
 from StringIO import StringIO
 from mock import patch
-from src.lib.tpl import Tpl
+from src.lib.tpl import Tpl, TplError
 
 
 class TestArguments(unittest.TestCase):
@@ -43,7 +42,14 @@ class TestArguments(unittest.TestCase):
 
         expected = Tpl.line('test')
         self.assertTrue('test' in expected)
+    
+    def test_line_with_key(self):
+        """ Tpl.line() test with key """
         
+        expected = Tpl.line(key='report', plugin='testplugin', dest='testdst')
+        self.assertTrue('testplugin' in expected)
+        self.assertTrue('testdst' in expected)
+
     def test_line_log(self):
         """ Tpl.line_log() test """
 
@@ -85,6 +91,15 @@ class TestArguments(unittest.TestCase):
         with patch('sys.stdout', new=StringIO()) as fakeOutput:
             Tpl.debug('test_debug')
             self.assertTrue('test_debug' in fakeOutput.getvalue().strip())
+    
+    def test_line_error_key(self):
+        """ Tpl.line() exception test """
 
+        undefined = 'undefined'
+        with self.assertRaises(TplError) as context:
+            Tpl.line(key=undefined)
+        self.assertTrue(undefined in str(context.exception))
+        self.assertTrue(TplError == context.expected)
+        
 if __name__ == "__main__":
     unittest.main()

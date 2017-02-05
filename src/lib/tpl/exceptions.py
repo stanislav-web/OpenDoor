@@ -16,14 +16,21 @@
     Development Team: Stanislav WEB
 """
 
+from src.core import exception
+
 
 class TplError(Exception):
     """TplError class"""
 
-    def __init__(self, message):
+    def __init__(self, error):
         """
         TplError class constructor
-        :param str message: error message
+        :param str error: error message
         """
 
-        super(TplError, self).__init__(message)
+        class_name = type(error).__name__
+
+        if self.__class__.__name__ is not class_name:
+            exception.log(class_name=class_name, message=error)
+
+        super(TplError, self).__init__("{0}: {1}".format(str(class_name), str(error)))
