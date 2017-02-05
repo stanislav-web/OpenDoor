@@ -3,6 +3,9 @@ test-warnings: false
 strictness: veryhigh
 max-line-length: 120
 autodetect: true
+pylint:
+    run: false
+
 pep8:
   full: true
 requirements:
