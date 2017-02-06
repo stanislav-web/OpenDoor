@@ -165,7 +165,6 @@ class FileSystem(object):
 
         filepath = os.path.join(filename)
 
-        print filepath
         if not os.path.isfile(filepath):
             raise FileSystemError("{0} is not a file ".format(file))
         if not os.access(filepath, os.R_OK):

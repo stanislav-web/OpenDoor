@@ -35,7 +35,6 @@ class Config(object):
         :param dict params: input cli arguments
         """
 
-        self._default_scan = 'directories'
         self._scan = params.get('scan') if params.get('wordlist') is None else params.get('wordlist')
         self._scheme = params.get('scheme')
         self._ssl = params.get('ssl')
@@ -60,22 +59,13 @@ class Config(object):
         self._threads = self.DEFAULT_MIN_THREADS if params.get('threads') is None else params.get('threads')
 
     @property
-    def default_scan(self):
-        """
-        Default scan property
-        :return: str
-        """
-
-        return self._default_scan
-
-    @property
     def scan(self):
         """
         Scan property
         :return: str
         """
-
-        return self._scan
+        
+        return self.DEFAULT_SCAN if self._scan is None else self._scan
 
     @property
     def scheme(self):

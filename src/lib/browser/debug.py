@@ -73,7 +73,7 @@ class Debug(DebugProvider):
             tpl.debug(key='randomizing')
 
         if 0 < self.__level:
-            if self.__cfg.default_scan is self.__cfg.scan:
+            if self.__cfg.DEFAULT_SCAN is self.__cfg.scan:
                 tpl.debug(key='directories', total=total_lines)
             else:
                 tpl.debug(key='subdomains', total=total_lines)

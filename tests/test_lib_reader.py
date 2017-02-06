@@ -17,7 +17,6 @@
 """
 
 import unittest2 as unittest
-from mock import patch
 from src.lib.reader import Reader
 from src.core.filesystem.filesystem import FileSystem
 import os, ConfigParser
@@ -32,34 +31,12 @@ class TestReader(unittest.TestCase):
         config.read(test_config)
         return config
 
-    # @patch.object(Reader, '__config')
-    # def test_reader_initialization(self, get_reader_mock):
-    #     """
-    #     Can use either path or patch.object as Reader object is
-    #     imported.
-    #     http://www.alexandrejoseph.com/blog/2015-08-21-python-mock-example.html
-    #     """
-    #
-    #     reader = Reader('foo')
-    #     assert reader.__config == get_reader_mock.return_value
-
     def test_total_lines(self):
         """ Reader.total_lines test """
 
         empty_reader = Reader(browser_config={})
         self.assertIs(type(empty_reader.total_lines), int)
 
-    # def test_get_user_agents(self):
-    #     """ Reader.get_user_agents() test """
-    #
-    #     with patch('src.lib.reader.reader.Reader.__config', autospec=True) as mock:
-    #         print mock
-        # config.return_value = self.__configuration
-        # reader = Reader(browser_config={})
-        # reader.get_user_agents()
-        # print  reader.get_user_agents()
-            #self.assertIs(type(actual), list)
-            #self.assertTrue(len(actual) > 0)
 
     def test_get_user_agents_empty(self):
         """ Reader.get_user_agents() empty test """
