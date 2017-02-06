@@ -16,4 +16,18 @@
     Development Team: Stanislav WEB
 """
 
-pass
+import unittest2 as unittest
+from src.lib.browser.config import Config
+
+class TestBrowserConfig(unittest.TestCase):
+    """TestBrowserConfig class"""
+
+    def test_default_config(self):
+        """ Config.init() """
+        
+        #TODO check default all in properties types
+        #config.default_scan
+        #self.assertIs(type(empty_reader.total_lines), int)
+
+if __name__ == "__main__":
+    unittest.main()

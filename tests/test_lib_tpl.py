@@ -22,8 +22,8 @@ from mock import patch
 from src.lib.tpl import Tpl, TplError
 
 
-class TestArguments(unittest.TestCase):
-    """TestArguments class"""
+class TestTpl(unittest.TestCase):
+    """TestTpl class"""
     
     def prompt_answer(self):
         ans = Tpl.prompt(msg='fake')

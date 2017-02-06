@@ -25,11 +25,6 @@ import os
 class TestReader(unittest.TestCase):
     """TestReader class"""
     
-    def __load_config(self):
-        config = ConfigParser.RawConfigParser()
-        config.read(os.path.join(os.getcwd(), 'tests', 'data','setup.cfg'))
-        return config
-    
     def test_total_lines(self):
         """ Reader.total_lines test """
         
