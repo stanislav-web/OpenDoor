@@ -27,7 +27,7 @@ class TestReader(unittest.TestCase):
     
     def __load_config(self):
         config = ConfigParser.RawConfigParser()
-        config.read(os.path.join(os.getcwd(), 'tests', 'mocks','setup.cfg'))
+        config.read(os.path.join(os.getcwd(), 'tests', 'data','setup.cfg'))
         return config
     
     def test_total_lines(self):
