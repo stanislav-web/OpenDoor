@@ -15,8 +15,8 @@ This application scans the site directories and find all possible ways to login,
 The scanning is performed by the dictionary that came with the software. Possiblly to use own dictionaries.
 This software is written for informational purposes and is an open source product under the GPL license.
 
-* *Current v3.0.2-beta (02.02.2017)*
-    - Directories - 26506
+* *Current v3.0.2-beta (06.02.2017)*
+    - Directories - 26524
     - Subdomains - 101000
 
 ***Testing of the software on the commercial systems and organizations is prohibited!***
@@ -26,12 +26,6 @@ This software is written for informational purposes and is an open source produc
 
 #### Maintainers
 - @stanislav-web <https://github.com/stanislav-web> (Developer)
-
-#### Dependencies
-* urllib3
-* importlib
-* json2html
-* tabulate
 
 #### Install Dependencies
 ```
