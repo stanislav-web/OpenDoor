@@ -53,7 +53,7 @@ class Debug(DebugProvider):
     def debug_user_agents(self):
         """
         Debug info for user agent
-        :return: None
+        :return: bool
         """
 
         if 0 < self.__level:
@@ -62,11 +62,13 @@ class Debug(DebugProvider):
             else:
                 tpl.debug(key='browser', browser=self.__cfg.user_agent)
 
+        return True
+
     def debug_list(self, total_lines):
         """
         Debug scan list
         :param int total_lines: list lines
-        :return: None
+        :return: bool
         """
 
         if True is self.__cfg.is_random_list:
@@ -79,22 +81,26 @@ class Debug(DebugProvider):
                 tpl.debug(key='subdomains', total=total_lines)
             tpl.debug(key='create_queue', threads=self.__cfg.threads)
 
+        return True
+
     def debug_connection_pool(self, keymsg, pool):
         """
         Debug connection pool message
         :param str keymsg: tpl key
         :param object pool: pool object
-        :return: None
+        :return: bool
         """
 
         tpl.debug(key=keymsg)
         if pool:
             tpl.debug(str(pool))
 
+        return True
+
     def debug_proxy_pool(self):
         """
         Debug proxy pool message
-        :return: None
+        :return: bool
         """
 
         if True is self.__cfg.is_external_torlist:
@@ -106,19 +112,23 @@ class Debug(DebugProvider):
         elif True is self.__cfg.is_internal_torlist:
             tpl.debug(key='proxy_pool_internal_start')
 
+        return True
+
     def debug_request(self, request_header, url, method):
         """
         Debug request
         :param dict request_header: request header
         :param str url: request url
         :param str method: request method
-        :return: None
+        :return: bool
         """
 
         request_header.update({'Request URI': url})
         request_header.update({'Request Method': method})
 
         tpl.debug(key='request_header_dbg', dbg=helper.to_json(request_header))
+
+        return True
 
     def debug_response(self, response_header):
         """

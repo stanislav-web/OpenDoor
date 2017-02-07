@@ -32,7 +32,7 @@ class DebugProvider(object):
     def debug_user_agents(self):
         """
         Debug info for user agent
-        :return: None
+        :return: bool
         """
 
         pass
@@ -42,7 +42,7 @@ class DebugProvider(object):
         Debug connection pool message
         :param str keymsg: tpl key
         :param object pool: pool object
-        :return: None
+        :return: bool
         """
 
         pass
@@ -50,7 +50,7 @@ class DebugProvider(object):
     def debug_proxy_pool(self):
         """
         Debug proxy pool message
-        :return: None
+        :return: bool
         """
 
         pass
@@ -59,7 +59,7 @@ class DebugProvider(object):
         """
         Debug scan list
         :param int total_lines: total list lines
-        :return: None
+        :return: bool
         """
 
         pass
@@ -70,7 +70,7 @@ class DebugProvider(object):
         :param dict request_header: request header
         :param str url: request url
         :param str method: request method
-        :return: None
+        :return: bool
         """
 
         pass

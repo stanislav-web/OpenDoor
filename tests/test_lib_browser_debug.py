@@ -54,10 +54,34 @@ class TestBrowserDebug(unittest.TestCase):
         with patch('sys.stdout', new=StringIO()):
             self.assertTrue(self.debug.debug_request_uri(200,'http://test.local/data/'))
 
+    def test_debug_request(self):
+        """ Debug.debug_request() test """
+
+        self.assertTrue(self.debug.debug_request({},'http://test.local/data/', 'HEAD'))
+
     def test_debug_response(self):
-        """ Tpl.debug_response() test """
+        """ Debug.debug_response() test """
 
         self.assertTrue(self.debug.debug_response(response_header={}))
+
+    def test_debug_list(self):
+        """ Debug.debug_list() test """
+
+        self.assertTrue(self.debug.debug_list(1))
+
+    def test_debug_connection_pool(self):
+        """ Debug.debug_connection_pool() test """
+
+        self.assertTrue(self.debug.debug_connection_pool('http_pool_start', ''))
+
+    def test_debug_proxy_pool(self):
+        """ Debug.debug_proxy_pool() test """
+
+        self.assertTrue(self.debug.debug_proxy_pool())
+
+    def test_debug_user_agents(self):
+        """ Debug.debug_user_agents() test """
+        self.assertTrue(self.debug.debug_user_agents())
 
 
 if __name__ == "__main__":
