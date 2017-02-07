@@ -110,20 +110,20 @@ class Process(object):
                     except:
                         pass
 
-                    cr = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
-                    if not cr:
-                        try:
-                            fd = os.open(os.ctermid(), os.O_RDONLY)
-                            cr = ioctl_GWINSZ(fd)
-                            os.close(fd)
-                        except:
-                            pass
-                    if not cr:
-                        try:
-                            cr = (os.environ['LINES'], os.environ['COLUMNS'])
-                        except:
-                            return None
-                    return int(cr[1]), int(cr[0])
+                cr = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
+                if not cr:
+                    try:
+                        fd = os.open(os.ctermid(), os.O_RDONLY)
+                        cr = ioctl_GWINSZ(fd)
+                        os.close(fd)
+                    except:
+                        pass
+                if not cr:
+                    try:
+                        cr = (os.environ['LINES'], os.environ['COLUMNS'])
+                    except:
+                        return None
+                return int(cr[1]), int(cr[0])
 
             def __get_ts_tput():
                 """
