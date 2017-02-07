@@ -19,6 +19,7 @@
 import unittest2 as unittest
 from src.lib.browser.config import Config
 
+
 class TestBrowserConfig(unittest.TestCase):
     """TestBrowserConfig class"""
 

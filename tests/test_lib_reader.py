@@ -21,6 +21,7 @@ from src.lib.reader import Reader
 from src.core.filesystem.filesystem import FileSystem
 import os, ConfigParser
 
+
 class TestReader(unittest.TestCase):
     """TestReader class"""
 

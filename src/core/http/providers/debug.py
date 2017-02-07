@@ -79,7 +79,7 @@ class DebugProvider(object):
         """
         Debug response
         :param dict response_header: response header
-        :return: None
+        :return: bool
         """
 
         pass
@@ -90,7 +90,7 @@ class DebugProvider(object):
         :param int status: response status
         :param str request_uri: request urli
         :param **kwargs: key arguments
-        :return: None
+        :return: bool
         """
 
         pass

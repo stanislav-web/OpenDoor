@@ -17,12 +17,10 @@
 """
 
 import unittest2 as unittest
-from Queue import Queue
 from src.lib.browser.threadpool import ThreadPool
-from mock import patch, Mock, PropertyMock
 
-class TestThreadPool(unittest.TestCase):
-    """TestThreadPool class"""
+class TestBrowserThreadPool(unittest.TestCase):
+    """TestBrowserThreadPool class"""
     
     THREADS = 2
     

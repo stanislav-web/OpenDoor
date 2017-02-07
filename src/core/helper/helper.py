@@ -73,7 +73,7 @@ class Helper(object):
         return json_data
 
     @staticmethod
-    def percent(counter, total):
+    def percent(counter=0, total=1):
         """
         Return percentage
         :param int counter: current value

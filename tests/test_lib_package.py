@@ -20,6 +20,7 @@ import unittest2 as unittest
 from src.lib.package import Package
 from src.core.filesystem import FileSystem
 
+
 class TestPackage(unittest.TestCase):
     """TestPackage class"""
 

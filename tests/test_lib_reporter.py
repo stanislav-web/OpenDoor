@@ -21,6 +21,7 @@ from src.lib.reporter import Reporter, ReporterError
 from src.lib.reporter.plugins.provider import PluginProvider
 from ddt import ddt, data
 
+
 @ddt
 class TestReporter(unittest.TestCase):
     """TestReporter class"""

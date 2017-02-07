@@ -24,7 +24,10 @@ from src.lib.tpl import Tpl, TplError
 
 class TestTpl(unittest.TestCase):
     """TestTpl class"""
-    
+
+    def tearDown(self):
+        StringIO().flush()
+
     def prompt_answer(self):
         ans = Tpl.prompt(msg='fake')
         return ans
@@ -85,13 +88,6 @@ class TestTpl(unittest.TestCase):
             Tpl.warning('test_warning')
             self.assertTrue('test_warning' in fakeOutput.getvalue().strip())
 
-    def test_debug(self):
-        """ Tpl.debug() test """
-
-        with patch('sys.stdout', new=StringIO()) as fakeOutput:
-            Tpl.debug('test_debug')
-            self.assertTrue('test_debug' in fakeOutput.getvalue().strip())
-    
     def test_line_error_key(self):
         """ Tpl.line() exception test """
 
@@ -100,6 +96,6 @@ class TestTpl(unittest.TestCase):
             Tpl.line(key=undefined)
         self.assertTrue(undefined in str(context.exception))
         self.assertTrue(TplError == context.expected)
-        
+
 if __name__ == "__main__":
     unittest.main()

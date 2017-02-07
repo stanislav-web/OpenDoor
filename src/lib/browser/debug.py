@@ -124,21 +124,25 @@ class Debug(DebugProvider):
         """
         Debug response
         :param dict response_header: response header
-        :return: None
+        :return: bool
         """
 
         tpl.debug(key='response_header_dbg', dbg=helper.to_json(response_header))
 
+        return True
+
     def debug_request_uri(self, status, request_uri, **kwargs):
         """
         Debug request_uri
-        :param int status:
-        :param str request_uri:
+        :param int status: response status
+        :param str request_uri: http request uri
         :param **kwargs:
-        :return: None
+        :return: bool
         """
 
-        percentage = tpl.line(msg=helper.percent(kwargs.get('items_size'), kwargs.get('total_size')), color='cyan')
+        percentage = tpl.line(
+            msg=helper.percent(kwargs.get('items_size', 0), kwargs.get('total_size', 1)),
+            color='cyan')
 
         if status in ['success']:
             request_uri = tpl.line(key='success', color='green', url=helper.parse_url(request_uri).path)
@@ -156,12 +160,18 @@ class Debug(DebugProvider):
 
             if status in ['success', 'bad', 'forbidden', 'redirect']:
 
-                tpl.info(key='get_item_lvl1', clear=self.__clear, percent=percentage, current=kwargs.get('items_size'),
-                         total=kwargs.get('total_size'), item=request_uri, size=kwargs.get('content_size'))
+                tpl.info(key='get_item_lvl1',
+                         clear=self.__clear,
+                         percent=percentage,
+                         current=kwargs.get('items_size', 0),
+                         total=kwargs.get('total_size', 1),
+                         item=request_uri,
+                         size=kwargs.get('content_size')
+                         )
                 self.__catched = True
             else:
-                tpl.line_log(key='get_item_lvl1', percent=percentage, current=kwargs.get('items_size'),
-                             total=kwargs.get('total_size'), item=request_uri, size=kwargs.get('content_size'))
+                tpl.line_log(key='get_item_lvl1', percent=percentage, current=kwargs.get('items_size', 0),
+                             total=kwargs.get('total_size', 1), item=request_uri, size=kwargs.get('content_size'))
                 self.__catched = False
                 sys.writels("", flush=self.__catched)
 
@@ -170,3 +180,5 @@ class Debug(DebugProvider):
                 tpl.info(key='get_item_lvl0', clear=self.__clear, percent=percentage, item=request_uri)
             else:
                 tpl.line_log(key='get_item_lvl0', percent=percentage, item=request_uri)
+
+        return True
