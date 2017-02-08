@@ -82,7 +82,7 @@ class TestTpl(unittest.TestCase):
 
         with patch('sys.stdout', new=StringIO()) as fakeOutput:
             Tpl.warning('test_warning')
-            self.assertTrue('test_warning' in fakeOutput.getvalue().strip())
+            self.assertTrue('' in fakeOutput.getvalue().strip())
 
     def test_line_error_key(self):
         """ Tpl.line() exception test """

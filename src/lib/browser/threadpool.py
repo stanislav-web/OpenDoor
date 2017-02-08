@@ -115,11 +115,10 @@ class ThreadPool(object):
 
         try:
             while 0 < threading.active_count():
-                if False is self.is_started and False:
-                    for worker in threading.enumerate():
-                        if threading.current_thread().__class__.__name__ != '_MainThread':
-                            worker.pause()
-                    time.sleep(2)
+                for worker in threading.enumerate():
+                    if threading.current_thread().__class__.__name__ != '_MainThread':
+                        worker.pause()
+                time.sleep(2)
 
                 char = tpl.prompt(key='option_prompt')
                 if char.lower() == 'e':
