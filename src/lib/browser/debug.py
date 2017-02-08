@@ -153,7 +153,9 @@ class Debug(DebugProvider):
         percentage = tpl.line(
             msg=helper.percent(kwargs.get('items_size', 0), kwargs.get('total_size', 1)),
             color='cyan')
-
+        
+        total_len = len(str(abs(kwargs.get('total_size', 1))))
+        
         if status in ['success']:
             request_uri = tpl.line(key='success', color='green', url=helper.parse_url(request_uri).path)
         elif status in ['file']:
@@ -173,15 +175,20 @@ class Debug(DebugProvider):
                 tpl.info(key='get_item_lvl1',
                          clear=self.__clear,
                          percent=percentage,
-                         current=kwargs.get('items_size', 0),
+                         current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
                          total=kwargs.get('total_size', 1),
                          item=request_uri,
                          size=kwargs.get('content_size')
                          )
                 self.__catched = True
             else:
-                tpl.line_log(key='get_item_lvl1', percent=percentage, current=kwargs.get('items_size', 0),
-                             total=kwargs.get('total_size', 1), item=request_uri, size=kwargs.get('content_size'))
+                tpl.line_log(key='get_item_lvl1',
+                             percent=percentage,
+                             current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
+                             total=kwargs.get('total_size', 1),
+                             item=request_uri,
+                             size=kwargs.get('content_size')
+                             )
                 self.__catched = False
                 sys.writels("", flush=self.__catched)
 

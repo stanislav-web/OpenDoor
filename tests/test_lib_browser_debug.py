@@ -19,7 +19,10 @@
 import unittest2 as unittest
 from src.lib.browser.debug import Debug
 from src.lib.browser.config import Config
-from mock import patch, Mock, PropertyMock
+from mock import patch
+from src.core.logger.logger import Logger
+
+
 from StringIO import StringIO
 
 class TestBrowserDebug(unittest.TestCase):
@@ -40,6 +43,9 @@ class TestBrowserDebug(unittest.TestCase):
 
     def tearDown(self):
         StringIO().flush()
+        logger = Logger.log()
+        for handler in logger.handlers:
+            logger.removeHandler(handler)
         del self.debug
 
     def test_level(self):

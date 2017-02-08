@@ -75,7 +75,7 @@ class Browser(Filter):
 
             self.__response = response(config=self.__config, debug=self.__debug, tpl=tpl)
 
-        except (ReaderError) as e:
+        except ReaderError as e:
             raise BrowserError(e)
 
     def ping(self):
@@ -105,8 +105,6 @@ class Browser(Filter):
         self.__debug.debug_list(total_lines=self.__pool.total_items_size)
 
         try:  # beginning scan process
-
-
             if True is self.__config.is_random_list:
                 self.__reader.randomize_list(self.__config.scan)
 

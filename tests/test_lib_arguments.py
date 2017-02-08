@@ -15,17 +15,32 @@
 
     Development Team: Stanislav WEB
 """
+
 from __future__ import absolute_import
 import unittest2 as unittest
+from src.core.logger.logger import Logger
 from src.lib.io import Arguments, ArgumentsError
-
+from src.core.options.exceptions import ThrowingArgumentParser
+from argparse import RawDescriptionHelpFormatter
 
 class TestArguments(unittest.TestCase):
     """TestArguments class"""
+    
+    def tearDown(self):
+        logger = Logger.log()
 
+        for handler in logger.handlers:
+            logger.removeHandler(handler)
+            
+    def create_parser(self):
+        parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
+        parser.add_argument('--host', help="Target host (ip); --host http://example.com")
+        parser.parse_args()
+        return parser
+        
     def test_get_arguments_exception(self):
         """ Arguments.get_arguments() exception test """
-		
+
         with self.assertRaises(ArgumentsError) as context:
             Arguments.get_arguments()
         self.assertTrue('OptionsError' in str(context.exception))

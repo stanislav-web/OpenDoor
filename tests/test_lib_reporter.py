@@ -20,12 +20,18 @@ import unittest2 as unittest
 from src.lib.reporter import Reporter, ReporterError
 from src.lib.reporter.plugins.provider import PluginProvider
 from ddt import ddt, data
+from src.core.logger.logger import Logger
 
 
 @ddt
 class TestReporter(unittest.TestCase):
     """TestReporter class"""
-
+    
+    def tearDown(self):
+        logger = Logger.log()
+        for handler in logger.handlers:
+            logger.removeHandler(handler)
+            
     def test_is_reported(self):
         """ Reporter.is_reported() test """
 

@@ -20,11 +20,17 @@ import unittest2 as unittest
 from src.lib.reader import Reader
 from src.core.filesystem.filesystem import FileSystem
 import os, ConfigParser
+from src.core.logger.logger import Logger
 
 
 class TestReader(unittest.TestCase):
     """TestReader class"""
-
+    
+    def tearDown(self):
+        logger = Logger.log()
+        for handler in logger.handlers:
+            logger.removeHandler(handler)
+            
     @property
     def __configuration(self):
         test_config =  FileSystem.getabsname(os.path.join('tests', 'data', 'setup.cfg'))
@@ -37,7 +43,6 @@ class TestReader(unittest.TestCase):
 
         empty_reader = Reader(browser_config={})
         self.assertIs(type(empty_reader.total_lines), int)
-
 
     def test_get_user_agents_empty(self):
         """ Reader.get_user_agents() empty test """

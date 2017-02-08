@@ -19,11 +19,18 @@
 import unittest2 as unittest
 from src.lib.package import Package
 from src.core.filesystem import FileSystem
+from src.core.logger.logger import Logger
 
 
 class TestPackage(unittest.TestCase):
     """TestPackage class"""
+    
+    def tearDown(self):
+        logger = Logger.log()
 
+        for handler in logger.handlers:
+            logger.removeHandler(handler)
+            
     def test_check_interpreter(self):
         """ Package.check_interpreter() test """
 

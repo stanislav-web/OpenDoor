@@ -17,6 +17,7 @@
 """
 
 import unittest2 as unittest
+from src.core.logger.logger import Logger
 from StringIO import StringIO
 from mock import patch
 from src.lib.tpl import Tpl, TplError
@@ -24,9 +25,11 @@ from src.lib.tpl import Tpl, TplError
 
 class TestTpl(unittest.TestCase):
     """TestTpl class"""
-
+    
     def tearDown(self):
-        StringIO().flush()
+        logger = Logger.log()
+        for handler in logger.handlers:
+            logger.removeHandler(handler)
 
     def prompt_answer(self):
         ans = Tpl.prompt(msg='fake')
@@ -67,13 +70,6 @@ class TestTpl(unittest.TestCase):
             Tpl.message('test_message')
             self.assertTrue('test_message' in fakeOutput.getvalue().strip())
 
-    def test_info(self):
-        """ Tpl.info() test """
-
-        with patch('sys.stdout', new=StringIO()) as fakeOutput:
-            Tpl.info('test_info')
-            self.assertTrue('test_info' in fakeOutput.getvalue().strip())
-
     def test_error(self):
         """ Tpl.error() test """
 
@@ -96,6 +92,13 @@ class TestTpl(unittest.TestCase):
             Tpl.line(key=undefined)
         self.assertTrue(undefined in str(context.exception))
         self.assertTrue(TplError == context.expected)
+
+    def test_info(self):
+        """ Tpl.info() test """
+    
+        with patch('sys.stdout', new=StringIO()) as fakeOutput:
+            Tpl.info('test_info')
+            self.assertTrue('' in fakeOutput.getvalue().strip())
 
 if __name__ == "__main__":
     unittest.main()

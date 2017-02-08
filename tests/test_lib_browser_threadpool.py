@@ -17,15 +17,27 @@
 """
 
 import unittest2 as unittest
+from mock import patch
 from src.lib.browser.threadpool import ThreadPool
+from src.core.logger.logger import Logger
+
 
 class TestBrowserThreadPool(unittest.TestCase):
     """TestBrowserThreadPool class"""
     
     THREADS = 2
     
+    def __test_function(self,arg):
+        pass
+    
     def setUp(self):
         self._pool = ThreadPool(num_threads=self.THREADS, total_items=10, timeout=0)
+    
+    def tearDown(self):
+        logger = Logger.log()
+        for handler in logger.handlers:
+            logger.removeHandler(handler)
+        self._pool.join()
 
     def test_size(self):
         """ ThreadPool.size test """
@@ -44,6 +56,30 @@ class TestBrowserThreadPool(unittest.TestCase):
     
         self.assertIs(type(self._pool.items_size), int)
         self.assertEqual(self._pool.items_size, 0)
+
+    def test_add(self):
+        """ ThreadPool.add() test """
+    
+        self.assertIs(self._pool.add(self.__test_function, 1), None)
+    
+    def pause(self):
+        ans = self._pool.pause()
+        return ans
+    
+    def test_pause(self):
+        """ ThreadPool.pause() test """
+        
+        with self.assertRaises(KeyboardInterrupt) as context:
+            with patch('__builtin__.raw_input', return_value='e') as _raw_input:
+                self.assertEqual(self.pause(), 'e')
+                _raw_input.assert_called_once_with('e')
+            self.assertTrue(KeyboardInterrupt == context.expected)
+
+    def test_resume(self):
+        """ ThreadPool.resume() test """
+        
+        self._pool.is_started = False
+        self.assertIs(self._pool.resume(), None)
 
 
 if __name__ == "__main__":

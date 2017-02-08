@@ -41,7 +41,6 @@ class LoggerException(object):
         try:
 
             filesystem.makedir(Config.logdir)
-            
             try:
                 logging.config.dictConfig(Config.exceptions)
             except AttributeError:

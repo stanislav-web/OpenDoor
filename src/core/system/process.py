@@ -18,12 +18,9 @@
 
 import os
 import signal
-import platform
-import shlex
-import struct
 import subprocess
 from .exceptions import CoreSystemError
-
+from .terminal import Terminal
 
 class Process(object):
     """ Process class"""
@@ -38,7 +35,8 @@ class Process(object):
 
         del classname, typeobj, params
         self.ts = None
-
+    
+    
     @property
     def terminal_size(self):
         """
@@ -48,99 +46,8 @@ class Process(object):
         """
 
         if getattr(self, 'ts', None) is None:
-
-            def __get_ts():
-                """
-                Get width and height of console
-                :return: tuple
-                """
-
-                current_os = platform.system()
-                tuple_xy = None
-                if current_os == 'Windows':
-                    tuple_xy = __get_ts_windows()
-                    if tuple_xy is None:
-                        tuple_xy = __get_ts_tput()
-                if current_os in ['Linux', 'Darwin'] or current_os.startswith('CYGWIN'):
-                    tuple_xy = __get_ts_unix()
-                if tuple_xy is None:
-                    tuple_xy = (80, 25)  # default value
-                return tuple_xy
-
-            def __get_ts_windows():
-                """
-                Get windows terminal size
-                :return: tuple
-                """
-
-                try:
-                    from ctypes import windll, create_string_buffer
-                    h = windll.kernel32.GetStdHandle(-12)
-                    csbi = create_string_buffer(22)
-                    res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
-                    if res:
-                        (bufx, bufy, curx, cury, wattr,
-                         left, top, right, bottom,
-                         maxx, maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
-                        sizex = right - left + 1
-                        sizey = bottom - top + 1
-                        return sizex, sizey
-                except:
-                    pass
-
-            def __get_ts_unix():
-                """
-                Get unix terminal size
-                :return tuple
-                """
-
-                def ioctl_GWINSZ(fd):
-                    """
-                    Get  win soize
-                    :param callback fd:
-                    :return: tuple
-                    """
-
-                    try:
-                        import fcntl
-                        import termios
-                        cr = struct.unpack('hh',
-                                           fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
-                        return cr
-                    except:
-                        pass
-
-                cr = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
-                if not cr:
-                    try:
-                        fd = os.open(os.ctermid(), os.O_RDONLY)
-                        cr = ioctl_GWINSZ(fd)
-                        os.close(fd)
-                    except:
-                        pass
-                if not cr:
-                    try:
-                        cr = (os.environ['LINES'], os.environ['COLUMNS'])
-                    except:
-                        return None
-                return int(cr[1]), int(cr[0])
-
-            def __get_ts_tput():
-                """
-                Get terminal width
-                :return: tuple
-                """
-
-                try:
-                    cols = int(subprocess.check_call(shlex.split('tput cols')))
-                    rows = int(subprocess.check_call(shlex.split('tput lines')))
-                    return (cols, rows)
-                except:
-                    pass
-
-            (width, height) = __get_ts()
-            ts = {'height': height, 'width': width}
-            self.ts = ts
+            (width, height) = Terminal().get_ts()
+            self.ts = {'height': height, 'width': width}
         return self.ts
 
     @staticmethod

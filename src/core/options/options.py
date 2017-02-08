@@ -30,7 +30,8 @@ class Options(object):
         Constructor
         :raise OptionsError
         """
-
+        
+        self.parser = None
         self.__standalone = ["version", "update", "examples"]
 
         __groups = {
@@ -238,13 +239,14 @@ class Options(object):
         groupped = {}
 
         try:
-            parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
-            required_named = parser.add_argument_group('required named options')
+            self.__create_parser()
+            
+            required_named = self.parser.add_argument_group('required named options')
             required_named.add_argument('--host', help="Target host (ip); --host http://example.com")
             arguments_len = len(__arguments)
 
             for group, description in sorted(__groups.items()):
-                groupped[group] = parser.add_argument_group(description)
+                groupped[group] = self.parser.add_argument_group(description)
 
             for i in range(arguments_len):
                 arg = __arguments[i]
@@ -264,10 +266,13 @@ class Options(object):
                         groupped[arg['group']].add_argument(arg['args'], arg['argl'], default=arg['default'],
                                                           action=arg['action'], help=arg['help'], type=arg['type'])
 
-            parser.parse_args()
-            self.parser = parser
+            self.parser.parse_args()
         except (ArgumentParserError) as e:
+            
             raise OptionsError(e.message)
+    
+    def __create_parser(self):
+        self.parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
 
     def get_arg_values(self):
         """

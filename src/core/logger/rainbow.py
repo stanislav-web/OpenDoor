@@ -27,9 +27,13 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
     """ Class RainbowLoggingHandler """
 
     # Define color for message payload
-    level_map = {logging.DEBUG: ('cyan', False), logging.INFO: ('white', False),
-        logging.WARNING: ('yellow', False), logging.ERROR: ('red', True),
-        logging.CRITICAL: ('red', True)}
+    level_map = {
+        logging.DEBUG: ('cyan', False),
+        logging.INFO: ('white', False),
+        logging.WARNING: ('yellow', False),
+        logging.ERROR: ('red', True),
+        logging.CRITICAL: ('red', True)
+    }
 
     date_format = "%H:%M:%S"
 
