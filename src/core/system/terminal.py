@@ -16,9 +16,6 @@
     Development Team: Stanislav WEB
 """
 
-import os
-import fcntl
-import termios
 import platform
 import shlex
 import struct
@@ -52,10 +49,9 @@ class Terminal(object):
         Get windows terminal size
         :return: tuple
         """
-    
+
         try:
             from ctypes import windll, create_string_buffer
-    
             h = windll.kernel32.GetStdHandle(-12)
             csbi = create_string_buffer(22)
             res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
@@ -75,37 +71,13 @@ class Terminal(object):
         Get unix terminal size
         :return tuple
         """
-    
-        def ioctl_GWINSZ(fd):
-            """
-            Get  win soize
-            :param callback fd:
-            :return: tuple
-            """
         
-            try:
+        try:
+            (height, width) = subprocess.check_output(['stty', 'size']).split()
+            return (width, height)
+        except subprocess.CalledProcessError:
+            pass
 
-                cr = struct.unpack('hh',
-                                   fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
-                return cr
-            except:
-                pass
-    
-        cr = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
-        if not cr:
-            try:
-                fd = os.open(os.ctermid(), os.O_RDONLY)
-                cr = ioctl_GWINSZ(fd)
-                os.close(fd)
-            except:
-                pass
-        if not cr:
-            try:
-                cr = (os.environ['LINES'], os.environ['COLUMNS'])
-            except:
-                return None
-        return int(cr[1]), int(cr[0])
-    
     @staticmethod
     def __get_ts_tput():
         """
