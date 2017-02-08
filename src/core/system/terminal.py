@@ -21,7 +21,6 @@ import shlex
 import struct
 import subprocess
 
-
 class Terminal(object):
     """ Terminal class"""
     
@@ -71,13 +70,37 @@ class Terminal(object):
         Get unix terminal size
         :return tuple
         """
+        (height, width) = 25,80
         
         try:
             (height, width) = subprocess.check_output(['stty', 'size']).split()
+        except (AttributeError, subprocess.CalledProcessError):
+            subprocess.check_output = Terminal.__legacy_call
+            (height, width) = subprocess.check_output(['stty', 'size']).split()
+        finally:
             return (width, height)
-        except subprocess.CalledProcessError:
-            pass
 
+    @staticmethod
+    def __legacy_call(*popenargs, **kwargs):
+        """
+        Subprocess check output for legacy python version 2.6
+        :param popenargs:
+        :param kwargs:
+        :return:
+        """
+        
+        if 'stdout' in kwargs:
+            raise ValueError('stdout argument not allowed, it will be overridden.')
+        process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+        output, unused_err = process.communicate()
+        retcode = process.poll()
+        if retcode:
+            cmd = kwargs.get("args")
+            if cmd is None:
+                cmd = popenargs[0]
+            raise subprocess.CalledProcessError(retcode, cmd)
+        return output
+        
     @staticmethod
     def __get_ts_tput():
         """
