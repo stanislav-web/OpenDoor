@@ -20,7 +20,6 @@ import unittest2 as unittest
 import os, ConfigParser
 from src.core.helper.helper import Helper
 from src.lib.reader import Reader, ReaderError
-from src.lib.reader.config import Config
 from src.core.filesystem.filesystem import FileSystem
 from src.core.system.output import Output as sys
 from src.core.logger.logger import Logger
@@ -142,11 +141,11 @@ class TestReader(unittest.TestCase):
             'prefix': '',
         })
         setattr(reader, '_Reader__config', self.__configuration)
-        reader.get_lines(params={
+        self.assertIsNone(reader.get_lines(params={
             'scheme': 'http://',
             'host': 'localhost.local',
             'port': 80
-        }, loader=self.__callback_function)
+        }, loader=self.__callback_function))
 
     def test_get_lines_subdomains(self):
         """ Reader.get_lines() subdomains test """
@@ -157,11 +156,11 @@ class TestReader(unittest.TestCase):
             'prefix': '',
         })
         setattr(reader, '_Reader__config', self.__configuration)
-        reader.get_lines(params={
+        self.assertIsNone(reader.get_lines(params={
             'scheme': 'http://',
             'host': 'localhost.local',
             'port': 80
-        }, loader=self.__callback_function)
+        }, loader=self.__callback_function))
 
     def test_count_total_lines_exception(self):
         """ Reader.count_total_lines() exception test """

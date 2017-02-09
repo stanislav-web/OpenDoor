@@ -18,8 +18,8 @@
 
 from __future__ import absolute_import
 import unittest2 as unittest
-from mock import Mock
 from src import Controller, SrcError
+
 
 class TestController(unittest.TestCase):
     """TestController class"""
@@ -42,6 +42,29 @@ class TestController(unittest.TestCase):
             })
         self.assertTrue(SrcError == context.expected)
 
+    def test_examples_action(self):
+        """ Controller.examples_action() test """
+
+        controller = Controller.__new__(Controller)
+        self.assertIsNone(controller.examples_action())
+
+    def test_update_action(self):
+        """ Controller.update_action() test """
+
+        controller = Controller.__new__(Controller)
+        self.assertIsNone(controller.update_action())
+
+    def test_version_action(self):
+        """ Controller.version_action() test """
+
+        controller = Controller.__new__(Controller)
+        self.assertIsNone(controller.version_action())
+
+    def test_local_version(self):
+        """ Controller.local_version() test """
+
+        controller = Controller.__new__(Controller)
+        self.assertIsNone(controller.local_version())
 
 if __name__ == "__main__":
     unittest.main()
