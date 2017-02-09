@@ -99,7 +99,7 @@ class Process(object):
     @staticmethod
     def execute(process):
         """
-        Exceute OS process
+        Excecute OS process
         :param str process: os command
         :raise CoreSystemError
         :return: dic

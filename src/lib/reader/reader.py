@@ -17,9 +17,10 @@
 """
 
 import random
-from src.core import FileSystemError, CoreSystemError
+from src.core import FileSystemError
 from src.core import filesystem
 from src.core import process
+from src.core import sys
 from .config import Config
 from .exceptions import ReaderError
 
@@ -62,12 +63,11 @@ class Reader(object):
         """
 
         try:
-
             if not len(self.__useragents):
                 self.__useragents = filesystem.read(self.__config.get('opendoor', 'useragents'))
             return self.__useragents
 
-        except FileSystemError as e:
+        except (TypeError, FileSystemError) as e:
             raise ReaderError(e.message)
 
     def get_ignored_list(self):
@@ -89,7 +89,7 @@ class Reader(object):
 
             return self.__ignored
 
-        except FileSystemError as e:
+        except (TypeError, FileSystemError) as e:
             raise ReaderError(e.message)
 
     def get_proxies(self):
@@ -100,19 +100,19 @@ class Reader(object):
         """
 
         try:
-
             if False is self.__browser_config.get('is_standalone_proxy'):
 
                 if True is self.__browser_config.get('is_external_torlist'):
                     self.__proxies = filesystem.read(self.__browser_config.get('torlist'))
                 else:
+
                     if not len(self.__proxies):
                         self.__proxies = filesystem.read(self.__config.get('opendoor', 'proxies'))
                 return self.__proxies
             else:
                 return []
 
-        except FileSystemError as e:
+        except (TypeError, FileSystemError) as e:
             raise ReaderError(e.message)
 
     def get_lines(self, params, loader):
@@ -133,11 +133,10 @@ class Reader(object):
                     self.__browser_config.update({'list': 'directories'})
                 else:
                     dirlist = self.__config.get('opendoor', self.__browser_config.get('list'))
-
             filesystem.readline(dirlist, handler=getattr(self, '_{0}__line'.format(self.__browser_config.get('list'))),
                                 handler_params=params, loader=loader)
 
-        except FileSystemError as e:
+        except (TypeError, FileSystemError) as e:
             raise ReaderError(e.message)
 
     @classmethod
@@ -179,7 +178,7 @@ class Reader(object):
         if True is line.startswith('/'):
             line = line[1:]
 
-        if 0 < len(self.__browser_config.get('prefix')):
+        if True is self.__browser_config.has_key('prefix') and 0 < len(self.__browser_config.get('prefix')):
             line = self.__browser_config.get('prefix') + line
 
         if False is line.endswith('/') and False is filesystem.has_extension(line) and '.' not in line:
@@ -204,49 +203,48 @@ class Reader(object):
         :raise ReaderError
         :return: None
         """
-
-        target_file = self.__config.get('opendoor', target_list)
-        output_file = self.__config.get('opendoor', 'tmplist')
-        filesystem.makefile(output_file)
-
         try:
-            process.execute('shuf {target} -o {output}'.format(target=target_file, output=output_file))
-        except CoreSystemError:
-            
-            try:
-                i_f = open(target_file)
-                o_f = open(output_file, 'wb')
-                counter = sum(1 for l in i_f)
-    
-                order = range(counter)
-                random.shuffle(order)
-    
-                while order:
-        
-                    current_lines = {}
-                    current_lines_count = 0
-                    current_chunk = order[:self.total_lines]
-                    current_chunk_dict = dict((x, 1) for x in current_chunk)
-                    current_chunk_length = len(current_chunk)
-                    order = order[self.total_lines:]
-                    i_f.seek(0)
-                    count = 0
-        
-                    for line in i_f:
-                        if count in current_chunk_dict:
-                            current_lines[count] = line
-                            current_lines_count += 1
-                            if current_lines_count == current_chunk_length:
-                                break
-                        count += 1
-        
-                    for l in current_chunk:
-                        o_f.write(current_lines[l])
-                
-            except IOError as e:
-                raise ReaderError(e)
 
-        except FileSystemError as e:
+            target_file = self.__config.get('opendoor', target_list)
+            output_file = self.__config.get('opendoor', 'tmplist')
+            filesystem.makefile(output_file)
+
+            if False is sys.is_windows():
+                process.execute('shuf {target} -o {output}'.format(target=target_file, output=output_file))
+            else:
+                try:
+                    i_f = open(target_file)
+                    o_f = open(output_file, 'wb')
+                    counter = sum(1 for l in i_f)
+
+                    order = range(counter)
+                    random.shuffle(order)
+
+                    while order:
+
+                        current_lines = {}
+                        current_lines_count = 0
+                        current_chunk = order[:self.total_lines]
+                        current_chunk_dict = dict((x, 1) for x in current_chunk)
+                        current_chunk_length = len(current_chunk)
+                        order = order[self.total_lines:]
+                        i_f.seek(0)
+                        count = 0
+
+                        for line in i_f:
+                            if count in current_chunk_dict:
+                                current_lines[count] = line
+                                current_lines_count += 1
+                                if current_lines_count == current_chunk_length:
+                                    break
+                            count += 1
+
+                        for l in current_chunk:
+                            o_f.write(current_lines[l])
+
+                except IOError as e:
+                    raise ReaderError(e)
+        except (TypeError, FileSystemError, ReaderError) as e:
             raise ReaderError(e.message)
 
     def count_total_lines(self):
@@ -262,11 +260,11 @@ class Reader(object):
                     dirlist = self.__browser_config.get('list')
                 else:
                     dirlist = self.__config.get('opendoor', self.__browser_config.get('list'))
-                self.__counter = filesystem.read(dirlist).__len__()
+                self.__counter = len(filesystem.read(dirlist))
 
             return self.__counter
 
-        except FileSystemError as e:
+        except (TypeError, FileSystemError) as e:
             raise ReaderError(e.message)
 
     @property

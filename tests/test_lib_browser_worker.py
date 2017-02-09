@@ -18,7 +18,7 @@
 
 import unittest2 as unittest
 from src.lib.browser.worker import Worker
-from Queue import Queue, Empty
+from Queue import Queue
 
 
 class TestBrowserWorker(unittest.TestCase):
