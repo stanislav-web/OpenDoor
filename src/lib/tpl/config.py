@@ -40,13 +40,12 @@ class Config(object):
         'create_queue': 'Creating queue with {threads} thread(s)...',
         'subdomains': 'Read {total} subdomains list by line...',
         'random_browser': 'Fetching random user-agent per request...',
-        'get_item_lvl0': '{percent} {item}',
         'total_time_lvl3': 'Total time running: {time}',
         'thread_limit': 'Threads has been reduced to {max} (max) instead of {threads}',
         'stop_threads': 'Stopping threads ({threads})...',
         'option_prompt': 'Press "[C]ontinue" to resume or "[E]xit" to abort session: ',
         'resume_threads': 'Resuming scan...',
-        'get_item_lvl1': '{percent} [{current}/{total}] - {size} - {item}',
+        'get_item': '{percent} [{current}/{total}] - {size} - {item}',
         'addtopool': 'Adding {total} lines to queue...',
         'http_pool_start': 'Using HTTP keep-alive connection',
         'https_pool_start': 'Using SSL keep-alive connection',
@@ -61,6 +60,7 @@ class Config(object):
         'host_changed_error': 'Block external redirect -> {details}',
         'read_timeout_error': 'Connection timeout! {url}. Increase using --timeout option',
         'success': 'OK {url}',
-        'file': 'File {url}', 'indexof': 'Index {url}',
+        'file': 'File {url}',
+        'indexof': 'Index {url}',
         'forbidden': 'Denied {url}', 'redirect': 'R {url} -> {rurl}'
     }

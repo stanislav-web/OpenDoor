@@ -42,16 +42,15 @@ class ResponseProvider(object):
 
         self._cfg = config
 
-    @property
-    def is_indexof(self):
+    def is_indexof(self, content):
         """
         Check response as index of/ page
+        :param str content
         :return: bool
         """
-
-        regex = re.compile('<title>(.*?)</title>', re.IGNORECASE | re.DOTALL)
-        title = regex.search(self.INDEX_OF_TITLE)
-        if None is not title.group():
+        
+        title = re.search('<title>(.+?)</title>', content, re.IGNORECASE | re.DOTALL)
+        if None is not re.search(self.INDEX_OF_TITLE, title.group(1), re.IGNORECASE):
             return True
         return False
 
@@ -91,7 +90,7 @@ class ResponseProvider(object):
                 if self.DEFAULT_SOURCE_DETECT_MIN_SIZE <= int(response.headers['Content-Length']):
                     return 'file'
                 if True is self._cfg.is_indexof:
-                    if True is self.is_indexof:
+                    if True is self.is_indexof(response.data):
                         return 'indexof'
             return 'success'
         elif response.status in self.DEFAULT_HTTP_FAILED_STATUSES:
@@ -134,7 +133,12 @@ class ResponseProvider(object):
         :param urllib3.response.HTTPResponse response: response object
         :return: str
         """
-
-        if 'Content-Length' in response.headers:
-            return filesystem.human_size(response.headers['Content-Length'], 0)
-        return '0B'
+        size = 0
+        
+        try:
+            size = int(response.headers['Content-Length'])
+        except (KeyError, ValueError):
+            size = len(response.data)
+        finally:
+            size = filesystem.human_size(size, 0)
+        return size

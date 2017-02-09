@@ -21,6 +21,7 @@ import shlex
 import struct
 import subprocess
 
+
 class Terminal(object):
     """ Terminal class"""
     

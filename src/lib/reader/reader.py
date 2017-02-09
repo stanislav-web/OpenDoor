@@ -207,40 +207,44 @@ class Reader(object):
 
         target_file = self.__config.get('opendoor', target_list)
         output_file = self.__config.get('opendoor', 'tmplist')
+        filesystem.makefile(output_file)
 
         try:
-            filesystem.makefile(output_file)
             process.execute('shuf {target} -o {output}'.format(target=target_file, output=output_file))
         except CoreSystemError:
-
-            i_f = open(target_file)
-            o_f = open(output_file, 'wb')
-            counter = sum(1 for l in i_f)
-
-            order = range(counter)
-            random.shuffle(order)
-
-            while order:
-
-                current_lines = {}
-                current_lines_count = 0
-                current_chunk = order[:self.total_lines]
-                current_chunk_dict = {x: 1 for x in current_chunk}
-                current_chunk_length = len(current_chunk)
-                order = order[self.total_lines:]
-                i_f.seek(0)
-                count = 0
-
-                for line in i_f:
-                    if count in current_chunk_dict:
-                        current_lines[count] = line
-                        current_lines_count += 1
-                        if current_lines_count == current_chunk_length:
-                            break
-                    count += 1
-
-                for l in current_chunk:
-                    o_f.write(current_lines[l])
+            
+            try:
+                i_f = open(target_file)
+                o_f = open(output_file, 'wb')
+                counter = sum(1 for l in i_f)
+    
+                order = range(counter)
+                random.shuffle(order)
+    
+                while order:
+        
+                    current_lines = {}
+                    current_lines_count = 0
+                    current_chunk = order[:self.total_lines]
+                    current_chunk_dict = dict((x, 1) for x in current_chunk)
+                    current_chunk_length = len(current_chunk)
+                    order = order[self.total_lines:]
+                    i_f.seek(0)
+                    count = 0
+        
+                    for line in i_f:
+                        if count in current_chunk_dict:
+                            current_lines[count] = line
+                            current_lines_count += 1
+                            if current_lines_count == current_chunk_length:
+                                break
+                        count += 1
+        
+                    for l in current_chunk:
+                        o_f.write(current_lines[l])
+                
+            except IOError as e:
+                raise ReaderError(e)
 
         except FileSystemError as e:
             raise ReaderError(e.message)

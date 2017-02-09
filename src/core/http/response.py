@@ -61,9 +61,13 @@ class Response(ResponseProvider):
                 else:
                     url = request_url
 
-                self.__debug.debug_request_uri(status=status, request_uri=request_url, redirect_uri=redirect_uri,
-                                               items_size=items_size, total_size=total_size,
-                                               content_size=ResponseProvider._get_content_size(response))
+                self.__debug.debug_request_uri(status=status,
+                                               request_uri=request_url,
+                                               redirect_uri=redirect_uri,
+                                               items_size=items_size,
+                                               total_size=total_size,
+                                               content_size=ResponseProvider._get_content_size(response)
+                                               )
 
                 return status, url
 

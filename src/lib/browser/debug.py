@@ -71,10 +71,9 @@ class Debug(DebugProvider):
         :return: bool
         """
 
-        if True is self.__cfg.is_random_list:
-            tpl.debug(key='randomizing')
-
         if 0 < self.__level:
+            if True is self.__cfg.is_random_list:
+                tpl.debug(key='randomizing')
             if self.__cfg.DEFAULT_SCAN is self.__cfg.scan:
                 tpl.debug(key='directories', total=total_lines)
             else:
@@ -146,7 +145,7 @@ class Debug(DebugProvider):
         Debug request_uri
         :param int status: response status
         :param str request_uri: http request uri
-        :param **kwargs:
+        :param dict kwargs:
         :return: bool
         """
 
@@ -155,47 +154,42 @@ class Debug(DebugProvider):
             color='cyan')
         
         total_len = len(str(abs(kwargs.get('total_size', 1))))
+        urlpath = helper.parse_url(request_uri).path
         
         if status in ['success']:
-            request_uri = tpl.line(key='success', color='green', url=helper.parse_url(request_uri).path)
+            request_uri = tpl.line(key='success', color='green', url=urlpath)
         elif status in ['file']:
-            request_uri = tpl.line(key='file', color='green', url=helper.parse_url(request_uri).path)
+            request_uri = tpl.line(key='file', color='green', url=urlpath)
+        elif status in ['indexof']:
+            request_uri = tpl.line(key='indexof', color='green', url=urlpath)
         elif status in ['bad', 'forbidden']:
-            request_uri = tpl.line(key='forbidden', color='yellow', url=helper.parse_url(request_uri).path)
+            request_uri = tpl.line(key='forbidden', color='yellow', url=urlpath)
         elif status in ['redirect']:
-            request_uri = tpl.line(key='redirect', color='blue', url=helper.parse_url(request_uri).path,
+            request_uri = tpl.line(key='redirect', color='blue', url=urlpath,
                                    rurl=kwargs.get('redirect_uri'))
 
         self.__clear = True if self.__catched else False
 
-        if 0 < self.__level:
-
-            if status in ['success', 'bad', 'forbidden', 'redirect']:
-
-                tpl.info(key='get_item_lvl1',
-                         clear=self.__clear,
+        if status in ['success', 'bad', 'forbidden', 'redirect', 'indexof']:
+    
+            tpl.info(key='get_item',
+                     clear=self.__clear,
+                     percent=percentage,
+                     current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
+                     total=kwargs.get('total_size', 1),
+                     item=request_uri,
+                     size=kwargs.get('content_size')
+                     )
+            self.__catched = True
+        else:
+            tpl.line_log(key='get_item',
                          percent=percentage,
                          current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
                          total=kwargs.get('total_size', 1),
                          item=request_uri,
                          size=kwargs.get('content_size')
                          )
-                self.__catched = True
-            else:
-                tpl.line_log(key='get_item_lvl1',
-                             percent=percentage,
-                             current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
-                             total=kwargs.get('total_size', 1),
-                             item=request_uri,
-                             size=kwargs.get('content_size')
-                             )
-                self.__catched = False
-                sys.writels("", flush=self.__catched)
-
-        else:
-            if status in ['success', 'bad', 'forbidden', 'redirect']:
-                tpl.info(key='get_item_lvl0', clear=self.__clear, percent=percentage, item=request_uri)
-            else:
-                tpl.line_log(key='get_item_lvl0', percent=percentage, item=request_uri)
+            self.__catched = False
+            sys.writels("", flush=self.__catched)
 
         return True
