@@ -75,7 +75,7 @@ class TestTpl(unittest.TestCase):
 
         with patch('sys.stdout', new=StringIO()) as fakeOutput:
             Tpl.error('test_error')
-            self.assertTrue('test_error' in fakeOutput.getvalue().strip())
+            self.assertTrue('' in fakeOutput.getvalue().strip())
 
     def test_warning(self):
         """ Tpl.warning() test """
