@@ -128,7 +128,7 @@ class Controller(object):
             raise SrcError(e)
 
     @classmethod
-    def scan_action(cls, params=()):
+    def scan_action(cls, params):
         """
         URL scan action
         :param dict params: console input args
@@ -152,7 +152,7 @@ class Controller(object):
             brows.scan()
             brows.done()
 
-        except (AttributeError, BrowserError, ReporterError, TplError, OptionsError) as e:
+        except (AttributeError, BrowserError, ReporterError, TplError) as e:
             raise SrcError(e.message)
         except (KeyboardInterrupt, SystemExit):
             tpl.cancel(key='abort')

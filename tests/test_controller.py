@@ -18,17 +18,30 @@
 
 from __future__ import absolute_import
 import unittest2 as unittest
+from mock import Mock
 from src import Controller, SrcError
 
 class TestController(unittest.TestCase):
     """TestController class"""
 
-    def test_scan_action_exception(self):
-        """ Controller.scan_action() exception test """
+    def test_init_exception(self):
+        """ Controller.init() exception test """
 
         with self.assertRaises(SrcError) as context:
             Controller().scan_action({})
         self.assertTrue(SrcError == context.expected)
+
+    def test_scan_action_exception(self):
+        """ Controller.scan_action() exception test """
+
+        controller = Controller.__new__(Controller)
+        with self.assertRaises(SrcError) as context:
+            controller.scan_action(params={
+                'host': 'http://example.com',
+                'port': 80
+            })
+        self.assertTrue(SrcError == context.expected)
+
 
 if __name__ == "__main__":
     unittest.main()
