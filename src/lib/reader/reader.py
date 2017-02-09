@@ -16,8 +16,8 @@
     Development Team: Stanislav WEB
 """
 
-import random
 from src.core import FileSystemError
+from src.core import CoreSystemError
 from src.core import filesystem
 from src.core import process
 from src.core import sys
@@ -178,7 +178,7 @@ class Reader(object):
         if True is line.startswith('/'):
             line = line[1:]
 
-        if True is self.__browser_config.has_key('prefix') and 0 < len(self.__browser_config.get('prefix')):
+        if 'prefix' in self.__browser_config and 0 < len(self.__browser_config.get('prefix')):
             line = self.__browser_config.get('prefix') + line
 
         if False is line.endswith('/') and False is filesystem.has_extension(line) and '.' not in line:
@@ -196,55 +196,26 @@ class Reader(object):
 
         return line
 
-    def randomize_list(self, target_list):
+    def randomize_list(self, target, output):
         """
         Randomize scan list
-        :param str target_list: target list
+        :param str target: target list
+        :param str output: output list
         :raise ReaderError
         :return: None
         """
+
         try:
 
-            target_file = self.__config.get('opendoor', target_list)
-            output_file = self.__config.get('opendoor', 'tmplist')
+            target_file = self.__config.get('opendoor', target)
+            output_file = self.__config.get('opendoor', output)
             filesystem.makefile(output_file)
 
-            if False is sys.is_windows():
+            if False is sys.is_windows:
                 process.execute('shuf {target} -o {output}'.format(target=target_file, output=output_file))
             else:
-                try:
-                    i_f = open(target_file)
-                    o_f = open(output_file, 'wb')
-                    counter = sum(1 for l in i_f)
-
-                    order = range(counter)
-                    random.shuffle(order)
-
-                    while order:
-
-                        current_lines = {}
-                        current_lines_count = 0
-                        current_chunk = order[:self.total_lines]
-                        current_chunk_dict = dict((x, 1) for x in current_chunk)
-                        current_chunk_length = len(current_chunk)
-                        order = order[self.total_lines:]
-                        i_f.seek(0)
-                        count = 0
-
-                        for line in i_f:
-                            if count in current_chunk_dict:
-                                current_lines[count] = line
-                                current_lines_count += 1
-                                if current_lines_count == current_chunk_length:
-                                    break
-                            count += 1
-
-                        for l in current_chunk:
-                            o_f.write(current_lines[l])
-
-                except IOError as e:
-                    raise ReaderError(e)
-        except (TypeError, FileSystemError, ReaderError) as e:
+                filesystem.shuffle(target=target_file, output=output_file, total=self.total_lines)
+        except (CoreSystemError, FileSystemError) as e:
             raise ReaderError(e.message)
 
     def count_total_lines(self):

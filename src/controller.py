@@ -152,7 +152,7 @@ class Controller(object):
             brows.scan()
             brows.done()
 
-        except (AttributeError, BrowserError, ReporterError, TplError) as e:
+        except (AttributeError, BrowserError, ReporterError, TplError, OptionsError) as e:
             raise SrcError(e.message)
         except (KeyboardInterrupt, SystemExit):
             tpl.cancel(key='abort')

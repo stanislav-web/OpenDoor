@@ -20,6 +20,7 @@ import ConfigParser
 import StringIO
 import errno
 import os
+import random
 import re
 
 from .exceptions import FileSystemError
@@ -129,6 +130,48 @@ class FileSystem(object):
                 raise FileSystemError(e.message)
         else:
             return False
+
+    @staticmethod
+    def shuffle(target, output, total):
+        """
+        Shuffle data in file
+        :param str target: target file
+        :param str output_file: suffled file
+        :param int total: total lines
+        :return: bool
+        """
+
+        try:
+            i_f = open(target)
+            o_f = open(output, 'wb')
+            counter = sum(1 for l in i_f)
+
+            order = range(counter)
+            random.shuffle(order)
+
+            while order:
+                current_lines = {}
+                current_lines_count = 0
+                current_chunk = order[:total]
+                current_chunk_dict = dict((x, 1) for x in current_chunk)
+                current_chunk_length = len(current_chunk)
+                order = order[total:]
+                i_f.seek(0)
+                count = 0
+
+                for line in i_f:
+                    if count in current_chunk_dict:
+                        current_lines[count] = line
+                        current_lines_count += 1
+                        if current_lines_count == current_chunk_length:
+                            break
+                    count += 1
+
+                for l in current_chunk:
+                    o_f.write(current_lines[l])
+
+        except IOError as e:
+            raise FileSystemError(e)
 
     @staticmethod
     def readline(filename, handler, handler_params, loader):

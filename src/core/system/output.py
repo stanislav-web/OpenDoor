@@ -18,9 +18,12 @@
 
 import sys
 import platform
+import os
 
 class Output(object):
     """Output class"""
+
+    __is_windows = None
 
     @staticmethod
     def exit(msg):
@@ -65,11 +68,13 @@ class Output(object):
         version = platform.python_version().split(".")
         return "{0}.{1}".format(version[0], version[1])
 
-    @staticmethod
-    def is_windows():
+    @property
+    def is_windows(self):
         """
         Check for windows signature
         :return: bool
         """
 
-        return sys.platform.startswith('win')
+        if None is Output.__is_windows:
+            Output.__is_windows = True if sys.platform.startswith('win') or os.name == 'nt' else False
+        return Output.__is_windows

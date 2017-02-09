@@ -17,13 +17,12 @@
 """
 
 import unittest2 as unittest
+import os, ConfigParser
 from src.core.helper.helper import Helper
 from src.lib.reader import Reader, ReaderError
+from src.lib.reader.config import Config
 from src.core.filesystem.filesystem import FileSystem
-from src.core.system.exceptions import CoreSystemError
 from src.core.system.output import Output as sys
-
-import os, ConfigParser
 from src.core.logger.logger import Logger
 
 
@@ -118,7 +117,7 @@ class TestReader(unittest.TestCase):
 
     def test_get_proxies_empty(self):
         """ Reader.get_proxies() empty test """
-        
+
         empty_reader = Reader(browser_config={})
         self.assertIs(type(empty_reader.get_proxies()), list)
 
@@ -196,20 +195,49 @@ class TestReader(unittest.TestCase):
         empty_reader = Reader(browser_config={})
         self.assertIs(type(empty_reader.total_lines), int)
 
+    def test_randomize_list_exception(self):
+        """ Reader.randomize_list exception test """
+
+        reader = Reader(browser_config={})
+        setattr(reader, '_Reader__config', self.__configuration_for_exception)
+        setattr(sys, '_Output__is_windows', False)
+        with self.assertRaises(ReaderError) as context:
+            reader.randomize_list('directories', 'tmplist')
+            self.assertTrue(ReaderError == context.expected)
+
+    @unittest.skipIf(True is sys.is_windows, "Skip test for windows")
     def test_randomize_list_unix(self):
         """ Reader.randomize_list unix test """
 
-        reader = Reader(browser_config={})
+        reader = Reader(browser_config={
+            'is_external_wordlist': True,
+            'list': 'tests/data/directories.dat',
+        })
         setattr(reader, '_Reader__config', self.__configuration)
-        self.assertIsNone(reader.randomize_list('directories'))
+        reader.count_total_lines()
+        self.assertIsNone(reader.randomize_list('directories', 'tmplist'))
+        fe = open('tests/data/directories.dat', 'r')
+        fa = open('tests/tmp/list.tmp', 'r')
+        expected = sum(1 for l in fe)
+        actual = sum(1 for l in fa)
+        self.assertIs(expected, actual)
 
-    # def test_randomize_list_windows(self):
-    #     """ Reader.randomize_list windows test """
-    #
-    #     reader = Reader(browser_config={})
-    #     setattr(reader, '_Reader__config', self.__configuration)
-    #     setattr(sys, 'is_windows', True)
-    #     self.assertIsNone(reader.randomize_list('directories'))
+    def test_randomize_list_windows(self):
+        """ Reader.randomize_list windows test """
+
+        reader = Reader(browser_config={
+            'is_external_wordlist': True,
+            'list': 'tests/data/directories.dat',
+        })
+        setattr(reader, '_Reader__config', self.__configuration)
+        setattr(sys, 'is_windows', True)
+        reader.count_total_lines()
+        self.assertIsNone(reader.randomize_list('directories', 'tmplist'))
+        fe = open('tests/data/directories.dat', 'r')
+        fa = open('tests/tmp/list.tmp', 'r')
+        expected = sum(1 for l in fe)
+        actual = sum(1 for l in fa)
+        self.assertIs(expected, actual)
 
 if __name__ == "__main__":
     unittest.main()

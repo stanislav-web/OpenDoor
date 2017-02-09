@@ -106,7 +106,7 @@ class Browser(Filter):
 
         try:  # beginning scan process
             if True is self.__config.is_random_list:
-                self.__reader.randomize_list(self.__config.scan)
+                self.__reader.randomize_list(target=self.__config.scan, output='tmplist')
 
             tpl.info(key='scanning', host=self.__config.host)
 

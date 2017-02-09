@@ -110,7 +110,7 @@ class Package(object):
 
         try:
 
-            if False is sys.is_windows():
+            if False is sys.is_windows:
                 status = process.execute(Config.params.get('cvsupdate'))
                 upd_status = tpl.line(status, color='green')
                 msg = Config.params.get('update').format(status=upd_status)
