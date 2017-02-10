@@ -100,6 +100,18 @@ class TestReporter(unittest.TestCase):
         if ext in ['txt']:
             self.assertTrue(filesystem.is_exist('tests/reports/test.local', 'success.{0}'.format(ext)))
         shutil.rmtree('tests/reports')
+        
+    @data('std', 'txt', 'json', 'html')
+    def test_load_plugin_exception(self, ext):
+        """ Reporter.load() exception test """
+        
+        if ext in ['html','json', 'txt']:
+
+            PluginProvider.CONFIG_FILE = 'wrong.cfg'
+            with self.assertRaises(Exception) as context:
+                Reporter.load(ext, 'test.local', self.mockdata)
+                self.assertTrue(Exception == context.expected)
+       
 
     def test_load_exception(self):
         """ Reporter.load() exception test """
@@ -107,8 +119,8 @@ class TestReporter(unittest.TestCase):
         undefined = 'undefined'
         with self.assertRaises(ReporterError) as context:
             Reporter.load(undefined,'test.local', {})
-        self.assertTrue('Unable to get reporter `{plugin}`'.format(plugin=undefined) in context.exception)
-        self.assertTrue(ReporterError == context.expected)
+            self.assertTrue('Unable to get reporter `{plugin}`'.format(plugin=undefined) in context.exception)
+            self.assertTrue(ReporterError == context.expected)
 
 if __name__ == "__main__":
     unittest.main()

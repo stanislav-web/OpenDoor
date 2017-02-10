@@ -18,6 +18,7 @@
 
 from __future__ import absolute_import
 import unittest2 as unittest
+from src.lib.package.config import Config
 from src import Controller, SrcError
 
 
@@ -56,15 +57,44 @@ class TestController(unittest.TestCase):
 
     def test_version_action(self):
         """ Controller.version_action() test """
-
+        
+        Config.params['cfg'] = 'setup.cfg'
         controller = Controller.__new__(Controller)
         self.assertIsNone(controller.version_action())
 
     def test_local_version(self):
         """ Controller.local_version() test """
-
+        
+        Config.params['cfg'] = 'setup.cfg'
         controller = Controller.__new__(Controller)
         self.assertIsNone(controller.local_version())
+    
+    def test_update_action_exception(self):
+        """ Controller.update_action() exception test """
+        
+        del Config.params['update']
+        controller = Controller.__new__(Controller)
+        with self.assertRaises(SrcError) as context:
+            controller.update_action()
+        self.assertTrue(SrcError == context.expected)
 
+    def test_version_action_exception(self):
+        """ Controller.version_action() exception test """
+    
+        Config.params['cfg'] = 'wrong.cfg'
+        controller = Controller.__new__(Controller)
+        with self.assertRaises(SrcError) as context:
+            controller.version_action()
+        self.assertTrue(SrcError == context.expected)
+
+    def test_local_version_action_exception(self):
+        """ Controller.local_version() exception test """
+    
+        Config.params['cfg'] = 'wrong.cfg'
+        controller = Controller.__new__(Controller)
+        with self.assertRaises(SrcError) as context:
+            controller.local_version()
+        self.assertTrue(SrcError == context.expected)
+        
 if __name__ == "__main__":
     unittest.main()

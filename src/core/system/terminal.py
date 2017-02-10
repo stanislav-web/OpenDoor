@@ -100,6 +100,7 @@ class Terminal(object):
             if cmd is None:
                 cmd = popenargs[0]
             raise subprocess.CalledProcessError(retcode, cmd)
+        del unused_err
         return output
         
     @staticmethod

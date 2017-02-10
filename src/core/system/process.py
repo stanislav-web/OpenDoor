@@ -71,7 +71,7 @@ class Process(object):
             os.kill(os.getpid(), signal.SIGTERM)
 
         sig = getattr(signal, 'SIGTSTP', signal.SIGABRT)
-        signal.signal(signal.SIGTSTP, kill_process)
+        signal.signal(sig, kill_process)
 
     @staticmethod
     def kill():

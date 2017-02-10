@@ -47,7 +47,8 @@ class TestPackage(unittest.TestCase):
 
     def test_banner(self):
         """ Package.banner() test """
-
+        
+        Config.params['cfg'] = 'setup.cfg'
         expected = Package.banner()
         self.assertIsNotNone(expected)
         self.assertIs(type(expected), str)
@@ -64,6 +65,7 @@ class TestPackage(unittest.TestCase):
         """ Package.update() test """
         
         Config.params['cfg'] = 'setup.cfg'
+        Config.params['update'] = '{status}'
         expected = Package.update()
         self.assertIsNotNone(expected)
         self.assertIs(type(expected), str)
