@@ -9,3 +9,4 @@ opendoor.egg-info/
 /reports/
 /data/directories.dat.back
 /.coverage
+/tests/tmp/

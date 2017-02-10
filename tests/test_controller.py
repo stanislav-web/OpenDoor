@@ -19,6 +19,7 @@
 from __future__ import absolute_import
 import unittest2 as unittest
 from src.lib.package.config import Config
+from src.lib.events import EventHandler
 from src import Controller, SrcError
 
 
@@ -30,6 +31,14 @@ class TestController(unittest.TestCase):
 
         with self.assertRaises(SrcError) as context:
             Controller().scan_action({})
+        self.assertTrue(SrcError == context.expected)
+
+    def test_run_exception(self):
+        """ Controller.run() exception test """
+
+        controller = Controller.__new__(Controller)
+        with self.assertRaises(SrcError) as context:
+            controller.run()
         self.assertTrue(SrcError == context.expected)
 
     def test_scan_action_exception(self):
@@ -46,12 +55,14 @@ class TestController(unittest.TestCase):
     def test_examples_action(self):
         """ Controller.examples_action() test """
 
+        Config.params['cfg'] = 'setup.cfg'
         controller = Controller.__new__(Controller)
         self.assertIsNone(controller.examples_action())
 
     def test_update_action(self):
         """ Controller.update_action() test """
 
+        Config.params['cfg'] = 'setup.cfg'
         controller = Controller.__new__(Controller)
         self.assertIsNone(controller.update_action())
 
