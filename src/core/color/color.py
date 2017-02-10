@@ -68,8 +68,6 @@ class Color(object):
         :return: string
         """
 
-        if False is isinstance(text, str):
-            text = str(text)
         if Color.__has_colors(sys.stdout):
             text = text.strip('\n')
             seq = "\x1b[%dm" % (30 + Color.get(color)) + text + "\x1b[0m"
