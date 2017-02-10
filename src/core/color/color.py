@@ -25,7 +25,7 @@ class Color(object):
     default = 'white'
 
     @staticmethod
-    def get(key):
+    def __get(key):
         """
         Get color key
         :param str key: color name
@@ -33,11 +33,8 @@ class Color(object):
         """
 
         colorlist = {'black': 0, 'red': 1, 'green': 2, 'yellow': 3, 'blue': 4, 'magenta': 5, 'cyan': 6, 'white': 7}
-
-        if key in colorlist:
-            return colorlist[key]
-        else:
-            return colorlist[Color.default]
+        color_text = colorlist[key] if key in colorlist else colorlist[Color.default]
+        return color_text
 
     @staticmethod
     def __has_colors(stream):
@@ -70,7 +67,7 @@ class Color(object):
 
         if Color.__has_colors(sys.stdout):
             text = text.strip('\n')
-            seq = "\x1b[%dm" % (30 + Color.get(color)) + text + "\x1b[0m"
+            seq = "\x1b[%dm" % (30 + Color.__get(color)) + text + "\x1b[0m"
             return seq
         else:
             return text
