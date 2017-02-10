@@ -66,12 +66,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         """
 
         # Dynamic message color based on logging level
-        if record.levelno in self.level_map:
-            fg, bold = self.level_map[record.levelno]
-
-        else:
-            # Defaults
-            bold = False
+        fg, bold = self.level_map[record.levelno]
 
         template = [
             "[", self.get_color("black", True),
@@ -98,7 +93,6 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         record.padded_who = who + spaces
 
         formatter = logging.Formatter(format_string, self.date_format)
-        self.colorize_traceback(formatter, record)
         output = formatter.format(record)
         # Clean cache so the color codes of traceback don't leak to other formatters
         record.ext_text = None
@@ -122,19 +116,6 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
 
         ansi_escape = re.compile(r'\x1b[^m]*m')
         return len(ansi_escape.sub('', string))
-
-    def colorize_traceback(self, formatter, record):
-        """
-        Turn traceback text to red
-        :param object formatter: format object
-        :param object record: record meta object
-        :return: None
-        """
-
-        if record.exc_info:
-            # Cache the traceback text to avoid converting it multiple times
-            # (it's constant anyway)
-            record.exc_text = "".join([self.get_color("red"), formatter.formatException(record.exc_info), self.reset, ])
 
     def format(self, string):
         """
