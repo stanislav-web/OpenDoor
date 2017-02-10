@@ -21,10 +21,11 @@ from src.lib.browser.debug import Debug
 from src.lib.browser.config import Config
 from mock import patch
 from src.core.logger.logger import Logger
-
-
 from StringIO import StringIO
+from ddt import ddt, data
 
+
+@ddt
 class TestBrowserDebug(unittest.TestCase):
     """TestBrowserDebug class"""
 
@@ -54,11 +55,18 @@ class TestBrowserDebug(unittest.TestCase):
         self.assertIs(type(self.debug.level), int)
         self.assertTrue(0 < self.debug.level)
 
-    def test_debug_request_uri(self):
+    @data('success', 'file', 'indexof', 'bad','forbidden', 'redirect')
+    def test_debug_request_uri(self, status):
         """ Debug.debug_request_uri() test """
 
+        setattr(self.debug, '_Reader__cfg.DEFAULT_SCAN', 'directories')
+        if 'forbidden' in status:
+            setattr(self.debug, '_Reader__cfg.scan', 'directories')
+        else:
+            setattr(self.debug, '_Reader__cfg.scan', 'subdomains')
+
         with patch('sys.stdout', new=StringIO()):
-            self.assertTrue(self.debug.debug_request_uri(200,'http://test.local/data/'))
+            self.assertTrue(self.debug.debug_request_uri(status,'http://test.local/data/'))
 
     def test_debug_request(self):
         """ Debug.debug_request() test """

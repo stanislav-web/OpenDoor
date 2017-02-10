@@ -67,7 +67,7 @@ class TestReporter(unittest.TestCase):
     "items": 17,
     "success": 2,
     "workers": 1
-  }
+            }
         }
         PluginProvider.CONFIG_FILE = 'tests/data/setup.cfg'
         
@@ -81,6 +81,21 @@ class TestReporter(unittest.TestCase):
 
         expected = Reporter.is_reported('resource')
         self.assertIs(type(expected), bool)
+
+    def test_plugin_provider_invalid_data_exception(self):
+        """ PluginProvider.init() exception test """
+
+        with self.assertRaises(TypeError) as context:
+            PluginProvider('test.local', 'wrongdata')
+            self.assertTrue(TypeError == context.expected)
+
+    def test_plugin_provider_invalid_record(self):
+        """ PluginProvider.record() exception test """
+
+        provider = PluginProvider('test.local', self.mockdata)
+        with self.assertRaises(Exception) as context:
+            provider.record('wrongdir', self.mockdata)
+            self.assertTrue(Exception == context.expected)
 
     @data('std', 'txt', 'json', 'html')
     def test_load(self, value):
