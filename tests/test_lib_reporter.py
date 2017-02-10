@@ -17,21 +17,65 @@
 """
 
 import unittest2 as unittest
+import os, ConfigParser
+from src.core import filesystem
 from src.lib.reporter import Reporter, ReporterError
 from src.lib.reporter.plugins.provider import PluginProvider
 from ddt import ddt, data
 from src.core.logger.logger import Logger
+import shutil
 
 
 @ddt
 class TestReporter(unittest.TestCase):
     """TestReporter class"""
     
+    @property
+    def __configuration(self):
+        test_config =  filesystem.getabsname(os.path.join('tests', 'data', 'setup.cfg'))
+        config = ConfigParser.RawConfigParser()
+        config.read(test_config)
+        return config
+    
+    def setUp(self):
+        self.mockdata = {
+            "items": {
+                "failed": [
+      "http://test.local/swfobject.js",
+      "http://test.local/swfobject.php",
+      "http://test.local/swfobject/",
+      "http://test.local/swfs/",
+      "http://test.local/swfupload.php",
+      "http://test.local/swfupload/",
+      "http://test.local/swift/",
+      "http://test.local/login/",
+      "http://test.local/users/",
+      "http://test.local/swiss/",
+      "http://test.local/switch.php",
+      "http://test.local/switch/",
+      "http://test.local/switcher/",
+      "http://test.local/switchover/",
+      "http://test.local/switchoverfiles/"
+    ],
+                "success": [
+      "http://test.local/cron/exp.php",
+      "http://test.local/cron/cron-online.php"
+    ]
+            },
+            "total": {
+    "failed": 15,
+    "items": 17,
+    "success": 2,
+    "workers": 1
+  }
+        }
+        PluginProvider.CONFIG_FILE = 'tests/data/setup.cfg'
+        
     def tearDown(self):
         logger = Logger.log()
         for handler in logger.handlers:
             logger.removeHandler(handler)
-            
+        
     def test_is_reported(self):
         """ Reporter.is_reported() test """
 
@@ -44,6 +88,18 @@ class TestReporter(unittest.TestCase):
 
         expected = Reporter.load(value, 'test.local', {})
         self.assertIsInstance(expected, PluginProvider)
+        
+    @data('std', 'txt', 'json', 'html')
+    def test_process(self, ext):
+        """ Reporter.load().process() test """
+
+        report = Reporter.load(ext, 'test.local', self.mockdata)
+        self.assertIsNone(report.process())
+        if ext in ['html','json']:
+            self.assertTrue(filesystem.is_exist('tests/reports/test.local', 'test.local.{0}'.format(ext)))
+        if ext in ['txt']:
+            self.assertTrue(filesystem.is_exist('tests/reports/test.local', 'success.{0}'.format(ext)))
+        shutil.rmtree('tests/reports')
 
     def test_load_exception(self):
         """ Reporter.load() exception test """

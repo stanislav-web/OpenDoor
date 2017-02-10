@@ -74,11 +74,11 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
             bold = False
 
         template = [
-            "[", self.get_color("black",True),
+            "[", self.get_color("black", True),
             "%(asctime)s", self.reset, "] ",
             "",
             "",
-            "%(padded_who)s", self.reset, " ", self.get_color(fg, bold), "%(message)s", self.reset, ]
+            "%(padded_who)s", self.reset, " ", self.get_color(fg, bold), "%(message)s", self.reset ]
 
         format_string = "".join(template)
 

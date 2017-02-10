@@ -204,7 +204,7 @@ class TestReader(unittest.TestCase):
             reader.randomize_list('directories', 'tmplist')
             self.assertTrue(ReaderError == context.expected)
 
-    @unittest.skipIf(True is sys.is_windows, "Skip test for windows")
+    @unittest.skipIf(True is sys().is_windows, "Skip test for windows")
     def test_randomize_list_unix(self):
         """ Reader.randomize_list unix test """
 

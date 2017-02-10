@@ -48,13 +48,13 @@ class Response(ResponseProvider):
 
         if self.HTTP_DBG_LEVEL <= self.__debug.level:
             self.__debug.debug_response(response.headers.items())
-
+        
         if hasattr(response, 'status'):
 
             try:
                 status = super(Response, self).detect(request_url, response)
                 redirect_uri = None
-
+                
                 if status in ['redirect']:
                     redirect_uri = self._get_redirect_url(request_url, response)
                     url = redirect_uri
@@ -73,6 +73,15 @@ class Response(ResponseProvider):
 
             except Exception as e:
                 raise ResponseError(e.message)
-
+        
+        elif 'subdomains' in self._cfg.scan:
+            status = 'failed'
+            self.__debug.debug_request_uri(status=status,
+                                           request_uri=request_url,
+                                           items_size=items_size,
+                                           total_size=total_size,
+                                           content_size=ResponseProvider._get_content_size(response)
+                                           )
+            return status, request_url
         else:
             raise ResponseError('Unable to get response from {url}'.format(url=request_url))

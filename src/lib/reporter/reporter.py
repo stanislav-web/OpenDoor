@@ -21,6 +21,7 @@ import importlib
 from src.core import filesystem, FileSystemError
 from .exceptions import ReporterError
 
+
 class Reporter(object):
     """Reporter class"""
 

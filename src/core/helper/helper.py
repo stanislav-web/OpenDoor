@@ -64,11 +64,8 @@ class Helper(object):
         :param int indents: space indents
         :return: str
         """
-
-        if True is isinstance(data, str):
-            json_data = json.dumps(json.loads(data), sort_keys=sort, indent=indents)
-        else:
-            json_data = json.dumps(data, sort_keys=sort, indent=indents)
+        
+        json_data = json.dumps(data, sort_keys=sort, indent=indents)
 
         return json_data
 

@@ -16,10 +16,9 @@
     Development Team: Stanislav WEB
 """
 
-
 from .provider import PluginProvider
-from src.core import filesystem , FileSystemError
-from src.lib import tpl
+from src.core import filesystem, FileSystemError
+
 
 class TextReportPlugin(PluginProvider):
     """ TextReportPlugin class"""
@@ -33,11 +32,11 @@ class TextReportPlugin(PluginProvider):
         :param str taget: target host
         :param dict data: result set
         """
-
+        
         PluginProvider.__init__(self, taget, data)
 
         try:
-            config = filesystem.readcfg('setup.cfg')
+            config = filesystem.readcfg(self.CONFIG_FILE)
             directory = config.get('opendoor', 'reports')
             self.__target_dir = "".join((directory, self._target))
             filesystem.makedir(self.__target_dir)
@@ -57,12 +56,7 @@ class TextReportPlugin(PluginProvider):
 
             for status, data in resultset:
 
-                if status not in ['failed','ignored']:
-                    filename = "".join((self.__target_dir, filesystem.sep, status, self.EXTENSION_SET))
-                    filesystem.makefile(filename)
-                    filesystem.writelist(filename, data, separator='\n')
-                    tpl.info(key='report', plugin=self.PLUGIN_NAME, dest=filesystem.getabsname(filename))
-
-        except FileSystemError as e:
+                if status not in ['failed']:
+                    self.record(self.__target_dir, status, data, '\n')
+        except (Exception, FileSystemError) as e:
             raise Exception(e)
-

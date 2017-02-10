@@ -16,10 +16,17 @@
     Development Team: Stanislav WEB
 """
 
+from src.core import filesystem, FileSystemError
+from src.lib import tpl
+
 
 class PluginProvider(object):
     """"PluginProvider class"""
-
+    
+    CONFIG_FILE = 'setup.cfg'
+    PLUGIN_NAME = 'PluginProvider'
+    EXTENSION_SET = '.pp'
+    
     def __init__(self, taget, data):
         """
         PluginProvider constructor
@@ -50,3 +57,23 @@ class PluginProvider(object):
         """
 
         pass
+    
+    @classmethod
+    def record(cls, dir, filename, resultset, separator=''):
+        """
+        
+        :param str dir: report directory
+        :param str filename: report filename
+        :param list resultset: report result
+        :param str separator: result separator
+        :raise Exception
+        :return: None
+        """
+        
+        try:
+            filename = "".join((dir, filesystem.sep, filename, cls.EXTENSION_SET))
+            filesystem.makefile(filename)
+            filesystem.writelist(filename, resultset, separator)
+            tpl.info(key='report', plugin=cls.PLUGIN_NAME, dest=filesystem.getabsname(filename))
+        except FileSystemError as e:
+            raise Exception(e)

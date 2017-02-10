@@ -173,7 +173,13 @@ class Browser(Filter):
                     self.__pool.add(self.__http_request, url)
                 else:
                     self.__catch_report_data('ignored', url)
-                    tpl.warning(key='ignored_path', path=helper.parse_url(url).path)
+                    tpl.warning(
+                        key = 'ignored_item',
+                        current = '{0:0{l}d}'.format(0, l=len(str(abs(self.__reader.total_lines)))),
+                        total = self.__reader.total_lines,
+                        item = helper.parse_url(url).path
+                    )
+                    
             self.__pool.join()
 
         except (SystemExit, KeyboardInterrupt):

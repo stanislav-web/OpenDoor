@@ -47,6 +47,7 @@ class RequestProvider(CookiesProvider, HeaderProvider):
     def cookies_middleware(self, is_accept, response):
         """
         Route fetched cookies from first response to the next requests
+        :param is_accept: Is cookies was accepted
         :param urllib3.response.HTTPResponse response: Http response
         :return: None
         """

@@ -235,9 +235,7 @@ class Options(object):
             }
         ]
 
-
         groupped = {}
-
         try:
             self.__create_parser()
             
@@ -253,25 +251,41 @@ class Options(object):
 
                 if arg['args'] is None:
                     if bool == arg['type']:
-                        groupped[arg['group']].add_argument(arg['argl'], default=arg['default'], action=arg['action'],
-                                                          help=arg['help'])
+                        groupped[arg['group']].add_argument(arg['argl'],
+                                                            default=arg['default'],
+                                                            action=arg['action'],
+                                                            help=arg['help'])
                     else:
-                        groupped[arg['group']].add_argument(arg['argl'], default=arg['default'], action=arg['action'],
-                                                          help=arg['help'], type=arg['type'])
+                        groupped[arg['group']].add_argument(arg['argl'],
+                                                            default=arg['default'],
+                                                            action=arg['action'],
+                                                            help=arg['help'],
+                                                            type=arg['type'])
                 else:
                     if bool == arg['type']:
-                        groupped[arg['group']].add_argument(arg['args'], arg['argl'], default=arg['default'],
-                                                          action=arg['action'], help=arg['help'])
+                        groupped[arg['group']].add_argument(arg['args'],
+                                                            arg['argl'],
+                                                            default=arg['default'],
+                                                            action=arg['action'],
+                                                            help=arg['help'])
                     else:
-                        groupped[arg['group']].add_argument(arg['args'], arg['argl'], default=arg['default'],
-                                                          action=arg['action'], help=arg['help'], type=arg['type'])
+                        groupped[arg['group']].add_argument(arg['args'],
+                                                            arg['argl'],
+                                                            default=arg['default'],
+                                                            action=arg['action'],
+                                                            help=arg['help'],
+                                                            type=arg['type'])
 
             self.parser.parse_args()
         except (ArgumentParserError) as e:
-            
             raise OptionsError(e.message)
     
     def __create_parser(self):
+        """
+        Create instance of argparse
+        :return: None
+        """
+        
         self.parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
 
     def get_arg_values(self):

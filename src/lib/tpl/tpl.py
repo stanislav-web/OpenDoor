@@ -93,7 +93,6 @@ class Tpl(object):
         except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
-
     @staticmethod
     def line(msg='', key='', color='white', **args):
         """

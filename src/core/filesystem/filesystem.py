@@ -136,7 +136,7 @@ class FileSystem(object):
         """
         Shuffle data in file
         :param str target: target file
-        :param str output_file: suffled file
+        :param str output: suffled file
         :param int total: total lines
         :return: bool
         """

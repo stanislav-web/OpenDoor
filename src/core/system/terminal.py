@@ -71,7 +71,7 @@ class Terminal(object):
         Get unix terminal size
         :return tuple
         """
-        (height, width) = 25,80
+        (height, width) = 25, 80
         
         try:
             (height, width) = subprocess.check_output(['stty', 'size']).split()

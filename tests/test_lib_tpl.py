@@ -35,13 +35,38 @@ class TestTpl(unittest.TestCase):
         ans = Tpl.prompt(msg='fake')
         return ans
 
+    def test_cancel(self):
+        """ Tpl.cancel() test """
+    
+        with self.assertRaises(SystemExit) as context:
+            Tpl.cancel(key='abort')
+        self.assertTrue(SystemExit == context.expected)
+
+        
+    def test_cancel_exception(self):
+        """ Tpl.cancel() exception test """
+
+        undefined = 'undefined'
+        with self.assertRaises(TplError) as context:
+            Tpl.cancel(key=undefined)
+        self.assertTrue(undefined in str(context.exception))
+        self.assertTrue(TplError == context.expected)
+        
     def test_prompt(self):
         """ Tpl.prompt() test """
 
         with patch('__builtin__.raw_input', return_value='fake') as _raw_input:
             self.assertEqual(self.prompt_answer(), 'fake')
             _raw_input.assert_called_once_with('fake')
-    
+
+    def test_prompt_exception(self):
+        """ Tpl.prompt() exception test """
+        
+        undefined = 'undefined'
+        with self.assertRaises(TplError) as context:
+            Tpl.prompt(key=undefined)
+        self.assertTrue(undefined in str(context.exception))
+        self.assertTrue(TplError == context.expected)
 
     def test_line(self):
         """ Tpl.line() test """
@@ -62,7 +87,16 @@ class TestTpl(unittest.TestCase):
         with patch('sys.stdout', new=StringIO()) as fakeOutput:
             Tpl.line_log('test_line_log')
             self.assertTrue('test_line_log' in fakeOutput.getvalue().strip())
+    
+    def test_line_log_exception(self):
+        """ Tpl.line_log() exception test """
 
+        undefined = 'undefined'
+        with self.assertRaises(TplError) as context:
+            Tpl.line_log(key=undefined)
+        self.assertTrue(undefined in str(context.exception))
+        self.assertTrue(TplError == context.expected)
+        
     def test_message(self):
         """ Tpl.message() test """
 
@@ -84,7 +118,7 @@ class TestTpl(unittest.TestCase):
             Tpl.warning('test_warning')
             self.assertTrue('' in fakeOutput.getvalue().strip())
 
-    def test_line_error_key(self):
+    def test_line_exception(self):
         """ Tpl.line() exception test """
 
         undefined = 'undefined'
@@ -99,6 +133,33 @@ class TestTpl(unittest.TestCase):
         with patch('sys.stdout', new=StringIO()) as fakeOutput:
             Tpl.info('test_info')
             self.assertTrue('' in fakeOutput.getvalue().strip())
+    
+    def test_error_exception(self):
+        """ Tpl.error() exception test """
 
+        undefined = 'undefined'
+        with self.assertRaises(TplError) as context:
+            Tpl.error(key=undefined)
+        self.assertTrue(undefined in str(context.exception))
+        self.assertTrue(TplError == context.expected)
+        
+    def test_info_exception(self):
+        """ Tpl.info() exception test """
+
+        undefined = 'undefined'
+        with self.assertRaises(TplError) as context:
+            Tpl.info(key=undefined)
+        self.assertTrue(undefined in str(context.exception))
+        self.assertTrue(TplError == context.expected)
+        
+    def test_warning_exception(self):
+        """ Tpl.warning() exception test """
+
+        undefined = 'undefined'
+        with self.assertRaises(TplError) as context:
+            Tpl.warning(key=undefined)
+        self.assertTrue(undefined in str(context.exception))
+        self.assertTrue(TplError == context.expected)
+            
 if __name__ == "__main__":
     unittest.main()

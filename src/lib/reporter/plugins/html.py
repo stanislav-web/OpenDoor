@@ -16,11 +16,10 @@
     Development Team: Stanislav WEB
 """
 
-
 from .provider import PluginProvider
-from src.core import filesystem , FileSystemError
-from src.lib import tpl
+from src.core import filesystem, FileSystemError
 from json2html.jsonconv import Json2Html
+
 
 class HtmlReportPlugin(PluginProvider):
     """ HtmlReportPlugin class"""
@@ -38,7 +37,7 @@ class HtmlReportPlugin(PluginProvider):
         PluginProvider.__init__(self, taget, data)
 
         try:
-            config = filesystem.readcfg('setup.cfg')
+            config = filesystem.readcfg(self.CONFIG_FILE)
             directory = config.get('opendoor', 'reports')
             self.__target_dir = "".join((directory, self._target))
             filesystem.makedir(self.__target_dir)
@@ -53,12 +52,7 @@ class HtmlReportPlugin(PluginProvider):
 
         try:
             filesystem.clear(self.__target_dir, extension=self.EXTENSION_SET)
-            filename = "".join((self.__target_dir, filesystem.sep, self._target, self.EXTENSION_SET))
-            filesystem.makefile(filename)
             resultset = Json2Html().convert(json=self._data, table_attributes='border="1" cellpadding="2"')
-            filesystem.writelist(filename, resultset)
-            tpl.info(key='report', plugin=self.PLUGIN_NAME, dest=filesystem.getabsname(filename))
-
+            self.record(self.__target_dir, self._target, resultset)
         except FileSystemError as e:
             raise Exception(e)
-

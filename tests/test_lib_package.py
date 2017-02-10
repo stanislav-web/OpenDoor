@@ -17,7 +17,8 @@
 """
 
 import unittest2 as unittest
-from src.lib.package import Package
+from src.lib.package import Package, PackageError
+from src.lib.package.config import Config
 from src.core.filesystem import FileSystem
 from src.core.logger.logger import Logger
 
@@ -53,14 +54,16 @@ class TestPackage(unittest.TestCase):
 
     def test_version(self):
         """ Package.version() test """
-
+        
+        Config.params['cfg'] = 'setup.cfg'
         expected = Package.version()
         self.assertIsNotNone(expected)
         self.assertIs(type(expected), str)
 
     def test_update(self):
         """ Package.update() test """
-
+        
+        Config.params['cfg'] = 'setup.cfg'
         expected = Package.update()
         self.assertIsNotNone(expected)
         self.assertIs(type(expected), str)
@@ -68,9 +71,42 @@ class TestPackage(unittest.TestCase):
     def test_local_version(self):
         """ Package.local_version() test """
 
+        Config.params['cfg'] = 'setup.cfg'
         actual = FileSystem.readcfg('setup.cfg').get('info', 'version')
         expected = Package.local_version()
         self.assertEqual(actual, expected)
+        
+    def test_local_version_exception(self):
+        """ Package.local_version() exception test """
 
+        Config.params['cfg'] = 'wrong.cfg'
+        with self.assertRaises(PackageError) as context:
+            Package.local_version()
+            self.assertTrue(PackageError == context.expected)
+            
+    def test_update_exception(self):
+        """ Package.update() exception test """
+
+        del Config.params['update']
+        with self.assertRaises(PackageError) as context:
+            Package.update()
+            self.assertTrue(PackageError == context.expected)
+    
+    def test_version_exception(self):
+        """ Package.version() exception test """
+
+        Config.params['cfg'] = 'wrong.cfg'
+        with self.assertRaises(PackageError) as context:
+            Package.version()
+            self.assertTrue(PackageError == context.expected)
+            
+    def test_banner_exception(self):
+        """ Package.banner() exception test """
+
+        Config.params['cfg'] = 'wrong.cfg'
+        with self.assertRaises(PackageError) as context:
+            Package.banner()
+            self.assertTrue(PackageError == context.expected)
+            
 if __name__ == "__main__":
     unittest.main()

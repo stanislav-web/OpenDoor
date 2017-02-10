@@ -42,9 +42,13 @@ class Logger(object):
 
         if None is Logger._record:
             Logger._record = type('record', (object,),
-                                  dict(exc_info=False, exc_text=False, name='', levelno=Logger._levels.get(status),
-                                      funcName=status, lineno=currentframe().f_back.f_lineno)
-                                  )
+                                  dict(exc_info=False,
+                                        exc_text=False,
+                                        name='',
+                                        levelno=Logger._levels.get(status),
+                                        funcName=status,
+                                        lineno=currentframe().f_back.f_lineno)
+                                    )
 
         Logger._record.created = time.time()
 

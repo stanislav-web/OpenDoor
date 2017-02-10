@@ -288,7 +288,7 @@ class Config(object):
     def set_threads(self, threads):
         """
         Threads setter
-        :param int threads
+        :param int threads: threads
         :return: int
         """
 

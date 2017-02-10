@@ -20,6 +20,7 @@ import sys
 import platform
 import os
 
+
 class Output(object):
     """Output class"""
 

@@ -22,6 +22,7 @@ import subprocess
 from .exceptions import CoreSystemError
 from .terminal import Terminal
 
+
 class Process(object):
     """ Process class"""
 
@@ -35,7 +36,6 @@ class Process(object):
 
         del classname, typeobj, params
         self.ts = None
-    
     
     @property
     def terminal_size(self):
@@ -70,6 +70,7 @@ class Process(object):
 
             os.kill(os.getpid(), signal.SIGTERM)
 
+        sig = getattr(signal, 'SIGTSTP', signal.SIGABRT)
         signal.signal(signal.SIGTSTP, kill_process)
 
     @staticmethod

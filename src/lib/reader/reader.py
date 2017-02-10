@@ -211,7 +211,7 @@ class Reader(object):
             output_file = self.__config.get('opendoor', output)
             filesystem.makefile(output_file)
 
-            if False is sys.is_windows:
+            if False is sys().is_windows:
                 process.execute('shuf {target} -o {output}'.format(target=target_file, output=output_file))
             else:
                 filesystem.shuffle(target=target_file, output=output_file, total=self.total_lines)

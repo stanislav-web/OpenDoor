@@ -16,11 +16,10 @@
     Development Team: Stanislav WEB
 """
 
-
 from .provider import PluginProvider
-from src.core import filesystem , FileSystemError
+from src.core import filesystem, FileSystemError
 from src.core import helper
-from src.lib import tpl
+
 
 class JsonReportPlugin(PluginProvider):
     """ JsonReportPlugin class"""
@@ -38,7 +37,7 @@ class JsonReportPlugin(PluginProvider):
         PluginProvider.__init__(self, taget, data)
 
         try:
-            config = filesystem.readcfg('setup.cfg')
+            config = filesystem.readcfg(self.CONFIG_FILE)
             directory = config.get('opendoor', 'reports')
             self.__target_dir = "".join((directory, self._target))
             filesystem.makedir(self.__target_dir)
@@ -55,11 +54,6 @@ class JsonReportPlugin(PluginProvider):
 
         try:
             filesystem.clear(self.__target_dir, extension=self.EXTENSION_SET)
-            filename = "".join((self.__target_dir, filesystem.sep, self._target, self.EXTENSION_SET))
-            filesystem.makefile(filename)
-            filesystem.writelist(filename, resultset)
-            tpl.info(key='report', plugin=self.PLUGIN_NAME, dest=filesystem.getabsname(filename))
-
-        except FileSystemError as e:
+            self.record(self.__target_dir, self._target, resultset)
+        except (Exception, FileSystemError) as e:
             raise Exception(e)
-

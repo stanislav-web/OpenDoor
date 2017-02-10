@@ -143,7 +143,7 @@ class Debug(DebugProvider):
     def debug_request_uri(self, status, request_uri, **kwargs):
         """
         Debug request_uri
-        :param int status: response status
+        :param str status: response status
         :param str request_uri: http request uri
         :param dict kwargs:
         :return: bool
@@ -154,7 +154,11 @@ class Debug(DebugProvider):
             color='cyan')
         
         total_len = len(str(abs(kwargs.get('total_size', 1))))
-        urlpath = helper.parse_url(request_uri).path
+
+        if self.__cfg.DEFAULT_SCAN is self.__cfg.scan:
+            urlpath = helper.parse_url(request_uri).path
+        else:
+            urlpath = request_uri
         
         if status in ['success']:
             request_uri = tpl.line(key='success', color='green', url=urlpath)

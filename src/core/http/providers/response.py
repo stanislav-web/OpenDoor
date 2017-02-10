@@ -45,7 +45,7 @@ class ResponseProvider(object):
     def is_indexof(self, content):
         """
         Check response as index of/ page
-        :param str content
+        :param str content: response data
         :return: bool
         """
         
@@ -84,7 +84,7 @@ class ResponseProvider(object):
         :raise Exception
         :return: str
         """
-
+        
         if response.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
             if 'Content-Length' in response.headers:
                 if self.DEFAULT_SOURCE_DETECT_MIN_SIZE <= int(response.headers['Content-Length']):
@@ -102,8 +102,8 @@ class ResponseProvider(object):
 
                 redirectfrag = helper.parse_url(redirect_url)
                 url = "{0}://{1}".format(urlfrag.scheme, urlfrag.netloc)
-
-                if url == redirect_url or redirectfrag.query in urlfrag.path:
+                if url == redirect_url \
+                        or (0 < len(redirectfrag.query) and redirectfrag.query in urlfrag.path):
                     return 'failed'
             return 'redirect'
         elif response.status in self.DEFAULT_HTTP_BAD_REQUEST_STATUSES:
@@ -136,7 +136,7 @@ class ResponseProvider(object):
         size = 0
         
         try:
-            size = int(response.headers['Content-Length'])
+            size = 0 if not hasattr(response, 'headers') else int(response.headers['Content-Length'])
         except (KeyError, ValueError):
             size = len(response.data)
         finally:
