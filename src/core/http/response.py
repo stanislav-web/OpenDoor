@@ -48,19 +48,18 @@ class Response(ResponseProvider):
 
         if self.HTTP_DBG_LEVEL <= self.__debug.level:
             self.__debug.debug_response(response.headers.items())
-        
-        if hasattr(response, 'status'):
 
+        if hasattr(response, 'status'):
+            
             try:
                 status = super(Response, self).detect(request_url, response)
                 redirect_uri = None
-                
+
                 if status in ['redirect']:
                     redirect_uri = self._get_redirect_url(request_url, response)
                     url = redirect_uri
                 else:
                     url = request_url
-
                 self.__debug.debug_request_uri(status=status,
                                                request_uri=request_url,
                                                redirect_uri=redirect_uri,

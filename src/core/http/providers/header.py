@@ -77,6 +77,7 @@ class HeaderProvider(AcceptHeaderProvider):
             .add_header('Referer', ''.join([self.__cfg.scheme, self.__cfg.host]))\
             .add_header('User-Agent', self.__user_agent)\
             .add_header('Cache-Conrol', 'no-cache')\
+            .add_header('Connection', 'keep-alive')\
             .add_header('Pragma', 'no-cache')
 
         return self.__headers

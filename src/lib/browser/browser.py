@@ -21,7 +21,7 @@ from src.core import SocketError
 from src.core import helper
 from src.core import request_http
 from src.core import request_proxy
-from src.core import request_ssl
+from src.core import request_https
 from src.core import response
 from src.core import socket
 from src.lib.reader import Reader, ReaderError
@@ -116,7 +116,7 @@ class Browser(Filter):
             else:
 
                 if True is self.__config.is_ssl:
-                    self.__client = request_ssl(self.__config, agent_list=self.__reader.get_user_agents(),
+                    self.__client = request_https(self.__config, agent_list=self.__reader.get_user_agents(),
                                                 debug=self.__debug, tpl=tpl)
                 else:
                     self.__client = request_http(self.__config, agent_list=self.__reader.get_user_agents(),
@@ -124,8 +124,12 @@ class Browser(Filter):
 
             if True is self.__pool.is_started:
                 self.__reader.get_lines(
-                    params={'host': self.__config.host, 'port': self.__config.port, 'scheme': self.__config.scheme},
-                    loader=getattr(self, '_add_urls'.format()))
+                        params={
+                            'host': self.__config.host,
+                            'port': self.__config.port,
+                            'scheme': self.__config.scheme
+                        },
+                        loader=getattr(self, '_add_urls'.format()))
 
         except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as e:
             raise BrowserError(e)

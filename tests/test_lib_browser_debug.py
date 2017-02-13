@@ -55,7 +55,7 @@ class TestBrowserDebug(unittest.TestCase):
         self.assertIs(type(self.debug.level), int)
         self.assertTrue(0 < self.debug.level)
 
-    @data('success', 'file', 'indexof', 'bad','forbidden', 'redirect')
+    @data('success', 'file', 'indexof', 'bad','forbidden', 'redirect', 'certificat', 'auth')
     def test_debug_request_uri(self, status):
         """ Debug.debug_request_uri() test """
 

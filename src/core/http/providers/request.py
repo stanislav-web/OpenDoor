@@ -34,7 +34,7 @@ class RequestProvider(CookiesProvider, HeaderProvider):
 
         HeaderProvider.__init__(self, config, agent_list)
         CookiesProvider.__init__(self)
-
+    
     def request(self, url):
         """
         Client request
@@ -55,4 +55,4 @@ class RequestProvider(CookiesProvider, HeaderProvider):
         if True is is_accept and hasattr(response, 'headers'):
             self._fetch_cookies(response.headers)
             if True is self._is_cookie_fetched:
-                self._add_header('Cookie', self._push_cookies())
+                self.add_header('Cookie', self._push_cookies())

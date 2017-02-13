@@ -40,6 +40,7 @@ class Worker(threading.Thread):
         self.__semaphore = BoundedSemaphore(num_threads)
         self.__event = Event()
         self.__event.set()
+        self.__empty = False
         self.__running = True
         self.__exception = None
         self.__queue = queue
@@ -54,8 +55,6 @@ class Worker(threading.Thread):
 
         self.__running = False
         self.__event.clear()
-        if True is self.isAlive():
-            self.__semaphore.acquire()
 
     def resume(self):
         """
@@ -98,6 +97,7 @@ class Worker(threading.Thread):
                     self.__queue.task_done()
 
                 except QueueEmptyError:
+                    self.__empty = True
                     pass
 
                 finally:

@@ -18,14 +18,23 @@
 
 from __future__ import absolute_import
 import unittest2 as unittest
+import os
+import ConfigParser
 from src.lib.package.config import Config
-from src.lib.events import EventHandler
+from src.core import filesystem
 from src import Controller, SrcError
 
 
 class TestController(unittest.TestCase):
     """TestController class"""
-
+    
+    @property
+    def __configuration(self):
+        test_config =  filesystem.getabsname(os.path.join('tests', 'data', 'setup.cfg'))
+        config = ConfigParser.RawConfigParser()
+        config.read(test_config)
+        return config
+    
     def test_init_exception(self):
         """ Controller.init() exception test """
 
@@ -40,7 +49,7 @@ class TestController(unittest.TestCase):
         with self.assertRaises(SrcError) as context:
             controller.run()
         self.assertTrue(SrcError == context.expected)
-
+    
     def test_scan_action_exception(self):
         """ Controller.scan_action() exception test """
 
@@ -68,21 +77,21 @@ class TestController(unittest.TestCase):
 
     def test_version_action(self):
         """ Controller.version_action() test """
-        
+
         Config.params['cfg'] = 'setup.cfg'
         controller = Controller.__new__(Controller)
         self.assertIsNone(controller.version_action())
 
     def test_local_version(self):
         """ Controller.local_version() test """
-        
+
         Config.params['cfg'] = 'setup.cfg'
         controller = Controller.__new__(Controller)
         self.assertIsNone(controller.local_version())
-    
+
     def test_update_action_exception(self):
         """ Controller.update_action() exception test """
-        
+
         del Config.params['update']
         controller = Controller.__new__(Controller)
         with self.assertRaises(SrcError) as context:
@@ -91,7 +100,7 @@ class TestController(unittest.TestCase):
 
     def test_version_action_exception(self):
         """ Controller.version_action() exception test """
-    
+
         Config.params['cfg'] = 'wrong.cfg'
         controller = Controller.__new__(Controller)
         with self.assertRaises(SrcError) as context:
@@ -100,7 +109,7 @@ class TestController(unittest.TestCase):
 
     def test_local_version_action_exception(self):
         """ Controller.local_version() exception test """
-    
+
         Config.params['cfg'] = 'wrong.cfg'
         controller = Controller.__new__(Controller)
         with self.assertRaises(SrcError) as context:

@@ -46,7 +46,7 @@ class Config(object):
         'option_prompt': 'Press "[C]ontinue" to resume or "[E]xit" to abort session: ',
         'resume_threads': 'Resuming scan...',
         'get_item': '{percent} [{current}/{total}] - {size} - {item}',
-        'ignored_item': 'Ignored [{current}/{total}] - {item}',
+        'ignored_item': 'skip [{current}/{total}] - Ignored {item}',
         'addtopool': 'Adding {total} lines to queue...',
         'http_pool_start': 'Using HTTP keep-alive connection',
         'https_pool_start': 'Using SSL keep-alive connection',
@@ -60,8 +60,11 @@ class Config(object):
         'proxy_max_retry_error': 'Skipped. Proxy {proxy} Max retries exceeded: {url}',
         'host_changed_error': 'Block external redirect -> {details}',
         'read_timeout_error': 'Connection timeout! {url}. Increase using --timeout option',
+        'certificat' : 'Cert required {url}',
         'success': 'OK {url}',
         'file': 'File {url}',
         'indexof': 'Index {url}',
-        'forbidden': 'Denied {url}', 'redirect': 'R {url} -> {rurl}'
+        'forbidden': 'Denied {url}',
+        'auth': 'Auth {url}',
+        'redirect': 'R {url} -> {rurl}'
     }

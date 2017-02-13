@@ -1,7 +1,13 @@
 Changes
 =======
 
-
+v3.0.3-beta (13.02.2017)
+-------------------------
+    - detect SSL cert requires
+    - added 7150 directories
+    - fixes for https subdomians
+    - more unit coverages
+    
 v3.0.2-beta (31.01.2017)
 ------------------------
     - relieved of unnecessary dependencies

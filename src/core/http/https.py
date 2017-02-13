@@ -16,9 +16,8 @@
     Development Team: Stanislav WEB
 """
 
-from urllib3 import HTTPSConnectionPool, PoolManager
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError
-
+from urllib3 import HTTPSConnectionPool, PoolManager, HTTPResponse
+from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, SSLError
 from src.core import helper
 from .exceptions import HttpsRequestError
 from .providers import DebugProvider
@@ -28,13 +27,15 @@ from .providers import RequestProvider
 class HttpsRequest(RequestProvider, DebugProvider):
     """HttpsRequest class"""
 
+    DEFAULT_SSL_CERT_REQUIRED_STATUSES = 496
+
     def __init__(self, config, debug, **kwargs):
         """
         HttpsRequest instance
         :param src.lib.browser.config.Config config: global configurations
         :param DebugProvider debug: debugger
         """
-
+                
         try:
 
             self.__tpl = kwargs.get('tpl')
@@ -48,7 +49,18 @@ class HttpsRequest(RequestProvider, DebugProvider):
         self.__debug = debug
         if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
             self.__pool = self.__https_pool()
-
+    
+    def _provide_ssl_auth_required(self):
+        """
+        Provide ssl auth response
+        :return: urllib3.HTTPResponse
+        """
+        
+        response = HTTPResponse()
+        response.status = self.DEFAULT_SSL_CERT_REQUIRED_STATUSES
+        response.__setattr__('_body', ' ')
+        return response
+        
     def __https_pool(self):
         """
         Create HTTP connection pool
@@ -62,11 +74,11 @@ class HttpsRequest(RequestProvider, DebugProvider):
                                        timeout=self.__cfg.timeout, block=True)
 
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
-                self.__debug.debug_connection_pool('ssl_pool_start', pool)
+                self.__debug.debug_connection_pool('https_pool_start', pool)
 
             return pool
         except Exception as e:
-            raise HttpsRequestError(e)
+            raise HttpsRequestError(e.message)
 
     def request(self, url):
         """
@@ -74,18 +86,25 @@ class HttpsRequest(RequestProvider, DebugProvider):
         :param str url: request uri
         :return: urllib3.HTTPResponse
         """
-
+        
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
             self.__debug.debug_request(self._headers, url, self.__cfg.method)
 
         try:
-            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
-                response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path, headers=self._headers,
-                                               retries=self.__cfg.retries, assert_same_host=True, redirect=False)
+            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:  # directories requests
+                response = self.__pool.request(self.__cfg.method,
+                                               helper.parse_url(url).path,
+                                               headers=self._headers,
+                                               retries=self.__cfg.retries,
+                                               assert_same_host=False,
+                                               redirect=False)
                 self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
-            else:
-                response = PoolManager().request(self.__cfg.method, url, headers=self._headers,
-                                                 retries=self.__cfg.retries, assert_same_host=False, redirect=False)
+            else:  # subdomains
+                response = PoolManager().request(self.__cfg.method, "{0}:{1}".format(url, self.__cfg.port),
+                                                 headers=self._headers,
+                                                 retries=self.__cfg.retries,
+                                                 assert_same_host=False,
+                                                 redirect=False)
 
             return response
 
@@ -98,5 +117,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
 
         except ReadTimeoutError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
-                self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
-
+                self.__tpl.warning(key='read_timeout_error', url=url)
+        except SSLError as e:
+            if self.__cfg.DEFAULT_SCAN != self.__cfg.scan:
+                return self._provide_ssl_auth_required()

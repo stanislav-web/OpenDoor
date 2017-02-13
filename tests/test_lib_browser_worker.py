@@ -18,6 +18,11 @@
 
 import unittest2 as unittest
 from src.lib.browser.worker import Worker
+import os
+from mock import patch
+import sys
+import signal
+from io import StringIO
 from Queue import Queue
 
 
@@ -33,7 +38,7 @@ class TestBrowserWorker(unittest.TestCase):
         self._worker = Worker(Queue(self.THREADS), num_threads=self.THREADS, timeout=0)
     
     def tearDown(self):
-        with self.assertRaises(SystemExit) as context:
+        with self.assertRaises(SystemExit):
             self._kill_waiting_thread()
             self._worker.join(1)
 
@@ -41,6 +46,7 @@ class TestBrowserWorker(unittest.TestCase):
         """ Worker.pause() test """
         
         self.assertEqual(self._worker.pause(), None)
+        self.assertFalse(getattr(self._worker, '_Worker__running', True))
 
     def test_exception_property(self):
         """ Worker.exception test """

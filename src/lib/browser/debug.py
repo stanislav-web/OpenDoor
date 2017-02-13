@@ -160,12 +160,8 @@ class Debug(DebugProvider):
         else:
             urlpath = request_uri
         
-        if status in ['success']:
-            request_uri = tpl.line(key='success', color='green', url=urlpath)
-        elif status in ['file']:
-            request_uri = tpl.line(key='file', color='green', url=urlpath)
-        elif status in ['indexof']:
-            request_uri = tpl.line(key='indexof', color='green', url=urlpath)
+        if status in ['success', 'file', 'indexof', 'certificat', 'auth']:
+            request_uri = tpl.line(key=status, color='green', url=urlpath)
         elif status in ['bad', 'forbidden']:
             request_uri = tpl.line(key='forbidden', color='yellow', url=urlpath)
         elif status in ['redirect']:
@@ -174,8 +170,8 @@ class Debug(DebugProvider):
 
         self.__clear = True if self.__catched else False
 
-        if status in ['success', 'bad', 'forbidden', 'redirect', 'indexof']:
-    
+        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'indexof', 'certificat', 'auth']:
+            
             tpl.info(key='get_item',
                      clear=self.__clear,
                      percent=percentage,

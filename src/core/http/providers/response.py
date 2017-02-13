@@ -30,8 +30,10 @@ class ResponseProvider(object):
     DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
     DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     DEFAULT_HTTP_REDIRECT_STATUSES = [301, 302, 303, 304, 307, 308]
-    DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 429, 500, 501, 502, 503, 504]
-    DEFAULT_HTTP_FORBIDDEN_STATUSES = [401, 403]
+    DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 412, 429, 500, 501, 502, 503, 504]
+    DEFAULT_SSL_CERT_REQUIRED_STATUSES = [423, 496]
+    DEFAULT_HTTP_FORBIDDEN_STATUSES = [403]
+    DEFAULT_HTTP_AUTH_STATUSES = [401]
     DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400]
 
     def __init__(self, config):
@@ -68,10 +70,11 @@ class ResponseProvider(object):
 
         if location is not False:
             matches = re.search("(?P<url>https?://[^\s]+)", location)
-            if matches.group("url") is not None:
+            if matches is not None:
                 redirect_url = matches.group("url")
             else:
                 urlp = helper.parse_url(url)
+                location = location if True is location.startswith('/') else ''.join(('/',location))
                 redirect_url = urlp.scheme + '://' + urlp.netloc + location
 
         return redirect_url
@@ -95,6 +98,8 @@ class ResponseProvider(object):
             return 'success'
         elif response.status in self.DEFAULT_HTTP_FAILED_STATUSES:
             return 'failed'
+        elif response.status in self.DEFAULT_SSL_CERT_REQUIRED_STATUSES:
+            return 'certificat'
         elif response.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
             if response.get_redirect_location() is not False:
                 urlfrag = helper.parse_url(request_url)
@@ -110,6 +115,8 @@ class ResponseProvider(object):
             return 'bad'
         elif response.status in self.DEFAULT_HTTP_FORBIDDEN_STATUSES:
             return 'forbidden'
+        elif response.status in self.DEFAULT_HTTP_AUTH_STATUSES:
+            return 'auth'
         else:
             raise Exception('Unknown response status : `{0}`'.format(response.status))
 

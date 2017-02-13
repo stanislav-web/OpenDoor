@@ -22,7 +22,7 @@ from .filesystem import FileSystem as filesystem
 from .filesystem.exceptions import FileSystemError
 from .helper import Helper as helper
 from .http import HttpRequest as request_http
-from .http import HttpsRequest as request_ssl
+from .http import HttpsRequest as request_https
 from .http import Proxy as request_proxy
 from .http import Response as response
 from .http import Socket as socket

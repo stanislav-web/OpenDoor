@@ -107,7 +107,7 @@ class TestTpl(unittest.TestCase):
     def test_error(self):
         """ Tpl.error() test """
 
-        with patch('sys.stdout', new=StringIO()) as fakeOutput:
+        with patch('sys.stderr', new=StringIO()) as fakeOutput:
             Tpl.error('test_error')
             self.assertTrue('' in fakeOutput.getvalue().strip())
 
