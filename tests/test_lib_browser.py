@@ -20,6 +20,12 @@ import unittest2 as unittest
 from src.lib import browser, BrowserError
 from src.lib.browser.threadpool import ThreadPool
 from src.lib.browser.config import Config
+from src.lib.browser.debug import Debug
+from src.lib.reader.reader import Reader
+from src.core.http.response import Response
+from src.core.system.output import Output
+import collections
+from backport_collections import Counter
 import os, ConfigParser
 from ddt import ddt, data
 from src.core import filesystem, helper
@@ -47,6 +53,30 @@ class TestBrowser(unittest.TestCase):
     def __browser_configuration(self, params):
         test_config = Config(params)
         return test_config
+
+    def __browser_init(self, params):
+        br = browser(params)
+        return br
+
+    def test_init(self):
+        """ Browser.init() test """
+
+        br = self.__browser_init({'host' : 'test.local', 'port' : 80})
+        __client = getattr(br, '_Browser__client')
+        __config = getattr(br, '_Browser__config')
+        __debug = getattr(br, '_Browser__debug')
+        __result = getattr(br, '_Browser__result')
+        __reader = getattr(br, '_Browser__reader')
+        __pool = getattr(br, '_Browser__pool')
+        __response = getattr(br, '_Browser__response')
+
+        self.assertIs(__client, None)
+        self.assertTrue(isinstance(__config, Config))
+        self.assertTrue(isinstance(__debug, Debug))
+        self.assertTrue(isinstance(__result, dict))
+        self.assertTrue(isinstance(__reader, Reader))
+        self.assertTrue(isinstance(__pool, ThreadPool))
+        self.assertTrue(isinstance(__response, Response))
 
     @data({'reports' : 'std', 'host' : 'example.com', 'port' : 80})
     def test_ping(self, params):
