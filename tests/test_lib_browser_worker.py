@@ -18,11 +18,6 @@
 
 import unittest2 as unittest
 from src.lib.browser.worker import Worker
-import os
-from mock import patch
-import sys
-import signal
-from io import StringIO
 from Queue import Queue
 
 
