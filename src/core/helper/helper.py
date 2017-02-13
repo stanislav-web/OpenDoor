@@ -16,6 +16,7 @@
     Development Team: Stanislav WEB
 """
 
+from backport_collections import Counter
 import collections
 import json
 import urlparse
@@ -32,7 +33,10 @@ class Helper(object):
         :return: collections.Counter
         """
 
-        return collections.Counter()
+        try :
+            return collections.Counter()
+        except AttributeError:
+            return Counter()
 
     @staticmethod
     def list():

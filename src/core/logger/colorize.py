@@ -19,6 +19,7 @@
 import ctypes
 import logging
 import os
+import re
 
 
 class ColorizingStreamHandler(logging.StreamHandler):
@@ -81,7 +82,6 @@ class ColorizingStreamHandler(logging.StreamHandler):
             self.stream.write(message)
 
     else:
-        import re
         ansi_esc = re.compile(r'\x1b\[((?:\d+)(?:;(?:\d+))*)m')
 
         nt_color_map = {
