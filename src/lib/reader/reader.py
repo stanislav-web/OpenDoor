@@ -133,9 +133,9 @@ class Reader(object):
                     self.__browser_config.update({'list': 'directories'})
                 else:
                     dirlist = self.__config.get('opendoor', self.__browser_config.get('list'))
+
             filesystem.readline(dirlist, handler=getattr(self, '_{0}__line'.format(self.__browser_config.get('list'))),
                                 handler_params=params, loader=loader)
-
         except (TypeError, FileSystemError) as e:
             raise ReaderError(e.message)
 

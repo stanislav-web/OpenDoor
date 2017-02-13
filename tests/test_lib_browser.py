@@ -22,10 +22,8 @@ from src.lib.browser.threadpool import ThreadPool
 from src.lib.browser.config import Config
 from src.lib.browser.debug import Debug
 from src.lib.reader.reader import Reader
+from src.lib.tpl.tpl import Tpl
 from src.core.http.response import Response
-from src.core.system.output import Output
-import collections
-from backport_collections import Counter
 import os, ConfigParser
 from ddt import ddt, data
 from src.core import filesystem, helper
@@ -39,13 +37,14 @@ class TestBrowser(unittest.TestCase):
 
     @property
     def __configuration(self):
-        test_config = filesystem.getabsname(os.path.join('tests', 'data', 'setup.cfg'))
+        test_config = filesystem.getabsname(os.path.join('tests', 'data', 'setup-scan.cfg'))
         config = ConfigParser.RawConfigParser()
         config.read(test_config)
         return config
 
     def setUp(self):
         self.__pool = ThreadPool(num_threads=self.THREADS, total_items=10, timeout=0)
+        self.__config = Config({'host' : 'example.com', 'port' : 80, 'debug': 3})
 
     def tearDown(self):
         del self.__pool
@@ -77,6 +76,32 @@ class TestBrowser(unittest.TestCase):
         self.assertTrue(isinstance(__reader, Reader))
         self.assertTrue(isinstance(__pool, ThreadPool))
         self.assertTrue(isinstance(__response, Response))
+
+    def test_scan(self):
+        """ Browser.scan() test """
+
+        br = browser.__new__(browser)
+        reader = Reader(browser_config={
+                'list': self.__config.scan,
+                'torlist': self.__config.torlist,
+                'use_random': self.__config.is_random_list,
+                'is_external_wordlist': self.__config.is_external_wordlist,
+                'is_standalone_proxy': self.__config.is_standalone_proxy,
+                'is_external_torlist': self.__config.is_external_torlist,
+                'prefix': self.__config.prefix
+            })
+        result = {}
+        result['total'] = helper.counter()
+        result['items'] = helper.list()
+
+        setattr(reader, '_Reader__config', self.__configuration)
+        setattr(br, '_Browser__debug', Debug(self.__config))
+        setattr(br, '_Browser__pool', self.__pool)
+        setattr(br, '_Browser__config', self.__config)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', Response(config=self.__config, debug=Debug(self.__config), tpl=Tpl))
+        setattr(br, '_Browser__result', result)
+        self.assertIs(br.scan(), None)
 
     @data({'reports' : 'std', 'host' : 'example.com', 'port' : 80})
     def test_ping(self, params):

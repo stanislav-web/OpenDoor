@@ -87,7 +87,7 @@ class ResponseProvider(object):
         :raise Exception
         :return: str
         """
-        
+
         if response.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
             if 'Content-Length' in response.headers:
                 if self.DEFAULT_SOURCE_DETECT_MIN_SIZE <= int(response.headers['Content-Length']):

@@ -80,7 +80,6 @@ class HttpRequest(RequestProvider, DebugProvider):
         try:
 
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
-
                 response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path, headers=self._headers,
                                                retries=self.__cfg.retries, assert_same_host=True, redirect=False)
 

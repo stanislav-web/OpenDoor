@@ -121,8 +121,8 @@ class Browser(Filter):
                 else:
                     self.__client = request_http(self.__config, agent_list=self.__reader.get_user_agents(),
                                                  debug=self.__debug, tpl=tpl)
-
             if True is self.__pool.is_started:
+
                 self.__reader.get_lines(
                         params={
                             'host': self.__config.host,
@@ -146,7 +146,6 @@ class Browser(Filter):
 
             response = self.__response.handle(resp, request_url=url, items_size=self.__pool.items_size,
                                               total_size=self.__pool.total_items_size)
-
             self.__catch_report_data(response[0], response[1])
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) as e:

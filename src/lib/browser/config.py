@@ -26,6 +26,7 @@ class Config(object):
     DEFAULT_DEBUG_LEVEL = 0
     DEFAULT_REPORT = 'std'
     DEFAULT_SCAN = 'directories'
+    DEFAULT_SCHEME = 'http://'
     DEFAULT_HTTP_METHOD = 'HEAD'
     DEFAULT_USER_AGENT = 'Opera/9.0 (Windows NT 5.1; U; en)'
 
@@ -36,7 +37,7 @@ class Config(object):
         """
 
         self._scan = params.get('scan') if params.get('wordlist') is None else params.get('wordlist')
-        self._scheme = params.get('scheme')
+        self._scheme = self.DEFAULT_SCHEME if params.get('scheme') is None else params.get('scheme')
         self._ssl = params.get('ssl')
         self._host = params.get('host')
         self._proxy = '' if params.get('proxy') is None else params.get('proxy')
@@ -54,7 +55,7 @@ class Config(object):
         self._is_tor = params.get('tor')
         self._torlist = '' if 'torlist' not in params else params.get('torlist')
         self._is_random_user_agent = params.get('random_agent')
-        self._is_random_list = params.get('random_list')
+        self._is_random_list = False if params.get('random_list') is None else True
         self._user_agent = self.DEFAULT_USER_AGENT
         self._threads = self.DEFAULT_MIN_THREADS if params.get('threads') is None else params.get('threads')
 
@@ -128,7 +129,7 @@ class Config(object):
         :return: str
         """
 
-        return self._method
+        return self.DEFAULT_HTTP_METHOD if self._method is None else self._method
 
     @property
     def delay(self):
