@@ -17,7 +17,9 @@
 """
 
 import re
-
+import gzip
+import zlib
+from io import BytesIO
 from src.core import filesystem
 from src.core import helper
 
@@ -36,6 +38,7 @@ class ResponseProvider(object):
     DEFAULT_HTTP_AUTH_STATUSES = [401]
     DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400]
 
+
     def __init__(self, config):
         """
         Response instance
@@ -43,6 +46,11 @@ class ResponseProvider(object):
         """
 
         self._cfg = config
+        # TODO http://pydoc.net/Python/urllib3/1.2/urllib3.response/
+        self.CONTENT_DECODERS = {
+            'gzip': ResponseProvider.__decode_gzip,
+            'deflate': ResponseProvider.__decode_deflate,
+        }
 
     def is_indexof(self, content):
         """
@@ -78,6 +86,30 @@ class ResponseProvider(object):
                 redirect_url = urlp.scheme + '://' + urlp.netloc + location
 
         return redirect_url
+
+    @staticmethod
+    def __decode_gzip(data):
+        """
+        Decode gzipped content
+        :param str data: content
+        :return: str
+        """
+
+        gzipper = gzip.GzipFile(fileobj=BytesIO(data))
+        return gzipper.read()
+
+    @staticmethod
+    def __decode_deflate(data):
+        """
+        Decode deflate encoded content
+        :param str data: content
+        :return: str
+        """
+
+        try:
+            return zlib.decompress(data)
+        except zlib.error:
+            return zlib.decompress(data, -zlib.MAX_WBITS)
 
     def detect(self, request_url, response):
         """

@@ -17,8 +17,7 @@
 """
 
 from urllib3 import HTTPConnectionPool, PoolManager
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError
-
+from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, ConnectionError
 from src.core import helper
 from .exceptions import HttpRequestError
 from .providers import DebugProvider
@@ -87,7 +86,6 @@ class HttpRequest(RequestProvider, DebugProvider):
             else:
                 response = PoolManager().request(self.__cfg.method, url, headers=self._headers,
                                                  retries=self.__cfg.retries, assert_same_host=False, redirect=False)
-
             return response
 
         except MaxRetryError:
@@ -100,3 +98,6 @@ class HttpRequest(RequestProvider, DebugProvider):
         except ReadTimeoutError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
+
+        except ConnectionError as e:
+            raise HttpRequestError(e.message)

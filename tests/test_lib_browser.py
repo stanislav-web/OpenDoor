@@ -44,7 +44,6 @@ class TestBrowser(unittest.TestCase):
 
     def setUp(self):
         self.__pool = ThreadPool(num_threads=self.THREADS, total_items=10, timeout=0)
-        self.__config = Config({'host' : 'example.com', 'port' : 80, 'debug': 3})
 
     def tearDown(self):
         del self.__pool
@@ -77,31 +76,70 @@ class TestBrowser(unittest.TestCase):
         self.assertTrue(isinstance(__pool, ThreadPool))
         self.assertTrue(isinstance(__response, Response))
 
-    def test_scan(self):
+    @data(
+            Config({'host' : 'example.com', 'port' : 80, 'debug': 1}),
+            Config({'host': 'example.com', 'port': 80, 'debug': 2}),
+            Config({'host': 'example.com', 'port': 80, 'debug': 3}),
+            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'random_agent': True}),
+            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'accept-cookies' : True, 'scan' : 'directories'}),
+            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'threads' : 2, 'delay' : 1, 'timeout' : 10, 'request' : 3}),
+    )
+    def test_scan(self, config):
         """ Browser.scan() test """
 
         br = browser.__new__(browser)
         reader = Reader(browser_config={
-                'list': self.__config.scan,
-                'torlist': self.__config.torlist,
-                'use_random': self.__config.is_random_list,
-                'is_external_wordlist': self.__config.is_external_wordlist,
-                'is_standalone_proxy': self.__config.is_standalone_proxy,
-                'is_external_torlist': self.__config.is_external_torlist,
-                'prefix': self.__config.prefix
+                'list': config.scan,
+                'torlist': config.torlist,
+                'use_random': config.is_random_list,
+                'is_external_wordlist': config.is_external_wordlist,
+                'is_standalone_proxy': config.is_standalone_proxy,
+                'is_external_torlist': config.is_external_torlist,
+                'prefix': config.prefix
             })
         result = {}
         result['total'] = helper.counter()
         result['items'] = helper.list()
 
         setattr(reader, '_Reader__config', self.__configuration)
-        setattr(br, '_Browser__debug', Debug(self.__config))
+        setattr(br, '_Browser__debug', Debug(config))
         setattr(br, '_Browser__pool', self.__pool)
-        setattr(br, '_Browser__config', self.__config)
+        setattr(br, '_Browser__config', config)
         setattr(br, '_Browser__reader', reader)
-        setattr(br, '_Browser__response', Response(config=self.__config, debug=Debug(self.__config), tpl=Tpl))
+        setattr(br, '_Browser__response', Response(config=config, debug=Debug(config), tpl=Tpl))
         setattr(br, '_Browser__result', result)
         self.assertIs(br.scan(), None)
+
+    @data(
+            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'torlist':'/failed'}),
+    )
+    def test_browser_error(self, config):
+        """ Browser.scan() exception test """
+
+        br = browser.__new__(browser)
+        with self.assertRaises(BrowserError) as context:
+            reader = Reader(browser_config={
+                'list': config.scan,
+                'torlist': config.torlist,
+                'use_random': config.is_random_list,
+                'is_external_wordlist': config.is_external_wordlist,
+                'is_standalone_proxy': config.is_standalone_proxy,
+                'is_external_torlist': config.is_external_torlist,
+                'prefix': config.prefix
+            })
+            result = {}
+            result['total'] = helper.counter()
+            result['items'] = helper.list()
+
+            setattr(reader, '_Reader__config', self.__configuration)
+            setattr(br, '_Browser__debug', Debug(config))
+            setattr(br, '_Browser__pool', self.__pool)
+            setattr(br, '_Browser__config', config)
+            setattr(br, '_Browser__reader', reader)
+            setattr(br, '_Browser__response', Response(config=config, debug=Debug(config), tpl=Tpl))
+            setattr(br, '_Browser__result', result)
+            br.scan()
+        self.assertTrue(BrowserError == context.expected)
 
     @data({'reports' : 'std', 'host' : 'example.com', 'port' : 80})
     def test_ping(self, params):

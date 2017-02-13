@@ -17,7 +17,7 @@
 """
 
 from urllib3 import HTTPSConnectionPool, PoolManager, HTTPResponse
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, SSLError
+from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, SSLError, ConnectionError
 from src.core import helper
 from .exceptions import HttpsRequestError
 from .providers import DebugProvider
@@ -118,6 +118,10 @@ class HttpsRequest(RequestProvider, DebugProvider):
         except ReadTimeoutError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='read_timeout_error', url=url)
-        except SSLError as e:
+
+        except SSLError:
             if self.__cfg.DEFAULT_SCAN != self.__cfg.scan:
                 return self._provide_ssl_auth_required()
+
+        except ConnectionError as e:
+            raise HttpsRequestError(e.message)
