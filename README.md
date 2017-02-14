@@ -8,7 +8,7 @@ OWASP WEB Directory Scanner [![Twitter](https://img.shields.io/twitter/url/https
 |  Python | Linux  |  OSX | Windows  |
 |:-:|:-:|:-:|:-:|
 |2.6|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
-|2.7|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
+|2.7 (>=2.7.9 recommended)|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
 
 This application scans the site directories and find all possible ways to login, index of/ dirs and entry points.
 The scanning is performed by the dictionary that came with the software. Possiblly to use own dictionaries.

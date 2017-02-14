@@ -45,10 +45,8 @@ class LoggerException(object):
                 logging.config.dictConfig(Config.exceptions)
             except AttributeError:
                 logging.config.fileConfig(Config.legacy_config)
-                
             logger = logging.getLogger('exceptions')
             func = inspect.currentframe().f_back.f_code
-
             message = "{class_name}: {message} in {file} -> {func}() line {line}".format(
                     class_name=class_name,
                     message=message,

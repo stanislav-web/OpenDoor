@@ -36,7 +36,7 @@ class Process(object):
 
         del classname, typeobj, params
         self.ts = None
-    
+
     @property
     def terminal_size(self):
         """

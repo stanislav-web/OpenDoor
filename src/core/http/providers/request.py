@@ -27,14 +27,14 @@ class RequestProvider(CookiesProvider, HeaderProvider):
 
     def __init__(self, config, agent_list):
         """
-        init interface
+        Init interface
         :param src.lib.browser.config.Config config: configurations
         :param dict agent_list: list of user agents
         """
 
         HeaderProvider.__init__(self, config, agent_list)
         CookiesProvider.__init__(self)
-    
+
     def request(self, url):
         """
         Client request

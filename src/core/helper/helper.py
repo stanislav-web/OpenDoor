@@ -70,7 +70,6 @@ class Helper(object):
         """
         
         json_data = json.dumps(data, sort_keys=sort, indent=indents)
-
         return json_data
 
     @staticmethod

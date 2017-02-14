@@ -80,20 +80,23 @@ class TestBrowser(unittest.TestCase):
         """ Browser.init() exception test """
         
         with self.assertRaises(BrowserError) as context:
-            br = self.__browser_init({'host' : 'test.local', 'port' : 80, 'wordlist' : '/wrong'})
+            self.__browser_init({'host' : 'test.local', 'port' : 80, 'wordlist' : '/wrong'})
         self.assertTrue(BrowserError == context.expected)
-        
+
+
     @data(
-            Config({'host' : 'example.com', 'port' : 80, 'debug': 1}),
+            Config({'host': 'example.com', 'port' : 80, 'debug': 1}),
+            Config({'host': 'example.com', 'scheme' : 'http://', 'port' : 80, 'debug': 1}),
             Config({'host': 'example.com', 'port': 80, 'debug': 2}),
             Config({'host': 'example.com', 'port': 80, 'debug': 3}),
             Config({'host': 'example.com', 'port': 80, 'debug': 3, 'random_agent': True}),
             Config({'host': 'example.com', 'port': 80, 'debug': 3, 'random_agent': True, 'random-list': True}),
             Config({'host': 'example.com', 'port': 80, 'debug': 3, 'accept-cookies' : True, 'scan' : 'directories'}),
+            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'scan' : 'subdomains'}),
             Config({'host': 'example.com', 'port': 80, 'debug': 3, 'threads' : 2, 'delay' : 1, 'timeout' : 10, 'request' : 3}),
     )
-    def test_scan(self, config):
-        """ Browser.scan() test """
+    def test_http_scan(self, config):
+        """ Browser.scan() http test """
 
         br = browser.__new__(browser)
         reader = Reader(browser_config={

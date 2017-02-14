@@ -15,12 +15,12 @@
 
     Development Team: Stanislav WEB
 """
+
 import logging
 import logging.config
 import sys
 import time
 from inspect import currentframe
-
 from rainbow import RainbowLoggingHandler
 
 

@@ -47,7 +47,6 @@ class Response(ResponseProvider):
         """
 
         if hasattr(response, 'status'):
-    
             if self.HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_response(response.headers.items())
     

@@ -55,13 +55,10 @@ class HttpRequest(RequestProvider, DebugProvider):
         """
 
         try:
-
             pool = HTTPConnectionPool(self.__cfg.host, port=self.__cfg.port, maxsize=self.__cfg.threads,
                                       timeout=self.__cfg.timeout, block=True)
-
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_connection_pool('http_pool_start', pool)
-
             return pool
         except Exception as e:
             raise HttpRequestError(e)
@@ -72,12 +69,10 @@ class HttpRequest(RequestProvider, DebugProvider):
         :param str url: request uri
         :return: urllib3.HTTPResponse
         """
-        
+
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
             self.__debug.debug_request(self._headers, url, self.__cfg.method)
-
         try:
-
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path, headers=self._headers,
                                                retries=self.__cfg.retries, assert_same_host=True, redirect=False)
@@ -93,10 +88,11 @@ class HttpRequest(RequestProvider, DebugProvider):
                 self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
         except HostChangedError as e:
             self.__tpl.warning(key='host_changed_error', details=e)
-
         except ReadTimeoutError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
-
         except NewConnectionError as e:
-            raise HttpRequestError(e.message)
+            if 'subdomains' in self.__cfg.scan:
+                pass
+            else:
+                raise HttpRequestError(e.message)

@@ -98,7 +98,6 @@ class Worker(threading.Thread):
 
                 except QueueEmptyError:
                     self.__empty = True
-                    pass
 
                 finally:
                     if not self.__event.isSet():

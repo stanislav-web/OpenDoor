@@ -16,8 +16,8 @@
     Development Team: Stanislav WEB
 """
 
-from urllib3 import HTTPSConnectionPool, PoolManager, HTTPResponse
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, SSLError, NewConnectionError
+from urllib3 import HTTPSConnectionPool, PoolManager, HTTPResponse, disable_warnings
+from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError,SSLError, NewConnectionError
 from src.core import helper
 from .exceptions import HttpsRequestError
 from .providers import DebugProvider
@@ -39,7 +39,6 @@ class HttpsRequest(RequestProvider, DebugProvider):
         try:
 
             self.__tpl = kwargs.get('tpl')
-
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
 
         except (TypeError, ValueError) as e:
@@ -69,7 +68,6 @@ class HttpsRequest(RequestProvider, DebugProvider):
         """
 
         try:
-
             pool = HTTPSConnectionPool(self.__cfg.host, port=self.__cfg.port, maxsize=self.__cfg.threads,
                                        timeout=self.__cfg.timeout, block=True)
 
@@ -86,7 +84,8 @@ class HttpsRequest(RequestProvider, DebugProvider):
         :param str url: request uri
         :return: urllib3.HTTPResponse
         """
-        
+
+
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
             self.__debug.debug_request(self._headers, url, self.__cfg.method)
 
@@ -105,23 +104,18 @@ class HttpsRequest(RequestProvider, DebugProvider):
                                                  retries=self.__cfg.retries,
                                                  assert_same_host=False,
                                                  redirect=False)
-
             return response
 
         except MaxRetryError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
-
         except HostChangedError as e:
             self.__tpl.warning(key='host_changed_error', details=e)
-
         except ReadTimeoutError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='read_timeout_error', url=url)
-
         except SSLError:
             if self.__cfg.DEFAULT_SCAN != self.__cfg.scan:
                 return self._provide_ssl_auth_required()
-
         except NewConnectionError as e:
             raise HttpsRequestError(e.message)

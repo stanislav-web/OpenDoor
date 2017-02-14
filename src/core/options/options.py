@@ -30,7 +30,7 @@ class Options(object):
         Constructor
         :raise OptionsError
         """
-        
+
         self.parser = None
         self.__standalone = ["version", "update", "examples"]
 

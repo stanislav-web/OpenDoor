@@ -185,9 +185,7 @@ class Browser(Filter):
                         total = self.__reader.total_lines,
                         item = helper.parse_url(url).path
                     )
-                    
             self.__pool.join()
-
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt
 

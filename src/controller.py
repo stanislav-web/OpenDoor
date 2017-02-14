@@ -138,9 +138,7 @@ class Controller(object):
 
         try:
             brows = browser(params)
-
             if True is reporter.is_reported(params.get('host')):
-                
                 try:
                     tpl.prompt(key='logged')
                 except KeyboardInterrupt:

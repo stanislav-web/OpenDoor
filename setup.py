@@ -24,6 +24,11 @@ from src import Controller
 LONG_DESCRIPTION = open('README.md').read()
 
 def gen_data_files(*dirs):
+    """
+    Generate data files
+    :param list dirs:
+    :return:
+    """
     results = []
 
     for src_dir in dirs:

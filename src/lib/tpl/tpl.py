@@ -65,7 +65,6 @@ class Tpl(object):
                 sys.writels(msg)
             else:
                 return msg
-
         except (AttributeError, TplError) as e:
             raise TplError(e.message)
 
@@ -124,7 +123,6 @@ class Tpl(object):
 
         if None is args:
             args = {}
-
         msg = colour.colored(msg.format(**args), color=color)
         sys.writeln(msg)
 
@@ -144,7 +142,6 @@ class Tpl(object):
         try:
             if key:
                 msg = Tpl.__format_message(key, args=args)
-            
             logger.log('error').error(msg)
         except (AttributeError, TplError) as e:
             raise TplError(e.message)
@@ -165,7 +162,6 @@ class Tpl(object):
         try:
             if key:
                 msg = Tpl.__format_message(key, args=args)
-
             logger.log('warning').warning(msg)
         except (AttributeError, TplError) as e:
             raise TplError(e.message)
@@ -209,7 +205,6 @@ class Tpl(object):
         try:
             if key:
                 msg = Tpl.__format_message(key, args=args)
-
             logger.log('debug').debug(msg)
         except (AttributeError, TplError) as e:
             raise TplError(e.message)

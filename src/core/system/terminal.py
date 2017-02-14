@@ -32,15 +32,13 @@ class Terminal(object):
         """
     
         current_os = platform.system()
-        tuple_xy = None
+        tuple_xy = (80, 25)  # default value
         if current_os == 'Windows':
             tuple_xy = self.__get_ts_windows()
             if tuple_xy is None:
                 tuple_xy = self.__get_ts_tput()
         if current_os in ['Linux', 'Darwin'] or current_os.startswith('CYGWIN'):
             tuple_xy = self.__get_ts_unix()
-        if tuple_xy is None:
-            tuple_xy = (80, 25)  # default value
         return tuple_xy
     
     @staticmethod

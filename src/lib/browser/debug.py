@@ -152,7 +152,6 @@ class Debug(DebugProvider):
         percentage = tpl.line(
             msg=helper.percent(kwargs.get('items_size', 0), kwargs.get('total_size', 1)),
             color='cyan')
-        
         total_len = len(str(abs(kwargs.get('total_size', 1))))
 
         if self.__cfg.DEFAULT_SCAN is self.__cfg.scan:
