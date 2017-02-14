@@ -1,6 +1,5 @@
 backport_collections
 urllib3
-urllib3[secure]
 importlib
 json2html
 tabulate
