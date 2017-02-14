@@ -98,11 +98,12 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         record.ext_text = None
 
         width = int(Term.terminal_size.get('width'))
+        pure_length = self.__pure_line_len(output)
+        length = width - pure_length
         if record.levelno != logging.DEBUG:
-            if len(output) > width and record.levelno != logging.ERROR:
+            if pure_length > width and record.levelno != logging.ERROR:
                 output = (output[:(width)] + '...')
 
-        length = width - self.__pure_line_len(output)
         end = (' ' * length)[:length]
         return output + end
 

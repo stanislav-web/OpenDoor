@@ -75,12 +75,20 @@ class TestBrowser(unittest.TestCase):
         self.assertTrue(isinstance(__reader, Reader))
         self.assertTrue(isinstance(__pool, ThreadPool))
         self.assertTrue(isinstance(__response, Response))
-
+    
+    def test_init_exception(self):
+        """ Browser.init() exception test """
+        
+        with self.assertRaises(BrowserError) as context:
+            br = self.__browser_init({'host' : 'test.local', 'port' : 80, 'wordlist' : '/wrong'})
+        self.assertTrue(BrowserError == context.expected)
+        
     @data(
             Config({'host' : 'example.com', 'port' : 80, 'debug': 1}),
             Config({'host': 'example.com', 'port': 80, 'debug': 2}),
             Config({'host': 'example.com', 'port': 80, 'debug': 3}),
             Config({'host': 'example.com', 'port': 80, 'debug': 3, 'random_agent': True}),
+            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'random_agent': True, 'random-list': True}),
             Config({'host': 'example.com', 'port': 80, 'debug': 3, 'accept-cookies' : True, 'scan' : 'directories'}),
             Config({'host': 'example.com', 'port': 80, 'debug': 3, 'threads' : 2, 'delay' : 1, 'timeout' : 10, 'request' : 3}),
     )
@@ -111,7 +119,7 @@ class TestBrowser(unittest.TestCase):
         self.assertIs(br.scan(), None)
 
     @data(
-            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'torlist':'/failed'}),
+            Config({'host': 'http://example.com', 'port': 80, 'debug': 3, 'torlist':'/failed'}),
     )
     def test_browser_error(self, config):
         """ Browser.scan() exception test """

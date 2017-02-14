@@ -146,7 +146,10 @@ class Browser(Filter):
 
             response = self.__response.handle(resp, request_url=url, items_size=self.__pool.items_size,
                                               total_size=self.__pool.total_items_size)
-            self.__catch_report_data(response[0], response[1])
+            if None is response:
+                self.__catch_report_data('ignored', url)
+            else:
+                self.__catch_report_data(response[0], response[1])
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) as e:
             raise BrowserError(e)

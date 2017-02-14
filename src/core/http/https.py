@@ -17,7 +17,7 @@
 """
 
 from urllib3 import HTTPSConnectionPool, PoolManager, HTTPResponse
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, SSLError, ConnectionError
+from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, SSLError, NewConnectionError
 from src.core import helper
 from .exceptions import HttpsRequestError
 from .providers import DebugProvider
@@ -123,5 +123,5 @@ class HttpsRequest(RequestProvider, DebugProvider):
             if self.__cfg.DEFAULT_SCAN != self.__cfg.scan:
                 return self._provide_ssl_auth_required()
 
-        except ConnectionError as e:
+        except NewConnectionError as e:
             raise HttpsRequestError(e.message)

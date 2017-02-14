@@ -17,7 +17,7 @@
 """
 
 from urllib3 import HTTPConnectionPool, PoolManager
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, ConnectionError
+from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, NewConnectionError
 from src.core import helper
 from .exceptions import HttpRequestError
 from .providers import DebugProvider
@@ -72,7 +72,7 @@ class HttpRequest(RequestProvider, DebugProvider):
         :param str url: request uri
         :return: urllib3.HTTPResponse
         """
-
+        
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
             self.__debug.debug_request(self._headers, url, self.__cfg.method)
 
@@ -91,7 +91,6 @@ class HttpRequest(RequestProvider, DebugProvider):
         except MaxRetryError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
-
         except HostChangedError as e:
             self.__tpl.warning(key='host_changed_error', details=e)
 
@@ -99,5 +98,5 @@ class HttpRequest(RequestProvider, DebugProvider):
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
 
-        except ConnectionError as e:
+        except NewConnectionError as e:
             raise HttpRequestError(e.message)

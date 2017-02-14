@@ -21721,6 +21721,9 @@ news_bigstory.php
 news_events/
 news_feeds/
 news_images/
+sert/
+sertificates/
+mcertificates/
 news_insert/
 news_lostpass/
 news_message/
@@ -23831,7 +23834,6 @@ phpsecinfo/
 phpsecurepages/
 phpsess/
 phpsessid/
-phpshell.php
 phpshield/
 phpshop/
 phpsitemap/
