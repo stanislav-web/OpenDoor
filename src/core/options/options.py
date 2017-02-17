@@ -31,7 +31,6 @@ class Options(object):
         :raise OptionsError
         """
 
-        self.parser = None
         self.__standalone = ["version", "update", "examples"]
 
         __groups = {
@@ -237,7 +236,8 @@ class Options(object):
 
         groupped = {}
         try:
-            self.__create_parser()
+    
+            self.parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
             
             required_named = self.parser.add_argument_group('required named options')
             required_named.add_argument('--host', help="Target host (ip); --host http://example.com")
@@ -276,17 +276,9 @@ class Options(object):
                                                             help=arg['help'],
                                                             type=arg['type'])
 
-            self.parser.parse_args()
-        except (ArgumentParserError) as e:
+            self.args = self.parser.parse_args()
+        except ArgumentParserError as e:
             raise OptionsError(e.message)
-    
-    def __create_parser(self):
-        """
-        Create instance of argparse
-        :return: None
-        """
-        
-        self.parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
 
     def get_arg_values(self):
         """
@@ -298,22 +290,22 @@ class Options(object):
         args = {}
 
         try:
-            arguments = self.parser.parse_args()
+            arguments = self.args
 
-            if not arguments.host \
-                    and True is not arguments.version \
-                    and True is not arguments.update \
-                    and True is not arguments.examples:
+            if not self.args.host \
+                    and True is not self.args.version \
+                    and True is not self.args.update \
+                    and True is not self.args.examples:
                 raise OptionsError("argument --host is required")
 
-            if True is arguments.version or True is arguments.update or True is arguments.examples:
+            if True is self.args.version or True is self.args.update or True is self.args.examples:
                 for arg, value in vars(arguments).items():
                     if arg in self.__standalone and True is value:
                         args[arg] = value
                         break
             else:
 
-                for arg, value in vars(arguments).items():
+                for arg, value in vars(self.args).items():
 
                     if value:
                         args[arg] = value

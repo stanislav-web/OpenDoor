@@ -31,13 +31,7 @@ class TestArguments(unittest.TestCase):
 
         for handler in logger.handlers:
             logger.removeHandler(handler)
-            
-    def create_parser(self):
-        parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
-        parser.add_argument('--host', help="Target host (ip); --host http://example.com")
-        parser.parse_args()
-        return parser
-        
+
     def test_get_arguments_exception(self):
         """ Arguments.get_arguments() exception test """
 

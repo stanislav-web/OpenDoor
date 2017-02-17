@@ -156,13 +156,13 @@ class Reader(object):
 
         if 'www.' in host:
             host = host.replace("www.", "")
-
-        if Config.port is port:
+        
+        if port is Config.ssl_port or port is Config.http_port:
             port = ''
         else:
             port = ':{0}'.format(port)
 
-        line = "{scheme}{sub}.{host}{port}".format(scheme=params.get('scheme'), host=host, port=port, sub=line, )
+        line = "{scheme}{sub}.{host}{port}".format(scheme=params.get('scheme'), host=host, port=port, sub=line)
 
         return line
 
@@ -186,11 +186,10 @@ class Reader(object):
 
         port = params.get('port')
 
-        if Config.port is port:
+        if port is Config.ssl_port or port is Config.http_port:
             port = ''
         else:
             port = ':{0}'.format(port)
-
         line = "{scheme}{host}{port}/{uri}".format(scheme=params.get('scheme'), host=params.get('host'), port=port,
                                                    uri=line, )
 

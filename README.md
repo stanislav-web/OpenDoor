@@ -8,14 +8,14 @@ OWASP WEB Directory Scanner [![Twitter](https://img.shields.io/twitter/url/https
 |  Python | Linux  |  OSX | Windows  |
 |:-:|:-:|:-:|:-:|
 |2.6|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
-|2.7 (>=2.7.9 recommended)|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
+|2.7|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
 
 This application scans the site directories and find all possible ways to login, index of/ dirs and entry points.
 The scanning is performed by the dictionary that came with the software. Possiblly to use own dictionaries.
 This software is written for informational purposes and is an open source product under the GPL license.
 
-* *Current v3.0.3-beta (13.02.2017)*
-    - Directories - 33674 (+7150)
+* *Current v3.0.3-rc (13.02.2017)*
+    - Directories - 33666
     - Subdomains - 101000
 
 ***Testing of the software on the commercial systems and organizations is prohibited!***
@@ -45,12 +45,14 @@ apt-get install python-socksipy
 - [x] Keep-alive long pooling
 - [x] HTTP(S)/SOCKS proxies
 - [x] dynamic request header
-- [x] detect redirects
-- [x] detect index of/ Apache
-- [x] detect large files
 - [x] custom wordlst's prefixes
 - [x] custom wordlists, proxies, ignore lists
 - [x] debug levels (1-3)
+- [x] analyze techniques
+    * detect redirects
+    * detect index of/ Apache
+    * detect large files
+    * certif required pages
 - [x] randomization techniques
     * random user-agent per request
     * random proxy per request
@@ -59,12 +61,11 @@ apt-get install python-socksipy
 
 #### [Changelog](CHANGELOG.md) (last changes)
 
-<sub>v3.0.3-beta (13.02.2017)</sub>
+<sub>v3.0.3-rc (17.02.2017)</sub>
 -------------------------
-    - detect SSL cert requires
-    - added 7150 directories
-    - fixes for https subdomians
-    - more unit coverages
+    - fixes for https stuff scan
+    - cleared internal wordlists
+    - increased coverage
 
 #### Basic usage
 ```

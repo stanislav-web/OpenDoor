@@ -16,23 +16,20 @@
     Development Team: Stanislav WEB
 """
 
-from src.core import options, OptionsError
-from .exceptions import ArgumentsError
+from __future__ import absolute_import
+import unittest2 as unittest
+from src.core.options import Options
+from src.core.options.exceptions import OptionsError
 
+class TestOptions(unittest.TestCase):
+    """TestOptions class"""
 
-class Arguments(object):
-    """Arguments class"""
-    
-    @staticmethod
-    def get_arguments():
-        """
-        Get input arguments with their options
-        :raise ArgumentsError
-        :return: dict
-        """
+    def test_get_arg_values_exception(self):
+        """ Arguments.get_arg_values() exception test """
 
-        try:
-            args = options().get_arg_values()
-            return args
-        except OptionsError as e:
-            raise ArgumentsError(e)
+        with self.assertRaises(OptionsError) as context:
+            Options().get_arg_values()
+        self.assertTrue(OptionsError == context.expected)
+        
+if __name__ == "__main__":
+    unittest.main()

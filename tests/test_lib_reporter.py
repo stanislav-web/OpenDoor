@@ -81,7 +81,16 @@ class TestReporter(unittest.TestCase):
 
         expected = Reporter.is_reported('resource')
         self.assertIs(type(expected), bool)
-
+        
+    def test_is_reported_error(self):
+        """ Reporter.is_reported() exception test """
+        rp = Reporter
+        setattr(rp, 'config', 'wrong.cfg')
+        with self.assertRaises(ReporterError) as context:
+            rp.is_reported('resource')
+            
+            self.assertTrue(ReporterError == context.expected)
+        
     def test_plugin_provider_invalid_data_exception(self):
         """ PluginProvider.init() exception test """
 

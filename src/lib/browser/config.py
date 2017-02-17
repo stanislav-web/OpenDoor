@@ -27,6 +27,8 @@ class Config(object):
     DEFAULT_REPORT = 'std'
     DEFAULT_SCAN = 'directories'
     DEFAULT_SCHEME = 'http://'
+    DEFAULT_HTTP_PORT = 80
+    DEFAULT_SSL_PORT = 443
     DEFAULT_HTTP_METHOD = 'HEAD'
     DEFAULT_USER_AGENT = 'Opera/9.0 (Windows NT 5.1; U; en)'
 
@@ -58,7 +60,7 @@ class Config(object):
         self._is_random_list = False if params.get('random_list') is None else True
         self._user_agent = self.DEFAULT_USER_AGENT
         self._threads = self.DEFAULT_MIN_THREADS if params.get('threads') is None else params.get('threads')
-
+        
     @property
     def scan(self):
         """
@@ -110,7 +112,9 @@ class Config(object):
         Port property
         :return: int
         """
-
+        
+        if True is self._ssl and self._port is self.DEFAULT_HTTP_PORT:
+            self._port = self.DEFAULT_SSL_PORT
         return self._port
 
     @property

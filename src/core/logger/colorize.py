@@ -26,7 +26,16 @@ class ColorizingStreamHandler(logging.StreamHandler):
     """ ColorizingStreamHandler class"""
 
     # color names to indices
-    color_map = {'black': 0, 'red': 1, 'green': 2, 'yellow': 3, 'blue': 4, 'magenta': 5, 'cyan': 6, 'white': 7}
+    color_map = {
+        'black': 0,
+        'red': 1,
+        'green': 2,
+        'yellow': 3,
+        'blue': 4,
+        'magenta': 5,
+        'cyan': 6,
+        'white': 7
+    }
 
     # levels to (background, foreground, bold/intense)
     level_map = {

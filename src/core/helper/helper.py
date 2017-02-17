@@ -20,7 +20,7 @@ from backport_collections import Counter
 import collections
 import json
 import urlparse
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion
 
 
 class Helper(object):
@@ -92,7 +92,7 @@ class Helper(object):
         :return: bool
         """
 
-        return StrictVersion(arg1) < StrictVersion(arg2)
+        return LooseVersion(arg1) < LooseVersion(arg2)
 
     @staticmethod
     def is_more(arg1, arg2):
@@ -103,5 +103,5 @@ class Helper(object):
         :return: bool
         """
 
-        return StrictVersion(arg1) > StrictVersion(arg2)
+        return LooseVersion(arg1) > LooseVersion(arg2)
 

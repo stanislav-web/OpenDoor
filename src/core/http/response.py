@@ -16,6 +16,7 @@
     Development Team: Stanislav WEB
 """
 
+from src.core import helper
 from .exceptions import ResponseError
 from .providers import ResponseProvider
 
@@ -35,13 +36,14 @@ class Response(ResponseProvider):
         self.__debug = debug
         self.__tpl = kwargs.get('tpl')
 
-    def handle(self, response, request_url, items_size, total_size):
+    def handle(self, response, request_url, items_size, total_size, ignore_list):
         """
         Response handler
         :param urllib3.response.HTTPResponse response: response object
         :param str request_url: url from request
         :param int items_size: current items sizes
         :param int total_size: response object
+        :param list ignore_list: ignore list
         :raise ResponseError
         :return: dict
         """
@@ -56,6 +58,9 @@ class Response(ResponseProvider):
 
                 if status in ['redirect']:
                     redirect_uri = self._get_redirect_url(request_url, response)
+                    check_for_ignored = helper.parse_url(redirect_uri).path[1:]
+                    if check_for_ignored in ignore_list:
+                        status = 'failed'
                     url = redirect_uri
                 else:
                     url = request_url

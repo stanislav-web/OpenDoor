@@ -144,8 +144,11 @@ class Browser(Filter):
         try:
             resp = self.__client.request(url)
 
-            response = self.__response.handle(resp, request_url=url, items_size=self.__pool.items_size,
-                                              total_size=self.__pool.total_items_size)
+            response = self.__response.handle(resp, request_url=url,
+                                              items_size=self.__pool.items_size,
+                                              total_size=self.__pool.total_items_size,
+                                              ignore_list=self.__reader.get_ignored_list()
+                                              )
             if None is response:
                 self.__catch_report_data('ignored', url)
             else:

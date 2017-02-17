@@ -50,7 +50,8 @@ setup(name='opendoor',
       url='https://github.com/stanislav-web/OpenDoor',
 
       # Author details
-      author='Stanislav WEB', author_email='stanisov@gmail.com',
+      author='Stanislav WEB',
+      author_email='stanisov@gmail.com',
 
       # You can just specify the packages manually here if your project is
       # simple. Or you can use find_packages().

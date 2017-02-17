@@ -26,6 +26,7 @@ class Reporter(object):
     """Reporter class"""
 
     default = 'std'
+    config = 'setup.cfg'
 
     @staticmethod
     def is_reported(resource):
@@ -36,7 +37,7 @@ class Reporter(object):
         """
 
         try:
-            config = filesystem.readcfg('setup.cfg')
+            config = filesystem.readcfg(Reporter.config)
             return filesystem.is_exist(config.get('opendoor', 'reports'), resource)
         except FileSystemError as e:
             raise ReporterError(e.message)

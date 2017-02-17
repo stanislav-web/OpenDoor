@@ -28,6 +28,8 @@
 .admin
 .adminer.php.swp
 .administration
+engine/admin.php
+engine/admin/
 .apdisk
 .backup
 .backup.7z
@@ -1669,7 +1671,7 @@ B4ckup.Sql
 B4ckup.Tpl
 B4ckup.Z1p
 B4ckup/
-BBApp
+BBApp/
 BBCode.php
 BUILD/
 BUSINESS/
@@ -1713,7 +1715,6 @@ BingSiteAuth.xml
 Bio.php
 BizTalkServer
 Black.php
-Blog
 Blog/
 Books/
 Bool.php
@@ -2696,9 +2697,7 @@ SaveForLater.php
 Schulung01/
 ScriptRequired.php
 Scripting.php
-Scripts
 Scripts/
-Search
 Search.module.php
 Search/
 SearchMail/
@@ -2720,7 +2719,7 @@ Server.asp
 Server.html
 Server.php
 Server/
-ServerAdministrator
+ServerAdministrator.php
 ServerAdministrator/
 ServerRequest.php
 Services/
@@ -4131,7 +4130,6 @@ adclick
 adclick/
 adcode/
 adcodes/
-add
 add-a-review/
 add-business/
 add-ons/
@@ -6724,6 +6722,9 @@ ax/
 ax1/
 axa/
 axd/
+acms/
+acms.php
+acms.jspx
 axis-admin/
 axis/
 axis1/axis1-admin/
@@ -6838,7 +6839,6 @@ backroom/
 backs/
 backstage/
 backtocs/
-backup
 backup-56bf2/
 backup-db/
 backup.7z
@@ -6878,6 +6878,8 @@ backup7/
 backup8/
 backup9/
 backup_db/
+backup_dir/
+backup-dir/
 backup_migrate/
 backup_scheduled.php
 backup_site/
@@ -6995,7 +6997,6 @@ bannedadd.php
 banner-ads/
 banner.php
 banner/
-banner2
 banner2/
 banner_ads/
 banner_daily.php
@@ -8453,7 +8454,6 @@ carsdirect/
 carshipper/
 carson/
 carstransport/
-cart
 cart-show/
 cart.php
 cart/
@@ -9910,10 +9910,9 @@ comp7/
 comp8/
 comp9/
 compact/
-compadmin
+compadmin/
+compadmin.php
 companies/
-company
-company-info/
 company-profile/
 company.php
 company/
@@ -9953,13 +9952,11 @@ complete.php
 complete/
 compliance/
 comply/
-component
 component.php
 component/
 componentes/
 componentes_vbv/
 componenti/
-components
 components.php
 components/
 components/login.ascx
@@ -11097,6 +11094,7 @@ data/pay.json
 data/payments.json
 data/tmp/
 data/users.json
+_backuppp/
 data0/
 data1/
 data2/
@@ -12465,8 +12463,8 @@ dz.php
 dz/
 dz0.php
 dz1.php
-e
-e-admin
+e/
+e-admin.php
 e-admin/
 e-bay/
 e-book/
@@ -14429,7 +14427,6 @@ fons/
 font/
 font_size/
 fontis/
-fonts
 fonts/
 foo/
 foobar/
@@ -14443,7 +14440,6 @@ foosun_data/
 foosun_plus/
 foot/
 football/
-footer
 footer.inc.php
 footer.php
 footer/
@@ -14480,7 +14476,6 @@ forest/
 foretag/
 forex/
 forget/
-forgot
 forgot-password/
 forgot.php
 forgot/
@@ -16161,7 +16156,7 @@ histogram/
 histoire/
 historia/
 historic/
-history
+history.phtml
 history.md
 history.php
 history.txt
@@ -17606,6 +17601,7 @@ ioncube/
 ios/
 iowa/
 ip.txt
+ip.dat
 ip/
 ip2c/
 ip2country/
@@ -18164,7 +18160,6 @@ jscalendar/
 jscolor/
 jscommon/
 jscript/
-jscripts
 jscripts/
 jscripts/tiny_mce/
 jscripts/tiny_mce/plugins/ajaxfilemanager/ajax_create_folder.php
@@ -19694,7 +19689,7 @@ maestro/
 mafo/
 mag/
 magazin/
-magazine
+magazine.php
 magazine/
 magazines/
 mage118/
@@ -19714,7 +19709,7 @@ magpierss/
 mags/
 mai/
 maia/
-mail
+mail.phtml
 mail-admin.nsf
 mail-template/
 mail.html
@@ -19729,7 +19724,7 @@ mail_list/
 mail_password/
 mail_queue.php
 mail_templates/
-mailadmin
+mailadmin.php
 mailadmin/
 mailafriend/
 mailattachments/
@@ -20811,13 +20806,13 @@ modelo/
 modelos/
 models/
 modelsearch/
-modelsearch/admin
+modelsearch/admin/
 modelsearch/admin.html
 modelsearch/admin.php
-modelsearch/index
+modelsearch/index/
 modelsearch/index.html
 modelsearch/index.php
-modelsearch/login
+modelsearch/login/
 modelsearch/login.asp
 modelsearch/login.html
 modelsearch/login.php
@@ -20831,7 +20826,7 @@ moderator.asp
 moderator.html
 moderator.php
 moderator/
-moderator/admin
+moderator/admin.phtml
 moderator/admin.asp
 moderator/admin.html
 moderator/admin.php
@@ -21174,17 +21169,16 @@ multistylesheet.php
 multitemplate.php
 mum/
 mumbai/
-munin
 munin/
 muracms.esproj
 murcia/
 murmansk/
 murphy/
+engine1/
 mus/
 muse/
 museum.php
 museum/
-music
 music/
 music_genre.php
 musica/
@@ -23277,7 +23271,6 @@ penny/
 pentium/
 penya/
 penza/
-people
 people/
 peoplechat/
 peopleobjects/
@@ -23287,7 +23280,8 @@ pepper/
 pepsi/
 per.php
 per/
-peradmin
+peradmin/
+peradmin.php
 perch/
 percolate/
 percy/
@@ -23320,7 +23314,6 @@ persimmon/
 perso/
 person/
 persona/
-personal
 personal-ads/
 personal.mdb
 personal.sqlite
@@ -23927,7 +23920,7 @@ pip-log.txt
 pipe/
 pipeline/
 pipelines/
-pipermail
+pipermail.php
 pipermail/
 pipes/
 piranha/
@@ -24031,7 +24024,7 @@ plaza/
 please/
 pledge/
 plenty/
-plesk-stat
+plesk-stat.php
 plesk-stat/
 plesk-stats/
 plesk/
@@ -24182,12 +24175,11 @@ polish/
 polish_mimes.php
 politica/
 politicas/
-politics
 politics/
 politik/
-poll
 poll-results/
 poll-tags/
+admin/templates/edit_pic.html
 poll.php
 poll/
 poll2/
@@ -24332,7 +24324,6 @@ pos/
 position/
 positions/
 possix/
-post
 post.html
 post.php
 post/
@@ -24352,7 +24343,7 @@ postcomment/
 posted/
 poster/
 posters/
-postfixadmin
+postfixadmin.php
 postfixadmin/
 postforumthread/
 postgrad/
@@ -24377,7 +24368,6 @@ postpay/
 postpicker.php
 postproc.php
 postreview/
-posts
 posts/
 postsidebar.php
 posttest/
@@ -24602,7 +24592,6 @@ privacypolicy.php
 privacypolicy/
 privado/
 privat/
-private
 private-cgi-bin/
 private.html
 private.key
@@ -24744,7 +24733,6 @@ productpopinpage/
 productquestion/
 productquestions/
 productreview/
-products
 products-page/
 products/
 products2/
@@ -27001,7 +26989,7 @@ sectionspopoff/
 sectiontemplate.php
 sector_fighters.php
 sectors/
-secure
+secure-admin/
 secure-checkout/
 secure-shopping/
 secure.dat
@@ -27244,12 +27232,13 @@ service/admin/
 service/login.php
 service_dateien/
 servicecenter/
+js/tinymce/plugins/imagemanager/pages/im/index.html
 servicecenters/
 servicehilfe/
 serviceinterface/
 servicelist/
 servicerfp/
-services
+services.php
 services.php_files
 services/
 services/help/
@@ -27500,8 +27489,7 @@ shlib/
 shockwave/
 shodoschool/
 shoes/
-shop
-shop-admin
+shop-admin.php
 shop-admin/
 shop-bin/
 shop.cards
@@ -27616,7 +27604,6 @@ shoutbox/
 shoutbox_max.php
 shoutbox_view.php
 shoutcast/
-show
 show.php
 show/
 showCfg
@@ -27634,7 +27621,7 @@ show_intro_new.php
 show_post/
 show_thread/
 showadmin
-showallsites
+showallsites.php
 showallsites/
 showbanner/
 showbiz/
@@ -31080,7 +31067,6 @@ updates/
 updown/
 upfile/
 upfiles/
-upgrade
 upgrade.php
 upgrade.readme
 upgrade.txt
@@ -31232,7 +31218,6 @@ ursula/
 uruguay/
 urun/
 urvs/
-us
 us-en/
 us/
 usa/
@@ -31256,7 +31241,6 @@ usedcars/
 useful-links/
 useful/
 usenet/
-user
 user-account/
 user-accounts/
 user-controls/
@@ -32894,6 +32878,7 @@ wp-config.php.save
 wp-config.php.swp
 wp-config.php.txt
 wp-config/
+js/ajax.php
 wp-content-cache/
 wp-content/
 wp-content/backup-db/
@@ -33029,6 +33014,10 @@ wsm/
 wsmab/
 wsmicons/
 wsmkb/
+fsadmin/
+fsadmin.php
+fs-admin/
+fs-admin.php
 wsmleads/
 wsmmail/
 wsmnewsletter/
@@ -33674,3 +33663,4 @@ zzz/
 ~user/
 ~webmaster/
 ~www/
+admin/fck/editor/

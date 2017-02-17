@@ -1,6 +1,12 @@
 Changes
 =======
 
+v3.0.3-rc (17.02.2017)
+-------------------------
+    - fixes for https stuff scan
+    - cleared internal wordlists
+    - increased coverage
+    
 v3.0.3-beta (13.02.2017)
 -------------------------
     - detect SSL cert requires
