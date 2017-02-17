@@ -20,11 +20,13 @@ from __future__ import absolute_import
 import unittest2 as unittest
 import os
 import ConfigParser
+from ddt import ddt, data
 from src.lib.package.config import Config
 from src.core import filesystem
 from src import Controller, SrcError
 
 
+@ddt
 class TestController(unittest.TestCase):
     """TestController class"""
     
@@ -38,10 +40,26 @@ class TestController(unittest.TestCase):
     def test_init_exception(self):
         """ Controller.init() exception test """
 
+        Config.params['required_version'] = '4.0'
         with self.assertRaises(SrcError) as context:
             Controller().scan_action({})
         self.assertTrue(SrcError == context.expected)
 
+        with self.assertRaises(SrcError) as context:
+            Controller().scan_action({})
+        self.assertTrue(SrcError == context.expected)
+    
+    
+    @data( {'version': True}, {'examples': True}, {'update' : True})
+    def test_run(self, args):
+        """ Controller.run() test """
+        
+        Config.params['cfg'] = 'setup.cfg'
+        controller = Controller.__new__(Controller)
+        setattr(controller, 'ioargs', args)
+        controller.run()
+        self.assertTrue(True)
+        
     def test_run_exception(self):
         """ Controller.run() exception test """
 
@@ -52,7 +70,7 @@ class TestController(unittest.TestCase):
     
     def test_scan_action_exception(self):
         """ Controller.scan_action() exception test """
-
+        
         controller = Controller.__new__(Controller)
         with self.assertRaises(SrcError) as context:
             controller.scan_action(params={

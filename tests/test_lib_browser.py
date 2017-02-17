@@ -89,6 +89,7 @@ class TestBrowser(unittest.TestCase):
             Config({'host': 'example.com', 'scheme' : 'http://', 'port' : 80, 'debug': 1}),
             Config({'host': 'example.com', 'port': 80, 'debug': 2}),
             Config({'host': 'example.com', 'port': 80, 'debug': 3}),
+            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'indexof': True}),
             Config({'host': 'example.com', 'port': 80, 'debug': 3, 'random_agent': True}),
             Config({'host': 'example.com', 'port': 80, 'debug': 3, 'random_agent': True, 'random-list': True}),
             Config({'host': 'example.com', 'port': 80, 'debug': 3, 'accept-cookies' : True, 'scan' : 'directories'}),

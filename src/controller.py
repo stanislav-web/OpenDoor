@@ -45,7 +45,7 @@ class Controller(object):
         try:
 
             interpreter = package.check_interpreter()
-
+            
             if interpreter is not True:
                 raise SrcError(tpl.error(key='unsupported', actual=interpreter.get('actual'),
                                          expected=interpreter.get('expected')))
