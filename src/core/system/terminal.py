@@ -47,9 +47,10 @@ class Terminal(object):
         Get windows terminal size
         :return: tuple
         """
-
+        
         try:
             from ctypes import windll, create_string_buffer
+            (sizex, sizey) = 25, 80  # default value
             h = windll.kernel32.GetStdHandle(-12)
             csbi = create_string_buffer(22)
             res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
@@ -59,7 +60,7 @@ class Terminal(object):
                  maxx, maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
                 sizex = right - left + 1
                 sizey = bottom - top + 1
-                return sizex, sizey
+            return sizex, sizey
         except Exception:
             pass
 

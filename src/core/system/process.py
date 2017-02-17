@@ -82,20 +82,6 @@ class Process(object):
 
         os.kill(os.getpid(), signal.SIGTERM)  # or signal.SIGKILL
 
-    @staticmethod
-    def system(command):
-
-        """
-        Execute OS command
-        :param str command: os command
-        :raise SystemError
-        :return: dic
-        """
-
-        try:
-            os.system(command)
-        except OSError as e:
-            raise CoreSystemError(e.message)
 
     @staticmethod
     def execute(process):
