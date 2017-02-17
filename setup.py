@@ -29,6 +29,7 @@ def gen_data_files(*dirs):
     :param list dirs:
     :return:
     """
+    
     results = []
 
     for src_dir in dirs:
@@ -86,7 +87,7 @@ setup(name='opendoor',
           #   3 - Alpha
           #   4 - Beta
           #   5 - Production/Stable
-          'Development Status :: 4 - Beta',
+          'Development Status :: 5 - Production/Stable',
 
           # Language
           'Natural Language :: English',

@@ -44,7 +44,7 @@ def execution_time(function=None, log=None):
         start = time.time()
         result = function(*args, **kwargs)
         end = time.time()
-        timeless = "{:0>8}".format(datetime.timedelta(seconds=(end - start)))
+        timeless = "{0}".format(datetime.timedelta(seconds=(end - start)))
         log.debug(key='total_time_lvl3', time=timeless)
         return result
 
