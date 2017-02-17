@@ -28,10 +28,8 @@ class TestTerminal(unittest.TestCase):
         """ Terminal.__get_ts_windows() test """
         
         term = getattr(Terminal, '_Terminal__get_ts_windows')()
-        if True is Output.is_windows:
-            self.assertTrue(type(term), 'tuple')
-        else:
-            self.assertIsNone(term)
+        self.assertIsNone(term)
+
         
 if __name__ == "__main__":
     unittest.main()
