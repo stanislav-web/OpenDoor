@@ -5681,7 +5681,7 @@ alpha/
 alpha1/
 alphabet/
 alpine/
-also order_log.dat
+order_log.dat
 alt/
 alt_nav.php
 alta.php
@@ -16052,7 +16052,6 @@ hellouser.jsp
 hellouser/
 helloworld/
 helmets/
-help
 help-center/
 help-desk/
 help.htm
@@ -16754,7 +16753,6 @@ iisadmpwd/aexp4.htr
 iisadmpwd/aexp4b.htr
 iisadmpwd/anot.htr
 iisadmpwd/anot3.htr
-iishelp
 iishelp/
 iishelp/iis/misc/default.php
 iissamples/
@@ -20994,7 +20992,6 @@ most_seen_news.php
 mostra/
 mostrar/
 mostres/
-mot de passe
 mot/
 motd/
 moteur/
@@ -21027,7 +21024,6 @@ movers/
 movetopic/
 movie-reviews/
 movie/
-movies
 movies/
 movietimes/
 movil/
@@ -23891,14 +23887,12 @@ picture-library/
 picture/
 picture_library/
 picturecomment/
-pictures
 pictures/
 pid/
 pie/
 piecemakerXML.php
 pieces/
 pierce/
-pierre liste
 pierre/
 piglet/
 pii/
@@ -28782,16 +28776,17 @@ stomper/
 stomperfull/
 stompertrial/
 stompervideo/
-stone list
 stone/
+mkportal/admin.php
 stoneedge/
 stonemanor/
 stop/
-storage
+storage-admin/
 storage.php
 storage/
-store
-store-admin
+store.php
+store_admin/
+store-admin/
 store-old/
 store/
 store1/
@@ -28805,7 +28800,7 @@ store_old/
 store_pictures/
 store_sitemap/
 store_templates/
-storeadmin
+storeadmin.php
 storeadmin/
 stored/
 storedata/
@@ -29079,7 +29074,6 @@ supplier/
 suppliers/
 supplies/
 supply/
-support
 support-center/
 support-db/
 support-files/
@@ -31599,7 +31593,6 @@ vanilla/
 vanity/
 vans/
 vap/
-var
 var/
 var/backups/
 var/log/

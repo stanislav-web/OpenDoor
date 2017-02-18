@@ -21,14 +21,15 @@ import unittest2 as unittest
 from src.core.system.terminal import Terminal
 from src.core.system.output import Output
 
+@unittest.skipIf(False is Output().is_windows, "Test can run on Windows")
 class TestTerminal(unittest.TestCase):
     """TestTerminal class"""
-
+    
     def test_get_ts_windows(self):
         """ Terminal.__get_ts_windows() test """
         
         term = getattr(Terminal, '_Terminal__get_ts_windows')()
-        self.assertIsNone(term)
+        self.assertIsNotNone(term)
 
         
 if __name__ == "__main__":
