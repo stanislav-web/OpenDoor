@@ -14,8 +14,8 @@ This application scans the site directories and find all possible ways to login,
 The scanning is performed by the dictionary that came with the software. Possiblly to use own dictionaries.
 This software is written for informational purposes and is an open source product under the GPL license.
 
-* *Current v3.0.3-rc (13.02.2017)*
-    - Directories - 33659
+* *Current v3.0.31-rc (20.02.2017)*
+    - Directories - 33702
     - Subdomains - 101000
 
 ***Testing of the software on the commercial systems and organizations is prohibited!***
@@ -61,11 +61,10 @@ apt-get install python-socksipy
 
 #### [Changelog](CHANGELOG.md) (last changes)
 
-<sub>v3.0.3-rc (17.02.2017)</sub>
+<sub>v3.0.31-rc (20.02.2017)</sub>
 -------------------------
-    - fixes for https stuff scan
-    - cleared internal wordlists
-    - increased coverage
+    - update directories
+    - fixes for redirects
 
 #### Basic usage
 ```

@@ -1,7 +1,9 @@
 # Include the license file
 include LICENSE
+include CHANGELOG.md
 include README.md
 include setup.cfg
 
 # Include the data files
 recursive-include data *
+recursive-include tests/data *

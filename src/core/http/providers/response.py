@@ -101,16 +101,19 @@ class ResponseProvider(object):
         elif response.status in self.DEFAULT_SSL_CERT_REQUIRED_STATUSES:
             return 'certificat'
         elif response.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
-            if response.get_redirect_location() is not False:
+            location = response.get_redirect_location()
+            if location is not False and location is not None:
                 urlfrag = helper.parse_url(request_url)
-                redirect_url = response.get_redirect_location().rstrip('/')
+                redirect_url = location.rstrip('/')
 
                 redirectfrag = helper.parse_url(redirect_url)
                 url = "{0}://{1}".format(urlfrag.scheme, urlfrag.netloc)
                 if url == redirect_url \
                         or (0 < len(redirectfrag.query) and redirectfrag.query in urlfrag.path):
                     return 'failed'
-            return 'redirect'
+                return 'redirect'
+            else:
+                return 'failed'
         elif response.status in self.DEFAULT_HTTP_BAD_REQUEST_STATUSES:
             return 'bad'
         elif response.status in self.DEFAULT_HTTP_FORBIDDEN_STATUSES:

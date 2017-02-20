@@ -1,6 +1,11 @@
 Changes
 =======
 
+v3.0.31-rc (20.02.2017)
+-------------------------
+    - update directories
+    - fixes for redirects
+
 v3.0.3-rc (17.02.2017)
 -------------------------
     - fixes for https stuff scan

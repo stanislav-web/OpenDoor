@@ -16,26 +16,10 @@
     Development Team: Stanislav WEB
 """
 
-import os
 from setuptools import setup, find_packages
-
-from src import Controller
-
-LONG_DESCRIPTION = open('README.md').read()
-
-def gen_data_files(*dirs):
-    """
-    Generate data files
-    :param list dirs:
-    :return:
-    """
     
-    results = []
-
-    for src_dir in dirs:
-        for root,dirs,files in os.walk(src_dir):
-            results.append((root, map(lambda f:root + "/" + f, files)))
-    return results
+VERSION = '3.0.3rc0'
+LONG_DESCRIPTION = open('README.md').read()
 
 setup(name='opendoor',
 
@@ -43,7 +27,7 @@ setup(name='opendoor',
       # the version across setup.py and the project code, see
       # https://packaging.python.org/en/latest/single_source_version.html
 
-      version=Controller.local_version(),
+      version=VERSION,
 
       description='OWASP WEB Directory Scanner', long_description=LONG_DESCRIPTION,
 
@@ -53,11 +37,18 @@ setup(name='opendoor',
       # Author details
       author='Stanislav WEB',
       author_email='stanisov@gmail.com',
+      maintainer='Stanislav WEB',
 
       # You can just specify the packages manually here if your project is
       # simple. Or you can use find_packages().
       packages=find_packages(),
-      include_package_data=True,
+      package_data={
+                        'data': ['*.dat'],
+                        'tests' : [
+                            'data/*.dat',
+                            'data/*.cfg'
+                        ]
+                    },
 
       # Choose your license
       license='GPL',
@@ -65,21 +56,25 @@ setup(name='opendoor',
       test_suite='tests',
 
       # What does your project relate to?
-      keywords=['owasp scanner', 'directory scanner', 'access directory scanner', 'web spider', 'auth scanner',
-                'dir search'],
+      keywords=[
+          'owasp scanner',
+          'directory scanner',
+          'access directory scanner',
+          'fuzzer',
+          'auth scanner',
+          'dir search'
+      ],
 
       # To provide executable scripts, use entry points in preference to the
       # "scripts" keyword. Entry points provide cross-platform support and allow
       # pip to create the appropriate form of executable for the target platform.
-      entry_points={'console_scripts': ['opendoor=opendoor:main', 'coveralls = coveralls.cli:main']},
+      entry_points={'console_scripts': [
+          'opendoor=opendoor:main',
+          'coveralls = coveralls.cli:main'
+      ]},
 
-      # Although 'package_data' is the preferred approach, in some case you may
-      # need to place data files outside of your packages. See:
-      # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
-      # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-      data_files=gen_data_files("data"),
-
-      scripts=['opendoor.py'], install_requires=[line.rstrip('\n') for line in open('requirements.txt')],
+      install_requires=[line.rstrip('\n') for line in open('requirements.txt')],
+      tests_require=[line.rstrip('\n') for line in open('requirements-dev.txt')],
 
       # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
       # How mature is this project? Common values are

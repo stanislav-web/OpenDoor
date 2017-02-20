@@ -28,8 +28,6 @@
 .admin
 .adminer.php.swp
 .administration
-engine/admin.php
-engine/admin/
 .apdisk
 .backup
 .backup.7z
@@ -505,7 +503,6 @@ engine/admin/
 1.txt
 1.zip
 1/
-10
 10.php
 10/
 100/
@@ -2023,7 +2020,7 @@ FCKeditor/editor/filemanager/browser/default/conn/
 FCKeditor/editor/filemanager/browser/default/connectors/jsp/connector/
 FCKeditor/editor/filemanager/browser/default/connectors/php/connector.php
 FCKeditor/editor/filemanager/connectors/
-FCKeditor/editor/images/anchor
+FCKeditor/editor/images/anchor/
 FCKeditor2.0/
 FCKeditor2.1/
 FCKeditor2.2/
@@ -3212,6 +3209,7 @@ _awstats/
 _backend/
 _backoffice/
 _backup/
+_backuppp/
 _backups/
 _bak/
 _baks
@@ -4004,6 +4002,8 @@ ack/
 acl_users/
 aclk/
 acme/
+acms.jspx
+acms.php
 acms/
 acn/
 acne/
@@ -4428,6 +4428,7 @@ admin/cp/
 admin/daili/webedit/
 admin/data/
 admin/db/
+admin/decrypt.php
 admin/default/
 admin/do/
 admin/download.php
@@ -4448,6 +4449,7 @@ admin/editor/tiny_mce/themes/advanced/image.htm
 admin/editpage/
 admin/editubb/
 admin/editubb/db/
+admin/encrypt.php
 admin/enter.php
 admin/error.log
 admin/error.txt
@@ -4456,6 +4458,7 @@ admin/ewebedit/
 admin/ewebeditor/
 admin/ewebeditor/admin/
 admin/export.php
+admin/fck/editor/
 admin/fck/editor/filemanager/connectors/uploadtest.html
 admin/fckeditor/
 admin/fckeditor/editor/filemanager/browser/default/connectors/asp/connector.asp
@@ -4496,7 +4499,6 @@ admin/login.htm
 admin/login.html
 admin/login.jsp
 admin/login.php
-admin/login.php/admin/login.html
 admin/login.phtml
 admin/login.py
 admin/login.rb
@@ -4523,6 +4525,7 @@ admin/secure/logon.jsp
 admin/sign.shtml
 admin/signin/
 admin/sxd/
+admin/templates/edit_pic.html
 admin/tiny_mce/
 admin/tinymce/
 admin/up/
@@ -5157,10 +5160,10 @@ adminreports
 adminresources
 adminrights/
 adminroot
-admins
 admins.asp
 admins.dat
 admins.html
+admins.log
 admins.php
 admins.txt
 admins/
@@ -5681,7 +5684,6 @@ alpha/
 alpha1/
 alphabet/
 alpine/
-order_log.dat
 alt/
 alt_nav.php
 alta.php
@@ -6207,7 +6209,6 @@ arrow_right/
 ars/
 arsenal/
 arsiv/
-art
 art/
 art_global/
 art_home/
@@ -6722,9 +6723,6 @@ ax/
 ax1/
 axa/
 axd/
-acms/
-acms.php
-acms.jspx
 axis-admin/
 axis/
 axis1/axis1-admin/
@@ -6841,6 +6839,7 @@ backstage/
 backtocs/
 backup-56bf2/
 backup-db/
+backup-dir/
 backup.7z
 backup.asp
 backup.aspx
@@ -6879,7 +6878,6 @@ backup8/
 backup9/
 backup_db/
 backup_dir/
-backup-dir/
 backup_migrate/
 backup_scheduled.php
 backup_site/
@@ -6918,6 +6916,7 @@ bad.php
 bad/
 bad_link/
 bad_password.php
+bad_pw.php
 badass/
 badbehaviour.php
 badbot/
@@ -7019,7 +7018,6 @@ banneri/
 bannerimages/
 bannermanager/
 bannerrotator/
-banners
 banners.bak.php
 banners.php
 banners/
@@ -8515,6 +8513,7 @@ cat_images/
 cat_lang.php
 cat_lang_edit.php
 catadd.php
+catadmin/
 catads/
 catal/
 catala/
@@ -9910,8 +9909,8 @@ comp7/
 comp8/
 comp9/
 compact/
-compadmin/
 compadmin.php
+compadmin/
 companies/
 company-profile/
 company.php
@@ -9960,6 +9959,8 @@ componenti/
 components.php
 components/
 components/login.ascx
+components/login.php
+components/login/
 compose.php
 compose/
 composer.json
@@ -11094,7 +11095,6 @@ data/pay.json
 data/payments.json
 data/tmp/
 data/users.json
-_backuppp/
 data0/
 data1/
 data2/
@@ -11427,6 +11427,7 @@ decl/
 declaration/
 declarations/
 deco/
+decode.php
 decode/
 decode_bug.php
 decoder/
@@ -11435,6 +11436,7 @@ decor/
 decoration/
 decorators/
 decouverte/
+decrypt.php
 decrypt/
 decrypted/
 decryption/
@@ -12463,7 +12465,6 @@ dz.php
 dz/
 dz0.php
 dz1.php
-e/
 e-admin.php
 e-admin/
 e-bay/
@@ -12736,6 +12737,7 @@ editor/editor/filemanager/
 editor/fckeditor/editor/filemanager/
 editor/filemanager/browser/default/connectors/asp/
 editor/filemanager/browser/default/connectors/jsp/connector/
+editor/filemanager/browser/default/connectors/php/
 editor/filemanager/browser/default/connectors/tes/
 editor/plugins/tinybrowser/tinybrowser.php
 editor/stats/
@@ -13116,11 +13118,13 @@ enchannels/
 enchmeetings/
 enciclopedia/
 enclosemover/
+encode.php
 encode/
 encoder/
 encommon/
 encrm/
 encrypt.inc.php
+encrypt.php
 encrypt/
 encrypted/
 encryption/
@@ -13153,10 +13157,13 @@ engage/
 engeiten/
 engels/
 engine/
+engine/admin.php
+engine/admin/
 engine/classes/swfupload//swfupload.swf
 engine/classes/swfupload//swfupload_f9.swf
 engine/classes/swfupload/swfupload.swf
 engine/classes/swfupload/swfupload_f9.swf
+engine1/
 engine_files/
 engineer/
 engineering/
@@ -13691,8 +13698,10 @@ export/
 export_db/
 export_files/
 export_tags/
+export_xml.php
 exportorder/
 exports/
+exportxml.php
 expose/
 exposicions.php
 exposition/
@@ -14660,6 +14669,8 @@ forum_old/
 forum_phpbb/
 forum_professionnel.php
 forum_test/
+forum_vb/admincp/
+forum_vb/modcp/
 forumadmin/
 forumas/
 forumbackup.7s
@@ -14872,8 +14883,12 @@ froogle_/
 frs/
 fruit/
 fry_include/
+fs-admin.php
+fs-admin/
 fs-bin/
 fs/
+fsadmin.php
+fsadmin/
 fsbb.php
 fsbo/
 fsbrprint/
@@ -15232,9 +15247,9 @@ gems/
 gen/
 gender/
 genealogy/
-general
 general.php
 general/
+general/admin/
 general_info/
 general_lib/
 generalsettings.php
@@ -15466,8 +15481,8 @@ global_funcs.php
 global_images/
 global_includes/
 globala-en/
-globaladmin
-globaladminv2
+globaladmin/
+globaladminv2/
 globalall/
 globalam/
 globalar/
@@ -15823,6 +15838,7 @@ guess/
 guest-demos/
 guest-tracking/
 guest/
+guest_adm.php
 guestbook.php
 guestbook/
 guestbook2/
@@ -16155,9 +16171,9 @@ histogram/
 histoire/
 historia/
 historic/
-history.phtml
 history.md
 history.php
+history.phtml
 history.txt
 history/
 historya/
@@ -16848,6 +16864,7 @@ images.php
 images/
 images/README/
 images/Sym.php
+images/admin/
 images/c99.php
 images0/
 images01/
@@ -17002,11 +17019,13 @@ import_files/
 import_lib/
 import_settings.php
 import_status.php
+import_xml.php
 important/
 imported-data/
 importer/
 imports/
 importus.php
+importxml.php
 imprensa/
 impresa/
 impression/
@@ -17598,8 +17617,8 @@ iol/
 ioncube/
 ios/
 iowa/
-ip.txt
 ip.dat
+ip.txt
 ip/
 ip2c/
 ip2country/
@@ -18123,10 +18142,24 @@ js-global/
 js-lib/
 js/
 js/FCKeditor
+js/ajax.php
 js/editor/fckeditor/editor/filemanager/
 js/editor/plugins/filemanager/config.php
 js/editor/plugins/imagemanager/config.php
 js/elfinder/elfinder.php
+js/fckeditor/
+js/fckeditor/_samples/php/sample01.php
+js/fckeditor/editor/
+js/fckeditor/editor/dialog/
+js/fckeditor/editor/dialog/fck_spellerpages/spellerp/
+js/fckeditor/editor/filemanage/
+js/fckeditor/editor/filemanager/
+js/fckeditor/editor/filemanager/browser/default/browser.html
+js/fckeditor/editor/filemanager/browser/default/conn/
+js/fckeditor/editor/filemanager/browser/default/connectors/jsp/connector/
+js/fckeditor/editor/filemanager/browser/default/connectors/php/connector.php
+js/fckeditor/editor/filemanager/connectors/
+js/fckeditor/editor/images/anchor/
 js/swfupload/swfupload.swf
 js/swfupload/swfupload_f9.swf
 js/tiny_mce/
@@ -19028,7 +19061,6 @@ line/
 line_items/
 lines/
 lingerie/
-link
 link-directory/
 link-exchange/
 link-to-us/
@@ -19086,6 +19118,8 @@ links/
 links/login.php
 links2/
 links_files/
+links_parser.php
+links_parser/
 links_submit/
 linksadmin/
 linkscan/
@@ -19503,11 +19537,14 @@ logs/PerfOrgWebLog.log
 logs/access.dat
 logs/access.log
 logs/access_log
+logs/admin.log
+logs/auth.log
 logs/debug.dat
 logs/debug.log
 logs/error.dat
 logs/error.log
 logs/error_log
+logs/user.log
 logs2/
 logs_console/
 logstats/
@@ -19658,8 +19695,8 @@ ma-fr/
 ma.php
 ma/
 ma_show.php
-mac
 mac-ad/
+mac.php
 mac/
 macadmin/
 macedonia/
@@ -19707,11 +19744,11 @@ magpierss/
 mags/
 mai/
 maia/
-mail.phtml
 mail-admin.nsf
 mail-template/
 mail.html
 mail.php
+mail.phtml
 mail/
 mail2/
 mail_1.php
@@ -20135,6 +20172,7 @@ mcc/
 mcd/
 mcdonalds/
 mce/
+mcertificates/
 mchat.php
 mchat/
 mchat_install.php
@@ -20154,6 +20192,8 @@ mcr/
 mcrypt.lib.php
 mcs/
 md/
+md5.aspx
+md5.php
 md5hash/
 mda/
 mdata/
@@ -20664,6 +20704,7 @@ mixer/
 mj/
 mk/
 mkportal/
+mkportal/admin.php
 mkstats/
 mkt/
 mktg/
@@ -20804,16 +20845,16 @@ modelo/
 modelos/
 models/
 modelsearch/
-modelsearch/admin/
 modelsearch/admin.html
 modelsearch/admin.php
-modelsearch/index/
+modelsearch/admin/
 modelsearch/index.html
 modelsearch/index.php
-modelsearch/login/
+modelsearch/index/
 modelsearch/login.asp
 modelsearch/login.html
 modelsearch/login.php
+modelsearch/login/
 modem/
 modems/
 moderate.inc.php
@@ -20824,10 +20865,10 @@ moderator.asp
 moderator.html
 moderator.php
 moderator/
-moderator/admin.phtml
 moderator/admin.asp
 moderator/admin.html
 moderator/admin.php
+moderator/admin.phtml
 moderator/admin/
 moderator/login.asp
 moderator/login.html
@@ -21170,7 +21211,6 @@ muracms.esproj
 murcia/
 murmansk/
 murphy/
-engine1/
 mus/
 muse/
 museum.php
@@ -21711,9 +21751,6 @@ news_bigstory.php
 news_events/
 news_feeds/
 news_images/
-sert/
-sertificates/
-mcertificates/
 news_insert/
 news_lostpass/
 news_message/
@@ -22562,6 +22599,7 @@ order_forms/
 order_history.php
 order_history/
 order_log
+order_log.dat
 order_log/
 order_log_v12.dat
 order_status/
@@ -22876,7 +22914,7 @@ pagepeel/
 pager/
 pagerTest.php
 pagerank/
-pages
+pages-admin/
 pages.php
 pages/
 pages/admin/
@@ -23276,22 +23314,24 @@ pepper/
 pepsi/
 per.php
 per/
-peradmin/
 peradmin.php
+peradmin/
 perch/
 percolate/
 percy/
 perdorimi/
 perdorues/
 perdoruesi/
+lib/class.smtp.php
+lib/class.phpmailer.php
 perdoruesit/
 perf/
+News/adm/
 perfil/
 perfiles/
 performance/
 performer/
 periodic/
-perl
 perl-bin/
 perl.php
 perl/
@@ -24050,8 +24090,16 @@ plugins.inc.php
 plugins.log
 plugins.php
 plugins/
+plugins/editor/filemanager/browser/default/browser.html
+plugins/editor/filemanager/connectors/uploadtest.html
 plugins/editors/fckeditor/
 plugins/fckeditor/
+plugins/fckeditor/editor/filemanager/browser/default/browser.html
+plugins/fckeditor/editor/filemanager/connectors/uploadtest.html
+plugins/fckeditor/fckeditor/editor/filemanager/browser/default/browser.html
+plugins/fckeditor/filemanager/browser/default/browser.html
+plugins/p_fckeditor/fckeditor/editor/filemanager/browser/default/browser.html
+plugins/p_fckeditor/fckeditor/editor/filemanager/connectors/uploadtest.html
 plugins/sfSWFUploadPlugin/web/sfSWFUploadPlugin/swf/swfupload.swf
 plugins/sfSWFUploadPlugin/web/sfSWFUploadPlugin/swf/swfupload_f9.swf
 plugins/tiny_mce/
@@ -24173,7 +24221,6 @@ politics/
 politik/
 poll-results/
 poll-tags/
-admin/templates/edit_pic.html
 poll.php
 poll/
 poll2/
@@ -25624,7 +25671,6 @@ redesign/
 redfact/
 redir/
 redireccion/
-redirect
 redirect-to/
 redirect.php
 redirect.php5
@@ -27175,6 +27221,8 @@ serie/
 series/
 sermons/
 serra/
+sert/
+sertificates/
 serv-u.ini
 serv/
 serve/
@@ -27226,7 +27274,6 @@ service/admin/
 service/login.php
 service_dateien/
 servicecenter/
-js/tinymce/plugins/imagemanager/pages/im/index.html
 servicecenters/
 servicehilfe/
 serviceinterface/
@@ -28456,6 +28503,7 @@ sql
 sql-admin.php
 sql-admin/
 sql.class.php
+sql.db
 sql.inc
 sql.php
 sql.php3
@@ -28478,6 +28526,7 @@ sqlbuddy/
 sqlbuddy/login.php
 sqldump/
 sqli/
+sqlite.db
 sqlmanager/
 sqlmigrate.php
 sqlnet.log
@@ -28777,17 +28826,15 @@ stomperfull/
 stompertrial/
 stompervideo/
 stone/
-mkportal/admin.php
 stoneedge/
 stonemanor/
 stop/
 storage-admin/
 storage.php
 storage/
-store.php
-store_admin/
 store-admin/
 store-old/
+store.php
 store/
 store1/
 store2/
@@ -28931,6 +28978,8 @@ subadmin/
 subcategory/
 subdir/
 subdirectory/
+subdmn.php
+subdmn/
 subdomain/
 subdomains/
 subinfo/
@@ -29902,7 +29951,6 @@ testrobot/
 testrobots/
 testrobotsdisal/
 testrobotsnoindex/
-tests
 tests/
 tests/phpunit_report.xml
 testsearch/
@@ -29920,7 +29968,7 @@ testtext/
 testumgebung/
 testvb/
 testvideo/
-testweb
+testweb.php
 testweb/
 testwp/
 testwww/
@@ -30048,14 +30096,13 @@ thinkphp/
 thinkup/
 third-party/
 thirdparty/
-thirdparty/fckeditor
+thirdparty/fckeditor/
 this/
 thisweek/
 thm/
 thomas/
 thomson/
 thoughts/
-thread
 thread.inc.php
 thread/
 threaddisplay/
@@ -30067,12 +30114,12 @@ threadtag/
 threadtypes.inc.php
 threats/
 ths/
-thumb
+thumb.log
 thumb.php
 thumb.php5
 thumb/
 thumb1/
-thumbnail
+thumbnail.php
 thumbnail/
 thumbnail_images/
 thumbnails.php
@@ -30163,7 +30210,6 @@ tinker/
 tintin/
 tiny-mce/
 tiny/
-tiny_mce
 tiny_mce/
 tiny_mce/plugins/ajaxfilemanager/ajax_create_folder.php
 tiny_mce/plugins/filemanager/examples.html
@@ -30381,10 +30427,8 @@ topextensions.php
 topframe.php
 topgun/
 topher/
-topic
 topic/
 topic_review.php
-topicadmin
 topicadmin.php
 topicadmin/
 topics
@@ -30444,7 +30488,7 @@ touchbb.php
 tour/
 tour1/
 tour2/
-touradmin
+touradmin/
 touring/
 tourism/
 touristik-d.html
@@ -30528,7 +30572,7 @@ traderoute.php
 trades/
 tradeshow/
 tradeshows/
-tradetheme
+tradetheme/
 tradetracker/
 trading/
 traductions/
@@ -30545,7 +30589,6 @@ train/
 trainer/
 trainers/
 trainersctw/
-training
 training/
 trainings/
 trainingvideos/
@@ -30589,7 +30632,6 @@ trash/
 trasparenza/
 traspaso/
 traueranzeigen/
-travel
 travel-guide/
 travel-guides/
 travel-insurance/
@@ -31074,7 +31116,6 @@ upl.php
 upl/
 uplfile/
 uplimg/
-upload
 upload-photo/
 upload-photos/
 upload-pictures/
@@ -31110,6 +31151,7 @@ upload_dir/
 upload_events.php
 upload_file.php
 upload_file/
+upload_files.php
 upload_files/
 upload_fin/
 upload_images/
@@ -31616,6 +31658,8 @@ vb.tar.gz
 vb.tpl
 vb.zip
 vb/
+vb/admincp/
+vb/modcp/
 vb2/
 vb3/
 vb4/
@@ -32416,6 +32460,8 @@ webmanager/
 webmaste/
 webmaster.php
 webmaster/
+webmaster/logs/
+webmaster/stats/
 webmasterlogs/
 webmasters/
 webmasterstats/
@@ -32424,6 +32470,7 @@ webmilesat/
 webmilesde/
 webmin/
 webmodules/
+webmoney.xml
 webmoney/
 webnews/
 webobjects/
@@ -32871,7 +32918,6 @@ wp-config.php.save
 wp-config.php.swp
 wp-config.php.txt
 wp-config/
-js/ajax.php
 wp-content-cache/
 wp-content/
 wp-content/backup-db/
@@ -33007,10 +33053,6 @@ wsm/
 wsmab/
 wsmicons/
 wsmkb/
-fsadmin/
-fsadmin.php
-fs-admin/
-fs-admin.php
 wsmleads/
 wsmmail/
 wsmnewsletter/
@@ -33353,6 +33395,8 @@ yahoosearch/
 yalst/
 yamaha/
 yaml/
+yandex-xml.php
+yandex.php
 yandex/
 yang/
 yankees/
@@ -33656,4 +33700,3 @@ zzz/
 ~user/
 ~webmaster/
 ~www/
-admin/fck/editor/
