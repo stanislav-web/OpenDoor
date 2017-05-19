@@ -16,6 +16,23 @@
     Development Team: Stanislav WEB
 """
 
+import sys
 from src.core.decorators import execution_time
 from .controller import Controller
 from .exceptions import SrcError
+
+
+for module in ['backport_collections', 'urllib3', 'json2html','tabulate','importlib']:
+    try:
+        __import__(module)
+    except ImportError:
+        sys.exit("""\t\t[!] Several dependencies wasn't installed!
+            Please run sudo pip install -r requirements.txt """)
+
+from src import Controller, SrcError
+
+try:
+    bootstrap = Controller()
+    bootstrap.run()
+except SrcError as e:
+   sys.exit(e.message)

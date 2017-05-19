@@ -41,14 +41,19 @@ setup(name='opendoor',
 
       # You can just specify the packages manually here if your project is
       # simple. Or you can use find_packages().
+      zip_safe=False,
       packages=find_packages(),
-      package_data={
-                        'data': ['*.dat'],
-                        'tests' : [
-                            'data/*.dat',
-                            'data/*.cfg'
-                        ]
-                    },
+      package_data={'': ['setup.cfg']},
+      data_files=[('.', ['setup.cfg']),
+                  ('data', [
+                      'data/directories.dat',
+                      'data/ignored.dat',
+                      'data/proxies.dat',
+                      'data/subdomains.dat',
+                      'data/useragents.dat',
+                  ])
+                  ],
+      include_package_data=True,
 
       # Choose your license
       license='GPL',
@@ -65,11 +70,13 @@ setup(name='opendoor',
           'dir search'
       ],
 
+      download_url='https://github.com/stanislav-web/OpenDoor',
+
       # To provide executable scripts, use entry points in preference to the
       # "scripts" keyword. Entry points provide cross-platform support and allow
       # pip to create the appropriate form of executable for the target platform.
       entry_points={'console_scripts': [
-          'opendoor=opendoor:main',
+          'opendoor=src:main',
           'coveralls = coveralls.cli:main'
       ]},
 

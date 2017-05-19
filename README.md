@@ -14,7 +14,10 @@ This application scans the site directories and find all possible ways to login,
 The scanning is performed by the dictionary that came with the software. Possiblly to use own dictionaries.
 This software is written for informational purposes and is an open source product under the GPL license.
 
-* *Current v3.0.31-rc (20.02.2017)*
+* *Future*
+    - Python 3 support
+    
+* *Current v3.0.32-rc (19.05.2017)*
     - Directories - 33702
     - Subdomains - 101000
 
@@ -31,6 +34,16 @@ This software is written for informational purposes and is an open source produc
 pip install -r requirements.txt
 chmod +x opendoor.py
 ```
+
+#### Global installation
+```
+ // provide of using opendoor interface from global python scope
+
+ $ cd opendoorDirectory/
+ $ python setup.py build && python setup.py install
+ 
+```
+
 Also, you have to install `socksipy` package if you'll use socks as proxy
 ```
 apt-get install python-socksipy
@@ -61,15 +74,20 @@ apt-get install python-socksipy
 
 #### [Changelog](CHANGELOG.md) (last changes)
 
-<sub>v3.0.31-rc (20.02.2017)</sub>
+<sub>v3.0.32-rc (19.05.2017)</sub>
 -------------------------
-    - update directories
-    - fixes for redirects
+    - Add global installation
 
 #### Basic usage
 ```
  python opendoor.py --host http://www.example.com
 ```
+
+#### Global usage
+```
+ opendoor --host http://www.example.com
+```
+
 #### Help
 ```
 usage: opendoor.py [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]

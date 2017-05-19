@@ -226,8 +226,8 @@ class FileSystem(object):
         :return: ConfigParser.RawConfigParser
         """
 
-        regex = re.compile('^([\/a-z].*?opendoor)', re.IGNORECASE)
-        cwd = regex.search(os.getcwd())
+        regex = re.compile('^([\/a-z].*?opendoor.*?)\/', re.IGNORECASE)
+        cwd = regex.search(__file__)
         os.chdir(cwd.group())
         filepath = os.path.join(os.path.sep, os.getcwd(), filename)
 

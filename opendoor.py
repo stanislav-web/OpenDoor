@@ -19,7 +19,6 @@
 
 import sys
 
-
 for module in ['backport_collections', 'urllib3', 'json2html','tabulate','importlib']:
     try:
         __import__(module)
