@@ -38,8 +38,8 @@ class HttpRequest(RequestProvider, DebugProvider):
             self.__tpl = kwargs.get('tpl')
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
 
-        except (TypeError, ValueError) as e:
-            raise HttpRequestError(e.message)
+        except (TypeError, ValueError) as error:
+            raise HttpRequestError(error)
 
         self.__cfg = config
         self.__debug = debug
@@ -60,7 +60,7 @@ class HttpRequest(RequestProvider, DebugProvider):
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_connection_pool('http_pool_start', pool)
             return pool
-        except Exception as e:
+        except Exception as error:
             raise HttpRequestError(e)
 
     def request(self, url):
@@ -86,13 +86,13 @@ class HttpRequest(RequestProvider, DebugProvider):
         except MaxRetryError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
-        except HostChangedError as e:
+        except HostChangedError as error:
             self.__tpl.warning(key='host_changed_error', details=e)
         except ReadTimeoutError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
-        except NewConnectionError as e:
+        except NewConnectionError as error:
             if 'subdomains' in self.__cfg.scan:
                 pass
             else:
-                raise HttpRequestError(e.message)
+                raise HttpRequestError(error)

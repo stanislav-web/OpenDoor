@@ -52,8 +52,8 @@ class Proxy(RequestProvider, DebugProvider):
             if False is config.is_standalone_proxy and 0 == len(self.__proxylist):
                 raise TypeError('Proxy list empty or has invalid format')
 
-        except (TypeError, ValueError) as e:
-            raise ProxyRequestError(e.message)
+        except (TypeError, ValueError) as error:
+            raise ProxyRequestError(error)
 
     def __proxy_pool(self):
         """
@@ -77,7 +77,7 @@ class Proxy(RequestProvider, DebugProvider):
             else:
                 pool = ProxyManager(self.__server, num_pools=self.__cfg.threads, timeout=self.__cfg.timeout, block=True)
             return pool
-        except (DependencyWarning, ProxySchemeUnknown, ImportError) as e:
+        except (DependencyWarning, ProxySchemeUnknown, ImportError) as error:
             raise ProxyRequestError(e)
 
     def request(self, url):

@@ -78,7 +78,7 @@ class Package(object):
 
             return banner
 
-        except (FileSystemError, CoreSystemError, PackageError) as e:
+        except (FileSystemError, CoreSystemError, PackageError) as error:
             raise PackageError(e)
 
     @staticmethod
@@ -97,7 +97,7 @@ class Package(object):
 
             return version
 
-        except (FileSystemError, CoreSystemError, PackageError) as e:
+        except (FileSystemError, CoreSystemError, PackageError) as error:
             raise PackageError(e)
 
     @staticmethod
@@ -117,8 +117,8 @@ class Package(object):
                 msg = Config.params.get('update').format(status=tpl.line(key='upd_win_stat'))
             return msg
 
-        except (AttributeError, CoreSystemError) as e:
-            raise PackageError(e.message)
+        except (AttributeError, CoreSystemError) as error:
+            raise PackageError(error)
 
     @staticmethod
     def local_version():
@@ -131,8 +131,8 @@ class Package(object):
         try:
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'version')
-        except FileSystemError as e:
-            raise PackageError(e.message)
+        except FileSystemError as error:
+            raise PackageError(error)
 
     @staticmethod
     def __app_name():
@@ -145,8 +145,8 @@ class Package(object):
         try:
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'name')
-        except FileSystemError as e:
-            raise PackageError(e.message)
+        except FileSystemError as error:
+            raise PackageError(error)
 
     @staticmethod
     def __remote_version():
@@ -167,7 +167,7 @@ class Package(object):
 
                 return Package.remote_version
 
-            except (FileSystemError, CoreSystemError) as e:
+            except (FileSystemError, CoreSystemError) as error:
                 raise PackageError(e)
         else:
             return Package.remote_version
@@ -190,7 +190,7 @@ class Package(object):
                 current_version = tpl.line(local, color='green')
             return current_version
 
-        except (FileSystemError, CoreSystemError, PackageError) as e:
+        except (FileSystemError, CoreSystemError, PackageError) as error:
             raise PackageError(e)
 
     @staticmethod
@@ -204,8 +204,8 @@ class Package(object):
         try:
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'repository')
-        except FileSystemError as e:
-            raise PackageError(e.message)
+        except FileSystemError as error:
+            raise PackageError(error)
 
     @staticmethod
     def __license():
@@ -218,8 +218,8 @@ class Package(object):
         try:
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'license')
-        except FileSystemError as e:
-            raise PackageError(e.message)
+        except FileSystemError as error:
+            raise PackageError(error)
 
     @staticmethod
     def __directories_count():
@@ -236,8 +236,8 @@ class Package(object):
 
             return count
 
-        except FileSystemError as e:
-            raise PackageError(e.message)
+        except FileSystemError as error:
+            raise PackageError(error)
 
     @staticmethod
     def __subdomains_count():
@@ -254,8 +254,8 @@ class Package(object):
 
             return count
 
-        except FileSystemError as e:
-            raise PackageError(e.message)
+        except FileSystemError as error:
+            raise PackageError(error)
 
     @staticmethod
     def __browsers_count():
@@ -272,8 +272,8 @@ class Package(object):
 
             return count
 
-        except FileSystemError as e:
-            raise PackageError(e.message)
+        except FileSystemError as error:
+            raise PackageError(error)
 
     @staticmethod
     def __proxies_count():
@@ -290,5 +290,5 @@ class Package(object):
 
             return count
 
-        except FileSystemError as e:
-            raise PackageError(e.message)
+        except FileSystemError as error:
+            raise PackageError(error)

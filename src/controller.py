@@ -51,7 +51,7 @@ class Controller(object):
                                          expected=interpreter.get('expected')))
 
             self.ioargs = args().get_arguments()
-        except ArgumentsError as e:
+        except ArgumentsError as error:
             raise SrcError(tpl.error(e))
 
     @execution_time(log=tpl)
@@ -75,8 +75,8 @@ class Controller(object):
                         getattr(self, '{func}_action'.format(func=action))()
                         break
 
-        except (SrcError, PackageError, BrowserError, AttributeError) as e:
-            raise SrcError(tpl.error(e.message))
+        except (SrcError, PackageError, BrowserError, AttributeError) as error:
+            raise SrcError(tpl.error(error))
 
     @staticmethod
     def examples_action():
@@ -97,7 +97,7 @@ class Controller(object):
 
         try:
             tpl.message(package.update())
-        except (AttributeError, PackageError) as e:
+        except (AttributeError, PackageError) as error:
             raise SrcError(e)
 
     @staticmethod
@@ -111,7 +111,7 @@ class Controller(object):
 
         try:
             tpl.message(package.version())
-        except (AttributeError, PackageError) as e:
+        except (AttributeError, PackageError) as error:
             raise SrcError(e)
 
     @staticmethod
@@ -124,7 +124,7 @@ class Controller(object):
 
         try:
             tpl.message(package.local_version())
-        except (AttributeError, PackageError) as e:
+        except (AttributeError, PackageError) as error:
             raise SrcError(e)
 
     @classmethod
@@ -151,7 +151,7 @@ class Controller(object):
             brows.scan()
             brows.done()
 
-        except (AttributeError, BrowserError, ReporterError, TplError) as e:
-            raise SrcError(e.message)
+        except (AttributeError, BrowserError, ReporterError, TplError) as error:
+            raise SrcError(error)
         except (KeyboardInterrupt, SystemExit):
             tpl.cancel(key='abort')

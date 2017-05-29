@@ -61,9 +61,9 @@ class FileSystem(object):
             try:
                 directory = os.path.join(directory)
                 os.makedirs(directory + '/', mode=mode)
-            except OSError as e:
-                if e.errno != errno.EEXIST:
-                    raise FileSystemError("Cannot create directory `{0}`. Reason: {1}".format(directory, e.message))
+            except OSError as error:
+                if error.errno != errno.EEXIST:
+                    raise FileSystemError("Cannot create directory `{0}`. Reason: {1}".format(directory, error))
 
     @staticmethod
     def getabsname(filename):
@@ -104,8 +104,8 @@ class FileSystem(object):
                     file_extension = os.path.splitext(filename)[1]
                     if extension == file_extension:
                         os.remove(os.path.join(directory, files))
-            except IOError as e:
-                raise FileSystemError(e.message)
+            except IOError as error:
+                raise FileSystemError(error)
         else:
             raise FileSystemError("The directory {0} you want to clear is not exist".format(directory))
 
@@ -126,8 +126,8 @@ class FileSystem(object):
                 open(filename, 'w')
 
                 return True
-            except IOError as e:
-                raise FileSystemError(e.message)
+            except IOError as error:
+                raise FileSystemError(error)
         else:
             return False
 
@@ -170,8 +170,8 @@ class FileSystem(object):
                 for l in current_chunk:
                     o_f.write(current_lines[l])
 
-        except IOError as e:
-            raise FileSystemError(e)
+        except IOError as error:
+            raise FileSystemError(error)
 
     @staticmethod
     def readline(filename, handler, handler_params, loader):
@@ -242,8 +242,8 @@ class FileSystem(object):
             config.read(filepath)
             return config
 
-        except (ParsingError, NoOptionError) as e:
-            raise FileSystemError(e.message)
+        except (ParsingError, NoOptionError) as error:
+            raise FileSystemError(error)
 
     @staticmethod
     def writelist(filename, data, separator=''):
@@ -279,8 +279,8 @@ class FileSystem(object):
             config = ConfigParser.ConfigParser()
             config.readfp(buf)
             return config
-        except ConfigParser.Error as e:
-            raise FileSystemError(e.message)
+        except ConfigParser.Error as error:
+            raise FileSystemError(error)
 
     @staticmethod
     def human_size(size, precision=2):

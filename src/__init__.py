@@ -34,5 +34,5 @@ from src import Controller, SrcError
 try:
     bootstrap = Controller()
     bootstrap.run()
-except SrcError as e:
-   sys.exit(e)
+except SrcError as error:
+   sys.exit(error)

@@ -98,7 +98,7 @@ class Process(object):
                 raise OSError(error.strip())
 
             return out
-        except (subprocess.CalledProcessError, OSError) as e:
+        except (subprocess.CalledProcessError, OSError) as error:
             raise CoreSystemError(e)
 
 

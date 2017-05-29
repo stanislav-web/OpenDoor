@@ -39,8 +39,8 @@ class Reporter(object):
         try:
             config = filesystem.readcfg(Reporter.config)
             return filesystem.is_exist(config.get('opendoor', 'reports'), resource)
-        except FileSystemError as e:
-            raise ReporterError(e.message)
+        except FileSystemError as error:
+            raise ReporterError(error)
 
     @staticmethod
     def load(plugin_name, target, data):

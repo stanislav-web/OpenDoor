@@ -52,8 +52,8 @@ class Reader(object):
         try:
             config = filesystem.readcfg(Config.setup)
             return config
-        except FileSystemError as e:
-            raise ReaderError(e.message)
+        except FileSystemError as error:
+            raise ReaderError(error)
 
     def get_user_agents(self):
         """
@@ -67,8 +67,8 @@ class Reader(object):
                 self.__useragents = filesystem.read(self.__config.get('opendoor', 'useragents'))
             return self.__useragents
 
-        except (TypeError, FileSystemError) as e:
-            raise ReaderError(e.message)
+        except (TypeError, FileSystemError) as error:
+            raise ReaderError(error)
 
     def get_ignored_list(self):
         """
@@ -89,8 +89,8 @@ class Reader(object):
 
             return self.__ignored
 
-        except (TypeError, FileSystemError) as e:
-            raise ReaderError(e.message)
+        except (TypeError, FileSystemError) as error:
+            raise ReaderError(error)
 
     def get_proxies(self):
         """
@@ -112,8 +112,8 @@ class Reader(object):
             else:
                 return []
 
-        except (TypeError, FileSystemError) as e:
-            raise ReaderError(e.message)
+        except (TypeError, FileSystemError) as error:
+            raise ReaderError(error)
 
     def get_lines(self, params, loader):
         """
@@ -136,8 +136,8 @@ class Reader(object):
 
             filesystem.readline(dirlist, handler=getattr(self, '_{0}__line'.format(self.__browser_config.get('list'))),
                                 handler_params=params, loader=loader)
-        except (TypeError, FileSystemError) as e:
-            raise ReaderError(e.message)
+        except (TypeError, FileSystemError) as error:
+            raise ReaderError(error)
 
     @classmethod
     def _subdomains__line(cls, line, params):
@@ -214,8 +214,8 @@ class Reader(object):
                 process.execute('shuf {target} -o {output}'.format(target=target_file, output=output_file))
             else:
                 filesystem.shuffle(target=target_file, output=output_file, total=self.total_lines)
-        except (CoreSystemError, FileSystemError) as e:
-            raise ReaderError(e.message)
+        except (CoreSystemError, FileSystemError) as error:
+            raise ReaderError(error)
 
     def count_total_lines(self):
         """
@@ -234,8 +234,8 @@ class Reader(object):
 
             return self.__counter
 
-        except (TypeError, FileSystemError) as e:
-            raise ReaderError(e.message)
+        except (TypeError, FileSystemError) as error:
+            raise ReaderError(error)
 
     @property
     def total_lines(self):

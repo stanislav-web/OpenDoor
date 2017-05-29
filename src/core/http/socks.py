@@ -42,7 +42,7 @@ class Socket(object):
             sock.settimeout(timeout)
             sock.connect((host, port))
 
-        except (socket.gaierror, socket.error, socket.timeout, SocketError) as e:
+        except (socket.gaierror, socket.error, socket.timeout, SocketError) as error:
             raise SocketError(e)
         finally:
             sock.close()
@@ -59,5 +59,5 @@ class Socket(object):
         try:
             ip_address = socket.gethostbyname(host)
             return ip_address
-        except socket.gaierror as e:
-            raise SocketError(e.message)
+        except socket.gaierror as error:
+            raise SocketError(error)

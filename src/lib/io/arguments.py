@@ -34,5 +34,5 @@ class Arguments(object):
         try:
             args = options().get_arg_values()
             return args
-        except OptionsError as e:
+        except OptionsError as error:
             raise ArgumentsError(e)

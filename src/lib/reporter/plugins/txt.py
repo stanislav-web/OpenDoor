@@ -40,7 +40,7 @@ class TextReportPlugin(PluginProvider):
             directory = config.get('opendoor', 'reports')
             self.__target_dir = "".join((directory, self._target))
             filesystem.makedir(self.__target_dir)
-        except FileSystemError as e:
+        except FileSystemError as error:
             raise Exception(e)
 
     def process(self):
@@ -58,5 +58,5 @@ class TextReportPlugin(PluginProvider):
 
                 if status not in ['failed']:
                     self.record(self.__target_dir, status, data, '\n')
-        except (Exception, FileSystemError) as e:
+        except (Exception, FileSystemError) as error:
             raise Exception(e)

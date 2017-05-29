@@ -42,8 +42,8 @@ class HttpsRequest(RequestProvider, DebugProvider):
 
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
 
-        except (TypeError, ValueError) as e:
-            raise HttpsRequestError(e.message)
+        except (TypeError, ValueError) as error:
+            raise HttpsRequestError(error)
 
         self.__cfg = config
         self.__debug = debug
@@ -80,8 +80,8 @@ class HttpsRequest(RequestProvider, DebugProvider):
                 self.__debug.debug_connection_pool('https_pool_start', pool)
 
             return pool
-        except Exception as e:
-            raise HttpsRequestError(e.message)
+        except Exception as error:
+            raise HttpsRequestError(error)
 
     def request(self, url):
         """
@@ -116,7 +116,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
 
-        except HostChangedError as e:
+        except HostChangedError as error:
             self.__tpl.warning(key='host_changed_error', details=e)
 
         except ReadTimeoutError:
@@ -127,5 +127,5 @@ class HttpsRequest(RequestProvider, DebugProvider):
             if self.__cfg.DEFAULT_SCAN != self.__cfg.scan:
                 return self._provide_ssl_auth_required()
 
-        except NewConnectionError as e:
-            raise HttpsRequestError(e.message)
+        except NewConnectionError as error:
+            raise HttpsRequestError(error)

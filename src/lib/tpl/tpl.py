@@ -41,8 +41,8 @@ class Tpl(object):
             if key:
                 msg = Tpl.__format_message(key, args=args)
             sys.exit(logger.log().warning(msg))
-        except (AttributeError, TplError) as e:
-            raise TplError(e.message)
+        except (AttributeError, TplError) as error:
+            raise TplError(error)
 
     @staticmethod
     def line_log(msg='', key='', status='info', write=True, **args):
@@ -65,8 +65,8 @@ class Tpl(object):
                 sys.writels(msg)
             else:
                 return msg
-        except (AttributeError, TplError) as e:
-            raise TplError(e.message)
+        except (AttributeError, TplError) as error:
+            raise TplError(error)
 
     @staticmethod
     def prompt(key='', msg=None, status='info', **kwargs):
@@ -86,11 +86,11 @@ class Tpl(object):
                 msg = Tpl.line_log(key=key, status=status, write=False)
             else:
                 msg = Tpl.line_log(msg, status=status, write=False, **kwargs)
-            result = raw_input(msg)
+            result = input(msg)
             return result
 
-        except (AttributeError, TplError) as e:
-            raise TplError(e.message)
+        except (AttributeError, TplError) as error:
+            raise TplError(error)
 
     @staticmethod
     def line(msg='', key='', color='white', **args):
@@ -108,8 +108,8 @@ class Tpl(object):
             if key:
                 msg = Tpl.__format_message(key, args=args)
             return colour.colored(msg, color=color)
-        except (AttributeError, TplError) as e:
-            raise TplError(e.message)
+        except (AttributeError, TplError) as error:
+            raise TplError(error)
 
     @staticmethod
     def message(msg, args=None, color='white'):
@@ -143,7 +143,7 @@ class Tpl(object):
             if key:
                 msg = Tpl.__format_message(key, args=args)
             logger.log('error').error(msg)
-        except (AttributeError, TplError) as e:
+        except (AttributeError, TplError) as error:
             raise TplError(e)
 
     @staticmethod
@@ -163,8 +163,8 @@ class Tpl(object):
             if key:
                 msg = Tpl.__format_message(key, args=args)
             logger.log('warning').warning(msg)
-        except (AttributeError, TplError) as e:
-            raise TplError(e.message)
+        except (AttributeError, TplError) as error:
+            raise TplError(error)
 
     @staticmethod
     def info(msg='', key='', clear=False, **args):
@@ -186,8 +186,8 @@ class Tpl(object):
             if True is clear:
                 sys.writels("")
             logger.log('info').info(msg)
-        except (AttributeError, TplError) as e:
-            raise TplError(e.message)
+        except (AttributeError, TplError) as error:
+            raise TplError(error)
 
     @staticmethod
     def debug(msg='', key='', **args):
@@ -206,8 +206,8 @@ class Tpl(object):
             if key:
                 msg = Tpl.__format_message(key, args=args)
             logger.log('debug').debug(msg)
-        except (AttributeError, TplError) as e:
-            raise TplError(e.message)
+        except (AttributeError, TplError) as error:
+            raise TplError(error)
 
     @staticmethod
     def __format_message(key, **args):

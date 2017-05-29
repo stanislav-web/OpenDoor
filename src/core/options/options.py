@@ -277,8 +277,8 @@ class Options(object):
                                                             type=arg['type'])
 
             self.args = self.parser.parse_args()
-        except ArgumentParserError as e:
-            raise OptionsError(e.message)
+        except ArgumentParserError as error:
+            raise OptionsError(error)
 
     def get_arg_values(self):
         """
@@ -313,5 +313,5 @@ class Options(object):
 
             return args
 
-        except (AttributeError, FilterError) as e:
-            raise OptionsError(e.message)
+        except (AttributeError, FilterError) as error:
+            raise OptionsError(error)
