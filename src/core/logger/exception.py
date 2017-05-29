@@ -19,7 +19,6 @@
 import inspect
 import logging
 import logging.config
-from exceptions import Exception as Error
 
 from src.core import filesystem
 from .config import Config
@@ -54,5 +53,5 @@ class LoggerException(object):
                     func=func.co_name,
                     line=func.co_firstlineno)
             logger.error(message)
-        except (Error, ValueError) as e:
-            raise Error(e)
+        except (Exception, ValueError) as e:
+            raise Exception(e)

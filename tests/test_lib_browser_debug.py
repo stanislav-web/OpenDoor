@@ -21,7 +21,7 @@ from src.lib.browser.debug import Debug
 from src.lib.browser.config import Config
 from mock import patch
 from src.core.logger.logger import Logger
-from StringIO import StringIO
+from io import StringIO
 from ddt import ddt, data
 
 

@@ -17,7 +17,9 @@
 """
 
 import unittest2 as unittest
-import os, ConfigParser
+import os
+from configparser import ConfigParser
+
 from src.core import filesystem
 from src.lib.reporter import Reporter, ReporterError
 from src.lib.reporter.plugins.provider import PluginProvider

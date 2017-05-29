@@ -39,7 +39,7 @@ class AcceptHeaderProvider(object):
         self.__accept_language = (
             'en-US,en;q=0.5,ru-RU,ru;q=0.8',
             'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4,uk;q=0.2,es;q=0.2,pl;q=0.2',
-            'da, en-gb;q=0.8, en;q=0.7'
+            'en,en-gb;q=0.8, en;q=0.7'
         )
 
     @property

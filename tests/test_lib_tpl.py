@@ -18,7 +18,7 @@
 
 import unittest2 as unittest
 from src.core.logger.logger import Logger
-from StringIO import StringIO
+from io import StringIO
 from mock import patch
 from src.lib.tpl import Tpl, TplError
 

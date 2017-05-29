@@ -17,7 +17,8 @@
 """
 
 import unittest2 as unittest
-import os, ConfigParser
+import os
+from configparser import ConfigParser
 from src.core.helper.helper import Helper
 from src.lib.reader import Reader, ReaderError
 from src.core.filesystem.filesystem import FileSystem

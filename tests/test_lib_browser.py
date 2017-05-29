@@ -24,7 +24,8 @@ from src.lib.browser.debug import Debug
 from src.lib.reader.reader import Reader
 from src.lib.tpl.tpl import Tpl
 from src.core.http.response import Response
-import os, ConfigParser
+import os
+from configparser import ConfigParser
 from ddt import ddt, data
 from src.core import filesystem, helper
 

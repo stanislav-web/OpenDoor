@@ -16,7 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from StringIO import StringIO
+from io import StringIO
 from mock import patch
 import unittest2 as unittest
 from src.lib.browser.filter import Filter

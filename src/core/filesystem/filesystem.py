@@ -16,8 +16,8 @@
     Development Team: Stanislav WEB
 """
 
-import ConfigParser
-import StringIO
+from configparser import ConfigParser, RawConfigParser, ParsingError, NoOptionError
+from io import StringIO
 import errno
 import os
 import random
@@ -47,7 +47,7 @@ class FileSystem(object):
             return True
 
     @staticmethod
-    def makedir(directory, mode=0777):
+    def makedir(directory, mode=0o777):
         """
         Create new directory
 
@@ -238,11 +238,11 @@ class FileSystem(object):
 
         try:
 
-            config = ConfigParser.RawConfigParser()
+            config = RawConfigParser()
             config.read(filepath)
             return config
 
-        except (ConfigParser.ParsingError, ConfigParser.NoOptionError) as e:
+        except (ParsingError, NoOptionError) as e:
             raise FileSystemError(e.message)
 
     @staticmethod

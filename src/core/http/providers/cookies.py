@@ -16,7 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from Cookie import SimpleCookie
+from http.cookies import SimpleCookie
 
 
 class CookiesProvider(object):

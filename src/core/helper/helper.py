@@ -16,10 +16,9 @@
     Development Team: Stanislav WEB
 """
 
-from backport_collections import Counter
 import collections
 import json
-import urlparse
+from urllib.parse import urlparse
 from distutils.version import LooseVersion
 
 
@@ -33,10 +32,7 @@ class Helper(object):
         :return: collections.Counter
         """
 
-        try :
-            return collections.Counter()
-        except AttributeError:
-            return Counter()
+        return collections.Counter()
 
     @staticmethod
     def list():

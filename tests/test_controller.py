@@ -19,7 +19,7 @@
 from __future__ import absolute_import
 import unittest2 as unittest
 import os
-import ConfigParser
+from configparser import ConfigParser
 from ddt import ddt, data
 from src.lib.package.config import Config
 from src.core import filesystem
