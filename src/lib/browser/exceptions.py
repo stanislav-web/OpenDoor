@@ -24,7 +24,7 @@ class BrowserError(Exception):
     def __init__(self, error):
         """
         BrowserError class constructor
-        :param Exception exception: error
+        :param Exception error: error
         """
 
         class_name = type(error).__name__
