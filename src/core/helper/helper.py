@@ -53,7 +53,7 @@ class Helper(object):
         :return: dict
         """
 
-        return urlparse.urlparse(url)
+        return urlparse(url)
 
     @staticmethod
     def to_json(data, sort=True, indents=4):
@@ -100,4 +100,3 @@ class Helper(object):
         """
 
         return LooseVersion(arg1) > LooseVersion(arg2)
-
