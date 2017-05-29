@@ -35,4 +35,4 @@ try:
     bootstrap = Controller()
     bootstrap.run()
 except SrcError as e:
-   sys.exit(e.message)
+   sys.exit(e)

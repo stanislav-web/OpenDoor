@@ -21,7 +21,7 @@ import logging.config
 import sys
 import time
 from inspect import currentframe
-from rainbow import RainbowLoggingHandler
+from .rainbow import RainbowLoggingHandler
 
 
 class Logger(object):

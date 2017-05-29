@@ -19,7 +19,7 @@
 import logging
 import re
 
-from colorize import ColorizingStreamHandler
+from .colorize import ColorizingStreamHandler
 from src.core.system import Term
 
 
@@ -97,7 +97,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         # Clean cache so the color codes of traceback don't leak to other formatters
         record.ext_text = None
 
-        width = int(Term.terminal_size.get('width'))
+        width = int(Term.__metaclass__.terminal_size.get('width'))
         pure_length = self.__pure_line_len(output)
         length = width - pure_length
         if record.levelno != logging.DEBUG:

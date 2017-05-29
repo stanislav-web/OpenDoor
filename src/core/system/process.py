@@ -82,7 +82,6 @@ class Process(object):
 
         os.kill(os.getpid(), signal.SIGTERM)  # or signal.SIGKILL
 
-
     @staticmethod
     def execute(process):
         """

@@ -18,7 +18,7 @@
 
 import threading
 import time
-from Queue import Queue
+from queue import Queue
 
 from src.lib.tpl import Tpl as tpl
 from .worker import Worker

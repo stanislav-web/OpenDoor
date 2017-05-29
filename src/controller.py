@@ -52,7 +52,7 @@ class Controller(object):
 
             self.ioargs = args().get_arguments()
         except ArgumentsError as e:
-            raise SrcError(tpl.error(e.message))
+            raise SrcError(tpl.error(e))
 
     @execution_time(log=tpl)
     def run(self):

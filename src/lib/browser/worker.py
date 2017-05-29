@@ -18,7 +18,7 @@
 
 import threading
 import time
-from Queue import Empty as QueueEmptyError
+from queue import Empty as QueueEmptyError
 from threading import BoundedSemaphore, Event
 
 from src.core import process
