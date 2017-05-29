@@ -47,12 +47,14 @@ class Controller(object):
             interpreter = package.check_interpreter()
             
             if interpreter is not True:
+                tpl.error(key='unsupported', actual=interpreter.get('actual'),
+                          expected=interpreter.get('expected'))
                 raise SrcError(tpl.error(key='unsupported', actual=interpreter.get('actual'),
                                          expected=interpreter.get('expected')))
 
             self.ioargs = args().get_arguments()
         except ArgumentsError as error:
-            raise SrcError(tpl.error(e))
+            raise SrcError(tpl.error(error))
 
     @execution_time(log=tpl)
     def run(self):

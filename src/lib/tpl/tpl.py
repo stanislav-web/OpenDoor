@@ -144,7 +144,7 @@ class Tpl(object):
                 msg = Tpl.__format_message(key, args=args)
             logger.log('error').error(msg)
         except (AttributeError, TplError) as error:
-            raise TplError(e)
+            raise TplError(error)
 
     @staticmethod
     def warning(msg='', key='', **args):
