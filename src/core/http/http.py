@@ -61,7 +61,7 @@ class HttpRequest(RequestProvider, DebugProvider):
                 self.__debug.debug_connection_pool('http_pool_start', pool)
             return pool
         except Exception as error:
-            raise HttpRequestError(e)
+            raise HttpRequestError(error)
 
     def request(self, url):
         """

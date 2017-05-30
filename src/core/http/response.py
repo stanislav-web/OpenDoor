@@ -51,7 +51,7 @@ class Response(ResponseProvider):
         if hasattr(response, 'status'):
             if self.HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_response(response.headers.items())
-    
+
             try:
                 status = super(Response, self).detect(request_url, response)
                 redirect_uri = None

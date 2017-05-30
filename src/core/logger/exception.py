@@ -54,4 +54,4 @@ class LoggerException(object):
                     line=func.co_firstlineno)
             logger.error(message)
         except (Exception, ValueError) as error:
-            raise Exception(e)
+            raise Exception(error)

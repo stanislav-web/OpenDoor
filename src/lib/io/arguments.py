@@ -35,4 +35,4 @@ class Arguments(object):
             args = options().get_arg_values()
             return args
         except OptionsError as error:
-            raise ArgumentsError(e)
+            raise ArgumentsError(error)

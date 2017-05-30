@@ -28,7 +28,7 @@ from src.lib.tpl import Tpl as tpl
 class Worker(threading.Thread):
     """Worker class"""
 
-    def __init__(self, queue, num_threads, timeout=None):
+    def __init__(self, queue, num_threads, timeout=0):
         """
         Init thread worker
         :param Queue.Queue queue: simple queue object
@@ -44,7 +44,7 @@ class Worker(threading.Thread):
         self.__running = True
         self.__exception = None
         self.__queue = queue
-        self.__timeout = timeout
+        self.__timeout = int(timeout or 0)
         self.counter = 0
 
     def pause(self):
@@ -104,7 +104,7 @@ class Worker(threading.Thread):
                         self.__semaphore.release()
                         self.__event.wait()
         except Exception as error:
-            self.terminate(e)
+            self.terminate(error)
 
     @classmethod
     def terminate(cls, msg):
@@ -115,4 +115,4 @@ class Worker(threading.Thread):
         """
 
         tpl.error(msg)
-        process.kill()
+        process.__metaclass__.kill()

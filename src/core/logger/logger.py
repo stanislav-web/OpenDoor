@@ -43,6 +43,7 @@ class Logger(object):
         if None is Logger._record:
             Logger._record = type('record', (object,),
                                   dict(exc_info=False,
+                                        stack_info=False,
                                         exc_text=False,
                                         name='',
                                         levelno=Logger._levels.get(status),

@@ -96,8 +96,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         output = formatter.format(record)
         # Clean cache so the color codes of traceback don't leak to other formatters
         record.ext_text = None
-
-        width = int(Term.__metaclass__.terminal_size.get('width'))
+        width = int(Term.terminal_size['width'])
         pure_length = self.__pure_line_len(output)
         length = width - pure_length
         if record.levelno != logging.DEBUG:

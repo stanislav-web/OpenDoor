@@ -78,7 +78,8 @@ class ColorizingStreamHandler(logging.StreamHandler):
             self.flush()
         except (KeyboardInterrupt, SystemExit):
             raise
-        except Exception:
+        except Exception as error:
+            record.msg = error
             self.handleError(record)
 
     if os.name != 'nt':
@@ -88,6 +89,7 @@ class ColorizingStreamHandler(logging.StreamHandler):
             :param str message: message
             :return: None
             """
+
             self.stream.write(message)
 
     else:

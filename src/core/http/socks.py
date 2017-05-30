@@ -43,7 +43,7 @@ class Socket(object):
             sock.connect((host, port))
 
         except (socket.gaierror, socket.error, socket.timeout, SocketError) as error:
-            raise SocketError(e)
+            raise SocketError(error)
         finally:
             sock.close()
 

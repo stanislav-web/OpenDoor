@@ -16,5 +16,5 @@
     Development Team: Stanislav WEB
 """
 
-from provider import PluginProvider
+from .provider import PluginProvider
 

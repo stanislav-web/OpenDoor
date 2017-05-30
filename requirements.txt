@@ -2,3 +2,4 @@ urllib3
 importlib
 json2html
 tabulate
+logging

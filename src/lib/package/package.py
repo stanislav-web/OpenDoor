@@ -79,7 +79,7 @@ class Package(object):
             return banner
 
         except (FileSystemError, CoreSystemError, PackageError) as error:
-            raise PackageError(e)
+            raise PackageError(error)
 
     @staticmethod
     def version():
@@ -98,7 +98,7 @@ class Package(object):
             return version
 
         except (FileSystemError, CoreSystemError, PackageError) as error:
-            raise PackageError(e)
+            raise PackageError(error)
 
     @staticmethod
     def update():
@@ -168,7 +168,7 @@ class Package(object):
                 return Package.remote_version
 
             except (FileSystemError, CoreSystemError) as error:
-                raise PackageError(e)
+                raise PackageError(error)
         else:
             return Package.remote_version
 
@@ -191,7 +191,7 @@ class Package(object):
             return current_version
 
         except (FileSystemError, CoreSystemError, PackageError) as error:
-            raise PackageError(e)
+            raise PackageError(error)
 
     @staticmethod
     def __repo():

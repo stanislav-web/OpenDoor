@@ -47,8 +47,6 @@ class Controller(object):
             interpreter = package.check_interpreter()
             
             if interpreter is not True:
-                tpl.error(key='unsupported', actual=interpreter.get('actual'),
-                          expected=interpreter.get('expected'))
                 raise SrcError(tpl.error(key='unsupported', actual=interpreter.get('actual'),
                                          expected=interpreter.get('expected')))
 
@@ -100,7 +98,7 @@ class Controller(object):
         try:
             tpl.message(package.update())
         except (AttributeError, PackageError) as error:
-            raise SrcError(e)
+            raise SrcError(error)
 
     @staticmethod
     def version_action():
@@ -114,7 +112,7 @@ class Controller(object):
         try:
             tpl.message(package.version())
         except (AttributeError, PackageError) as error:
-            raise SrcError(e)
+            raise SrcError(error)
 
     @staticmethod
     def local_version():
@@ -127,7 +125,7 @@ class Controller(object):
         try:
             tpl.message(package.local_version())
         except (AttributeError, PackageError) as error:
-            raise SrcError(e)
+            raise SrcError(error)
 
     @classmethod
     def scan_action(cls, params):

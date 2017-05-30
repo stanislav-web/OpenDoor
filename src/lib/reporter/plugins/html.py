@@ -42,7 +42,7 @@ class HtmlReportPlugin(PluginProvider):
             self.__target_dir = "".join((directory, self._target))
             filesystem.makedir(self.__target_dir)
         except FileSystemError as error:
-            raise Exception(e)
+            raise Exception(error)
 
     def process(self):
         """
@@ -55,4 +55,4 @@ class HtmlReportPlugin(PluginProvider):
             resultset = Json2Html().convert(json=self._data, table_attributes='border="1" cellpadding="2"')
             self.record(self.__target_dir, self._target, resultset)
         except FileSystemError as error:
-            raise Exception(e)
+            raise Exception(error)

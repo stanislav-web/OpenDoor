@@ -76,7 +76,7 @@ class Browser(Filter):
             self.__response = response(config=self.__config, debug=self.__debug, tpl=tpl)
 
         except ReaderError as error:
-            raise BrowserError(e)
+            raise BrowserError(error)
 
     def ping(self):
         """
@@ -92,7 +92,7 @@ class Browser(Filter):
                      ip=socket.get_ip_address(self.__config.host))
 
         except SocketError as error:
-            raise BrowserError(e)
+            raise BrowserError(error)
 
     def scan(self):
         """
@@ -132,7 +132,7 @@ class Browser(Filter):
                         loader=getattr(self, '_add_urls'.format()))
 
         except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as error:
-            raise BrowserError(e)
+            raise BrowserError(error)
 
     def __http_request(self, url):
         """
@@ -155,7 +155,7 @@ class Browser(Filter):
                 self.__catch_report_data(response[0], response[1])
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) as error:
-            raise BrowserError(e)
+            raise BrowserError(error)
 
     def __is_ignored(self, url):
         """

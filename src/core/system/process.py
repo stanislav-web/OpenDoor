@@ -99,10 +99,10 @@ class Process(object):
 
             return out
         except (subprocess.CalledProcessError, OSError) as error:
-            raise CoreSystemError(e)
+            raise CoreSystemError(error)
 
 
-class Term(object):
+class Term(metaclass=Process):
     """Term class"""
 
-    __metaclass__ = Process
+    pass

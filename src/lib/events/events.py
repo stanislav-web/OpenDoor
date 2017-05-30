@@ -29,4 +29,4 @@ class EventHandler(object):
         :return: None
         """
 
-        process.__metaclass__.termination_handler()
+        process.termination_handler()

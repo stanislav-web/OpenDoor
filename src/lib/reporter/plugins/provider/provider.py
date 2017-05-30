@@ -75,4 +75,4 @@ class PluginProvider(object):
             filesystem.writelist(filename, resultset, separator)
             tpl.info(key='report', plugin=cls.PLUGIN_NAME, dest=filesystem.getabsname(filename))
         except FileSystemError as error:
-            raise Exception(e)
+            raise Exception(error)

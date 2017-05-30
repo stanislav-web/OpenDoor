@@ -189,6 +189,7 @@ class Debug(DebugProvider):
                          size=kwargs.get('content_size')
                          )
             self.__catched = False
-            sys.writels("", flush=self.__catched)
+            if kwargs.get('items_size', 0) is kwargs.get('total_size', 1):
+                sys.writels("", flush=True)
 
         return True

@@ -25,4 +25,5 @@ class CoreSystemError(Exception):
         CoreSystemError class constructor
         :param str message: error message
         """
+
         super(CoreSystemError, self).__init__(message)

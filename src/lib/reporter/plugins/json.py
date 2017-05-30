@@ -42,7 +42,7 @@ class JsonReportPlugin(PluginProvider):
             self.__target_dir = "".join((directory, self._target))
             filesystem.makedir(self.__target_dir)
         except FileSystemError as error:
-            raise Exception(e)
+            raise Exception(error)
 
     def process(self):
         """
@@ -56,4 +56,4 @@ class JsonReportPlugin(PluginProvider):
             filesystem.clear(self.__target_dir, extension=self.EXTENSION_SET)
             self.record(self.__target_dir, self._target, resultset)
         except (Exception, FileSystemError) as error:
-            raise Exception(e)
+            raise Exception(error)

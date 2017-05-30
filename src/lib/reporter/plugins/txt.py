@@ -41,7 +41,7 @@ class TextReportPlugin(PluginProvider):
             self.__target_dir = "".join((directory, self._target))
             filesystem.makedir(self.__target_dir)
         except FileSystemError as error:
-            raise Exception(e)
+            raise Exception(error)
 
     def process(self):
         """
@@ -59,4 +59,4 @@ class TextReportPlugin(PluginProvider):
                 if status not in ['failed']:
                     self.record(self.__target_dir, status, data, '\n')
         except (Exception, FileSystemError) as error:
-            raise Exception(e)
+            raise Exception(error)
