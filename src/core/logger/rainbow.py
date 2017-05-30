@@ -44,7 +44,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         """
         Construct a terminal color code
         :param str fg: Symbolic name of foreground color
-        :param str bold: Brightness bit
+        :param bool bold: Brightness bit
         """
 
         params = []
@@ -61,7 +61,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
     def colorize(self, record):
         """
         Get a special format string with ASCII color codes
-        :param dict record: logging record
+        :param dict|None record: logging record
         :return: str
         """
 

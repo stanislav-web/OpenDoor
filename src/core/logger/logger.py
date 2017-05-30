@@ -53,7 +53,8 @@ class Logger(object):
 
         Logger._record.created = time.time()
 
-        def get_message(__class__):
+        # noinspection PyPep8Naming
+        def getMessage(__class__):
             """
             Emulate message
 
@@ -65,7 +66,7 @@ class Logger(object):
 
             return msg
 
-        setattr(Logger._record, 'get_message', classmethod(get_message))
+        setattr(Logger._record, 'getMessage', classmethod(getMessage))
         message = RainbowLoggingHandler().colorize(Logger._record)
         return message
 

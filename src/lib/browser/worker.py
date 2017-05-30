@@ -116,4 +116,4 @@ class Worker(threading.Thread):
         """
 
         tpl.error(msg)
-        process.__metaclass__.kill()
+        process.kill()
