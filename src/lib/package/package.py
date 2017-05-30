@@ -38,15 +38,18 @@ class Package(object):
         :return: dict or bool
         """
 
-        expected_version = Config.params.get('required_version')
+        versions = Config.params.get('required_versions')
         actual_version = sys.version()
 
-        if True is helper.is_less(expected_version, actual_version) or True is helper.is_more(expected_version,
-                                                                                              actual_version):
-
-            return {'status': False, 'actual': actual_version, 'expected': expected_version}
-        else:
+        if (actual_version == versions.get('minor') or actual_version == versions.get('major'))\
+                or (True is helper.is_less(actual_version, versions.get('minor'))
+                    and True is helper.is_more(versions.get('major'), actual_version)):
             return True
+        else:
+            return {
+                'status': False,
+                'actual': actual_version, 'expected': versions.get('minor') +' -> '+ versions.get('major')
+            }
 
     @staticmethod
     def examples():

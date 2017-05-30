@@ -16,6 +16,7 @@
     Development Team: Stanislav WEB
 """
 
+from src.core.decorators import execution_time
 from src.lib import ArgumentsError
 from src.lib import BrowserError
 from src.lib import PackageError
@@ -27,7 +28,6 @@ from src.lib import events
 from src.lib import package
 from src.lib import reporter
 from src.lib import tpl
-from . import execution_time
 from .exceptions import SrcError
 
 

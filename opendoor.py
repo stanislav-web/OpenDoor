@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """ OWASP OpenDoor launcher
 
@@ -19,7 +20,7 @@
 
 import sys
 
-for module in ['urllib3', 'json2html','tabulate','importlib']:
+for module in ['urllib3', 'json2html', 'tabulate', 'importlib']:
     try:
         __import__(module)
     except ImportError:

@@ -24,7 +24,10 @@ class Config(object):
         'cvsupdate': '/usr/bin/git pull origin master',
         'cvslog': '/usr/bin/git log --oneline -n 1',
         'cfg': 'setup.cfg',
-        'required_version': '3.5',
+        'required_versions': {
+            'minor' : '3.1',
+            'major' : '3.6'
+        },
         'examples': """
 
             Examples:

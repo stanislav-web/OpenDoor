@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -17,11 +18,10 @@
 """
 
 import sys
-from src.core.decorators import execution_time
 from .controller import Controller
 from .exceptions import SrcError
 
-for module in ['urllib3', 'json2html','tabulate','importlib']:
+for module in ['urllib3', 'json2html', 'tabulate', 'importlib']:
     try:
         __import__(module)
     except ImportError:
