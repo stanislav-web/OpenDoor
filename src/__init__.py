@@ -21,9 +21,9 @@ import sys
 from .controller import Controller
 from .exceptions import SrcError
 
-for module in ['urllib3', 'json2html', 'tabulate', 'importlib']:
+for _ in ['urllib3', 'json2html', 'tabulate', 'importlib']:
     try:
-        __import__(module)
+        __import__(_)
     except ImportError:
         sys.exit("""\t\t[!] Several dependencies wasn't installed!
             Please run pip install -r requirements.txt """)
@@ -32,5 +32,5 @@ if __name__ == "__main__":
     try:
         bootstrap = Controller()
         bootstrap.run()
-    except SrcError as error:
-        sys.exit(error)
+    except SrcError:
+        sys.exit()

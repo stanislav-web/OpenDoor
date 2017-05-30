@@ -70,8 +70,8 @@ class Proxy(RequestProvider, DebugProvider):
 
                 if not hasattr(self, '__pm'):
 
-                    module = importlib.import_module('urllib3.contrib.socks')
-                    self.__pm = getattr(module, 'SOCKSProxyManager')
+                    package_module = importlib.import_module('urllib3.contrib.socks')
+                    self.__pm = getattr(package_module, 'SOCKSProxyManager')
 
                 pool = self.__pm(self.__server, num_pools=self.__cfg.threads, timeout=self.__cfg.timeout, block=True)
             else:

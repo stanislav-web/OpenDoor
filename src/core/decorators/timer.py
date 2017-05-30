@@ -21,19 +21,19 @@ import functools
 import time
 
 
-def execution_time(function=None, log=None):
+def execution_time(func=None, log=None):
     """
     Time execution decorator @execution_time(log=tpl)
-    :param funct function: wrapped function
+    :param funct func: wrapped function
     :param funct log: logger
     :return: func
     """
 
-    if not function:
+    if not func:
         # noinspection PyArgumentList
         return functools.partial(execution_time, log=log)
 
-    @functools.wraps(function)
+    @functools.wraps(func)
     def function_timer(*args, **kwargs):
         """
         Function timer
@@ -43,7 +43,7 @@ def execution_time(function=None, log=None):
         """
 
         start = time.time()
-        result = function(*args, **kwargs)
+        result = func(*args, **kwargs)
         end = time.time()
         timeless = "{0}".format(datetime.timedelta(seconds=(end - start)))
         log.debug(key='total_time_lvl3', time=timeless)

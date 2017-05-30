@@ -17,7 +17,6 @@
 """
 
 import importlib
-
 from src.core import filesystem, FileSystemError
 from .exceptions import ReporterError
 
@@ -54,10 +53,10 @@ class Reporter(object):
         """
 
         try:
-            module = importlib.import_module('src.lib.reporter.plugins')
+            package_module = importlib.import_module('src.lib.reporter.plugins')
 
             try:
-                report = getattr(module, plugin_name)
+                report = getattr(package_module, plugin_name)
                 return report(target, data)
             except (TypeError, AttributeError, Exception):
                 raise ReporterError('Unable to get reporter `{plugin}`'.format(plugin=plugin_name))

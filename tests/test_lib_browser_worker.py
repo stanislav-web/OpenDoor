@@ -18,7 +18,8 @@
 
 import unittest2 as unittest
 from src.lib.browser.worker import Worker
-from Queue import Queue
+# noinspection PyCompatibility
+from queue import Queue
 
 
 class TestBrowserWorker(unittest.TestCase):

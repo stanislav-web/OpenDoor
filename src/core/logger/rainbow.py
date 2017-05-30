@@ -61,11 +61,13 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
     def colorize(self, record):
         """
         Get a special format string with ASCII color codes
-        :param object record:
+        :param dict record: logging record
         :return: str
         """
 
         # Dynamic message color based on logging level
+        if not hasattr(record, 'levelno'):
+            record.levelno = 20
         fg, bold = self.level_map[record.levelno]
 
         template = [
@@ -101,7 +103,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         length = width - pure_length
         if record.levelno != logging.DEBUG:
             if pure_length > width and record.levelno != logging.ERROR:
-                output = (output[:(width)] + '...')
+                output = (output[:width] + '...')
 
         end = (' ' * length)[:length]
         return output + end
@@ -117,17 +119,17 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         ansi_escape = re.compile(r'\x1b[^m]*m')
         return len(ansi_escape.sub('', string))
 
-    def format(self, string):
+    def format(self, record):
         """
         Formats a record for output.
         Takes a custom formatting path on a terminal.
-        :param str string: input string
+        :param dict record: input record logging
         :return: str
         """
 
         if self.is_tty:
-            message = self.colorize(string)
+            message = self.colorize(record)
         else:
-            message = logging.StreamHandler.format(self, string)
+            message = logging.StreamHandler.format(self, record)
 
         return message

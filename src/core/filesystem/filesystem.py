@@ -105,7 +105,7 @@ class FileSystem(object):
                     if extension == file_extension:
                         os.remove(os.path.join(directory, files))
             except IOError as error:
-                raise FileSystemError(error)
+                raise FileSystemError(error.strerror)
         else:
             raise FileSystemError("The directory {0} you want to clear is not exist".format(directory))
 
@@ -127,7 +127,7 @@ class FileSystem(object):
 
                 return True
             except IOError as error:
-                raise FileSystemError(error)
+                raise FileSystemError(error.strerror)
         else:
             return False
 
@@ -170,7 +170,7 @@ class FileSystem(object):
                     o_f.write(current_lines[l])
 
         except IOError as error:
-            raise FileSystemError(error)
+            raise FileSystemError(error.strerror)
 
     @staticmethod
     def readline(filename, handler, handler_params, loader):
@@ -212,7 +212,7 @@ class FileSystem(object):
         if not os.access(filepath, os.R_OK):
             raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
 
-        with open(filepath, "r") as f_handler:
+        with open(filepath) as f_handler:
             data = f_handler.readlines()
         return data
 

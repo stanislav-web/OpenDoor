@@ -18,6 +18,7 @@
 
 from __future__ import absolute_import
 import unittest2 as unittest
+# noinspection PyCompatibility
 import argparse
 from ddt import ddt, data
 from src.core.options import Options

@@ -53,7 +53,7 @@ class Logger(object):
 
         Logger._record.created = time.time()
 
-        def getMessage(__class__):
+        def get_message(__class__):
             """
             Emulate message
 
@@ -65,7 +65,7 @@ class Logger(object):
 
             return msg
 
-        setattr(Logger._record, 'getMessage', classmethod(getMessage))
+        setattr(Logger._record, 'get_message', classmethod(get_message))
         message = RainbowLoggingHandler().colorize(Logger._record)
         return message
 

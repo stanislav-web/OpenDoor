@@ -32,7 +32,7 @@ class Tpl(object):
         Print message and stop propagation
         :param str msg: text message
         :param str key: message key for template
-        :param dict args: additional arguments
+        :param mixed args: additional arguments
         :raise TplError
         :return: None
         """
@@ -52,7 +52,7 @@ class Tpl(object):
         :param str key: message key for template
         :param str status: log status
         :param bool write: write immediatelly
-        :param dict args: additional arguments
+        :param mixed args: additional arguments
         :raise TplError
         :return: None
         """
@@ -99,7 +99,7 @@ class Tpl(object):
         :param str msg: text message
         :param str key: message key for template
         :param str color: color
-        :param dict args: additional arguments
+        :param mixed args: additional arguments
         :raise TplError
         :return: str
         """
@@ -116,7 +116,7 @@ class Tpl(object):
         """
         Simple colored message
         :param str msg: text message
-        :param dict args: additional arguments
+        :param mixed args: additional arguments
         :param str color: color
         :return: None
         """
@@ -132,7 +132,7 @@ class Tpl(object):
         Error log message
         :param mixed msg: text message
         :param str key: message key for template
-        :param dict args: additional arguments
+        :param mixed args: additional arguments
         :raise TplError
         :return: None
         """
@@ -152,7 +152,7 @@ class Tpl(object):
         Warning log message
         :param str msg: text message
         :param str key: message key for template
-        :param dict args: additional arguments
+        :param mixed args: additional arguments
         :raise TplError
         :return: None
         """
@@ -172,7 +172,7 @@ class Tpl(object):
         Info log message
         :param str msg: text message
         :param str key: message key for template
-        :param dict args: additional arguments
+        :param mixed args: additional arguments
         :param bool clear: clear prev line
         :raise TplError
         :return: None
@@ -195,7 +195,7 @@ class Tpl(object):
         Debug log message
         :param str msg: text message
         :param str key: message key for template
-        :param dict args: additional arguments
+        :param mixed args: additional arguments
         :raise TplError
         :return: None
         """
@@ -214,7 +214,7 @@ class Tpl(object):
         """
         Format message from config key
         :param str key: message
-        :param dict args: additional arguments
+        :param mixed args: additional arguments
         :raise AttributeError
         :raise TplError
         :return: str

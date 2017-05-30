@@ -21,7 +21,7 @@ class Config(object):
     """Config class"""
 
     templates = {
-        'unsupported': 'Your version v{actual} is not supported by this application.\nPlease consider {expected}',
+        'unsupported': 'Your Python version v{actual} is not supported by this application. Please consider {expected}',
         'abort': 'Session canceled',
         'upd_win_stat': 'Win OS does not support --update inside.\nPlease run your GIT binary to fetch data manualy',
         'use_reports': 'Use --report param to store your scan results',

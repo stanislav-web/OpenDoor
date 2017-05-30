@@ -22,6 +22,7 @@ from queue import Empty as QueueEmptyError
 from threading import BoundedSemaphore, Event
 
 from src.core import process
+# noinspection PyPep8Naming
 from src.lib.tpl import Tpl as tpl
 
 

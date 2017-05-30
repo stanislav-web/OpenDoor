@@ -46,6 +46,7 @@ class Color(object):
 
         if not hasattr(stream, "isatty"):
             return False
+        # noinspection PyUnresolvedReferences
         if not stream.isatty():
             return False  # auto color only on TTYs
         # noinspection PyBroadException

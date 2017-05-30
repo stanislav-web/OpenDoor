@@ -16,10 +16,17 @@
     Development Team: Stanislav WEB
 """
 
+# noinspection PyPep8Naming
 from .browser import Browser as browser, BrowserError
+# noinspection PyPep8Naming
 from .events import EventHandler as events
+# noinspection PyPep8Naming
 from .io import Arguments as args, ArgumentsError
+# noinspection PyPep8Naming
 from .package import Package as package, PackageError
+# noinspection PyPep8Naming
 from .reader import Reader as reader, ReaderError
+# noinspection PyPep8Naming
 from .reporter import Reporter as reporter, ReporterError
+# noinspection PyPep8Naming
 from .tpl import Tpl as tpl, TplError

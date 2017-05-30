@@ -21,6 +21,7 @@ from src.core import filesystem
 from src.core import helper
 from src.core import process
 from src.core import sys
+# noinspection PyPep8Naming
 from src.lib.tpl import Tpl as tpl
 from .config import Config
 from .exceptions import PackageError
@@ -40,9 +41,10 @@ class Package(object):
 
         versions = Config.params.get('required_versions')
         actual_version = sys.version()
-        target_compare = (actual_version == versions.get('minor') or actual_version == versions.get('major'))
-        relative_compare = (True is helper.is_less(actual_version, versions.get('minor')) and
-                            True is helper.is_more(versions.get('major'), actual_version))
+        target_compare = (actual_version == versions.get('minor')
+                          or actual_version == versions.get('major'))
+        relative_compare = (helper.is_less(versions.get('minor'), actual_version) is True or
+                            helper.is_more(versions.get('major'), actual_version) is True)
 
         if target_compare or relative_compare:
             return True

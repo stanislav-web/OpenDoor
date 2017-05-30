@@ -16,9 +16,9 @@
     Development Team: Stanislav WEB
 """
 
+import sys
 # noinspection PyCompatibility
 from argparse import RawDescriptionHelpFormatter
-
 from .exceptions import ArgumentParserError, ThrowingArgumentParser, OptionsError, FilterError
 from .filter import Filter
 
@@ -297,7 +297,7 @@ class Options(object):
                     and True is not self.args.version \
                     and True is not self.args.update \
                     and True is not self.args.examples:
-                raise OptionsError("argument --host is required")
+                sys.exit(self.parser.print_help())
 
             if True is self.args.version or True is self.args.update or True is self.args.examples:
                 for arg, value in vars(arguments).items():

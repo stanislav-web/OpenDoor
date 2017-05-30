@@ -21,6 +21,7 @@ import unittest2 as unittest
 from src.core.logger.logger import Logger
 from src.lib.io import Arguments, ArgumentsError
 from src.core.options.exceptions import ThrowingArgumentParser
+# noinspection PyCompatibility
 from argparse import RawDescriptionHelpFormatter
 
 class TestArguments(unittest.TestCase):

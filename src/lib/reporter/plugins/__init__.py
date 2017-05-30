@@ -16,8 +16,12 @@
     Development Team: Stanislav WEB
 """
 
+# noinspection PyPep8Naming
 from .std import StdReportPlugin as std
+# noinspection PyPep8Naming
 from .txt import TextReportPlugin as txt
+# noinspection PyPep8Naming
 from .json import JsonReportPlugin as json
+# noinspection PyPep8Naming
 from .html import HtmlReportPlugin as html
 

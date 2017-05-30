@@ -79,7 +79,7 @@ class Terminal(object):
             subprocess.check_output = Terminal.__legacy_call
             (height, width) = subprocess.check_output(['stty', 'size']).split()
         finally:
-            return (width, height)
+            return width, height
 
     @staticmethod
     def __legacy_call(*popenargs, **kwargs):
@@ -113,6 +113,6 @@ class Terminal(object):
         try:
             cols = int(subprocess.check_call(shlex.split('tput cols')))
             rows = int(subprocess.check_call(shlex.split('tput lines')))
-            return (cols, rows)
+            return cols, rows
         except subprocess.CalledProcessError:
             pass

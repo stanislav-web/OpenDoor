@@ -20,6 +20,7 @@ import threading
 import time
 from queue import Queue
 
+# noinspection PyPep8Naming
 from src.lib.tpl import Tpl as tpl
 from .worker import Worker
 

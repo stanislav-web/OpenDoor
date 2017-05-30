@@ -19,6 +19,7 @@
 from src.core import helper
 from src.core import sys
 from src.core.http.providers.debug import DebugProvider
+# noinspection PyPep8Naming
 from src.lib.tpl import Tpl as tpl
 
 
@@ -145,7 +146,7 @@ class Debug(DebugProvider):
         Debug request_uri
         :param str status: response status
         :param str request_uri: http request uri
-        :param dict kwargs:
+        :param mixed kwargs:
         :return: bool
         """
 
