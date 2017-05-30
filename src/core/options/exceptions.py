@@ -16,6 +16,7 @@
     Development Team: Stanislav WEB
 """
 
+# noinspection PyCompatibility
 from argparse import ArgumentParser
 
 

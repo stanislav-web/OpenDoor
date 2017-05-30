@@ -40,15 +40,16 @@ class Package(object):
 
         versions = Config.params.get('required_versions')
         actual_version = sys.version()
+        target_compare = (actual_version == versions.get('minor') or actual_version == versions.get('major'))
+        relative_compare = (True is helper.is_less(actual_version, versions.get('minor')) and
+                            True is helper.is_more(versions.get('major'), actual_version))
 
-        if (actual_version == versions.get('minor') or actual_version == versions.get('major'))\
-                or (True is helper.is_less(actual_version, versions.get('minor'))
-                    and True is helper.is_more(versions.get('major'), actual_version)):
+        if target_compare or relative_compare:
             return True
         else:
             return {
                 'status': False,
-                'actual': actual_version, 'expected': versions.get('minor') +' -> '+ versions.get('major')
+                'actual': actual_version, 'expected': versions.get('minor') + ' -> ' + versions.get('major')
             }
 
     @staticmethod
@@ -135,7 +136,7 @@ class Package(object):
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'version')
         except FileSystemError as error:
-            raise PackageError(error)
+            raise PackageError(str(error))
 
     @staticmethod
     def __app_name():
@@ -149,7 +150,7 @@ class Package(object):
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'name')
         except FileSystemError as error:
-            raise PackageError(error)
+            raise PackageError(str(error))
 
     @staticmethod
     def __remote_version():
@@ -208,7 +209,7 @@ class Package(object):
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'repository')
         except FileSystemError as error:
-            raise PackageError(error)
+            raise PackageError(str(error))
 
     @staticmethod
     def __license():
@@ -222,7 +223,7 @@ class Package(object):
             config = filesystem.readcfg(Config.params.get('cfg'))
             return config.get('info', 'license')
         except FileSystemError as error:
-            raise PackageError(error)
+            raise PackageError(str(error))
 
     @staticmethod
     def __directories_count():
@@ -240,7 +241,7 @@ class Package(object):
             return count
 
         except FileSystemError as error:
-            raise PackageError(error)
+            raise PackageError(str(error))
 
     @staticmethod
     def __subdomains_count():
@@ -258,7 +259,7 @@ class Package(object):
             return count
 
         except FileSystemError as error:
-            raise PackageError(error)
+            raise PackageError(str(error))
 
     @staticmethod
     def __browsers_count():
@@ -276,7 +277,7 @@ class Package(object):
             return count
 
         except FileSystemError as error:
-            raise PackageError(error)
+            raise PackageError(str(error))
 
     @staticmethod
     def __proxies_count():
@@ -294,4 +295,4 @@ class Package(object):
             return count
 
         except FileSystemError as error:
-            raise PackageError(error)
+            raise PackageError(str(error))

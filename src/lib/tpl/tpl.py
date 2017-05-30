@@ -130,7 +130,7 @@ class Tpl(object):
     def error(msg='', key='', **args):
         """
         Error log message
-        :param str msg: text message
+        :param mixed msg: text message
         :param str key: message key for template
         :param dict args: additional arguments
         :raise TplError

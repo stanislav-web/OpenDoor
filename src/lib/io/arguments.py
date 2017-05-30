@@ -17,6 +17,7 @@
 """
 
 from src.core import options, OptionsError
+from src.core import helper
 from .exceptions import ArgumentsError
 
 
@@ -35,4 +36,16 @@ class Arguments(object):
             args = options().get_arg_values()
             return args
         except OptionsError as error:
-            raise ArgumentsError(error)
+            raise ArgumentsError(str(error))
+
+    @staticmethod
+    def is_arg_callable(arg):
+        """
+        Check if argument is callable
+
+        :param callable arg:
+        :return: bool
+        """
+
+        return helper.is_callable(arg)
+

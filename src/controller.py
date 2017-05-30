@@ -70,8 +70,9 @@ class Controller(object):
                 getattr(self, 'scan_action')(self.ioargs)
             else:
                 for action in self.ioargs.keys():
-                    if hasattr(self, '{0}_action'.format(action)) and callable(
-                            getattr(self, '{0}_action'.format(action))):
+
+                    if hasattr(self, '{0}_action'.format(action))\
+                            and args().is_arg_callable(getattr(self, '{0}_action'.format(action))):
                         getattr(self, '{func}_action'.format(func=action))()
                         break
 

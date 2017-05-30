@@ -104,7 +104,7 @@ class Worker(threading.Thread):
                         self.__semaphore.release()
                         self.__event.wait()
         except Exception as error:
-            self.terminate(error)
+            self.terminate(str(error))
 
     @classmethod
     def terminate(cls, msg):

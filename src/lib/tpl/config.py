@@ -60,7 +60,7 @@ class Config(object):
         'proxy_max_retry_error': 'Skipped. Proxy {proxy} Max retries exceeded: {url}',
         'host_changed_error': 'Block external redirect -> {details}',
         'read_timeout_error': 'Connection timeout! {url}. Increase using --timeout option',
-        'certificat' : 'Cert required {url}',
+        'certificat': 'Cert required {url}',
         'success': 'OK {url}',
         'file': 'File {url}',
         'indexof': 'Index {url}',

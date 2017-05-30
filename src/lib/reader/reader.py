@@ -53,7 +53,7 @@ class Reader(object):
             config = filesystem.readcfg(Config.setup)
             return config
         except FileSystemError as error:
-            raise ReaderError(error)
+            raise ReaderError(str(error))
 
     def get_user_agents(self):
         """

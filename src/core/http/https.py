@@ -81,7 +81,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
 
             return pool
         except Exception as error:
-            raise HttpsRequestError(error)
+            raise HttpsRequestError(str(error))
 
     def request(self, url):
         """
@@ -117,7 +117,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
                 self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
 
         except HostChangedError as error:
-            self.__tpl.warning(key='host_changed_error', details=e)
+            self.__tpl.warning(key='host_changed_error', details=error)
 
         except ReadTimeoutError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
@@ -128,4 +128,4 @@ class HttpsRequest(RequestProvider, DebugProvider):
                 return self._provide_ssl_auth_required()
 
         except NewConnectionError as error:
-            raise HttpsRequestError(error)
+            raise HttpsRequestError(str(error))

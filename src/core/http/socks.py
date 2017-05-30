@@ -60,4 +60,4 @@ class Socket(object):
             ip_address = socket.gethostbyname(host)
             return ip_address
         except socket.gaierror as error:
-            raise SocketError(error)
+            raise SocketError(str(error))

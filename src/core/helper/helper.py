@@ -64,7 +64,7 @@ class Helper(object):
         :param int indents: space indents
         :return: str
         """
-        
+
         json_data = json.dumps(data, sort_keys=sort, indent=indents)
         return json_data
 
@@ -100,3 +100,14 @@ class Helper(object):
         """
 
         return LooseVersion(arg1) > LooseVersion(arg2)
+
+    @staticmethod
+    def is_callable(func):
+        """
+        Check if function is callable
+
+        :param callable func:
+        :return: bool
+        """
+
+        return isinstance(func, collections.Callable)

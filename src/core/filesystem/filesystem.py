@@ -16,7 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from configparser import ConfigParser, RawConfigParser, ParsingError, NoOptionError
+from configparser import ConfigParser, RawConfigParser, ParsingError, NoOptionError, Error
 from io import StringIO
 import errno
 import os
@@ -144,8 +144,7 @@ class FileSystem(object):
         try:
             i_f = open(target)
             o_f = open(output, 'wb')
-            counter = sum(1 for l in i_f)
-
+            counter = sum(1 for _ in i_f)
             order = range(counter)
             random.shuffle(order)
 
@@ -209,7 +208,7 @@ class FileSystem(object):
         filepath = os.path.join(filename)
 
         if not os.path.isfile(filepath):
-            raise FileSystemError("{0} is not a file ".format(file))
+            raise FileSystemError("{0} is not a file ".format(filename))
         if not os.access(filepath, os.R_OK):
             raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
 
@@ -223,10 +222,11 @@ class FileSystem(object):
         Read .cfg file
         :param str filename: input filename
         :raise FileSystemError
-        :return: ConfigParser.RawConfigParser
+        :return: configparser.RawConfigParser
         """
 
-        regex = re.compile('^([\/a-z].*?opendoor.*?)\/', re.IGNORECASE)
+        expression = '^([\/a-z].*?opendoor.*?)\/'
+        regex = re.compile(expression, re.IGNORECASE)
         cwd = regex.search(__file__)
         os.chdir(cwd.group())
         filepath = os.path.join(os.path.sep, os.getcwd(), filename)
@@ -258,7 +258,7 @@ class FileSystem(object):
 
         filepath = os.path.join(filename)
         if not os.path.isfile(filepath):
-            raise FileSystemError("{0} is not a file ".format(file))
+            raise FileSystemError("{0} is not a file ".format(filename))
         if not os.access(filepath, os.W_OK):
             raise FileSystemError("Targeting file {0} is not writable. Please, check access".format(filepath))
 
@@ -271,16 +271,16 @@ class FileSystem(object):
         Read .cfg raw data file
         :param str data: file data
         :raise FileSystemError
-        :return: ConfigParser.RawConfigParser
+        :return: configparser.RawConfigParser
         """
 
-        buf = StringIO.StringIO(data)
+        buf = StringIO(data)
         try:
-            config = ConfigParser.ConfigParser()
-            config.readfp(buf)
+            config = ConfigParser()
+            config.read_file(buf)
             return config
-        except ConfigParser.Error as error:
-            raise FileSystemError(error)
+        except Error as error:
+            raise FileSystemError(str(error))
 
     @staticmethod
     def human_size(size, precision=2):
@@ -296,6 +296,6 @@ class FileSystem(object):
         size = int(size)
         while size > 1024 and suffix_index < 4:
             suffix_index += 1
-            size = size / 1024
+            size /= 1024
 
         return "%.*f%s" % (precision, size, suffixes[suffix_index])

@@ -89,7 +89,6 @@ class DebugProvider(object):
         Debug request_uri
         :param int status: response status
         :param str request_uri: request urli
-        :param **kwargs: key arguments
         :return: bool
         """
 

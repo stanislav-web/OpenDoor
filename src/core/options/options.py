@@ -16,6 +16,7 @@
     Development Team: Stanislav WEB
 """
 
+# noinspection PyCompatibility
 from argparse import RawDescriptionHelpFormatter
 
 from .exceptions import ArgumentParserError, ThrowingArgumentParser, OptionsError, FilterError

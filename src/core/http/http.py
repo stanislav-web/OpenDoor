@@ -61,7 +61,7 @@ class HttpRequest(RequestProvider, DebugProvider):
                 self.__debug.debug_connection_pool('http_pool_start', pool)
             return pool
         except Exception as error:
-            raise HttpRequestError(error)
+            raise HttpRequestError(str(error))
 
     def request(self, url):
         """
@@ -87,7 +87,7 @@ class HttpRequest(RequestProvider, DebugProvider):
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
         except HostChangedError as error:
-            self.__tpl.warning(key='host_changed_error', details=e)
+            self.__tpl.warning(key='host_changed_error', details=error)
         except ReadTimeoutError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
@@ -95,4 +95,4 @@ class HttpRequest(RequestProvider, DebugProvider):
             if 'subdomains' in self.__cfg.scan:
                 pass
             else:
-                raise HttpRequestError(error)
+                raise HttpRequestError(str(error))

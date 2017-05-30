@@ -1,12 +1,3 @@
 .idea
-*.pyc
-*~
-*.swp
-opendoor.egg-info/
 /syslog/
-/dist/
-/tmp/
-/reports/
-/data/directories.dat.back
 /.coverage
-/tests/tmp/

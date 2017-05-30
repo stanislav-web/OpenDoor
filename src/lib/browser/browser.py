@@ -48,9 +48,7 @@ class Browser(Filter):
             self.__client = None
             self.__config = Config(params)
             self.__debug = Debug(self.__config)
-            self.__result = {}
-            self.__result['total'] = {}
-            self.__result['items'] = {}
+            self.__result = {'total': {}, 'items': {}}
 
             self.__reader = Reader(browser_config={
                 'list': self.__config.scan,
@@ -69,9 +67,7 @@ class Browser(Filter):
             self.__pool = ThreadPool(num_threads=self.__config.threads, total_items=self.__reader.total_lines,
                                      timeout=self.__config.delay)
 
-            self.__result = {}
-            self.__result['total'] = helper.counter()
-            self.__result['items'] = helper.list()
+            self.__result = {'total': helper.counter(), 'items': helper.list()}
 
             self.__response = response(config=self.__config, debug=self.__debug, tpl=tpl)
 
@@ -117,19 +113,18 @@ class Browser(Filter):
 
                 if True is self.__config.is_ssl:
                     self.__client = request_https(self.__config, agent_list=self.__reader.get_user_agents(),
-                                                debug=self.__debug, tpl=tpl)
+                                                  debug=self.__debug, tpl=tpl)
                 else:
                     self.__client = request_http(self.__config, agent_list=self.__reader.get_user_agents(),
                                                  debug=self.__debug, tpl=tpl)
             if True is self.__pool.is_started:
-
                 self.__reader.get_lines(
-                        params={
-                            'host': self.__config.host,
-                            'port': self.__config.port,
-                            'scheme': self.__config.scheme
-                        },
-                        loader=getattr(self, '_add_urls'.format()))
+                    params={
+                        'host': self.__config.host,
+                        'port': self.__config.port,
+                        'scheme': self.__config.scheme
+                    },
+                    loader=getattr(self, '_add_urls'.format()))
 
         except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as error:
             raise BrowserError(error)
@@ -144,15 +139,15 @@ class Browser(Filter):
         try:
             resp = self.__client.request(url)
 
-            response = self.__response.handle(resp, request_url=url,
-                                              items_size=self.__pool.items_size,
-                                              total_size=self.__pool.total_items_size,
-                                              ignore_list=self.__reader.get_ignored_list()
-                                              )
-            if None is response:
+            response_data = self.__response.handle(resp, request_url=url,
+                                                   items_size=self.__pool.items_size,
+                                                   total_size=self.__pool.total_items_size,
+                                                   ignore_list=self.__reader.get_ignored_list()
+                                                   )
+            if None is response_data:
                 self.__catch_report_data('ignored', url)
             else:
-                self.__catch_report_data(response[0], response[1])
+                self.__catch_report_data(response_data[0], response_data[1])
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) as error:
             raise BrowserError(error)
@@ -183,10 +178,10 @@ class Browser(Filter):
                 else:
                     self.__catch_report_data('ignored', url)
                     tpl.warning(
-                        key = 'ignored_item',
-                        current = '{0:0{l}d}'.format(0, l=len(str(abs(self.__reader.total_lines)))),
-                        total = self.__reader.total_lines,
-                        item = helper.parse_url(url).path
+                        key='ignored_item',
+                        current='{0:0{l}d}'.format(0, l=len(str(abs(self.__reader.total_lines)))),
+                        total=self.__reader.total_lines,
+                        item=helper.parse_url(url).path
                     )
             self.__pool.join()
         except (SystemExit, KeyboardInterrupt):

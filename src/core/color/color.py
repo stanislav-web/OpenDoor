@@ -48,6 +48,7 @@ class Color(object):
             return False
         if not stream.isatty():
             return False  # auto color only on TTYs
+        # noinspection PyBroadException
         try:
             import curses
             curses.setupterm()

@@ -25,8 +25,8 @@ class Config(object):
         'cvslog': '/usr/bin/git log --oneline -n 1',
         'cfg': 'setup.cfg',
         'required_versions': {
-            'minor' : '3.1',
-            'major' : '3.6'
+            'minor': '3.1',
+            'major': '3.6'
         },
         'examples': """
 

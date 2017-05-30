@@ -30,6 +30,7 @@ def execution_time(function=None, log=None):
     """
 
     if not function:
+        # noinspection PyArgumentList
         return functools.partial(execution_time, log=log)
 
     @functools.wraps(function)

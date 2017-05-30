@@ -26,7 +26,7 @@ for module in ['urllib3', 'json2html', 'tabulate', 'importlib']:
         __import__(module)
     except ImportError:
         sys.exit("""\t\t[!] Several dependencies wasn't installed!
-            Please run sudo pip install -r requirements.txt """)
+            Please run pip install -r requirements.txt """)
 
 if __name__ == "__main__":
     try:

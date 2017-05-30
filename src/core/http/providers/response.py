@@ -33,8 +33,7 @@ class ResponseProvider(object):
     DEFAULT_SSL_CERT_REQUIRED_STATUSES = [423, 496]
     DEFAULT_HTTP_FORBIDDEN_STATUSES = [403]
     DEFAULT_HTTP_AUTH_STATUSES = [401]
-    DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400,415]
-
+    DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400, 415]
 
     def __init__(self, config):
         """
@@ -50,7 +49,7 @@ class ResponseProvider(object):
         :param str content: response data
         :return: bool
         """
-        
+
         title = re.search('<title>(.+?)</title>', content, re.IGNORECASE | re.DOTALL)
         if None is not re.search(self.INDEX_OF_TITLE, title.group(1), re.IGNORECASE):
             return True
@@ -74,7 +73,7 @@ class ResponseProvider(object):
                 redirect_url = matches.group("url")
             else:
                 urlp = helper.parse_url(url)
-                location = location if True is location.startswith('/') else ''.join(('/',location))
+                location = location if True is location.startswith('/') else ''.join(('/', location))
                 redirect_url = urlp.scheme + '://' + urlp.netloc + location
 
         return redirect_url
@@ -145,7 +144,7 @@ class ResponseProvider(object):
         :return: str
         """
         size = 0
-        
+
         try:
             size = 0 if not hasattr(response, 'headers') else int(response.headers['Content-Length'])
         except (KeyError, ValueError):

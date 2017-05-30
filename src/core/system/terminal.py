@@ -47,7 +47,8 @@ class Terminal(object):
         Get windows terminal size
         :return: tuple
         """
-        
+
+        # noinspection PyBroadException
         try:
             from ctypes import windll, create_string_buffer
             (sizex, sizey) = 25, 80  # default value

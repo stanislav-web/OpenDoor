@@ -75,7 +75,7 @@ class Response(ResponseProvider):
                 return status, url
 
             except Exception as error:
-                raise ResponseError(error)
+                raise ResponseError(str(error))
         
         elif 'subdomains' in self._cfg.scan:
             status = 'failed'
