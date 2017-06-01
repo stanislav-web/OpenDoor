@@ -77,7 +77,10 @@ class Debug(DebugProvider):
             if True is self.__cfg.is_random_list:
                 tpl.debug(key='randomizing')
             if self.__cfg.DEFAULT_SCAN is self.__cfg.scan:
-                tpl.debug(key='directories', total=total_lines)
+                if None is self.__cfg.extensions:
+                    tpl.debug(key='directories', total=total_lines)
+                else:
+                    tpl.debug(key='ext_filter', total=total_lines, ext=', '.join(self.__cfg.extensions))
             else:
                 tpl.debug(key='subdomains', total=total_lines)
             tpl.debug(key='create_queue', threads=self.__cfg.threads)

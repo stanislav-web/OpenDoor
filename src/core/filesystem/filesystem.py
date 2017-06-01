@@ -88,6 +88,22 @@ class FileSystem(object):
         return True if 0 < len(ext) else False
 
     @staticmethod
+    def filter_file_lines(dirlist, pattern):
+        """
+        Filter lines by regex pattern
+
+        :param list dirlist:
+        :param str pattern:
+        :return: list
+        """
+
+        r = re.compile(pattern)
+        newlist = filter(r.match, dirlist)
+        filteredlist = list(newlist)
+
+        return filteredlist
+
+    @staticmethod
     def clear(directory, extension=''):
         """
         Clear directory

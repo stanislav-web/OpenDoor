@@ -54,6 +54,7 @@ class Browser(Filter):
             self.__reader = Reader(browser_config={
                 'list': self.__config.scan,
                 'torlist': self.__config.torlist,
+                'extensions' : self.__config.extensions,
                 'use_random': self.__config.is_random_list,
                 'is_external_wordlist': self.__config.is_external_wordlist,
                 'is_standalone_proxy': self.__config.is_standalone_proxy,
