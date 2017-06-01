@@ -98,6 +98,7 @@ class RainbowLoggingHandler(ColorizingStreamHandler):
         output = formatter.format(record)
         # Clean cache so the color codes of traceback don't leak to other formatters
         record.ext_text = None
+        # noinspection PyUnresolvedReferences
         width = int(Term.terminal_size['width'])
         pure_length = self.__pure_line_len(output)
         length = width - pure_length

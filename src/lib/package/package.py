@@ -41,8 +41,7 @@ class Package(object):
 
         versions = Config.params.get('required_versions')
         actual_version = sys.version()
-        target_compare = (actual_version == versions.get('minor')
-                          or actual_version == versions.get('major'))
+        target_compare = (actual_version == versions.get('minor') or actual_version == versions.get('major'))
         relative_compare = (helper.is_less(versions.get('minor'), actual_version) is True or
                             helper.is_more(versions.get('major'), actual_version) is True)
 

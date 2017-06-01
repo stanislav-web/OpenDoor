@@ -198,6 +198,15 @@ class Options(object):
                 "type": str
             },
             {
+                "group": "wordlist",
+                "args": "-e",
+                "argl": "--extensions",
+                "default": None,
+                "action": "store",
+                "help": "Extensions filter -e php,json e.g",
+                "type": str
+            },
+            {
                 "group": "sniff",
                 "args": "-i",
                 "argl": "--indexof",

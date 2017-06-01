@@ -23,6 +23,7 @@ from src.lib.tpl import Tpl as tpl
 class Filter(object):
     """Filter class"""
 
+    # noinspection PyPep8Naming
     def __init__(self, Config, total_lines):
         """
         Filter constructor
