@@ -59,6 +59,7 @@ class Config(object):
         self._torlist = '' if 'torlist' not in params else params.get('torlist')
         self._is_random_user_agent = params.get('random_agent')
         self._is_random_list = False if params.get('random_list') is None else True
+        self._is_extension_filter = False if params.get('extensions') is None else True
         self._user_agent = self.DEFAULT_USER_AGENT
         self._threads = self.DEFAULT_MIN_THREADS if params.get('threads') is None else params.get('threads')
         
@@ -214,6 +215,15 @@ class Config(object):
         """
 
         return self._is_random_list
+
+    @property
+    def is_extension_filter(self):
+        """
+        If scan list filtered by extensions
+        :return: bool
+        """
+
+        return self._is_extension_filter
 
     @property
     def is_standalone_proxy(self):

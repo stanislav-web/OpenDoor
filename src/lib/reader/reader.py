@@ -37,7 +37,6 @@ class Reader(object):
         self.__config = self.__load_config()
         self.__browser_config = browser_config
         self.__useragents = []
-        self.__scanlist = []
         self.__proxies = []
         self.__ignored = []
         self.__counter = 0
@@ -126,7 +125,9 @@ class Reader(object):
         """
 
         try:
-            if True is self.__browser_config.get('use_random'):
+            if True is self.__browser_config.get('use_extensions'):
+                dirlist = self.__config.get('opendoor', 'extensionlist')
+            elif True is self.__browser_config.get('use_random'):
                 dirlist = self.__config.get('opendoor', 'tmplist')
             else:
                 if True is self.__browser_config.get('is_external_wordlist'):
@@ -218,6 +219,32 @@ class Reader(object):
         except (CoreSystemError, FileSystemError) as error:
             raise ReaderError(error)
 
+    def filter_by_extension(self, target, output, extensions):
+        """
+        Filter list by multiple extensions
+
+        :param str target: target list
+        :param str output: output list
+        :param list extensions: filtered extensions
+        :return: None
+        """
+
+        try:
+
+            target_file = self.__config.get('opendoor', target)
+            output_file = self.__config.get('opendoor', output)
+
+            dirlist = filesystem.read(target_file)
+            dirlist = [i.strip() for i in dirlist]
+            pattern = '.*\.' + '|.*\.'.join(extensions)
+            newlist = filesystem.filter_file_lines(dirlist, pattern)
+            filesystem.makefile(output_file)
+            filesystem.writelist(output_file, newlist, '\n')
+            self.__counter = len(newlist)
+
+        except (CoreSystemError, FileSystemError) as error:
+            raise ReaderError(error)
+
     def count_total_lines(self):
         """
         Count total lines inside wordlist
@@ -231,34 +258,12 @@ class Reader(object):
                     dirlist = self.__browser_config.get('list')
                 else:
                     dirlist = self.__config.get('opendoor', self.__browser_config.get('list'))
-
-                if None is self.__browser_config.get('extensions'):
-                    self.__counter = len(filesystem.read(dirlist))
-                else:
-                    list = filesystem.read(dirlist)
-                    list = self.filter_by_extension(list, self.__browser_config.get('extensions'))
-                    self.__counter = len(list)
+                self.__counter = len(filesystem.read(dirlist))
 
             return self.__counter
 
         except (TypeError, FileSystemError) as error:
             raise ReaderError(error)
-
-    def filter_by_extension(self, dirlist, listfilter):
-        """
-        Filter list by multiple extensions
-
-        :param list dirlist:
-        :param list listfilter:
-        :return: list
-        """
-
-        dirlist = [i.strip() for i in dirlist]
-        pattern = '.*\.' + '|.*\.'.join(listfilter)
-        newlist = filesystem.filter_file_lines(dirlist, pattern)
-        filesystem.makefile('extensions.dat')
-        filesystem.writelist('extensions.dat',newlist, '\n')
-        return newlist
 
     @property
     def total_lines(self):
