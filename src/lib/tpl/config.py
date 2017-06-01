@@ -37,6 +37,7 @@ class Config(object):
         'randomizing': 'Randomizing scan list ...',
         'browser': 'Fetching user-agent: {browser}',
         'directories': 'Read {total} directories list by line',
+        'ext_filter': 'Read {total} directories list by filter: {ext}',
         'create_queue': 'Creating queue with {threads} thread(s)...',
         'subdomains': 'Read {total} subdomains list by line...',
         'random_browser': 'Fetching random user-agent per request...',

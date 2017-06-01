@@ -55,12 +55,18 @@ class Browser(Filter):
                 'list': self.__config.scan,
                 'torlist': self.__config.torlist,
                 'use_random': self.__config.is_random_list,
+                'use_extensions': self.__config.is_extension_filter,
                 'is_external_wordlist': self.__config.is_external_wordlist,
                 'is_standalone_proxy': self.__config.is_standalone_proxy,
                 'is_external_torlist': self.__config.is_external_torlist,
                 'prefix': self.__config.prefix
             })
 
+            if True is self.__config.is_extension_filter:
+                self.__reader.filter_by_extension(target=self.__config.scan,
+                                                  output='extensionlist',
+                                                  extensions=self.__config.extensions
+                                                  )
             self.__reader.count_total_lines()
 
             Filter.__init__(self, self.__config, self.__reader.total_lines)

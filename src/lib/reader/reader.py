@@ -125,7 +125,9 @@ class Reader(object):
         """
 
         try:
-            if True is self.__browser_config.get('use_random'):
+            if True is self.__browser_config.get('use_extensions'):
+                dirlist = self.__config.get('opendoor', 'extensionlist')
+            elif True is self.__browser_config.get('use_random'):
                 dirlist = self.__config.get('opendoor', 'tmplist')
             else:
                 if True is self.__browser_config.get('is_external_wordlist'):
@@ -214,6 +216,32 @@ class Reader(object):
                 process.execute('shuf {target} -o {output}'.format(target=target_file, output=output_file))
             else:
                 filesystem.shuffle(target=target_file, output=output_file, total=self.total_lines)
+        except (CoreSystemError, FileSystemError) as error:
+            raise ReaderError(error)
+
+    def filter_by_extension(self, target, output, extensions):
+        """
+        Filter list by multiple extensions
+
+        :param str target: target list
+        :param str output: output list
+        :param list extensions: filtered extensions
+        :return: None
+        """
+
+        try:
+
+            target_file = self.__config.get('opendoor', target)
+            output_file = self.__config.get('opendoor', output)
+
+            dirlist = filesystem.read(target_file)
+            dirlist = [i.strip() for i in dirlist]
+            pattern = '.*\.' + '|.*\.'.join(extensions)
+            newlist = filesystem.filter_file_lines(dirlist, pattern)
+            filesystem.makefile(output_file)
+            filesystem.writelist(output_file, newlist, '\n')
+            self.__counter = len(newlist)
+
         except (CoreSystemError, FileSystemError) as error:
             raise ReaderError(error)
 
