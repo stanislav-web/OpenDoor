@@ -125,7 +125,8 @@ class Reader(object):
         """
 
         try:
-            if True is self.__browser_config.get('use_extensions'):
+            if True is self.__browser_config.get('use_extensions')\
+                    and 'directories' == self.__browser_config.get('list'):
                 dirlist = self.__config.get('opendoor', 'extensionlist')
             elif True is self.__browser_config.get('use_random'):
                 dirlist = self.__config.get('opendoor', 'tmplist')

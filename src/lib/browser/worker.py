@@ -43,7 +43,6 @@ class Worker(threading.Thread):
         self.__event.set()
         self.__empty = False
         self.__running = True
-        self.__exception = None
         self.__queue = queue
         self.__timeout = int(timeout or 0)
         self.counter = 0
@@ -66,15 +65,6 @@ class Worker(threading.Thread):
         self.__running = True
         self.__event.set()
 
-    @property
-    def exception(self):
-        """
-        Return exception message
-        :return:
-        """
-
-        return self.__exception
-
     def run(self):
         """
         Run current worker
@@ -91,12 +81,7 @@ class Worker(threading.Thread):
                     time.sleep(self.__timeout)
 
                 try:
-
-                    func, args, kargs = self.__queue.get(block=True)
-                    self.counter += 1
-                    func(*args, **kargs)
-                    self.__queue.task_done()
-
+                    self.__process()
                 except QueueEmptyError:
                     self.__empty = True
 
@@ -106,6 +91,17 @@ class Worker(threading.Thread):
                         self.__event.wait()
         except Exception as error:
             self.terminate(str(error))
+
+    def __process(self):
+        """
+        Task process
+        :return: None
+        """
+
+        func, args, kargs = self.__queue.get(block=True)
+        self.counter += 1
+        func(*args, **kargs)
+        self.__queue.task_done()
 
     @classmethod
     def terminate(cls, msg):

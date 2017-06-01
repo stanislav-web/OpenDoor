@@ -136,7 +136,6 @@ class Controller(object):
         :raise SrcError
         :return: None
         """
-        print(params)
 
         try:
             brows = browser(params)

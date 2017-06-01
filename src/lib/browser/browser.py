@@ -62,7 +62,7 @@ class Browser(Filter):
                 'prefix': self.__config.prefix
             })
 
-            if True is self.__config.is_extension_filter:
+            if True is self.__config.is_extension_filter and self.__config.scan == self.__config.DEFAULT_SCAN:
                 self.__reader.filter_by_extension(target=self.__config.scan,
                                                   output='extensionlist',
                                                   extensions=self.__config.extensions
@@ -113,17 +113,8 @@ class Browser(Filter):
 
             tpl.info(key='scanning', host=self.__config.host)
 
-            if True is self.__config.is_proxy:
-                self.__client = request_proxy(self.__config, proxy_list=self.__reader.get_proxies(),
-                                              agent_list=self.__reader.get_user_agents(), debug=self.__debug, tpl=tpl)
-            else:
+            self.__start_request_provider()
 
-                if True is self.__config.is_ssl:
-                    self.__client = request_https(self.__config, agent_list=self.__reader.get_user_agents(),
-                                                  debug=self.__debug, tpl=tpl)
-                else:
-                    self.__client = request_http(self.__config, agent_list=self.__reader.get_user_agents(),
-                                                 debug=self.__debug, tpl=tpl)
             if True is self.__pool.is_started:
                 self.__reader.get_lines(
                     params={
@@ -135,6 +126,25 @@ class Browser(Filter):
 
         except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as error:
             raise BrowserError(error)
+
+    def __start_request_provider(self):
+        """
+        Start selected request provider
+
+        :return: None
+        """
+
+        if True is self.__config.is_proxy:
+            self.__client = request_proxy(self.__config, proxy_list=self.__reader.get_proxies(),
+                                          agent_list=self.__reader.get_user_agents(), debug=self.__debug, tpl=tpl)
+        else:
+
+            if True is self.__config.is_ssl:
+                self.__client = request_https(self.__config, agent_list=self.__reader.get_user_agents(),
+                                              debug=self.__debug, tpl=tpl)
+            else:
+                self.__client = request_http(self.__config, agent_list=self.__reader.get_user_agents(),
+                                             debug=self.__debug, tpl=tpl)
 
     def __http_request(self, url):
         """

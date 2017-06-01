@@ -163,15 +163,6 @@ class Options(object):
             },
             {
                 "group": "wordlist",
-                "args": "-e",
-                "argl": "--extensions",
-                "default": None,
-                "action": "store",
-                "help": "Extensions for filters (php,json etc)",
-                "type": str
-            },
-            {
-                "group": "wordlist",
                 "args": None,
                 "argl": "--reports",
                 "default": "std",
