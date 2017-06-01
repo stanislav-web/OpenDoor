@@ -77,6 +77,17 @@ class FileSystem(object):
         return os.path.abspath(filename)
 
     @staticmethod
+    def get_extension(line):
+        """
+        Get extension from line
+        :param str line: input string
+        :return: str
+        """
+
+        ext = os.path.splitext(line)[-1]
+        return ext
+
+    @staticmethod
     def has_extension(line):
         """
         Check line for extension
@@ -84,7 +95,7 @@ class FileSystem(object):
         :return: bool
         """
 
-        ext = os.path.splitext(line)[-1]
+        ext = FileSystem.get_extension(line)
         return True if 0 < len(ext) else False
 
     @staticmethod

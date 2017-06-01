@@ -48,6 +48,7 @@ class Config(object):
         self._wordlist = params.get('wordlist')
         self._prefix = "" if params.get('prefix') is None else params.get('prefix')
         self._reports = params.get('reports')
+        self._extensions = params.get('extensions')
         self._is_indexof = params.get('indexof')
         self._retries = False if params.get('retries') is None else params.get('retries')
         self._method = params.get('method') if params.get('indexof') is None else 'GET'
@@ -270,9 +271,20 @@ class Config(object):
         return True
 
     @property
+    def extensions(self):
+        """
+        Extensions resolver
+        :return: list
+        """
+
+        if None is not self._extensions:
+            self._extensions = self._extensions.split(",")
+        return self._extensions
+
+    @property
     def reports(self):
         """
-        Reports resolves
+        Reports resolver
         :return: list
         """
 
