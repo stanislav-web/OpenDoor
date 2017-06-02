@@ -16,6 +16,7 @@
     Development Team: Stanislav WEB
 """
 
+import certifi
 from urllib3 import HTTPSConnectionPool, PoolManager, HTTPResponse
 from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, SSLError, NewConnectionError
 from src.core import helper
@@ -67,12 +68,14 @@ class HttpsRequest(RequestProvider, DebugProvider):
         :raise HttpsRequestError
         :return: urllib3.HTTPConnectionPool
         """
-        
+
         try:
 
             pool = HTTPSConnectionPool(
                     host=self.__cfg.host,
                     port=self.__cfg.port,
+                    cert_reqs='CERT_REQUIRED',
+                    ca_certs=certifi.where(),
                     maxsize=self.__cfg.threads,
                     timeout=self.__cfg.timeout, block=True)
 
@@ -89,7 +92,9 @@ class HttpsRequest(RequestProvider, DebugProvider):
         :param str url: request uri
         :return: urllib3.HTTPResponse
         """
-        
+
+        self._headers.update({'Host': self.__cfg.host})
+
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
             self.__debug.debug_request(self._headers, url, self.__cfg.method)
         
@@ -99,7 +104,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
                                                helper.parse_url(url).path,
                                                headers=self._headers,
                                                retries=self.__cfg.retries,
-                                               assert_same_host=False,
+                                               assert_same_host=True,
                                                redirect=False)
                 self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             else:  # subdomains
