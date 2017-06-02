@@ -13,12 +13,9 @@ OWASP WEB Directory Scanner [![Twitter](https://img.shields.io/twitter/url/https
 This application scans the site directories and find all possible ways to login, index of/ dirs and entry points.
 The scanning is performed by the dictionary that came with the software. Possiblly to use own dictionaries.
 This software is written for informational purposes and is an open source product under the GPL license.
-
-* *Future*
-    - Python 3 support
     
-* *Current v3.0.32-rc (19.05.2017)*
-    - Directories - 33702
+* *Current v3.1.32-rc (02.06.2017)*
+    - Directories - 35888
     - Subdomains - 101000
 
 ***Testing of the software on the commercial systems and organizations is prohibited!***
@@ -40,7 +37,7 @@ chmod +x opendoor.py
  // provide of using opendoor interface from global python scope
 
  $ cd opendoorDirectory/
- $ python setup.py build && python setup.py install
+ $ python3 setup.py build && python setup.py install
  
 ```
 
@@ -74,13 +71,13 @@ apt-get install python-socksipy
 
 #### [Changelog](CHANGELOG.md) (last changes)
 
-<sub>v3.0.32-rc (19.05.2017)</sub>
+v3.1.32-rc (02.06.2017)
 -------------------------
-    - Add global installation
+    - Add extensions filter --extensions php,json etc
 
 #### Basic usage
 ```
- python opendoor.py --host http://www.example.com
+ python3 opendoor.py --host http://www.example.com
 ```
 
 #### Global usage

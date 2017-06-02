@@ -1,8 +1,12 @@
 Changes
 =======
+v3.1.32-rc (02.06.2017)
+-------------------------
+    - Add extensions filter --extensions php,json etc
+
 v3.0.32-rc (19.05.2017)
 -------------------------
-    - Add global installation
+    - Add global installator
 
 v3.0.31-rc (20.02.2017)
 -------------------------

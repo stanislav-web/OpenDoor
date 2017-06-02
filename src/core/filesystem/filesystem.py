@@ -17,7 +17,6 @@
 """
 
 from configparser import ConfigParser, RawConfigParser, ParsingError, NoOptionError, Error
-from io import StringIO
 import errno
 import os
 import random
@@ -301,10 +300,9 @@ class FileSystem(object):
         :return: configparser.RawConfigParser
         """
 
-        buf = StringIO(data)
         try:
-            config = ConfigParser()
-            config.read_file(buf)
+            config = ConfigParser(allow_no_value=True)
+            config.read_string(str(data))
             return config
         except Error as error:
             raise FileSystemError(str(error))
