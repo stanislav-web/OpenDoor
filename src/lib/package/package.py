@@ -168,7 +168,6 @@ class Package(object):
                 request_uri = config.get('info', 'setup')
                 result = process.execute('curl -sb GET {uri}'.format(uri=request_uri))
 
-                print(result)
                 raw = filesystem.readraw(result)
                 Package.remote_version = raw.get('info', 'version')
 

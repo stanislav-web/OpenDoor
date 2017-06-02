@@ -58,6 +58,7 @@ apt-get install python-socksipy
 - [x] custom wordlst's prefixes
 - [x] custom wordlists, proxies, ignore lists
 - [x] debug levels (1-3)
+- [x] extensions filter
 - [x] analyze techniques
     * detect redirects
     * detect index of/ Apache
@@ -92,7 +93,8 @@ usage: opendoor.py [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
                    [--accept-cookies] [--debug DEBUG] [--tor]
                    [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
                    [--reports REPORTS] [--random-agent] [--random-list]
-                   [--prefix PREFIX] [-i] [--update] [--version] [--examples]
+                   [--prefix PREFIX] [-e EXTENSIONS] [-i] [--update]
+                   [--version] [--examples]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -137,6 +139,8 @@ Wordlist tools:
   --reports REPORTS     Scan reports (json,std,txt)
   --random-list         Shuffle scan list
   --prefix PREFIX       Append path prefix to scan host
+  -e EXTENSIONS, --extensions EXTENSIONS
+                        Extensions filter -e php,json e.g
 
 ```
 
