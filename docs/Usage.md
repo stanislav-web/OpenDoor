@@ -69,18 +69,25 @@ Wordlist tools:
  - **Application tools**
 
     **--update** - update sources from CVS to latest
+
     ```
     opendoor --update
     ```
+
     **--version** - see current package version and compare with server's latest
+
     ```
     opendoor --version
     ```
+
     **--examples** - get some examples of usage
+
     ```
     opendoor --examples
     ```
+
     **--docs** - open this documentation
+
     ```
     opendoor --docs
     ```
@@ -88,6 +95,7 @@ Wordlist tools:
  - **Required arguments**
 
     **--host** - target host (ip). Also might be required protocol. See examples
+
     ```
     opendoor --host www.example.com
     opendoor --host https://www.example.com
@@ -97,49 +105,68 @@ Wordlist tools:
  - **Request tools**
 
     **--port -p** - custom port. Default 80 for HTTP and 443 for HTTPS
+
     ```
     opendoor --host www.example.com # use default 80 port
     opendoor --host https://www.example.com # use default 443 port
     opendoor --host https://www.example.com --port 444 # use custom port
     opendoor --host http://www.example.com --p 8080 # use custom port
     ```
+
     **--method -m** - scan request method. Use HEAD as default for more faster requests but also you can apply any of the possible methods
+
     ```
     opendoor --host https://www.example.com # use default HEAD request method
     opendoor --host https://www.example.com -m GET
     opendoor --host https://www.example.com --method TRACE
     ```
+
     **--delay -d** - delay between requests threading. Use to bypass the restrictions of requests per second for the target server
+
     ```
     opendoor --host https://www.example.com --delay 3 # 3 sec between requests
     opendoor --host https://www.example.com -d 0.3 # 300 ms between requests
     ```
+
     **--timeout** - request timeout (30 sec default). Maximum sec time for a response
+
     ```
     opendoor --host https://www.example.com --timeout 10
     ```
+
     **--retries -r** - max retries to reconnect (default 3)
+
     ```
     opendoor --host https://www.example.com --retries 10
     opendoor --host https://www.example.com --r 1
     ```
+
     **--accept-cookies** - accept and route cookies from responses. To be as natural as possible and bring the scanner closer to the user's browser use cookies receipt. After the first request, your session will accept and  send cookies inside current pool requests
+
     ```
     opendoor --host https://www.example.com --accept-cookies
+
     ```
     **--tor** - using built-in proxy list. You can use proxy lists built into the package to ensure your scanning anonymity
+
     ```
     opendoor --host https://www.example.com --tor
+
     ```
     **--torlist** - path to custom proxylist. Choise your own checked proxy list. The list must have format: ***scheme:ip:port***
+
     ```
     opendoor --host https://www.example.com --torlist /home/user/scan/proxy.txt
     ```
+
     **---proxy** - custom permanent proxy server. Use your own froxy for all requests: ***scheme:ip:port***
+
     ```
     opendoor --host https://www.example.com --proxy socks5://127.0.0.1:8888
     ```
+
     **--random-agent** - randomize your user-agent per request. With each new request, your browser will change. This is both good and bad, because, frequent requests from several browsers can reveal the suspicion of the attack, and at the same time fall in confuse the DevOps, if you would use different proxy servers
+
     ```
     opendoor --host https://www.example.com --random-agent
     ```
@@ -150,6 +177,7 @@ Wordlist tools:
      - 1 step by step scan proccess
      - 2 + request data view
      - 3 + response data view
+
     ```
     opendoor --host www.example.com --debug 1
     ```
@@ -157,6 +185,7 @@ Wordlist tools:
  - **Sniff tools**
 
     **--indexof -i** - detect Apache Index of/. Use method GET as default. Large files and auth required pages will be detected automatically for every scan
+
     ```
     opendoor --host www.example.com --indexof
     opendoor --host www.example.com --i
@@ -165,6 +194,7 @@ Wordlist tools:
  - **Stream tools**
 
     **--threads -t** - allowed threads. In order not to harm your computer there is a limit of 25 threads
+
     ```
     opendoor --host www.example.com --threads 10
     opendoor --host www.example.com --t 15
@@ -173,28 +203,37 @@ Wordlist tools:
  - **Wordlist tools**
 
     **--scan -s** - the application allows you to scan in two directions. Not only for directories but also allows you to find subdomains
+
     ```
     opendoor --host example.com -scan directories # use as default
     opendoor --host example.com -s subdomains
     ```
+
     **--wordlist -w** - if you don't  satisfied with the built-in list of directories or subdomains, you can assign your own
+
     ```
     opendoor --host example.com --wordlist /home/user/scan/mydirlist.dat
     opendoor --host example.com --w /home/user/scan/mydirlist.dat
     opendoor --host example.com --scan subdomains --wordlist /home/user/scan/mysubdomainslist.txt
     ```
+
     **--random-list** - shuffle scan list. This technique will allow you to use a mixed list of built-in or external dictionaries instead of the AB list order
+
     ```
     opendoor --host example.com --random-list
     opendoor --host example.com --wordlist /home/user/scan/mydirlist.dat --random-list
 
     ```
+
     **--prefix** - append path prefix to scan host. Works for directories scan type
+
     ```
     opendoor --host example.com --prefix en/
     opendoor --host example.com --scan directories --prefix en/
     ```
+
     **--extensions -e** - extensions filter -e php,json e.g. If you know something more about the target host, you can apply a filter to the dictionary with extensions
+
     ```
     opendoor --host example.com --extensions php,html
     opendoor --host example.com --e htm,py
@@ -203,11 +242,14 @@ Wordlist tools:
  - **Reports tools**
 
     **--reports** - scan reporting format. At the moment there has several providers for reports. Also you can help develop by expanding this functionality
+
     ```
     opendoor --host www.example.com # use default "std" report
     opendoor --host www.example.com --reports json,html,txt
     ```
+
     **--reports-dir** - path to custom reports dir. By default, scan reports are located in the "reports/" directory within the package. But you can set the path as you wish
+
     ```
     opendoor --host www.example.com --reports json,html,txt --reports-dir /home/usr/User/scans/reports
     ```
