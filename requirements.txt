@@ -1,0 +1,6 @@
+urllib3
+importlib
+json2html
+tabulate
+logging
+urllib3[socks]
