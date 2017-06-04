@@ -1,7 +1,0 @@
-backport_collections
-urllib3
-importlib
-json2html
-tabulate
-urllib3[secure]
-certifi
