@@ -26,7 +26,7 @@ class Config(object):
         'cfg': 'setup.cfg',
         'documentations': 'https://github.com/stanislav-web/OpenDoor/wiki',
         'required_versions': {
-            'minor': '3.1',
+            'minor': '3.2',
             'major': '3.6'
         },
         'examples': """

@@ -16,14 +16,6 @@ environment:
     # a later point release.
     # See: http://www.appveyor.com/docs/installed-software#python
 
-    - PYTHON: "C:\\Python31"
-      PYTHON_VERSION: "3.1.x" # currently 3.1
-      PYTHON_ARCH: "32"
-
-    - PYTHON: "C:\\Python31-x64"
-      PYTHON_VERSION: "3.1.x" # currently 3.1
-      PYTHON_ARCH: "64"
-
     - PYTHON: "C:\\Python32"
       PYTHON_VERSION: "3.2.x" # currently 3.2.1
       PYTHON_ARCH: "32"
