@@ -12,7 +12,7 @@ python:
   - 3.6
 
 cache:
-  pip: true
+  pip: false
 
 #matrix:
   include:

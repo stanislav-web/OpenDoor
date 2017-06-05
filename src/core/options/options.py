@@ -344,5 +344,5 @@ class Options(object):
 
             return args
 
-        except (AttributeError, FilterError) as error:
+        except (AttributeError, FilterError, ArgumentParserError) as error:
             raise OptionsError(error)
