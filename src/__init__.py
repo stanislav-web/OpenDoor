@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
-
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 """
     This program is free software: you can redistribute it and/or modify
