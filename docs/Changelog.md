@@ -1,13 +1,14 @@
 Changes
 =======
-v3.2.35-rc (04.06.2017)
+v3.2.36-rc (04.06.2017)
 -------------------------
     - Added custom reports directory --reports-dir /home/user/Reports
     - Added user guide --docs
     - Reusable proxy requests pooling in --tor, --torlist
     - Prevent socks5 proxies warnings
     - Optimizing scan execution
-    - Python 2.7 no longer support
+    - Request's delays allow to use of milliseconds
+    - Python2.7 no longer support
 
 v3.1.32-rc (02.06.2017)
 -------------------------
