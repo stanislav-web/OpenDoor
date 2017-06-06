@@ -31,10 +31,10 @@
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'rst2pdf.pdfbuilder'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
+templates_path = ['ntemplates']
 templates_path = ['ntemplates']
 
 # The suffix(es) of source filenames.
@@ -49,9 +49,6 @@ source_suffix = '.md'
 
 # The master toctree document.
 master_doc = 'index'
-
-pdf_documents = [('index', u'opendoor', u'Opendoor OWASP WEB Directory Scanner', u'Stanislav WEB'),]
-
 
 # General information about the project.
 project = u'OWASP WEB Directory Scanner'
@@ -125,13 +122,15 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'guzzle_sphinx_theme'
+html_theme = 'default'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+ html_theme_options = {
+    "base_url": "http://opendoor.readthedocs.io/"
+ }
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -210,7 +209,7 @@ html_sidebars =  {
 
 # If true, links to the reST sources are added to the pages.
 #
-# html_show_sourcelink = True
+html_show_sourcelink = True
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #
@@ -346,7 +345,7 @@ texinfo_documents = [
 
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 #
-# texinfo_show_urls = 'footnote'
+texinfo_show_urls = 'footnote'
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #
