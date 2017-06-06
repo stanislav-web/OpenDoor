@@ -68,8 +68,8 @@ OSX
 [TODO] Docs is not complete because package wasn't tested for Mac
 
 Dependencies
-===============
-![Alt text](http://dl4.joxi.net/drive/2017/06/06/0001/0378/90490/90/bb7e76ca06.jpg "Requirements")
+============
+![Dependencies](images/dependencies.jpg)
 
 Update
 ===============

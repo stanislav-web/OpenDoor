@@ -10,4 +10,4 @@ Dictionaries are constantly updated, also expanding application functionality.
 
 ***Testing of the software on the commercial systems and organizations is prohibited!***
 
-![Alt text](http://dl3.joxi.net/drive/2017/01/30/0001/0378/90490/90/e309742b5c.jpg "OpenDoor OWASP")
+![Logo](images/open-door.png)

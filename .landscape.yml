@@ -1,9 +1,12 @@
 doc-warnings: false
 test-warnings: false
-strictness: high
+strictness: veryhigh
 max-line-length: 120
 pep8:
   full: true
+  disable:
+    - N813
+
 autodetect: true
 requirements:
   - requirements.txt

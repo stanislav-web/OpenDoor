@@ -3,6 +3,8 @@
 ```
 python3 opendoor.py --host http://www.example.com
 ```
+![Usage](images/usage.jpg)
+
 [Help](https://github.com/stanislav-web/OpenDoor/wiki/Usage#help)
 ===============
 ```

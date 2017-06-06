@@ -193,8 +193,8 @@ class FileSystem(object):
                             break
                     count += 1
 
-                for l in current_chunk:
-                    o_f.write(current_lines[l].encode())
+                for node in current_chunk:
+                    o_f.write(current_lines[node].encode())
 
         except IOError as error:
             raise FileSystemError(error.strerror)

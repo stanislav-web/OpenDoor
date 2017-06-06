@@ -39,9 +39,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
         """
                 
         try:
-
             self.__tpl = kwargs.get('tpl')
-
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
 
         except (TypeError, ValueError) as error:
@@ -71,13 +69,11 @@ class HttpsRequest(RequestProvider, DebugProvider):
         """
         
         try:
-
             pool = HTTPSConnectionPool(
                     host=self.__cfg.host,
                     port=self.__cfg.port,
                     maxsize=self.__cfg.threads,
                     timeout=self.__cfg.timeout, block=True)
-
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_connection_pool('https_pool_start', pool)
 
@@ -114,7 +110,6 @@ class HttpsRequest(RequestProvider, DebugProvider):
                                                  retries=self.__cfg.retries,
                                                  assert_same_host=False,
                                                  redirect=False)
-            
             return response
 
         except MaxRetryError:
