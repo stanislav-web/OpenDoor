@@ -1,8 +1,10 @@
-#### Basic usage
+[Basic usage](https://github.com/stanislav-web/OpenDoor/wiki/Usage#basic-usage)
+===============
 ```
 python3 opendoor.py --host http://www.example.com
 ```
-#### Help
+[Help](https://github.com/stanislav-web/OpenDoor/wiki/Usage#help)
+===============
 ```
 usage: opendoor.py [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
                    [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
@@ -64,10 +66,11 @@ Wordlist tools:
   -e EXTENSIONS, --extensions EXTENSIONS
                         Extensions filter -e php,json e.g
 ```
-#### Arguments description usage
+[Arguments description](https://github.com/stanislav-web/OpenDoor/wiki/Usage#arguments-description-usage)
+===============
 
-###### Application tools
-------
+Application tools
+---------------------------
 
 **--update** - update sources from CVS to latest
 
@@ -93,8 +96,8 @@ opendoor --examples
 opendoor --docs
 ```
 
-###### Required arguments
-------
+Required arguments
+---------------------------
 
 **--host** - target host (ip). Also might be required protocol. See examples
 
@@ -104,8 +107,8 @@ opendoor --host https://www.example.com
 opendoor --host 127.0.0.1
 ```
 
-###### Request tools
-------
+Request tools
+---------------------------
 
 **--port -p** - custom port. Default 80 for HTTP and 443 for HTTPS
 
@@ -174,8 +177,8 @@ opendoor --host https://www.example.com --proxy socks5://127.0.0.1:8888
 opendoor --host https://www.example.com --random-agent
 ```
 
-###### Debug tools
-------
+Debug tools
+---------------------------
 
 **--debug** - debug levels (1-3). Provides the ability to view detailed scanning progress
      - 1 step by step scan proccess
@@ -186,8 +189,8 @@ opendoor --host https://www.example.com --random-agent
 opendoor --host www.example.com --debug 1
 ```
 
-###### Sniff tools
-------
+Sniff tools
+---------------------------
 
 **--indexof -i** - detect Apache Index of/. Use method GET as default. Large files and auth required pages will be detected automatically for every scan
 
@@ -196,8 +199,8 @@ opendoor --host www.example.com --indexof
 opendoor --host www.example.com --i
 ```
 
-###### Stream tools
-------
+Stream tools
+---------------------------
 
 **--threads -t** - allowed threads. In order not to harm your computer there is a limit of 25 threads
 
@@ -206,8 +209,11 @@ opendoor --host www.example.com --threads 10
 opendoor --host www.example.com --t 15
 ```
 
-###### Wordlist tools
-------
+**CTRL+C** - pause scan
+**ENTER** - resume scan
+
+Wordlist tools
+---------------------------
 
 **--scan -s** - the application allows you to scan in two directions. Not only for directories but also allows you to find subdomains
 
@@ -246,8 +252,8 @@ opendoor --host example.com --extensions php,html
 opendoor --host example.com --e htm,py
 ```
 
-###### Reports tools
-------
+Reports tools
+---------------------------
 
 **--reports** - scan reporting format. At the moment there has several providers for reports. Also you can help develop by expanding this functionality
 

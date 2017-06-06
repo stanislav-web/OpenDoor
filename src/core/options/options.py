@@ -266,9 +266,7 @@ class Options(object):
 
         groupped = {}
         try:
-    
             self.parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
-            
             required_named = self.parser.add_argument_group('required named options')
             required_named.add_argument('--host', help="Target host (ip); --host http://example.com")
             arguments_len = len(__arguments)

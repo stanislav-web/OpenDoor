@@ -116,7 +116,6 @@ class Controller(object):
         except (AttributeError, PackageError) as error:
             raise SrcError(error)
 
-
     @staticmethod
     def version_action():
         """

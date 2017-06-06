@@ -1,5 +1,5 @@
-### Installation
-
+Installation
+===============
 Python v3.3 is minor requirement.
 At the moment, the package can be installed from this repository [https://github.com/stanislav-web/OpenDoor](https://github.com/stanislav-web/OpenDoor)
 Now being tested, and the next will be published in other sources, such as Pypi.
@@ -11,7 +11,8 @@ Now being tested, and the next will be published in other sources, such as Pypi.
 |3.5|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
 |3.6|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
 
-   * **GNU Linux (Local installation and run)**
+GNU Linux (Local installation and run)
+---------------------------
 
 ```
  git clone https://github.com/stanislav-web/OpenDoor.git
@@ -22,7 +23,8 @@ Now being tested, and the next will be published in other sources, such as Pypi.
  python3 opendoor.py --host http://www.example.com
 ```
 
-   * **GNU Linux (Global. Preferably for OS distributions)**
+GNU Linux (Global. Preferably for OS distributions)
+---------------------------
 
 ```
  git clone https://github.com/stanislav-web/OpenDoor.git
@@ -33,7 +35,8 @@ Now being tested, and the next will be published in other sources, such as Pypi.
 ```
 
 
-   *  **Windows XP/7/8/10**
+Windows XP/7/8/10
+---------------------------
 
 I would recommend you to install GUI for Git at first if you dont have pre installed Git on your laptop.
 Please see [https://git-for-windows.github.io](https://git-for-windows.github.io)
@@ -59,12 +62,17 @@ Try your fist launch
         C:\opendoor>python3 opendoor.py -h
 ```
 
-   * **OSX**
-        
+OSX
+---
+   
 [TODO] Docs is not complete because package wasn't tested for Mac
 
-### Update
+Dependencies
+===============
+![Alt text](http://dl4.joxi.net/drive/2017/06/06/0001/0378/90490/90/bb7e76ca06.jpg "Requirements")
 
+Update
+===============
 You have an update a package using `git pull origin master` inside or run update process from interface:
 ```
 # GNU Linux
