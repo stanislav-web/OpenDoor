@@ -24,6 +24,7 @@ from .filter import Filter
 
 
 class Options(object):
+
     """Options class"""
 
     def __init__(self):

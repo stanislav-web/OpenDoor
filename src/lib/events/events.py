@@ -20,6 +20,7 @@ from src.core import process
 
 
 class EventHandler(object):
+
     """EventHandler class"""
 
     @staticmethod

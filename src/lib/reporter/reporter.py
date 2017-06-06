@@ -23,6 +23,7 @@ from .exceptions import ReporterError
 
 
 class Reporter(object):
+
     """Reporter class"""
 
     default = 'std'

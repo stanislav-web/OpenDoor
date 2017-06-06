@@ -21,11 +21,13 @@ from argparse import ArgumentParser
 
 
 class ArgumentParserError(Exception):
+
     """ArgumentParserError class"""
     pass
 
 
 class ThrowingArgumentParser(ArgumentParser):
+
     """ThrowingArgumentParser class"""
 
     @classmethod
@@ -41,6 +43,7 @@ class ThrowingArgumentParser(ArgumentParser):
 
 
 class OptionsError(Exception):
+
     """OptionsError class"""
 
     def __init__(self, message):
@@ -54,6 +57,7 @@ class OptionsError(Exception):
 
 
 class FilterError(Exception):
+
     """FilterError class"""
 
     def __init__(self, message):

@@ -20,6 +20,7 @@ from src.core import exception
 
 
 class PackageError(Exception):
+
     """PackageError class"""
 
     def __init__(self, error):

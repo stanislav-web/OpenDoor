@@ -22,6 +22,7 @@ import os
 
 
 class Output(object):
+
     """Output class"""
 
     __is_windows = None

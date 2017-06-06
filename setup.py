@@ -1,5 +1,6 @@
-#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+#!/usr/bin/env python3
 
 """
     This program is free software: you can redistribute it and/or modify
@@ -18,7 +19,6 @@
 """
 
 from setuptools import setup, find_packages
-    
 VERSION = '3.2.36rc0'
 LONG_DESCRIPTION = open('README.md').read()
 
@@ -111,7 +111,6 @@ setup(name='opendoor',
 
           'Programming Language :: Python',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.2',
           'Programming Language :: Python :: 3.3',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',

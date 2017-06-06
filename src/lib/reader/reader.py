@@ -26,6 +26,7 @@ from .exceptions import ReaderError
 
 
 class Reader(object):
+
     """Reader class"""
 
     def __init__(self, browser_config):

@@ -24,6 +24,7 @@ from .exceptions import TplError
 
 
 class Tpl(object):
+
     """Tpl class"""
 
     @staticmethod

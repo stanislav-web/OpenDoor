@@ -18,6 +18,7 @@
 
 
 class FileSystemError(Exception):
+
     """FileSystemError class"""
 
     def __init__(self, message):

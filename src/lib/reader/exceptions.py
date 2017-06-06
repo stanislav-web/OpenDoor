@@ -19,6 +19,7 @@ from src.core import exception
 
 
 class ReaderError(Exception):
+
     """PackageError class"""
 
     def __init__(self, error):

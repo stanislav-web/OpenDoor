@@ -18,6 +18,7 @@
 
 
 class ReporterError(Exception):
+
     """ReporterError class"""
 
     def __init__(self, message):

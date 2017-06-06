@@ -19,6 +19,7 @@ from src.core import exception
 
 
 class BrowserError(Exception):
+
     """BrowserError class"""
 
     def __init__(self, error):

@@ -18,6 +18,7 @@
 
 
 class SrcError(Exception):
+
     """SrcError class"""
 
     def __init__(self, error):

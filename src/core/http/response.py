@@ -22,6 +22,7 @@ from .providers import ResponseProvider
 
 
 class Response(ResponseProvider):
+
     """Response class"""
 
     def __init__(self, config, debug, **kwargs):

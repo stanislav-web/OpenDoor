@@ -23,6 +23,7 @@ from .exceptions import FilterError
 
 
 class Filter(object):
+
     """Filter class"""
 
     URL_REGEX = "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(?:[-A-Za-z0-9]+\.)+([A-Za-z]|(?u)\w){2,6}$"

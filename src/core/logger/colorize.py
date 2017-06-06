@@ -23,6 +23,7 @@ import re
 
 
 class ColorizingStreamHandler(logging.StreamHandler):
+
     """ ColorizingStreamHandler class"""
 
     # color names to indices

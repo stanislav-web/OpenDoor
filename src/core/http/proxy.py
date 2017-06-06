@@ -30,6 +30,7 @@ from .providers import RequestProvider
 
 
 class Proxy(RequestProvider, DebugProvider):
+
     """Proxy class"""
 
     def __init__(self, config, debug, **kwargs):

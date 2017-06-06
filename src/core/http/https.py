@@ -26,6 +26,7 @@ from .providers import RequestProvider
 
 
 class HttpsRequest(RequestProvider, DebugProvider):
+
     """HttpsRequest class"""
 
     DEFAULT_SSL_CERT_REQUIRED_STATUSES = 496

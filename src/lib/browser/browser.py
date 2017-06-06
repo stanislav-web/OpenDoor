@@ -36,6 +36,7 @@ from .threadpool import ThreadPool
 
 
 class Browser(Filter):
+
     """ Browser class """
 
     def __init__(self, params):

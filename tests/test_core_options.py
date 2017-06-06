@@ -73,13 +73,6 @@ class TestOptions(unittest.TestCase):
         actual = opt.get_arg_values()
         self.assertTrue(isinstance(actual, dict))
 
-    def test_get_arg_values_exception(self):
-        """ Arguments.get_arg_values() exception test """
-
-        with self.assertRaises(SystemExit) as context:
-            Options().get_arg_values()
-        self.assertTrue(SystemExit is context.expected)
-
     def test_get_arg_values_exception2(self):
         """ Arguments.get_arg_values() exception2 test """
 

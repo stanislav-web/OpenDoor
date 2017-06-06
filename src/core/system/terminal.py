@@ -23,6 +23,7 @@ import subprocess
 
 
 class Terminal(object):
+
     """ Terminal class"""
     
     def get_ts(self):

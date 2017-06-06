@@ -22,6 +22,7 @@ from .exceptions import ArgumentsError
 
 
 class Arguments(object):
+
     """Arguments class"""
     
     @staticmethod

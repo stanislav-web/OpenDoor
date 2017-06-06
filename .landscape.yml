@@ -12,5 +12,6 @@ ignore-paths:
   - data
   - docs
   - reports
+  - tests
 python-targets:
   - 3

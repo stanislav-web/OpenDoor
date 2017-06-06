@@ -25,6 +25,7 @@ from .rainbow import RainbowLoggingHandler
 
 
 class Logger(object):
+
     """ Logger class"""
 
     _record = None

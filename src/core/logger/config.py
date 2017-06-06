@@ -32,6 +32,7 @@ def exception_log():
 
 
 class Config(object):
+
     """Config class"""
 
     logdir = os.path.dirname(exception_log())

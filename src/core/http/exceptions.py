@@ -18,6 +18,7 @@
 
 
 class SocketError(Exception):
+
     """SocketError class"""
 
     def __init__(self, message):

@@ -25,6 +25,7 @@ from .providers import RequestProvider
 
 
 class HttpRequest(RequestProvider, DebugProvider):
+
     """HttpRequest class"""
 
     def __init__(self, config, debug, **kwargs):

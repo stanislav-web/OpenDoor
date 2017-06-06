@@ -24,6 +24,7 @@ from src.core.system import Term
 
 
 class RainbowLoggingHandler(ColorizingStreamHandler):
+
     """ Class RainbowLoggingHandler """
 
     # Define color for message payload

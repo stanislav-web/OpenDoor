@@ -28,6 +28,7 @@ from .exceptions import PackageError
 
 
 class Package(object):
+
     """Package class"""
 
     remote_version = None

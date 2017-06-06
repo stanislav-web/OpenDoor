@@ -20,6 +20,7 @@ from src.core import exception
 
 
 class ArgumentsError(Exception):
+
     """ArgumentsError class"""
 
     def __init__(self, error):

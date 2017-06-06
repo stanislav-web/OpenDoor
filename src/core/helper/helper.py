@@ -24,6 +24,7 @@ from distutils.version import LooseVersion
 
 
 class Helper(object):
+
     """Helper class"""
 
     @staticmethod

@@ -18,6 +18,7 @@
 
 
 class CoreSystemError(Exception):
+
     """SystemError class"""
 
     def __init__(self, message):

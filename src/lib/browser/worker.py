@@ -27,6 +27,7 @@ from src.lib.tpl import Tpl as tpl
 
 
 class Worker(threading.Thread):
+
     """Worker class"""
 
     def __init__(self, queue, num_threads, timeout=0):

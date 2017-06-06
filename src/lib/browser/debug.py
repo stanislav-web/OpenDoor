@@ -24,6 +24,7 @@ from src.lib.tpl import Tpl as tpl
 
 
 class Debug(DebugProvider):
+
     """Debug class"""
 
     # noinspection PyPep8Naming

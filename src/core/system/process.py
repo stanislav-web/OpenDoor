@@ -24,6 +24,7 @@ from .terminal import Terminal
 
 
 class Process(object):
+
     """ Process class"""
 
     def __init__(self, classname=None, typeobj=None, params=None):

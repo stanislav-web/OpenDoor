@@ -20,6 +20,7 @@ from src.core import exception
 
 
 class TplError(Exception):
+
     """TplError class"""
 
     def __init__(self, error):

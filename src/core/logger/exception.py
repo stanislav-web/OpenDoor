@@ -25,6 +25,7 @@ from .config import Config
 
 
 class LoggerException(object):
+
     """ Exception class """
 
     @staticmethod

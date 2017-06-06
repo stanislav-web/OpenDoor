@@ -32,6 +32,7 @@ from .exceptions import SrcError
 
 
 class Controller(object):
+
     """Controller class"""
 
     def __init__(self):

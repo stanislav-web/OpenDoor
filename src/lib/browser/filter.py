@@ -21,6 +21,7 @@ from src.lib.tpl import Tpl as tpl
 
 
 class Filter(object):
+
     """Filter class"""
 
     # noinspection PyPep8Naming

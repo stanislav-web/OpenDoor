@@ -18,6 +18,7 @@
 
 
 class Config(object):
+
     """Config class"""
 
     templates = {

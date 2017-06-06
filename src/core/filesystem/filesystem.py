@@ -27,6 +27,7 @@ from .exceptions import FileSystemError
 
 
 class FileSystem(object):
+
     """FileSystem class"""
 
     sep = os.sep
