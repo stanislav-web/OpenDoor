@@ -45,7 +45,7 @@ setup(name='opendoor',
       packages=find_packages(),
       package_data={'': ['setup.cfg']},
       data_files=[('.', ['setup.cfg']),
-                  ('.', ['documentations.html']),
+                  ('.', ['opendoor.conf']),
                   ('data', [
                       'data/directories.dat',
                       'data/ignored.dat',

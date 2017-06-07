@@ -34,6 +34,7 @@ class Options(object):
         """
 
         self.__standalone = ['version', 'update', 'examples', 'docs']
+        self.__wizard_conf = 'opendor.conf'
 
         __groups = {
             'request': "Request tools",
@@ -53,6 +54,7 @@ class Options(object):
                 "default": 80,
                 "action": "store",
                 "help": "Custom port (Default 80)",
+                "nargs" : 1,
                 "type": int
             },
             {
@@ -62,6 +64,7 @@ class Options(object):
                 "default": "HEAD",
                 "action": "store",
                 "help": "Request method (use HEAD as default)",
+                "nargs": 1,
                 "type": str
             },
             {
@@ -71,6 +74,7 @@ class Options(object):
                 "default": 1,
                 "action": "store",
                 "help": "Allowed threads",
+                "nargs": 1,
                 "type": int
             },
             {
@@ -80,6 +84,7 @@ class Options(object):
                 "default": 0,
                 "action": "store",
                 "help": "Delay between requests threading",
+                "nargs": 1,
                 "type": float
             },
             {
@@ -89,6 +94,7 @@ class Options(object):
                 "default": 30,
                 "action": "store",
                 "help": "Request timeout (30 sec default)",
+                "nargs": 1,
                 "type": int
             },
             {
@@ -98,6 +104,7 @@ class Options(object):
                 "default": 3,
                 "action": "store",
                 "help": "Max retries to reconnect (default 3)",
+                "nargs": 1,
                 "type": int
             },
             {
@@ -116,6 +123,7 @@ class Options(object):
                 "default": 0,
                 "action": "store",
                 "help": "Debug level 1 - 3",
+                "nargs": 1,
                 "type": int
             },
             {
@@ -134,6 +142,7 @@ class Options(object):
                 "default": None,
                 "action": "store",
                 "help": "Path to custom proxylist",
+                "nargs": 1,
                 "type": str
             },
             {
@@ -143,6 +152,7 @@ class Options(object):
                 "default": None,
                 "action": "store",
                 "help": "Custom permanent proxy server",
+                "nargs": 1,
                 "type": str
             },
             {
@@ -152,6 +162,7 @@ class Options(object):
                 "default": "directories",
                 "action": "store",
                 "help": "Scan type scan=directories or scan=subdomains",
+                "nargs": 1,
                 "type": str
             },
             {
@@ -161,6 +172,7 @@ class Options(object):
                 "default": None,
                 "action": "store",
                 "help": "Path to custom wordlist",
+                "nargs": 1,
                 "type": str
             },
             {
@@ -169,7 +181,8 @@ class Options(object):
                 "argl": "--reports",
                 "default": "std",
                 "action": "store",
-                "help": "Scan reports (json,std,txt)",
+                "help": "Scan reports (json,std,txt,html)",
+                "nargs": 1,
                 "type": str
             },
             {
@@ -179,6 +192,7 @@ class Options(object):
                 "default": None,
                 "action": "store",
                 "help": "Path to custom reports dir",
+                "nargs": 1,
                 "type": str
             },
             {
@@ -206,6 +220,7 @@ class Options(object):
                 "default": None,
                 "action": "store",
                 "help": "Append path prefix to scan host",
+                "nargs": 1,
                 "type": str
             },
             {
@@ -215,6 +230,7 @@ class Options(object):
                 "default": None,
                 "action": "store",
                 "help": "Extensions filter -e php,json e.g",
+                "nargs": 1,
                 "type": str
             },
             {
@@ -261,6 +277,16 @@ class Options(object):
                 "action": "store_true",
                 "help": "Read documentation",
                 "type": bool
+            },
+            {
+                "group": "app",
+                "args": None,
+                "argl": "--wizard",
+                "default": self.__wizard_conf,
+                "action": "store",
+                "help": "Run wizard scanner from your config",
+                "nargs": '?',
+                "type": str
             }
         ]
 
@@ -288,6 +314,7 @@ class Options(object):
                                                             default=arg['default'],
                                                             action=arg['action'],
                                                             help=arg['help'],
+                                                            nargs=arg['nargs'],
                                                             type=arg['type'])
                 else:
                     if bool == arg['type']:
@@ -302,10 +329,11 @@ class Options(object):
                                                             default=arg['default'],
                                                             action=arg['action'],
                                                             help=arg['help'],
+                                                            nargs=arg['nargs'],
                                                             type=arg['type'])
 
             self.args = self.parser.parse_args()
-        except ArgumentParserError as error:
+        except (ArgumentParserError, KeyError) as error:
             raise OptionsError(error)
 
     def get_arg_values(self):

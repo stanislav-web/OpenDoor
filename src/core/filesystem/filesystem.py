@@ -252,6 +252,7 @@ class FileSystem(object):
         :return: configparser.RawConfigParser
         """
 
+        #TODO : Win32/64 check this ^(([(\/|\)a-z].*?opendoor.*?)(\/|\\))
         expression = '^([\/a-z].*?opendoor.*?)\/'
         regex = re.compile(expression, re.IGNORECASE)
         cwd = regex.search(__file__)
