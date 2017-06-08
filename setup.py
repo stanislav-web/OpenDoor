@@ -19,7 +19,7 @@
 
 from setuptools import setup, find_packages
 VERSION = '3.3.36rc0'
-LONG_DESCRIPTION = open('README.md').read()
+LONG_DESCRIPTION = open('README.rst').read()
 
 setup(name='opendoor',
 
@@ -113,7 +113,7 @@ setup(name='opendoor',
           'Programming Language :: Python :: 3.3',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
-          'Programming Language :: Python :: 3.6'
+          'Programming Language :: Python :: 3.6',
 
           # Specify the additional categories
           'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking'
