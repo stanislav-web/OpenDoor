@@ -183,6 +183,7 @@ html_sidebars =  {
    '**': [
             'Installation-and-update.md',
             'Usage.md',
+            'Wizard.md',
             'Testing.md',
             'Changelog.md',
             'Contribution.md',
