@@ -198,9 +198,9 @@ class Config(object):
 
         if True is self._is_tor:
             return True
-        elif 0 < len(self._torlist):
+        elif None is not self._torlist and 0 < len(self._torlist):
             return True
-        elif 0 < len(self._proxy):
+        elif None is not self._torlist and 0 < len(self._proxy):
             return True
 
         return False
@@ -263,7 +263,7 @@ class Config(object):
         :return: bool
         """
 
-        if 0 < len(self._torlist):
+        if None is not self._torlist and 0 < len(self._torlist):
             return True
         return False
 

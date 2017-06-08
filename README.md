@@ -38,6 +38,7 @@ Software is written for informational purposes and is open source product under 
 - [x] debug levels (1-3)
 - [x] extensions filter
 - [x] custom reports directory
+- [x] custom config wizard (use random techniques)
 - [x] analyze techniques
     * detect redirects
     * detect index of/ Apache
@@ -77,6 +78,10 @@ Software is written for informational purposes and is open source product under 
 
 #### [Changelog](CHANGELOG.md) (last changes)
 
+v3.3.36-rc (04.08.2017)
+-------------------------
+    - Add config wizard (allows you to configure own project)
+    
 v3.2.36-rc (04.06.2017)
 -----------------------
     - Added custom reports directory --reports-dir /home/user/Reports
@@ -96,7 +101,7 @@ usage: opendoor.py [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
                    [--reports REPORTS] [--reports-dir REPORTS_DIR]
                    [--random-agent] [--random-list] [--prefix PREFIX]
                    [-e EXTENSIONS] [-i] [--update] [--version] [--examples]
-                   [--docs]
+                   [--docs] [--wizard [WIZARD]]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -109,12 +114,13 @@ Application tools:
   --version             Get current version
   --examples            Examples of usage
   --docs                Read documentation
+  --wizard [WIZARD]     Run wizard scanner from your config
 
 Debug tools:
   --debug DEBUG         Debug level 1 - 3
 
 Reports tools:
-  --reports REPORTS     Scan reports (json,std,txt)
+  --reports REPORTS     Scan reports (json,std,txt,html)
   --reports-dir REPORTS_DIR
                         Path to custom reports dir
 

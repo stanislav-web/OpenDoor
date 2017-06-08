@@ -66,8 +66,7 @@ class Controller(object):
         try:
 
             tpl.message(package.banner())
-
-            if 'host' in self.ioargs:
+            if 'host' in self.ioargs or 'wizard' in self.ioargs:
                 getattr(self, 'scan_action')(self.ioargs)
             else:
                 for action in self.ioargs.keys():
@@ -153,6 +152,10 @@ class Controller(object):
         """
 
         try:
+
+            if 'wizard' in params:
+                tpl.info(key='load_wizard', config=params['wizard'])
+                params = package.wizard(params['wizard'])
             brows = browser(params)
             if True is reporter.is_reported(params.get('host')):
                 try:

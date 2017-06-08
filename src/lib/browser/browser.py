@@ -51,7 +51,6 @@ class Browser(Filter):
             self.__config = Config(params)
             self.__debug = Debug(self.__config)
             self.__result = {'total': {}, 'items': {}}
-
             self.__reader = Reader(browser_config={
                 'list': self.__config.scan,
                 'torlist': self.__config.torlist,

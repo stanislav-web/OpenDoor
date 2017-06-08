@@ -34,7 +34,7 @@ class Options(object):
         """
 
         self.__standalone = ['version', 'update', 'examples', 'docs']
-        self.__wizard_conf = 'opendor.conf'
+        self.__wizard_conf = 'opendoor.conf'
 
         __groups = {
             'request': "Request tools",
@@ -54,7 +54,7 @@ class Options(object):
                 "default": 80,
                 "action": "store",
                 "help": "Custom port (Default 80)",
-                "nargs" : 1,
+                "nargs": 1,
                 "type": int
             },
             {
@@ -282,10 +282,11 @@ class Options(object):
                 "group": "app",
                 "args": None,
                 "argl": "--wizard",
-                "default": self.__wizard_conf,
+                "default": None,
                 "action": "store",
                 "help": "Run wizard scanner from your config",
                 "nargs": '?',
+                "const": self.__wizard_conf,
                 "type": str
             }
         ]
@@ -303,6 +304,11 @@ class Options(object):
             for i in range(arguments_len):
                 arg = __arguments[i]
 
+                if 'nargs'in arg and arg['nargs'] is '?':
+                    const = arg['const']
+                else:
+                    const = None
+
                 if arg['args'] is None:
                     if bool == arg['type']:
                         groupped[arg['group']].add_argument(arg['argl'],
@@ -315,6 +321,7 @@ class Options(object):
                                                             action=arg['action'],
                                                             help=arg['help'],
                                                             nargs=arg['nargs'],
+                                                            const=const,
                                                             type=arg['type'])
                 else:
                     if bool == arg['type']:
@@ -330,6 +337,7 @@ class Options(object):
                                                             action=arg['action'],
                                                             help=arg['help'],
                                                             nargs=arg['nargs'],
+                                                            const=const,
                                                             type=arg['type'])
 
             self.args = self.parser.parse_args()
@@ -352,7 +360,8 @@ class Options(object):
                     and True is not self.args.version \
                     and True is not self.args.update \
                     and True is not self.args.docs \
-                    and True is not self.args.examples:
+                    and True is not self.args.examples \
+                    and None is self.args.wizard:
                 sys.exit(self.parser.print_help())
 
             if True is self.args.version or True is self.args.update \

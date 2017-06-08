@@ -26,6 +26,7 @@ class Config(object):
         'abort': 'Session canceled',
         'upd_win_stat': 'Win OS does not support --update inside.\nPlease run your GIT binary to fetch data manualy',
         'use_reports': 'Use --report param to store your scan results',
+        'load_wizard': 'Load wizard options from : {config}',
         'report': '{plugin} : {dest}',
         'logged': 'Scanned host has been reported. Press ENTER to rescan or CTRL+C to exit: ',
         'checking_connect': 'Wait, please, checking connect to -> {host}:{port} ...',

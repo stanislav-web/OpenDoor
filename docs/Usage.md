@@ -15,7 +15,7 @@ usage: opendoor.py [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
                    [--reports REPORTS] [--reports-dir REPORTS_DIR]
                    [--random-agent] [--random-list] [--prefix PREFIX]
                    [-e EXTENSIONS] [-i] [--update] [--version] [--examples]
-                   [--docs]
+                   [--docs] [--wizard [WIZARD]]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -28,21 +28,22 @@ Application tools:
   --version             Get current version
   --examples            Examples of usage
   --docs                Read documentation
+  --wizard [WIZARD]     Run wizard scanner from your config
 
 Debug tools:
   --debug DEBUG         Debug level 1 - 3
 
 Reports tools:
-  --reports REPORTS     Scan reports (json,std,txt)
+  --reports REPORTS     Scan reports (json,std,txt,html)
   --reports-dir REPORTS_DIR
                         Path to custom reports dir
 
 Request tools:
   -p PORT, --port PORT  Custom port (Default 80)
   -m METHOD, --method METHOD
-                        HTTP method (use HEAD as default)
+                        Request method (use HEAD as default)
   -d DELAY, --delay DELAY
-                        Delay between request's threads
+                        Delay between requests threading
   --timeout TIMEOUT     Request timeout (30 sec default)
   -r RETRIES, --retries RETRIES
                         Max retries to reconnect (default 3)
@@ -96,6 +97,13 @@ opendoor --examples
 
 ```python
 opendoor --docs
+```
+
+**--wizard** - allows you configure own project config. `opendoor.conf` use by default
+
+```python
+opendoor --wizard # use opendoor.conf
+opendoor --wizard /usr/local/path_to_own_project_conf.conf
 ```
 
 Required arguments

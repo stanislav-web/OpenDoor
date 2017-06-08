@@ -18,7 +18,7 @@
 """
 
 from setuptools import setup, find_packages
-VERSION = '3.2.36rc0'
+VERSION = '3.3.36rc0'
 LONG_DESCRIPTION = open('README.md').read()
 
 setup(name='opendoor',

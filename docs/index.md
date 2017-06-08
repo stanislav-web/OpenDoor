@@ -8,6 +8,32 @@ Software is written for informational purposes and is open source product under 
 Dictionaries are constantly updated, also expanding application functionality.
 
 
+#### Implements
+- [x] multithreading control
+- [x] scan's reports
+- [x] directories scanner
+- [x] subdomains scanner
+- [x] HTTP(S) (PORT) support
+- [x] Keep-alive long pooling
+- [x] HTTP(S)/SOCKS proxies
+- [x] dynamic request header
+- [x] custom wordlst's prefixes
+- [x] custom wordlists, proxies, ignore lists
+- [x] debug levels (1-3)
+- [x] extensions filter
+- [x] custom reports directory
+- [x] custom config wizard (use random techniques)
+- [x] analyze techniques
+    * detect redirects
+    * detect index of/ Apache
+    * detect large files
+    * certif required pages
+- [x] randomization techniques
+    * random user-agent per request
+    * random proxy per request
+    * wordlists shuffling
+
+
 ***Testing of the software on the commercial systems and organizations is prohibited!***
 
 ![Logo](images/open-door.png)

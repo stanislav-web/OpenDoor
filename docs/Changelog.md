@@ -1,5 +1,9 @@
 Changes
 =======
+v3.3.36-rc (04.08.2017)
+-------------------------
+    - Add config wizard (allows you to configure own project)
+    
 v3.2.36-rc (04.06.2017)
 -------------------------
     - Added custom reports directory --reports-dir /home/user/Reports
@@ -28,14 +32,14 @@ v3.0.3-rc (17.02.2017)
     - fixes for https stuff scan
     - cleared internal wordlists
     - increased coverage
-
+    
 v3.0.3-beta (13.02.2017)
 -------------------------
     - detect SSL cert requires
     - added 7150 directories
     - fixes for https subdomians
     - more unit coverages
-
+    
 v3.0.2-beta (31.01.2017)
 ------------------------
     - relieved of unnecessary dependencies
@@ -50,8 +54,8 @@ v3.0.2-beta (31.01.2017)
     - dynamic and smart requests (cookies + accept headers)
     - apache index of/ and files detection
 
-v2.7.96 - v1.0.0 (05.01.2017)
------------------------------
+v2.7.96  - v1.0.0 (05.01.2017)
+------------------------------
 
 * *v1.0.0* - all the basic functionality is available
 * *v1.0.1* - added debug level as param --debug
