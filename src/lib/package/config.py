@@ -32,22 +32,25 @@ class Config(object):
         'examples': """
 
             Examples:
-                python ./opendoor.py  --examples
-                python ./opendoor.py  --update
-                python ./opendoor.py  --version
-                python ./opendoor.py --host "http://example.com"
-                python ./opendoor.py --host "https://example.com" --port 8080
-                python ./opendoor.py --host "http://example.com" --scan subdomains
-                python ./opendoor.py --host "http://example.com" --threads 10
-                python ./opendoor.py --host "http://example.com" --threads 10 --tor
-                python ./opendoor.py --host "http://example.com" --threads 10 --delay 10
-                python ./opendoor.py --host "http://example.com" --threads 10 --prefix en/
-                python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10
-                python ./opendoor.py --host "http://example.com"  --random-list --threads 10 --delay 10 --timeout 10
-                python ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1
-                python ./opendoor.py --host "http://example.com" --threads 10 --debug 1 --reports std,txt
-                python ./opendoor.py --host "http://example.com" --debug 1 --reports std,txt --reports-dir /reports
-                python ./opendoor.py --host "http://example.com" --threads 10 --debug 1 --extensions php,html
+                python3 ./opendoor.py  --examples
+                python3 ./opendoor.py  --update
+                python3 ./opendoor.py  --version
+                python3 ./opendoor.py  --docs
+                python3 ./opendoor.py  --wizard
+                python3 ./opendoor.py  --wizard /usr/local/projects/my.conf
+                python3 ./opendoor.py --host "http://example.com"
+                python3 ./opendoor.py --host "https://example.com" --port 8080
+                python3 ./opendoor.py --host "http://example.com" --scan subdomains
+                python3 ./opendoor.py --host "http://example.com" --threads 10
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --tor
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --delay 10
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --prefix en/
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10
+                python3 ./opendoor.py --host "http://example.com"  --random-list --threads 10 --delay 10 --timeout 10
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --debug 1 --reports std,txt
+                python3 ./opendoor.py --host "http://example.com" --debug 1 --reports std,txt --reports-dir /reports
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --debug 1 --extensions php,html
             """, 'banner': """
 ############################################################
 #                                                          #

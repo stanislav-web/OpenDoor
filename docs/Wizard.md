@@ -1,10 +1,11 @@
 Wizard
 ======
-Wizard allow you to select individual settings for each target. See example:
+Wizard allow you to select individual settings for each target.
+See example:
 
 Configure
 ---------------------------
-`opendor.conf`
+`opendoor.conf`
 
 ```ini
 [general]

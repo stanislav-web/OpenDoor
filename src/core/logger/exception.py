@@ -41,10 +41,7 @@ class LoggerException(object):
         try:
 
             filesystem.makedir(Config.logdir)
-            try:
-                logging.config.dictConfig(Config.exceptions)
-            except AttributeError:
-                logging.config.fileConfig(Config.legacy_config)
+            logging.config.dictConfig(Config.exceptions)
             logger = logging.getLogger('exceptions')
             func = inspect.currentframe().f_back.f_code
             message = "{class_name}: {message} in {file} -> {func}() line {line}".format(
@@ -54,5 +51,6 @@ class LoggerException(object):
                     func=func.co_name,
                     line=func.co_firstlineno)
             logger.error(message)
-        except (Exception, ValueError) as error:
-            raise Exception(error)
+        except (Exception, ValueError):
+            # skip error undefined owner
+            pass

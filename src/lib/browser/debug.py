@@ -176,7 +176,8 @@ class Debug(DebugProvider):
         self.__clear = True if self.__catched else False
 
         if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'indexof', 'certificat', 'auth']:
-            
+
+            sys.writels("", flush=True)
             tpl.info(key='get_item',
                      clear=self.__clear,
                      percent=percentage,
@@ -192,7 +193,7 @@ class Debug(DebugProvider):
                          current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
                          total=kwargs.get('total_size', 1),
                          item=request_uri,
-                         size=kwargs.get('content_size')
+                         size=kwargs.get('content_size'),
                          )
             self.__catched = False
             if kwargs.get('items_size', 0) is kwargs.get('total_size', 1):

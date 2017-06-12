@@ -36,7 +36,6 @@ class Config(object):
     """Config class"""
 
     logdir = os.path.dirname(exception_log())
-    legacy_config = "{0}{1}{2}".format(os.path.dirname(__file__), filesystem.sep, 'legacy.conf')
     exceptions = {
         "version": 1,
         "disable_existing_loggers": False,

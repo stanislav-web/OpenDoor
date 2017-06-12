@@ -14,8 +14,9 @@ OWASP WEB Directory Scanner [![Twitter](https://img.shields.io/twitter/url/https
 This application find all possible ways to login, index of/ directories, restricted access points, subdomains, hidden data and large backups.
 The scanning is performed by the built-in dictionary and external dictionaries as well. Anonymity and speed are provided by means of using proxy servers.
 Software is written for informational purposes and is open source product under the GPL license.
-    
-* *Current v3.2.36-rc (04.06.2017)*
+
+***(Due to the incorrect operation of "SSL" the support for "Python 2.7" is terminated)***
+* *Current v3.3.36-rc (04.06.2017)*
     - Directories - 35888
     - Subdomains - 101000
 
