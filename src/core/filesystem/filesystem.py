@@ -254,9 +254,9 @@ class FileSystem(object):
 
         #TODO : Win32/64 check this ^(([(\/|\)a-z].*?opendoor.*?)(\/|\\))
         expression = '^([\/a-z].*?opendoor.*?)\/'
-        regex = re.compile(expression, re.IGNORECASE)
-        cwd = regex.search(__file__)
-        os.chdir(cwd.group())
+        find_dir = re.search(expression, __file__, re.IGNORECASE)
+        if None is not find_dir:
+            os.chdir(find_dir.group())
         filepath = os.path.join(os.path.sep, os.getcwd(), filename)
 
         if not os.path.isfile(filepath):
