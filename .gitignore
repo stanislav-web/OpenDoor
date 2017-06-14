@@ -1,3 +1,5 @@
-.idea
+.idea/
 /tmp/
-/syslog
+/syslog/
+/build/
+.coverage
