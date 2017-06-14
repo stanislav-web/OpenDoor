@@ -3,3 +3,5 @@ include data/*.dat
 include setup.cfg
 include opendoor.py
 include opendoor.conf
+include syslog/
+include tmp/

@@ -18,6 +18,9 @@
 
 # noinspection PyPep8Naming
 from .color import Color as colour
+# noinspection PyPep8Naming
+from .core import CoreConfig as core
+# noinspection PyPep8Naming
 from .decorators import execution_time
 # noinspection PyPep8Naming
 from .filesystem import FileSystem as filesystem

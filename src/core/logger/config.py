@@ -19,6 +19,7 @@
 import os
 
 from src.core import filesystem
+from src.core import core
 
 
 def exception_log():
@@ -27,8 +28,8 @@ def exception_log():
     :return: string
     """
 
-    config = filesystem.readcfg('setup.cfg')
-    return filesystem.getabsname(config.get('system', 'exceptions_log'))
+    exception_log = core.get('system').get('exceptions_log')
+    return filesystem.getabsname(exception_log)
 
 
 class Config(object):

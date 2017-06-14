@@ -252,7 +252,6 @@ class FileSystem(object):
         :return: configparser.RawConfigParser
         """
 
-        #TODO : Win32/64 check this ^(([(\/|\)a-z].*?opendoor.*?)(\/|\\))
         expression = '^([\/a-z].*?opendoor.*?)\/'
         find_dir = re.search(expression, __file__, re.IGNORECASE)
         if None is not find_dir:
