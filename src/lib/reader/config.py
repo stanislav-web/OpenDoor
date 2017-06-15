@@ -20,6 +20,5 @@
 class Config(object):
     """Config class"""
 
-    setup = 'setup.cfg'
     http_port = 80
     ssl_port = 443

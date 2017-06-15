@@ -27,7 +27,6 @@ class Reporter(object):
     """Reporter class"""
 
     default = 'std'
-    config = 'setup.cfg'
     external_directory = None
 
     @staticmethod

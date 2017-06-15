@@ -19,7 +19,7 @@
 import os
 
 from src.core import filesystem
-from src.core import core
+from src.core import CoreConfig
 
 
 def exception_log():
@@ -28,7 +28,7 @@ def exception_log():
     :return: string
     """
 
-    exception_log = core.get('system').get('exceptions_log')
+    exception_log = CoreConfig.get('system').get('exceptions_log')
     return filesystem.getabsname(exception_log)
 
 

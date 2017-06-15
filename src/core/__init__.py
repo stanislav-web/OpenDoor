@@ -19,7 +19,7 @@
 # noinspection PyPep8Naming
 from .color import Color as colour
 # noinspection PyPep8Naming
-from .core import CoreConfig as core
+from .core import CoreConfig
 # noinspection PyPep8Naming
 from .decorators import execution_time
 # noinspection PyPep8Naming

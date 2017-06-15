@@ -17,6 +17,7 @@
 """
 
 from src.core import CoreSystemError, FileSystemError
+from src.core import CoreConfig
 from src.core import filesystem
 from src.core import helper
 from src.core import process
@@ -175,8 +176,8 @@ class Package(object):
         """
 
         try:
-            config = filesystem.readcfg(Config.params.get('cfg'))
-            return config.get('info', 'version')
+            version = CoreConfig.get('opendoor').get('version')
+            return version
         except FileSystemError as error:
             raise PackageError(str(error))
 
@@ -189,8 +190,8 @@ class Package(object):
         """
 
         try:
-            config = filesystem.readcfg(Config.params.get('cfg'))
-            return config.get('info', 'name')
+            name = CoreConfig.get('opendoor').get('name')
+            return name
         except FileSystemError as error:
             raise PackageError(str(error))
 
@@ -205,8 +206,7 @@ class Package(object):
         if None is Package.remote_version:
 
             try:
-                config = filesystem.readcfg(Config.params.get('cfg'))
-                request_uri = config.get('info', 'setup')
+                request_uri = CoreConfig.get('info').get('setup')
                 result = process.execute('curl -sb GET {uri}'.format(uri=request_uri))
 
                 raw = filesystem.readraw(result)
@@ -249,8 +249,8 @@ class Package(object):
         """
 
         try:
-            config = filesystem.readcfg(Config.params.get('cfg'))
-            return config.get('info', 'repository')
+            repository = CoreConfig.get('info').get('repository')
+            return repository
         except FileSystemError as error:
             raise PackageError(str(error))
 
@@ -263,8 +263,8 @@ class Package(object):
         """
 
         try:
-            config = filesystem.readcfg(Config.params.get('cfg'))
-            return config.get('info', 'license')
+            license = CoreConfig.get('opendoor').get('license')
+            return license
         except FileSystemError as error:
             raise PackageError(str(error))
 
@@ -277,8 +277,7 @@ class Package(object):
         """
 
         try:
-            config = filesystem.readcfg(Config.params.get('cfg'))
-            filename = config.get('opendoor', 'directories')
+            filename =  CoreConfig.get('opendoor').get('directories')
             count = filesystem.read(filename).__len__()
 
             return count
@@ -295,8 +294,7 @@ class Package(object):
         """
 
         try:
-            config = filesystem.readcfg(Config.params.get('cfg'))
-            filename = config.get('opendoor', 'subdomains')
+            filename = CoreConfig.get('opendoor').get('subdomains')
             count = filesystem.read(filename).__len__()
 
             return count
@@ -313,8 +311,7 @@ class Package(object):
         """
 
         try:
-            config = filesystem.readcfg(Config.params.get('cfg'))
-            filename = config.get('opendoor', 'useragents')
+            filename = CoreConfig.get('opendoor').get('useragents')
             count = filesystem.read(filename).__len__()
 
             return count
@@ -331,8 +328,7 @@ class Package(object):
         """
 
         try:
-            config = filesystem.readcfg(Config.params.get('cfg'))
-            filename = config.get('opendoor', 'proxies')
+            filename = CoreConfig.get('opendoor').get('proxies')
             count = filesystem.read(filename).__len__()
 
             return count

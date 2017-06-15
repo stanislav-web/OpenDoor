@@ -23,7 +23,6 @@ from src.lib import tpl
 class PluginProvider(object):
     """"PluginProvider class"""
     
-    CONFIG_FILE = 'setup.cfg'
     PLUGIN_NAME = 'PluginProvider'
     EXTENSION_SET = '.pp'
     

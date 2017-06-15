@@ -1,6 +1,5 @@
 # Include the data files
 include data/*.dat
-include setup.cfg
 include opendoor.py
 include opendoor.conf
 include syslog/
