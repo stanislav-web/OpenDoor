@@ -20,11 +20,16 @@ CoreConfig = {
     'info': {
         'name': 'Opendoor scanner',
         'repository': 'git@github.com:stanislav-web/OpenDoor.git',
-        'setup': 'https://raw.githubusercontent.com/stanislav-web/OpenDoor/master/setup.cfg',
+        'remote_version': 'https://raw.githubusercontent.com/stanislav-web/OpenDoor/reformat/VERSION',
         'license': 'License: GNU General Public License',
         'version': '3.3.36-rc',
+        'documentations': 'https://opendoor.readthedocs.org',
+        'required_versions': {
+            'minor': '3.3',
+            'major': '3.6'
+        },
     },
-    'opendoor': {
+    'data': {
         'directories': 'data/directories.dat',
         'ignored': 'data/ignored.dat',
         'proxies': 'data/proxies.dat',
@@ -33,8 +38,56 @@ CoreConfig = {
         'tmplist': 'tmp/list.tmp',
         'extensionlist': 'tmp/extensionlist.tmp',
         'reports': 'reports/',
-    },
-    'system': {
         'exceptions_log': 'syslog/exceptions.log',
-    }
+    },
+    'command': {
+        'cvsupdate': '/usr/bin/git pull origin master',
+        'cvslog': '/usr/bin/git log --oneline -n 1',
+    },
+'examples': """
+
+            Examples:
+                python3 ./opendoor.py  --examples
+                python3 ./opendoor.py  --update
+                python3 ./opendoor.py  --version
+                python3 ./opendoor.py  --docs
+                python3 ./opendoor.py  --wizard
+                python3 ./opendoor.py  --wizard /usr/local/projects/my.conf
+                python3 ./opendoor.py --host "http://example.com"
+                python3 ./opendoor.py --host "https://example.com" --port 8080
+                python3 ./opendoor.py --host "http://example.com" --scan subdomains
+                python3 ./opendoor.py --host "http://example.com" --threads 10
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --random-list
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --random-agent
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --tor
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --delay 10
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --prefix en/
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10
+                python3 ./opendoor.py --host "http://example.com"  --random-list --threads 10 --delay 10 --timeout 10
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --debug 1 --reports std,txt
+                python3 ./opendoor.py --host "http://example.com" --debug 1 --reports std,txt --reports-dir /reports
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --debug 1 --extensions php,html
+            """, 'banner': """
+############################################################
+#                                                          #
+#   _____  ____  ____  _  _    ____   _____  _____  ____   #
+#  (  _  )(  _ \( ___)( \( )  (  _ \ (  _  )(  _  )(  _ \  #
+#   )(_)(  )___/ )__)  )  (    )(_) ) )(_)(  )(_)(  )   /  #
+#  (_____)(__)  (____)(_)\_)  (____/ (_____)(_____)(_)\_)  #
+#                                                          #
+#  {0}\t\t                           #
+#  {1}\t\t                           #
+#  {2}\t\t\t                   #
+#  {3}\t\t\t                           #
+#  {4}                     #
+############################################################""", 'version': """
+
+{0}: {1} -> {2}
+{3}
+{4}
+============================================================""", 'update': """
+
+{status}
+============================================================"""
 }

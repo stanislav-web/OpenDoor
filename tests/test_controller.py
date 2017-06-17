@@ -17,30 +17,29 @@
 """
 
 from __future__ import absolute_import
+import copy
 import unittest2 as unittest
-import os
-from configparser import RawConfigParser
 from ddt import ddt, data
-from src.lib.package.config import Config
-from src.core import filesystem
+from src.core import CoreConfig
 from src import Controller, SrcError
 
 
 @ddt
 class TestController(unittest.TestCase):
     """TestController class"""
-    
-    @property
-    def __configuration(self):
-        test_config =  filesystem.getabsname(os.path.join('tests', 'data', 'setup.cfg'))
-        config = RawConfigParser()
-        config.read(test_config)
-        return config
-    
+
+    def setUp(self):
+        self.controller = Controller.__new__(Controller)
+        self.config = CoreConfig
+
+    def tearDown(self):
+        del self.controller
+        del self.config
+
     def test_init_exception(self):
         """ Controller.init() exception test """
 
-        Config.params['required_versions'] = {
+        self.config['info']['required_versions'] = {
             'minor': '4.0',
             'major': '4.5'
         }
@@ -52,26 +51,22 @@ class TestController(unittest.TestCase):
     def test_run(self, args):
         """ Controller.run() test """
         
-        Config.params['cfg'] = 'setup.cfg'
-        controller = Controller.__new__(Controller)
-        setattr(controller, 'ioargs', args)
-        controller.run()
+        setattr(self.controller, 'ioargs', args)
+        self.controller.run()
         self.assertTrue(True)
         
     def test_run_exception(self):
         """ Controller.run() exception test """
 
-        controller = Controller.__new__(Controller)
         with self.assertRaises(SrcError) as context:
-            controller.run()
+            self.controller.run()
         self.assertTrue(SrcError == context.expected)
     
     def test_scan_action_exception(self):
         """ Controller.scan_action() exception test """
         
-        controller = Controller.__new__(Controller)
         with self.assertRaises(SrcError) as context:
-            controller.scan_action(params={
+            self.controller.scan_action(params={
                 'host': 'http://example.com',
                 'port': 80
             })
@@ -80,57 +75,23 @@ class TestController(unittest.TestCase):
     def test_examples_action(self):
         """ Controller.examples_action() test """
 
-        Config.params['cfg'] = 'setup.cfg'
-        controller = Controller.__new__(Controller)
-        self.assertIsNone(controller.examples_action())
+        self.assertIsNone(self.controller.examples_action())
 
     def test_update_action(self):
         """ Controller.update_action() test """
 
-        Config.params['cfg'] = 'setup.cfg'
-        controller = Controller.__new__(Controller)
-        self.assertIsNone(controller.update_action())
+        self.assertIsNone(self.controller.update_action())
 
     def test_version_action(self):
         """ Controller.version_action() test """
 
-        Config.params['cfg'] = 'setup.cfg'
-        controller = Controller.__new__(Controller)
-        self.assertIsNone(controller.version_action())
+        self.assertIsNone(self.controller.version_action())
 
     def test_local_version(self):
         """ Controller.local_version() test """
 
-        Config.params['cfg'] = 'setup.cfg'
-        controller = Controller.__new__(Controller)
-        self.assertIsNone(controller.local_version())
+        self.assertIsNone(self.controller.local_version())
 
-    def test_update_action_exception(self):
-        """ Controller.update_action() exception test """
 
-        del Config.params['update']
-        controller = Controller.__new__(Controller)
-        with self.assertRaises(SrcError) as context:
-            controller.update_action()
-        self.assertTrue(SrcError == context.expected)
-
-    def test_version_action_exception(self):
-        """ Controller.version_action() exception test """
-
-        Config.params['cfg'] = 'wrong.cfg'
-        controller = Controller.__new__(Controller)
-        with self.assertRaises(SrcError) as context:
-            controller.version_action()
-        self.assertTrue(SrcError == context.expected)
-
-    def test_local_version_action_exception(self):
-        """ Controller.local_version() exception test """
-
-        Config.params['cfg'] = 'wrong.cfg'
-        controller = Controller.__new__(Controller)
-        with self.assertRaises(SrcError) as context:
-            controller.local_version()
-        self.assertTrue(SrcError == context.expected)
-        
 if __name__ == "__main__":
     unittest.main()

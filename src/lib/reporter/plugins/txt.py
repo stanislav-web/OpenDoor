@@ -17,6 +17,7 @@
 """
 
 from .provider import PluginProvider
+from src.core import CoreConfig
 from src.core import filesystem, FileSystemError
 
 
@@ -38,10 +39,8 @@ class TextReportPlugin(PluginProvider):
 
         try:
             if None is directory:
-                config = filesystem.readcfg(self.CONFIG_FILE)
-                directory = config.get('opendoor', 'reports')
-            self.__target_dir = "".join((directory, self._target))
-            filesystem.makedir(self.__target_dir)
+                directory = CoreConfig.get('data').get('reports')
+            self.__target_dir = filesystem.makedir("".join((directory, self._target)))
         except FileSystemError as error:
             raise Exception(error)
 

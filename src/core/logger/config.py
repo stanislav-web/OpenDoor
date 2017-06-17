@@ -28,7 +28,7 @@ def exception_log():
     :return: string
     """
 
-    exception_log = CoreConfig.get('system').get('exceptions_log')
+    exception_log = CoreConfig.get('data').get('exceptions_log')
     return filesystem.getabsname(exception_log)
 
 

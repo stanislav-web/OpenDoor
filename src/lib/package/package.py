@@ -24,7 +24,6 @@ from src.core import process
 from src.core import sys
 # noinspection PyPep8Naming
 from src.lib.tpl import Tpl as tpl
-from .config import Config
 from .exceptions import PackageError
 
 
@@ -41,7 +40,7 @@ class Package(object):
         :return: dict or bool
         """
 
-        versions = Config.params.get('required_versions')
+        versions = CoreConfig.get('info').get('required_versions')
         actual_version = sys.version()
         target_compare = (actual_version == versions.get('minor') or actual_version == versions.get('major'))
         relative_compare = (helper.is_less(versions.get('minor'), actual_version) is True or
@@ -62,7 +61,7 @@ class Package(object):
         :return: str
         """
 
-        examples = Config.params.get('examples')
+        examples = CoreConfig.get('examples')
         return examples
 
     @staticmethod
@@ -76,7 +75,7 @@ class Package(object):
 
         try:
 
-            banner = Config.params.get('banner').format(
+            banner = CoreConfig.get('banner').format(
                 tpl.line('Directories: {0}'.format(Package.__directories_count()), color='blue'),
                 tpl.line('Subdomains: {0}'.format(Package.__subdomains_count()), color='blue'),
                 tpl.line('Browsers: {0}'.format(Package.__browsers_count()), color='blue'),
@@ -98,10 +97,9 @@ class Package(object):
 
         try:
 
-            version = Config.params.get('version').format(Package.__app_name(), Package.__current_version(),
+            version = CoreConfig.get('version').format(Package.__app_name(), Package.__current_version(),
                                                           Package.__remote_version(), Package.__repo(),
                                                           Package.__license())
-
             return version
 
         except (FileSystemError, CoreSystemError, PackageError) as error:
@@ -145,7 +143,7 @@ class Package(object):
         :raise PackageError
         :return: bool
         """
-        docurl = Config.params.get('documentations')
+        docurl = CoreConfig.get('info').get('documentations')
         return helper.openbrowser(docurl)
 
     @staticmethod
@@ -158,11 +156,11 @@ class Package(object):
 
         try:
             if False is sys().is_windows:
-                status = process.execute(Config.params.get('cvsupdate'))
+                status = process.execute(CoreConfig.get('command').get('cvsupdate'))
                 upd_status = tpl.line(status, color='green')
-                msg = Config.params.get('update').format(status=upd_status)
+                msg = CoreConfig.get('update').format(status=upd_status)
             else:
-                msg = Config.params.get('update').format(status=tpl.line(key='upd_win_stat'))
+                msg = CoreConfig.get('update').format(status=tpl.line(key='upd_win_stat'))
             return msg
         except (AttributeError, CoreSystemError) as error:
             raise PackageError(error)
@@ -176,7 +174,7 @@ class Package(object):
         """
 
         try:
-            version = CoreConfig.get('opendoor').get('version')
+            version = CoreConfig.get('info').get('version')
             return version
         except FileSystemError as error:
             raise PackageError(str(error))
@@ -190,7 +188,7 @@ class Package(object):
         """
 
         try:
-            name = CoreConfig.get('opendoor').get('name')
+            name = CoreConfig.get('info').get('name')
             return name
         except FileSystemError as error:
             raise PackageError(str(error))
@@ -206,12 +204,9 @@ class Package(object):
         if None is Package.remote_version:
 
             try:
-                request_uri = CoreConfig.get('info').get('setup')
+                request_uri = CoreConfig.get('info').get('remote_version')
                 result = process.execute('curl -sb GET {uri}'.format(uri=request_uri))
-
-                raw = filesystem.readraw(result)
-                Package.remote_version = raw.get('info', 'version')
-
+                Package.remote_version = str(result, "utf-8")
                 return Package.remote_version
 
             except (FileSystemError, CoreSystemError) as error:
@@ -230,7 +225,6 @@ class Package(object):
         try:
             local = Package.local_version()
             remote = Package.__remote_version()
-
             if True is helper.is_less(local, remote):
                 current_version = tpl.line(local, color='red')
             else:
@@ -263,7 +257,7 @@ class Package(object):
         """
 
         try:
-            license = CoreConfig.get('opendoor').get('license')
+            license = CoreConfig.get('info').get('license')
             return license
         except FileSystemError as error:
             raise PackageError(str(error))
@@ -277,7 +271,7 @@ class Package(object):
         """
 
         try:
-            filename =  CoreConfig.get('opendoor').get('directories')
+            filename =  CoreConfig.get('data').get('directories')
             count = filesystem.read(filename).__len__()
 
             return count
@@ -294,7 +288,7 @@ class Package(object):
         """
 
         try:
-            filename = CoreConfig.get('opendoor').get('subdomains')
+            filename = CoreConfig.get('data').get('subdomains')
             count = filesystem.read(filename).__len__()
 
             return count
@@ -311,7 +305,7 @@ class Package(object):
         """
 
         try:
-            filename = CoreConfig.get('opendoor').get('useragents')
+            filename = CoreConfig.get('data').get('useragents')
             count = filesystem.read(filename).__len__()
 
             return count
@@ -328,7 +322,7 @@ class Package(object):
         """
 
         try:
-            filename = CoreConfig.get('opendoor').get('proxies')
+            filename = CoreConfig.get('data').get('proxies')
             count = filesystem.read(filename).__len__()
 
             return count

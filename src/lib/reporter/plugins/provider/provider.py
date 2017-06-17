@@ -70,7 +70,7 @@ class PluginProvider(object):
         
         try:
             filename = "".join((dirname, filesystem.sep, filename, cls.EXTENSION_SET))
-            filesystem.makefile(filename)
+            filename = filesystem.makefile(filename)
             filesystem.writelist(filename, resultset, separator)
             tpl.info(key='report', plugin=cls.PLUGIN_NAME, dest=filesystem.getabsname(filename))
         except FileSystemError as error:

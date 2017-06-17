@@ -16,10 +16,9 @@
     Development Team: Stanislav WEB
 """
 
-from configparser import ConfigParser, RawConfigParser, ParsingError, NoOptionError, Error
+from configparser import RawConfigParser, ParsingError, NoOptionError
 import errno
 import os
-from io import StringIO
 import random
 import re
 
@@ -55,16 +54,23 @@ class FileSystem(object):
         :param str directory: directory
         :param int mode: directory permission
         :raise: FileSystemError
-        :return: None
+        :return: str
         """
 
-        if not os.path.exists(directory):
+        if not os.path.exists(directory) or not os.access(directory,  os.W_OK):
+
             try:
                 directory = os.path.join(directory)
-                os.makedirs(directory + '/', mode=mode)
-            except OSError as error:
-                if error.errno != errno.EEXIST:
-                    raise FileSystemError("Cannot create directory `{0}`. Reason: {1}".format(directory, error))
+                directory = directory + '/'
+                os.makedirs(directory, mode=mode)
+            except OSError:
+                try:
+                    directory = os.path.join(os.path.expanduser('~'), directory)
+                    os.makedirs(directory, mode=mode)
+                except OSError as error:
+                    if error.errno != errno.EEXIST:
+                        raise FileSystemError("Cannot create directory `{0}`. Reason: {1}".format(directory, error))
+        return directory
 
     @staticmethod
     def getabsname(filename):
@@ -122,7 +128,7 @@ class FileSystem(object):
         :param str directory: os directory
         :param str extension: extension
         :raise: FileSystemError
-        :return: Bool
+        :return: None
         """
 
         if True is os.path.exists(directory):
@@ -143,21 +149,20 @@ class FileSystem(object):
         Create new file with context
         :param str filename: input filename
         :raise: FileSystemError
-        :return: Bool
+        :return: str
         """
 
         filename = os.path.join(filename)
-
-        if False is os.path.exists(filename):
+        if False is os.path.exists(filename) or False is os.access(filename, os.R_OK):
             try:
-                FileSystem.makedir(os.path.dirname(filename))
-                open(filename, 'w')
-
-                return True
+                directory = FileSystem.makedir(os.path.dirname(filename))
+                abs_filename = os.path.join(directory, os.path.basename(filename))
+                open(abs_filename, 'w')
+                return abs_filename
             except IOError as error:
                 raise FileSystemError(error.strerror)
         else:
-            return False
+            return filename
 
     @staticmethod
     def shuffle(target, output, total):
@@ -213,9 +218,13 @@ class FileSystem(object):
 
         filepath = os.path.join(filename)
         if not os.path.isfile(filepath):
-            raise FileSystemError("{0} is not a file ".format(filepath))
+            filepath = os.path.join(os.path.expanduser('~'), filepath)
+            if not os.path.isfile(filepath):
+                raise FileSystemError("{0} is not a file ".format(filepath))
         if not os.access(filepath, os.R_OK):
-            raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
+            filepath = os.path.join(os.path.expanduser('~'), filepath)
+            if not os.access(filepath, os.R_OK):
+                raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
 
         lines = []
         with open(filepath) as f_handler:
@@ -291,23 +300,6 @@ class FileSystem(object):
 
         with open(filepath, "w") as f_handler:
             f_handler.write(separator.join(data))
-
-    @staticmethod
-    def readraw(data):
-        """
-        Read .cfg raw data file
-        :param str data: file data
-        :raise FileSystemError
-        :return: configparser.RawConfigParser
-        """
-
-        buf = StringIO(str(data, "utf-8"))
-        try:
-            config = ConfigParser()
-            config.read_file(buf)
-            return config
-        except Error as error:
-            raise FileSystemError(str(error))
 
     @staticmethod
     def human_size(size, precision=2):

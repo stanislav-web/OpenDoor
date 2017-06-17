@@ -18,6 +18,7 @@
 
 from src.core import FileSystemError
 from src.core import CoreSystemError
+from src.core import CoreConfig
 from src.core import filesystem
 from src.core import process
 from src.core import sys
@@ -35,26 +36,12 @@ class Reader(object):
         :param dict browser_config:
         """
 
-        self.__config = self.__load_config()
+        self.__config = CoreConfig.get('data')
         self.__browser_config = browser_config
         self.__useragents = []
         self.__proxies = []
         self.__ignored = []
         self.__counter = 0
-
-    @staticmethod
-    def __load_config():
-        """
-        Load main configuration file
-        :raise ReaderError
-        :return: ConfigParser.RawConfigParser
-        """
-
-        try:
-            config = filesystem.readcfg(Config.setup)
-            return config
-        except FileSystemError as error:
-            raise ReaderError(str(error))
 
     def get_user_agents(self):
         """
@@ -65,7 +52,7 @@ class Reader(object):
 
         try:
             if not len(self.__useragents):
-                self.__useragents = filesystem.read(self.__config.get('opendoor', 'useragents'))
+                self.__useragents = filesystem.read(self.__config.get('useragents'))
             return self.__useragents
 
         except (TypeError, FileSystemError) as error:
@@ -81,7 +68,7 @@ class Reader(object):
         try:
 
             if not len(self.__ignored):
-                ignored = filesystem.read(self.__config.get('opendoor', 'ignored'))
+                ignored = filesystem.read(self.__config.get('ignored'))
                 for item in ignored:
                     item = item.replace("\n", "")
                     if "/" == item[0]:
@@ -108,7 +95,7 @@ class Reader(object):
                 else:
 
                     if not len(self.__proxies):
-                        self.__proxies = filesystem.read(self.__config.get('opendoor', 'proxies'))
+                        self.__proxies = filesystem.read(self.__config.get('proxies'))
                 return self.__proxies
             else:
                 return []
@@ -128,16 +115,15 @@ class Reader(object):
         try:
             if True is self.__browser_config.get('use_extensions')\
                     and 'directories' == self.__browser_config.get('list'):
-                dirlist = self.__config.get('opendoor', 'extensionlist')
+                dirlist = self.__config.get('extensionlist')
             elif True is self.__browser_config.get('use_random'):
-                dirlist = self.__config.get('opendoor', 'tmplist')
+                dirlist = self.__config.get('tmplist')
             else:
                 if True is self.__browser_config.get('is_external_wordlist'):
                     dirlist = self.__browser_config.get('list')
                     self.__browser_config.update({'list': 'directories'})
                 else:
-                    dirlist = self.__config.get('opendoor', self.__browser_config.get('list'))
-
+                    dirlist = self.__config.get(self.__browser_config.get('list'))
             filesystem.readline(dirlist, handler=getattr(self, '_{0}__line'.format(self.__browser_config.get('list'))),
                                 handler_params=params, loader=loader)
         except (TypeError, FileSystemError) as error:
@@ -210,9 +196,9 @@ class Reader(object):
 
         try:
 
-            target_file = self.__config.get('opendoor', target)
-            output_file = self.__config.get('opendoor', output)
-            filesystem.makefile(output_file)
+            target_file = self.__config.get(target)
+            tmp_file = self.__config.get(output)
+            output_file = filesystem.makefile(tmp_file)
 
             if False is sys().is_windows:
                 process.execute('shuf {target} -o {output}'.format(target=target_file, output=output_file))
@@ -233,8 +219,8 @@ class Reader(object):
 
         try:
 
-            target_file = self.__config.get('opendoor', target)
-            output_file = self.__config.get('opendoor', output)
+            target_file = self.__config.get(target)
+            output_file = self.__config.get(output)
 
             dirlist = filesystem.read(target_file)
             dirlist = [i.strip() for i in dirlist]
@@ -259,7 +245,7 @@ class Reader(object):
                 if True is self.__browser_config.get('is_external_wordlist'):
                     dirlist = self.__browser_config.get('list')
                 else:
-                    dirlist = self.__config.get('opendoor', self.__browser_config.get('list'))
+                    dirlist = self.__config.get(self.__browser_config.get('list'))
                 self.__counter = len(filesystem.read(dirlist))
 
             return self.__counter

@@ -314,9 +314,10 @@ class Config(object):
         :return: list
         """
 
+        extensions = None
         if None is not self._extensions:
-            self._extensions = self._extensions.split(",")
-        return self._extensions
+            extensions = self._extensions.split(",")
+        return extensions
 
     @property
     def reports(self):
