@@ -28,8 +28,8 @@ def exception_log():
     :return: string
     """
 
-    exception_log = CoreConfig.get('data').get('exceptions_log')
-    return filesystem.getabsname(exception_log)
+    exception_filelog = CoreConfig.get('data').get('exceptions_log')
+    return filesystem.getabsname(exception_filelog)
 
 
 class Config(object):

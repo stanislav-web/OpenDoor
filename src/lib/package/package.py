@@ -28,7 +28,6 @@ from .exceptions import PackageError
 
 
 class Package(object):
-
     """Package class"""
 
     remote_version = None
@@ -98,8 +97,8 @@ class Package(object):
         try:
 
             version = CoreConfig.get('version').format(Package.__app_name(), Package.__current_version(),
-                                                          Package.__remote_version(), Package.__repo(),
-                                                          Package.__license())
+                                                       Package.__remote_version(), Package.__repo(),
+                                                       Package.__license())
             return version
 
         except (FileSystemError, CoreSystemError, PackageError) as error:
@@ -109,21 +108,22 @@ class Package(object):
     def wizard(config):
         """
         Get application wizard (read from config)
+        :param str config: configuration file
         :raise PackageError
-        :param str config
         :return: str
         """
 
         try:
             config = filesystem.readcfg(config)
+            # noinspection PyProtectedMember
             params = dict(config._sections['general'])
 
-            for key,val in params.items():
+            for key, val in params.items():
                 params[key] = None if val == 'None' else val
                 if None is not params[key]:
                     if params[key].isdigit():
                         params[key] = int(float(params[key]))
-                    elif params[key] in ['True','False']:
+                    elif params[key] in ['True', 'False']:
                         if params[key] == 'True':
                             params[key] = True
                         else:
@@ -132,7 +132,6 @@ class Package(object):
                         params[key] = params[key].strip()
             return params
 
-        #x = None if x == 'None' else x
         except FileSystemError as error:
             raise PackageError(str(error))
 
@@ -257,8 +256,8 @@ class Package(object):
         """
 
         try:
-            license = CoreConfig.get('info').get('license')
-            return license
+            license_info = CoreConfig.get('info').get('license')
+            return license_info
         except FileSystemError as error:
             raise PackageError(str(error))
 
@@ -271,7 +270,7 @@ class Package(object):
         """
 
         try:
-            filename =  CoreConfig.get('data').get('directories')
+            filename = CoreConfig.get('data').get('directories')
             count = filesystem.read(filename).__len__()
 
             return count

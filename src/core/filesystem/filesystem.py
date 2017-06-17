@@ -61,7 +61,7 @@ class FileSystem(object):
 
             try:
                 directory = os.path.join(directory)
-                directory = directory + '/'
+                directory += '/'
                 os.makedirs(directory, mode=mode)
             except OSError:
                 try:
