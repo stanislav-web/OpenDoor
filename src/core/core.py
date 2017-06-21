@@ -20,7 +20,7 @@ CoreConfig = {
     'info': {
         'name': 'Opendoor scanner',
         'repository': 'git@github.com:stanislav-web/OpenDoor.git',
-        'remote_version': 'https://raw.githubusercontent.com/stanislav-web/OpenDoor/reformat/VERSION',
+        'remote_version': 'https://raw.githubusercontent.com/stanislav-web/OpenDoor/master/VERSION',
         'license': 'License: GNU General Public License',
         'version': '3.3.37-rc',
         'documentations': 'https://opendoor.readthedocs.org',
