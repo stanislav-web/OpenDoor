@@ -7669,7 +7669,7 @@ cache_faqs.php
 cache_files/
 cache_files1/
 cache_forums.php
-cache_html
+cache_html.json
 cache_html/
 cache_icons.php
 cache_index.php

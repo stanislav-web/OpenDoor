@@ -1,7 +1,7 @@
 OWASP WEB Directory Scanner [![Twitter](https://img.shields.io/twitter/url/https/github.com/stanislav-web/OpenDoor.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https://github.com/stanislav-web/OpenDoor)
 ===============================================================================================================================================================================================================================
 
-[![Coverage Status](https://coveralls.io/repos/github/stanislav-web/OpenDoor/badge.svg?branch=master)](https://coveralls.io/github/stanislav-web/OpenDoor?branch=master) [![Code Health](https://landscape.io/github/stanislav-web/OpenDoor/master/landscape.svg?style=flat)](https://landscape.io/github/stanislav-web/OpenDoor/master) [![Documentation Status](https://readthedocs.org/projects/opendoor/badge/?version=latest)](http://opendoor.readthedocs.io/?badge=latest) [![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor)
+[![Code Health](https://landscape.io/github/stanislav-web/OpenDoor/master/landscape.svg?style=flat)](https://landscape.io/github/stanislav-web/OpenDoor/master) [![Documentation Status](https://readthedocs.org/projects/opendoor/badge/?version=latest)](http://opendoor.readthedocs.io/?badge=latest) [![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor)
 
 |  Python | Linux  |  OSX | Windows  |
 |:-:|:-:|:-:|:-:|
@@ -11,13 +11,13 @@ OWASP WEB Directory Scanner [![Twitter](https://img.shields.io/twitter/url/https
 |3.6|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
 
 **OpenDoor OWASP** is console multifunctional web sites scanner.
-This application find all possible ways to login, index of/ directories, restricted access points, subdomains, hidden data and large backups.
+This application find all possible ways to login, index of/ directories, web shells, restricted access points, subdomains, hidden data and large backups.
 The scanning is performed by the built-in dictionary and external dictionaries as well. Anonymity and speed are provided by means of using proxy servers.
 Software is written for informational purposes and is open source product under the GPL license.
 
 ***(Due to the incorrect operation of "SSL" the support for "Python 2.7" is terminated)***
-* *Current v3.3.36-rc (04.06.2017)*
-    - Directories - 35888
+* *Current v3.3.36-rc (22.06.2017)*
+    - Directories - 35941
     - Subdomains - 101000
 
 ***Testing of the software on the live commercial systems and organizations is prohibited!***
@@ -78,8 +78,9 @@ Software is written for informational purposes and is open source product under 
 
 #### [Changelog](CHANGELOG.md) (last changes)
 
-v3.3.36-rc (04.08.2017)
--------------------------
+v3.3.37-rc (21.08.2017)
+-----------------------
+    - Fixed errors
     - Add config wizard (allows you to configure own project)
     
 v3.2.36-rc (04.06.2017)

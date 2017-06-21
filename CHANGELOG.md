@@ -1,7 +1,8 @@
 Changes
 =======
-v3.3.36-rc (04.08.2017)
+v3.3.37-rc (22.06.2017)
 -------------------------
+    - Fixed errors
     - Add config wizard (allows you to configure own project)
     
 v3.2.36-rc (04.06.2017)

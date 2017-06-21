@@ -1,0 +1,31 @@
+{
+    "items": {
+        "failed": [
+            "http://test.local/swfobject.js",
+            "http://test.local/swfobject.php",
+            "http://test.local/swfobject/",
+            "http://test.local/swfs/",
+            "http://test.local/swfupload.php",
+            "http://test.local/swfupload/",
+            "http://test.local/swift/",
+            "http://test.local/login/",
+            "http://test.local/users/",
+            "http://test.local/swiss/",
+            "http://test.local/switch.php",
+            "http://test.local/switch/",
+            "http://test.local/switcher/",
+            "http://test.local/switchover/",
+            "http://test.local/switchoverfiles/"
+        ],
+        "success": [
+            "http://test.local/cron/exp.php",
+            "http://test.local/cron/cron-online.php"
+        ]
+    },
+    "total": {
+        "failed": 15,
+        "items": 17,
+        "success": 2,
+        "workers": 1
+    }
+}

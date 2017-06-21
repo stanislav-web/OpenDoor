@@ -1,8 +1,6 @@
 OWASP WEB Directory Scanner
 ===========================
 
-.. image:: https://coveralls.io/repos/github/stanislav-web/OpenDoor/badge.svg?branch=master
-   :target: https://coveralls.io/github/stanislav-web/OpenDoor?branch=master
 .. image:: https://landscape.io/github/stanislav-web/OpenDoor/master/landscape.svg?style=flat
    :target: https://landscape.io/github/stanislav-web/OpenDoor/master
 .. image:: https://readthedocs.org/projects/opendoor/badge/?version=latest
@@ -14,16 +12,16 @@ OWASP WEB Directory Scanner
    :target: https://ci.appveyor.com/project/stanislav-web/opendoor
 
 **OpenDoor OWASP** is console multifunctional web sites scanner. This
-application find all possible ways to login, index of/ directories,
+application find all possible ways to login, index of/ directories, web shells,
 restricted access points, subdomains, hidden data and large backups. The
 scanning is performed by the built-in dictionary and external
 dictionaries as well. Anonymity and speed are provided by means of using
 proxy servers. Software is written for informational purposes and is
 open source product under the GPL license.
 
--  *Current v3.2.36-rc (04.06.2017)*
+-  *Current v3.2.36-rc (22.06.2017)*
 
-   -  Directories - 35888
+   -  Directories - 35941
    -  Subdomains - 101000
 
 ***Testing of the software on the live commercial systems and
@@ -98,11 +96,12 @@ Updates
 Changelog (last changes)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-v3.3.36-rc (04.08.2017)
+v3.3.37-rc (21.08.2017)
 -----------------------
 
 ::
 
+    - Fixed errors
     - Add config wizard (allows you to configure own project)
 
 v3.2.36-rc (04.06.2017)

@@ -50,10 +50,11 @@ class ResponseProvider(object):
         :return: bool
         """
 
-        title = re.search('<title>(.+?)</title>', str(content, "utf-8"), re.IGNORECASE | re.DOTALL)
-
-        if None is not re.search(self.INDEX_OF_TITLE, title.group(1), re.IGNORECASE):
-            return True
+        content = helper.decode(content)
+        if 0 < len(content):
+            title = re.search('<title>(.+?)</title>', content, re.IGNORECASE | re.DOTALL)
+            if None is not re.search(self.INDEX_OF_TITLE, title.group(1), re.IGNORECASE):
+                return True
         return False
 
     @classmethod

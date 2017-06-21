@@ -16,6 +16,7 @@
     Development Team: Stanislav WEB
 """
 
+import codecs
 import collections
 import json
 import webbrowser
@@ -123,3 +124,35 @@ class Helper(object):
         """
 
         return isinstance(func, collections.Callable)
+
+    @staticmethod
+    def decode(string, errors='strict'):
+        """
+        Decode strings
+
+        :param str string: input string
+        :param str errors:error level
+        :return:
+        """
+
+        output = ''
+
+        try:
+            if len(string) < 3:
+                if codecs.BOM_UTF8.startswith(string):
+                    # not enough data to decide if this is a BOM
+                    # => try again on the next call
+                    output = ""
+
+            elif string[:3] == codecs.BOM_UTF8:
+                (output, sizes) = codecs.utf_8_decode(string[3:], errors)
+            elif string[:3] == codecs.BOM_UTF16:
+                output = string[3:].decode('utf16')
+            else:
+                # (else) no BOM present
+                (output, sizes) = codecs.utf_8_decode(string, errors)
+            return str(output)
+        except UnicodeDecodeError:
+            # seems, its getting not a content (images, file, etc)
+            return ""
+
