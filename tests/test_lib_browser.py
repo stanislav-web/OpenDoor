@@ -85,43 +85,43 @@ class TestBrowser(unittest.TestCase):
         self.assertTrue(BrowserError == context.expected)
 
 
-    @data(
-            Config({'host': 'example.com', 'port' : 80, 'debug': 1}),
-            Config({'host': 'example.com', 'scheme' : 'http://', 'port' : 80, 'debug': 1}),
-            Config({'host': 'example.com', 'port': 80, 'debug': 2}),
-            Config({'host': 'example.com', 'port': 80, 'debug': 3}),
-            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'indexof': True}),
-            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'random_agent': True}),
-            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'random_agent': True, 'random-list': True}),
-            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'accept-cookies' : True, 'scan' : 'directories'}),
-            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'scan' : 'subdomains'}),
-            Config({'host': 'example.com', 'port': 80, 'debug': 3, 'threads' : 2, 'delay' : 1, 'timeout' : 10, 'request' : 3}),
-    )
-    def test_http_scan(self, config):
-        """ Browser.scan() http test """
-
-        br = browser.__new__(browser)
-        reader = Reader(browser_config={
-                'list': config.scan,
-                'torlist': config.torlist,
-                'use_random': config.is_random_list,
-                'is_external_wordlist': config.is_external_wordlist,
-                'is_standalone_proxy': config.is_standalone_proxy,
-                'is_external_torlist': config.is_external_torlist,
-                'prefix': config.prefix
-            })
-        result = {}
-        result['total'] = helper.counter()
-        result['items'] = helper.list()
-
-        setattr(reader, '_Reader__config', self.__configuration)
-        setattr(br, '_Browser__debug', Debug(config))
-        setattr(br, '_Browser__pool', self.__pool)
-        setattr(br, '_Browser__config', config)
-        setattr(br, '_Browser__reader', reader)
-        setattr(br, '_Browser__response', Response(config=config, debug=Debug(config), tpl=Tpl))
-        setattr(br, '_Browser__result', result)
-        self.assertIs(br.scan(), None)
+    # @data(
+    #         Config({'host': 'example.com', 'port' : 80, 'debug': 1}),
+    #         Config({'host': 'example.com', 'scheme' : 'http://', 'port' : 80, 'debug': 1}),
+    #         Config({'host': 'example.com', 'port': 80, 'debug': 2}),
+    #         Config({'host': 'example.com', 'port': 80, 'debug': 3}),
+    #         Config({'host': 'example.com', 'port': 80, 'debug': 3, 'indexof': True}),
+    #         Config({'host': 'example.com', 'port': 80, 'debug': 3, 'random_agent': True}),
+    #         Config({'host': 'example.com', 'port': 80, 'debug': 3, 'random_agent': True, 'random-list': True}),
+    #         Config({'host': 'example.com', 'port': 80, 'debug': 3, 'accept-cookies' : True, 'scan' : 'directories'}),
+    #         Config({'host': 'example.com', 'port': 80, 'debug': 3, 'scan' : 'subdomains'}),
+    #         Config({'host': 'example.com', 'port': 80, 'debug': 3, 'threads' : 2, 'delay' : 1, 'timeout' : 10, 'request' : 3}),
+    # )
+    # def test_http_scan(self, config):
+    #     """ Browser.scan() http test """
+    #
+    #     br = browser.__new__(browser)
+    #     reader = Reader(browser_config={
+    #             'list': config.scan,
+    #             'torlist': config.torlist,
+    #             'use_random': config.is_random_list,
+    #             'is_external_wordlist': config.is_external_wordlist,
+    #             'is_standalone_proxy': config.is_standalone_proxy,
+    #             'is_external_torlist': config.is_external_torlist,
+    #             'prefix': config.prefix
+    #         })
+    #     result = {}
+    #     result['total'] = helper.counter()
+    #     result['items'] = helper.list()
+    #
+    #     setattr(reader, '_Reader__config', self.__configuration)
+    #     setattr(br, '_Browser__debug', Debug(config))
+    #     setattr(br, '_Browser__pool', self.__pool)
+    #     setattr(br, '_Browser__config', config)
+    #     setattr(br, '_Browser__reader', reader)
+    #     setattr(br, '_Browser__response', Response(config=config, debug=Debug(config), tpl=Tpl))
+    #     setattr(br, '_Browser__result', result)
+    #     self.assertIs(br.scan(), None)
 
     @data(
             Config({'host': 'http://example.com', 'port': 80, 'debug': 3, 'torlist':'/failed'}),

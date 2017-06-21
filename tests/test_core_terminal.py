@@ -25,11 +25,11 @@ from src.core.system.output import Output
 class TestTerminal(unittest.TestCase):
     """TestTerminal class"""
     
-    def test_get_ts_windows(self):
-        """ Terminal.__get_ts_windows() test """
-        
-        term = getattr(Terminal, '_Terminal__get_ts_windows')()
-        self.assertIsNotNone(term)
+    # def test_get_ts_windows(self):
+    #     """ Terminal.__get_ts_windows() test """
+    #
+    #     term = getattr(Terminal, '_Terminal__get_ts_windows')()
+    #     self.assertIsNotNone(term)
 
         
 if __name__ == "__main__":

@@ -1,0 +1,327 @@
+2017-06-17 02:25:39 [ERROR] : AttributeError: 'NoneType' object has no attribute 'format' in /home/user/Projects/OpenDoor/src/lib/package/exceptions.py -> __init__() line 26
+2017-06-17 02:25:39 [ERROR] : ReporterError: Unable to get reporter `raisesexc` in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 02:25:43 [ERROR] : CoreSystemError: b'/bin/sh: 1: wrongcvs: not found' in /home/user/Projects/OpenDoor/src/lib/package/exceptions.py -> __init__() line 26
+2017-06-17 02:25:44 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:25:44 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:25:44 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:25:44 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:25:44 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:25:44 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:25:44 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:28:09 [ERROR] : AttributeError: 'NoneType' object has no attribute 'format' in /home/user/Projects/OpenDoor/src/lib/package/exceptions.py -> __init__() line 26
+2017-06-17 02:28:10 [ERROR] : ReporterError: Unable to get reporter `raisesexc` in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 02:28:12 [ERROR] : CoreSystemError: b'/bin/sh: 1: wrongcvs: not found' in /home/user/Projects/OpenDoor/src/lib/package/exceptions.py -> __init__() line 26
+2017-06-17 02:28:13 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:28:13 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:28:13 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:28:13 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:28:13 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:28:13 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:28:13 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:29:43 [ERROR] : AttributeError: 'NoneType' object has no attribute 'format' in /home/user/Projects/OpenDoor/src/lib/package/exceptions.py -> __init__() line 26
+2017-06-17 02:29:43 [ERROR] : ReporterError: Unable to get reporter `raisesexc` in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 02:29:46 [ERROR] : CoreSystemError: b'/bin/sh: 1: wrongcvs: not found' in /home/user/Projects/OpenDoor/src/lib/package/exceptions.py -> __init__() line 26
+2017-06-17 02:29:47 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:29:47 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:29:47 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:29:47 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:29:47 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:29:47 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:29:47 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:37:31 [ERROR] : ReporterError: Unable to get reporter `raisesexc` in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 02:37:33 [ERROR] : CoreSystemError: b'/bin/sh: 1: wrongcvs: not found' in /home/user/Projects/OpenDoor/src/lib/package/exceptions.py -> __init__() line 26
+2017-06-17 02:37:35 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:37:35 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:37:35 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:37:35 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:37:35 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:37:35 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:37:35 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:43:26 [ERROR] : AttributeError: 'NoneType' object has no attribute 'format' in /home/user/Projects/OpenDoor/src/lib/package/exceptions.py -> __init__() line 26
+2017-06-17 02:43:26 [ERROR] : ReporterError: Unable to get reporter `raisesexc` in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 02:43:28 [ERROR] : CoreSystemError: b'/bin/sh: 1: wrongcvs: not found' in /home/user/Projects/OpenDoor/src/lib/package/exceptions.py -> __init__() line 26
+2017-06-17 02:43:29 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:43:29 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:43:29 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:43:29 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:43:29 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:43:29 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:43:29 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 02:44:17 [ERROR] : AttributeError: 'NoneType' object has no attribute 'format' in /home/user/Projects/OpenDoor/src/lib/package/exceptions.py -> __init__() line 26
+2017-06-17 02:47:08 [ERROR] : AttributeError: 'NoneType' object has no attribute 'format' in /home/user/Projects/OpenDoor/src/lib/package/exceptions.py -> __init__() line 26
+2017-06-17 02:47:52 [ERROR] : AttributeError: 'NoneType' object has no attribute 'format' in /home/user/Projects/OpenDoor/src/lib/package/exceptions.py -> __init__() line 26
+2017-06-17 02:50:07 [ERROR] : AttributeError: 'NoneType' object has no attribute 'format' in /home/user/Projects/OpenDoor/src/lib/package/exceptions.py -> __init__() line 26
+2017-06-17 04:26:08 [ERROR] : ReporterError: Unable to get reporter `raisesexc` in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 04:26:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 04:26:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 04:26:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 04:26:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 04:26:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 04:26:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 04:26:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:15:16 [ERROR] : SocketError: [Errno -2] Name or service not known in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : ReaderError: FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : ReporterError: Unable to get reporter `raisesexc`. Reason: module 'src.lib.reporter.plugins' has no attribute 'raisesexc' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:17 [ERROR] : ReaderError: FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:15:19 [ERROR] : FileSystemError: tests/data/directories.dat is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:19 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:19 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:19 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:19 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:19 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:19 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:19 [ERROR] : FileSystemError: /notfound is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:19 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:19 [ERROR] : FileSystemError: tests/data/directories.dat is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:19 [ERROR] : FileSystemError: tests/data/directories.dat is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:15:19 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:15:19 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:15:19 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:15:19 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:15:19 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:15:19 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:15:19 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:40:54 [ERROR] : SocketError: [Errno -2] Name or service not known in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : ReaderError: FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : ReporterError: Unable to get reporter `raisesexc`. Reason: module 'src.lib.reporter.plugins' has no attribute 'raisesexc' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:55 [ERROR] : ReaderError: FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 06:40:57 [ERROR] : FileSystemError: tests/data/directories.dat is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:57 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:57 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:57 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:57 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:57 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:57 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:57 [ERROR] : FileSystemError: /notfound is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:57 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:57 [ERROR] : FileSystemError: tests/data/directories.dat is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:57 [ERROR] : FileSystemError: tests/data/directories.dat is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 06:40:57 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:40:57 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:40:57 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:40:57 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:40:57 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:40:57 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 06:40:57 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 07:00:59 [ERROR] : SocketError: [Errno -2] Name or service not known in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : ReaderError: FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : ReporterError: Unable to get reporter `raisesexc`. Reason: module 'src.lib.reporter.plugins' has no attribute 'raisesexc' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:00 [ERROR] : ReaderError: FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-17 07:01:02 [ERROR] : FileSystemError: tests/data/directories.dat is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:02 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:02 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:02 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:02 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:02 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:02 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:02 [ERROR] : FileSystemError: /notfound is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:02 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:02 [ERROR] : FileSystemError: tests/data/directories.dat is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:02 [ERROR] : FileSystemError: tests/data/directories.dat is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-17 07:01:02 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 07:01:02 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 07:01:02 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 07:01:02 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 07:01:02 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 07:01:02 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-17 07:01:02 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:35:49 [ERROR] : SocketError: [Errno -2] Name or service not known in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : ReaderError: FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : ReporterError: Unable to get reporter `raisesexc`. Reason: module 'src.lib.reporter.plugins' has no attribute 'raisesexc' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : ReaderError: TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:50 [ERROR] : ReaderError: FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:35:53 [ERROR] : FileSystemError: tests/data/directories.dat is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:53 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:53 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:53 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:53 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:53 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:53 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:53 [ERROR] : FileSystemError: /notfound is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:53 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:53 [ERROR] : FileSystemError: tests/data/directories.dat is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:53 [ERROR] : FileSystemError: tests/data/directories.dat is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:35:53 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:35:53 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:35:53 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:35:53 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:35:53 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:35:53 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:35:53 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:37:59 [ERROR] : SocketError: [Errno -2] Name or service not known in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:38:00 [ERROR] : FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:00 [ERROR] : ReaderError: FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:38:00 [ERROR] : ReporterError: Unable to get reporter `raisesexc`. Reason: module 'src.lib.reporter.plugins' has no attribute 'raisesexc' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:38:00 [ERROR] : FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:00 [ERROR] : ReaderError: FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:38:03 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:03 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:03 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:03 [ERROR] : FileSystemError: /notfound is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:03 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:03 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:38:03 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:38:03 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:38:03 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:38:03 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:38:03 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:38:03 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:38:53 [ERROR] : SocketError: [Errno -2] Name or service not known in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:38:54 [ERROR] : FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:54 [ERROR] : ReaderError: FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:38:54 [ERROR] : ReporterError: Unable to get reporter `raisesexc`. Reason: module 'src.lib.reporter.plugins' has no attribute 'raisesexc' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:38:54 [ERROR] : FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:54 [ERROR] : ReaderError: FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:38:56 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:56 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:56 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:56 [ERROR] : FileSystemError: /notfound is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:56 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:38:56 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:38:56 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:38:56 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:38:56 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:38:56 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:38:56 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:38:56 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:39:38 [ERROR] : SocketError: [Errno -2] Name or service not known in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:39:39 [ERROR] : FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:39:39 [ERROR] : ReaderError: FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:39:39 [ERROR] : ReporterError: Unable to get reporter `raisesexc`. Reason: module 'src.lib.reporter.plugins' has no attribute 'raisesexc' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:39:39 [ERROR] : FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:39:39 [ERROR] : ReaderError: FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:39:41 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:39:41 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:39:41 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:39:41 [ERROR] : FileSystemError: /notfound is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:39:41 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:39:41 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:39:41 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:39:41 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:39:41 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:39:41 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:39:41 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:39:41 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:41:07 [ERROR] : SocketError: [Errno -2] Name or service not known in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:41:08 [ERROR] : FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:41:08 [ERROR] : ReaderError: FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:41:08 [ERROR] : ReporterError: Unable to get reporter `raisesexc`. Reason: module 'src.lib.reporter.plugins' has no attribute 'raisesexc' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:41:08 [ERROR] : FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:41:08 [ERROR] : ReaderError: FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:41:10 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:41:10 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:41:10 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:41:10 [ERROR] : FileSystemError: /notfound is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:41:10 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:41:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:41:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:41:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:41:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:41:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:41:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:41:10 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:41:57 [ERROR] : SocketError: [Errno -2] Name or service not known in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:41:58 [ERROR] : FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:41:58 [ERROR] : ReaderError: FileSystemError: /failed is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:41:58 [ERROR] : ReporterError: Unable to get reporter `raisesexc`. Reason: module 'src.lib.reporter.plugins' has no attribute 'raisesexc' in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:41:58 [ERROR] : FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:41:58 [ERROR] : ReaderError: FileSystemError: /wrong is not a file  in /home/user/Projects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-06-21 23:42:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:42:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:42:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:42:00 [ERROR] : FileSystemError: /notfound is not a file  in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:42:00 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/user/Projects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-06-21 23:42:01 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:42:01 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:42:01 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:42:01 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:42:01 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:42:01 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-06-21 23:42:01 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26

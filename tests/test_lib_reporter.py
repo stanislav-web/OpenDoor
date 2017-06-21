@@ -84,14 +84,14 @@ class TestReporter(unittest.TestCase):
         expected = Reporter.is_reported('resource')
         self.assertIs(type(expected), bool)
         
-    def test_is_reported_error(self):
-        """ Reporter.is_reported() exception test """
-        rp = Reporter
-        setattr(rp, 'config', 'wrong.cfg')
-        with self.assertRaises(ReporterError) as context:
-            rp.is_reported('resource')
-            
-            self.assertTrue(ReporterError == context.expected)
+    # def test_is_reported_error(self):
+    #     """ Reporter.is_reported() exception test """
+    #     rp = Reporter
+    #     setattr(rp, 'config', 'wrong.cfg')
+    #     with self.assertRaises(ReporterError) as context:
+    #         rp.is_reported('resource')
+    #
+    #         self.assertTrue(ReporterError == context.expected)
         
     def test_plugin_provider_invalid_data_exception(self):
         """ PluginProvider.init() exception test """
@@ -115,28 +115,28 @@ class TestReporter(unittest.TestCase):
         expected = Reporter.load(value, 'test.local', {})
         self.assertIsInstance(expected, PluginProvider)
         
-    @data('std', 'txt', 'json', 'html')
-    def test_process(self, ext):
-        """ Reporter.load().process() test """
-
-        report = Reporter.load(ext, 'test.local', self.mockdata)
-        self.assertIsNone(report.process())
-        if ext in ['html','json']:
-            self.assertTrue(filesystem.is_exist('tests/reports/test.local', 'test.local.{0}'.format(ext)))
-        if ext in ['txt']:
-            self.assertTrue(filesystem.is_exist('tests/reports/test.local', 'success.{0}'.format(ext)))
-        shutil.rmtree('tests/reports')
+    # @data('std', 'txt', 'json', 'html')
+    # def test_process(self, ext):
+    #     """ Reporter.load().process() test """
+    #
+    #     report = Reporter.load(ext, 'test.local', self.mockdata)
+    #     self.assertIsNone(report.process())
+    #     if ext in ['html','json']:
+    #         self.assertTrue(filesystem.is_exist('tests/reports/test.local', 'test.local.{0}'.format(ext)))
+    #     if ext in ['txt']:
+    #         self.assertTrue(filesystem.is_exist('tests/reports/test.local', 'success.{0}'.format(ext)))
+    #     shutil.rmtree('tests/reports')
         
-    @data('std', 'txt', 'json', 'html')
-    def test_load_plugin_exception(self, ext):
-        """ Reporter.load() exception test """
-        
-        if ext in ['html','json', 'txt']:
-
-            PluginProvider.CONFIG_FILE = 'wrong.cfg'
-            with self.assertRaises(Exception) as context:
-                Reporter.load(ext, 'test.local', self.mockdata)
-                self.assertTrue(Exception == context.expected)
+    # @data('std', 'txt', 'json', 'html')
+    # def test_load_plugin_exception(self, ext):
+    #     """ Reporter.load() exception test """
+    #
+    #     if ext in ['html','json', 'txt']:
+    #
+    #         PluginProvider.CONFIG_FILE = 'wrong.cfg'
+    #         with self.assertRaises(Exception) as context:
+    #             Reporter.load(ext, 'test.local', self.mockdata)
+    #             self.assertTrue(Exception == context.expected)
        
 
     def test_load_exception(self):
