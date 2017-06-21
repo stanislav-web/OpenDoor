@@ -19,7 +19,7 @@ dictionaries as well. Anonymity and speed are provided by means of using
 proxy servers. Software is written for informational purposes and is
 open source product under the GPL license.
 
--  *Current v3.2.36-rc (22.06.2017)*
+-  *Current v3.3.37-rc (22.06.2017)*
 
    -  Directories - 35941
    -  Subdomains - 101000
