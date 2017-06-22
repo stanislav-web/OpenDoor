@@ -53,7 +53,7 @@ class ResponseProvider(object):
         content = helper.decode(content)
         if 0 < len(content):
             title = re.search('<title>(.+?)</title>', content, re.IGNORECASE | re.DOTALL)
-            if None is not re.search(self.INDEX_OF_TITLE, title.group(1), re.IGNORECASE):
+            if None is not title and None is not re.search(self.INDEX_OF_TITLE, title.group(1), re.IGNORECASE):
                 return True
         return False
 
