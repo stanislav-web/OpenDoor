@@ -1,5 +1,11 @@
 Changes
 =======
+v3.3.38-stable (25.08.2017)
+---------------------------
+    - Fixed encoding errors
+    - Update internal dictionaries
+    - Add --skip-empty param for skip success pages that are <= 100 bytes
+
 v3.3.37-rc (22.06.2017)
 -------------------------
     - Fixed errors

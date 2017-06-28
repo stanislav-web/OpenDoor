@@ -52,8 +52,8 @@ debug = 0
 # Allowed threads <int>
 threads = 1
 
-# Detect Apache Index of/ <boolean>
-indexof = False
+# Response sniff plugins (indexof,collation,file,skipempty) <string>
+sniff = None
 
 # Scan type scan=directories or scan=subdomains <string>
 scan = directories

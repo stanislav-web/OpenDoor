@@ -13,9 +13,9 @@ usage: opendoor.py [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
                    [--accept-cookies] [--debug DEBUG] [--tor]
                    [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
                    [--reports REPORTS] [--reports-dir REPORTS_DIR]
-                   [--random-agent] [--random-list] [--prefix PREFIX]
-                   [-e EXTENSIONS] [-i] [--update] [--version] [--examples]
-                   [--docs] [--wizard [WIZARD]]
+                   [--random-agent] [-a] [--random-list] [--prefix PREFIX]
+                   [-e EXTENSIONS] [--sniff SNIFF] [--update] [--version]
+                   [--examples] [--docs] [--wizard [WIZARD]]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -52,9 +52,10 @@ Request tools:
   --torlist TORLIST     Path to custom proxylist
   --proxy PROXY         Custom permanent proxy server
   --random-agent        Randomize user-agent per request
+  -a, --analyze         Heuristic analyzer invalid pages. Using GET
 
 Sniff tools:
-  -i, --indexof         Detect Apache Index of/
+  --sniff SNIFF         Response sniff plugins (indexof,collation,file,skipempty)
 
 Stream tools:
   -t THREADS, --threads THREADS
@@ -69,6 +70,7 @@ Wordlist tools:
   -e EXTENSIONS, --extensions EXTENSIONS
                         Extensions filter -e php,json e.g
 ```
+
 [Arguments description](https://github.com/stanislav-web/OpenDoor/wiki/Usage#arguments-description-usage)
 ===============
 
@@ -202,11 +204,10 @@ opendoor --host www.example.com --debug 1
 Sniff tools
 ---------------------------
 
-**--indexof -i** - detect Apache Index of/. Use method GET as default. Large files and auth required pages will be detected automatically for every scan
+**--sniff** - Uses for server responses. More detail ([More detail](Sniffers.md))
 
 ```python
-opendoor --host www.example.com --indexof
-opendoor --host www.example.com --i
+opendoor --host www.example.com --sniff indexof,collation,file,skipempty
 ```
 
 Stream tools

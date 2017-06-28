@@ -27,6 +27,8 @@ Dictionaries are constantly updated, also expanding application functionality.
     * detect redirects
     * detect index of/ Apache
     * detect large files
+    * heuristic detect invalid pages
+    * blank success page filter
     * certif required pages
 - [x] randomization techniques
     * random user-agent per request
