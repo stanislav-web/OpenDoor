@@ -52,7 +52,6 @@ Request tools:
   --torlist TORLIST     Path to custom proxylist
   --proxy PROXY         Custom permanent proxy server
   --random-agent        Randomize user-agent per request
-  -a, --analyze         Heuristic analyzer invalid pages. Using GET
 
 Sniff tools:
   --sniff SNIFF         Response sniff plugins (indexof,collation,file,skipempty)
