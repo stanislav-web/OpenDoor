@@ -188,6 +188,7 @@ html_sidebars =  {
             'Changelog.md',
             'Contribution.md',
             'License.md',
+            'Sniffers.md',
           ]
 }
 
