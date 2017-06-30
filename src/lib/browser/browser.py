@@ -36,7 +36,6 @@ from .threadpool import ThreadPool
 
 
 class Browser(Filter):
-
     """ Browser class """
 
     def __init__(self, params):
@@ -56,6 +55,7 @@ class Browser(Filter):
                 'torlist': self.__config.torlist,
                 'use_random': self.__config.is_random_list,
                 'use_extensions': self.__config.is_extension_filter,
+                'use_ignore_extensions': self.__config.is_ignore_extension_filter,
                 'is_external_wordlist': self.__config.is_external_wordlist,
                 'is_standalone_proxy': self.__config.is_standalone_proxy,
                 'is_external_torlist': self.__config.is_external_torlist,
@@ -64,12 +64,18 @@ class Browser(Filter):
 
             if True is self.__config.is_external_reports_dir:
                 Reporter.external_directory = self.__config.reports_dir
-                
-            if True is self.__config.is_extension_filter and self.__config.scan == self.__config.DEFAULT_SCAN:
-                self.__reader.filter_by_extension(target=self.__config.scan,
-                                                  output='extensionlist',
-                                                  extensions=self.__config.extensions
-                                                  )
+
+            if self.__config.scan == self.__config.DEFAULT_SCAN:
+                if True is self.__config.is_extension_filter:
+                    self.__reader.filter_by_extension(target=self.__config.scan,
+                                                      output='extensionlist',
+                                                      extensions=self.__config.extensions
+                                                      )
+                elif True is self.__config.is_ignore_extension_filter:
+                    self.__reader.filter_by_ignore_extension(target=self.__config.scan,
+                                                             output='ignore_extensionlist',
+                                                             extensions=self.__config.ignore_extensions
+                                                             )
             self.__reader.count_total_lines()
 
             Filter.__init__(self, self.__config, self.__reader.total_lines)
@@ -81,7 +87,7 @@ class Browser(Filter):
 
             self.__response = response(config=self.__config, debug=self.__debug, tpl=tpl)
 
-        except ReaderError as error:
+        except (ResponseError, ReaderError) as error:
             raise BrowserError(error)
 
     def ping(self):
@@ -112,6 +118,12 @@ class Browser(Filter):
 
         try:  # beginning scan process
             if True is self.__config.is_random_list:
+                if self.__config.scan == self.__config.DEFAULT_SCAN:
+                    if True is self.__config.is_extension_filter:
+                        setattr(self.__config, 'scan', 'extensionlist')
+                    elif True is self.__config.is_ignore_extension_filter:
+                        setattr(self.__config, 'scan', 'ignore_extensionlist')
+
                 self.__reader.randomize_list(target=self.__config.scan, output='tmplist')
 
             tpl.info(key='scanning', host=self.__config.host)
@@ -125,7 +137,8 @@ class Browser(Filter):
                         'port': self.__config.port,
                         'scheme': self.__config.scheme
                     },
-                    loader=getattr(self, '_add_urls'.format()))
+                    loader=getattr(self, '_add_urls'.format())
+                )
 
         except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as error:
             raise BrowserError(error)

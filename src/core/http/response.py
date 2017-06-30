@@ -19,6 +19,7 @@
 from src.core import helper
 from .exceptions import ResponseError
 from .providers import ResponseProvider
+from src.core.http.plugins.response_plugin import ResponsePlugin, ResponsePluginError
 
 
 class Response(ResponseProvider):
@@ -36,6 +37,28 @@ class Response(ResponseProvider):
 
         self.__debug = debug
         self.__tpl = kwargs.get('tpl')
+
+        if True is config.is_sniff:
+            try:
+                self.load_sniffers_plugins(config.sniffers)
+            except ResponsePluginError as error:
+                raise ResponseError(str(error))
+
+    def load_sniffers_plugins(self, plugins):
+        """
+
+        :param list plugins: response plugins list
+        :return:
+        """
+
+        for plugin in plugins:
+            try:
+                plg_object = ResponsePlugin.load(plugin)
+                self._response_plugins.append(plg_object)
+                if 0 < self.__debug.level:
+                    self.__debug.debug_load_sniffer_plugin(plg_object.DESCRIPTION)
+            except ResponsePluginError as error:
+                raise ResponsePluginError(str(error))
 
     def handle(self, response, request_url, items_size, total_size, ignore_list):
         """

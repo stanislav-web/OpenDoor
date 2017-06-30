@@ -22,7 +22,7 @@ CoreConfig = {
         'repository': 'git@github.com:stanislav-web/OpenDoor.git',
         'remote_version': 'https://raw.githubusercontent.com/stanislav-web/OpenDoor/master/VERSION',
         'license': 'License: GNU General Public License',
-        'version': '3.3.37-rc',
+        'version': '3.4.46-rc',
         'documentations': 'https://opendoor.readthedocs.org',
         'required_versions': {
             'minor': '3.3',
@@ -37,6 +37,7 @@ CoreConfig = {
         'useragents': 'data/useragents.dat',
         'tmplist': 'tmp/list.tmp',
         'extensionlist': 'tmp/extensionlist.tmp',
+        'ignore_extensionlist': 'tmp/ignore_extensionlist.tmp',
         'reports': 'reports/',
         'exceptions_log': 'syslog/exceptions.log',
     },
@@ -57,6 +58,8 @@ CoreConfig = {
                 python3 ./opendoor.py --host "https://example.com" --port 8080
                 python3 ./opendoor.py --host "http://example.com" --scan subdomains
                 python3 ./opendoor.py --host "http://example.com" --threads 10
+                python3 ./opendoor.py --host "http://example.com" -random-list --extensions php,html
+                python3 ./opendoor.py --host "http://example.com" -random-list --ignore-extensions aspx,jsp
                 python3 ./opendoor.py --host "http://example.com" --threads 10 --random-list
                 python3 ./opendoor.py --host "http://example.com" --threads 10 --random-agent
                 python3 ./opendoor.py --host "http://example.com" --threads 10 --tor

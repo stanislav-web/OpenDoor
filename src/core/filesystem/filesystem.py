@@ -118,7 +118,6 @@ class FileSystem(object):
         r = re.compile(pattern)
         newlist = filter(r.match, dirlist)
         filteredlist = list(newlist)
-
         return filteredlist
 
     @staticmethod

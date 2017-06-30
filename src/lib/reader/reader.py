@@ -113,11 +113,15 @@ class Reader(object):
         """
 
         try:
-            if True is self.__browser_config.get('use_extensions')\
+            if True is self.__browser_config.get('use_random'):
+                # use randomizing list.dat
+                dirlist = self.__config.get('tmplist')
+            elif True is self.__browser_config.get('use_extensions')\
                     and 'directories' == self.__browser_config.get('list'):
                 dirlist = self.__config.get('extensionlist')
-            elif True is self.__browser_config.get('use_random'):
-                dirlist = self.__config.get('tmplist')
+            elif True is self.__browser_config.get('use_ignore_extensions')\
+                    and 'directories' == self.__browser_config.get('list'):
+                dirlist = self.__config.get('ignore_extensionlist')
             else:
                 if True is self.__browser_config.get('is_external_wordlist'):
                     dirlist = self.__browser_config.get('list')
@@ -170,10 +174,6 @@ class Reader(object):
 
         if 'prefix' in self.__browser_config and 0 < len(self.__browser_config.get('prefix')):
             line = self.__browser_config.get('prefix') + line
-
-        if False is line.endswith('/') and False is filesystem.has_extension(line) and '.' not in line:
-            line = '{0}/'.format(line)
-
         port = params.get('port')
 
         if port is Config.ssl_port or port is Config.http_port:
@@ -225,6 +225,34 @@ class Reader(object):
             dirlist = filesystem.read(target_file)
             dirlist = [i.strip() for i in dirlist]
             pattern = '.*\.' + '|.*\.'.join(extensions)
+            newlist = filesystem.filter_file_lines(dirlist, pattern)
+            filesystem.makefile(output_file)
+            filesystem.writelist(output_file, newlist, '\n')
+            self.__counter = len(newlist)
+
+        except (CoreSystemError, FileSystemError) as error:
+            raise ReaderError(error)
+
+    def filter_by_ignore_extension(self, target, output, extensions):
+        """
+        Specific filter for selected exuensions
+
+        :param str target: target list
+        :param str output: output list
+        :param list extensions: filtered extensions
+        :return: None
+        """
+
+        try:
+
+            target_file = self.__config.get(target)
+            output_file = self.__config.get(output)
+            dirlist = filesystem.read(target_file)
+            dirlist = [i.strip() for i in dirlist]
+            pattern = '^('
+            for ext in extensions:
+                pattern += '(?!\.{0})'.format(ext)
+            pattern += '.)*$'
             newlist = filesystem.filter_file_lines(dirlist, pattern)
             filesystem.makefile(output_file)
             filesystem.writelist(output_file, newlist, '\n')

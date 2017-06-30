@@ -126,17 +126,28 @@ class Helper(object):
         return isinstance(func, collections.Callable)
 
     @staticmethod
+    def decode_hostname(hostname):
+        """
+        Decode non-latin hostname
+
+        param str hostname: input string
+        :return: str
+        """
+
+        domain = hostname.strip().encode().decode('utf8')
+        return str(domain.encode("idna").decode("utf-8"))
+
+    @staticmethod
     def decode(string, errors='strict'):
         """
         Decode strings
 
         :param str string: input string
         :param str errors:error level
-        :return:
+        :return: str
         """
 
         output = ''
-
         try:
             if len(string) < 3:
                 if codecs.BOM_UTF8.startswith(string):
@@ -152,7 +163,9 @@ class Helper(object):
                 # (else) no BOM present
                 (output, sizes) = codecs.utf_8_decode(string, errors)
             return str(output)
-        except UnicodeDecodeError:
+        except (UnicodeDecodeError, Exception):
             # seems, its getting not a content (images, file, etc)
-            return ""
-
+            try:
+                return string.decode('cp1251')
+            except (UnicodeDecodeError, Exception):
+                return ""

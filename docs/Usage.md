@@ -13,9 +13,10 @@ usage: opendoor.py [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
                    [--accept-cookies] [--debug DEBUG] [--tor]
                    [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
                    [--reports REPORTS] [--reports-dir REPORTS_DIR]
-                   [--random-agent] [-a] [--random-list] [--prefix PREFIX]
-                   [-e EXTENSIONS] [--sniff SNIFF] [--update] [--version]
-                   [--examples] [--docs] [--wizard [WIZARD]]
+                   [--random-agent] [--random-list] [--prefix PREFIX]
+                   [-e EXTENSIONS] [-i IGNORE_EXTENSIONS] [--sniff SNIFF]
+                   [--update] [--version] [--examples] [--docs]
+                   [--wizard [WIZARD]]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -54,7 +55,8 @@ Request tools:
   --random-agent        Randomize user-agent per request
 
 Sniff tools:
-  --sniff SNIFF         Response sniff plugins (indexof,collation,file,skipempty)
+  --sniff SNIFF         Response sniff plugins
+                        (indexof,collation,file,skipempty)
 
 Stream tools:
   -t THREADS, --threads THREADS
@@ -67,7 +69,10 @@ Wordlist tools:
   --random-list         Shuffle scan list
   --prefix PREFIX       Append path prefix to scan host
   -e EXTENSIONS, --extensions EXTENSIONS
-                        Extensions filter -e php,json e.g
+                        Force use selected extensions for scan session
+                        -e php,json e.g
+  -i IGNORE_EXTENSIONS, --ignore-extensions IGNORE_EXTENSIONS
+                        Ignore extensions for scan session -i aspx,jsp e.g
 ```
 
 [Arguments description](https://github.com/stanislav-web/OpenDoor/wiki/Usage#arguments-description-usage)
@@ -255,12 +260,21 @@ opendoor --host example.com --prefix en/
 opendoor --host example.com --scan directories --prefix en/
 ```
 
-**--extensions -e** - extensions filter -e php,json e.g. If you know something more about the target host, you can apply a filter to the dictionary with extensions
-
+**--extensions -e** - force use selected extensions for scan session -e php,json e.g
 ```python
-opendoor --host example.com --extensions php,html
+opendoor --host example.com --extensions php,phml,inc
+opendoor --host example.com --extensions php,phml,inc --random-list
 opendoor --host example.com --e htm,py
 ```
+
+**--ignore-extensions -i** - force ignore extensions for scan session -i aspx,jsp e.g
+```python
+opendoor --host example.com --ignore-extensions asp,apx,dat
+opendoor --host example.com --ignore-extensions asp,apx,dat --random-list
+opendoor --host example.com --i htm,py
+```
+*(these both options does not work together, but work with dictionary shuffling
+and doesn't exclude scan directories)*
 
 Reports tools
 ---------------------------

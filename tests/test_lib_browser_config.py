@@ -45,9 +45,6 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertIs(type(Config.port), property)
         self.assertTrue(80 is Config({'port': 80}).port)
         
-        self.assertIs(type(Config.is_indexof), property)
-        self.assertFalse(Config({'is_indexof': False}).is_indexof)
-        
         self.assertIs(type(Config.method), property)
         self.assertTrue(str(Config.DEFAULT_HTTP_METHOD) is str(Config({'method' : 'HEAD'}).method))
 

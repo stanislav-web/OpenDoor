@@ -216,17 +216,26 @@ class Options(object):
                 "argl": "--extensions",
                 "default": None,
                 "action": "store",
-                "help": "Extensions filter -e php,json e.g",
+                "help": "Force use selected extensions for scan session -e php,json e.g",
+                "type": str
+            },
+            {
+                "group": "wordlist",
+                "args": "-i",
+                "argl": "--ignore-extensions",
+                "default": None,
+                "action": "store",
+                "help": "Force ignore extensions for scan session -i aspx,jsp e.g",
                 "type": str
             },
             {
                 "group": "sniff",
-                "args": "-i",
-                "argl": "--indexof",
-                "default": False,
-                "action": "store_true",
-                "help": "Detect Apache Index of/",
-                "type": bool
+                "args": None,
+                "argl": "--sniff",
+                "default": None,
+                "action": "store",
+                "help": "Response sniff plugins (indexof,collation,file,skipempty)",
+                "type": str
             },
             {
                 "group": "app",

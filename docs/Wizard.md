@@ -67,8 +67,11 @@ random-list = False
 # Append path prefix to scan host <string|None>
 prefix = None
 
-# Extensions filter -e php,json e.g <string|None>
+# Force use selected extensions for scan session -e php,json e.g <string|None>
 extensions = None
+
+#  Force ignore extensions for scan session -i aspx,jsp e.g <string|None>
+ignore_extensions = None
 
 # Scan reports (json,std,txt,html) <string>
 reports = std

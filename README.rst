@@ -19,9 +19,9 @@ dictionaries as well. Anonymity and speed are provided by means of using
 proxy servers. Software is written for informational purposes and is
 open source product under the GPL license.
 
--  *Current v3.3.37-rc (22.06.2017)*
+-  *Current v3.4.46-rc (01.07.2017)*
 
-   -  Directories - 35941
+   -  Directories - 37900
    -  Subdomains - 101000
 
 ***Testing of the software on the live commercial systems and
@@ -54,6 +54,8 @@ Implements
    -  detect redirects
    -  detect index of/ Apache
    -  detect large files
+   -  heuristic detect invalid pages
+   -  blank success page filter
    -  certif required pages
 
 -  [x] randomization techniques
@@ -61,6 +63,7 @@ Implements
    -  random user-agent per request
    -  random proxy per request
    -  wordlists shuffling
+   -  wordlists filters
 
 Local installation and run
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -96,26 +99,25 @@ Updates
 Changelog (last changes)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-v3.3.37-rc (21.08.2017)
------------------------
+v3.4.46-rc Gained more Power! (01.07.2017)
+------------------------------------------
 
 ::
 
-    - Fixed errors
-    - Add config wizard (allows you to configure own project)
-
-v3.2.36-rc (04.06.2017)
------------------------
-
-::
-
-    - Added custom reports directory --reports-dir /home/user/Reports
-    - Added user guide --docs
-    - Reusable proxy requests pooling in --tor, --torlist
-    - Prevent socks5 proxies warnings
-    - Optimizing scan execution
-    - Request's delays allow to use of milliseconds
-    - Python2.7 no longer support
+    - Added missing HTTP statuses
+    - Bugfix: encoding errors (supported cp1251,utf8,utf16) for body analyze
+    - Bugfix: allow to use both --random-list & --extension params
+    - Directory closing slash has been removed
+    - Support Internationalized Domain Names IDNA
+    - Removed --indexof (-i) params
+    - Add --ignore-extensions -i param to ignore selected extension
+    - Added --sniff param to process responses
+        - indexof   (detect Apache Index Of/ directories)
+        - file      (detect large files)
+        - collation (heurisic detect invalid web pages)
+        - skipempty (skip empty valid pages)
+    - Internal dictionaries has been filtered out. Delete all duplicates
+    - Added +959 unique directories (36900)
 
 Help
 ^^^^
@@ -123,13 +125,13 @@ Help
 ::
 
     usage: opendoor.py [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
-                       [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
-                       [--accept-cookies] [--debug DEBUG] [--tor]
-                       [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
-                       [--reports REPORTS] [--reports-dir REPORTS_DIR]
-                       [--random-agent] [--random-list] [--prefix PREFIX]
-                       [-e EXTENSIONS] [-i] [--update] [--version] [--examples]
-                       [--docs] [--wizard [WIZARD]]
+                   [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
+                   [--accept-cookies] [--debug DEBUG] [--tor]
+                   [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
+                   [--reports REPORTS] [--reports-dir REPORTS_DIR]
+                   [--random-agent] [-a] [--random-list] [--prefix PREFIX]
+                   [-e EXTENSIONS] [-i IGNORE_EXTENSIONS] [--sniff SNIFF] [--update] [--version]
+                   [--examples] [--docs] [--wizard [WIZARD]]
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -168,7 +170,7 @@ Help
       --random-agent        Randomize user-agent per request
 
     Sniff tools:
-      -i, --indexof         Detect Apache Index of/
+      --sniff SNIFF         Response sniff plugins (indexof,collation,file,skipempty)
 
     Stream tools:
       -t THREADS, --threads THREADS
@@ -181,7 +183,10 @@ Help
       --random-list         Shuffle scan list
       --prefix PREFIX       Append path prefix to scan host
       -e EXTENSIONS, --extensions EXTENSIONS
-                            Extensions filter -e php,json e.g
+                            Force use selected extensions for scan session -e
+                            php,json e.g
+      -e IGNORE_EXTENSIONS, --extensions EXTENSIONS
+                            Ignore extensions for scan session -i aspx,jsp e.g
 
 
 Maintainers

@@ -94,3 +94,11 @@ class DebugProvider(object):
 
         pass
 
+    def debug_load_sniffer_plugin(self, description):
+        """
+        Debug load sniffers plugin
+        :param str description: plugin description
+        :return: bool
+        """
+
+        pass

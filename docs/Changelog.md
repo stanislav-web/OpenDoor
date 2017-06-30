@@ -1,17 +1,21 @@
 Changes
 =======
-v3.4.42-rc (29.06.2017)
+v3.4.46-rc Gained more Power! (01.07.2017)
 ---------------------------
-    - Fixed encoding errors (supported cp1251,utf8,utf16)
+    - Added missing HTTP statuses
+    - Bugfix: encoding errors (supported cp1251,utf8,utf16) for body analyze
+    - Bugfix: allow to use both --random-list & --extension params
+    - Directory closing slash has been removed
     - Support Internationalized Domain Names IDNA
-    - removed --indexof (-i) params
-    - add --sniff param to process responses
+    - Removed --indexof (-i) params
+    - Add --ignore-extensions -i param to ignore selected extension
+    - Added --sniff param to process responses
         - indexof   (detect Apache Index Of/ directories)
         - file      (detect large files)
         - collation (heurisic detect invalid web pages)
         - skipempty (skip empty valid pages)
-    - internal dictionaries has been filtered out. Delete duplicates
-    - add +491 unique directories (36432)
+    - Internal dictionaries has been filtered out. Delete all duplicates
+    - Added +959 unique directories (36900)
 
 v3.3.37-rc (22.06.2017)
 -------------------------

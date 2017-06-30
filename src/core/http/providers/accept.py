@@ -34,7 +34,7 @@ class AcceptHeaderProvider(object):
                          'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
                          )
 
-        self.__accept_encoding = ('gzip, deflate, sdch', 'gzip, deflate, br')
+        self.__accept_encoding = ('gzip, deflate, sdch', 'gzip, deflate, br', 'identity')
 
         self.__accept_language = (
             'en-US,en;q=0.5,ru-RU,ru;q=0.8',

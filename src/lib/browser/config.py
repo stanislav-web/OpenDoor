@@ -51,17 +51,19 @@ class Config(object):
         self._prefix = "" if params.get('prefix') is None else params.get('prefix')
         self._reports = params.get('reports')
         self._extensions = params.get('extensions')
-        self._is_indexof = params.get('indexof')
+        self._ignore_extensions = params.get('ignore_extensions')
         self._retries = False if params.get('retries') is None else params.get('retries')
-        self._method = params.get('method') if params.get('indexof') is None else 'GET'
+        self._method = params.get('method')
         self._delay = params.get('delay')
         self._timeout = params.get('timeout')
         self._debug = self.DEFAULT_DEBUG_LEVEL if params.get('debug') is None else params.get('debug')
         self._is_tor = params.get('tor')
         self._torlist = '' if 'torlist' not in params else params.get('torlist')
         self._is_random_user_agent = params.get('random_agent')
+        self._sniff = params.get('sniff')
         self._is_random_list = False if params.get('random_list') is None else True
         self._is_extension_filter = False if params.get('extensions') is None else True
+        self._is_ignore_extension_filter = False if params.get('ignore_extensions') is None else True
         self._user_agent = self.DEFAULT_USER_AGENT
         self._threads = self.DEFAULT_MIN_THREADS if params.get('threads') is None else params.get('threads')
         
@@ -73,6 +75,15 @@ class Config(object):
         """
         
         return self.DEFAULT_SCAN if self._scan is None else self._scan
+
+    @scan.setter
+    def scan(self, value):
+        """
+        scan param setter
+        :param str value:
+        :return: None
+        """
+        self._scan = value
 
     @property
     def scheme(self):
@@ -122,21 +133,16 @@ class Config(object):
         return self._port
 
     @property
-    def is_indexof(self):
-        """
-        If index of/ scan is available
-        :return: bool
-        """
-
-        return self._is_indexof
-
-    @property
     def method(self):
         """
         Scan method property
         :return: str
         """
 
+        if True is self.is_sniff:
+            if 1 is len(self.sniffers) and 'file' == self.sniffers[0]:
+                return 'HEAD'
+            return 'GET'
         return self.DEFAULT_HTTP_METHOD if self._method is None else self._method
 
     @property
@@ -208,11 +214,34 @@ class Config(object):
     @property
     def is_random_user_agent(self):
         """
-        If ua randomize and is available
+        If ua randomizing is available
         :return: bool
         """
 
         return self._is_random_user_agent
+
+    @property
+    def is_sniff(self):
+        """
+        If sniffers is available
+        :return: bool
+        """
+
+        if None is not self._sniff:
+            if False is isinstance(self._sniff, list):
+                self._sniff = self._sniff.split(",")
+            if 0 < len(self._sniff):
+                return True
+        return False
+
+    @property
+    def sniffers(self):
+        """
+        Get sniffers list
+        :return: list
+        """
+
+        return self._sniff
 
     @property
     def is_random_list(self):
@@ -231,6 +260,15 @@ class Config(object):
         """
 
         return self._is_extension_filter
+
+    @property
+    def is_ignore_extension_filter(self):
+        """
+        If scan list filtered by ignore extensions
+        :return: bool
+        """
+
+        return self._is_ignore_extension_filter
 
     @property
     def is_standalone_proxy(self):
@@ -317,6 +355,18 @@ class Config(object):
         extensions = None
         if None is not self._extensions:
             extensions = self._extensions.split(",")
+        return extensions
+
+    @property
+    def ignore_extensions(self):
+        """
+        Extensions resolver
+        :return: list
+        """
+
+        extensions = None
+        if None is not self._ignore_extensions:
+            extensions = self._ignore_extensions.split(",")
         return extensions
 
     @property

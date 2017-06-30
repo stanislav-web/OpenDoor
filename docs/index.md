@@ -34,6 +34,7 @@ Dictionaries are constantly updated, also expanding application functionality.
     * random user-agent per request
     * random proxy per request
     * wordlists shuffling
+    * wordlists filters
 
 
 ***Testing of the software on the commercial systems and organizations is prohibited!***

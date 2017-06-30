@@ -25,15 +25,13 @@ class ResponseProvider(object):
     """ ResponseProvider class"""
 
     HTTP_DBG_LEVEL = 3
-    INDEX_OF_TITLE = 'Index of /'
-    DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
     DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
-    DEFAULT_HTTP_REDIRECT_STATUSES = [301, 302, 303, 304, 307, 308]
-    DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 412, 429, 500, 501, 502, 503, 504, 522]
+    DEFAULT_HTTP_REDIRECT_STATUSES = [300, 301, 302, 303, 304, 307, 308]
+    DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 410, 412, 424, 429, 440, 500, 501, 502, 503, 504, 522]
     DEFAULT_SSL_CERT_REQUIRED_STATUSES = [423, 496]
     DEFAULT_HTTP_FORBIDDEN_STATUSES = [403]
     DEFAULT_HTTP_AUTH_STATUSES = [401]
-    DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400, 415]
+    DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400, 415, 508]
 
     def __init__(self, config):
         """
@@ -42,20 +40,7 @@ class ResponseProvider(object):
         """
 
         self._cfg = config
-
-    def is_indexof(self, content):
-        """
-        Check response as index of/ page
-        :param str content: response data
-        :return: bool
-        """
-
-        content = helper.decode(content)
-        if 0 < len(content):
-            title = re.search('<title>(.+?)</title>', content, re.IGNORECASE | re.DOTALL)
-            if None is not title and None is not re.search(self.INDEX_OF_TITLE, title.group(1), re.IGNORECASE):
-                return True
-        return False
+        self._response_plugins = []
 
     @classmethod
     def _get_redirect_url(cls, url, response):
@@ -89,40 +74,31 @@ class ResponseProvider(object):
         :return: str
         """
 
-        if response.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
-            if 'Content-Length' in response.headers:
-                if self.DEFAULT_SOURCE_DETECT_MIN_SIZE <= int(response.headers['Content-Length']):
-                    return 'file'
-                if True is self._cfg.is_indexof:
-                    if True is self.is_indexof(response.data):
-                        return 'indexof'
-            return 'success'
-        elif response.status in self.DEFAULT_HTTP_FAILED_STATUSES:
-            return 'failed'
-        elif response.status in self.DEFAULT_SSL_CERT_REQUIRED_STATUSES:
-            return 'certificat'
-        elif response.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
-            location = response.get_redirect_location()
-            if location is not False and location is not None:
-                urlfrag = helper.parse_url(request_url)
-                redirect_url = location.rstrip('/')
+        status = None
+        for _, resp_plugin in enumerate(self._response_plugins):
+            status = resp_plugin.process(response)
+            if None is not status:
+                break
 
-                redirectfrag = helper.parse_url(redirect_url)
-                url = "{0}://{1}".format(urlfrag.scheme, urlfrag.netloc)
-                if url == redirect_url \
-                        or (0 < len(redirectfrag.query) and redirectfrag.query in urlfrag.path):
-                    return 'failed'
-                return 'redirect'
-            else:
+        if None is status:
+            if response.status in self.DEFAULT_HTTP_SUCCESS_STATUSES:
+                return 'success'
+            elif response.status in self.DEFAULT_HTTP_FAILED_STATUSES:
                 return 'failed'
-        elif response.status in self.DEFAULT_HTTP_BAD_REQUEST_STATUSES:
-            return 'bad'
-        elif response.status in self.DEFAULT_HTTP_FORBIDDEN_STATUSES:
-            return 'forbidden'
-        elif response.status in self.DEFAULT_HTTP_AUTH_STATUSES:
-            return 'auth'
+            elif response.status in self.DEFAULT_SSL_CERT_REQUIRED_STATUSES:
+                return 'certificat'
+            elif response.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
+                return self.__is_redirect(response, request_url)
+            elif response.status in self.DEFAULT_HTTP_BAD_REQUEST_STATUSES:
+                return 'bad'
+            elif response.status in self.DEFAULT_HTTP_FORBIDDEN_STATUSES:
+                return 'forbidden'
+            elif response.status in self.DEFAULT_HTTP_AUTH_STATUSES:
+                return 'auth'
+            else:
+                raise Exception('Unknown response status : `{0}`'.format(response.status))
         else:
-            raise Exception('Unknown response status : `{0}`'.format(response.status))
+            return status
 
     def handle(self, response, request_url, items_size, total_size, ignore_list):
         """
@@ -154,3 +130,26 @@ class ResponseProvider(object):
         finally:
             size = filesystem.human_size(size, 0)
         return size
+
+    @staticmethod
+    def __is_redirect(response, request_url):
+        """
+        Return redirect status
+        :param str request_url: request url
+        :param urllib3.response.HTTPResponse response: response object
+        :return: str
+        """
+
+        location = response.get_redirect_location()
+        if location is not False and location is not None:
+            urlfrag = helper.parse_url(request_url)
+            redirect_url = location.rstrip('/')
+
+            redirectfrag = helper.parse_url(redirect_url)
+            url = "{0}://{1}".format(urlfrag.scheme, urlfrag.netloc)
+            if url == redirect_url \
+                    or (0 < len(redirectfrag.query) and redirectfrag.query in urlfrag.path):
+                return 'failed'
+            return 'redirect'
+        else:
+            return 'failed'

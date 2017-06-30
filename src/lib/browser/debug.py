@@ -41,8 +41,6 @@ class Debug(DebugProvider):
 
         if 0 < self.__level:
             tpl.debug(key='debug', level=self.__cfg.debug, method=self.__cfg.method)
-            if True is self.__cfg.is_indexof:
-                tpl.debug(key='indexof_act', method=self.__cfg.method)
 
     @property
     def level(self):
@@ -78,10 +76,12 @@ class Debug(DebugProvider):
             if True is self.__cfg.is_random_list:
                 tpl.debug(key='randomizing')
             if self.__cfg.DEFAULT_SCAN is self.__cfg.scan:
-                if None is self.__cfg.extensions:
-                    tpl.debug(key='directories', total=total_lines)
-                else:
+                if True is self.__cfg.is_extension_filter:
                     tpl.debug(key='ext_filter', total=total_lines, ext=', '.join(self.__cfg.extensions))
+                elif True is self.__cfg.is_ignore_extension_filter:
+                    tpl.debug(key='ext_ignore_filter', total=total_lines, ext=', '.join(self.__cfg.ignore_extensions))
+                else:
+                    tpl.debug(key='directories', total=total_lines)
             else:
                 tpl.debug(key='subdomains', total=total_lines)
             tpl.debug(key='create_queue', threads=self.__cfg.threads)
@@ -198,5 +198,16 @@ class Debug(DebugProvider):
             self.__catched = False
             if kwargs.get('items_size', 0) is kwargs.get('total_size', 1):
                 sys.writels("", flush=True)
+
+        return True
+
+    def debug_load_sniffer_plugin(self, description):
+        """
+        Debug load sniffers plugin
+        :param str description: plugin description
+        :return: bool
+        """
+
+        tpl.debug(key='load_sniffer_plugin', description=description)
 
         return True
