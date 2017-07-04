@@ -29,6 +29,12 @@
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
+
+import sys
+import os
+
+sys.path.append('.')
+
 extensions = [
     'sphinx.ext.autodoc',
 ]
@@ -127,9 +133,9 @@ html_theme = 'default'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {
-#     "base_url": "http://opendoor.readthedocs.io/"
-# }
+html_theme_options = {
+    "base_url": "http://opendoor.readthedocs.io/"
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -179,7 +185,7 @@ html_static_path = ['images']
 # Custom sidebar templates, maps document names to template names.
 #
 html_sidebars =  {
-   '.': [
+   '**': [
             'Installation-and-update.md',
             'Usage.md',
             'Wizard.md',
