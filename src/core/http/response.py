@@ -17,6 +17,7 @@
 """
 
 from src.core import helper
+from src.core.http.socks import Socket
 from .exceptions import ResponseError
 from .providers import ResponseProvider
 from src.core.http.plugins.response_plugin import ResponsePlugin, ResponsePluginError
@@ -36,11 +37,12 @@ class Response(ResponseProvider):
         ResponseProvider.__init__(self, config)
 
         self.__debug = debug
+        self.__config = config
         self.__tpl = kwargs.get('tpl')
 
-        if True is config.is_sniff:
+        if True is self.__config.is_sniff:
             try:
-                self.load_sniffers_plugins(config.sniffers)
+                self.load_sniffers_plugins(self.__config.sniffers)
             except ResponsePluginError as error:
                 raise ResponseError(str(error))
 
@@ -87,7 +89,11 @@ class Response(ResponseProvider):
                         status = 'failed'
                     url = redirect_uri
                 else:
-                    url = request_url
+                    if self.__config.DEFAULT_SCAN is not self.__config.scan:  # subdomains
+                        ips = Socket.get_ips_addresses(helper.parse_url(request_url).hostname)
+                        url = request_url = '{0} {1}'.format(request_url, ips)
+                    else:
+                        url = request_url
                 self.__debug.debug_request_uri(status=status,
                                                request_uri=request_url,
                                                redirect_uri=redirect_uri,

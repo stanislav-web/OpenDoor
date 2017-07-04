@@ -17,7 +17,6 @@
 """
 
 import socket
-
 from .exceptions import SocketError
 
 
@@ -62,3 +61,21 @@ class Socket(object):
             return ip_address
         except socket.gaierror as error:
             raise SocketError(str(error))
+
+    @staticmethod
+    def get_ips_addresses(host):
+        """
+        Get remote ip addresses
+        :param str host: target host
+        :return: list
+        """
+
+        try:
+            _, _, ips_list = socket.gethostbyname_ex(host)
+            if not ips_list:
+                ips = ''
+            else:
+                ips = '['+', '.join(ips_list) +']'
+        except socket.gaierror:
+            ips = ''
+        return ips

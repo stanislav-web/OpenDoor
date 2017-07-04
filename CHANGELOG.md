@@ -1,7 +1,8 @@
 Changes
 =======
-v3.4.46-rc Gained more Power! (01.07.2017)
+v3.4.47-rc Gained more Power! (05.07.2017)
 ---------------------------
+    - Added IPs lookup for subdomains scan
     - Added missing HTTP statuses
     - Bugfix: encoding errors (supported cp1251,utf8,utf16) for body analyze
     - Bugfix: allow to use both --random-list & --extension params
@@ -15,7 +16,7 @@ v3.4.46-rc Gained more Power! (01.07.2017)
         - collation (heurisic detect invalid web pages)
         - skipempty (skip empty valid pages)
     - Internal dictionaries has been filtered out. Delete all duplicates
-    - Added +959 unique directories (36900)
+    - Added +990 unique directories (36931)
 
 v3.3.37-rc (22.06.2017)
 -------------------------

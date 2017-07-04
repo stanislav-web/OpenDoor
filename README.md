@@ -16,8 +16,8 @@ The scanning is performed by the built-in dictionary and external dictionaries a
 Software is written for informational purposes and is open source product under the GPL license.
 
 ***(Due to the incorrect operation of "SSL" the support for "Python 2.7" is terminated)***
-* *Current v3.4.46-rc (01.07.2017)*
-    - Directories - 36900
+* *Current v3.4.47-rc (05.07.2017)*
+    - Directories - 36931
     - Subdomains - 101000
 
 ***Testing of the software on the live commercial systems and organizations is prohibited!***
@@ -81,8 +81,9 @@ Software is written for informational purposes and is open source product under 
 
 #### [Changelog](CHANGELOG.md) (last changes)
 
-v3.4.46-rc Gained more Power! (01.07.2017)
-------------------------------------------
+v3.4.47-rc Gained more Power! (05.07.2017)
+---------------------------
+    - Added IPs lookup for subdomains scan
     - Added missing HTTP statuses
     - Bugfix: encoding errors (supported cp1251,utf8,utf16) for body analyze
     - Bugfix: allow to use both --random-list & --extension params
@@ -96,7 +97,7 @@ v3.4.46-rc Gained more Power! (01.07.2017)
         - collation (heurisic detect invalid web pages)
         - skipempty (skip empty valid pages)
     - Internal dictionaries has been filtered out. Delete all duplicates
-    - Added +959 unique directories (36900)
+    - Added +990 unique directories (36931)
 
 #### Help
 ```

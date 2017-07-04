@@ -843,6 +843,7 @@
 1admin.php
 1admin/
 1c/
+1cManager/
 1p2o3i/
 1q2w3e/
 1qaz2wsx/
@@ -5054,6 +5055,7 @@ admin/export.php
 admin/fck/editor/
 admin/fck/editor/filemanager/connectors/uploadtest.html
 admin/fckeditor/
+admin/fckeditor/editor/filemanager/browser/default/browser.html
 admin/fckeditor/editor/filemanager/browser/default/connectors/asp/connector.asp
 admin/fckeditor/editor/filemanager/browser/default/connectors/aspx/connector.aspx
 admin/fckeditor/editor/filemanager/browser/default/connectors/php/connector.php
@@ -6220,6 +6222,7 @@ admn/webedit/
 admolddir/
 admolddir/admin/
 admon/
+admpanel.php
 admpanel/
 admpanel/admin.php
 admpanel/admin_wizard.php
@@ -10078,6 +10081,7 @@ cgi-bin/
 cgi-bin/a1stats/a1disp.cgi
 cgi-bin/awstats.pl
 cgi-bin/awstats/
+cgi-bin/error_log
 cgi-bin/htimage.exe
 cgi-bin/htmlscript/
 cgi-bin/imagemap.exe
@@ -11262,6 +11266,19 @@ commonpages/
 commonpgm/
 commons.php
 commons/
+commons/adm.php
+commons/adm/
+commons/admin.php
+commons/admin/
+commons/adminer.php
+commons/administrator.php
+commons/administrator/
+commons/login.php
+commons/login/
+commons/sign.php
+commons/sign/
+commons/signin.php
+commons/signin/
 commonspot/
 commrades/
 comms/
@@ -13090,6 +13107,8 @@ delfromcart.php
 delia/
 delicious/
 deliver/
+deliveries.json
+deliveries.xml
 delivery/
 dell/
 delphi.php
@@ -13419,6 +13438,8 @@ diretorio/
 dirk/
 dirlink/
 dirman/
+dirmap.php
+dirmap/
 dirs/
 dirscan/
 dis/
@@ -13740,6 +13761,7 @@ dokumente/
 dokumenti/
 dokumenty/
 dokuwiki/
+dokuwiki/doku.php
 doll/
 dollars/
 dolls/
@@ -14917,6 +14939,7 @@ enter/login.php
 enter/sign.php
 enter/signin.php
 enter_exp.php
+enter_to_admin.php
 enteradmin.php
 enteradmin/
 enterchatroom/
@@ -15404,10 +15427,10 @@ explorer/
 expo/
 expop/
 export.class.php
+export.dat
 export.inc.php
 export.php
 export.xml
-export.dat
 export/
 export/csv.php
 export/excel.php
@@ -18999,6 +19022,8 @@ inc-admin/
 inc.php
 inc/
 inc/config.inc
+inc/config.ini
+inc/config.xml
 inc/db/
 inc/error_log
 inc/fck/
@@ -21349,6 +21374,7 @@ load_city.php
 load_f2at.php
 load_lvs.php
 loadavg/
+loadbigcsv.php
 loader.php
 loader/
 loaders/
@@ -21944,7 +21970,8 @@ mailman.php
 mailman/
 mailman/admin.php
 mailman/admin/
-mailman/listinfo
+mailman/listinfo.php
+mailman/listinfo/
 mailmanager/
 mailmanweb.php
 mailmkt/
@@ -27135,6 +27162,10 @@ prg/
 pri/
 price-list/
 price/
+priceManager.php
+priceManager/
+price_manager.php
+price_manager/
 pricecheck/
 pricelist/
 pricelists/
