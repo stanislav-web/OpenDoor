@@ -39,7 +39,7 @@ class Config(object):
         :param dict params: input cli arguments
         """
 
-        self._scan = params.get('scan') if params.get('wordlist') is None else params.get('wordlist')
+        self._scan = params.get('scan')
         self._scheme = self.DEFAULT_SCHEME if params.get('scheme') is None else params.get('scheme')
         self._ssl = params.get('ssl')
         self._host = params.get('host')
@@ -344,6 +344,15 @@ class Config(object):
         """
 
         return self._reports_dir
+
+    @property
+    def wordlist(self):
+        """
+        Get external wordlist
+        :return: str
+        """
+
+        return self._wordlist
 
     @property
     def extensions(self):

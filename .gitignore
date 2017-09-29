@@ -4,3 +4,4 @@
 /syslog/
 /build/
 .coverage
+*__pycache__/**

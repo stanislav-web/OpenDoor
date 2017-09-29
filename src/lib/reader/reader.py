@@ -124,8 +124,7 @@ class Reader(object):
                 dirlist = self.__config.get('ignore_extensionlist')
             else:
                 if True is self.__browser_config.get('is_external_wordlist'):
-                    dirlist = self.__browser_config.get('list')
-                    self.__browser_config.update({'list': 'directories'})
+                    dirlist = self.__browser_config.get('wordlist')
                 else:
                     dirlist = self.__config.get(self.__browser_config.get('list'))
             filesystem.readline(dirlist, handler=getattr(self, '_{0}__line'.format(self.__browser_config.get('list'))),
@@ -268,10 +267,9 @@ class Reader(object):
         :return: int
         """
         try:
-
             if 0 is self.__counter:
                 if True is self.__browser_config.get('is_external_wordlist'):
-                    dirlist = self.__browser_config.get('list')
+                    dirlist = self.__browser_config.get('wordlist')
                 else:
                     dirlist = self.__config.get(self.__browser_config.get('list'))
                 self.__counter = len(filesystem.read(dirlist))

@@ -19,7 +19,7 @@ dictionaries as well. Anonymity and speed are provided by means of using
 proxy servers. Software is written for informational purposes and is
 open source product under the GPL license.
 
--  *Current v3.4.47-rc (05.07.2017)*
+-  *Current v3.4.48-stable (05.07.2017)*
 
    -  Directories - 37931
    -  Subdomains - 101000
@@ -98,6 +98,12 @@ Updates
 
 Changelog (last changes)
 ^^^^^^^^^^^^^^^^^^^^^^^^
+
+v3.4.48-stable (30.09.2017)
+---------------------------
+
+::
+    - Fixed bugs with externals wordlists
 
 v3.4.47-rc Gained more Power! (05.07.2017)
 ------------------------------------------

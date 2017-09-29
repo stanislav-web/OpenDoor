@@ -23,7 +23,8 @@ import sys
 for _ in ['urllib3', 'json2html', 'tabulate', 'importlib']:
     try:
         __import__(_)
-    except ImportError:
+    except ImportError as e:
+        print(e)
         sys.exit("""\t\t[!] Several dependencies wasn't installed!
             Please run sudo pip install -r requirements.txt """)
 

@@ -57,6 +57,7 @@ class Browser(Filter):
                 'use_extensions': self.__config.is_extension_filter,
                 'use_ignore_extensions': self.__config.is_ignore_extension_filter,
                 'is_external_wordlist': self.__config.is_external_wordlist,
+                'wordlist': self.__config.wordlist,
                 'is_standalone_proxy': self.__config.is_standalone_proxy,
                 'is_external_torlist': self.__config.is_external_torlist,
                 'prefix': self.__config.prefix

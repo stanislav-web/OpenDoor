@@ -16,7 +16,7 @@ The scanning is performed by the built-in dictionary and external dictionaries a
 Software is written for informational purposes and is open source product under the GPL license.
 
 ***(Due to the incorrect operation of "SSL" the support for "Python 2.7" is terminated)***
-* *Current v3.4.47-rc (05.07.2017)*
+* *Current v3.4.48-stable (30.09.2017)*
     - Directories - 36931
     - Subdomains - 101000
 
@@ -80,6 +80,10 @@ Software is written for informational purposes and is open source product under 
 ```
 
 #### [Changelog](CHANGELOG.md) (last changes)
+
+v3.4.48-stable (30.09.2017)
+---------------------------
+    -   Fixed bugs with externals wordlists
 
 v3.4.47-rc Gained more Power! (05.07.2017)
 ---------------------------
