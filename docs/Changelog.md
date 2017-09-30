@@ -1,5 +1,9 @@
 Changes
 =======
+v3.4.48-stable (30.09.2017)
+---------------------------
+    -   Fixed bugs with externals wordlists
+
 v3.4.47-rc Gained more Power! (05.07.2017)
 ---------------------------
     - Added IPs lookup for subdomains scan

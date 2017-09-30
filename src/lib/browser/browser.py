@@ -198,7 +198,7 @@ class Browser(Filter):
 
     def _add_urls(self, urllist):
         """
-        Add recieved urllist to threadpool
+        Add received urllist to threadpool
         :param dict urllist: read from dictionary
         :raise KeyboardInterrupt
         :return: None

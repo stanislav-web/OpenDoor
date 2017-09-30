@@ -89,7 +89,7 @@ class Response(ResponseProvider):
                         status = 'failed'
                     url = redirect_uri
                 else:
-                    if self.__config.DEFAULT_SCAN is not self.__config.scan:  # subdomains
+                    if self.__config.SUBDOMAINS_SCAN is self.__config.scan:  # subdomains
                         ips = Socket.get_ips_addresses(helper.parse_url(request_url).hostname)
                         url = request_url = '{0} {1}'.format(request_url, ips)
                     else:

@@ -27,6 +27,7 @@ class Config(object):
     DEFAULT_DEBUG_LEVEL = 0
     DEFAULT_REPORT = 'std'
     DEFAULT_SCAN = 'directories'
+    SUBDOMAINS_SCAN = 'subdomains'
     DEFAULT_SCHEME = 'http://'
     DEFAULT_HTTP_PORT = 80
     DEFAULT_SSL_PORT = 443
