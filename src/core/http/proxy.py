@@ -19,7 +19,7 @@
 import importlib
 import random
 
-from urllib3 import ProxyManager, disable_warnings
+from urllib3 import ProxyManager, Timeout, disable_warnings
 from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown,\
     ReadTimeoutError, InsecureRequestWarning
 
@@ -77,9 +77,16 @@ class Proxy(RequestProvider, DebugProvider):
                     package_module = importlib.import_module('urllib3.contrib.socks')
                     self.__pm = getattr(package_module, 'SOCKSProxyManager')
 
-                pool = self.__pm(self.__server, num_pools=self.__cfg.threads, timeout=self.__cfg.timeout, block=True)
+                pool = self.__pm(self.__server,
+                                 num_pools=self.__cfg.threads,
+                                 timeout=Timeout(self.__cfg.timeout,
+                                 read=self.__cfg.timeout),
+                                 block=True)
             else:
-                pool = ProxyManager(self.__server, num_pools=self.__cfg.threads, timeout=self.__cfg.timeout, block=True)
+                pool = ProxyManager(self.__server,
+                                    num_pools=self.__cfg.threads,
+                                    timeout=Timeout(self.__cfg.timeout, read=self.__cfg.timeout),
+                                    block=True)
             return pool
         except (DependencyWarning, ProxySchemeUnknown, ImportError) as error:
             raise ProxyRequestError(error)

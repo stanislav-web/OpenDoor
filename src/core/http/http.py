@@ -16,7 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from urllib3 import HTTPConnectionPool, PoolManager
+from urllib3 import HTTPConnectionPool, PoolManager, Timeout
 from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, NewConnectionError
 from src.core import helper
 from .exceptions import HttpRequestError
@@ -56,8 +56,12 @@ class HttpRequest(RequestProvider, DebugProvider):
         """
 
         try:
-            pool = HTTPConnectionPool(self.__cfg.host, port=self.__cfg.port, maxsize=self.__cfg.threads,
-                                      timeout=self.__cfg.timeout, block=True)
+            pool = HTTPConnectionPool(self.__cfg.host,
+                                      port=self.__cfg.port,
+                                      maxsize=self.__cfg.threads,
+                                      timeout=Timeout(self.__cfg.timeout, read=self.__cfg.timeout),
+                                      block=True)
+            # @notice : add same time for reading from all requests
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_connection_pool('http_pool_start', pool)
             return pool
@@ -75,13 +79,20 @@ class HttpRequest(RequestProvider, DebugProvider):
             self.__debug.debug_request(self._headers, url, self.__cfg.method)
         try:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
-                response = self.__pool.request(self.__cfg.method, helper.parse_url(url).path, headers=self._headers,
-                                               retries=self.__cfg.retries, assert_same_host=True, redirect=False)
+                response = self.__pool.request(self.__cfg.method,
+                                               helper.parse_url(url).path,
+                                               headers=self._headers,
+                                               retries=self.__cfg.retries,
+                                               assert_same_host=True,
+                                               redirect=False)
 
                 self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             else:
-                response = PoolManager().request(self.__cfg.method, url, headers=self._headers,
-                                                 retries=self.__cfg.retries, assert_same_host=False, redirect=False)
+                response = PoolManager().request(self.__cfg.method, url,
+                                                 headers=self._headers,
+                                                 retries=self.__cfg.retries,
+                                                 assert_same_host=False,
+                                                 redirect=False)
             return response
 
         except MaxRetryError:

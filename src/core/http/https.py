@@ -16,7 +16,7 @@
     Development Team: Stanislav WEB
 """
 
-from urllib3 import HTTPSConnectionPool, PoolManager, HTTPResponse, disable_warnings
+from urllib3 import HTTPSConnectionPool, PoolManager, HTTPResponse, Timeout, disable_warnings
 from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, \
     SSLError, NewConnectionError, InsecureRequestWarning
 from src.core import helper
@@ -67,13 +67,15 @@ class HttpsRequest(RequestProvider, DebugProvider):
         :raise HttpsRequestError
         :return: urllib3.HTTPConnectionPool
         """
-        
+
         try:
             pool = HTTPSConnectionPool(
                     host=self.__cfg.host,
                     port=self.__cfg.port,
                     maxsize=self.__cfg.threads,
-                    timeout=self.__cfg.timeout, block=True)
+                    timeout=Timeout(self.__cfg.timeout, read=self.__cfg.timeout),
+                    block=True)
+                    #@notice : add same time for reading from all requests
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_connection_pool('https_pool_start', pool)
 
@@ -87,10 +89,10 @@ class HttpsRequest(RequestProvider, DebugProvider):
         :param str url: request uri
         :return: urllib3.HTTPResponse
         """
-        
+
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
             self.__debug.debug_request(self._headers, url, self.__cfg.method)
-        
+
         try:
 
             disable_warnings(InsecureRequestWarning)
@@ -104,7 +106,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
                                                redirect=False)
                 self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             else:  # subdomains
-                
+
                 response = PoolManager().request(self.__cfg.method, url,
                                                  headers=self._headers,
                                                  retries=self.__cfg.retries,
