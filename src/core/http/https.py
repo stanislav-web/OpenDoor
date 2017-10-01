@@ -17,8 +17,8 @@
 """
 
 from urllib3 import HTTPSConnectionPool, PoolManager, HTTPResponse, Timeout, disable_warnings
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, \
-    SSLError, NewConnectionError, InsecureRequestWarning
+from urllib3.exceptions import MaxRetryError, ReadTimeoutError, ConnectTimeoutError, \
+    HostChangedError, SSLError, InsecureRequestWarning
 from src.core import helper
 from .exceptions import HttpsRequestError
 from .providers import DebugProvider
@@ -75,7 +75,6 @@ class HttpsRequest(RequestProvider, DebugProvider):
                     maxsize=self.__cfg.threads,
                     timeout=Timeout(self.__cfg.timeout, read=self.__cfg.timeout),
                     block=True)
-                    #@notice : add same time for reading from all requests
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_connection_pool('https_pool_start', pool)
 
@@ -120,14 +119,16 @@ class HttpsRequest(RequestProvider, DebugProvider):
 
         except HostChangedError as error:
             self.__tpl.warning(key='host_changed_error', details=error)
+            pass
 
         except ReadTimeoutError:
-            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
-                self.__tpl.warning(key='read_timeout_error', url=url)
+            self.__tpl.warning(key='read_timeout_error', url=url)
+            pass
+
+        except ConnectTimeoutError:
+            self.__tpl.warning(key='connection_timeout_error', url=url)
+            pass
 
         except SSLError:
             if self.__cfg.DEFAULT_SCAN != self.__cfg.scan:
                 return self._provide_ssl_auth_required()
-
-        except NewConnectionError as error:
-            raise HttpsRequestError(str(error))

@@ -22,6 +22,7 @@ from src.core import CoreConfig
 from src.core import filesystem
 from src.core import process
 from src.core import sys
+from src.core import helper
 from .config import Config
 from .exceptions import ReaderError
 
@@ -141,21 +142,23 @@ class Reader(object):
         :return: str
         """
 
-        line = line.strip("\n")
-        line.strip('/')
+        line = helper.filter_domain_string(line)
 
         host = params.get('host')
         port = params.get('port')
 
         if 'www.' in host:
             host = host.replace("www.", "")
-        
+
         if port is Config.ssl_port or port is Config.http_port:
             port = ''
         else:
             port = ':{0}'.format(port)
 
-        line = "{scheme}{sub}.{host}{port}".format(scheme=params.get('scheme'), host=host, port=port, sub=line)
+        line = "{scheme}{sub}.{host}{port}".format(scheme=params.get('scheme'),
+                                                   host=host,
+                                                   port=port,
+                                                   sub=line)
 
         return line
 
@@ -167,9 +170,7 @@ class Reader(object):
         :return: str
         """
 
-        line = line.strip("\n")
-        if True is line.startswith('/'):
-            line = line[1:]
+        line = helper.filter_subdomain_string(line)
 
         if 'prefix' in self.__browser_config and 0 < len(self.__browser_config.get('prefix')):
             line = self.__browser_config.get('prefix') + line

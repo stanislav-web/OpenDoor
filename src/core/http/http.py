@@ -17,7 +17,7 @@
 """
 
 from urllib3 import HTTPConnectionPool, PoolManager, Timeout
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError, HostChangedError, NewConnectionError
+from urllib3.exceptions import MaxRetryError, ReadTimeoutError, ConnectTimeoutError, HostChangedError
 from src.core import helper
 from .exceptions import HttpRequestError
 from .providers import DebugProvider
@@ -61,7 +61,6 @@ class HttpRequest(RequestProvider, DebugProvider):
                                       maxsize=self.__cfg.threads,
                                       timeout=Timeout(self.__cfg.timeout, read=self.__cfg.timeout),
                                       block=True)
-            # @notice : add same time for reading from all requests
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_connection_pool('http_pool_start', pool)
             return pool
@@ -98,13 +97,16 @@ class HttpRequest(RequestProvider, DebugProvider):
         except MaxRetryError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
+            pass
+
         except HostChangedError as error:
             self.__tpl.warning(key='host_changed_error', details=error)
+            pass
+
         except ReadTimeoutError:
-            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
-                self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
-        except NewConnectionError as error:
-            if 'subdomains' in self.__cfg.scan:
-                pass
-            else:
-                raise HttpRequestError(str(error))
+            self.__tpl.warning(key='read_timeout_error', url=url)
+            pass
+
+        except ConnectTimeoutError:
+            self.__tpl.warning(key='connection_timeout_error', url=url)
+            pass

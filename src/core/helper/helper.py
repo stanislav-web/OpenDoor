@@ -19,6 +19,7 @@
 import codecs
 import collections
 import json
+import re
 import webbrowser
 from urllib.parse import urlparse
 from distutils.version import LooseVersion
@@ -138,34 +139,61 @@ class Helper(object):
         return str(domain.encode("idna").decode("utf-8"))
 
     @staticmethod
-    def decode(string, errors='strict'):
+    def decode(str, errors='strict'):
         """
         Decode strings
 
-        :param str string: input string
+        :param str str: input string
         :param str errors:error level
         :return: str
         """
 
         output = ''
         try:
-            if len(string) < 3:
-                if codecs.BOM_UTF8.startswith(string):
+            if len(str) < 3:
+                if codecs.BOM_UTF8.startswith(str):
                     # not enough data to decide if this is a BOM
                     # => try again on the next call
                     output = ""
 
-            elif string[:3] == codecs.BOM_UTF8:
-                (output, sizes) = codecs.utf_8_decode(string[3:], errors)
-            elif string[:3] == codecs.BOM_UTF16:
-                output = string[3:].decode('utf16')
+            elif str[:3] == codecs.BOM_UTF8:
+                (output, sizes) = codecs.utf_8_decode(str[3:], errors)
+            elif str[:3] == codecs.BOM_UTF16:
+                output = str[3:].decode('utf16')
             else:
                 # (else) no BOM present
-                (output, sizes) = codecs.utf_8_decode(string, errors)
+                (output, sizes) = codecs.utf_8_decode(str, errors)
             return str(output)
         except (UnicodeDecodeError, Exception):
             # seems, its getting not a content (images, file, etc)
             try:
-                return string.decode('cp1251')
+                return str.decode('cp1251')
             except (UnicodeDecodeError, Exception):
                 return ""
+
+    @staticmethod
+    def filter_directory_string(str):
+        """
+        Filter directory string
+
+        :param str string: input string
+        :return: str
+        """
+
+        str = str.strip("\n")
+        if True is str.startswith('/'):
+            str = str[1:]
+        return str.trim();
+
+    @staticmethod
+    def filter_domain_string(str):
+        """
+        Filter domain/subdomain string
+
+        :param str string: input string
+        :return: str
+        """
+
+        str.strip("\n")
+        str = re.sub(r'[^\w\d_-]', '', str).lower()
+        return str.lower();
