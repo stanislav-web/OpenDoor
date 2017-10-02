@@ -170,7 +170,7 @@ class Reader(object):
         :return: str
         """
 
-        line = helper.filter_subdomain_string(line)
+        line = helper.filter_directory_string(line)
 
         if 'prefix' in self.__browser_config and 0 < len(self.__browser_config.get('prefix')):
             line = self.__browser_config.get('prefix') + line

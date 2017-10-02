@@ -95,7 +95,10 @@ class Filter(object):
         regex = re.compile(r"" + Filter.URL_REGEX + "")
 
         if not regex.match(hostname):
-            hostname = helper.decode_hostname(hostname)
+            try:
+                hostname = helper.decode_hostname(hostname)
+            except UnicodeError as error:
+                raise FilterError("\"{0}\" is invalid host. {1}".format(hostname, str(error)))
             if not regex.match(hostname):
                 raise FilterError("\"{0}\" is invalid host. Use ip, http(s) or just hostname".format(hostname))
         return hostname

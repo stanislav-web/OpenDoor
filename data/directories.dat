@@ -2066,6 +2066,8 @@ Composite.php
 Computers/
 Concat.php
 Config.aspx
+Config.json
+Config.js
 Config.class.php
 Config.php
 Config/
@@ -9208,6 +9210,9 @@ build.local.xml
 build.php
 build.sh
 build.xml
+build.dat
+build.js
+build.json
 build/
 build/build.log
 build/build.properties
@@ -11513,6 +11518,7 @@ config.rb
 config.sef.php
 config.txt
 config.xml
+config.js
 config.yml
 config/
 config/AppData.config
@@ -30151,6 +30157,8 @@ setting/
 settings.asp
 settings.class.php
 settings.dat
+settings.js
+settings.json
 settings.html
 settings.inc.php
 settings.ini
