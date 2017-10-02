@@ -87,9 +87,13 @@ class Response(ResponseProvider):
                     check_for_ignored = helper.parse_url(redirect_uri).path[1:]
                     if check_for_ignored in ignore_list:
                         status = 'failed'
-                    url = redirect_uri
+                    if self.__config.SUBDOMAINS_SCAN == self.__config.scan:  # subdomains
+                        ips = Socket.get_ips_addresses(helper.parse_url(request_url).hostname)
+                        url = request_url = '{0} {1}'.format(request_url, ips)
+                    else:
+                        url = redirect_uri
                 else:
-                    if self.__config.SUBDOMAINS_SCAN is self.__config.scan:  # subdomains
+                    if self.__config.SUBDOMAINS_SCAN == self.__config.scan:  # subdomains
                         ips = Socket.get_ips_addresses(helper.parse_url(request_url).hostname)
                         url = request_url = '{0} {1}'.format(request_url, ips)
                     else:
