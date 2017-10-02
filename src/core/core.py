@@ -22,8 +22,8 @@ CoreConfig = {
         'repository': 'git@github.com:stanislav-web/OpenDoor.git',
         'remote_version': 'https://raw.githubusercontent.com/stanislav-web/OpenDoor/master/VERSION',
         'license': 'License: GNU General Public License',
-        'version': '3.4.48-stable',
-        'documentations': 'https://opendoor.readthedocs.org',
+        'version': '3.4.481-stable',
+        'documentation': 'https://opendoor.readthedocs.org',
         'required_versions': {
             'minor': '3.3',
             'major': '3.6'

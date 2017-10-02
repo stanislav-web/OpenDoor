@@ -142,7 +142,7 @@ class Package(object):
         :raise PackageError
         :return: bool
         """
-        docurl = CoreConfig.get('info').get('documentations')
+        docurl = CoreConfig.get('info').get('documentation')
         return helper.openbrowser(docurl)
 
     @staticmethod

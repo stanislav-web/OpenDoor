@@ -143,7 +143,7 @@ html_theme_options = {
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
 #
-html_title = u'OWASP WEB Directory Scanner v3.4.47-stable'
+html_title = u'OWASP WEB Directory Scanner v3.4.481-stable'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #

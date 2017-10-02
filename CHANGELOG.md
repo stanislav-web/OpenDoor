@@ -1,8 +1,9 @@
 Changes
 =======
-v3.4.48-stable (30.09.2017)
+v3.4.481-stable (02.10.2017)
 ---------------------------
     -   Fixed bugs with externals wordlists
+    -   Added 80018 subdomains
 
 v3.4.47-rc Gained more Power! (05.07.2017)
 ---------------------------
