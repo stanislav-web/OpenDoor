@@ -183,7 +183,8 @@ class Helper(object):
         str = str.strip("\n")
         if True is str.startswith('/'):
             str = str[1:]
-        return str.strip()
+
+        return str.trim()
 
     @staticmethod
     def filter_domain_string(str):
@@ -196,4 +197,6 @@ class Helper(object):
 
         str.strip("\n")
         str = re.sub(r'[^\w\d_-]', '', str).lower()
-        return str.lower();
+        if not str:
+            str = '_'
+        return str.lower()
