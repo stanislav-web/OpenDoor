@@ -415,3 +415,21 @@
 2017-07-01 01:13:32 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
 2017-07-01 01:13:32 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
 2017-07-01 01:13:32 [ERROR] : str: Could not find tpl option `undefined` in /home/user/Projects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-10-03 03:12:05 [ERROR] : SocketError: [Errno -2] Name or service not known in /home/web/PycharmProjects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-10-03 03:12:07 [ERROR] : FileSystemError: /failed is not a file  in /home/web/PycharmProjects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-10-03 03:12:07 [ERROR] : ReaderError: FileSystemError: /failed is not a file  in /home/web/PycharmProjects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-10-03 03:12:07 [ERROR] : ReporterError: Unable to get reporter `raisesexc`. Reason: module 'src.lib.reporter.plugins' has no attribute 'raisesexc' in /home/web/PycharmProjects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-10-03 03:12:07 [ERROR] : FileSystemError: /wrong is not a file  in /home/web/PycharmProjects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-10-03 03:12:07 [ERROR] : ReaderError: FileSystemError: /wrong is not a file  in /home/web/PycharmProjects/OpenDoor/src/lib/browser/exceptions.py -> __init__() line 25
+2017-10-03 03:12:09 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/web/PycharmProjects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-10-03 03:12:09 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/web/PycharmProjects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-10-03 03:12:09 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/web/PycharmProjects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-10-03 03:12:09 [ERROR] : FileSystemError: /notfound is not a file  in /home/web/PycharmProjects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-10-03 03:12:09 [ERROR] : TypeError: get() missing 1 required positional argument: 'option' in /home/web/PycharmProjects/OpenDoor/src/lib/reader/exceptions.py -> __init__() line 25
+2017-10-03 03:12:09 [ERROR] : str: Could not find tpl option `undefined` in /home/web/PycharmProjects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-10-03 03:12:09 [ERROR] : str: Could not find tpl option `undefined` in /home/web/PycharmProjects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-10-03 03:12:09 [ERROR] : str: Could not find tpl option `undefined` in /home/web/PycharmProjects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-10-03 03:12:09 [ERROR] : str: Could not find tpl option `undefined` in /home/web/PycharmProjects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-10-03 03:12:09 [ERROR] : str: Could not find tpl option `undefined` in /home/web/PycharmProjects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-10-03 03:12:09 [ERROR] : str: Could not find tpl option `undefined` in /home/web/PycharmProjects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26
+2017-10-03 03:12:09 [ERROR] : str: Could not find tpl option `undefined` in /home/web/PycharmProjects/OpenDoor/src/lib/tpl/exceptions.py -> __init__() line 26

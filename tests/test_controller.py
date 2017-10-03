@@ -47,7 +47,7 @@ class TestController(unittest.TestCase):
             Controller().scan_action({})
         self.assertTrue(SrcError == context.expected)
 
-    @data( {'version': True}, {'examples': True}, {'update' : True}, {'docs' : True})
+    @data( {'version': True}, {'examples': True}, {'update' : True}) #, {'docs' : True}
     def test_run(self, args):
         """ Controller.run() test """
         
