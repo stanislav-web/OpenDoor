@@ -24,13 +24,13 @@ for _ in ['urllib3', 'json2html', 'tabulate', 'importlib']:
     try:
         __import__(_)
     except ImportError as e:
-        print(e)
         sys.exit("""\t\t[!] Several dependencies wasn't installed!
             Please run sudo pip install -r requirements.txt """)
 
 if __name__ == "__main__":
 
     from src import Controller, SrcError
+    import sys
 
     try:
         bootstrap = Controller()
