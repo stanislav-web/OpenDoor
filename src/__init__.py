@@ -24,9 +24,8 @@ from .exceptions import SrcError
 for _ in ['urllib3', 'json2html', 'tabulate', 'importlib']:
     try:
         __import__(_)
-    except ImportError:
-        sys.exit("""\t\t[!] Several dependencies wasn't installed!
-            Please run pip install -r requirements.txt """)
+    except ImportError as error:
+        sys.exit("""\t\t[!] Several dependencies wasn't installed! Please run pip install -r requirements.txt. Details : %s.""" %(error))
 
 
 def main():
