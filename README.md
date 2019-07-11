@@ -16,7 +16,7 @@ Software is written for informational purposes and is open source product under 
 
 ***(Due to the incorrect operation of "SSL" the support for "Python 2.7" is terminated)***
 * *Current 3.4.481-stable (02.10.2017)*
-    - Directories - 36931
+    - Directories - 36994
     - Subdomains - 181018
 
 ***Testing of the software on the live commercial systems and organizations is prohibited!***
