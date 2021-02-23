@@ -16,7 +16,7 @@
     Development Team: Brain Storm Team
 """
 
-import unittest2 as unittest
+import unittest
 from src.core.logger.logger import Logger
 from io import StringIO
 from mock import patch

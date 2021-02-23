@@ -16,7 +16,7 @@
     Development Team: Brain Storm Team
 """
 
-import unittest2 as unittest
+import unittest
 from src.lib import browser, BrowserError
 from src.lib.browser.threadpool import ThreadPool
 from src.lib.browser.config import Config

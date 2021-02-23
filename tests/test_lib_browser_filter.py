@@ -18,7 +18,7 @@
 
 from io import StringIO
 from mock import patch
-import unittest2 as unittest
+import unittest
 from src.lib.browser.filter import Filter
 from src.lib.browser.config import Config
 from src.core.logger.logger import Logger

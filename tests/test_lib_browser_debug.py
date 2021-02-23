@@ -16,7 +16,7 @@
     Development Team: Brain Storm Team
 """
 
-import unittest2 as unittest
+import unittest
 from src.lib.browser.debug import Debug
 from src.lib.browser.config import Config
 from mock import patch

@@ -16,7 +16,7 @@
     Development Team: Brain Storm Team
 """
 
-import unittest2 as unittest
+import unittest
 from src.core import sys
 from src.lib.package import Package, PackageError
 from src.core.filesystem import FileSystem

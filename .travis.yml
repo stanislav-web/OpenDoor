@@ -5,6 +5,7 @@ os:
 
 python:
   - 3.9
+  - 3.10-dev
   - nightly
 
 cache:

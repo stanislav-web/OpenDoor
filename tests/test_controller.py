@@ -17,8 +17,7 @@
 """
 
 from __future__ import absolute_import
-import copy
-import unittest2 as unittest
+import unittest
 from ddt import ddt, data
 from src.core import CoreConfig
 from src import Controller, SrcError

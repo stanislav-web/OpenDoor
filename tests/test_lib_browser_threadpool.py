@@ -16,7 +16,7 @@
     Development Team: Brain Storm Team
 """
 
-import unittest2 as unittest
+import unittest
 from mock import patch
 from src.lib.browser.threadpool import ThreadPool
 from src.core.logger.logger import Logger

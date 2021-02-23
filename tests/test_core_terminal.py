@@ -17,7 +17,7 @@
 """
 
 from __future__ import absolute_import
-import unittest2 as unittest
+import unittest
 from src.core.system.terminal import Terminal
 from src.core.system.output import Output
 
