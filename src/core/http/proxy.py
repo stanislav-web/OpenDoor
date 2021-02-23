@@ -85,7 +85,7 @@ class Proxy(RequestProvider, DebugProvider):
             else:
                 pool = ProxyManager(self.__server,
                                     num_pools=self.__cfg.threads,
-                                    timeout=Timeout(self.__cfg.timeout, read=self.__cfg.timeout),
+                                    timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
                                     block=True)
             return pool
         except (DependencyWarning, ProxySchemeUnknown, ImportError) as error:

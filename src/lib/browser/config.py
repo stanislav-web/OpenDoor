@@ -164,9 +164,19 @@ class Config(object):
     def timeout(self):
         """
         Timeout property
-        :return: int
+        :return: float
+        """
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, value):
+        """
+        timeout param setter
+        :param int value:
+        :return: None
         """
 
+        self._timeout = float(value)
         return self._timeout
 
     @property

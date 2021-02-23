@@ -15,7 +15,6 @@
 
     Development Team: Brain Storm Team
 """
-
 import unittest
 from src.lib.browser.config import Config
 
@@ -52,7 +51,8 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertTrue(1 is Config({'delay' : 1}).delay)
 
         self.assertIs(type(Config.timeout), property)
-        self.assertTrue(Config.DEFAULT_SOCKET_TIMEOUT is Config({'timeout' : 10}).timeout)
+
+        self.assertAlmostEqual(Config.DEFAULT_SOCKET_TIMEOUT, Config({'timeout' : 10}).timeout)
 
         self.assertIs(type(Config.retries), property)
         self.assertTrue(3 is Config({'retries' : 3}).retries)

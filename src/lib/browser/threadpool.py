@@ -34,7 +34,7 @@ class ThreadPool(object):
         Initialize thread pool
         :param int num_threads: active workers
         :param int total_items: total items
-        :param int timeout: delay betwen threads
+        :param int timeout: delay between threads
         """
 
         self.__queue = Queue(num_threads)

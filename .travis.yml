@@ -27,7 +27,7 @@ notifications:
     on_failure: always # default: always
 
 script:
-  - coverage run --source=src/ setup.py test
+  - python setup.py test
 after_script:
   - coverage report
 after_success:
