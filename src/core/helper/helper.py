@@ -24,6 +24,11 @@ import webbrowser
 from urllib.parse import urlparse
 from distutils.version import LooseVersion
 
+try:
+    from collections.abc import Callable
+except ImportError:
+    from collections import Callable
+
 
 class Helper(object):
 
@@ -124,7 +129,7 @@ class Helper(object):
         :return: bool
         """
 
-        return isinstance(func, collections.Callable)
+        return isinstance(func, Callable)
 
     @staticmethod
     def decode_hostname(hostname):
