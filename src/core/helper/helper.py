@@ -13,7 +13,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav WEB
+    Development Team: Brain Storm Team
 """
 
 import codecs
@@ -23,6 +23,11 @@ import re
 import webbrowser
 from urllib.parse import urlparse
 from distutils.version import LooseVersion
+
+try:
+    from collections.abc import Callable
+except ImportError:
+    from collections import Callable
 
 
 class Helper(object):
@@ -124,7 +129,7 @@ class Helper(object):
         :return: bool
         """
 
-        return isinstance(func, collections.Callable)
+        return isinstance(func, Callable)
 
     @staticmethod
     def decode_hostname(hostname):

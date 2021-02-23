@@ -1,28 +1,25 @@
-OWASP WEB Directory Scanner
-===========================
+OWASP WEB Directory Scanner |Twitter|
+=====================================
 
-.. image:: https://landscape.io/github/stanislav-web/OpenDoor/master/landscape.svg?style=flat
-   :target: https://landscape.io/github/stanislav-web/OpenDoor/master
-.. image:: https://readthedocs.org/projects/opendoor/badge/?version=latest
-   :target: http://opendoor.readthedocs.io/?badge=latest
-
-.. image:: https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master
-   :target: https://travis-ci.org/stanislav-web/OpenDoor
-.. image:: https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true
-   :target: https://ci.appveyor.com/project/stanislav-web/opendoor
++----------+------------------+------------------+
+| Python   | Linux            | OSX              |
++==========+==================+==================+
+| 3.9      | |Build Status|   | |Build Status|   |
++----------+------------------+------------------+
+| 3.10     | |Build Status|   | |Build Status|   |
++----------+------------------+------------------+
 
 **OpenDoor OWASP** is console multifunctional web sites scanner. This
-application find all possible ways to login, index of/ directories, web shells,
-restricted access points, subdomains, hidden data and large backups. The
-scanning is performed by the built-in dictionary and external
-dictionaries as well. Anonymity and speed are provided by means of using
-proxy servers. Software is written for informational purposes and is
-open source product under the GPL license.
+application find all possible ways to login, index of/ directories, web
+shells, restricted access points, subdomains, hidden data and large
+backups. The scanning is performed by the built-in dictionary and
+external dictionaries as well. Anonymity and speed are provided by means
+of using proxy servers. Software is written for informational purposes
+and is open source product under the GPL license.
 
--  *Current v3.4.48-stable (05.07.2017)*
-
-   -  Directories - 37931
-   -  Subdomains - 101000
+***(Due to the incorrect operation of "SSL" the support for "Python 2.7"
+is terminated)*** \* *Current 3.4.481-stable (02.10.2017)* - Directories
+- 36994 - Subdomains - 181018
 
 ***Testing of the software on the live commercial systems and
 organizations is prohibited!***
@@ -31,19 +28,18 @@ organizations is prohibited!***
    :alt: OpenDoor OWASP
 
    Alt text
-
 Implements
 ^^^^^^^^^^
 
 -  [x] multithreading control
--  [x] scan’s reports
+-  [x] scan's reports
 -  [x] directories scanner
 -  [x] subdomains scanner
 -  [x] HTTP(S) (PORT) support
 -  [x] Keep-alive long pooling
 -  [x] HTTP(S)/SOCKS proxies
 -  [x] dynamic request header
--  [x] custom wordlst’s prefixes
+-  [x] custom wordlst's prefixes
 -  [x] custom wordlists, proxies, ignore lists
 -  [x] debug levels (1-3)
 -  [x] extensions filter
@@ -54,7 +50,7 @@ Implements
    -  detect redirects
    -  detect index of/ Apache
    -  detect large files
-   -  heuristic detect invalid pages
+   -  heuristic detect invalid web pages
    -  blank success page filter
    -  certif required pages
 
@@ -65,6 +61,13 @@ Implements
    -  wordlists shuffling
    -  wordlists filters
 
+Install PIP
+^^^^^^^^^^^
+
+::
+
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+
 Local installation and run
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -72,7 +75,7 @@ Local installation and run
 
      git clone https://github.com/stanislav-web/OpenDoor.git
      cd OpenDoor/
-     pip install -r requirements.txt
+     pip3 install -r requirements.txt
      chmod +x opendoor.py
 
      python3 opendoor.py --host http://www.example.com
@@ -96,15 +99,16 @@ Updates
      python3 opendoor.py --update
      opendoor --update
 
-Changelog (last changes)
-^^^^^^^^^^^^^^^^^^^^^^^^
+`Changelog <CHANGELOG.md>`__ (last changes)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 v3.4.481-stable (02.10.2017)
----------------------------
+----------------------------
 
 ::
-    - Fixed bugs with externals wordlists
-    - Added 80018 subdomains
+
+    -   Fixed bugs with externals wordlists
+    -   Added 80018 subdomains
 
 v3.4.47-rc Gained more Power! (05.07.2017)
 ------------------------------------------
@@ -133,13 +137,14 @@ Help
 ::
 
     usage: opendoor.py [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
-                   [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
-                   [--accept-cookies] [--debug DEBUG] [--tor]
-                   [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
-                   [--reports REPORTS] [--reports-dir REPORTS_DIR]
-                   [--random-agent] [-a] [--random-list] [--prefix PREFIX]
-                   [-e EXTENSIONS] [-i IGNORE_EXTENSIONS] [--sniff SNIFF] [--update] [--version]
-                   [--examples] [--docs] [--wizard [WIZARD]]
+                       [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
+                       [--accept-cookies] [--debug DEBUG] [--tor]
+                       [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
+                       [--reports REPORTS] [--reports-dir REPORTS_DIR]
+                       [--random-agent] [--random-list] [--prefix PREFIX]
+                       [-e EXTENSIONS] [-i IGNORE_EXTENSIONS] [--sniff SNIFF]
+                       [--update] [--version] [--examples] [--docs]
+                       [--wizard [WIZARD]]
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -178,7 +183,8 @@ Help
       --random-agent        Randomize user-agent per request
 
     Sniff tools:
-      --sniff SNIFF         Response sniff plugins (indexof,collation,file,skipempty)
+      --sniff SNIFF         Response sniff plugins
+                            (indexof,collation,file,skipempty)
 
     Stream tools:
       -t THREADS, --threads THREADS
@@ -193,9 +199,8 @@ Help
       -e EXTENSIONS, --extensions EXTENSIONS
                             Force use selected extensions for scan session -e
                             php,json e.g
-      -e IGNORE_EXTENSIONS, --extensions EXTENSIONS
+      -i IGNORE_EXTENSIONS, --ignore-extensions IGNORE_EXTENSIONS
                             Ignore extensions for scan session -i aspx,jsp e.g
-
 
 Maintainers
 ^^^^^^^^^^^
@@ -203,7 +208,7 @@ Maintainers
 -  @stanislav-web https://github.com/stanislav-web (Developer)
 
 Tests
-^^^^^
+~~~~~
 
 ::
 
@@ -211,26 +216,28 @@ Tests
     coverage run --source=src/ setup.py test
 
 Contributors
-^^^^^^^^^^^^
+~~~~~~~~~~~~
 
 If you like to contribute to the development of the project in that case
 pull requests are open for you. Also, you can suggest an ideas and
 create a task in my track list
 
-|Issues| |License| |Thanks|
+|Issues| |License: GPL v3| |Say Thanks!|
 
 Documentation
-^^^^^^^^^^^^^
+~~~~~~~~~~~~~
 
--  `Opendoor OWASP CookBook`_
--  `Issues`_
+-  `Opendoor OWASP
+   CookBook <https://github.com/stanislav-web/OpenDoor/wiki>`__
+-  `Issues <https://github.com/stanislav-web/OpenDoor/issues>`__
 
-.. _Opendoor OWASP CookBook: https://github.com/stanislav-web/OpenDoor/wiki
-.. _Issues: https://github.com/stanislav-web/OpenDoor/issues
-
+.. |Twitter| image:: https://img.shields.io/twitter/url/https/github.com/stanislav-web/OpenDoor.svg?style=social
+   :target: https://twitter.com/intent/tweet?text=Wow:&url=https://github.com/stanislav-web/OpenDoor
+.. |Build Status| image:: https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master
+   :target: https://travis-ci.org/stanislav-web/OpenDoor
 .. |Issues| image:: https://badge.waffle.io/stanislav-web/OpenDoor.png?label=Ready
    :target: https://waffle.io/stanislav-web/OpenDoor
-.. |License| image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
+.. |License: GPL v3| image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
    :target: http://www.gnu.org/licenses/gpl-3.0
-.. |Thanks| image:: https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg
+.. |Say Thanks!| image:: https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg
    :target: https://saythanks.io/to/stanislav-web

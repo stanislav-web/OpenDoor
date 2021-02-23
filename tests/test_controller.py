@@ -13,12 +13,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav WEB
+    Development Team: Brain Storm Team
 """
 
 from __future__ import absolute_import
-import copy
-import unittest2 as unittest
+import unittest
 from ddt import ddt, data
 from src.core import CoreConfig
 from src import Controller, SrcError

@@ -14,7 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav WEB
+    Development Team: Brain Storm Team
 """
 
 from setuptools import setup, find_packages
@@ -35,9 +35,9 @@ setup(name='opendoor',
       url='https://github.com/stanislav-web/OpenDoor',
 
       # Author details
-      author='Stanislav WEB',
+      author='Brain Storm Team',
       author_email='stanisov@gmail.com',
-      maintainer='Stanislav WEB',
+      maintainer='Brain Storm Team',
 
       # You can just specify the packages manually here if your project is
       # simple. Or you can use find_packages().
