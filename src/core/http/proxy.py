@@ -13,7 +13,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav WEB
+    Development Team: Brain Storm Team
 """
 
 import importlib
@@ -85,7 +85,7 @@ class Proxy(RequestProvider, DebugProvider):
             else:
                 pool = ProxyManager(self.__server,
                                     num_pools=self.__cfg.threads,
-                                    timeout=Timeout(self.__cfg.timeout, read=self.__cfg.timeout),
+                                    timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
                                     block=True)
             return pool
         except (DependencyWarning, ProxySchemeUnknown, ImportError) as error:

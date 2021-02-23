@@ -13,7 +13,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav WEB
+    Development Team: Brain Storm Team
 """
 
 import threading
@@ -34,7 +34,7 @@ class ThreadPool(object):
         Initialize thread pool
         :param int num_threads: active workers
         :param int total_items: total items
-        :param int timeout: delay betwen threads
+        :param int timeout: delay between threads
         """
 
         self.__queue = Queue(num_threads)
@@ -45,7 +45,7 @@ class ThreadPool(object):
         for _ in range(num_threads):
 
             worker = Worker(self.__queue, num_threads, timeout)
-            if False is worker.isAlive():
+            if False is worker.is_alive():
                 worker.setDaemon(True)
                 worker.start()
                 self.__workers.append(worker)

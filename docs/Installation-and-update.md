@@ -1,14 +1,20 @@
 Installation
 ===============
-Python v3.3 is minor requirement.
+Python v3.9 is minor requirement.
 At the moment, the package can be installed from this repository [https://github.com/stanislav-web/OpenDoor](https://github.com/stanislav-web/OpenDoor)
 Now being tested, and the next will be published in other sources, such as Pypi.
 
-|  Python | Linux  |  OSX | Windows  |
-|:-:|:-:|:-:|:-:|
-|3.4|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
-|3.5|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
-|3.6|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)    | ?  | [![Build status](https://ci.appveyor.com/api/projects/status/3hmrb64ofdssi4qd?svg=true)](https://ci.appveyor.com/project/stanislav-web/opendoor)|
+|Python | Linux | OSX |
+|---	|---	|---|
+|3.9   	| [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)   	|
+|3.10   | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)   	|
+
+
+Install PIP
+---------------------------
+```
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+```
 
 GNU Linux (Local installation and run)
 ---------------------------
@@ -16,7 +22,7 @@ GNU Linux (Local installation and run)
 ```
  git clone https://github.com/stanislav-web/OpenDoor.git
  cd OpenDoor/
- pip install -r requirements.txt
+ pip3 install -r requirements.txt
  chmod +x opendoor.py
 
  python3 opendoor.py --host http://www.example.com
@@ -75,7 +81,7 @@ Update
 You have an update a package using `git pull origin master` inside or run update process from interface:
 ```
 # GNU Linux
-python opendoor.py --update
+python3 opendoor.py --update
 ```
  
 ```

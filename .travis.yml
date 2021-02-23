@@ -1,12 +1,12 @@
 language: python
-
+dist: xenial
 os:
   - linux
 
 python:
-  - 3.4
-  - 3.5
-  - 3.6
+  - 3.9
+  - 3.10-dev
+  - nightly
 
 cache:
   pip: false
@@ -21,11 +21,13 @@ install:
 
 notifications:
   email:
-    on_success: never
-    on_failure: email
+    recipients:
+      - stanisov@gmail.com
+    on_success: never # default: change
+    on_failure: always # default: always
 
 script:
-  - coverage run --source=src/ setup.py test
+  - python setup.py test
 after_script:
   - coverage report
 after_success:

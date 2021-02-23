@@ -13,10 +13,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav WEB
+    Development Team: Brain Storm Team
 """
 
-import unittest2 as unittest
+import unittest
 from src.lib import browser, BrowserError
 from src.lib.browser.threadpool import ThreadPool
 from src.lib.browser.config import Config

@@ -31,6 +31,7 @@
 # ones.
 
 import sys
+
 import os
 
 sys.path.append('.')
@@ -57,8 +58,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'OWASP WEB Directory Scanner'
-copyright = u'2017, Stanislav WEB'
-author = u'Stanislav WEB'
+copyright = u'2017-2021, Brain Storm Team'
+author = u'Brain Storm Team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -134,7 +135,19 @@ html_theme = 'default'
 # documentation.
 #
 html_theme_options = {
-    "base_url": "http://opendoor.readthedocs.io/"
+    "base_url": "http://opendoor.readthedocs.io/",
+    'logo_only': False,
+    'display_version': True,
+    'prev_next_buttons_location': 'bottom',
+    'style_external_links': False,
+    'vcs_pageview_mode': '',
+    'style_nav_header_background': 'white',
+    # Toc options
+    'collapse_navigation': True,
+    'sticky_navigation': True,
+    'navigation_depth': 4,
+    'includehidden': True,
+    'titles_only': False
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -281,7 +294,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'OWASPWEBDirectoryScanner.tex', u'OWASP WEB Directory Scanner Documentation',
-     u'Stanislav WEB', 'manual'),
+     u'Brain Storm Team', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

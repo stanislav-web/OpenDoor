@@ -13,10 +13,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav WEB
+    Development Team: Brain Storm Team
 """
 
-import unittest2 as unittest
+import unittest
 from src.core.logger.logger import Logger
 from io import StringIO
 from mock import patch

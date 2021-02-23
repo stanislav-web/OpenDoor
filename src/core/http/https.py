@@ -13,7 +13,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav WEB
+    Development Team: Brain Storm Team
 """
 
 from urllib3 import HTTPSConnectionPool, PoolManager, HTTPResponse, Timeout, disable_warnings
@@ -73,7 +73,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
                     host=self.__cfg.host,
                     port=self.__cfg.port,
                     maxsize=self.__cfg.threads,
-                    timeout=Timeout(self.__cfg.timeout, read=self.__cfg.timeout),
+                    timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
                     block=True)
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_connection_pool('https_pool_start', pool)
@@ -110,7 +110,8 @@ class HttpsRequest(RequestProvider, DebugProvider):
                                                  headers=self._headers,
                                                  retries=self.__cfg.retries,
                                                  assert_same_host=False,
-                                                 redirect=False)
+                                                 redirect=False,
+                                                 timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout))
             return response
 
         except MaxRetryError:

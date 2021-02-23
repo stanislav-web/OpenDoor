@@ -13,10 +13,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Development Team: Stanislav WEB
+    Development Team: Brain Storm Team
 """
 
-import unittest2 as unittest
+import unittest
 import os
 from configparser import RawConfigParser
 from src.core.helper.helper import Helper
