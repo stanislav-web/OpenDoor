@@ -1,5 +1,5 @@
 coverage
 mock
 ddt
-unittest2
+unittest
 coveralls
