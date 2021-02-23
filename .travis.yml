@@ -1,5 +1,5 @@
 language: python
-
+dist: xenial
 os:
   - linux
 
@@ -20,8 +20,10 @@ install:
 
 notifications:
   email:
-    on_success: never
-    on_failure: email
+    recipients:
+      - stanisov@gmail.com
+    on_success: never # default: change
+    on_failure: always # default: always
 
 script:
   - coverage run --source=src/ setup.py test
