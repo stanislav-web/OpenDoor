@@ -1,7 +1,7 @@
 OWASP WEB Directory Scanner [![Twitter](https://img.shields.io/twitter/url/https/github.com/stanislav-web/OpenDoor.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https://github.com/stanislav-web/OpenDoor)
 ===============================================================================================================================================================================================================================
 
-[![Code Health](https://landscape.io/github/stanislav-web/OpenDoor/master/landscape.svg?style=flat)](https://landscape.io/github/stanislav-web/OpenDoor/master) [![Documentation Status](https://readthedocs.org/projects/opendoor/badge/?version=latest)](http://opendoor.readthedocs.io/?badge=latest) [![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor)
+[![Documentation Status](https://readthedocs.org/projects/opendoor/badge/?version=latest)](http://opendoor.readthedocs.io/?badge=latest)
 
 |  Python | Linux  |  OSX | Windows  |
 |:-:|:-:|:-:|:-:|
