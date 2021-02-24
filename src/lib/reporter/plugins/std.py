@@ -25,14 +25,14 @@ from src.core import sys
 class StdReportPlugin(PluginProvider):
     """ StdReportPlugin class"""
 
-    def __init__(self, taget, data, directory=None):
+    def __init__(self, target, data, directory=None):
         """
         PluginProvider constructor
-        :param str taget: target host
+        :param str target: target host
         :param dict data: result set
         """
 
-        PluginProvider.__init__(self, taget, data)
+        PluginProvider.__init__(self, target, data)
         self.directory = directory
 
     def process(self):

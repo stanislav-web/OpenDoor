@@ -2,8 +2,11 @@ Changes
 =======
 v4.0.1-beta (23.02.2021)
 ---------------------------
-    -   Python 3.9 compatibility
     -   Python 2.6,2.7 is unsupported
+    -   Update directories.dat  36994 -> 37019
+    -   [bugfix] [#PR-48](https://github.com/stanislav-web/OpenDoor/issues/48) Python 3.9 / 3.10 compatibility
+    -   [bugfix] [#PR-20](https://github.com/stanislav-web/OpenDoor/issues/20) No timeout setup in request
+    -   [enhancement] [#PR-36](https://github.com/stanislav-web/OpenDoor/issues/36) Feature Request: Show only found items
 
 v3.4.481-stable (02.10.2017)
 ---------------------------

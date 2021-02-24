@@ -26,14 +26,14 @@ class PluginProvider(object):
     PLUGIN_NAME = 'PluginProvider'
     EXTENSION_SET = '.pp'
     
-    def __init__(self, taget, data):
+    def __init__(self, target, data):
         """
         PluginProvider constructor
-        :param str taget: target host
+        :param str target: target host
         :param dict data: result set
         """
 
-        self._target = str(taget)
+        self._target = str(target)
         self._data = {}
         self.__set_data(data)
 

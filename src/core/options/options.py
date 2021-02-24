@@ -116,7 +116,7 @@ class Options(object):
                 "argl": "--debug",
                 "default": 0,
                 "action": "store",
-                "help": "Debug level 1 - 3",
+                "help": "Debug level -1 (silent), 1 - 3",
                 "type": int
             },
             {
