@@ -32,7 +32,7 @@ Application tools:
   --wizard [WIZARD]     Run wizard scanner from your config
 
 Debug tools:
-  --debug DEBUG         Debug level 1 - 3
+  --debug DEBUG         Debug level -1 (silent) 1 - 3
 
 Reports tools:
   --reports REPORTS     Scan reports (json,std,txt,html)
@@ -196,8 +196,9 @@ opendoor --host https://www.example.com --random-agent
 Debug tools
 ---------------------------
 
-**--debug** - debug levels (1-3). Provides the ability to view detailed scanning progress
-     - 1 step by step scan proccess
+**--debug** - debug levels (-1, 1-3). Provides the ability to view detailed scanning progress
+     - (-1) silent mode, only found paths
+     - 1 step-by-step scan process
      - 2 + request data view
      - 3 + response data view
 

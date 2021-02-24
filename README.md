@@ -29,24 +29,24 @@ Software is written for informational purposes and is open source product under 
 - [x] Keep-alive long pooling
 - [x] HTTP(S)/SOCKS proxies
 - [x] dynamic request header
-- [x] custom wordlst's prefixes
-- [x] custom wordlists, proxies, ignore lists
-- [x] debug levels (1-3)
+- [x] custom word-lst's prefixes
+- [x] custom word-lists, proxies, ignore lists
+- [x] debug levels (-1 (silent), 1-3)
 - [x] extensions filter
 - [x] custom reports directory
 - [x] custom config wizard (use random techniques)
 - [x] analyze techniques
     * detect redirects
-    * detect index of/ Apache
+    * detect an index of/ Apache
     * detect large files
     * heuristic detect invalid web pages
     * blank success page filter
-    * certif required pages
+    * certificate required pages
 - [x] randomization techniques
     * random user-agent per request
     * random proxy per request
-    * wordlists shuffling
-    * wordlists filters
+    * word-lists shuffling
+    * word-lists filters
 
 
 #### Install PIP
@@ -81,6 +81,15 @@ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 ```
 
 #### [Changelog](CHANGELOG.md) (last changes)
+
+v4.0.1-beta (23.02.2021)
+---------------------------
+    -   Python 2.6,2.7 is unsupported
+    -   Update directories.dat  36994 -> 37019
+    -   [enhancement] [#PR-40](https://github.com/stanislav-web/OpenDoor/issues/40) added encoding to setup.py 
+    -   [bugfix] [#PR-48](https://github.com/stanislav-web/OpenDoor/issues/48) Python 3.9 / 3.10 compatibility
+    -   [bugfix] [#PR-20](https://github.com/stanislav-web/OpenDoor/issues/20) No timeout setup in request
+    -   [enhancement] [#PR-36](https://github.com/stanislav-web/OpenDoor/issues/36) Feature Request: Show only found items
 
 v3.4.481-stable (02.10.2017)
 ---------------------------
@@ -131,7 +140,7 @@ Application tools:
   --wizard [WIZARD]     Run wizard scanner from your config
 
 Debug tools:
-  --debug DEBUG         Debug level 1 - 3
+  --debug DEBUG         Debug level -1 (silent), 1 - 3
 
 Reports tools:
   --reports REPORTS     Scan reports (json,std,txt,html)
@@ -179,8 +188,8 @@ Wordlist tools:
 
 ### Tests
 ```
-pip install  -r requirements-dev.txt
-coverage run --source=src/ setup.py test
+pip3 install  -r requirements-dev.txt
+python setup.py test
 ```
 
 ### Contributors
