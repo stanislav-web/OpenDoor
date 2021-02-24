@@ -3,6 +3,7 @@
 /reports/
 /syslog/
 /build/
+/opendoor.egg-info
 .coverage
 *__pycache__/**
 *.pyc

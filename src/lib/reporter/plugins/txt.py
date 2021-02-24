@@ -27,15 +27,15 @@ class TextReportPlugin(PluginProvider):
     PLUGIN_NAME = 'TextReport'
     EXTENSION_SET = '.txt'
 
-    def __init__(self, taget, data, directory=None):
+    def __init__(self, target, data, directory=None):
         """
         PluginProvider constructor
-        :param str taget: target host
+        :param str target: target host
         :param dict data: result set
         :param str directory: custom directory
         """
         
-        PluginProvider.__init__(self, taget, data)
+        PluginProvider.__init__(self, target, data)
 
         try:
             if None is directory:

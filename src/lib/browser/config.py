@@ -24,7 +24,7 @@ class Config(object):
     DEFAULT_SOCKET_TIMEOUT = 10
     DEFAULT_MIN_THREADS = 1
     DEFAULT_MAX_THREADS = 25
-    DEFAULT_DEBUG_LEVEL = 0
+    DEFAULT_DEBUG_LEVEL = 1
     DEFAULT_REPORT = 'std'
     DEFAULT_SCAN = 'directories'
     SUBDOMAINS_SCAN = 'subdomains'

@@ -188,7 +188,8 @@ class Debug(DebugProvider):
                      )
             self.__catched = True
         else:
-            tpl.line_log(key='get_item',
+            if self.__level != -1:
+                tpl.line_log(key='get_item',
                          percent=percentage,
                          current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
                          total=kwargs.get('total_size', 1),
