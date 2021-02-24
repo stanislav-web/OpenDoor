@@ -22,7 +22,7 @@ import json
 import re
 import webbrowser
 from urllib.parse import urlparse
-from distutils.version import LooseVersion
+from packaging import version
 
 try:
     from collections.abc import Callable
@@ -107,7 +107,7 @@ class Helper(object):
         :return: bool
         """
 
-        return LooseVersion(arg1) < LooseVersion(arg2)
+        return version.parse(arg1) < version.parse(arg2)
 
     @staticmethod
     def is_more(arg1, arg2):
@@ -118,7 +118,7 @@ class Helper(object):
         :return: bool
         """
 
-        return LooseVersion(arg1) > LooseVersion(arg2)
+        return version.parse(arg1) > version.parse(arg2)
 
     @staticmethod
     def is_callable(func):
