@@ -1,5 +1,9 @@
 Changes
 =======
+v4.0.2 (23.06.2023)
+---------------------------
+    -   Python 3.11 launch fix [#PR-58](https://github.com/stanislav-web/OpenDoor/issues/58) added encoding to setup.py 
+
 v4.0.1-beta (23.02.2021)
 ---------------------------
     -   Python 2.6,2.7 is unsupported

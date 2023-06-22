@@ -18,7 +18,7 @@
 """
 
 from setuptools import setup, find_packages
-VERSION = '4.0.1-beta'
+VERSION = '4.0.2'
 LONG_DESCRIPTION = open('README.rst', 'r+', encoding='utf-8').read()
 
 setup(name='opendoor',
@@ -36,7 +36,7 @@ setup(name='opendoor',
 
       # Author details
       author='Brain Storm Team',
-      author_email='stanisov@gmail.com',
+      author_email='nomail@gmail.com',
       maintainer='Brain Storm Team',
 
       # You can just specify the packages manually here if your project is
