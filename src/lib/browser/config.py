@@ -141,7 +141,7 @@ class Config(object):
         """
 
         if True is self.is_sniff:
-            if 1 is len(self.sniffers) and 'file' == self.sniffers[0]:
+            if 1 == len(self.sniffers) and 'file' == self.sniffers[0]:
                 return 'HEAD'
             return 'GET'
         return self.DEFAULT_HTTP_METHOD if self._method is None else self._method

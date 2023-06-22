@@ -26,7 +26,7 @@ class Filter(object):
 
     """Filter class"""
 
-    URL_REGEX = "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(?:[-A-Za-z0-9]+\.)+([-A-Za-z]|(?u)\w){2,8}$"
+    URL_REGEX = "^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(?:[-A-Za-z0-9]+\.)+([-A-Za-z]|\w){2,8}$"
 
     @staticmethod
     def filter(args):
@@ -56,9 +56,12 @@ class Filter(object):
     @staticmethod
     def scheme(hostname):
         """
-        Get `host` scheme from input
-        :param str hostname: input hostname
-        :return: str
+        Get the scheme of the input hostname.
+
+        :param hostname: A string representing the input hostname.
+        :type hostname: str
+        :return: A string representing the scheme of the input hostname.
+        :rtype: str
         """
 
         scheme = helper.parse_url(hostname).scheme
@@ -92,7 +95,7 @@ class Filter(object):
                 hostname = "http://" + hostname
 
         hostname = helper.parse_url(hostname).netloc
-        regex = re.compile(r"" + Filter.URL_REGEX + "")
+        regex = re.compile(r"" + Filter.URL_REGEX + "", re.UNICODE)
 
         if not regex.match(hostname):
             try:
@@ -119,13 +122,13 @@ class Filter(object):
         return proxyaddress
 
     @staticmethod
-    def scan(choise):
+    def scan(choose):
         """
         Input `scan` type filter
-        :param str choise: preferred scan type
+        :param str choose: preferred scan type
         :return: str
         """
 
-        if choise not in ['directories', 'subdomains']:
-            choise = 'directories'
-        return choise
+        if choose not in ['directories', 'subdomains']:
+            choose = 'directories'
+        return choose

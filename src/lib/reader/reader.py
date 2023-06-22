@@ -268,7 +268,7 @@ class Reader(object):
         :return: int
         """
         try:
-            if 0 is self.__counter:
+            if 0 == self.__counter:
                 if True is self.__browser_config.get('is_external_wordlist'):
                     dirlist = self.__browser_config.get('wordlist')
                 else:

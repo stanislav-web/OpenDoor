@@ -20,11 +20,12 @@
 
 import sys
 
-for _ in ['urllib3', 'json2html', 'tabulate', 'importlib']:
+for _ in ['urllib3', 'json2html', 'tabulate', 'importlib', 'packaging']:
     try:
         __import__(_)
-    except ImportError as e:
-        sys.exit("""\t\t[!] Several dependencies wasn't installed! Please run pip3 install -r requirements.txt. Details : %s.""" %(error))
+    except ImportError as error:
+        sys.exit("""\t\t[!] Several dependencies wasn't installed! Please run pip3 install -r requirements.txt. 
+        Details : %s.""" % error)
 
 if __name__ == "__main__":
 

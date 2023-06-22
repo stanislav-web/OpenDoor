@@ -299,7 +299,7 @@ class Options(object):
             for i in range(arguments_len):
                 arg = __arguments[i]
 
-                if 'nargs'in arg and arg['nargs'] is '?':
+                if 'nargs' in arg and arg['nargs'] == '?':
                     const = arg['const']
                 else:
                     const = None

@@ -21,18 +21,19 @@ import sys
 from .controller import Controller
 from .exceptions import SrcError
 
-for _ in ['urllib3', 'json2html', 'tabulate', 'importlib']:
+for _ in ['urllib3', 'json2html', 'tabulate', 'importlib', 'packaging']:
     try:
         __import__(_)
     except ImportError as error:
-        sys.exit("""\t\t[!] Several dependencies wasn't installed! Please run pip install -r requirements.txt. Details : %s.""" %(error))
+        sys.exit("""\t\t[!] Several dependencies wasn't installed! Please run pip install -r requirements.txt. 
+        Details : %s.""" % error)
 
 
 def main():
     """
-    Package loader function
+    This function loads the package and runs the Controller class.
 
-    :except SrcError
+    :except SrcError: Raises an exception if there is an error in the source code.
     :return: None
     """
     try:

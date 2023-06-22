@@ -106,7 +106,7 @@ class Controller(object):
         """
          Show app user guide
 
-         :raise SrcError
+         :raise: SrcError
          :return: None
          """
 
@@ -120,7 +120,7 @@ class Controller(object):
         """
         Show app version action
 
-        :raise SrcError
+        :raise: SrcError
         :return: None
         """
 
