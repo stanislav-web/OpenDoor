@@ -200,9 +200,9 @@ python setup.py test
 If  you like to contribute to the development of the project in that case pull requests are open for you.
 Also, you can suggest an ideas and create a task in my track list
 
-[![Issues](https://badge.waffle.io/stanislav-web/OpenDoor.png?label=Ready)](https://waffle.io/stanislav-web/OpenDoor) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)  [![Say Thanks!](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)  [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)  
 
 ### Documentation
-- [Opendoor OWASP CookBook ](https://github.com/stanislav-web/OpenDoor/wiki)
+- [Opendoor OWASP CookBook](https://github.com/stanislav-web/OpenDoor/wiki)
 - [Issues](https://github.com/stanislav-web/OpenDoor/issues)
 
