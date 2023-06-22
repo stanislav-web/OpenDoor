@@ -8,3 +8,5 @@
 *__pycache__/**
 *.pyc
 venv/
+/opendoor.pub
+/opendoor
