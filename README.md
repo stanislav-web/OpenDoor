@@ -82,13 +82,17 @@ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 
 #### [Changelog](CHANGELOG.md) (last changes)
 
+v4.0.4-stable (24.06.2023)
+---------------------------
+    -   Fix unit tests and resolve dev requirements
+
 v4.0.3 (24.06.2023)
 ---------------------------
     -   Fix [#ISSUE-44](https://github.com/stanislav-web/OpenDoor/issues/44) ignore invalid SSL by defaul  
 
 v4.0.2 (23.06.2023)
 ---------------------------
-    -   Python 3.11 launch fix [#PR-58](https://github.com/stanislav-web/OpenDoor/issues/58) added encoding to setup.py 
+    -   Python 3.11 launch fix [#ISSUE-58](https://github.com/stanislav-web/OpenDoor/issues/58) added encoding to setup.py 
 
 v4.0.1-beta (23.02.2021)
 ---------------------------

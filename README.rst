@@ -40,7 +40,7 @@ Implements
 -  [x] Keep-alive long pooling
 -  [x] HTTP(S)/SOCKS proxies
 -  [x] dynamic request header
--  [x] custom word-lst's prefixes
+-  [x] custom word-list's prefixes
 -  [x] custom word-lists, proxies, ignore lists
 -  [x] debug levels (-1 (silent), 1-3)
 -  [x] extensions filter
@@ -103,6 +103,12 @@ Updates
 `Changelog <CHANGELOG.md>`__ (last changes)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+v4.0.4-stable (24.06.2023)
+---------------------------
+
+::
+
+    -   Fix unit tests and resolve dev requirements
 
 v4.0.3 (24.06.2023)
 ------------------------
@@ -116,7 +122,7 @@ v4.0.2 (23.06.2023)
 
 ::
 
-    -   Python 3.11 launch fix [#PR-58](https://github.com/stanislav-web/OpenDoor/issues/58) added encoding to setup.py
+    -   Python 3.11 launch fix [#ISSUE-58](https://github.com/stanislav-web/OpenDoor/issues/58) added encoding to setup.py
 
 v4.0.1-beta (23.02.2021)
 ------------------------
