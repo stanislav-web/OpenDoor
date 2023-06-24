@@ -8768,6 +8768,18 @@ block.php
 block.t.php
 block.textformat.php
 block/
+blockchain/
+blockchain.php
+blockchain.js
+blockchain.json
+blockchain.txt
+blockchain.dat
+blockchain.sql
+blockchain.zip
+blockchain.rar
+blockchain.ini
+blockchain-admin/
+blockchain.tar.gz
 blockLib.class.php
 blockStyle.php
 block_html.php
@@ -15703,7 +15715,6 @@ fatture/
 fault.php
 fault/
 fav/
-favicon.ico
 favicon/
 favicons/
 favorite/
