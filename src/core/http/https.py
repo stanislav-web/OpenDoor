@@ -74,6 +74,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
                     port=self.__cfg.port,
                     maxsize=self.__cfg.threads,
                     timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
+                    cert_reqs='CERT_NONE',
                     block=True)
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_connection_pool('https_pool_start', pool)

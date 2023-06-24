@@ -1,5 +1,9 @@
 Changes
 =======
+v4.0.3 (24.06.2023)
+---------------------------
+    -   Fix [#ISSUE-44](https://github.com/stanislav-web/OpenDoor/issues/44) ignore invalid SSL by default
+
 v4.0.2 (23.06.2023)
 ---------------------------
     -   Python 3.11 launch fix [#PR-58](https://github.com/stanislav-web/OpenDoor/issues/58) added encoding to setup.py 

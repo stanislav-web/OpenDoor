@@ -18,8 +18,9 @@ of using proxy servers. Software is written for informational purposes
 and is open source product under the GPL license.
 
 ***(Due to the incorrect operation of "SSL" the support for "Python 2.7"
-is terminated)*** \* *Current 4.0.1-beta (23.02.2021)* - Directories
-- 37019 - Subdomains - 181018
+is terminated)*** \* *Current 4.0.1-beta (23.02.2021)*
+- Directories - 37047
+- Subdomains - 181018
 
 ***Testing of the software on the live commercial systems and
 organizations is prohibited!***
@@ -101,6 +102,15 @@ Updates
 
 `Changelog <CHANGELOG.md>`__ (last changes)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+v4.0.3 (24.06.2023)
+------------------------
+
+::
+
+    -   Fix [#ISSUE-44](https://github.com/stanislav-web/OpenDoor/issues/44) ignore invalid SSL by default
+
 v4.0.2 (23.06.2023)
 ------------------------
 
