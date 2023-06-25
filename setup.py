@@ -18,7 +18,7 @@
 """
 
 from setuptools import setup, find_packages
-VERSION = '4.0.3'
+VERSION = '4.0.5'
 LONG_DESCRIPTION = open('README.rst', 'r+', encoding='utf-8').read()
 
 setup(name='opendoor',
@@ -96,7 +96,7 @@ setup(name='opendoor',
           # Indicate who your project is intended for
           'Intended Audience :: Developers',
 
-          # OS which support this package
+          # OS, which support this package
           'Operating System :: MacOS',
           'Operating System :: Unix',
 

@@ -11,3 +11,4 @@ venv/
 /opendoor.pub
 /opendoor
 /.eggs/
+/dist/
