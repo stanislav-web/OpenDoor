@@ -87,7 +87,7 @@ Application tools
 opendoor --update
 ```
 
-**--version** - see current package version and compare with server's latest
+**--version** - see a current package version and compare with server's latest
 
 ```
 opendoor --version
@@ -163,7 +163,7 @@ opendoor --host https://www.example.com --retries 10
 opendoor --host https://www.example.com --r 1
 ```
 
-**--accept-cookies** - accept and route cookies from responses. To be as natural as possible and bring the scanner closer to the user's browser use cookies receipt. After the first request, your session will accept and  send cookies inside current pool requests
+**--accept-cookies** - accept and route cookies from responses. To be as natural as possible and bring the scanner closer to the user's browser use cookie receipt. After the first request, your session will accept and send cookies inside current pool requests
 
 ```
 opendoor --host https://www.example.com --accept-cookies
@@ -175,7 +175,7 @@ opendoor --host https://www.example.com --accept-cookies
 opendoor --host https://www.example.com --tor
 
 ```
-**--torlist** - path to custom proxylist. Choose your own checked proxy list. The list must have format: ***scheme:ip:port***
+**--torlist** - path to custom proxylist. Choose your own checked proxy list. The list must have the format: ***scheme:ip:port***
 
 ```
 opendoor --host https://www.example.com --torlist /home/user/scan/proxy.txt
@@ -187,7 +187,7 @@ opendoor --host https://www.example.com --torlist /home/user/scan/proxy.txt
 opendoor --host https://www.example.com --proxy socks5://127.0.0.1:8888
 ```
 
-**--random-agent** - randomize your user-agent per request. With each new request, your browser will change. This is both good and bad, because, frequent requests from several browsers can reveal the suspicion of the attack, and at the same time fall in confuse the DevOps, if you would use different proxy servers
+**--random-agent** - randomize your user-agent per request. With each new request, your browser will change. This is both good and bad, because, frequent requests from several browsers can reveal the suspicion of the attack, and at the same time fall in confuse the DevOps if you would use different proxy servers
 
 ```
 opendoor --host https://www.example.com --random-agent
@@ -218,7 +218,7 @@ opendoor --host www.example.com --sniff indexof,collation,file,skipempty
 Stream tools
 ---------------------------
 
-**--threads -t** - allowed threads. In order not to harm your computer there is a limit of 25 threads
+**--threads -t** - allowed threads. In order not to harm your computer, there is a limit of 25 threads
 
 ```
 opendoor --host www.example.com --threads 10
@@ -254,7 +254,7 @@ opendoor --host example.com --wordlist /home/user/scan/mydirlist.dat --random-li
 
 ```
 
-**--prefix** - append path prefix to scan host. Works for directories scan type
+**--prefix** - append path prefix to scan host. Works for a directory scan type
 
 ```
 opendoor --host example.com --prefix en/
@@ -274,8 +274,8 @@ opendoor --host example.com --ignore-extensions asp,apx,dat
 opendoor --host example.com --ignore-extensions asp,apx,dat --random-list
 opendoor --host example.com --i htm,py
 ```
-*(these both options does not work together, but work with dictionary shuffling
-and doesn't exclude scan directories)*
+*(these both options do not work together, but work with dictionary shuffling
+and don't exclude scan directories)*
 
 Reports tools
 ---------------------------

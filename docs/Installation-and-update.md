@@ -1,6 +1,6 @@
 Installation
 ===============
-Python v3.9 is minor requirement.
+Python v3.9 is a minor requirement.
 At the moment, the package can be installed from this repository [https://github.com/stanislav-web/OpenDoor](https://github.com/stanislav-web/OpenDoor)
 Now being tested, and the next will be published in other sources, such as Pypi.
 
@@ -60,7 +60,7 @@ Install dependencies
 ```
         C:\opendoor> pip install -r requirements.txt
 ```
-
+s
 Unfortunately, you can't use Socks proxy on Windows. HTTP(S) supported only
 Try your fist launch
 
@@ -71,7 +71,7 @@ Try your fist launch
 OSX
 ---
    
-[TODO] Doc is not complete because package wasn't tested for Mac
+[TODO] Doc is not complete because the package wasn't tested for Mac
 
 Dependencies
 ============

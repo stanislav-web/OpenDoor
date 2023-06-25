@@ -2,7 +2,7 @@ Opendoor OWASP WEB Directory Scanner
 =====================================
 
 **OpenDoor OWASP** is console multifunctional website's scanner.
-This application find all possible ways to login, index of/ directories, web shells, restricted access points, hidden data and large backups.
+This application finds all possible ways to login, index of/ directories, 
 The scanning is performed by the built-in dictionary and external dictionaries as well. Anonymity and speed are provided by means of using proxy servers.
 Software is written for informational purposes and is open source product under the GPL license.
 Dictionaries are constantly updated, also expanding application functionality.

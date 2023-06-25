@@ -1,6 +1,6 @@
 Wizard
 ======
-Wizard allow you to select individual settings for each target.
+The Wizard allows you to select individual settings for each target.
 See example:
 
 Configure
@@ -13,7 +13,7 @@ Configure
 # Use ssl <bool>
 ssl    = False
 
-# Target sheme <string>
+# Target scheme <string>
 scheme = http://
 
 # Target host (ip) <string>

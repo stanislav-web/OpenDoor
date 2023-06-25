@@ -1,7 +1,8 @@
 Sniff Tools
 ===========
 Allows you to apply different filters depending on the server response.
-Also, you can support the project and add own filters to repository. Pull requests always open for you.
+Also, you can support the project and add own filters to the repository. 
+Pull requests always open for you.
 
 **NOTICE**: All these filters work with GET request method by default.
 
@@ -24,9 +25,9 @@ opendoor --host www.example.com --sniff file
 opendoor --host www.example.com --sniff indexof
 ```
 
-**--sniff skipempty**  - Allows you to skip blank success pages to select right result
+**--sniff skipempty** - Allows you to skip blank success pages to select correct result
 *Force scan method:* GET
-*Positive:* all success pages which contains less than 100b are ignored for success
+*Positive:* all success pages which contain less than 100b are ignored for success
 
 ```
 opendoor --host www.example.com --sniff skipempty
@@ -41,7 +42,7 @@ opendoor --host www.example.com --sniff skipempty
 opendoor --host www.example.com --sniff collation
 ```
 
-How this would work?
+How would this work?
 ---------------------
 Also, you can combine these filters as you prefer.
 ```
