@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # OWASP WEB Directory Scanner documentation build configuration file, created by
-# sphinx-quickstart on Mon Feb  6 03:06:46 2017.
+# sphinx-quickstart on Mon Feb 6 03:06:46 2017.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -30,14 +30,17 @@
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 
+
 import sys
-import sphinx_bootstrap_theme
+import os
+import shlex
 
 sys.path.append('.')
 
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx_rtd_theme',
+    'sphinx.ext.doctest'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -53,7 +56,7 @@ source_suffix = '.md'
 #
 # source_encoding = 'utf-8-sig'
 
-# The master toctree document.
+# The primary toctree document.
 master_doc = 'index'
 
 # General information about the project.
@@ -127,36 +130,18 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'bootstrap'
+html_theme = 'default'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 html_theme_options = {
-    'navbar_title': 'OWASP WEB Directory Scanner',
-    'navbar_site_name': 'OpenDoor',
-    'navbar_sidebarrel': True,
-    'navbar_pagenav': True,
-    'navbar_pagenav_name': 'Page',
     'globaltoc_includehidden': True,
-    'navbar_class': 'navbar navbar-inverse',
-    'bootstrap_version': 3,
-    'logo_only': False,
-    'display_version': True,
-    'prev_next_buttons_location': 'bottom',
-    'style_external_links': False,
-    'style_nav_header_background': 'white',
-    # Toc options
-    'collapse_navigation': True,
-    'sticky_navigation': True,
-    'navigation_depth': 4,
-    'includehidden': True,
-    'titles_only': False
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+# html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
