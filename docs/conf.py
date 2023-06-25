@@ -31,9 +31,7 @@
 # ones.
 
 import sys
-import sphinx_rtd_theme
-
-import os
+import sphinx_bootstrap_theme
 
 sys.path.append('.')
 
@@ -60,7 +58,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'OWASP WEB Directory Scanner'
-copyright = u'2017-2021, Brain Storm Team'
+copyright = u'2017-2023, Brain Storm Team'
 author = u'Brain Storm Team'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -130,20 +128,25 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'bootstrap'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 html_theme_options = {
-    'analytics_anonymize_ip': False,
-    "base_url": "http://opendoor.readthedocs.io/",
+    'navbar_title': 'OWASP WEB Directory Scanner',
+    'navbar_site_name': 'OpenDoor',
+    'navbar_sidebarrel': True,
+    'navbar_pagenav': True,
+    'navbar_pagenav_name': 'Page',
+    'globaltoc_includehidden': True,
+    'navbar_class': 'navbar navbar-inverse',
+    'bootstrap_version': 3,
     'logo_only': False,
     'display_version': True,
     'prev_next_buttons_location': 'bottom',
     'style_external_links': False,
-    'vcs_pageview_mode': '',
     'style_nav_header_background': 'white',
     # Toc options
     'collapse_navigation': True,
@@ -154,7 +157,7 @@ html_theme_options = {
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
-# html_theme_path = []
+html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.

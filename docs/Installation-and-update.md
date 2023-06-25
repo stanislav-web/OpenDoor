@@ -4,10 +4,11 @@ Python v3.9 is minor requirement.
 At the moment, the package can be installed from this repository [https://github.com/stanislav-web/OpenDoor](https://github.com/stanislav-web/OpenDoor)
 Now being tested, and the next will be published in other sources, such as Pypi.
 
-|Python | Linux | OSX |
-|---	|---	|---|
-|3.9   	| [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)   	|
-|3.10   | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)   	|
+| Python  | Linux                                                                                                                           | OSX                                                                                                                                 |
+|---------|---------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| 3.9   	 | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor) | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)   	 |
+| 3.10    | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor) | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)   	 |
+| 3.11    | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor) | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)   	 |
 
 
 Install PIP
@@ -43,7 +44,7 @@ GNU Linux (Global. Preferably for OS distributions)
 Windows XP/7/8/10
 ---------------------------
 
-I would recommend you to install GUI for Git at first if you dont have pre installed Git on your laptop.
+I would recommend you to install GUI for Git at first if you don't have pre-installed Git on your laptop.
 Please see [https://git-for-windows.github.io](https://git-for-windows.github.io)
 Go to your Git bash and clone repo
 
@@ -70,7 +71,7 @@ Try your fist launch
 OSX
 ---
    
-[TODO] Docs is not complete because package wasn't tested for Mac
+[TODO] Doc is not complete because package wasn't tested for Mac
 
 Dependencies
 ============

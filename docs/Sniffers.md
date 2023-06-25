@@ -10,41 +10,41 @@ Usage
 
 **--sniff file** - Allows you to detect large files from the server response.
 *Force scan method:* HEAD
-*Positive:* all of sucess pages which contains more than 1mb fall under this filter
+*Positive:* all success pages which contains more than 1mb fall under this filter
 
-```python
+```
 opendoor --host www.example.com --sniff file
 ```
 
 **--sniff indexof** - Allows you to detect empty (Index Of/) Apache directories.
 *Force scan method:* GET
-*Positive:* all of sucess pages which contains title:(IndexOf|i):title fall under this filter
+*Positive:* all success pages which contains title:(IndexOf|i):title fall under this filter
 
-```python
+```
 opendoor --host www.example.com --sniff indexof
 ```
 
 **--sniff skipempty**  - Allows you to skip blank success pages to select right result
 *Force scan method:* GET
-*Positive:* all of sucess pages which contains less than 100b are ignored for success
+*Positive:* all success pages which contains less than 100b are ignored for success
 
-```python
+```
 opendoor --host www.example.com --sniff skipempty
 ```
 
-**--sniff collation**- Heuristic detection of invalid success pages. This is might be when the page has success response but really hasn't meaningful value
+**--sniff collation** - Heuristic detection of invalid success pages. This is might be when the page has success response but really hasn't meaningful value
 *Force scan method:* GET
 *Positive:* all successfully loaded pages are compared among themselves, and those that are very similar, fall under this filter and are excluded
 *Notice:* The behavior of this filter may vary depending on the source data
 
-```python
+```
 opendoor --host www.example.com --sniff collation
 ```
 
-How this would works?
+How this would work?
 ---------------------
-Also you can combine these filters as you prefer.
-```python
+Also, you can combine these filters as you prefer.
+```
 opendoor --host www.example.com --sniff skipempty,file,collation,indexof --debug 1
 
 [23:16:04] debug:   Starting debug level 1. Using scan method: GET ...

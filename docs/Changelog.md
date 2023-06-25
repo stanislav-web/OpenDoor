@@ -5,15 +5,15 @@ v4.0.4-stable (24.06.2023)
     -   Fix unit tests and resolve dev requirements
 
 v4.0.3 (24.06.2023)
----------------------------
+-------------------
     -   Fix [#ISSUE-44](https://github.com/stanislav-web/OpenDoor/issues/44) ignore invalid SSL by default
 
 v4.0.2 (23.06.2023)
----------------------------
+-------------------
     -   Python 3.11 launch fix [#ISSUE-58](https://github.com/stanislav-web/OpenDoor/issues/58) added encoding to setup.py 
 
 v4.0.1-beta (23.02.2021)
----------------------------
+------------------------
     -   Python 2.6,2.7 is unsupported
     -   Update directories.dat  36994 -> 37019
     -   [enhancement] [#PR-40](https://github.com/stanislav-web/OpenDoor/issues/40) added encoding to setup.py 
@@ -22,12 +22,12 @@ v4.0.1-beta (23.02.2021)
     -   [enhancement] [#PR-36](https://github.com/stanislav-web/OpenDoor/issues/36) Feature Request: Show only found items
 
 v3.4.481-stable (02.10.2017)
----------------------------
+----------------------------
     -   Fixed bugs with externals wordlists
     -   Added 80018 subdomains
 
 v3.4.47-rc Gained more Power! (05.07.2017)
----------------------------
+------------------------------------------
     - Added IPs lookup for subdomains scan
     - Added missing HTTP statuses
     - Bugfix: encoding errors (supported cp1251,utf8,utf16) for body analyze
@@ -45,12 +45,12 @@ v3.4.47-rc Gained more Power! (05.07.2017)
     - Added +990 unique directories (36931)
 
 v3.3.37-rc (22.06.2017)
--------------------------
+------------------------
     - Fixed errors
     - Add config wizard (allows you to configure own project)
     
 v3.2.36-rc (04.06.2017)
--------------------------
+------------------------
     - Added custom reports directory --reports-dir /home/user/Reports
     - Added user guide --docs
     - Reusable proxy requests pooling in --tor, --torlist
@@ -60,20 +60,20 @@ v3.2.36-rc (04.06.2017)
     - Python2.7 no longer support
 
 v3.1.32-rc (02.06.2017)
--------------------------
+------------------------
     - Add extensions filter --extensions php,json etc
 
 v3.0.32-rc (19.05.2017)
--------------------------
+-----------------------
     - Add global installator
 
 v3.0.31-rc (20.02.2017)
--------------------------
+------------------------
     - update directories
     - fixes for redirects
 
 v3.0.3-rc (17.02.2017)
--------------------------
+-----------------------
     - fixes for https stuff scan
     - cleared internal wordlists
     - increased coverage

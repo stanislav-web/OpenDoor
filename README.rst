@@ -8,6 +8,8 @@ OWASP WEB Directory Scanner |Twitter|
 +----------+------------------+------------------+
 | 3.10     | |Build Status|   | |Build Status|   |
 +----------+------------------+------------------+
+| 3.11     | |Build Status|   | |Build Status|   |
++----------+------------------+------------------+
 
 **OpenDoor OWASP** is console multifunctional web sites scanner. This
 application find all possible ways to login, index of/ directories, web
@@ -28,7 +30,6 @@ organizations is prohibited!***
 .. figure:: http://dl3.joxi.net/drive/2017/01/30/0001/0378/90490/90/e309742b5c.jpg
    :alt: OpenDoor OWASP
 
-   Alt text
 Implements
 ^^^^^^^^^^
 
@@ -242,7 +243,7 @@ Maintainers
 -  @stanislav-web https://github.com/stanislav-web (Developer)
 
 Tests
-~~~~~
+^^^^^^^^^^
 
 ::
 
@@ -256,7 +257,7 @@ If you like to contribute to the development of the project in that case
 pull requests are open for you. Also, you can suggest an ideas and
 create a task in my track list
 
-|Issues| |License: GPL v3| |Say Thanks!|
+|License: GPL v3| |Say Thanks!|
 
 Documentation
 ~~~~~~~~~~~~~
@@ -265,12 +266,8 @@ Documentation
    CookBook <https://github.com/stanislav-web/OpenDoor/wiki>`__
 -  `Issues <https://github.com/stanislav-web/OpenDoor/issues>`__
 
-.. |Twitter| image:: https://img.shields.io/twitter/url/https/github.com/stanislav-web/OpenDoor.svg?style=social
-   :target: https://twitter.com/intent/tweet?text=Wow:&url=https://github.com/stanislav-web/OpenDoor
 .. |Build Status| image:: https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master
    :target: https://travis-ci.org/stanislav-web/OpenDoor
-.. |Issues| image:: https://badge.waffle.io/stanislav-web/OpenDoor.png?label=Ready
-   :target: https://waffle.io/stanislav-web/OpenDoor
 .. |License: GPL v3| image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
    :target: http://www.gnu.org/licenses/gpl-3.0
 .. |Say Thanks!| image:: https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg

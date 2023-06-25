@@ -1,12 +1,13 @@
 OWASP WEB Directory Scanner [![Twitter](https://img.shields.io/twitter/url/https/github.com/stanislav-web/OpenDoor.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https://github.com/stanislav-web/OpenDoor)
 ===============================================================================================================================================================================================================================
 
-|Python | Linux | OSX |
-|---	|---	|---|
-|3.9   	| [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)   	|
-|3.10   	| [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)|[![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)   	|
+| Python   | Linux                                                                                                                           | OSX                                                                                                                                 |
+|----------|---------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| 3.9   	  | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor) | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)   	 |
+| 3.10   	 | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor) | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)   	 |
+| 3.11   	 | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor) | [![Build Status](https://travis-ci.org/stanislav-web/OpenDoor.svg?branch=master)](https://travis-ci.org/stanislav-web/OpenDoor)   	 |
 
-**OpenDoor OWASP** is console multifunctional web sites scanner.
+**OpenDoor OWASP** is console multifunctional website's scanner.
 This application find all possible ways to login, index of/ directories, web shells, restricted access points, subdomains, hidden data and large backups.
 The scanning is performed by the built-in dictionary and external dictionaries as well. Anonymity and speed are provided by means of using proxy servers.
 Software is written for informational purposes and is open source product under the GPL license.
@@ -29,7 +30,7 @@ Software is written for informational purposes and is open source product under 
 - [x] Keep-alive long pooling
 - [x] HTTP(S)/SOCKS proxies
 - [x] dynamic request header
-- [x] custom word-lst's prefixes
+- [x] custom word-list's prefixes
 - [x] custom word-lists, proxies, ignore lists
 - [x] debug levels (-1 (silent), 1-3)
 - [x] extensions filter
