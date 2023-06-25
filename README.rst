@@ -103,6 +103,12 @@ Updates
 
 `Changelog <CHANGELOG.md>`__ (last changes)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+v4.0.5 (25.06.2023)
+---------------------------
+
+::
+
+    -   Fix unit tests and resolve dev requirements
 
 v4.0.4-stable (24.06.2023)
 ---------------------------

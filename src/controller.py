@@ -104,12 +104,11 @@ class Controller(object):
     @staticmethod
     def docs_action():
         """
-         Show app user guide
+        Displays the user guide for the app.
 
-         :raise: SrcError
-         :return: None
-         """
-
+        :raises SrcError: If there is an error with the package or attribute.
+        :return: None
+        """
         try:
             package.docs()
         except (AttributeError, PackageError) as error:
@@ -132,8 +131,9 @@ class Controller(object):
     @staticmethod
     def local_version():
         """
-        Show app local version
-        :raise SrcError
+        Returns the local version of the app.
+
+        :raises SrcError: If there is an error retrieving the local version.
         :return: None
         """
 
