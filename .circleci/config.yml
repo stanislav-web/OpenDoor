@@ -14,7 +14,7 @@ orbs:
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/configuration-reference/#jobs
 jobs:
-  Build-3.7:  # This is the name of the job, feel free to change it to better match what you're trying to do!
+  Build-37:  # This is the name of the job, feel free to change it to better match what you're trying to do!
     # These next lines defines a Docker executors: https://circleci.com/docs/executor-types/
     # You can specify an image from Dockerhub or use one of the convenience images from CircleCI's Developer Hub
     # A list of available CircleCI Docker convenience images are available here: https://circleci.com/developer/images/image/cimg/python
@@ -36,7 +36,7 @@ jobs:
           name: Run tests
           # This assumes pytest is installed via the install-package step above
           command: python setup.py test
-  Build-3.8:  # This is the name of the job, feel free to change it to better match what you're trying to do!
+  Build-38:  # This is the name of the job, feel free to change it to better match what you're trying to do!
     # These next lines defines a Docker executors: https://circleci.com/docs/executor-types/
     # You can specify an image from Dockerhub or use one of the convenience images from CircleCI's Developer Hub
     # A list of available CircleCI Docker convenience images are available here: https://circleci.com/developer/images/image/cimg/python
@@ -58,7 +58,7 @@ jobs:
           name: Run tests
           # This assumes pytest is installed via the install-package step above
           command: python setup.py test
-  Build-3.9:  # This is the name of the job, feel free to change it to better match what you're trying to do!
+  Build-39:  # This is the name of the job, feel free to change it to better match what you're trying to do!
     # These next lines defines a Docker executors: https://circleci.com/docs/executor-types/
     # You can specify an image from Dockerhub or use one of the convenience images from CircleCI's Developer Hub
     # A list of available CircleCI Docker convenience images are available here: https://circleci.com/developer/images/image/cimg/python
@@ -80,7 +80,7 @@ jobs:
           name: Run tests
           # This assumes pytest is installed via the install-package step above
           command: python setup.py test
-  Build-3.10:  # This is the name of the job, feel free to change it to better match what you're trying to do!
+  Build-310:  # This is the name of the job, feel free to change it to better match what you're trying to do!
     # These next lines defines a Docker executors: https://circleci.com/docs/executor-types/
     # You can specify an image from Dockerhub or use one of the convenience images from CircleCI's Developer Hub
     # A list of available CircleCI Docker convenience images are available here: https://circleci.com/developer/images/image/cimg/python
@@ -102,7 +102,7 @@ jobs:
           name: Run tests
           # This assumes pytest is installed via the install-package step above
           command: python setup.py test
-  Build-3.11:  # This is the name of the job, feel free to change it to better match what you're trying to do!
+  Build-311:  # This is the name of the job, feel free to change it to better match what you're trying to do!
     # These next lines defines a Docker executors: https://circleci.com/docs/executor-types/
     # You can specify an image from Dockerhub or use one of the convenience images from CircleCI's Developer Hub
     # A list of available CircleCI Docker convenience images are available here: https://circleci.com/developer/images/image/cimg/python
@@ -131,8 +131,8 @@ workflows:
   sample: # This is the name of the workflow, feel free to change it to better match your workflow.
     # Inside the workflow, you define the jobs you want to run.
     jobs:
-      - Build-3.7
-      - Build-3.8
-      - Build-3.9
-      - Build-3.10
-      - Build-3.11
+      - Build-37
+      - Build-38
+      - Build-39
+      - Build-310
+      - Build-311
