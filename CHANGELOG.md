@@ -2,7 +2,7 @@ Changes
 =======
 4.0.5 (25.06.2023)
 ---------------------------
-    -   Update dictionary: + 45443 new directories
+    -   Update dictionary: + 45442 new directories
 
 v4.0.4-stable (24.06.2023)
 ---------------------------

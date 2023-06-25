@@ -12,9 +12,8 @@ This application finds all possible ways to login, index of/ directories, web sh
 The scanning is performed by the built-in dictionary and external dictionaries as well. Anonymity and speed are provided by means of using proxy servers.
 Software is written for informational purposes and is open source product under the GPL license.
 
-***(Due to the incorrect operation of "SSL" the support for "Python 2.7" is terminated)***
 * *Current 4.0.5 (25.06.2023)*
-    - Directories: 82490
+    - Directories: 82489
     - Subdomains: 181018
 
 ***Testing of the software on the live commercial systems and organizations is prohibited!***
@@ -85,7 +84,7 @@ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 
 v4.0.5 (24.06.2023)
 ---------------------------
-    -   Update dictionary: + 45443 new directories
+    -   Update dictionary: + 45442 new directories
 
 v4.0.4-stable (24.06.2023)
 ---------------------------

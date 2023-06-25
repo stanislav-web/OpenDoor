@@ -19,9 +19,8 @@ external dictionaries as well. Anonymity and speed are provided by means
 of using proxy servers. Software is written for informational purposes
 and is open source product under the GPL license.
 
-***(Due to the incorrect operation of "SSL" the support for "Python 2.7"
-is terminated)*** \* *Current 4.0.1-beta (23.02.2021)*
-- Directories - 82490
+is terminated)*** \* *Current 4.0.5 (25.06.2023)*
+- Directories - 82489
 - Subdomains - 181018
 
 ***Testing of the software on the live commercial systems and
@@ -108,7 +107,7 @@ v4.0.5 (25.06.2023)
 
 ::
 
-    -   Update dictionary: + 45443 new directories
+    -   Update dictionary: + 45442 new directories
 
 v4.0.4-stable (24.06.2023)
 ---------------------------
