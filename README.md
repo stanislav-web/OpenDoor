@@ -15,7 +15,7 @@ The scanning is performed by the built-in dictionary and external dictionaries a
 Software is written for informational purposes and is open source product under the GPL license.
 
 * *Current 4.0.5 (25.06.2023)*
-    - Directories: 82489
+    - Directories: 82239
     - Subdomains: 181018
 
 ***Testing of the software on the live commercial systems and organizations is prohibited!***

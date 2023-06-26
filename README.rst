@@ -20,7 +20,7 @@ of using proxy servers. Software is written for informational purposes
 and is open source product under the GPL license.
 
 is terminated)*** \* *Current 4.0.5 (25.06.2023)*
-- Directories - 82489
+- Directories - 82239
 - Subdomains - 181018
 
 ***Testing of the software on the live commercial systems and
