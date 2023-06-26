@@ -18,10 +18,17 @@
 """
 
 from setuptools import setup, find_packages
+NAME = 'opendoor'
 VERSION = '4.0.5'
-LONG_DESCRIPTION = open('README.rst', 'r+', encoding='utf-8').read()
-
-setup(name='opendoor',
+DESCRIPTION = 'OWASP WEB Directory Scanner'
+LONG_DESCRIPTION = open('README.md', 'r+', encoding='utf-8').read()
+HOMEPAGE = 'https://github.com/stanislav-web/OpenDoor'
+AUTHOR = 'Brain Storm Team',
+AUTHOR_EMAIL = 'nomail@gmail.com',
+MAINTAINER = 'Brain Storm Team',
+FULL_NAME = 'Brain Storm'
+DOWNLOAD_URL = 'https://github.com/stanislav-web/OpenDoor/archive/refs/heads/master.zip'
+setup(name=NAME,
 
       # Versions should comply with PEP440.  For a discussion on single-sourcing
       # the version across setup.py and the project code, see
@@ -29,15 +36,25 @@ setup(name='opendoor',
 
       version=VERSION,
 
-      description='OWASP WEB Directory Scanner', long_description=LONG_DESCRIPTION,
+      description=DESCRIPTION,
+
+      long_description=LONG_DESCRIPTION,
+
+      long_description_content_type="text/markdown",
 
       # The project's main homepage.
-      url='https://github.com/stanislav-web/OpenDoor',
+      url=HOMEPAGE,
 
       # Author details
-      author='Brain Storm Team',
-      author_email='nomail@gmail.com',
-      maintainer='Brain Storm Team',
+      author="".join(AUTHOR),
+
+      fullname="".join(FULL_NAME),
+
+      author_email="".join(AUTHOR_EMAIL),
+
+      maintainer="".join(MAINTAINER),
+
+      maintainer_email="".join(AUTHOR_EMAIL),
 
       # You can just specify the packages manually here if your project is
       # simple. Or you can use find_packages().
@@ -54,6 +71,7 @@ setup(name='opendoor',
                   ],
       include_package_data=True,
 
+      script_name='opendoor.py',
       # Choose your license
       license='GPL',
       # Unittests suite directory
@@ -66,10 +84,11 @@ setup(name='opendoor',
           'access directory scanner',
           'fuzzer',
           'auth scanner',
-          'dir search'
+          'dir search',
+          'dirmap'
       ],
 
-      download_url='https://github.com/stanislav-web/OpenDoor',
+      download_url=DOWNLOAD_URL,
 
       # To provide executable scripts, use entry points in preference to the
       # "scripts" keyword. Entry points provide cross-platform support and allow
@@ -82,6 +101,7 @@ setup(name='opendoor',
       install_requires=[line.rstrip('\n') for line in open('requirements.txt')],
       tests_require=[line.rstrip('\n') for line in open('requirements-dev.txt')],
 
+      platforms=['any'],
       # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
       # How mature is this project? Common values are
       classifiers=[
@@ -108,11 +128,10 @@ setup(name='opendoor',
 
           'Programming Language :: Python',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.3',
-          'Programming Language :: Python :: 3.4',
-          'Programming Language :: Python :: 3.5',
-          'Programming Language :: Python :: 3.6',
 
           # Specify the additional categories
-          'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking'
+          'Topic :: Utilities',
+          'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking',
+          'Topic :: Internet :: WWW/HTTP :: Indexing/Search',
+          'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
       ])
