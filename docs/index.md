@@ -9,28 +9,29 @@ Dictionaries are constantly updated, also expanding application functionality.
 
 
 #### Implements
-- [x] multithreading control
-- [x] scan's reports
-- [x] directories scanner
-- [x] subdomains scanner
-- [x] HTTP(S) (PORT) support
-- [x] Keep-alive long pooling
-- [x] HTTP(S)/SOCKS proxies
-- [x] dynamic request header
-- [x] custom wordlists prefixes
-- [x] custom wordlists, proxies, ignore lists
-- [x] debug levels (1-3)
-- [x] extensions filter
-- [x] custom reports directory
-- [x] custom config wizard (use random techniques)
-- [x] analyze techniques
+- ✅ directories scanner
+- ✅ subdomains scanner
+- ✅ multithreading control
+- ✅ scan's reports
+- ✅ HTTP(S) (PORT) support
+- ✅ Keep-alive long pooling
+- ✅ Invalid certificates scan
+- ✅ HTTP(S)/SOCKS proxies
+- ✅ dynamic request header
+- ✅ custom wordlists prefixes
+- ✅ custom wordlists, proxies, ignore lists
+- ✅ debug levels (1-3)
+- ✅ extensions filter
+- ✅ custom reports directory
+- ✅ custom config wizard (use random techniques)
+- ✅ analyze techniques:
     * detect redirects
     * detect index of/ Apache
     * detect large files
     * heuristic detect invalid pages
     * blank success page filter
     * certificate required pages
-- [x] randomization techniques
+- ✅ randomization techniques:
     * random user-agent per request
     * random proxy per request
     * wordlists shuffling
@@ -39,4 +40,4 @@ Dictionaries are constantly updated, also expanding application functionality.
 
 ***Testing of the software on the commercial systems and organizations is prohibited!***
 
-![Logo](images/open-door.png)
+![Logo](img/open-door.png)

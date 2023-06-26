@@ -14,7 +14,9 @@ This application finds all possible ways to login, index of/ directories, web sh
 The scanning is performed by the built-in dictionary and external dictionaries as well. Anonymity and speed are provided by means of using proxy servers.
 Software is written for informational purposes and is open source product under the GPL license.
 
-* *Current 4.0.5 (25.06.2023)*
+[Read The Docs](https://opendoor.readthedocs.io/)
+
+* *Current 4.0.6 (25.06.2023)*
     - Directories: 82239
     - Subdomains: 181018
 
@@ -22,33 +24,33 @@ Software is written for informational purposes and is open source product under 
 
 ![Alt text](http://dl3.joxi.net/drive/2017/01/30/0001/0378/90490/90/e309742b5c.jpg "OpenDoor OWASP")
 
-#### Implements
-- [x] multithreading control
-- [x] scan's reports
-- [x] directories scanner
-- [x] subdomains scanner
-- [x] HTTP(S) (PORT) support
-- [x] Keep-alive long pooling
-- [x] HTTP(S)/SOCKS proxies
-- [x] dynamic request header
-- [x] custom word-list's prefixes
-- [x] custom word-lists, proxies, ignore lists
-- [x] debug levels (-1 (silent), 1-3)
-- [x] extensions filter
-- [x] custom reports directory
-- [x] custom config wizard (use random techniques)
-- [x] analyze techniques
+- ✅ directories scanner
+- ✅ subdomains scanner
+- ✅ multithreading control
+- ✅ scan's reports
+- ✅ HTTP(S) (PORT) support
+- ✅ Keep-alive long pooling
+- ✅ Invalid certificates scan
+- ✅ HTTP(S)/SOCKS proxies
+- ✅ dynamic request header
+- ✅ custom wordlists prefixes
+- ✅ custom wordlists, proxies, ignore lists
+- ✅ debug levels (1-3)
+- ✅ extensions filter
+- ✅ custom reports directory
+- ✅ custom config wizard (use random techniques)
+- ✅ analyze techniques:
     * detect redirects
-    * detect an index of/ Apache
+    * detect index of/ Apache
     * detect large files
-    * heuristic detect invalid web pages
+    * heuristic detect invalid pages
     * blank success page filter
     * certificate required pages
-- [x] randomization techniques
+- ✅ randomization techniques:
     * random user-agent per request
     * random proxy per request
-    * word-lists shuffling
-    * word-lists filters
+    * wordlists shuffling
+    * wordlists filters
 
 
 #### Install PIP
@@ -84,7 +86,11 @@ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 
 #### [Changelog](CHANGELOG.md) (last changes)
 
-v4.0.5 (24.06.2023)
+v4.0.6 (26.06.2023)
+---------------------------
+    -   Re-create documentation portal. Keep docs up to date. Publish on Pypi
+
+v4.0.5 (25.06.2023)
 ---------------------------
     -   Update dictionary: + 45442 new directories
 
@@ -217,6 +223,7 @@ Also, you can suggest an ideas and create a task in my track list
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0) [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)  
 
 ### Documentation
+- [Read The Docs](https://opendoor.readthedocs.io/)
 - [Opendoor OWASP CookBook](https://github.com/stanislav-web/OpenDoor/wiki)
 - [Issues](https://github.com/stanislav-web/OpenDoor/issues)
 

@@ -13,7 +13,7 @@ Usage
 *Force scan method:* HEAD
 *Positive:* all success pages which contains more than 1mb fall under this filter
 
-```
+```shell
 opendoor --host www.example.com --sniff file
 ```
 
@@ -21,7 +21,7 @@ opendoor --host www.example.com --sniff file
 *Force scan method:* GET
 *Positive:* all success pages which contains title:(IndexOf|i):title fall under this filter
 
-```
+```shell
 opendoor --host www.example.com --sniff indexof
 ```
 
@@ -29,7 +29,7 @@ opendoor --host www.example.com --sniff indexof
 *Force scan method:* GET
 *Positive:* all success pages which contain less than 100b are ignored for success
 
-```
+```shell
 opendoor --host www.example.com --sniff skipempty
 ```
 
@@ -38,14 +38,14 @@ opendoor --host www.example.com --sniff skipempty
 *Positive:* all successfully loaded pages are compared among themselves, and those that are very similar, fall under this filter and are excluded
 *Notice:* The behavior of this filter may vary depending on the source data
 
-```
+```shell
 opendoor --host www.example.com --sniff collation
 ```
 
 How would this work?
 ---------------------
 Also, you can combine these filters as you prefer.
-```
+```shell
 opendoor --host www.example.com --sniff skipempty,file,collation,indexof --debug 1
 
 [23:16:04] debug:   Starting debug level 1. Using scan method: GET ...

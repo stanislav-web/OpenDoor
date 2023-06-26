@@ -82,7 +82,7 @@ reports-dir = None
 
 Usage
 -----
-```
+```shell
 opendoor --wizard # get default config from opendoor.conf
 opendoor --wizard /usr/local/projects/mytarget.com.conf
 ```

@@ -1,6 +1,6 @@
 Installation
 ===============
-Python v3.9 is a minor requirement.
+**Python v3.7 is a minor requirement**.
 At the moment, the package can be installed from this repository [https://github.com/stanislav-web/OpenDoor](https://github.com/stanislav-web/OpenDoor)
 Now being tested, and the next will be published in other sources, such as Pypi.
 
@@ -14,33 +14,29 @@ Now being tested, and the next will be published in other sources, such as Pypi.
 
 Install PIP
 ---------------------------
-```
+```shell
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 ```
 
-GNU Linux (Local installation and run)
+GNU Linux / OSX (Mac OS)
 ---------------------------
 
-```
+```shell
+# Install locally
  git clone https://github.com/stanislav-web/OpenDoor.git
  cd OpenDoor/
  pip3 install -r requirements.txt
  chmod +x opendoor.py
-
  python3 opendoor.py --host http://www.example.com
 ```
 
-GNU Linux (Global. Preferably for OS distributions)
----------------------------
-
-```
+```shell
+# Install globally to env
  git clone https://github.com/stanislav-web/OpenDoor.git
  cd OpenDoor/
  python3 setup.py build && python3 setup.py install
-
  opendoor --host http://www.example.com
 ```
-
 
 Windows XP/7/8/10
 ---------------------------
@@ -49,44 +45,39 @@ I would recommend you to install GUI for Git at first if you don't have pre-inst
 Please see [https://git-for-windows.github.io](https://git-for-windows.github.io)
 Go to your Git bash and clone repo
 
-```
-        git clone https://github.com/stanislav-web/OpenDoor.git opendoor
-        cd opendoor
+```shell
+  git clone https://github.com/stanislav-web/OpenDoor.git opendoor
+  cd opendoor
 ```
 
 Next , install python package manager.
 Here you go > [https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip)
 Install dependencies
 
-```
-        C:\opendoor> pip install -r requirements.txt
+```shell
+  C:\opendoor> pip install -r requirements.txt
 ```
 s
 Unfortunately, you can't use Socks proxy on Windows. HTTP(S) supported only
 Try your fist launch
 
+```shell
+  C:\opendoor>python3 opendoor.py -h
 ```
-        C:\opendoor>python3 opendoor.py -h
-```
-
-OSX
----
-   
-[TODO] Doc is not complete because the package wasn't tested for Mac
 
 Dependencies
 ============
-![Dependencies](images/dependencies.jpg)
+![Dependencies](img/dependencies.jpg)
 
 Update
 ===============
 You have an update a package using `git pull origin master` inside or run update process from interface:
-```
+```shell
 # GNU Linux
 python3 opendoor.py --update
 ```
  
-```
+```shell
 # Win
 C:\opendoor>python opendoor.py --update
 ```

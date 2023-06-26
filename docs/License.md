@@ -1,4 +1,4 @@
-![GNU General Public License](images/lgpl.jpg)
+![GNU General Public License](img/lgpl.jpg)
 
 GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 

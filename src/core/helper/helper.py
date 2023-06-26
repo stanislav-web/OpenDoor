@@ -170,7 +170,7 @@ class Helper(object):
                 (output, sizes) = codecs.utf_8_decode(str, errors)
             return str(output)
         except (UnicodeDecodeError, Exception):
-            # seems, its getting not a content (images, file, etc)
+            # seems, its getting not a content (img, file, etc)
             try:
                 return str.decode('cp1251')
             except (UnicodeDecodeError, Exception):

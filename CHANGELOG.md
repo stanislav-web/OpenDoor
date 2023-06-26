@@ -1,5 +1,9 @@
 Changes
 =======
+v4.0.6 (26.06.2023)
+---------------------------
+    -   Re-create documentation portal. Keep docs up to date. Publish on Pypi
+
 4.0.5 (25.06.2023)
 ---------------------------
     -   Update dictionary: + 45442 new directories

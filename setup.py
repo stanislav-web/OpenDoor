@@ -19,7 +19,7 @@
 
 from setuptools import setup, find_packages
 NAME = 'opendoor'
-VERSION = '4.0.5'
+VERSION = '4.0.6'
 DESCRIPTION = 'OWASP WEB Directory Scanner'
 LONG_DESCRIPTION = open('README.md', 'r+', encoding='utf-8').read()
 HOMEPAGE = 'https://github.com/stanislav-web/OpenDoor'
