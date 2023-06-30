@@ -54,7 +54,7 @@ class Reporter(object):
     def load(plugin_name, target, data):
         """
         Load report plugin
-        :param str plugin_name: plugin name
+        :param str plugin_name:  name
         :param str target: target host
         :param dict data: report data
         :raise ReporterError

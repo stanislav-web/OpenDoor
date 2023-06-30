@@ -14,10 +14,12 @@ This application finds all possible ways to login, index of/ directories, web sh
 The scanning is performed by the built-in dictionary and external dictionaries as well. Anonymity and speed are provided by means of using proxy servers.
 Software is written for informational purposes and is open source product under the GPL license.
 
+![Maintainer](https://img.shields.io/badge/maintainer-stanislav_web-blue) [![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor)
+
 [Read The Docs](https://opendoor.readthedocs.io/)
 
-* *Current 4.0.6 (25.06.2023)*
-    - Directories: 82239
+* *Current 4.0.61 (30.06.2023)*
+    - Directories: 83246
     - Subdomains: 181018
 
 ***Testing of the software on the live commercial systems and organizations is prohibited!***
@@ -85,58 +87,6 @@ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 ```
 
 #### [Changelog](CHANGELOG.md) (last changes)
-
-v4.0.6 (26.06.2023)
----------------------------
-    -   Re-create documentation portal. Keep docs up to date. Publish on Pypi
-
-v4.0.5 (25.06.2023)
----------------------------
-    -   Update dictionary: + 45442 new directories
-
-v4.0.4-stable (24.06.2023)
----------------------------
-    -   Fix unit tests and resolve dev requirements
-
-v4.0.3 (24.06.2023)
----------------------------
-    -   Fix [#ISSUE-44](https://github.com/stanislav-web/OpenDoor/issues/44) ignore invalid SSL by defaul  
-
-v4.0.2 (23.06.2023)
----------------------------
-    -   Python 3.11 launch fix [#ISSUE-58](https://github.com/stanislav-web/OpenDoor/issues/58) added encoding to setup.py 
-
-v4.0.1-beta (23.02.2021)
----------------------------
-    -   Python 2.6,2.7 is unsupported
-    -   Update directories.dat  36994 -> 37019
-    -   [enhancement] [#PR-40](https://github.com/stanislav-web/OpenDoor/issues/40) added encoding to setup.py 
-    -   [bugfix] [#PR-48](https://github.com/stanislav-web/OpenDoor/issues/48) Python 3.9 / 3.10 compatibility
-    -   [bugfix] [#PR-20](https://github.com/stanislav-web/OpenDoor/issues/20) No timeout setup in request
-    -   [enhancement] [#PR-36](https://github.com/stanislav-web/OpenDoor/issues/36) Feature Request: Show only found items
-
-v3.4.481-stable (02.10.2017)
----------------------------
-    -   Fixed bugs with externals wordlists
-    -   Added 80018 subdomains
-
-v3.4.47-rc Gained more Power! (05.07.2017)
----------------------------
-    - Added IPs lookup for subdomains scan
-    - Added missing HTTP statuses
-    - Bugfix: encoding errors (supported cp1251,utf8,utf16) for body analyze
-    - Bugfix: allow to use both --random-list & --extension params
-    - Directory closing slash has been removed
-    - Support Internationalized Domain Names IDNA
-    - Removed --indexof (-i) params
-    - Add --ignore-extensions -i param to ignore selected extension
-    - Added --sniff param to process responses
-        - indexof   (detect Apache Index Of/ directories)
-        - file      (detect large files)
-        - collation (heurisic detect invalid web pages)
-        - skipempty (skip empty valid pages)
-    - Internal dictionaries has been filtered out. Delete all duplicates
-    - Added +990 unique directories (36931)
 
 #### Help
 ```
@@ -217,7 +167,7 @@ python setup.py test
 ```
 
 ### Contributors
-If  you like to contribute to the development of the project, in that case, pull requests are open for you.
+If you like to contribute to the development of the project, in that case, pull requests are open for you.
 Also, you can suggest an ideas and create a task in my track list
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0) [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)  

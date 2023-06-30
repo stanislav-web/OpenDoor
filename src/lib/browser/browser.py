@@ -117,7 +117,7 @@ class Browser(Filter):
         self.__debug.debug_user_agents()
         self.__debug.debug_list(total_lines=self.__pool.total_items_size)
 
-        try:  # beginning scan process
+        try:  # beginning scan processes
             if True is self.__config.is_random_list:
                 if self.__config.scan == self.__config.DEFAULT_SCAN:
                     if True is self.__config.is_extension_filter:
@@ -188,8 +188,8 @@ class Browser(Filter):
 
     def __is_ignored(self, url):
         """
-        Check if path will be ignored
-        :param str url: recieved url
+        Check if the path will be ignored
+        :param str url: received url
         :return: bool
         """
 

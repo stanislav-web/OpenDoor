@@ -234,7 +234,7 @@ class Config(object):
     @property
     def is_sniff(self):
         """
-        If sniffers is available
+        If sniffers are available
         :return: bool
         """
 
@@ -257,7 +257,7 @@ class Config(object):
     @property
     def is_random_list(self):
         """
-        If scan list randomize and is available
+        If scan lists randomize and are available
         :return: bool
         """
 
@@ -266,7 +266,7 @@ class Config(object):
     @property
     def is_extension_filter(self):
         """
-        If scan list filtered by extensions
+        If scan lists filtered by extensions
         :return: bool
         """
 

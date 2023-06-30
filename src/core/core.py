@@ -25,7 +25,7 @@ CoreConfig = {
         'version': '4.0.6',
         'documentation': 'https://opendoor.readthedocs.org',
         'required_versions': {
-            'minor': '3.9',
+            'minor': '3.7',
             'major': '3.10'
         },
     },

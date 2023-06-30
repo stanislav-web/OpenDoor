@@ -24,7 +24,6 @@ from src.lib.tpl import Tpl as tpl
 
 
 class Debug(DebugProvider):
-
     """Debug class"""
 
     # noinspection PyPep8Naming
@@ -164,7 +163,7 @@ class Debug(DebugProvider):
             urlpath = helper.parse_url(request_uri).path
         else:
             urlpath = request_uri
-        
+
         if status in ['success', 'file', 'indexof', 'certificat', 'auth']:
             request_uri = tpl.line(key=status, color='green', url=urlpath)
         elif status in ['bad', 'forbidden']:
@@ -190,12 +189,12 @@ class Debug(DebugProvider):
         else:
             if self.__level != -1:
                 tpl.line_log(key='get_item',
-                         percent=percentage,
-                         current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
-                         total=kwargs.get('total_size', 1),
-                         item=request_uri,
-                         size=kwargs.get('content_size'),
-                         )
+                             percent=percentage,
+                             current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
+                             total=kwargs.get('total_size', 1),
+                             item=request_uri,
+                             size=kwargs.get('content_size'),
+                             )
             self.__catched = False
             if kwargs.get('items_size', 0) is kwargs.get('total_size', 1):
                 sys.writels("", flush=True)

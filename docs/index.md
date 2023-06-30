@@ -7,6 +7,7 @@ The scanning is performed by the built-in dictionary and external dictionaries a
 Software is written for informational purposes and is open source product under the GPL license.
 Dictionaries are constantly updated, also expanding application functionality.
 
+[![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor)
 
 #### Implements
 - ✅ directories scanner

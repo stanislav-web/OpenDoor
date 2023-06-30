@@ -18,8 +18,10 @@
 """
 
 from setuptools import setup, find_packages
+fVersion = open('VERSION').readline().rstrip()
+
 NAME = 'opendoor'
-VERSION = '4.0.6'
+VERSION = fVersion
 DESCRIPTION = 'OWASP WEB Directory Scanner'
 LONG_DESCRIPTION = open('README.md', 'r+', encoding='utf-8').read()
 HOMEPAGE = 'https://github.com/stanislav-web/OpenDoor'

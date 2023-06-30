@@ -87,7 +87,7 @@ class Worker(threading.Thread):
                     self.__empty = True
 
                 finally:
-                    if not self.__event.isSet():
+                    if not self.__event.is_set():
                         self.__semaphore.release()
                         self.__event.wait()
         except Exception as error:
