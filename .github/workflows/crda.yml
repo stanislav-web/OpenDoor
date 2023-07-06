@@ -65,7 +65,9 @@ on:
   # pull_request_target is used to securely share secret to the PR's workflow run.
   # For more info visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target
   pull_request_target:
-    branches: [ "master" ]
+    branches:
+      - 'master'
+      - '*'
     types: [ assigned, opened, synchronize, reopened, labeled, edited ]
 
 permissions:
