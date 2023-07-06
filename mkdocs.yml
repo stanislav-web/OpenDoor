@@ -5,6 +5,10 @@ repo_name: OpenDoor
 site_description:  OpenDoor OWASP is console multifunctional website's scanner
 site_author: Brain Storm Team
 copyright: Copyright (C) 2017-2023 Brain Storm Team
+extra:
+  homepage: https://github.com/stanislav-web/OpenDoor
+  version: latest
+
 nav:
     - Home: index.md
     - Installation and update: Installation-and-update.md

@@ -164,7 +164,7 @@ class Debug(DebugProvider):
         else:
             urlpath = request_uri
 
-        if status in ['success', 'file', 'indexof', 'certificat', 'auth']:
+        if status in ['success', 'file', 'indexof', 'certificate', 'auth']:
             request_uri = tpl.line(key=status, color='green', url=urlpath)
         elif status in ['bad', 'forbidden']:
             request_uri = tpl.line(key='forbidden', color='yellow', url=urlpath)
@@ -174,7 +174,7 @@ class Debug(DebugProvider):
 
         self.__clear = True if self.__catched else False
 
-        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'indexof', 'certificat', 'auth']:
+        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'indexof', 'certificate', 'auth']:
 
             sys.writels("", flush=True)
             tpl.info(key='get_item',

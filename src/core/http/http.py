@@ -84,7 +84,6 @@ class HttpRequest(RequestProvider, DebugProvider):
                                                retries=self.__cfg.retries,
                                                assert_same_host=True,
                                                redirect=False)
-
                 self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             else:
                 response = PoolManager().request(self.__cfg.method, url,

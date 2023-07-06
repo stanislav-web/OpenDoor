@@ -27,7 +27,7 @@ opendoor --host www.example.com --sniff indexof
 
 **--sniff skipempty** - Allows you to skip blank success pages to select correct result
 *Force scan method:* GET
-*Positive:* all success pages which contain less than 100b are ignored for success
+*Positive:* all success pages which contain less than 1000b are ignored for success
 
 ```shell
 opendoor --host www.example.com --sniff skipempty
@@ -42,17 +42,27 @@ opendoor --host www.example.com --sniff skipempty
 opendoor --host www.example.com --sniff collation
 ```
 
+**--sniff skipsizes=NUM:NUM:NUM..** - Identifies pages of the specified size (in kb) as false positive for scan. 
+This is might be useful when the page has success response or redirect to 200
+*Force scan method:* GET
+*Positive:* all success pages which contain skipsizes=NUM:NUM kb are ignored for success
+
+```shell
+opendoor --host www.example.com --sniff skipsizes=25:50:87....
+```
+
 How would this work?
 ---------------------
 Also, you can combine these filters as you prefer.
 ```shell
-opendoor --host www.example.com --sniff skipempty,file,collation,indexof --debug 1
+opendoor --host www.example.com --sniff skipempty,file,collation,indexof,skipsizes=24:41:50 --debug 1
 
 [23:16:04] debug:   Starting debug level 1. Using scan method: GET ...
 [23:16:04] debug:   Load sniffer: File (detect large files)
 [23:16:04] debug:   Load sniffer: IndexOf (detect Index Of/ Apache directories)
 [23:16:04] debug:   Load sniffer: Collation (detect and ignore false positive success pages)
 [23:16:04] debug:   Load sniffer: SkipEmpty (skip empty success pages)
+[23:16:04] debug:   Load sniffer: SkipSize (skip target size of page +-2000 bytes added)
 [23:16:04] info:    Wait, please, checking connect to -> www.example.com:80 ...
 [23:16:05] info:    Server www.example.com:80 (93.184.216.34) is online!
 [23:16:05] debug:   Read 36312 directories list by line

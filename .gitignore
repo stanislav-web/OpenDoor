@@ -12,3 +12,5 @@ venv/
 /opendoor
 /.eggs/
 /dist/
+TODO.txt
+test.py

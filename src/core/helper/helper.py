@@ -78,6 +78,22 @@ class Helper(object):
         return json_data
 
     @staticmethod
+    def to_list(string, delimiter=','):
+        """
+        Convert a string to a list by splitting it using the specified delimiter.
+
+        :param string: The string to be converted to a list.
+        :param delimiter: The delimiter used to split the string (default is ',').
+        :return: A list containing the elements from the string.
+        :rtype: list
+        """
+
+        try:
+            return string.split(delimiter)
+        except TypeError as error:
+            raise TypeError(error)
+
+    @staticmethod
     def openbrowser(target):
         """
         Open target path in local browser
@@ -130,6 +146,20 @@ class Helper(object):
         """
 
         return isinstance(func, Callable)
+
+    @staticmethod
+    def is_jsonable(obj):
+        """
+        Check if an object is json serializable
+
+        :param callable obj:
+        :return: bool
+        """
+        try:
+            json.dumps(obj)
+            return True
+        except (TypeError, OverflowError):
+            return False
 
     @staticmethod
     def decode_hostname(hostname):

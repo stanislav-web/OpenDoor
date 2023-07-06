@@ -29,7 +29,7 @@ class CollationResponsePlugin(ResponsePluginProvider):
     MIN_RATIO_INDEX = 0.98
     MIN_CONTENT_LENGTH = 100
 
-    def __init__(self):
+    def __init__(self, void):
         """
         ResponsePluginProvider constructor
         """

@@ -24,20 +24,27 @@ class ResponsePlugin(object):
     """ResponsePlugin class"""
 
     @staticmethod
-    def load(plugin_name):
+    def load(plugin):
         """
         Load response plugin
-        :param str plugin_name:  response plugin name
+        :param str plugin:  response plugin name
         :raise ResponsePluginError
         :return: src.core.http.plugins.response.provider.provider.ResponsePluginProvider
         """
 
+        plugin_value = None
+
+        try:
+            plugin_name, plugin_value = plugin.split('=')
+        except ValueError:
+            plugin_name = plugin
+            pass
         try:
             package_module = importlib.import_module('src.core.http.plugins.response')
 
             try:
                 response_plugin = getattr(package_module, plugin_name)
-                return response_plugin()
+                return response_plugin(plugin_value)
             except (TypeError, AttributeError, Exception) as error:
                 raise ResponsePluginError('Unable to get response plugin `{plugin}`. Reason: {error}'
                                           .format(plugin=plugin_name, error=error))

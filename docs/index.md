@@ -7,7 +7,10 @@ The scanning is performed by the built-in dictionary and external dictionaries a
 Software is written for informational purposes and is open source product under the GPL license.
 Dictionaries are constantly updated, also expanding application functionality.
 
+[![Contributors](https://img.shields.io/github/contributors/stanislav-web/Opendoor)](https://github.com/stanislav-web/OpenDoor/graphs/contributors)
 [![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor)
+[![Python 3.7](https://img.shields.io/badge/python-3.7%20%2B-green.svg)](https://www.python.org/)
+
 
 #### Implements
 - ✅ directories scanner
@@ -26,7 +29,9 @@ Dictionaries are constantly updated, also expanding application functionality.
 - ✅ custom reports directory
 - ✅ custom config wizard (use random techniques)
 - ✅ analyze techniques:
+    * skip empty pages
     * detect redirects
+    * skip 200 OK redirects
     * detect index of/ Apache
     * detect large files
     * heuristic detect invalid pages

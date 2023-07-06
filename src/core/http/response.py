@@ -76,7 +76,10 @@ class Response(ResponseProvider):
 
         if hasattr(response, 'status'):
             if self.HTTP_DBG_LEVEL <= self.__debug.level:
-                self.__debug.debug_response(response.headers.items())
+                if helper.is_jsonable(response.headers.items()):
+                    self.__debug.debug_response(response.headers.items())
+                else:
+                    self.__debug.debug_response(dict(response.headers))
 
             try:
                 status = super(Response, self).detect(request_url, response)

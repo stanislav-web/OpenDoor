@@ -27,14 +27,10 @@ class AcceptHeaderProvider(object):
         Init interface
         """
 
-        self.__accept = ('*.*, q=0.1',
-                         'text/plain,*/*;q=0.8',
-                         'text/html,*/*;q=0.8',
-                         'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-                         )
+        self.__accept = 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,' \
+                        'image/jpeg,*/*;q=0.5'
 
-        self.__accept_encoding = ('gzip, deflate, sdch', 'gzip, deflate, br', 'identity')
+        self.__accept_encoding = 'identity, deflate, compress, gzip, br'
 
         self.__accept_language = (
             'en-US,en;q=0.5,ru-RU,ru;q=0.8',
@@ -49,10 +45,7 @@ class AcceptHeaderProvider(object):
         :return: str
         """
 
-        index = random.randrange(0, len(self.__accept))
-        accept = self.__accept[index]
-
-        return accept
+        return self.__accept
 
     @property
     def _accept_encoding(self):
@@ -61,10 +54,7 @@ class AcceptHeaderProvider(object):
         :return: str
         """
 
-        index = random.randrange(0, len(self.__accept_encoding))
-        accept = self.__accept_encoding[index]
-
-        return accept
+        return self.__accept_encoding
 
     @property
     def _accept_language(self):

@@ -56,7 +56,7 @@ Request tools:
 
 Sniff tools:
   --sniff SNIFF         Response sniff plugins
-                        (indexof,collation,file,skipempty)
+                        (indexof,collation,file,skipempty,skipsizes=NUM:NUM)
 
 Stream tools:
   -t THREADS, --threads THREADS
@@ -212,7 +212,7 @@ Sniff tools
 **--sniff** - Uses for server responses. More detail ([More detail](Sniffers.md))
 
 ```shell
-opendoor --host www.example.com --sniff indexof,collation,file,skipempty
+opendoor --host www.example.com --sniff indexof,collation,file,skipempty,skipsizes=25:50:87
 ```
 
 Stream tools

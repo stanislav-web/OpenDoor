@@ -14,13 +14,34 @@ This application finds all possible ways to login, index of/ directories, web sh
 The scanning is performed by the built-in dictionary and external dictionaries as well. Anonymity and speed are provided by means of using proxy servers.
 Software is written for informational purposes and is open source product under the GPL license.
 
-![Maintainer](https://img.shields.io/badge/maintainer-stanislav_web-blue) [![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor)
+![Maintainer](https://img.shields.io/badge/maintainer-stanislav_web-blue) 
+[![Contributors](https://img.shields.io/github/contributors/stanislav-web/Opendoor)](https://github.com/stanislav-web/OpenDoor/graphs/contributors)
+[![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor)
+[![Python 3.7](https://img.shields.io/badge/python-3.7%20%2B-green.svg)](https://www.python.org/)
+
+[![Documentation Status](https://readthedocs.org/projects/opendoor/badge/?version=latest)](https://opendoor.readthedocs.io/?badge=latest)
+[![Codacy Security Scan](https://github.com/stanislav-web/OpenDoor/actions/workflows/codacy.yml/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/codacy.yml)
+[![Codespaces Prebuilds](https://github.com/stanislav-web/OpenDoor/actions/workflows/codespaces/create_codespaces_prebuilds/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/codespaces/create_codespaces_prebuilds)
+[![Dependency Review](https://github.com/stanislav-web/OpenDoor/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/dependency-review.yml)
+[![CodeQL](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql)
 
 [Read The Docs](https://opendoor.readthedocs.io/)
 
-* *Current 4.0.61 (30.06.2023)*
-    - Directories: 83246
-    - Subdomains: 181018
+* *Current 4.0.7 (07.07.2023)*
+    - Directories: 83262
+    - Subdomains: 255260
+  
+#### [Changelog](CHANGELOG.md) (last changes)
+v4.1.0 (07.07.2023) **Gain more power!**
+
+-   Added `--sniff skipsizes=25:60:101:...`: allow skipping redirect to 200 OK pages which not found
+-   Fix `--sniff skipempty`: increase condition value to detect empty content <= 1000 bytes detect as empty page instead of 100 bytes
+-   Fix `ResponseError: Unknown response status : 525`: added to define incorrect SSL handshakes
+-   Fix `Object of type HTTPHeaderDictItemView is not JSON serializable`: if `--debug` set `3`
+-   Fix response encode failed`('Received response with content-encoding: gzip, but failed to decode it.', error('Error -3 while decompressing data: incorrect header check'))`
+-   Added `+20` new directories to internal wordlist
+-   Added `+74242` new subdomains to internal wordlist
+-   Optimize internal wordlist directories.txt list (sort, removed trash lines)
 
 ***Testing of the software on the live commercial systems and organizations is prohibited!***
 
@@ -45,6 +66,8 @@ Software is written for informational purposes and is open source product under 
     * detect redirects
     * detect index of/ Apache
     * detect large files
+    * skip 200 OK redirects
+    * skip empty pages
     * heuristic detect invalid pages
     * blank success page filter
     * certificate required pages
@@ -85,8 +108,6 @@ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
  python3 opendoor.py --update
  opendoor --update
 ```
-
-#### [Changelog](CHANGELOG.md) (last changes)
 
 #### Help
 ```
@@ -138,8 +159,8 @@ Request tools:
 
 Sniff tools:
   --sniff SNIFF         Response sniff plugins
-                        (indexof,collation,file,skipempty)
-
+                        (indexof,collation,file,skipempty,skipsize=INT)
+  
 Stream tools:
   -t THREADS, --threads THREADS
                         Allowed threads

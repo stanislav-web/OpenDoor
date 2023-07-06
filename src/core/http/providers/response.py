@@ -28,7 +28,7 @@ class ResponseProvider(object):
     DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     DEFAULT_HTTP_REDIRECT_STATUSES = [300, 301, 302, 303, 304, 307, 308]
     DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 410, 409, 412, 424, 429, 440, 500, 501, 502, 503, 504, 520, 522]
-    DEFAULT_SSL_CERT_REQUIRED_STATUSES = [423, 496]
+    DEFAULT_SSL_CERT_REQUIRED_STATUSES = [423, 496, 525]
     DEFAULT_HTTP_FORBIDDEN_STATUSES = [403,405]
     DEFAULT_HTTP_AUTH_STATUSES = [401]
     DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400, 415, 508]
@@ -86,7 +86,7 @@ class ResponseProvider(object):
             elif response.status in self.DEFAULT_HTTP_FAILED_STATUSES:
                 return 'failed'
             elif response.status in self.DEFAULT_SSL_CERT_REQUIRED_STATUSES:
-                return 'certificat'
+                return 'certificate'
             elif response.status in self.DEFAULT_HTTP_REDIRECT_STATUSES:
                 return self.__is_redirect(response, request_url)
             elif response.status in self.DEFAULT_HTTP_BAD_REQUEST_STATUSES:

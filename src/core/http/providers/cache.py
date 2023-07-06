@@ -16,13 +16,21 @@
     Development Team: Brain Storm Team
 """
 
-# noinspection PyPep8Naming
-from .collation import CollationResponsePlugin as collation
-# noinspection PyPep8Naming
-from .indexof import IndexofResponsePlugin as indexof
-# noinspection PyPep8Naming
-from .skipempty import SkipemptyResponsePlugin as skipempty
-# noinspection PyPep8Naming
-from .file import FileResponsePlugin as file
-# noinspection PyPep8Naming
-from .skipsizes import SkipSizesResponsePlugin as skipsizes
+class CacheControlProvider(object):
+    """ CacheControlProvider class"""
+
+    def __init__(self):
+        """
+        Init interface
+        """
+
+        self.__cache_control = 'max-age=0'
+
+    @property
+    def _cache_control(self):
+        """
+        Get 'Cache-Control' Header
+        :return: str
+        """
+
+        return self.__cache_control
