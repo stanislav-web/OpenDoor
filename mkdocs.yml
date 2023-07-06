@@ -8,7 +8,7 @@ copyright: Copyright (C) 2017-2023 Brain Storm Team
 extra:
   homepage: https://github.com/stanislav-web/OpenDoor
   version:
-    provider: mike
+    default: stable
 
 nav:
     - Home: index.md
