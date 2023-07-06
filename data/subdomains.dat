@@ -4,10 +4,6 @@
 0000
 00000
 000000
-mail
-pop3
-smtp
-www
 0-search
 0-www
 1
@@ -4732,6 +4728,7 @@ a-tha-2410-hn
 a-youtube
 a-zcomics
 a-zu-net
+a.auth-ns
 a1
 a01
 a001
@@ -14834,6 +14831,16 @@ aphrodite
 aphroditer
 api
 api0
+api-1
+api-2
+api-3
+api-4
+api-5
+api-6
+api-7
+api-8
+api-9
+api-10
 api-dev
 api-master-com
 api-news
@@ -14853,6 +14860,10 @@ api3
 api4
 api5
 api6
+api7
+api8
+api9
+api10
 api0011
 api_portal_dev
 api_web_dev
@@ -18915,6 +18926,7 @@ b-partners-xsrvjp
 b-themes
 b-town-jp
 b-trust-systems-com
+b.auth-ns
 b1
 b01
 b001
@@ -37534,6 +37546,7 @@ c-road-jp
 c-sharing-xsrvjp
 c-throb-cojp
 c-ty-jp
+c.auth-ns
 c1
 c01
 c001
@@ -103986,6 +103999,7 @@ ilmare79
 ilmare1130
 ilmenite
 ilmi
+ILMI
 ilmigliorsoftware
 ilmigliorweb
 ilminfazileti

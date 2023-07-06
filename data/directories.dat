@@ -18648,6 +18648,12 @@ catalog.pdf
 catalog.php
 catalog.shtml
 catalog.wci
+catalog/adm.php
+catalog/admin.php
+catalog/admin/login.php
+catalog/administator.php
+catalog/login.php
+catalog/login_diz.php
 catalog/viewtheme
 catalog2
 catalog2.htm
@@ -29000,8 +29006,8 @@ eletter-submit
 elezioni
 elfchat.php
 elfinder
-elfinder/elfinder.php
 elfinder.php
+elfinder/elfinder.php
 elfxf123Q
 elgg
 elido
