@@ -27,7 +27,7 @@ Software is written for informational purposes and is open source product under 
 
 [Read The Docs](https://opendoor.readthedocs.io/)
 
-* *Current 4.0.7 (07.07.2023)*
+* *Current 4.1.0 (07.07.2023)*
     - Directories: 83262
     - Subdomains: 255260
   
