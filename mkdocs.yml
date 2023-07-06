@@ -5,6 +5,11 @@ repo_name: OpenDoor
 site_description:  OpenDoor OWASP is console multifunctional website's scanner
 site_author: Brain Storm Team
 copyright: Copyright (C) 2017-2023 Brain Storm Team
+extra:
+  homepage: https://github.com/stanislav-web/OpenDoor
+  version:
+    provider: mike
+
 nav:
     - Home: index.md
     - Installation and update: Installation-and-update.md
@@ -16,4 +21,18 @@ nav:
     - Changelog: Changelog.md
     - License: License.md
 theme:
-    name: readthedocs
+  language: en
+  palette:
+
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+

@@ -1801,8 +1801,6 @@
 2phpmyadmin
 2welcome
 2wire
-2xfun1970
-2XKF8
 2z
 3
 03
@@ -6028,10 +6026,6 @@
 121.246.224.125
 2013110125027897.asp
 2013110125222650.aspx
-;admin
-;json
-;login
-@
 @dmin
 @fuck_youmama
 @index.php
@@ -8724,7 +8718,6 @@ ADMIN.php
 Admin.php
 admin.php.back
 admin.php3
-admin.php?mod=phpcms&file=login
 admin.phtml
 Admin.pl
 admin.pl
@@ -8799,10 +8792,19 @@ admin/data.zip
 admin/dataautosuggest
 admin/Databackup
 admin/db
+admin/db.dat
+admin/db.sql
+admin/db.tar.gz
+admin/db.zip
 admin/default
 admin/defaultadmin.asp
 admin/defaultlogin.asp
 admin/do
+admin/dump.rar
+admin/dump.sql
+admin/dump.tar.gz
+admin/dump.txt
+admin/dump.zip
 admin/dumper
 admin/edit
 admin/Editor
@@ -8851,6 +8853,7 @@ admin/fckeditor/editor/filemanager/upload/aspxupload.aspx
 admin/FCKeditor/editor/filemanager/upload/php
 admin/fckeditor/editor/filemanager/upload/phpupload.php
 admin/home
+admin/home.php
 admin/html
 admin/include/htmleditor/admin
 admin/includesconfigure.php
@@ -8922,6 +8925,10 @@ admin/securelogon.jsp
 admin/sign/in
 admin/signin
 admin/signin.php
+admin/sql.rar
+admin/sql.sql
+admin/sql.tar.gz
+admin/sql.zip
 admin/sqladmin
 admin/sxd
 admin/sysadmin
@@ -8934,6 +8941,7 @@ admin/webedit
 admin/webedit/editor/filemanager
 admin/WebEditor
 admin/webeditor
+admin/www.zip
 admin1
 Admin1
 admin2
@@ -14604,7 +14612,7 @@ backup.tpl
 backup.txt
 backup.zip
 Backup.Zip
-backup/vendor/phpunit/phpunitphpunit
+backup/vendor/phpunit/phpunit
 backup1
 backup2
 backup3
@@ -15937,6 +15945,7 @@ bitrix.settings.bak
 bitrix.settings.php
 bitrix.settings.php.bak
 bitrix/admin
+bitrix/admin/index.php
 bitrix/adminhelp.php
 bitrix/adminindex.php
 bitrix/backup
@@ -28991,7 +29000,8 @@ eletter-submit
 elezioni
 elfchat.php
 elfinder
-elfinderelfinder.php
+elfinder/elfinder.php
+elfinder.php
 elfxf123Q
 elgg
 elido
@@ -73931,6 +73941,7 @@ tksearchadvanced
 tksslsign
 tkuserdata
 tl
+tl-backup.php
 tl_files
 tla.php
 tlc
@@ -83070,7 +83081,6 @@ zzz
 zzz.html
 zzz.php
 zzzzz.php
-|test*~1****a.aspx
 ~
 ~.bak
 ~.cgi
@@ -83234,7 +83244,7 @@ zzzzz.php
 萧萧asp大马超强版.asp
 虚拟机提权大马.asp
 说明.txt
-超强版 大.asp
+超强版 大.aspa
 超强版.asp
 转换字符的一句话a.asp
 过狗asp一句话.asp

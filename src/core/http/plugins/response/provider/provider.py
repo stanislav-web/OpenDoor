@@ -42,9 +42,9 @@ class ResponsePluginProvider(object):
 
     def process(self, response):
         """
-        Process data
-        :param urllib3.response.HTTPResponse response: response object
-        :return: str
+        Process data from the given response object.
+        :param urllib3.response.HTTPResponse response: The response object containing the data to be processed.
+        :return: A string representing the processed data.
         """
 
         self._status = int(float(response.status))

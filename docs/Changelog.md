@@ -1,5 +1,16 @@
 Changes
 =======
+v4.1.0 (06.07.2023)
+---------------------------
+-   Added `--sniff skipsizes=25:60:101:...`: allow skipping redirect to 200O pages which not found
+-   Fix `--sniff skipempty`: increase condition value to detect empty content <= 1000 bytes detect as empty page instead of 100 bytes
+-   Fix `ResponseError: Unknown response status : 525`: added to define incorrect SSL handshakes
+-   Fix `Object of type HTTPHeaderDictItemView is not JSON serializable`: if `--debug` set `3`
+-   Fix `--accept-cookies` param. (Accept and route cookies from responses)
+-   Fix response encode failed`('Received response with content-encoding: gzip, but failed to decode it.', error('Error -3 while decompressing data: incorrect header check'))`
+-   Added `+13` new directories to internal wordlist
+-   Optimize internal wordlist directories.txt list (sort, removed trash lines)
+
 v4.0.61 (30.06.2023)
 ---------------------------
 -   Added +1007 directories

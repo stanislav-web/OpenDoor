@@ -145,7 +145,7 @@ class FileSystem(object):
     @staticmethod
     def makefile(filename):
         """
-        Create new file with context
+        Create a new file with context
         :param str filename: input filename
         :raise: FileSystemError
         :return: str
@@ -283,7 +283,7 @@ class FileSystem(object):
     @staticmethod
     def writelist(filename, data, separator=''):
         """
-        Write list to file
+        Write the list to file
         :param str filename: input filename
         :param list data: record data
         :param str separator: line separator

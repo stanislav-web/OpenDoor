@@ -28,7 +28,7 @@ class IndexofResponsePlugin(ResponsePluginProvider):
     DEFAULT_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     INDEX_OF_TITLE = 'Index of /'
 
-    def __init__(self):
+    def __init__(self, void):
         """
         ResponsePluginProvider constructor
         """

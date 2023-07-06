@@ -65,7 +65,7 @@ class Config(object):
         'host_changed_error': 'Block external redirect -> {details}',
         'read_timeout_error': 'Read timeout error! {url}. Increase using --timeout option',
         'connection_timeout_error': 'Connection timeout error! {url}. Increase using --timeout option',
-        'certificat': 'Cert required {url}',
+        'certificate': 'Cert required {url}',
         'success': 'OK {url}',
         'file': 'File {url}',
         'indexof': 'Index {url}',

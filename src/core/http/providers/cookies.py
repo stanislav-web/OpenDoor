@@ -16,8 +16,6 @@
     Development Team: Brain Storm Team
 """
 
-from http.cookies import SimpleCookie
-
 
 class CookiesProvider(object):
     """ CookiesProvider class"""
@@ -32,7 +30,7 @@ class CookiesProvider(object):
     @property
     def _is_cookie_fetched(self):
         """
-        Check if cookies has been fetched from response
+        Check if cookies have been fetched from response
         :return: bool
         """
 
@@ -41,12 +39,12 @@ class CookiesProvider(object):
     def _fetch_cookies(self, headers):
         """
         Fetch cookies from response
-        :param dict headers: response header
+        :param dict headers:  header
         :return: None
         """
 
         if 'set-cookie' in headers:
-            self._cookies = SimpleCookie(headers['set-cookie'])
+            self._cookies = headers.get('set-cookie')
 
     def _push_cookies(self):
         """
@@ -54,4 +52,4 @@ class CookiesProvider(object):
         :return: str cookies
         """
 
-        return self._cookies.output(attrs=[], header='').strip()
+        return self._cookies.strip()

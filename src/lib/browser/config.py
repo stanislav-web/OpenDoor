@@ -67,7 +67,7 @@ class Config(object):
         self._is_ignore_extension_filter = False if params.get('ignore_extensions') is None else True
         self._user_agent = self.DEFAULT_USER_AGENT
         self._threads = self.DEFAULT_MIN_THREADS if params.get('threads') is None else params.get('threads')
-        
+
     @property
     def scan(self):
         """

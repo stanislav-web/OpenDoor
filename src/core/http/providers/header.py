@@ -19,14 +19,15 @@
 import random
 
 from .accept import AcceptHeaderProvider
+from .cache import CacheControlProvider
 
 
-class HeaderProvider(AcceptHeaderProvider):
+class HeaderProvider(AcceptHeaderProvider, CacheControlProvider):
     """ HeaderProvider class"""
 
     def __init__(self, config, agent_list=()):
         """
-        Init interface. Accept external params
+        Init interface. Accept an external params
         :param src.lib.browser.config.Config config: browser configurations
         :param dict agent_list: user agent list
         """
@@ -36,6 +37,7 @@ class HeaderProvider(AcceptHeaderProvider):
         self.__agent_list = agent_list
 
         AcceptHeaderProvider.__init__(self)
+        CacheControlProvider.__init__(self)
 
     @property
     def __user_agent(self):
@@ -76,7 +78,7 @@ class HeaderProvider(AcceptHeaderProvider):
             .add_header('Accept-Language', self._accept_language)\
             .add_header('Referer', ''.join([self.__cfg.scheme, self.__cfg.host]))\
             .add_header('User-Agent', self.__user_agent)\
-            .add_header('Cache-Conrol', 'no-cache')\
+            .add_header('Cache-Control', self._cache_control)\
             .add_header('Connection', 'keep-alive')\
             .add_header('Pragma', 'no-cache')
 

@@ -1,5 +1,16 @@
 Changes
 =======
+v4.1.0 (06.07.2023)
+---------------------------
+-   Added `--sniff skipsizes=25:60:101:...`: allow skipping redirect to 200O pages which not found
+-   Fix `--sniff skipempty`: increase condition value to detect empty content <= 1000 bytes detect as empty page instead of 100 bytes
+-   Fix `ResponseError: Unknown response status : 525`: added to define incorrect SSL handshakes
+-   Fix `Object of type HTTPHeaderDictItemView is not JSON serializable`: if `--debug` set `3`
+-   Fix `--accept-cookies` param. (Accept and route cookies from responses)
+-   Fix response encode failed`('Received response with content-encoding: gzip, but failed to decode it.', error('Error -3 while decompressing data: incorrect header check'))`
+-   Added `+13` new directories to internal wordlist
+-   Optimize internal wordlist directories.txt list (sort, removed trash lines)
+
 v4.0.61 (30.06.2023)
 ---------------------------
 -   Added +1007 directories
@@ -42,35 +53,35 @@ v3.4.481-stable (02.10.2017)
 
 v3.4.47-rc Gained more Power! (05.07.2017)
 ------------------------------------------
-- Added IPs lookup for subdomains scan
+- Added IPs lookup for subdomain scans
 - Added missing HTTP statuses
 - Bugfix: encoding errors (supported cp1251,utf8,utf16) for body analyze
 - Bugfix: allow to use both --random-list & --extension params
 - Directory closing slash has been removed
 - Support Internationalized Domain Names IDNA
 - Removed --indexof (-i) params
-- Add --ignore-extensions -i param to ignore selected extension
+- Add --ignore-extensions -i param to ignore a selected extension
 - Added --sniff param to process responses
     - indexof   (detect Apache Index Of/ directories)
     - file      (detect large files)
-    - collation (heurisic detect invalid web pages)
+    - collation (heuristic detect invalid web pages)
     - skipempty (skip empty valid pages)
-- Internal dictionaries has been filtered out. Delete all duplicates
+- Internal dictionaries have been filtered out. Delete all duplicates
 - Added +990 unique directories (36931)
 
 v3.3.37-rc (22.06.2017)
 ------------------------
 - Fixed errors
-- Add config wizard (allows you to configure own project)
+- Add config wizard (allows you to configure an own project)
     
 v3.2.36-rc (04.06.2017)
 ------------------------
 - Added custom reports directory --reports-dir /home/user/Reports
 - Added user guide --docs
 - Reusable proxy requests pooling in --tor, --torlist
-- Prevent socks5 proxies warnings
+- Prevent socks5 proxy warnings
 - Optimizing scan execution
-- Request's delays allow to use of milliseconds
+- Request delays allow using of milliseconds
 - Python2.7 no longer support
 
 v3.1.32-rc (02.06.2017)
@@ -79,7 +90,7 @@ v3.1.32-rc (02.06.2017)
 
 v3.0.32-rc (19.05.2017)
 -----------------------
-- Add global installator
+- Add global installation
 
 v3.0.31-rc (20.02.2017)
 ------------------------
@@ -96,7 +107,7 @@ v3.0.3-beta (13.02.2017)
 -------------------------
 - detect SSL cert requires
 - added 7150 directories
-- fixes for https subdomians
+- fixes for https subdomains
 - more unit coverages
     
 v3.0.2-beta (31.01.2017)
