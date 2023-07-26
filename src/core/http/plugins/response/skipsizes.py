@@ -25,7 +25,7 @@ class SkipSizesResponsePlugin(ResponsePluginProvider):
     """ SkipSizesResponsePlugin class"""
 
     DESCRIPTION = 'SkipSizesStatuses (skip target sizes of page: {} kbs for 200 OK redirects)'
-    RESPONSE_INDEX = 'failed'
+    RESPONSE_INDEX = 'skip'
     DEFAULT_STATUSES = [200]
     SIZE_VALUES = None
 

@@ -247,9 +247,29 @@ class FileSystem(object):
         if not os.access(filepath, os.R_OK):
             raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
 
-        with open(filepath) as f_handler:
+        with open(filepath, 'r') as f_handler:
             data = f_handler.readlines()
         return data
+
+    @staticmethod
+    def count_lines(filename):
+        """
+        Count lines in .txt file
+        :param str filename: input filename
+        :raise FileSystemError
+        :return: list
+        """
+
+        filepath = os.path.join(filename)
+
+        if not os.path.isfile(filepath):
+            raise FileSystemError("{0} is not a file ".format(filename))
+        if not os.access(filepath, os.R_OK):
+            raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
+        with open(filepath, 'r') as f_handler:
+            for count, line in enumerate(f_handler):
+                pass
+        return count + 1
 
     @staticmethod
     def readcfg(filename):

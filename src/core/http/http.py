@@ -38,6 +38,7 @@ class HttpRequest(RequestProvider, DebugProvider):
         try:
             self.__tpl = kwargs.get('tpl')
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
+            self.__headers = self._headers
 
         except (TypeError, ValueError) as error:
             raise HttpRequestError(error)
@@ -73,21 +74,22 @@ class HttpRequest(RequestProvider, DebugProvider):
         :param str url: request uri
         :return: urllib3.HTTPResponse
         """
+        self.__headers.update({'User-Agent': self._user_agent})
 
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
-            self.__debug.debug_request(self._headers, url, self.__cfg.method)
+            self.__debug.debug_request(self.__headers, url, self.__cfg.method)
         try:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 response = self.__pool.request(self.__cfg.method,
                                                helper.parse_url(url).path,
-                                               headers=self._headers,
+                                               headers=self.__headers,
                                                retries=self.__cfg.retries,
                                                assert_same_host=True,
                                                redirect=False)
                 self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             else:
                 response = PoolManager().request(self.__cfg.method, url,
-                                                 headers=self._headers,
+                                                 headers=self.__headers,
                                                  retries=self.__cfg.retries,
                                                  assert_same_host=False,
                                                  redirect=False,

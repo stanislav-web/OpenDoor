@@ -32,7 +32,7 @@ class Config(object):
     DEFAULT_HTTP_PORT = 80
     DEFAULT_SSL_PORT = 443
     DEFAULT_HTTP_METHOD = 'HEAD'
-    DEFAULT_USER_AGENT = 'Opera/9.0 (Windows NT 5.1; U; en)'
+    DEFAULT_USER_AGENT = 'PostmanRuntime/7.29.0'
 
     def __init__(self, params):
         """
@@ -248,7 +248,7 @@ class Config(object):
     @property
     def sniffers(self):
         """
-        Get sniffers list
+        Get a sniffer
         :return: list
         """
 

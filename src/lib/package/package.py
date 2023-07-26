@@ -271,7 +271,7 @@ class Package(object):
 
         try:
             filename = CoreConfig.get('data').get('directories')
-            count = filesystem.read(filename).__len__()
+            count = filesystem.count_lines(filename)
 
             return count
 
@@ -281,14 +281,14 @@ class Package(object):
     @staticmethod
     def __subdomains_count():
         """
-        Get number of subdomains in basic wordlist
+        Get the number of subdomains in basic wordlist
         :raise PackageError
         :return: int
         """
 
         try:
             filename = CoreConfig.get('data').get('subdomains')
-            count = filesystem.read(filename).__len__()
+            count = filesystem.count_lines(filename)
 
             return count
 
@@ -298,14 +298,14 @@ class Package(object):
     @staticmethod
     def __browsers_count():
         """
-        Get number of browsers in basic wordlist
+        Get the number of browsers in basic wordlist
         :raise PackageError
         :return: int
         """
 
         try:
             filename = CoreConfig.get('data').get('useragents')
-            count = filesystem.read(filename).__len__()
+            count = filesystem.count_lines(filename)
 
             return count
 
@@ -322,7 +322,7 @@ class Package(object):
 
         try:
             filename = CoreConfig.get('data').get('proxies')
-            count = filesystem.read(filename).__len__()
+            count = filesystem.count_lines(filename)
 
             return count
 

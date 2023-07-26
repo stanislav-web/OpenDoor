@@ -23,9 +23,9 @@ class SkipemptyResponsePlugin(ResponsePluginProvider):
     """ SkipemptyResponsePlugin class"""
 
     DESCRIPTION = 'SkipEmpty (skip empty success pages)'
-    RESPONSE_INDEX = 'failed'
+    RESPONSE_INDEX = 'skip'
     DEFAULT_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
-    DEFAULT_RECON_TO_SKIP_EMPTY_PAGE = 1000
+    DEFAULT_RECON_TO_SKIP_EMPTY_PAGE = 500
 
     def __init__(self, void):
         """

@@ -18,6 +18,8 @@
 
 import random
 
+from urllib3 import HTTPHeaderDict
+
 from .accept import AcceptHeaderProvider
 from .cache import CacheControlProvider
 
@@ -25,33 +27,19 @@ from .cache import CacheControlProvider
 class HeaderProvider(AcceptHeaderProvider, CacheControlProvider):
     """ HeaderProvider class"""
 
-    def __init__(self, config, agent_list=()):
+    def __init__(self, config):
         """
-        Init interface. Accept an external params
+        Init interface.
+        Accept external params
         :param src.lib.browser.config.Config config: browser configurations
-        :param dict agent_list: user agent list
         """
 
-        self.__headers = {}
+        self.__headers = HTTPHeaderDict()
+
         self.__cfg = config
-        self.__agent_list = agent_list
 
         AcceptHeaderProvider.__init__(self)
         CacheControlProvider.__init__(self)
-
-    @property
-    def __user_agent(self):
-        """
-        Get user agent
-        :return: str
-        """
-
-        if True is self.__cfg.is_random_user_agent:
-            index = random.randrange(0, len(self.__agent_list))
-            user_agent = self.__agent_list[index].strip()
-        else:
-            user_agent = self.__cfg.user_agent
-        return user_agent
 
     def add_header(self, key, value):
         """
@@ -61,9 +49,8 @@ class HeaderProvider(AcceptHeaderProvider, CacheControlProvider):
         :param str value: header value
         :return: HeaderProvider
         """
-
-        self.__headers[key] = value
-
+        
+        self.__headers.add(key.strip(), value.strip())
         return self
 
     @property
@@ -73,13 +60,13 @@ class HeaderProvider(AcceptHeaderProvider, CacheControlProvider):
         :return: dict headers
         """
 
+        hostname = ''.join([self.__cfg.scheme, self.__cfg.host]) + ':' + str(self.__cfg.port)
         self.add_header('Accept', self._accept)\
             .add_header('Accept-Encoding', self._accept_encoding)\
-            .add_header('Accept-Language', self._accept_language)\
-            .add_header('Referer', ''.join([self.__cfg.scheme, self.__cfg.host]))\
-            .add_header('User-Agent', self.__user_agent)\
+            .add_header('Accept-Language', self._accept_language) \
+            .add_header('Referer', hostname)\
             .add_header('Cache-Control', self._cache_control)\
             .add_header('Connection', 'keep-alive')\
+            .add_header('Upgrade-Insecure-Requests', '1')\
             .add_header('Pragma', 'no-cache')
-
         return self.__headers

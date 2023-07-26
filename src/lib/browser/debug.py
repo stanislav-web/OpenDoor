@@ -15,7 +15,7 @@
 
     Development Team: Brain Storm Team
 """
-
+import json
 from src.core import helper
 from src.core import sys
 from src.core.http.providers.debug import DebugProvider
@@ -126,6 +126,8 @@ class Debug(DebugProvider):
         :param str method: request method
         :return: bool
         """
+        if type(request_header) is not dict:
+            request_header = request_header.__dict__
 
         request_header.update({'Request URI': url})
         request_header.update({'Request Method': method})

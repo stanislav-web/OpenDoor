@@ -3,7 +3,7 @@ Changes
 v4.1.0 (07.07.2023)
 ---------------------------
 -   Added `--sniff skipsizes=25:60:101:...`: allow skipping redirect to 200 OK pages which not found
--   Fix `--sniff skipempty`: increase condition value to detect empty content <= 1000 bytes detect as empty page instead of 100 bytes
+-   Fix `--sniff skipempty`: increase condition value to detect empty content <= 500 bytes detect as empty page instead of 100 bytes
 -   Fix `ResponseError: Unknown response status : 525`: added to define incorrect SSL handshakes
 -   Fix `Object of type HTTPHeaderDictItemView is not JSON serializable`: if `--debug` set `3`
 -   Fix `--accept-cookies` param. (Accept and route cookies from responses)

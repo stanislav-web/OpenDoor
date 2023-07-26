@@ -40,7 +40,7 @@ class PluginProvider(object):
     def __set_data(self, data):
         """
         Set report data
-        :param dict data: report data
+        :param dict data:
         :return:
         """
 

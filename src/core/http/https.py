@@ -37,10 +37,11 @@ class HttpsRequest(RequestProvider, DebugProvider):
         :param src.lib.browser.config.Config config: global configurations
         :param DebugProvider debug: debugger
         """
-                
+
         try:
             self.__tpl = kwargs.get('tpl')
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
+            self.__headers = self._headers
 
         except (TypeError, ValueError) as error:
             raise HttpsRequestError(error)
@@ -75,7 +76,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
                     maxsize=self.__cfg.threads,
                     timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
                     cert_reqs='CERT_NONE',
-                    block=True)
+                    )
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_connection_pool('https_pool_start', pool)
 
@@ -90,17 +91,16 @@ class HttpsRequest(RequestProvider, DebugProvider):
         :return: urllib3.HTTPResponse
         """
 
+        self.__headers.update({'User-Agent': self._user_agent})
+
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
-            self.__debug.debug_request(self._headers, url, self.__cfg.method)
-
+            self.__debug.debug_request(self.__headers, url, self.__cfg.method)
         try:
-
             disable_warnings(InsecureRequestWarning)
-
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:  # directories requests
                 response = self.__pool.request(self.__cfg.method,
                                                helper.parse_url(url).path,
-                                               headers=self._headers,
+                                               headers=self.__headers,
                                                retries=self.__cfg.retries,
                                                assert_same_host=False,
                                                redirect=False)
@@ -108,7 +108,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
             else:  # subdomains
 
                 response = PoolManager().request(self.__cfg.method, url,
-                                                 headers=self._headers,
+                                                 headers=self.__headers,
                                                  retries=self.__cfg.retries,
                                                  assert_same_host=False,
                                                  redirect=False,

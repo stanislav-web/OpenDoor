@@ -273,7 +273,7 @@ class Reader(object):
                     dirlist = self.__browser_config.get('wordlist')
                 else:
                     dirlist = self.__config.get(self.__browser_config.get('list'))
-                self.__counter = len(filesystem.read(dirlist))
+                self.__counter = filesystem.count_lines(dirlist)
 
             return self.__counter
 

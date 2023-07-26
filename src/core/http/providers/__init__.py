@@ -19,6 +19,7 @@
 from .cookies import CookiesProvider
 from .debug import DebugProvider
 from .header import HeaderProvider
+from .user_agent import UserAgentHeaderProvider
 from .request import RequestProvider
 from .response import ResponseProvider
 

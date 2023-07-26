@@ -35,7 +35,7 @@ Software is written for informational purposes and is open source product under 
 v4.1.0 (07.07.2023) **Gain more power!**
 
 -   Added `--sniff skipsizes=25:60:101:...`: allow skipping redirect to 200 OK pages which not found
--   Fix `--sniff skipempty`: increase condition value to detect empty content <= 1000 bytes detect as empty page instead of 100 bytes
+-   Fix `--sniff skipempty`: increase condition value to detect empty content <= 500 bytes detect as empty page instead of 100 bytes
 -   Fix `ResponseError: Unknown response status : 525`: added to define incorrect SSL handshakes
 -   Fix `Object of type HTTPHeaderDictItemView is not JSON serializable`: if `--debug` set `3`
 -   Fix response encode failed`('Received response with content-encoding: gzip, but failed to decode it.', error('Error -3 while decompressing data: incorrect header check'))`

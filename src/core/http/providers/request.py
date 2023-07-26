@@ -18,9 +18,10 @@
 
 from .cookies import CookiesProvider
 from .header import HeaderProvider
+from .user_agent import UserAgentHeaderProvider
 
 
-class RequestProvider(CookiesProvider, HeaderProvider):
+class RequestProvider(CookiesProvider, HeaderProvider, UserAgentHeaderProvider):
     """ RequestProvider class"""
 
     _HTTP_DBG_LEVEL = 2
@@ -32,7 +33,8 @@ class RequestProvider(CookiesProvider, HeaderProvider):
         :param dict agent_list: list of user agents
         """
 
-        HeaderProvider.__init__(self, config, agent_list)
+        HeaderProvider.__init__(self, config)
+        UserAgentHeaderProvider.__init__(self, config, agent_list)
         CookiesProvider.__init__(self)
 
     def request(self, url):
@@ -48,7 +50,7 @@ class RequestProvider(CookiesProvider, HeaderProvider):
         """
         Route fetched cookies from first response to the next requests
         :param is_accept: Is cookies was accepted
-        :param urllib3.response.HTTPResponse response: Http response
+        :param urllib3.response.BaseHTTPResponse response: Http response
         :return: None
         """
 
