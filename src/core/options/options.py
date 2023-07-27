@@ -104,6 +104,15 @@ class Options(object):
             {
                 "group": "request",
                 "args": None,
+                "argl": "--keep-alive",
+                "default": False,
+                "action": "store_true",
+                "help": "Use keep-alive connection",
+                "type": bool
+            },
+            {
+                "group": "request",
+                "args": None,
                 "argl": "--accept-cookies",
                 "default": False,
                 "action": "store_true",

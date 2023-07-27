@@ -37,11 +37,12 @@ class DebugProvider(object):
 
         pass
 
-    def debug_connection_pool(self, keymsg, pool):
+    def debug_connection_pool(self, keymsg, pool, connection_type):
         """
         Debug connection pool message
         :param str keymsg: tpl key
         :param object pool: pool object
+        :param object connection_type: type string
         :return: bool
         """
 

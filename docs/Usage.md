@@ -48,6 +48,7 @@ Request tools:
   --timeout TIMEOUT     Request timeout (30 sec default)
   -r RETRIES, --retries RETRIES
                         Max retries to reconnect (default 3)
+  --keep-alive          Use keep-alive connection
   --accept-cookies      Accept and route cookies from responses
   --tor                 Using built-in proxylist
   --torlist TORLIST     Path to custom proxylist
@@ -164,6 +165,8 @@ opendoor --host https://www.example.com --r 1
 ```
 
 **--accept-cookies** - accept and route cookies from responses. To be as natural as possible and bring the scanner closer to the user's browser use cookie receipt. After the first request, your session will accept and send cookies inside current pool requests
+
+**--keep-alive** - use keep-alive connection. Default: none
 
 ```shell
 opendoor --host https://www.example.com --accept-cookies

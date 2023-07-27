@@ -46,6 +46,7 @@ class Config(object):
         self._host = params.get('host')
         self._proxy = '' if params.get('proxy') is None else params.get('proxy')
         self._accept_cookies = False if params.get('accept_cookies') is None else True
+        self._keep_alive = False if params.get('keep_alive') is None else True
         self._port = params.get('port')
         self._wordlist = params.get('wordlist')
         self._reports_dir = params.get('reports_dir')
@@ -171,9 +172,11 @@ class Config(object):
     @timeout.setter
     def timeout(self, value):
         """
-        timeout param setter
+        Timeout param setter
         :param int value:
         :return: None
+        @param value:
+        @return:
         """
 
         self._timeout = float(value)
@@ -275,7 +278,7 @@ class Config(object):
     @property
     def is_ignore_extension_filter(self):
         """
-        If scan list filtered by ignore extensions
+        If a scan list filtered by ignore extensions
         :return: bool
         """
 
@@ -436,3 +439,12 @@ class Config(object):
         """
 
         return self._accept_cookies
+
+    @property
+    def keep_alive(self):
+        """
+        If connection keep-alive
+        :return: bool
+        """
+
+        return self._keep_alive

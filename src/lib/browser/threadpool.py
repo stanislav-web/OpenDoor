@@ -46,7 +46,7 @@ class ThreadPool(object):
 
             worker = Worker(self.__queue, num_threads, timeout)
             if False is worker.is_alive():
-                worker.setDaemon(True)
+                worker.daemon = True
                 worker.start()
                 self.__workers.append(worker)
 

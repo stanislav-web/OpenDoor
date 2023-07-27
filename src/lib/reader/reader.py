@@ -83,7 +83,7 @@ class Reader(object):
 
     def get_proxies(self):
         """
-        Get proxy list
+        Get a proxy list
         :raise ReaderError
         :return: list
         """
@@ -235,7 +235,7 @@ class Reader(object):
 
     def filter_by_ignore_extension(self, target, output, extensions):
         """
-        Specific filter for selected exuensions
+        Specific filter for selected extensions
 
         :param str target: target list
         :param str output: output list
@@ -257,7 +257,6 @@ class Reader(object):
             filesystem.makefile(output_file)
             filesystem.writelist(output_file, newlist, '\n')
             self.__counter = len(newlist)
-
         except (CoreSystemError, FileSystemError) as error:
             raise ReaderError(error)
 

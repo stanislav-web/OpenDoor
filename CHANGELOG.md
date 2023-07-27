@@ -1,13 +1,23 @@
 Changes
 =======
+v4.2.0 (28.07.2023)
+---------------------------
+- Fixed: `--sniff skipempty,skipsizes=NUM:NUM...` moved pages to ignore in reports instead of just skipping
+- Fixed: invalid response statuses received because of invalid headers were passed
+- Fixed: --accept-cookie param. Now it is working correctly if the server provided Cookies for surfing
+- Optimized `directories_count` and `subdomains_count` operation to reduce RAM usage.
+- Removed: `-262` directories from internal wordlist because of trash
+- Edit Keep-Alive connection type moved to a separate parameter `--keep-alive`
+- Optimized internal wordlist directories.txt list (sort, removed trash lines)
+
 v4.1.0 (07.07.2023)
 ---------------------------
 -   Added `--sniff skipsizes=25:60:101:...`: allow skipping redirect to 200 OK pages which not found
--   Fix `--sniff skipempty`: increase condition value to detect empty content <= 500 bytes detect as empty page instead of 100 bytes
--   Fix `ResponseError: Unknown response status : 525`: added to define incorrect SSL handshakes
--   Fix `Object of type HTTPHeaderDictItemView is not JSON serializable`: if `--debug` set `3`
--   Fix `--accept-cookies` param. (Accept and route cookies from responses)
--   Fix response encode failed`('Received response with content-encoding: gzip, but failed to decode it.', error('Error -3 while decompressing data: incorrect header check'))`
+-   Fixed `--sniff skipempty`: increase condition value to detect empty content <= 500 bytes detect as empty page instead of 100 bytes
+-   Fixed `ResponseError: Unknown response status : 525`: added to define incorrect SSL handshakes
+-   Fixed `Object of type HTTPHeaderDictItemView is not JSON serializable`: if `--debug` set `3`
+-   Fixed `--accept-cookies` param. (Accept and route cookies from responses)
+-   Fixed response encode failed`('Received response with content-encoding: gzip, but failed to decode it.', error('Error -3 while decompressing data: incorrect header check'))`
 -   Added `+20` new directories to internal wordlist
 -   Added `+74242` new subdomains to internal wordlist
 -   Optimize internal wordlist directories.txt list (sort, removed trash lines)

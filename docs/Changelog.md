@@ -1,5 +1,15 @@
 Changes
 =======
+v4.2.0 (28.07.2023)
+---------------------------
+- Fixed: `--sniff skipempty,skipsizes=NUM:NUM...` moved pages to ignore in reports instead of just skipping
+- Fixed: invalid response statuses received because of invalid headers were passed
+- Fixed: --accept-cookie param. Now it is working correctly if the server provided Cookies for surfing
+- Optimized `directories_count` and `subdomains_count` operation to reduce RAM usage.
+- Removed: `-262` directories from internal wordlist because of trash
+- Edit Keep-Alive connection type moved to a separate parameter `--keep-alive`
+- Optimized internal wordlist directories.txt list (sort, removed trash lines)
+
 v4.1.0 (07.07.2023)
 ---------------------------
 -   Added `--sniff skipsizes=25:60:101:...`: allow skipping redirect to 200O pages which not found

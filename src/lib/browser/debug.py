@@ -15,7 +15,6 @@
 
     Development Team: Brain Storm Team
 """
-import json
 from src.core import helper
 from src.core import sys
 from src.core.http.providers.debug import DebugProvider
@@ -67,7 +66,7 @@ class Debug(DebugProvider):
     def debug_list(self, total_lines):
         """
         Debug scan list
-        :param int total_lines: list lines
+        :param int total_lines:  lines
         :return: bool
         """
 
@@ -87,17 +86,18 @@ class Debug(DebugProvider):
 
         return True
 
-    def debug_connection_pool(self, keymsg, pool):
+    def debug_connection_pool(self, keymsg, pool, connection_type):
         """
         Debug connection pool message
         :param str keymsg: tpl key
         :param object pool: pool object
+        :param object connection_type: type string
         :return: bool
         """
 
-        tpl.debug(key=keymsg)
+        tpl.debug(key=keymsg, type=connection_type)
         if pool:
-            tpl.debug(str(pool))
+            tpl.debug(str(pool), type=connection_type)
 
         return True
 

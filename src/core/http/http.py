@@ -39,7 +39,9 @@ class HttpRequest(RequestProvider, DebugProvider):
             self.__tpl = kwargs.get('tpl')
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
             self.__headers = self._headers
-
+            self.__connection_header = 'default'
+            if True is config.keep_alive:
+                self.__connection_header = self._keep_alive
         except (TypeError, ValueError) as error:
             raise HttpRequestError(error)
 
@@ -63,7 +65,7 @@ class HttpRequest(RequestProvider, DebugProvider):
                                       timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
                                       block=True)
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
-                self.__debug.debug_connection_pool('http_pool_start', pool)
+                self.__debug.debug_connection_pool('http_pool_start', pool, self.__connection_header)
             return pool
         except Exception as error:
             raise HttpRequestError(str(error))
@@ -74,8 +76,10 @@ class HttpRequest(RequestProvider, DebugProvider):
         :param str url: request uri
         :return: urllib3.HTTPResponse
         """
-        self.__headers.update({'User-Agent': self._user_agent})
 
+        self.__headers.update({'User-Agent': self._user_agent})
+        if 'default' is not self.__connection_header:
+            self.__headers.update({'Connection': self.__connection_header})
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
             self.__debug.debug_request(self.__headers, url, self.__cfg.method)
         try:

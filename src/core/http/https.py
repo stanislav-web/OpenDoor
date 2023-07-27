@@ -42,7 +42,9 @@ class HttpsRequest(RequestProvider, DebugProvider):
             self.__tpl = kwargs.get('tpl')
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
             self.__headers = self._headers
-
+            self.__connection_header = 'default'
+            if True is config.keep_alive:
+                self.__connection_header = self._keep_alive
         except (TypeError, ValueError) as error:
             raise HttpsRequestError(error)
 
@@ -78,7 +80,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
                     cert_reqs='CERT_NONE',
                     )
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
-                self.__debug.debug_connection_pool('https_pool_start', pool)
+                self.__debug.debug_connection_pool('https_pool_start', pool, self.__connection_header)
 
             return pool
         except Exception as error:
@@ -92,6 +94,8 @@ class HttpsRequest(RequestProvider, DebugProvider):
         """
 
         self.__headers.update({'User-Agent': self._user_agent})
+        if 'default' is not self.__connection_header:
+            self.__headers.update({'Connection': self.__connection_header})
 
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
             self.__debug.debug_request(self.__headers, url, self.__cfg.method)

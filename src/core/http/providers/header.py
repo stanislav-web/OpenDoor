@@ -16,8 +16,6 @@
     Development Team: Brain Storm Team
 """
 
-import random
-
 from urllib3 import HTTPHeaderDict
 
 from .accept import AcceptHeaderProvider
@@ -60,13 +58,14 @@ class HeaderProvider(AcceptHeaderProvider, CacheControlProvider):
         :return: dict headers
         """
 
-        hostname = ''.join([self.__cfg.scheme, self.__cfg.host]) + ':' + str(self.__cfg.port)
+        origin = ''.join([self.__cfg.scheme, self.__cfg.host])
+        referer = ''.join([self.__cfg.scheme, self.__cfg.host]) + ':' + str(self.__cfg.port)
         self.add_header('Accept', self._accept)\
             .add_header('Accept-Encoding', self._accept_encoding)\
             .add_header('Accept-Language', self._accept_language) \
-            .add_header('Referer', hostname)\
+            .add_header('Origin', origin)\
+            .add_header('Referer', referer)\
             .add_header('Cache-Control', self._cache_control)\
-            .add_header('Connection', 'keep-alive')\
             .add_header('Upgrade-Insecure-Requests', '1')\
             .add_header('Pragma', 'no-cache')
         return self.__headers

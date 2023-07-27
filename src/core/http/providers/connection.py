@@ -16,11 +16,25 @@
     Development Team: Brain Storm Team
 """
 
-from .cookies import CookiesProvider
-from .debug import DebugProvider
-from .header import HeaderProvider
-from .user_agent import UserAgentHeaderProvider
-from .connection import ConnectionHeaderProvider
-from .request import RequestProvider
-from .response import ResponseProvider
 
+class ConnectionHeaderProvider(object):
+    """ ConnectionHeaderProvider class"""
+
+    KEEP_ALIVE = 'keep-alive'
+
+    def __init__(self, config):
+        """
+        Init interface
+        Parameters:
+        """
+
+        self.__cfg = config
+
+    @property
+    def _keep_alive(self):
+        """
+        Get 'Connection' Header
+        :return: str
+        """
+
+        return self.KEEP_ALIVE

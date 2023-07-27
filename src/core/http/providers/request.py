@@ -19,9 +19,10 @@
 from .cookies import CookiesProvider
 from .header import HeaderProvider
 from .user_agent import UserAgentHeaderProvider
+from .connection import ConnectionHeaderProvider
 
 
-class RequestProvider(CookiesProvider, HeaderProvider, UserAgentHeaderProvider):
+class RequestProvider(CookiesProvider, HeaderProvider, UserAgentHeaderProvider, ConnectionHeaderProvider):
     """ RequestProvider class"""
 
     _HTTP_DBG_LEVEL = 2
@@ -34,6 +35,7 @@ class RequestProvider(CookiesProvider, HeaderProvider, UserAgentHeaderProvider):
         """
 
         HeaderProvider.__init__(self, config)
+        ConnectionHeaderProvider.__init__(self, config)
         UserAgentHeaderProvider.__init__(self, config, agent_list)
         CookiesProvider.__init__(self)
 

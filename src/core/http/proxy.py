@@ -20,7 +20,7 @@ import importlib
 import random
 
 from urllib3 import ProxyManager, Timeout, disable_warnings
-from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown,\
+from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown, \
     ReadTimeoutError, InsecureRequestWarning
 
 from src.core import helper
@@ -30,7 +30,6 @@ from .providers import RequestProvider
 
 
 class Proxy(RequestProvider, DebugProvider):
-
     """Proxy class"""
 
     def __init__(self, config, debug, **kwargs):
@@ -44,7 +43,10 @@ class Proxy(RequestProvider, DebugProvider):
             self.__tpl = kwargs.get('tpl')
             self.__proxylist = kwargs.get('proxy_list')
             RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
-
+            self.__headers = self._headers
+            self.__connection_header = 'default'
+            if True is config.keep_alive:
+                self.__connection_header = self._keep_alive
             self.__server = None
             self.__pm = None
             self.__cfg = config
@@ -73,14 +75,13 @@ class Proxy(RequestProvider, DebugProvider):
                 disable_warnings(InsecureRequestWarning)
 
                 if not hasattr(self, '__pm'):
-
                     package_module = importlib.import_module('urllib3.contrib.socks')
                     self.__pm = getattr(package_module, 'SOCKSProxyManager')
 
                 pool = self.__pm(self.__server,
                                  num_pools=self.__cfg.threads,
                                  timeout=Timeout(self.__cfg.timeout,
-                                 read=self.__cfg.timeout),
+                                                 read=self.__cfg.timeout),
                                  block=True)
             else:
                 pool = ProxyManager(self.__server,
@@ -98,8 +99,12 @@ class Proxy(RequestProvider, DebugProvider):
         :return: urllib3.HTTPResponse
         """
 
+        self.__headers.update({'User-Agent': self._user_agent})
+        if 'default' is not self.__connection_header:
+            self.__headers.update({'Connection': self.__connection_header})
+
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
-            self.__debug.debug_request(self._headers, url, self.__cfg.method)
+            self.__debug.debug_request(self.__headers, url, self.__cfg.method)
 
         try:
             response = self.__pool_request(url)
@@ -123,7 +128,7 @@ class Proxy(RequestProvider, DebugProvider):
         """
 
         pool = self.__proxy_pool()
-        response = pool.request(self.__cfg.method, url, headers=self._headers, retries=self.__cfg.retries,
+        response = pool.request(self.__cfg.method, url, headers=self.__headers, retries=self.__cfg.retries,
                                 redirect=False)
 
         self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
