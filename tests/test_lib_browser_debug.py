@@ -86,7 +86,7 @@ class TestBrowserDebug(unittest.TestCase):
     def test_debug_connection_pool(self):
         """ Debug.debug_connection_pool() test """
 
-        self.assertTrue(self.debug.debug_connection_pool('http_pool_start', ''))
+        self.assertTrue(self.debug.debug_connection_pool('http_pool_start', '', ''))
 
     def test_debug_proxy_pool(self):
         """ Debug.debug_proxy_pool() test """

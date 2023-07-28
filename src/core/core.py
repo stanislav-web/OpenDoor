@@ -15,6 +15,7 @@
 
     Development Team: Brain Storm Team
 """
+fVersion = open('VERSION', 'r+').readline().rstrip()
 
 CoreConfig = {
     'info': {
@@ -22,11 +23,11 @@ CoreConfig = {
         'repository': 'git@github.com:stanislav-web/OpenDoor.git',
         'remote_version': 'https://raw.githubusercontent.com/stanislav-web/OpenDoor/master/VERSION',
         'license': 'License: GNU General Public License',
-        'version': '4.0.6',
+        'version': fVersion,
         'documentation': 'https://opendoor.readthedocs.org',
         'required_versions': {
             'minor': '3.7',
-            'major': '3.10'
+            'major': '3.11'
         },
     },
     'data': {
