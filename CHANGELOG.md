@@ -1,6 +1,6 @@
 Changes
 =======
-v4.2.0 (28.07.2023)
+v4.2.0 (29.07.2023)
 ---------------------------
 - Fixed: `--sniff skipempty,skipsizes=NUM:NUM...` moved pages to ignore in reports instead of just skipping
 - Fixed: invalid response statuses received because of invalid headers were passed

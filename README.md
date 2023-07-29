@@ -27,12 +27,12 @@ Software is written for informational purposes and is open source product under 
 
 [Read The Docs](https://opendoor.readthedocs.io/)
 
-* *Current 4.2.0 (27.07.2023)*
-    - Directories: 83000
+* *Current 4.2.0 (29.07.2023)*
+    - Directories: 83012
     - Subdomains: 255260
   
 #### [Changelog](CHANGELOG.md) (last changes)
-v4.2.0 (28.07.2023)
+v4.2.0 (29.07.2023)
 ---------------------------
 - Fixed: `--sniff skipempty,skipsizes=NUM:NUM...` moved pages to ignore in reports instead of just skipping
 - Fixed: invalid response statuses received because of invalid headers were passed
