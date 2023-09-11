@@ -16,7 +16,7 @@
     Development Team: Brain Storm Team
 """
 
-from urllib3 import HTTPHeaderDict
+from urllib3._collections import HTTPHeaderDict
 
 from .accept import AcceptHeaderProvider
 from .cache import CacheControlProvider
