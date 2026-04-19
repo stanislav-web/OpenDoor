@@ -34,6 +34,7 @@ pip-wheel-metadata/
 tmp/
 reports/
 syslog/
+site/
 
 # Local binaries / keys
 opendoor

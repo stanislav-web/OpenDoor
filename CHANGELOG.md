@@ -4,7 +4,11 @@ v5.0.1 (19.04.2026)
 ---------------------------
 - Fixed: Read the Docs badge updated to the current badge endpoint
 - Removed: stale Codespaces Prebuilds badge that no longer resolves
-- Changed: repository README badges and documentation links polished after the 5.0.0 release
+- Changed: documentation stack refreshed for current Read the Docs / MkDocs workflow
+- Changed: `docs/requirements.txt` reduced to the active MkDocs-based documentation stack
+- Changed: `.readthedocs.yaml` updated for current RTD configuration
+- Changed: documentation pages refreshed for the modern packaging and installation flow
+- Fixed: docs build now aligns with the current project packaging and supported Python baseline
 
 v5.0.0 (19.04.2026)
 ---------------------------

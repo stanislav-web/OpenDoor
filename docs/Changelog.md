@@ -1,161 +1,48 @@
-Changes
-=======
-v4.2.0 (29.07.2023)
+Changelog
+=========
+
+v5.0.1 (2026-04-19)
+---------------------------
+- Fixed: Read the Docs badge updated to the current badge endpoint
+- Removed: stale Codespaces Prebuilds badge that no longer resolves
+- Changed: documentation stack refreshed for current Read the Docs / MkDocs workflow
+- Changed: `docs/requirements.txt` reduced to the active MkDocs-based documentation stack
+- Changed: `.readthedocs.yaml` updated for current RTD configuration
+- Changed: documentation pages refreshed for the modern packaging and installation flow
+- Fixed: docs build now aligns with the current project packaging and supported Python baseline
+
+v5.0.0 (2026-04-19)
+---------------------------
+- Added: `pyproject.toml` for modern Python packaging workflow
+- Added: source and wheel build support through `python -m build`
+- Added: refreshed `MANIFEST.in` for correct source distribution contents
+- Added: `AGENTS.md` for contributor and agent workflow guidance
+- Added: `Ruff` baseline for lightweight Python linting
+- Changed: Python support baseline updated to `3.12`, `3.13`, `3.14`
+- Changed: package build/install flow modernized for current Python ecosystem
+- Changed: CLI update/version behavior refreshed for modern environments
+- Changed: help text and install flow documentation clarified
+- Changed: test suite refreshed for modern Python runtime and standard library mocks
+- Changed: development dependencies refreshed to current maintained versions
+- Fixed: build issues for source and wheel distribution generation
+- Fixed: packaging metadata and install paths for modern setuptools/pip workflows
+- Fixed: tests depending on external shell and network behavior
+- Fixed: CLI banner rendering and package installation checks
+
+v4.2.0 (2023-07-29)
 ---------------------------
 - Fixed: `--sniff skipempty,skipsizes=NUM:NUM...` moved pages to ignore in reports instead of just skipping
 - Fixed: invalid response statuses received because of invalid headers were passed
-- Fixed: --accept-cookie param. Now it is working correctly if the server provided Cookies for surfing
-- Optimized `directories_count` and `subdomains_count` operation to reduce RAM usage.
-- Removed: `-262` directories from internal wordlist because of trash
-- Edit Keep-Alive connection type moved to a separate parameter `--keep-alive`
-- Optimized internal wordlist directories.txt list (sort, removed trash lines)
+- Fixed: `--accept-cookies` behavior when cookies were provided by the server
+- Optimized internal directories and subdomains counters to reduce RAM usage
+- Removed: trash entries from the built-in directories list
+- Changed: keep-alive support moved to a dedicated `--keep-alive` parameter
 
-v4.1.0 (07.07.2023)
+v4.1.x and older
 ---------------------------
--   Added `--sniff skipsizes=25:60:101:...`: allow skipping redirect to 200O pages which not found
--   Fix `--sniff skipempty`: increase condition value to detect empty content <= 1000 bytes detect as empty page instead of 100 bytes
--   Fix `ResponseError: Unknown response status : 525`: added to define incorrect SSL handshakes
--   Fix `Object of type HTTPHeaderDictItemView is not JSON serializable`: if `--debug` set `3`
--   Fix `--accept-cookies` param. (Accept and route cookies from responses)
--   Fix response encode failed`('Received response with content-encoding: gzip, but failed to decode it.', error('Error -3 while decompressing data: incorrect header check'))`
--   Added `+20` new directories to internal wordlist
--   Added `+74242` new subdomains to internal wordlist
--   Optimize internal wordlist directories.txt list (sort, removed trash lines)
+Earlier historical releases remain part of the project history and Git tags.
 
-v4.0.61 (30.06.2023)
----------------------------
--   Added +1007 directories
--   Optimize directories.txt list (sort, removed trash lines)
--   Fix [#ISSUE-64](https://github.com/stanislav-web/OpenDoor/issues/64) HTTPConnection.__init__() got an unexpected keyword argument 'cert_reqs'
-
-v4.0.6 (26.06.2023)
----------------------------
--   Re-create documentation portal. Keep docs up to date. Publish on Pypi
-
-v4.0.5 (25.06.2023)
----------------------------
--   Fix unit tests and resolve dev requirements
-
-v4.0.4-stable (24.06.2023)
----------------------------
--   Fix unit tests and resolve dev requirements
-
-v4.0.3 (24.06.2023)
--------------------
--   Fix [#ISSUE-44](https://github.com/stanislav-web/OpenDoor/issues/44) ignore invalid SSL by default
-
-v4.0.2 (23.06.2023)
--------------------
--   Python 3.11 launch fix [#ISSUE-58](https://github.com/stanislav-web/OpenDoor/issues/58) added encoding to setup.py 
-
-v4.0.1-beta (23.02.2021)
-------------------------
--   Python 2.6,2.7 is unsupported
--   Update directories.dat  36994 -> 37019
--   [enhancement] [#PR-40](https://github.com/stanislav-web/OpenDoor/issues/40) added encoding to setup.py 
--   [bugfix] [#PR-48](https://github.com/stanislav-web/OpenDoor/issues/48) Python 3.9 / 3.10 compatibility
--   [bugfix] [#PR-20](https://github.com/stanislav-web/OpenDoor/issues/20) No timeout setup in request
--   [enhancement] [#PR-36](https://github.com/stanislav-web/OpenDoor/issues/36) Feature Request: Show only found items
-
-v3.4.481-stable (02.10.2017)
-----------------------------
--   Fixed bugs with externals wordlists
--   Added 80018 subdomains
-
-v3.4.47-rc Gained more Power! (05.07.2017)
-------------------------------------------
-- Added IPs lookup for subdomains scan
-- Added missing HTTP statuses
-- Bugfix: encoding errors (supported cp1251,utf8,utf16) for body analyze
-- Bugfix: allow to use both --random-list & --extension params
-- Directory closing slash has been removed
-- Support Internationalized Domain Names IDNA
-- Removed --indexof (-i) params
-- Add --ignore-extensions -i param to ignore selected extension
-- Added --sniff param to process responses
-    - indexof   (detect Apache Index Of/ directories)
-    - file      (detect large files)
-    - collation (heurisic detect invalid web pages)
-    - skipempty (skip empty valid pages)
-- Internal dictionaries has been filtered out. Delete all duplicates
-- Added +990 unique directories (36931)
-
-v3.3.37-rc (22.06.2017)
-------------------------
-- Fixed errors
-- Add config wizard (allows you to configure own project)
-    
-v3.2.36-rc (04.06.2017)
-------------------------
-- Added custom reports directory --reports-dir /home/user/Reports
-- Added user guide --docs
-- Reusable proxy requests pooling in --tor, --torlist
-- Prevent socks5 proxies warnings
-- Optimizing scan execution
-- Request's delays allow to use of milliseconds
-- Python2.7 no longer support
-
-v3.1.32-rc (02.06.2017)
-------------------------
-- Add extensions filter --extensions php,json etc
-
-v3.0.32-rc (19.05.2017)
------------------------
-- Add global installator
-
-v3.0.31-rc (20.02.2017)
-------------------------
-- update directories
-- fixes for redirects
-
-v3.0.3-rc (17.02.2017)
------------------------
-- fixes for https stuff scan
-- cleared internal wordlists
-- increased coverage
-    
-v3.0.3-beta (13.02.2017)
--------------------------
-- detect SSL cert requires
-- added 7150 directories
-- fixes for https subdomians
-- more unit coverages
-    
-v3.0.2-beta (31.01.2017)
-------------------------
-- relieved of unnecessary dependencies
-- fully optimized code inside
-- user-friendly interface
-- multiple reporters (std,txt,json,html)
-- added external wordlists support
-- added external proxylist support
-- added wordlist shuffling
-- wordlist prefixes
-- added multithreading control
-- dynamic and smart requests (cookies + accept headers)
-- apache index of/ and files detection
-
-v2.7.96  - v1.0.0 (05.01.2017)
-------------------------------
-
-* *v1.0.0* - all the basic functionality is available
-* *v1.0.1* - added debug level as param --debug
-* *v1.2.1* - added filesystem logger (param --log)
-* *v1.2.2* - added example of usage (param --examples)
-* *v1.3.2* - added possibility to use random proxy from proxylist (param --proxy)
-* *v1.3.3* - simplify dependency installation
-* *v1.3.4* - added code quality watcher
-* *v1.3.5* - added ReadTimeoutError ProxyError handlers
-* *v1.3.51* - fixed code style, resolve file read errors
-* *v1.3.52* - code doc style added
-* *v2.3.52* - subdomains scan available! (param --check subdomains). Added databases
-* *v2.3.54* - disabled treads error. Refactored
-* *v2.4.62* - change port is available now! (param --port 8080). Code style fixes
-* *v2.5.62* - HTTPS support added
-* *v2.6.62* - added 19000 Possible directories!
-* *v2.7.62* - added redirect handler (Beta)
-* *v2.7.72* - added 52 directories, small changes for UI
-* *v2.7.82* - added 683 directories
-* *v2.7.92* - exclusion list added Data/exclusions.dat
-* *v2.7.95* - large files definitions , bad requests detection handler
-* *v2.7.96* - optimize debug levels (0 - 1 - 2 param --debug) , optimize imports
+For older details, see:
+- Git tags in the repository
+- PyPI release history
+- commit history on GitHub

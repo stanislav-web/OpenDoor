@@ -1,23 +1,26 @@
+# mkdocs.yml
 site_name: Opendoor OWASP WEB Directory Scanner
 site_url: https://opendoor.readthedocs.io/
 repo_url: https://github.com/stanislav-web/OpenDoor
 repo_name: OpenDoor
-site_description:  OpenDoor OWASP is console multifunctional website's scanner
+site_description: OpenDoor OWASP is console multifunctional website's scanner
 site_author: Brain Storm Team
-copyright: Copyright (C) 2017-2023 Brain Storm Team
+copyright: Copyright (C) 2017-2026 Brain Storm Team
+
 extra:
   homepage: https://github.com/stanislav-web/OpenDoor
   version: latest
 
 nav:
-    - Home: index.md
-    - Installation and update: Installation-and-update.md
-    - Usage: Usage.md
-    - Sniffers: Sniffers.md
-    - Wizard: Wizard.md
-    - Testing: Testing.md
-    - Contribution: Contribution.md
-    - Changelog: Changelog.md
-    - License: License.md
+  - Home: index.md
+  - Installation and update: Installation-and-update.md
+  - Usage: Usage.md
+  - Sniffers: Sniffers.md
+  - Wizard: Wizard.md
+  - Testing: Testing.md
+  - Contribution: Contribution.md
+  - Changelog: Changelog.md
+  - License: License.md
+
 theme:
-    name: readthedocs
+  name: readthedocs

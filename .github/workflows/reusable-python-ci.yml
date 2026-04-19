@@ -1,0 +1,41 @@
+name: Reusable Python CI
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      python-version:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    name: Test and build
+    runs-on: ${{ inputs.runner }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e .
+
+      - name: Run unit tests
+        run: python -m unittest
+
+      - name: Build distributions
+        run: python -m build

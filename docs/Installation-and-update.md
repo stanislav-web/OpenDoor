@@ -1,83 +1,125 @@
-Installation
-===============
-**Python v3.7 is a minor requirement**.
-At the moment, the package can be installed from this repository [https://github.com/stanislav-web/OpenDoor](https://github.com/stanislav-web/OpenDoor)
-Now being tested, and the next will be published in other sources, such as Pypi.
+Installation and update
+=======================
 
-| Python   | Linux                                                                                                                               | OSX                                                                                                                                 |
-|----------|-------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| 3.7   	  | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) |
-| 3.8   	  | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) |
-| 3.9   	  | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) |
-| 3.10   	 | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) |
-| 3.11   	 | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) |
+OpenDoor is distributed as a standard Python package and can be installed in several ways depending on your use case.
 
-Install PIP
----------------------------
-```shell
-curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-```
+#### Supported Python
+- Python 3.12
+- Python 3.13
+- Python 3.14
 
-GNU Linux / OSX (Mac OS)
----------------------------
+#### PyPI installation
+Recommended if you want the package available as a normal Python CLI tool.
 
 ```shell
-# Install locally
- git clone https://github.com/stanislav-web/OpenDoor.git
- cd OpenDoor/
- pip3 install -r requirements.txt
- chmod +x opendoor.py
- python3 opendoor.py --host http://www.example.com
+python3 -m pip install --upgrade opendoor
+opendoor --host http://www.example.com
 ```
+
+#### pipx installation
+Recommended for end users who want an isolated CLI installation.
+
+##### macOS / Homebrew
+```shell
+brew install pipx
+pipx ensurepath
+pipx install opendoor
+
+opendoor --host http://www.example.com
+```
+
+##### Linux / generic environments
+Install `pipx` using your system package manager or preferred Python tooling, then:
 
 ```shell
-# Install globally to env
- git clone https://github.com/stanislav-web/OpenDoor.git
- cd OpenDoor/
- python3 setup.py build && python3 setup.py install
- opendoor --host http://www.example.com
+pipx ensurepath
+pipx install opendoor
+
+opendoor --host http://www.example.com
 ```
 
-Windows XP/7/8/10
----------------------------
-
-I would recommend you to install GUI for Git at first if you don't have pre-installed Git on your laptop.
-Please see [https://git-for-windows.github.io](https://git-for-windows.github.io)
-Go to your Git bash and clone repo
+#### Local run from repository
+Use this mode if you want to run OpenDoor directly from source without installing it globally.
 
 ```shell
-  git clone https://github.com/stanislav-web/OpenDoor.git opendoor
-  cd opendoor
+git clone https://github.com/stanislav-web/OpenDoor.git
+cd OpenDoor/
+python3 -m pip install -r requirements.txt
+chmod +x opendoor.py
+
+python3 opendoor.py --host http://www.example.com
 ```
 
-Next , install python package manager.
-Here you go > [https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip)
-Install dependencies
+#### Local development installation
+Use this mode if you are developing, testing, or changing the project locally.
 
 ```shell
-  C:\opendoor> pip install -r requirements.txt
+git clone https://github.com/stanislav-web/OpenDoor.git
+cd OpenDoor/
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r requirements-dev.txt
+python -m pip install -e .
+
+opendoor --host http://www.example.com
 ```
-s
-Unfortunately, you can't use Socks proxy on Windows. HTTP(S) supported only
-Try your fist launch
+
+#### Build from source
+Recommended for Linux distribution maintainers and release packaging.
 
 ```shell
-  C:\opendoor>python3 opendoor.py -h
+git clone https://github.com/stanislav-web/OpenDoor.git
+cd OpenDoor/
+python3 -m pip install --upgrade build
+python3 -m build
 ```
 
-Dependencies
-============
-![Dependencies](img/dependencies.jpg)
+Generated artifacts:
+
+```shell
+dist/opendoor-<version>.tar.gz
+dist/opendoor-<version>-py3-none-any.whl
+```
+
+#### Manual installation from a built wheel
+
+```shell
+python3 -m pip install dist/opendoor-5.0.1-py3-none-any.whl
+opendoor --host http://www.example.com
+```
 
 Update
-===============
-You have an update a package using `git pull origin master` inside or run update process from interface:
+======
+
+#### Update a PyPI installation
 ```shell
-# GNU Linux
-python3 opendoor.py --update
+python3 -m pip install --upgrade opendoor
 ```
- 
+
+#### Update a pipx installation
 ```shell
-# Win
-C:\opendoor>python opendoor.py --update
+pipx upgrade opendoor
 ```
+
+#### Update a source checkout
+```shell
+git pull
+python3 -m pip install -e .
+```
+
+#### Built-in update command
+The built-in command does not modify the local source tree in place anymore.  
+It now prints update instructions for modern package-based environments.
+
+```shell
+opendoor --update
+```
+
+#### Notes for maintainers
+OpenDoor now follows a standard Python packaging flow:
+- `pyproject.toml` is present
+- `setup.py` remains compatible
+- source distributions and wheels are produced through `python -m build`
+- packaging is suitable for Linux distribution maintainers
+
