@@ -1,6 +1,8 @@
 OWASP WEB Directory Scanner [![Twitter](https://img.shields.io/twitter/url/https/github.com/stanislav-web/OpenDoor.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https://github.com/stanislav-web/OpenDoor)
 ===============================================================================================================================================================================================================================
 
+![Alt text](./logo.png "OpenDoor OWASP")
+
 | Python | Linux | macOS | Windows |
 |---|---|---|---|
 | 3.12 | [![CI Linux Python 3.12](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-linux-py312.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-linux-py312.yml) | [![CI macOS Python 3.12](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-macos-py312.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-macos-py312.yml) | [![CI Windows Python 3.12](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-windows-py312.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-windows-py312.yml) |
@@ -41,7 +43,7 @@ v5.0.1 (19.04.2026)
 - Fixed: Windows CI now uses UTF-8-safe text file handling for bundled data files
 - Added: Windows installation instructions for PyPI, pipx, local development, and build flows
 
-![Alt text](http://dl3.joxi.net/drive/2017/01/30/0001/0378/90490/90/e309742b5c.jpg "OpenDoor OWASP")
+#### Main features
 
 - ✅ directories scanner
 - ✅ subdomains scanner
@@ -357,7 +359,7 @@ ruff check .
 If you like to contribute to the development of the project, in that case, pull requests are open for you.
 Also, you can suggest ideas and create a task in my track list.
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0) [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
 ### Documentation
 - [Read The Docs](https://opendoor.readthedocs.io/)
