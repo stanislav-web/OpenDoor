@@ -30,11 +30,13 @@ class FileSystem(object):
     """FileSystem class"""
 
     sep = os.sep
+    text_encoding = 'utf-8'
 
     @staticmethod
     def is_exist(directory, filename):
         """
         Check if dir-file is exist
+
         :param str directory: directory
         :param str filename: filename
         :return: bool
@@ -57,7 +59,7 @@ class FileSystem(object):
         :return: str
         """
 
-        if not os.path.exists(directory) or not os.access(directory,  os.W_OK):
+        if not os.path.exists(directory) or not os.access(directory, os.W_OK):
 
             try:
                 directory = os.path.join(directory)
@@ -76,6 +78,7 @@ class FileSystem(object):
     def getabsname(filename):
         """
         Get absolute file path
+
         :param str filename: directory
         :return: str
         """
@@ -87,6 +90,7 @@ class FileSystem(object):
     def get_extension(line):
         """
         Get extension from line
+
         :param str line: input string
         :return: str
         """
@@ -98,6 +102,7 @@ class FileSystem(object):
     def has_extension(line):
         """
         Check line for extension
+
         :param str line: input string
         :return: bool
         """
@@ -124,6 +129,7 @@ class FileSystem(object):
     def clear(directory, extension=''):
         """
         Clear directory
+
         :param str directory: os directory
         :param str extension: extension
         :raise: FileSystemError
@@ -146,6 +152,7 @@ class FileSystem(object):
     def makefile(filename):
         """
         Create a new file with context
+
         :param str filename: input filename
         :raise: FileSystemError
         :return: str
@@ -156,7 +163,8 @@ class FileSystem(object):
             try:
                 directory = FileSystem.makedir(os.path.dirname(filename))
                 abs_filename = os.path.join(directory, os.path.basename(filename))
-                open(abs_filename, 'w')
+                with open(abs_filename, 'w', encoding=FileSystem.text_encoding):
+                    pass
                 return abs_filename
             except IOError as error:
                 raise FileSystemError(error.strerror)
@@ -167,6 +175,7 @@ class FileSystem(object):
     def shuffle(target, output, total):
         """
         Shuffle data in file
+
         :param str target: target file
         :param str output: suffled file
         :param int total: total lines
@@ -174,31 +183,31 @@ class FileSystem(object):
         """
 
         try:
-            i_f = open(target)
-            o_f = open(output, 'wb')
-            counter = sum(1 for _ in i_f)
-            order = list(range(counter))
-            random.shuffle(order)
-            while order:
-                current_lines = {}
-                current_lines_count = 0
-                current_chunk = order[:total]
-                current_chunk_dict = dict((x, 1) for x in current_chunk)
-                current_chunk_length = len(current_chunk)
-                order = order[total:]
-                i_f.seek(0)
-                count = 0
+            with open(target, 'r', encoding=FileSystem.text_encoding) as i_f, open(output, 'wb') as o_f:
+                counter = sum(1 for _ in i_f)
+                order = list(range(counter))
+                random.shuffle(order)
 
-                for line in i_f:
-                    if count in current_chunk_dict:
-                        current_lines[count] = line
-                        current_lines_count += 1
-                        if current_lines_count == current_chunk_length:
-                            break
-                    count += 1
+                while order:
+                    current_lines = {}
+                    current_lines_count = 0
+                    current_chunk = order[:total]
+                    current_chunk_dict = dict((x, 1) for x in current_chunk)
+                    current_chunk_length = len(current_chunk)
+                    order = order[total:]
+                    i_f.seek(0)
+                    count = 0
 
-                for node in current_chunk:
-                    o_f.write(current_lines[node].encode())
+                    for line in i_f:
+                        if count in current_chunk_dict:
+                            current_lines[count] = line
+                            current_lines_count += 1
+                            if current_lines_count == current_chunk_length:
+                                break
+                        count += 1
+
+                    for node in current_chunk:
+                        o_f.write(current_lines[node].encode(FileSystem.text_encoding))
 
         except IOError as error:
             raise FileSystemError(error.strerror)
@@ -207,6 +216,7 @@ class FileSystem(object):
     def readline(filename, handler, handler_params, loader):
         """
         Read txt file line by line
+
         :param str filename: source file name
         :param func handler: url handler
         :param func handler_params: url handler parameters
@@ -226,7 +236,7 @@ class FileSystem(object):
                 raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
 
         lines = []
-        with open(filepath) as f_handler:
+        with open(filepath, 'r', encoding=FileSystem.text_encoding) as f_handler:
             for line in f_handler:
                 lines.append(handler(line, handler_params))
             loader(lines)
@@ -235,6 +245,7 @@ class FileSystem(object):
     def read(filename):
         """
         Read .txt file
+
         :param str filename: input filename
         :raise FileSystemError
         :return: list
@@ -247,7 +258,7 @@ class FileSystem(object):
         if not os.access(filepath, os.R_OK):
             raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
 
-        with open(filepath, 'r') as f_handler:
+        with open(filepath, 'r', encoding=FileSystem.text_encoding) as f_handler:
             data = f_handler.readlines()
         return data
 
@@ -255,9 +266,10 @@ class FileSystem(object):
     def count_lines(filename):
         """
         Count lines in .txt file
+
         :param str filename: input filename
         :raise FileSystemError
-        :return: list
+        :return: int
         """
 
         filepath = os.path.join(filename)
@@ -266,21 +278,24 @@ class FileSystem(object):
             raise FileSystemError("{0} is not a file ".format(filename))
         if not os.access(filepath, os.R_OK):
             raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
-        with open(filepath, 'r') as f_handler:
-            for count, line in enumerate(f_handler):
+
+        count = 0
+        with open(filepath, 'r', encoding=FileSystem.text_encoding) as f_handler:
+            for count, _line in enumerate(f_handler, start=1):
                 pass
-        return count + 1
+        return count
 
     @staticmethod
     def readcfg(filename):
         """
         Read .cfg file
+
         :param str filename: input filename
         :raise FileSystemError
         :return: configparser.RawConfigParser
         """
 
-        expression = '^([\/a-z].*?opendoor.*?)\/'
+        expression = '^([\\/a-z].*?opendoor.*?)\\/'
         find_dir = re.search(expression, __file__, re.IGNORECASE)
         if None is not find_dir:
             os.chdir(find_dir.group())
@@ -292,9 +307,8 @@ class FileSystem(object):
             raise FileSystemError("Configuration file {0} can not be read. Setup chmod 0644".format(filepath))
 
         try:
-
             config = RawConfigParser()
-            config.read(filepath)
+            config.read(filepath, encoding=FileSystem.text_encoding)
             return config
 
         except (ParsingError, NoOptionError) as error:
@@ -304,6 +318,7 @@ class FileSystem(object):
     def writelist(filename, data, separator=''):
         """
         Write the list to file
+
         :param str filename: input filename
         :param list data: record data
         :param str separator: line separator
@@ -317,13 +332,14 @@ class FileSystem(object):
         if not os.access(filepath, os.W_OK):
             raise FileSystemError("Targeting file {0} is not writable. Please, check access".format(filepath))
 
-        with open(filepath, "w") as f_handler:
+        with open(filepath, "w", encoding=FileSystem.text_encoding) as f_handler:
             f_handler.write(separator.join(data))
 
     @staticmethod
     def human_size(size, precision=2):
         """
         Humanize accepted bytes
+
         :param int size: bytes
         :param int precision: delimiter
         :return:

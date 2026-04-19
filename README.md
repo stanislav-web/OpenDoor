@@ -38,6 +38,8 @@ v5.0.1 (19.04.2026)
 - Changed: `.readthedocs.yaml` updated for current RTD configuration
 - Changed: documentation pages refreshed for the modern packaging and installation flow
 - Fixed: docs build now aligns with the current project packaging and supported Python baseline
+- Fixed: Windows CI now uses UTF-8-safe text file handling for bundled data files
+- Added: Windows installation instructions for PyPI, pipx, local development, and build flows
 
 ![Alt text](http://dl3.joxi.net/drive/2017/01/30/0001/0378/90490/90/e309742b5c.jpg "OpenDoor OWASP")
 
@@ -77,38 +79,21 @@ python3 -m ensurepip --upgrade
 python3 -m pip install --upgrade pip
 ```
 
-#### Local installation and run
-Use this mode if you want to run OpenDoor directly from the repository without installing it globally.
-
-```bash
-git clone https://github.com/stanislav-web/OpenDoor.git
-cd OpenDoor/
-python3 -m pip install -r requirements.txt
-chmod +x opendoor.py
-
-python3 opendoor.py --host http://www.example.com
-```
-
-#### Local development installation
-Use this mode if you are developing, testing, or changing the project locally.
-
-```bash
-git clone https://github.com/stanislav-web/OpenDoor.git
-cd OpenDoor/
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip setuptools wheel
-python -m pip install -r requirements-dev.txt
-python -m pip install -e .
-
-opendoor --host http://www.example.com
-```
-
 #### Global installation from PyPI
 Use this if you want the package available as a normal Python CLI tool.
 
+##### Linux / macOS
 ```bash
 python3 -m pip install --upgrade opendoor
+opendoor --host http://www.example.com
+```
+
+##### Windows (PowerShell)
+```powershell
+winget install Python.Python.3.14
+py -m pip install --upgrade pip
+py -m pip install --upgrade opendoor
+
 opendoor --host http://www.example.com
 ```
 
@@ -133,11 +118,75 @@ pipx install opendoor
 opendoor --host http://www.example.com
 ```
 
+##### Windows (PowerShell)
+```powershell
+winget install Python.Python.3.14
+py -m pip install --user pipx
+py -m pipx ensurepath
+
+# Reopen PowerShell after ensurepath
+pipx install opendoor
+
+opendoor --host http://www.example.com
+```
+
 `pipx` is the preferred option when you want an isolated CLI installation without managing a project virtual environment manually.
+
+#### Local installation and run
+Use this mode if you want to run OpenDoor directly from the repository without installing it globally.
+
+##### Linux / macOS
+```bash
+git clone https://github.com/stanislav-web/OpenDoor.git
+cd OpenDoor/
+python3 -m pip install -r requirements.txt
+chmod +x opendoor.py
+
+python3 opendoor.py --host http://www.example.com
+```
+
+##### Windows (PowerShell)
+```powershell
+git clone https://github.com/stanislav-web/OpenDoor.git
+cd OpenDoor
+py -m pip install -r requirements.txt
+
+py opendoor.py --host http://www.example.com
+```
+
+#### Local development installation
+Use this mode if you are developing, testing, or changing the project locally.
+
+##### Linux / macOS
+```bash
+git clone https://github.com/stanislav-web/OpenDoor.git
+cd OpenDoor/
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r requirements-dev.txt
+python -m pip install -e .
+
+opendoor --host http://www.example.com
+```
+
+##### Windows (PowerShell)
+```powershell
+git clone https://github.com/stanislav-web/OpenDoor.git
+cd OpenDoor
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r requirements-dev.txt
+python -m pip install -e .
+
+opendoor --host http://www.example.com
+```
 
 #### Installation from source for OS distributions / maintainers
 This flow is intended for Linux distributions, package maintainers, and release pipelines.
 
+##### Linux / macOS
 ```bash
 git clone https://github.com/stanislav-web/OpenDoor.git
 cd OpenDoor/
@@ -145,10 +194,18 @@ python3 -m pip install --upgrade build
 python3 -m build
 ```
 
+##### Windows (PowerShell)
+```powershell
+git clone https://github.com/stanislav-web/OpenDoor.git
+cd OpenDoor
+py -m pip install --upgrade build
+py -m build
+```
+
 Generated artifacts:
 ```bash
-dist/opendoor-5.0.0.tar.gz
-dist/opendoor-5.0.0-py3-none-any.whl
+dist/opendoor-5.0.1.tar.gz
+dist/opendoor-5.0.1-py3-none-any.whl
 ```
 
 This flow is preferable for Linux distributions and package maintainers because:
@@ -160,16 +217,31 @@ This flow is preferable for Linux distributions and package maintainers because:
 The package is already present in BlackArch Linux, and this build layout is intended to make packaging for other Linux distributions easier as well.
 
 #### Manual installation from built wheel
+
+##### Linux / macOS
 ```bash
-python3 -m pip install dist/opendoor-5.0.0-py3-none-any.whl
+python3 -m pip install dist/opendoor-5.0.1-py3-none-any.whl
+opendoor --host http://www.example.com
+```
+
+##### Windows (PowerShell)
+```powershell
+py -m pip install dist/opendoor-5.0.1-py3-none-any.whl
 opendoor --host http://www.example.com
 ```
 
 #### Updates
 
 ##### PyPI installation
+
+Linux / macOS:
 ```bash
 python3 -m pip install --upgrade opendoor
+```
+
+Windows:
+```powershell
+py -m pip install --upgrade opendoor
 ```
 
 ##### pipx installation
@@ -178,24 +250,32 @@ pipx upgrade opendoor
 ```
 
 ##### Source checkout
+
+Linux / macOS:
 ```bash
 git pull
 python3 -m pip install -e .
 ```
 
+Windows:
+```powershell
+git pull
+py -m pip install -e .
+```
+
 #### Help
 ```bash
-usage: opendoor.py [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
-                   [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
-                   [--keep-alive] [--accept-cookies] [--debug DEBUG] [--tor]
-                   [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
-                   [--reports REPORTS] [--reports-dir REPORTS_DIR]
-                   [--random-agent] [--random-list] [--prefix PREFIX]
-                   [-e EXTENSIONS] [-i IGNORE_EXTENSIONS] [--sniff SNIFF]
-                   [--update] [--version] [--examples] [--docs]
-                   [--wizard [WIZARD]]
+usage: opendoor [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
+                [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
+                [--keep-alive] [--accept-cookies] [--debug DEBUG] [--tor]
+                [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
+                [--reports REPORTS] [--reports-dir REPORTS_DIR]
+                [--random-agent] [--random-list] [--prefix PREFIX]
+                [-e EXTENSIONS] [-i IGNORE_EXTENSIONS] [--sniff SNIFF]
+                [--update] [--version] [--examples] [--docs]
+                [--wizard [WIZARD]]
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
 
 required named options:
@@ -249,7 +329,7 @@ Wordlist tools:
   -e EXTENSIONS, --extensions EXTENSIONS
                         Force selected extensions for scan session, e.g. php,json
   -i IGNORE_EXTENSIONS, --ignore-extensions IGNORE_EXTENSIONS
-                        Ignore selected extensions for scan session, e.g. aspx,jsp
+                        Ignore selected extensions for the scan session, e.g. aspx,jsp
 ```
 
 #### Maintainers
@@ -274,7 +354,7 @@ ruff check .
 ```
 
 ### Contributors
-If you like to contribute to the development of the project, in that case, pull requests are open for you.  
+If you like to contribute to the development of the project, in that case, pull requests are open for you.
 Also, you can suggest ideas and create a task in my track list.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0) [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)

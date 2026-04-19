@@ -11,8 +11,18 @@ OpenDoor is distributed as a standard Python package and can be installed in sev
 #### PyPI installation
 Recommended if you want the package available as a normal Python CLI tool.
 
+##### Linux / macOS
 ```shell
 python3 -m pip install --upgrade opendoor
+opendoor --host http://www.example.com
+```
+
+##### Windows (PowerShell)
+```powershell
+winget install Python.Python.3.14
+py -m pip install --upgrade pip
+py -m pip install --upgrade opendoor
+
 opendoor --host http://www.example.com
 ```
 
@@ -38,9 +48,22 @@ pipx install opendoor
 opendoor --host http://www.example.com
 ```
 
+##### Windows (PowerShell)
+```powershell
+winget install Python.Python.3.14
+py -m pip install --user pipx
+py -m pipx ensurepath
+
+# Reopen PowerShell after ensurepath
+pipx install opendoor
+
+opendoor --host http://www.example.com
+```
+
 #### Local run from repository
 Use this mode if you want to run OpenDoor directly from source without installing it globally.
 
+##### Linux / macOS
 ```shell
 git clone https://github.com/stanislav-web/OpenDoor.git
 cd OpenDoor/
@@ -50,9 +73,19 @@ chmod +x opendoor.py
 python3 opendoor.py --host http://www.example.com
 ```
 
+##### Windows (PowerShell)
+```powershell
+git clone https://github.com/stanislav-web/OpenDoor.git
+cd OpenDoor
+py -m pip install -r requirements.txt
+
+py opendoor.py --host http://www.example.com
+```
+
 #### Local development installation
 Use this mode if you are developing, testing, or changing the project locally.
 
+##### Linux / macOS
 ```shell
 git clone https://github.com/stanislav-web/OpenDoor.git
 cd OpenDoor/
@@ -65,14 +98,36 @@ python -m pip install -e .
 opendoor --host http://www.example.com
 ```
 
+##### Windows (PowerShell)
+```powershell
+git clone https://github.com/stanislav-web/OpenDoor.git
+cd OpenDoor
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r requirements-dev.txt
+python -m pip install -e .
+
+opendoor --host http://www.example.com
+```
+
 #### Build from source
 Recommended for Linux distribution maintainers and release packaging.
 
+##### Linux / macOS
 ```shell
 git clone https://github.com/stanislav-web/OpenDoor.git
 cd OpenDoor/
 python3 -m pip install --upgrade build
 python3 -m build
+```
+
+##### Windows (PowerShell)
+```powershell
+git clone https://github.com/stanislav-web/OpenDoor.git
+cd OpenDoor
+py -m pip install --upgrade build
+py -m build
 ```
 
 Generated artifacts:
@@ -84,8 +139,15 @@ dist/opendoor-<version>-py3-none-any.whl
 
 #### Manual installation from a built wheel
 
+##### Linux / macOS
 ```shell
 python3 -m pip install dist/opendoor-5.0.1-py3-none-any.whl
+opendoor --host http://www.example.com
+```
+
+##### Windows (PowerShell)
+```powershell
+py -m pip install dist/opendoor-5.0.1-py3-none-any.whl
 opendoor --host http://www.example.com
 ```
 
@@ -93,8 +155,15 @@ Update
 ======
 
 #### Update a PyPI installation
+
+##### Linux / macOS
 ```shell
 python3 -m pip install --upgrade opendoor
+```
+
+##### Windows (PowerShell)
+```powershell
+py -m pip install --upgrade opendoor
 ```
 
 #### Update a pipx installation
@@ -103,13 +172,21 @@ pipx upgrade opendoor
 ```
 
 #### Update a source checkout
+
+##### Linux / macOS
 ```shell
 git pull
 python3 -m pip install -e .
 ```
 
+##### Windows (PowerShell)
+```powershell
+git pull
+py -m pip install -e .
+```
+
 #### Built-in update command
-The built-in command does not modify the local source tree in place anymore.  
+The built-in command does not modify the local source tree in place anymore.
 It now prints update instructions for modern package-based environments.
 
 ```shell
@@ -122,4 +199,3 @@ OpenDoor now follows a standard Python packaging flow:
 - `setup.py` remains compatible
 - source distributions and wheels are produced through `python -m build`
 - packaging is suitable for Linux distribution maintainers
-

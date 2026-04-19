@@ -18,6 +18,10 @@ jobs:
     name: Test and build
     runs-on: ${{ inputs.runner }}
 
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: utf-8
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
