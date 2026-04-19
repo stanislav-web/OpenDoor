@@ -1,5 +1,24 @@
 Changes
 =======
+v5.0.0 (19.04.2026)
+---------------------------
+- Added: `pyproject.toml` for modern Python packaging workflow
+- Added: source and wheel build support through `python -m build`
+- Added: refreshed `MANIFEST.in` for correct source distribution contents
+- Added: `AGENTS.md` for contributor and agent workflow guidance
+- Added: `Ruff` baseline for lightweight Python linting
+- Changed: Python support baseline updated to `3.12`, `3.13`, `3.14`
+- Changed: package build/install flow modernized for current Python ecosystem
+- Changed: CLI update/version behavior refreshed for modern environments
+- Changed: help text and install flow documentation clarified
+- Changed: test suite refreshed for modern Python runtime and standard library mocks
+- Changed: development dependencies refreshed to current maintained versions
+- Fixed: build issues for source and wheel distribution generation
+- Fixed: packaging metadata and install paths for modern setuptools/pip workflows
+- Fixed: tests depending on external shell and network behavior
+- Fixed: CLI banner rendering and package installation checks
+- Planned next: deeper refactoring, additional tests, warnings cleanup and internal code improvements
+
 v4.2.0 (29.07.2023)
 ---------------------------
 - Fixed: `--sniff skipempty,skipsizes=NUM:NUM...` moved pages to ignore in reports instead of just skipping

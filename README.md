@@ -7,9 +7,9 @@ OWASP WEB Directory Scanner [![Twitter](https://img.shields.io/twitter/url/https
 | 3.13     | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) |
 | 3.14     | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) | ![CircleCI](https://circleci.com/gh/stanislav-web/OpenDoor.svg?style=shield&circle-token=6858e3bc123caac9e31ab8f18f5e9e22a03fdb0f ) |
 
-**OpenDoor OWASP** is console multifunctional website's scanner.
-This application finds all possible ways to login, index of/ directories, web shells, restricted access points, subdomains, hidden data and large backups.
-The scanning is performed by the built-in dictionary and external dictionaries as well. Anonymity and speed are provided by means of using proxy servers.
+**OpenDoor OWASP** is console multifunctional website's scanner.  
+This application finds all possible ways to login, index of/ directories, web shells, restricted access points, subdomains, hidden data and large backups.  
+The scanning is performed by the built-in dictionary and external dictionaries as well. Anonymity and speed are provided by means of using proxy servers.  
 Software is written for informational purposes and is open source product under the GPL license.
 
 ![Maintainer](https://img.shields.io/badge/maintainer-stanislav_web-blue)
@@ -35,14 +35,18 @@ v5.0.0 (2026)
 - Added: `pyproject.toml` for modern Python packaging workflow
 - Added: source and wheel build support through `python -m build`
 - Added: refreshed `MANIFEST.in` for correct source distribution contents
+- Added: `AGENTS.md` for contributor and agent workflow guidance
+- Added: `Ruff` baseline for lightweight Python linting
 - Changed: Python support baseline updated to `3.12`, `3.13`, `3.14`
 - Changed: package build/install flow modernized for current Python ecosystem
 - Changed: CLI update/version behavior refreshed for modern environments
+- Changed: help text and install flow documentation clarified
 - Changed: test suite refreshed for modern Python runtime and standard library mocks
 - Changed: development dependencies refreshed to current maintained versions
 - Fixed: build issues for source and wheel distribution generation
 - Fixed: packaging metadata and install paths for modern setuptools/pip workflows
 - Fixed: tests depending on external shell and network behavior
+- Fixed: CLI banner rendering and package installation checks
 - Planned next: deeper refactoring, additional tests, warnings cleanup and internal code improvements
 
 ***Testing of the software on the live commercial systems and organizations is prohibited!***
@@ -86,6 +90,8 @@ python3 -m pip install --upgrade pip
 ```
 
 #### Local installation and run
+Use this mode if you want to run OpenDoor directly from the repository without installing it globally.
+
 ```bash
 git clone https://github.com/stanislav-web/OpenDoor.git
 cd OpenDoor/
@@ -96,6 +102,8 @@ python3 opendoor.py --host http://www.example.com
 ```
 
 #### Local development installation
+Use this mode if you are developing, testing, or changing the project locally.
+
 ```bash
 git clone https://github.com/stanislav-web/OpenDoor.git
 cd OpenDoor/
@@ -109,21 +117,39 @@ opendoor --host http://www.example.com
 ```
 
 #### Global installation from PyPI
+Use this if you want the package available as a normal Python CLI tool.
+
 ```bash
 python3 -m pip install --upgrade opendoor
 opendoor --host http://www.example.com
 ```
 
 #### Global installation with pipx (recommended for end users)
+
+##### macOS / Homebrew
 ```bash
-python3 -m pip install --user pipx
-python3 -m pipx ensurepath
+brew install pipx
+pipx ensurepath
 pipx install opendoor
 
 opendoor --host http://www.example.com
 ```
 
+##### Linux / generic environments
+Install `pipx` with your system package manager or preferred Python tooling, then:
+
+```bash
+pipx ensurepath
+pipx install opendoor
+
+opendoor --host http://www.example.com
+```
+
+`pipx` is the preferred option when you want an isolated CLI installation without managing a project virtual environment manually.
+
 #### Installation from source for OS distributions / maintainers
+This flow is intended for Linux distributions, package maintainers, and release pipelines.
+
 ```bash
 git clone https://github.com/stanislav-web/OpenDoor.git
 cd OpenDoor/
@@ -152,12 +178,18 @@ opendoor --host http://www.example.com
 ```
 
 #### Updates
+
+##### PyPI installation
 ```bash
 python3 -m pip install --upgrade opendoor
+```
+
+##### pipx installation
+```bash
 pipx upgrade opendoor
 ```
 
-If you use a source checkout:
+##### Source checkout
 ```bash
 git pull
 python3 -m pip install -e .
@@ -179,14 +211,14 @@ optional arguments:
   -h, --help            show this help message and exit
 
 required named options:
-  --host HOST           Target host (ip); --host http://example.com
+  --host HOST           Target host; example: --host http://example.com
 
 Application tools:
-  --update              Update package information
-  --version             Get current version
-  --examples            Examples of usage
-  --docs                Read documentation
-  --wizard [WIZARD]     Run wizard scanner from your config
+  --update              Show package update instructions
+  --version             Show current version
+  --examples            Show usage examples
+  --docs                Open documentation
+  --wizard [WIZARD]     Run scanner wizard from your config
 
 Debug tools:
   --debug DEBUG         Debug level -1 (silent), 1 - 3
@@ -194,21 +226,21 @@ Debug tools:
 Reports tools:
   --reports REPORTS     Scan reports (json,std,txt,html)
   --reports-dir REPORTS_DIR
-                        Path to custom reports dir
+                        Path to custom reports directory
 
 Request tools:
-  -p PORT, --port PORT  Custom port (Default 80)
+  -p PORT, --port PORT  Custom port (default 80)
   -m METHOD, --method METHOD
-                        Request method (use HEAD as default)
+                        Request method (HEAD by default)
   -d DELAY, --delay DELAY
-                        Delay between requests threading
+                        Delay between threaded requests
   --timeout TIMEOUT     Request timeout (30 sec default)
   -r RETRIES, --retries RETRIES
-                        Max retries to reconnect (default 3)
+                        Maximum reconnect retries (default 3)
   --keep-alive          Use keep-alive connection
   --accept-cookies      Accept and route cookies from responses
-  --tor                 Using built-in proxylist
-  --torlist TORLIST     Path to custom proxylist
+  --tor                 Use built-in proxy list
+  --torlist TORLIST     Path to custom proxy list
   --proxy PROXY         Custom permanent proxy server
   --random-agent        Randomize user-agent per request
 
@@ -221,16 +253,15 @@ Stream tools:
                         Allowed threads
 
 Wordlist tools:
-  -s SCAN, --scan SCAN  Scan type scan=directories or scan=subdomains
+  -s SCAN, --scan SCAN  Scan type: directories or subdomains
   -w WORDLIST, --wordlist WORDLIST
                         Path to custom wordlist
   --random-list         Shuffle scan list
   --prefix PREFIX       Append path prefix to scan host
   -e EXTENSIONS, --extensions EXTENSIONS
-                        Force use selected extensions for scan session -e
-                        php,json e.g
+                        Force selected extensions for scan session, e.g. php,json
   -i IGNORE_EXTENSIONS, --ignore-extensions IGNORE_EXTENSIONS
-                        Ignore extensions for scan session -i aspx,jsp e.g
+                        Ignore selected extensions for scan session, e.g. aspx,jsp
 ```
 
 #### Maintainers
@@ -248,9 +279,15 @@ python3 -m pip install -r requirements-dev.txt
 python3 -m build
 ```
 
+### Lint
+```bash
+python3 -m pip install -r requirements-dev.txt
+ruff check .
+```
+
 ### Contributors
-If you like to contribute to the development of the project, in that case, pull requests are open for you.
-Also, you can suggest an ideas and create a task in my track list.
+If you like to contribute to the development of the project, in that case, pull requests are open for you.  
+Also, you can suggest ideas and create a task in my track list.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0) [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/stanislav-web)
 

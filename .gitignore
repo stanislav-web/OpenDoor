@@ -1,16 +1,40 @@
+# IDE
 .idea/
-/tmp/
-/reports/
-/syslog/
-/build/
-/opendoor.egg-info
-.coverage
-*__pycache__/**
-*.pyc
+
+# macOS
+.DS_Store
+
+# Python environments
+.venv/
 venv/
-/opendoor.pub
-/opendoor
-/.eggs/
-/dist/
-TODO.txt
-test.py
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Tool caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+
+# Runtime/project-generated files
+tmp/
+reports/
+syslog/
+
+# Local binaries / keys
+opendoor
+opendoor.pub

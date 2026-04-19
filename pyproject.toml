@@ -8,3 +8,15 @@ requires = [
     "wheel>=0.45"
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["E721", "E722", "F401", "F632"]
+
+[tool.ruff.format]
+docstring-code-format = true
