@@ -1,5 +1,11 @@
 Changes
 =======
+v5.0.1 (19.04.2026)
+---------------------------
+- Fixed: Read the Docs badge updated to the current badge endpoint
+- Removed: stale Codespaces Prebuilds badge that no longer resolves
+- Changed: repository README badges and documentation links polished after the 5.0.0 release
+
 v5.0.0 (19.04.2026)
 ---------------------------
 - Added: `pyproject.toml` for modern Python packaging workflow

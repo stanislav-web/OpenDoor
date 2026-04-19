@@ -17,39 +17,23 @@ Software is written for informational purposes and is open source product under 
 [![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%20%2B-green.svg)](https://www.python.org/)
 
-[![Documentation Status](https://readthedocs.org/projects/opendoor/badge/?version=latest)](https://opendoor.readthedocs.io/?badge=latest)
+[![Documentation Status](https://app.readthedocs.org/projects/opendoor/badge/?version=latest)](https://opendoor.readthedocs.io/en/latest/)
 [![Codacy Security Scan](https://github.com/stanislav-web/OpenDoor/actions/workflows/codacy.yml/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/codacy.yml)
-[![Codespaces Prebuilds](https://github.com/stanislav-web/OpenDoor/actions/workflows/codespaces/create_codespaces_prebuilds/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/codespaces/create_codespaces_prebuilds)
 [![Dependency Review](https://github.com/stanislav-web/OpenDoor/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/dependency-review.yml)
 [![CodeQL](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql)
 
 [Read The Docs](https://opendoor.readthedocs.io/)
 
-* *Current 5.0.0 (2026)*
+* *Current 5.0.1 (19.04.2026)*
     - Directories: 83012
     - Subdomains: 255359
 
 #### [Changelog](CHANGELOG.md) (last changes)
-v5.0.0 (2026)
+v5.0.1 (19.04.2026)
 ---------------------------
-- Added: `pyproject.toml` for modern Python packaging workflow
-- Added: source and wheel build support through `python -m build`
-- Added: refreshed `MANIFEST.in` for correct source distribution contents
-- Added: `AGENTS.md` for contributor and agent workflow guidance
-- Added: `Ruff` baseline for lightweight Python linting
-- Changed: Python support baseline updated to `3.12`, `3.13`, `3.14`
-- Changed: package build/install flow modernized for current Python ecosystem
-- Changed: CLI update/version behavior refreshed for modern environments
-- Changed: help text and install flow documentation clarified
-- Changed: test suite refreshed for modern Python runtime and standard library mocks
-- Changed: development dependencies refreshed to current maintained versions
-- Fixed: build issues for source and wheel distribution generation
-- Fixed: packaging metadata and install paths for modern setuptools/pip workflows
-- Fixed: tests depending on external shell and network behavior
-- Fixed: CLI banner rendering and package installation checks
-- Planned next: deeper refactoring, additional tests, warnings cleanup and internal code improvements
-
-***Testing of the software on the live commercial systems and organizations is prohibited!***
+- Fixed: Read the Docs badge updated to the current badge endpoint
+- Removed: stale Codespaces Prebuilds badge that no longer resolves
+- Changed: repository README badges and documentation links polished after the 5.0.0 release
 
 ![Alt text](http://dl3.joxi.net/drive/2017/01/30/0001/0378/90490/90/e309742b5c.jpg "OpenDoor OWASP")
 

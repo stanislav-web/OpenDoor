@@ -38,3 +38,6 @@ syslog/
 # Local binaries / keys
 opendoor
 opendoor.pub
+
+# Tokens
+.tokens
