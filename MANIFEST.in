@@ -1,4 +1,12 @@
-# Include the data files
-include data/*.dat
+include LICENSE
+include README.md
+include VERSION
+include requirements.txt
+include requirements-dev.txt
 include opendoor.py
 include opendoor.conf
+include pyproject.toml
+
+recursive-include data *.dat
+recursive-include src *.py
+recursive-include tests *.py

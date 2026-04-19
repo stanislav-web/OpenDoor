@@ -15,36 +15,91 @@
 
     Development Team: Brain Storm Team
 """
-fVersion = open('VERSION', 'r+').readline().rstrip()
+
+from importlib.metadata import PackageNotFoundError, version as package_version
+from pathlib import Path
+import sys as py_sys
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def read_version() -> str:
+    """
+    Resolve the application version.
+
+    Priority:
+    1. Installed package metadata.
+    2. VERSION file from the source checkout.
+
+    :return: Current package version.
+    """
+
+    try:
+        return package_version('opendoor')
+    except PackageNotFoundError:
+        version_file = PROJECT_ROOT / 'VERSION'
+        if version_file.exists():
+            return version_file.read_text(encoding='utf-8').splitlines()[0].strip()
+
+    return '0.0.0'
+
+
+def resolve_data_root() -> Path:
+    """
+    Resolve the bundled data directory for both source and installed package use.
+
+    Source checkout usually stores dictionaries in `<repo>/data`.
+    Installed wheel with `data_files` places them under `<sys.prefix>/data`.
+
+    :return: Resolved data root path.
+    """
+
+    candidates = [
+        PROJECT_ROOT / 'data',
+        Path(py_sys.prefix) / 'data',
+        Path(py_sys.base_prefix) / 'data',
+    ]
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    return PROJECT_ROOT / 'data'
+
+
+RUNTIME_ROOT = Path.cwd()
+DATA_ROOT = resolve_data_root()
+fVersion = read_version()
 
 CoreConfig = {
     'info': {
         'name': 'Opendoor scanner',
-        'repository': 'git@github.com:stanislav-web/OpenDoor.git',
+        'repository': 'https://github.com/stanislav-web/OpenDoor.git',
         'remote_version': 'https://raw.githubusercontent.com/stanislav-web/OpenDoor/master/VERSION',
         'license': 'License: GNU General Public License',
         'version': fVersion,
-        'documentation': 'https://opendoor.readthedocs.org',
+        'documentation': 'https://opendoor.readthedocs.io',
         'required_versions': {
-            'minor': '3.7',
-            'major': '3.11'
+            'minor': '3.12',
+            'major': '3.14'
         },
     },
     'data': {
-        'directories': 'data/directories.dat',
-        'ignored': 'data/ignored.dat',
-        'proxies': 'data/proxies.dat',
-        'subdomains': 'data/subdomains.dat',
-        'useragents': 'data/useragents.dat',
-        'tmplist': 'tmp/list.tmp',
-        'extensionlist': 'tmp/extensionlist.tmp',
-        'ignore_extensionlist': 'tmp/ignore_extensionlist.tmp',
-        'reports': 'reports/',
-        'exceptions_log': 'syslog/exceptions.log',
+        'directories': str(DATA_ROOT / 'directories.dat'),
+        'ignored': str(DATA_ROOT / 'ignored.dat'),
+        'proxies': str(DATA_ROOT / 'proxies.dat'),
+        'subdomains': str(DATA_ROOT / 'subdomains.dat'),
+        'useragents': str(DATA_ROOT / 'useragents.dat'),
+        'tmplist': str(RUNTIME_ROOT / 'tmp' / 'list.tmp'),
+        'extensionlist': str(RUNTIME_ROOT / 'tmp' / 'extensionlist.tmp'),
+        'ignore_extensionlist': str(RUNTIME_ROOT / 'tmp' / 'ignore_extensionlist.tmp'),
+        'reports': str(RUNTIME_ROOT / 'reports'),
+        'exceptions_log': str(RUNTIME_ROOT / 'syslog' / 'exceptions.log'),
     },
     'command': {
-        'cvsupdate': '/usr/bin/git pull origin master',
-        'cvslog': '/usr/bin/git log --oneline -n 1',
+        'cvsupdate': '/usr/bin/env python3 -m pip install --upgrade opendoor',
+        'cvslog': '/usr/bin/env python3 -m pip show opendoor',
     },
     'examples': """
 
@@ -72,7 +127,8 @@ CoreConfig = {
                 python3 ./opendoor.py --host "http://example.com" --threads 10 --debug 1 --reports std,txt
                 python3 ./opendoor.py --host "http://example.com" --debug 1 --reports std,txt --reports-dir /reports
                 python3 ./opendoor.py --host "http://example.com" --threads 10 --debug 1 --extensions php,html
-            """, 'banner': """
+            """,
+    'banner': r"""
 ############################################################
 #                                                          #
 #   _____  ____  ____  _  _    ____   _____  _____  ____   #
@@ -80,17 +136,19 @@ CoreConfig = {
 #   )(_)(  )___/ )__)  )  (    )(_) ) )(_)(  )(_)(  )   /  #
 #  (_____)(__)  (____)(_)\_)  (____/ (_____)(_____)(_)\_)  #
 #                                                          #
-#  {0}\t\t                           #
-#  {1}\t\t                           #
-#  {2}\t\t\t                   #
-#  {3}\t\t\t                           #
-#  {4}                     #
-############################################################""", 'version': """
+#  {0:<56}#
+#  {1:<56}#
+#  {2:<56}#
+#  {3:<56}#
+#  {4:<56}#
+############################################################""",
+    'version': """
 
 {0}: {1} -> {2}
 {3}
 {4}
-============================================================""", 'update': """
+============================================================""",
+    'update': """
 
 {status}
 ============================================================"""

@@ -17,123 +17,112 @@
     Development Team: Brain Storm Team
 """
 
-from setuptools import setup, find_packages
-fVersion = open('VERSION').readline().rstrip()
+from pathlib import Path
 
-NAME = 'opendoor'
-VERSION = fVersion
-DESCRIPTION = 'OWASP WEB Directory Scanner'
-LONG_DESCRIPTION = open('README.md', 'r+', encoding='utf-8').read()
-HOMEPAGE = 'https://github.com/stanislav-web/OpenDoor'
-AUTHOR = 'Brain Storm Team',
-AUTHOR_EMAIL = 'nomail@gmail.com',
-MAINTAINER = 'Brain Storm Team',
-FULL_NAME = 'Brain Storm'
-DOWNLOAD_URL = 'https://github.com/stanislav-web/OpenDoor/archive/refs/heads/master.zip'
-setup(name=NAME,
+from setuptools import find_packages, setup
 
-      # Versions should comply with PEP440.  For a discussion on single-sourcing
-      # the version across setup.py and the project code, see
-      # https://packaging.python.org/en/latest/single_source_version.html
 
-      version=VERSION,
+PROJECT_ROOT = Path(__file__).resolve().parent
 
-      description=DESCRIPTION,
 
-      long_description=LONG_DESCRIPTION,
+def read_text(filename: str) -> str:
+    """
+    Read a text file from the project root.
 
-      long_description_content_type="text/markdown",
+    :param filename: Relative filename in the project root.
+    :return: File content as UTF-8 text.
+    """
+    return (PROJECT_ROOT / filename).read_text(encoding='utf-8').strip()
 
-      # The project's main homepage.
-      url=HOMEPAGE,
 
-      # Author details
-      author="".join(AUTHOR),
+def read_requirements(filename: str) -> list[str]:
+    """
+    Read requirements from a plain text file.
 
-      fullname="".join(FULL_NAME),
+    Blank lines and comment-only lines are ignored.
 
-      author_email="".join(AUTHOR_EMAIL),
+    :param filename: Relative filename in the project root.
+    :return: Parsed requirement lines.
+    """
+    lines = (PROJECT_ROOT / filename).read_text(encoding='utf-8').splitlines()
 
-      maintainer="".join(MAINTAINER),
+    return [
+        line.strip()
+        for line in lines
+        if line.strip() and not line.strip().startswith('#')
+    ]
 
-      maintainer_email="".join(AUTHOR_EMAIL),
 
-      # You can just specify the packages manually here if your project is
-      # simple. Or you can use find_packages().
-      zip_safe=False,
-      packages=find_packages(),
-      data_files=[('.', ['opendoor.conf']),
-                  ('data', [
-                      'data/directories.dat',
-                      'data/ignored.dat',
-                      'data/proxies.dat',
-                      'data/subdomains.dat',
-                      'data/useragents.dat',
-                  ])
-                  ],
-      include_package_data=True,
+VERSION = read_text('VERSION')
+README = read_text('README.md')
 
-      script_name='opendoor.py',
-      # Choose your license
-      license='GPL',
-      # Unittests suite directory
-      test_suite='tests',
 
-      # What does your project relate to?
-      keywords=[
-          'owasp scanner',
-          'directory scanner',
-          'access directory scanner',
-          'fuzzer',
-          'auth scanner',
-          'dir search',
-          'dirmap'
-      ],
-
-      download_url=DOWNLOAD_URL,
-
-      # To provide executable scripts, use entry points in preference to the
-      # "scripts" keyword. Entry points provide cross-platform support and allow
-      # pip to create the appropriate form of executable for the target platform.
-      entry_points={'console_scripts': [
-          'opendoor=src:main',
-          'coveralls = coveralls.cli:main'
-      ]},
-
-      install_requires=[line.rstrip('\n') for line in open('requirements.txt')],
-      tests_require=[line.rstrip('\n') for line in open('requirements-dev.txt')],
-
-      platforms=['any'],
-      # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
-      # How mature is this project? Common values are
-      classifiers=[
-          #   3 - Alpha
-          #   4 - Beta
-          #   5 - Production/Stable
-          'Development Status :: 5 - Production/Stable',
-
-          # Language
-          'Natural Language :: English',
-
-          # Indicate who your project is intended for
-          'Intended Audience :: Developers',
-
-          # OS, which support this package
-          'Operating System :: MacOS',
-          'Operating System :: Unix',
-
-          # Pick your license as you wish (should match "license" above)
-          'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-
-          # Specify the Python versions you support here. In particular, ensure
-          # that you indicate whether you support Python 2, Python 3 or both.
-
-          'Programming Language :: Python',
-          'Programming Language :: Python :: 3',
-
-          # Specify the additional categories
-          'Topic :: Utilities',
-          'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking',
-          'Topic :: Internet :: WWW/HTTP :: Indexing/Search',
-          'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
-      ])
+setup(
+    name='opendoor',
+    version=VERSION,
+    description='OWASP WEB Directory Scanner',
+    long_description=README,
+    long_description_content_type='text/markdown',
+    url='https://github.com/stanislav-web/OpenDoor',
+    download_url='https://github.com/stanislav-web/OpenDoor/archive/refs/heads/master.zip',
+    author='Brain Storm Team',
+    author_email='nomail@gmail.com',
+    maintainer='Brain Storm Team',
+    maintainer_email='nomail@gmail.com',
+    license='GPL-3.0-only',
+    python_requires='>=3.12,<3.15',
+    zip_safe=False,
+    packages=find_packages(),
+    include_package_data=True,
+    data_files=[
+        ('.', ['opendoor.conf']),
+        (
+            'data',
+            [
+                'data/directories.dat',
+                'data/ignored.dat',
+                'data/proxies.dat',
+                'data/subdomains.dat',
+                'data/useragents.dat',
+            ],
+        ),
+    ],
+    keywords=[
+        'owasp scanner',
+        'directory scanner',
+        'access directory scanner',
+        'fuzzer',
+        'auth scanner',
+        'dir search',
+        'dirmap',
+    ],
+    install_requires=read_requirements('requirements.txt'),
+    entry_points={
+        'console_scripts': [
+            'opendoor=src:main',
+        ]
+    },
+    platforms=['any'],
+    project_urls={
+        'Homepage': 'https://github.com/stanislav-web/OpenDoor',
+        'Documentation': 'https://opendoor.readthedocs.io',
+        'Source': 'https://github.com/stanislav-web/OpenDoor',
+        'Tracker': 'https://github.com/stanislav-web/OpenDoor/issues',
+    },
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Natural Language :: English',
+        'Intended Audience :: Developers',
+        'Operating System :: MacOS',
+        'Operating System :: Unix',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
+        'Topic :: Utilities',
+        'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking',
+        'Topic :: Internet :: WWW/HTTP :: Indexing/Search',
+        'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
+    ],
+)

@@ -1,0 +1,10 @@
+[build-system]
+# Modern Python packaging baseline for 2026.
+# This keeps the current setup.py workflow working,
+# but allows modern tools like `pip`, `build`, and PyPI backends
+# to treat the project as a standard PEP 517/518 package.
+requires = [
+    "setuptools>=78",
+    "wheel>=0.45"
+]
+build-backend = "setuptools.build_meta"

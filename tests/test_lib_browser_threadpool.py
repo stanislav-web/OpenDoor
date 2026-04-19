@@ -17,67 +17,91 @@
 """
 
 import unittest
-from mock import patch
-from src.lib.browser.threadpool import ThreadPool
+from unittest.mock import patch
+
 from src.core.logger.logger import Logger
+from src.lib.browser.threadpool import ThreadPool
 
 
 class TestBrowserThreadPool(unittest.TestCase):
-    """TestBrowserThreadPool class"""
-    
+    """TestBrowserThreadPool class."""
+
     THREADS = 2
-    
-    def __test_function(self,arg):
+
+    def __test_function(self, arg):
+        """
+        Dummy worker callback.
+
+        :param arg: Arbitrary argument.
+        :return: None
+        """
         pass
-    
+
     def setUp(self):
+        """
+        Prepare thread pool.
+
+        :return: None
+        """
         self._pool = ThreadPool(num_threads=self.THREADS, total_items=10, timeout=0)
-    
+
     def tearDown(self):
+        """
+        Cleanup logger handlers and join the pool.
+
+        :return: None
+        """
         logger = Logger.log()
+
         for handler in logger.handlers:
             logger.removeHandler(handler)
+
         self._pool.join()
 
     def test_size(self):
-        """ ThreadPool.size test """
-        
+        """ThreadPool.size test."""
+
         self.assertIs(type(self._pool.size), int)
         self.assertEqual(self._pool.size, 0)
 
     def test_worker_size(self):
-        """ ThreadPool.worker_size test """
-    
+        """ThreadPool.worker_size test."""
+
         self.assertIs(type(self._pool.workers_size), int)
         self.assertEqual(self._pool.workers_size, self.THREADS)
 
     def test_items_size(self):
-        """ ThreadPool.items_size test """
-    
+        """ThreadPool.items_size test."""
+
         self.assertIs(type(self._pool.items_size), int)
         self.assertEqual(self._pool.items_size, 0)
 
     def test_add(self):
-        """ ThreadPool.add() test """
-    
+        """ThreadPool.add() test."""
+
         self.assertIs(self._pool.add(self.__test_function, 1), None)
-    
+
     def pause(self):
-        ans = self._pool.pause()
-        return ans
-    
+        """
+        Call pause helper.
+
+        :return: Any
+        """
+        return self._pool.pause()
+
     def test_pause(self):
-        """ ThreadPool.pause() test """
-        
+        """ThreadPool.pause() test."""
+
         with self.assertRaises(KeyboardInterrupt) as context:
-            with patch('builtins.input', return_value='e') as _raw_input:
+            with patch('builtins.input', return_value='e') as input_mock:
                 self.assertEqual(self.pause(), 'e')
-                _raw_input.assert_called_once_with('e')
-            self.assertTrue(KeyboardInterrupt == context.expected)
+                input_mock.assert_called_once_with('e')
+
+        self.assertTrue(KeyboardInterrupt == context.expected)
 
     def test_resume(self):
-        """ ThreadPool.resume() test """
-        
+        """ThreadPool.resume() test."""
+
         self._pool.is_started = False
         self.assertIs(self._pool.resume(), None)
 

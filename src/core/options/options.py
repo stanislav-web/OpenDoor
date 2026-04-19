@@ -53,7 +53,7 @@ class Options(object):
                 "argl": "--port",
                 "default": 80,
                 "action": "store",
-                "help": "Custom port (Default 80)",
+                "help": "Custom port (default 80)",
                 "type": int
             },
             {
@@ -62,7 +62,7 @@ class Options(object):
                 "argl": "--method",
                 "default": "HEAD",
                 "action": "store",
-                "help": "Request method (use HEAD as default)",
+                "help": "Request method (HEAD by default)",
                 "type": str
             },
             {
@@ -80,7 +80,7 @@ class Options(object):
                 "argl": "--delay",
                 "default": 0,
                 "action": "store",
-                "help": "Delay between requests threading",
+                "help": "Delay between threaded requests",
                 "type": float
             },
             {
@@ -98,7 +98,7 @@ class Options(object):
                 "argl": "--retries",
                 "default": 3,
                 "action": "store",
-                "help": "Max retries to reconnect (default 3)",
+                "help": "Maximum reconnect retries (default 3)",
                 "type": int
             },
             {
@@ -134,7 +134,7 @@ class Options(object):
                 "argl": "--tor",
                 "default": False,
                 "action": "store_true",
-                "help": "Using built-in proxylist",
+                "help": "Use built-in proxy list",
                 "type": bool
             },
             {
@@ -143,7 +143,7 @@ class Options(object):
                 "argl": "--torlist",
                 "default": None,
                 "action": "store",
-                "help": "Path to custom proxylist",
+                "help": "Path to custom proxy list",
                 "type": str
             },
             {
@@ -161,7 +161,7 @@ class Options(object):
                 "argl": "--scan",
                 "default": "directories",
                 "action": "store",
-                "help": "Scan type scan=directories or scan=subdomains",
+                "help": "Scan type: directories or subdomains",
                 "type": str
             },
             {
@@ -188,7 +188,7 @@ class Options(object):
                 "argl": "--reports-dir",
                 "default": None,
                 "action": "store",
-                "help": "Path to custom reports dir",
+                "help": "Path to custom reports directory",
                 "nargs": 1,
                 "type": str
             },
@@ -225,7 +225,7 @@ class Options(object):
                 "argl": "--extensions",
                 "default": None,
                 "action": "store",
-                "help": "Force use selected extensions for scan session -e php,json e.g",
+                "help": "Force selected extensions for the scan session, e.g. php,json",
                 "type": str
             },
             {
@@ -234,7 +234,7 @@ class Options(object):
                 "argl": "--ignore-extensions",
                 "default": None,
                 "action": "store",
-                "help": "Force ignore extensions for scan session -i aspx,jsp e.g",
+                "help": "Ignore selected extensions for the scan session, e.g. aspx,jsp",
                 "type": str
             },
             {
@@ -243,7 +243,7 @@ class Options(object):
                 "argl": "--sniff",
                 "default": None,
                 "action": "store",
-                "help": "Response sniff plugins (indexof,collation,file,skipempty)",
+                "help": "Response sniff plugins (indexof,collation,file,skipempty,skipsizes=NUM:NUM...)",
                 "type": str
             },
             {
@@ -252,7 +252,7 @@ class Options(object):
                 "argl": "--update",
                 "default": False,
                 "action": "store_true",
-                "help": "Update from CVS",
+                "help": "Show package update instructions",
                 "type": bool
             },
             {
@@ -261,7 +261,7 @@ class Options(object):
                 "argl": "--version",
                 "default": False,
                 "action": "store_true",
-                "help": "Get current version",
+                "help": "Show current version",
                 "type": bool
             },
             {
@@ -270,7 +270,7 @@ class Options(object):
                 "argl": "--examples",
                 "default": False,
                 "action": "store_true",
-                "help": "Examples of usage",
+                "help": "Show usage examples",
                 "type": bool
             },
             {
@@ -279,7 +279,7 @@ class Options(object):
                 "argl": "--docs",
                 "default": False,
                 "action": "store_true",
-                "help": "Read documentation",
+                "help": "Open documentation",
                 "type": bool
             },
             {
@@ -288,7 +288,7 @@ class Options(object):
                 "argl": "--wizard",
                 "default": None,
                 "action": "store",
-                "help": "Run wizard scanner from your config",
+                "help": "Run scanner wizard from your config",
                 "nargs": OPTIONAL,
                 "const": self.__wizard_conf,
                 "type": str
@@ -299,7 +299,7 @@ class Options(object):
         try:
             self.parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
             required_named = self.parser.add_argument_group('required named options')
-            required_named.add_argument('--host', help="Target host (ip); --host http://example.com")
+            required_named.add_argument('--host', help="Target host; example: --host http://example.com")
             arguments_len = len(__arguments)
 
             for group, description in sorted(__groups.items()):
@@ -315,47 +315,59 @@ class Options(object):
 
                 if arg['args'] is None:
                     if bool == arg['type']:
-                        groupped[arg['group']].add_argument(arg['argl'],
-                                                            default=arg['default'],
-                                                            action=arg['action'],
-                                                            help=arg['help'])
+                        groupped[arg['group']].add_argument(
+                            arg['argl'],
+                            default=arg['default'],
+                            action=arg['action'],
+                            help=arg['help']
+                        )
                     elif None is not const:
-                        groupped[arg['group']].add_argument(arg['argl'],
-                                                            default=arg['default'],
-                                                            action=arg['action'],
-                                                            help=arg['help'],
-                                                            nargs=arg['nargs'],
-                                                            const=const,
-                                                            type=arg['type'])
+                        groupped[arg['group']].add_argument(
+                            arg['argl'],
+                            default=arg['default'],
+                            action=arg['action'],
+                            help=arg['help'],
+                            nargs=arg['nargs'],
+                            const=const,
+                            type=arg['type']
+                        )
                     else:
-                        groupped[arg['group']].add_argument(arg['argl'],
-                                                            default=arg['default'],
-                                                            action=arg['action'],
-                                                            help=arg['help'],
-                                                            type=arg['type'])
+                        groupped[arg['group']].add_argument(
+                            arg['argl'],
+                            default=arg['default'],
+                            action=arg['action'],
+                            help=arg['help'],
+                            type=arg['type']
+                        )
                 else:
                     if bool == arg['type']:
-                        groupped[arg['group']].add_argument(arg['args'],
-                                                            arg['argl'],
-                                                            default=arg['default'],
-                                                            action=arg['action'],
-                                                            help=arg['help'])
+                        groupped[arg['group']].add_argument(
+                            arg['args'],
+                            arg['argl'],
+                            default=arg['default'],
+                            action=arg['action'],
+                            help=arg['help']
+                        )
                     elif None is not const:
-                        groupped[arg['group']].add_argument(arg['args'],
-                                                            arg['argl'],
-                                                            default=arg['default'],
-                                                            action=arg['action'],
-                                                            help=arg['help'],
-                                                            nargs=arg['nargs'],
-                                                            const=const,
-                                                            type=arg['type'])
+                        groupped[arg['group']].add_argument(
+                            arg['args'],
+                            arg['argl'],
+                            default=arg['default'],
+                            action=arg['action'],
+                            help=arg['help'],
+                            nargs=arg['nargs'],
+                            const=const,
+                            type=arg['type']
+                        )
                     else:
-                        groupped[arg['group']].add_argument(arg['args'],
-                                                            arg['argl'],
-                                                            default=arg['default'],
-                                                            action=arg['action'],
-                                                            help=arg['help'],
-                                                            type=arg['type'])
+                        groupped[arg['group']].add_argument(
+                            arg['args'],
+                            arg['argl'],
+                            default=arg['default'],
+                            action=arg['action'],
+                            help=arg['help'],
+                            type=arg['type']
+                        )
 
             self.args = self.parser.parse_args()
         except (ArgumentParserError, KeyError) as error:
@@ -388,9 +400,7 @@ class Options(object):
                         args[arg] = value
                         break
             else:
-
                 for arg, value in vars(self.args).items():
-
                     if value:
                         args[arg] = value
                 args = Filter.filter(args)

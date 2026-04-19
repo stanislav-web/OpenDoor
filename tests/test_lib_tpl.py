@@ -16,150 +16,176 @@
     Development Team: Brain Storm Team
 """
 
-import unittest
-from src.core.logger.logger import Logger
 from io import StringIO
-from mock import patch
+import unittest
+from unittest.mock import patch
+
+from src.core.logger.logger import Logger
 from src.lib.tpl import Tpl, TplError
 
 
 class TestTpl(unittest.TestCase):
-    """TestTpl class"""
-    
+    """TestTpl class."""
+
     def tearDown(self):
+        """
+        Cleanup logger handlers after each test.
+
+        :return: None
+        """
         logger = Logger.log()
+
         for handler in logger.handlers:
             logger.removeHandler(handler)
 
     def prompt_answer(self):
-        ans = Tpl.prompt(msg='fake')
-        return ans
+        """
+        Call Tpl.prompt helper.
+
+        :return: str
+        """
+        return Tpl.prompt(msg='fake')
 
     def test_cancel(self):
-        """ Tpl.cancel() test """
-    
+        """Tpl.cancel() test."""
+
         with self.assertRaises(SystemExit) as context:
             Tpl.cancel(key='abort')
+
         self.assertTrue(SystemExit == context.expected)
 
-        
     def test_cancel_exception(self):
-        """ Tpl.cancel() exception test """
+        """Tpl.cancel() exception test."""
 
         undefined = 'undefined'
+
         with self.assertRaises(TplError) as context:
             Tpl.cancel(key=undefined)
+
         self.assertTrue(undefined in str(context.exception))
         self.assertTrue(TplError == context.expected)
-        
-    def test_prompt(self):
-        """ Tpl.prompt() test """
 
-        with patch('builtins.input', return_value='fake') as _raw_input:
+    def test_prompt(self):
+        """Tpl.prompt() test."""
+
+        with patch('builtins.input', return_value='fake') as input_mock:
             self.assertEqual(self.prompt_answer(), 'fake')
-            _raw_input.assert_called_once_with('fake')
+            input_mock.assert_called_once_with('fake')
 
     def test_prompt_exception(self):
-        """ Tpl.prompt() exception test """
-        
+        """Tpl.prompt() exception test."""
+
         undefined = 'undefined'
+
         with self.assertRaises(TplError) as context:
             Tpl.prompt(key=undefined)
+
         self.assertTrue(undefined in str(context.exception))
         self.assertTrue(TplError == context.expected)
 
     def test_line(self):
-        """ Tpl.line() test """
+        """Tpl.line() test."""
 
         expected = Tpl.line('test')
         self.assertTrue('test' in expected)
-    
+
     def test_line_with_key(self):
-        """ Tpl.line() test with key """
-        
+        """Tpl.line() test with key."""
+
         expected = Tpl.line(key='report', plugin='testplugin', dest='testdst')
         self.assertTrue('testplugin' in expected)
         self.assertTrue('testdst' in expected)
 
     def test_line_log(self):
-        """ Tpl.line_log() test """
+        """Tpl.line_log() test."""
 
-        with patch('sys.stdout', new=StringIO()) as fakeOutput:
+        with patch('sys.stdout', new=StringIO()) as fake_output:
             Tpl.line_log('test_line_log')
-            self.assertTrue('test_line_log' in fakeOutput.getvalue().strip())
-    
+            self.assertTrue('test_line_log' in fake_output.getvalue().strip())
+
     def test_line_log_exception(self):
-        """ Tpl.line_log() exception test """
+        """Tpl.line_log() exception test."""
 
         undefined = 'undefined'
+
         with self.assertRaises(TplError) as context:
             Tpl.line_log(key=undefined)
+
         self.assertTrue(undefined in str(context.exception))
         self.assertTrue(TplError == context.expected)
-        
-    def test_message(self):
-        """ Tpl.message() test """
 
-        with patch('sys.stdout', new=StringIO()) as fakeOutput:
+    def test_message(self):
+        """Tpl.message() test."""
+
+        with patch('sys.stdout', new=StringIO()) as fake_output:
             Tpl.message('test_message')
-            self.assertTrue('test_message' in fakeOutput.getvalue().strip())
+            self.assertTrue('test_message' in fake_output.getvalue().strip())
 
     def test_error(self):
-        """ Tpl.error() test """
+        """Tpl.error() test."""
 
-        with patch('sys.stderr', new=StringIO()) as fakeOutput:
+        with patch('sys.stderr', new=StringIO()) as fake_output:
             Tpl.error('test_error')
-            self.assertTrue('' in fakeOutput.getvalue().strip())
+            self.assertTrue('' in fake_output.getvalue().strip())
 
     def test_warning(self):
-        """ Tpl.warning() test """
+        """Tpl.warning() test."""
 
-        with patch('sys.stdout', new=StringIO()) as fakeOutput:
+        with patch('sys.stdout', new=StringIO()) as fake_output:
             Tpl.warning('test_warning')
-            self.assertTrue('' in fakeOutput.getvalue().strip())
+            self.assertTrue('' in fake_output.getvalue().strip())
 
     def test_line_exception(self):
-        """ Tpl.line() exception test """
+        """Tpl.line() exception test."""
 
         undefined = 'undefined'
+
         with self.assertRaises(TplError) as context:
             Tpl.line(key=undefined)
+
         self.assertTrue(undefined in str(context.exception))
         self.assertTrue(TplError == context.expected)
 
     def test_info(self):
-        """ Tpl.info() test """
-    
-        with patch('sys.stdout', new=StringIO()) as fakeOutput:
+        """Tpl.info() test."""
+
+        with patch('sys.stdout', new=StringIO()) as fake_output:
             Tpl.info('test_info')
-            self.assertTrue('' in fakeOutput.getvalue().strip())
-    
+            self.assertTrue('' in fake_output.getvalue().strip())
+
     def test_error_exception(self):
-        """ Tpl.error() exception test """
+        """Tpl.error() exception test."""
 
         undefined = 'undefined'
+
         with self.assertRaises(TplError) as context:
             Tpl.error(key=undefined)
+
         self.assertTrue(undefined in str(context.exception))
         self.assertTrue(TplError == context.expected)
-        
+
     def test_info_exception(self):
-        """ Tpl.info() exception test """
+        """Tpl.info() exception test."""
 
         undefined = 'undefined'
+
         with self.assertRaises(TplError) as context:
             Tpl.info(key=undefined)
+
         self.assertTrue(undefined in str(context.exception))
         self.assertTrue(TplError == context.expected)
-        
+
     def test_warning_exception(self):
-        """ Tpl.warning() exception test """
+        """Tpl.warning() exception test."""
 
         undefined = 'undefined'
+
         with self.assertRaises(TplError) as context:
             Tpl.warning(key=undefined)
+
         self.assertTrue(undefined in str(context.exception))
         self.assertTrue(TplError == context.expected)
-            
+
+
 if __name__ == "__main__":
     unittest.main()

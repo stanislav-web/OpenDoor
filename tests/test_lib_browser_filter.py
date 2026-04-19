@@ -17,40 +17,46 @@
 """
 
 from io import StringIO
-from mock import patch
 import unittest
-from src.lib.browser.filter import Filter
-from src.lib.browser.config import Config
+from unittest.mock import patch
+
 from src.core.logger.logger import Logger
+from src.lib.browser.config import Config
+from src.lib.browser.filter import Filter
 
 
 class TestBrowserFilter(unittest.TestCase):
-    """TestBrowserFilter class"""
-    
+    """TestBrowserFilter class."""
+
     def setUp(self):
-        
+        """
+        Prepare test config and reset logger handlers.
+
+        :return: None
+        """
         logger = Logger.log()
+
         for handler in logger.handlers:
             logger.removeHandler(handler)
-            
+
         self.config = Config({
-        'debug' : 1,
-        'method' : 'HEAD',
-        'indexof' : None,
-        'random_agent': False,
-        'random_list' : True,
-        'threads' : 1000
-    })
-        
+            'debug': 1,
+            'method': 'HEAD',
+            'indexof': None,
+            'random_agent': False,
+            'random_list': True,
+            'threads': 1000,
+        })
+
     def test_filter_threads_to_max(self):
-        """ Filter.init() test max threads """
-        
+        """Filter.init() should clamp threads to the configured max."""
+
         with patch('sys.stdout', new=StringIO()):
             Filter(self.config, 300)
             self.assertEqual(self.config.threads, Config.DEFAULT_MAX_THREADS)
-            
+
     def test_filter_threads_to_list_lines(self):
-        """ Filter.init() test max lines"""
+        """Filter.init() should clamp threads to the wordlist size."""
 
         with patch('sys.stdout', new=StringIO()):
             Filter(self.config, 10)
