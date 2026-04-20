@@ -113,6 +113,24 @@ class Options(object):
             {
                 "group": "request",
                 "args": None,
+                "argl": "--header",
+                "default": None,
+                "action": "append",
+                "help": "Add custom request header, e.g. --header 'X-Test: 1'",
+                "type": str
+            },
+            {
+                "group": "request",
+                "args": None,
+                "argl": "--cookie",
+                "default": None,
+                "action": "append",
+                "help": "Add custom cookie, e.g. --cookie 'sid=abc123'",
+                "type": str
+            },
+            {
+                "group": "request",
+                "args": None,
                 "argl": "--accept-cookies",
                 "default": False,
                 "action": "store_true",

@@ -38,6 +38,52 @@ class RequestProvider(CookiesProvider, HeaderProvider, UserAgentHeaderProvider, 
         ConnectionHeaderProvider.__init__(self, config)
         UserAgentHeaderProvider.__init__(self, config, agent_list)
         CookiesProvider.__init__(self)
+        self._apply_custom_headers(config)
+        self._apply_custom_cookies(config)
+
+    def _apply_custom_headers(self, config):
+        """
+        Apply custom request headers from cli/config.
+
+        :param src.lib.browser.config.Config config: configurations
+        :return: None
+        """
+
+        raw_headers = getattr(config, 'headers', None)
+        if raw_headers is None:
+            raw_headers = getattr(config, 'header', [])
+
+        for raw_header in raw_headers or []:
+            if ':' not in str(raw_header):
+                continue
+
+            key, value = str(raw_header).split(':', 1)
+            key = key.strip()
+            value = value.strip()
+
+            if key and value:
+                self.add_header(key, value)
+
+    def _apply_custom_cookies(self, config):
+        """
+        Apply custom request cookies from cli/config.
+
+        :param src.lib.browser.config.Config config: configurations
+        :return: None
+        """
+
+        raw_cookies = getattr(config, 'cookies', None)
+        if raw_cookies is None:
+            raw_cookies = getattr(config, 'cookie', [])
+
+        cookies = [
+            str(item).strip()
+            for item in (raw_cookies or [])
+            if str(item).strip()
+        ]
+
+        if cookies:
+            self.add_header('Cookie', '; '.join(cookies))
 
     def request(self, url):
         """

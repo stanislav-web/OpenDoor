@@ -236,6 +236,110 @@ class TestOptions(unittest.TestCase):
             }
         )
 
+    def test_init_should_parse_multiple_header_arguments(self):
+        """Options.__init__() should parse multiple custom request headers."""
+
+        with patch(
+            'src.core.options.options.sys.argv',
+            [
+                'opendoor.py',
+                '--host',
+                'example.com',
+                '--header',
+                'Authorization: Bearer test',
+                '--header',
+                'X-Test: 1',
+            ]
+        ):
+            option = Options()
+
+        self.assertEqual(
+            option.args.header,
+            ['Authorization: Bearer test', 'X-Test: 1']
+        )
+
+    def test_get_arg_values_should_preserve_header_arguments(self):
+        """Options.get_arg_values() should preserve custom header arguments."""
+
+        namespace = Namespace(
+            host='example.com',
+            header=['Authorization: Bearer test', 'X-Test: 1'],
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'header': ['Authorization: Bearer test', 'X-Test: 1'],
+        }
+
+        with patch('src.core.options.options.Filter.filter', return_value=filtered) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, filtered)
+        filter_mock.assert_called_once_with(
+            {
+                'host': 'example.com',
+                'header': ['Authorization: Bearer test', 'X-Test: 1'],
+            }
+        )
+
+    def test_init_should_parse_multiple_cookie_arguments(self):
+        """Options.__init__() should parse multiple custom cookie arguments."""
+
+        with patch(
+            'src.core.options.options.sys.argv',
+            [
+                'opendoor.py',
+                '--host',
+                'example.com',
+                '--cookie',
+                'sid=abc123',
+                '--cookie',
+                'locale=en',
+            ]
+        ):
+            option = Options()
+
+        self.assertEqual(option.args.cookie, ['sid=abc123', 'locale=en'])
+
+    def test_get_arg_values_should_preserve_cookie_arguments(self):
+        """Options.get_arg_values() should preserve custom cookie arguments."""
+
+        namespace = Namespace(
+            host='example.com',
+            cookie=['sid=abc123', 'locale=en'],
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'cookie': ['sid=abc123', 'locale=en'],
+        }
+
+        with patch('src.core.options.options.Filter.filter', return_value=filtered) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, filtered)
+        filter_mock.assert_called_once_with(
+            {
+                'host': 'example.com',
+                'cookie': ['sid=abc123', 'locale=en'],
+            }
+        )
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,5 +1,12 @@
 Changelog
 =========
+v5.3.0 (21.04.2026)
+---------------------------
+- Added: `--header` to send custom request headers from CLI.
+- Added: `--cookie` to send custom request cookies from CLI.
+- Added: request provider support for multiple custom headers and cookies.
+- Added: tests for custom request headers and cookies integration.
+- Changed: `README.md` and `docs/Usage.md` updated for custom request metadata and refreshed CLI help examples.
 
 v5.2.0 (20.04.2026)
 ---------------------------

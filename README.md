@@ -28,21 +28,18 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
 
 [Read The Docs](https://opendoor.readthedocs.io/)
 
-* *Current 5.2.0 (20.04.2026)*
+* *Current 5.3.0 (21.04.2026)*
     - Directories: 110977
     - Subdomains: 255359
 
 #### [Changelog](CHANGELOG.md) (last changes)
-v5.2.0 (20.04.2026)
+v5.3.0 (21.04.2026)
 ---------------------------
-- (feature) Added recursive directory scan support.
-- (feature) Added configurable recursion depth via `--recursive-depth`.
-- (feature) Added configurable HTTP status allowlist for recursive expansion via `--recursive-status`.
-- (feature) Added configurable excluded extensions for recursive expansion via `--recursive-exclude`.
-- (optimization) Browser request flow is now depth-aware for recursive workloads.
-- (optimization) ThreadPool total items can be extended for recursive workloads.
-- (docs) Updated `README.md` and `docs/Usage.md` for recursive scan support and refreshed CLI help output.
-- (tests) Test suite expanded to 546 tests with recursive browser/config/thread-pool coverage.
+- (feature) Added custom request headers via `--header`.
+- (feature) Added custom request cookies via `--cookie`.
+- (feature) Request providers now apply multiple custom headers and cookies from CLI/config.
+- (docs) Updated `README.md` and `docs/Usage.md` with `--header` and `--cookie` examples and refreshed CLI help output.
+- (tests) Test suite expanded to 553 tests with request provider coverage for custom headers and cookies.
 
 #### Main features
 
@@ -55,9 +52,10 @@ v5.2.0 (20.04.2026)
 - ✅ Invalid certificates scan
 - ✅ HTTP(S)/SOCKS proxies
 - ✅ dynamic request headers
-    * custom cookies support
+    * custom request headers support
+    * custom request cookies support
+    * cookie routing from responses
     * custom or randomized user-agent support
-    * cache-control support
 - ✅ custom wordlists prefixes
 - ✅ custom wordlists, proxies, ignore lists
 - ✅ debug levels (1-3)
@@ -83,23 +81,6 @@ v5.2.0 (20.04.2026)
     * random proxy per request
     * wordlists shuffling
     * wordlists filters
-
-#### Recursive scan
-
-Recursive scan is optional and reuses the active dictionary under discovered directory-like paths.
-
-```bash
-opendoor --host http://www.example.com --recursive
-opendoor --host http://www.example.com --recursive --recursive-depth 2
-opendoor --host http://www.example.com --recursive --recursive-status 200,403
-opendoor --host http://www.example.com --recursive --recursive-exclude jpg,png,css,js,pdf
-```
-
-Behavior:
-- `--recursive` enables recursive directory scan
-- `--recursive-depth` limits how deep recursive expansion may continue
-- `--recursive-status` controls which HTTP status codes are allowed to trigger recursive expansion
-- `--recursive-exclude` prevents file-like paths from spawning nested requests
 
 #### Install PIP
 ```bash
@@ -232,8 +213,8 @@ py -m build
 
 Generated artifacts:
 ```bash
-dist/opendoor-5.2.0.tar.gz
-dist/opendoor-5.2.0-py3-none-any.whl
+dist/opendoor-5.3.0.tar.gz
+dist/opendoor-5.3.0-py3-none-any.whl
 ```
 
 This flow is preferable for Linux distributions and package maintainers because:
@@ -248,13 +229,13 @@ The package is already present in BlackArch Linux, and this build layout is inte
 
 ##### Linux / macOS
 ```bash
-python3 -m pip install dist/opendoor-5.2.0-py3-none-any.whl
+python3 -m pip install dist/opendoor-5.3.0-py3-none-any.whl
 opendoor --host http://www.example.com
 ```
 
 ##### Windows (PowerShell)
 ```powershell
-py -m pip install dist/opendoor-5.2.0-py3-none-any.whl
+py -m pip install dist/opendoor-5.3.0-py3-none-any.whl
 opendoor --host http://www.example.com
 ```
 
@@ -295,7 +276,8 @@ py -m pip install -e .
 ```bash
 usage: opendoor [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
                 [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
-                [--keep-alive] [--accept-cookies] [--debug DEBUG] [--tor]
+                [--keep-alive] [--accept-cookies] [--header HEADER]
+                [--cookie COOKIE] [--debug DEBUG] [--tor]
                 [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
                 [--reports REPORTS] [--reports-dir REPORTS_DIR]
                 [--random-agent] [--random-list] [--prefix PREFIX]
@@ -338,6 +320,8 @@ Request tools:
                         Maximum reconnect retries (default 3)
   --keep-alive          Use keep-alive connection
   --accept-cookies      Accept and route cookies from responses
+  --header HEADER       Add custom request header, e.g. --header 'X-Test: 1'
+  --cookie COOKIE       Add custom cookie, e.g. --cookie 'sid=abc123'
   --tor                 Use built-in proxy list
   --torlist TORLIST     Path to custom proxy list
   --proxy PROXY         Custom permanent proxy server

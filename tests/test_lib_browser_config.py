@@ -124,6 +124,42 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(cfg.recursive_status, [])
         self.assertEqual(cfg.recursive_exclude, [])
 
+    def test_headers_are_normalized(self):
+        """Config should normalize custom request headers."""
+
+        cfg = Config({
+            'reports': 'std',
+            'header': [' Authorization: Bearer test ', 'X-Test: 1', '   '],
+        })
+
+        self.assertEqual(
+            cfg.headers,
+            ['Authorization: Bearer test', 'X-Test: 1']
+        )
+
+    def test_headers_default_to_empty_list(self):
+        """Config should expose an empty header list by default."""
+
+        cfg = Config({'reports': 'std'})
+
+        self.assertEqual(cfg.headers, [])
+
+    def test_cookies_are_normalized(self):
+        """Config should normalize custom request cookies."""
+
+        cfg = Config({
+            'reports': 'std',
+            'cookie': [' sid=abc123 ', 'locale=en', '   '],
+        })
+
+        self.assertEqual(cfg.cookies, ['sid=abc123', 'locale=en'])
+
+    def test_cookies_default_to_empty_list(self):
+        """Config should expose an empty cookie list by default."""
+
+        cfg = Config({'reports': 'std'})
+
+        self.assertEqual(cfg.cookies, [])
 
 if __name__ == '__main__':
     unittest.main()

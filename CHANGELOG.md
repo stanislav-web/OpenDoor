@@ -1,16 +1,23 @@
 CHANGELOG
 =======
+v5.3.0 (21.04.2026)
+---------------------------
+- Added: `--header` to send custom request headers from CLI.
+- Added: `--cookie` to send custom request cookies from CLI.
+- Added: request provider support for multiple custom headers and cookies.
+- Added: tests for custom request headers and cookies integration.
+- Changed: `README.md` and `docs/Usage.md` updated for custom request metadata and refreshed CLI help examples.
+
 v5.2.0 (20.04.2026)
 ---------------------------
-- Added: recursive directory scan support
-- Added: `--recursive-depth` for configurable recursion depth
-- Added: `--recursive-status` for configurable recursive expansion status codes
-- Added: `--recursive-exclude` for configurable recursive extension exclusions
-- Changed: Browser request flow is now depth-aware for recursive scans
-- Changed: ThreadPool total items may be extended for recursive workloads
-- Changed: `README.md` and `docs/Usage.md` refreshed for recursive scan usage and updated CLI help output
-- Tests: browser, config, and thread-pool coverage expanded for recursive scan behavior
-- Tests: full suite now runs 546 passing tests
+- (feature) Added recursive directory scan support.
+- (feature) Added configurable recursion depth via `--recursive-depth`.
+- (feature) Added configurable HTTP status allowlist for recursive expansion via `--recursive-status`.
+- (feature) Added configurable excluded extensions for recursive expansion via `--recursive-exclude`.
+- (optimization) Browser request flow is now depth-aware for recursive workloads.
+- (optimization) ThreadPool total items can be extended for recursive workloads.
+- (docs) Updated `README.md` and `docs/Usage.md` for recursive scan support and refreshed CLI help output.
+- (tests) Test suite expanded to 546 tests with recursive browser/config/thread-pool coverage.
 
 v5.1.0 (20.04.2026)
 ---------------------------
@@ -18,7 +25,7 @@ v5.1.0 (20.04.2026)
 - (feature)[#39](https://github.com/stanislav-web/OpenDoor/issues/39) Feature Request: Output response codes
 - (feature) Populated directories by adding new unique +27965 actual paths
 - (bugfix) Report plugins now create nested target directories correctly, e.g. `reports/example.com` instead of `reportsexample.com`.
-- (bugfix) Fixed BOM decoding behavior in helper utilities and aligned tests with the corrected implementation.
+- (bugfix)Fixed BOM decoding behavior in helper utilities and aligned tests with the corrected implementation.
 - (optimization) Refactored `FileSystem.readline()` to batch-load lines with much lower peak memory usage.
 - (optimization) Optimized `Reader.get_lines()` hot path by precomputing handler params and reducing repeated string formatting work.
 - (optimization) Optimized `ThreadPool.add()` submit-side accounting using submitted task tracking.

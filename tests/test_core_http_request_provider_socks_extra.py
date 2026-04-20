@@ -22,6 +22,11 @@ class TestRequestProviderExtra(unittest.TestCase):
             'is_random_user_agent': False,
             'user_agent': 'UA',
             'method': 'HEAD',
+            'header': None,
+            'cookie': None,
+            'scheme': 'http://',
+            'host': 'example.com',
+            'port': 80,
         }
         base.update(overrides)
         return SimpleNamespace(**base)
@@ -54,6 +59,73 @@ class TestRequestProviderExtra(unittest.TestCase):
 
         add_header_mock.assert_not_called()
 
+    def test_init_applies_custom_request_headers(self):
+        """RequestProvider should apply custom headers from config during initialization."""
+
+        provider = RequestProvider(
+            self.make_cfg(header=['Authorization: Bearer test']),
+            agent_list=['UA']
+        )
+
+        headers = provider._headers
+        self.assertEqual(headers.get('Authorization'), 'Bearer test')
+
+    def test_init_applies_multiple_custom_request_headers(self):
+        """RequestProvider should apply multiple custom headers from config."""
+
+        provider = RequestProvider(
+            self.make_cfg(header=['Authorization: Bearer test', 'X-Test: 1']),
+            agent_list=['UA']
+        )
+
+        headers = provider._headers
+        self.assertEqual(headers.get('Authorization'), 'Bearer test')
+        self.assertEqual(headers.get('X-Test'), '1')
+
+    def test_init_ignores_invalid_custom_request_headers(self):
+        """RequestProvider should ignore invalid custom header values without a separator."""
+
+        provider = RequestProvider(
+            self.make_cfg(header=['Authorization: Bearer test', 'BrokenHeader']),
+            agent_list=['UA']
+        )
+
+        headers = provider._headers
+        self.assertEqual(headers.get('Authorization'), 'Bearer test')
+        self.assertIsNone(headers.get('BrokenHeader'))
+
+    def test_init_applies_custom_request_cookie(self):
+        """RequestProvider should apply a custom cookie from config during initialization."""
+
+        provider = RequestProvider(
+            self.make_cfg(cookie=['sid=abc123']),
+            agent_list=['UA']
+        )
+
+        headers = provider._headers
+        self.assertEqual(headers.get('Cookie'), 'sid=abc123')
+
+    def test_init_applies_multiple_custom_request_cookies(self):
+        """RequestProvider should join multiple custom cookies into a single Cookie header."""
+
+        provider = RequestProvider(
+            self.make_cfg(cookie=['sid=abc123', 'locale=en']),
+            agent_list=['UA']
+        )
+
+        headers = provider._headers
+        self.assertEqual(headers.get('Cookie'), 'sid=abc123; locale=en')
+
+    def test_init_ignores_empty_custom_request_cookies(self):
+        """RequestProvider should ignore empty custom cookie values."""
+
+        provider = RequestProvider(
+            self.make_cfg(cookie=['sid=abc123', '   ', 'locale=en']),
+            agent_list=['UA']
+        )
+
+        headers = provider._headers
+        self.assertEqual(headers.get('Cookie'), 'sid=abc123; locale=en')
 
 class TestSocketExtra(unittest.TestCase):
     """TestSocketExtra class."""

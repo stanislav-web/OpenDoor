@@ -16,25 +16,25 @@ Installed entrypoint usage:
 opendoor --host http://www.example.com
 ```
 
-Recursive directory scan examples:
-
-```shell
-opendoor --host http://www.example.com --recursive
-opendoor --host http://www.example.com --recursive --recursive-depth 2
-opendoor --host http://www.example.com --recursive --recursive-status 200,403
-opendoor --host http://www.example.com --recursive --recursive-exclude jpg,png,css,js,pdf
-```
-
 ![Usage](img/usage.jpg)
 
 Help
 ====
 
 ```shell
-usage: opendoor [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS] [-d DELAY] [--timeout TIMEOUT] [-r RETRIES] [--keep-alive] [--accept-cookies] [--debug DEBUG] [--tor] [--torlist TORLIST] [--proxy PROXY]
-                [-s SCAN] [-w WORDLIST] [--reports REPORTS] [--reports-dir REPORTS_DIR] [--random-agent] [--random-list] [--prefix PREFIX] [-e EXTENSIONS] [-i IGNORE_EXTENSIONS]
-                [--recursive] [--recursive-depth RECURSIVE_DEPTH] [--recursive-status RECURSIVE_STATUS] [--recursive-exclude RECURSIVE_EXCLUDE] [--sniff SNIFF] [--update]
-                [--version] [--examples] [--docs] [--wizard [WIZARD]]
+usage: opendoor [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
+                [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
+                [--keep-alive] [--accept-cookies] [--header HEADER]
+                [--cookie COOKIE] [--debug DEBUG] [--tor]
+                [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
+                [--reports REPORTS] [--reports-dir REPORTS_DIR]
+                [--random-agent] [--random-list] [--prefix PREFIX]
+                [-e EXTENSIONS] [-i IGNORE_EXTENSIONS] [--recursive]
+                [--recursive-depth RECURSIVE_DEPTH]
+                [--recursive-status RECURSIVE_STATUS]
+                [--recursive-exclude RECURSIVE_EXCLUDE] [--sniff SNIFF]
+                [--update] [--version] [--examples] [--docs]
+                [--wizard [WIZARD]]
 
 options:
   -h, --help            show this help message and exit
@@ -66,10 +66,12 @@ Request tools:
                         Maximum reconnect retries (default 3)
   --keep-alive          Use keep-alive connection
   --accept-cookies      Accept and route cookies from responses
+  --header HEADER       Add custom request header, e.g. --header 'X-Test: 1'
+  --cookie COOKIE       Add custom cookie, e.g. --cookie 'sid=abc123'
   --tor                 Use built-in proxy list
   --torlist TORLIST     Path to custom proxy list
   --proxy PROXY         Custom permanent proxy server
-  --random-agent        Randomize the user-agent per request
+  --random-agent        Randomize user-agent per request
 
 Sniff tools:
   --sniff SNIFF         Response sniff plugins (indexof,collation,file,skipempty,skipsizes=NUM:NUM...)
@@ -203,6 +205,22 @@ Accept and reuse cookies from responses.
 opendoor --host www.example.com --accept-cookies
 ```
 
+**--header**  
+Append a custom request header. May be used multiple times.
+
+```shell
+opendoor --host www.example.com --header "Authorization: Bearer test"
+opendoor --host www.example.com --header "X-Test: 1" --header "Accept-Language: en-US"
+```
+
+**--cookie**  
+Append a custom request cookie. May be used multiple times. Values are joined into the initial `Cookie` header.
+
+```shell
+opendoor --host www.example.com --cookie "sid=abc123"
+opendoor --host www.example.com --cookie "sid=abc123" --cookie "locale=en"
+```
+
 **--tor**  
 Use the built-in proxy list.
 
@@ -295,21 +313,21 @@ opendoor --host www.example.com --recursive
 ```
 
 **--recursive-depth**  
-Maximum recursion depth for nested directory expansion.
+Set maximum recursive scan depth.
 
 ```shell
 opendoor --host www.example.com --recursive --recursive-depth 2
 ```
 
 **--recursive-status**  
-Comma-separated HTTP status codes that are allowed to trigger recursive expansion.
+Set the HTTP status codes allowed to trigger recursive expansion.
 
 ```shell
 opendoor --host www.example.com --recursive --recursive-status 200,403
 ```
 
 **--recursive-exclude**  
-Comma-separated file extensions that must not be treated as recursive directory candidates.
+Exclude file-like paths from recursive expansion.
 
 ```shell
 opendoor --host www.example.com --recursive --recursive-exclude jpg,png,css,js,pdf

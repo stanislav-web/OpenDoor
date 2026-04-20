@@ -46,6 +46,8 @@ class Config(object):
         self._ssl = params.get('ssl')
         self._host = params.get('host')
         self._proxy = '' if params.get('proxy') is None else params.get('proxy')
+        self._headers = params.get('header')
+        self._cookies = params.get('cookie')
         self._accept_cookies = params.get('accept_cookies') is not None
         self._keep_alive = params.get('keep_alive') is not None
         self._port = params.get('port')
@@ -351,6 +353,18 @@ class Config(object):
         """Threads property."""
 
         return self._threads
+
+    @property
+    def headers(self):
+        """Custom request headers."""
+
+        return [] if self._headers is None else [str(item).strip() for item in self._headers if str(item).strip()]
+
+    @property
+    def cookies(self):
+        """Custom request cookies."""
+
+        return [] if self._cookies is None else [str(item).strip() for item in self._cookies if str(item).strip()]
 
     @property
     def accept_cookies(self):
