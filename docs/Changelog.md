@@ -1,5 +1,14 @@
 Changelog
 =========
+
+v5.3.1 (21.04.2026)
+---------------------------
+- (fix) Fixed SOCKS proxy runtime support by adding `PySocks` as a required dependency.
+- (fix) Added support for `socks://` proxy alias and normalized it to `socks5://`.
+- (fix) Fixed proxy normalization for both standalone `--proxy` usage and proxy list entries.
+- (tests) Added regression tests for SOCKS proxy alias handling and missing `PySocks` dependency behavior.
+- (build) Refreshed package metadata and distribution artifacts for the `5.3.1` patch release.
+
 v5.3.0 (21.04.2026)
 ---------------------------
 - Added: `--header` to send custom request headers from CLI.

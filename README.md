@@ -33,13 +33,13 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
     - Subdomains: 255359
 
 #### [Changelog](CHANGELOG.md) (last changes)
-v5.3.0 (21.04.2026)
+v5.3.1 (21.04.2026)
 ---------------------------
-- (feature) Added custom request headers via `--header`.
-- (feature) Added custom request cookies via `--cookie`.
-- (feature) Request providers now apply multiple custom headers and cookies from CLI/config.
-- (docs) Updated `README.md` and `docs/Usage.md` with `--header` and `--cookie` examples and refreshed CLI help output.
-- (tests) Test suite expanded to 553 tests with request provider coverage for custom headers and cookies.
+- (fix) Fixed SOCKS proxy runtime support by adding `PySocks` as a required dependency.
+- (fix) Added support for `socks://` proxy alias and normalized it to `socks5://`.
+- (fix) Fixed proxy normalization for both standalone `--proxy` usage and proxy list entries.
+- (tests) Added regression tests for SOCKS proxy alias handling and missing `PySocks` dependency behavior.
+- (build) Refreshed package metadata and distribution artifacts for the `5.3.1` patch release.
 
 #### Main features
 
