@@ -16,6 +16,15 @@ Installed entrypoint usage:
 opendoor --host http://www.example.com
 ```
 
+Recursive directory scan examples:
+
+```shell
+opendoor --host http://www.example.com --recursive
+opendoor --host http://www.example.com --recursive --recursive-depth 2
+opendoor --host http://www.example.com --recursive --recursive-status 200,403
+opendoor --host http://www.example.com --recursive --recursive-exclude jpg,png,css,js,pdf
+```
+
 ![Usage](img/usage.jpg)
 
 Help
@@ -23,7 +32,8 @@ Help
 
 ```shell
 usage: opendoor [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS] [-d DELAY] [--timeout TIMEOUT] [-r RETRIES] [--keep-alive] [--accept-cookies] [--debug DEBUG] [--tor] [--torlist TORLIST] [--proxy PROXY]
-                [-s SCAN] [-w WORDLIST] [--reports REPORTS] [--reports-dir REPORTS_DIR] [--random-agent] [--random-list] [--prefix PREFIX] [-e EXTENSIONS] [-i IGNORE_EXTENSIONS] [--sniff SNIFF] [--update]
+                [-s SCAN] [-w WORDLIST] [--reports REPORTS] [--reports-dir REPORTS_DIR] [--random-agent] [--random-list] [--prefix PREFIX] [-e EXTENSIONS] [-i IGNORE_EXTENSIONS]
+                [--recursive] [--recursive-depth RECURSIVE_DEPTH] [--recursive-status RECURSIVE_STATUS] [--recursive-exclude RECURSIVE_EXCLUDE] [--sniff SNIFF] [--update]
                 [--version] [--examples] [--docs] [--wizard [WIZARD]]
 
 options:
@@ -59,7 +69,7 @@ Request tools:
   --tor                 Use built-in proxy list
   --torlist TORLIST     Path to custom proxy list
   --proxy PROXY         Custom permanent proxy server
-  --random-agent        Randomize user-agent per request
+  --random-agent        Randomize the user-agent per request
 
 Sniff tools:
   --sniff SNIFF         Response sniff plugins (indexof,collation,file,skipempty,skipsizes=NUM:NUM...)
@@ -78,6 +88,13 @@ Wordlist tools:
                         Force selected extensions for the scan session, e.g. php,json
   -i, --ignore-extensions IGNORE_EXTENSIONS
                         Ignore selected extensions for the scan session, e.g. aspx,jsp
+  --recursive           Enable recursive directory scan
+  --recursive-depth RECURSIVE_DEPTH
+                        Maximum recursive scan depth
+  --recursive-status RECURSIVE_STATUS
+                        HTTP status codes allowed for recursive expansion
+  --recursive-exclude RECURSIVE_EXCLUDE
+                        File extensions excluded from recursive expansion
 ```
 
 Arguments description
@@ -268,6 +285,34 @@ Ignore selected extensions for the scan session.
 
 ```shell
 opendoor --host www.example.com --ignore-extensions aspx,jsp
+```
+
+**--recursive**  
+Enable recursive directory scan.
+
+```shell
+opendoor --host www.example.com --recursive
+```
+
+**--recursive-depth**  
+Maximum recursion depth for nested directory expansion.
+
+```shell
+opendoor --host www.example.com --recursive --recursive-depth 2
+```
+
+**--recursive-status**  
+Comma-separated HTTP status codes that are allowed to trigger recursive expansion.
+
+```shell
+opendoor --host www.example.com --recursive --recursive-status 200,403
+```
+
+**--recursive-exclude**  
+Comma-separated file extensions that must not be treated as recursive directory candidates.
+
+```shell
+opendoor --host www.example.com --recursive --recursive-exclude jpg,png,css,js,pdf
 ```
 
 Reports tools

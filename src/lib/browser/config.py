@@ -55,6 +55,10 @@ class Config(object):
         self._reports = self._normalize_csv(params.get('reports'))
         self._extensions = self._normalize_csv(params.get('extensions'))
         self._ignore_extensions = self._normalize_csv(params.get('ignore_extensions'))
+        self._is_recursive = params.get('recursive') is True
+        self._recursive_depth = 1 if params.get('recursive_depth') is None else int(params.get('recursive_depth'))
+        self._recursive_status = self._normalize_csv(params.get('recursive_status'))
+        self._recursive_exclude = self._normalize_csv(params.get('recursive_exclude'))
         self._retries = False if params.get('retries') is None else params.get('retries')
         self._method = params.get('method')
         self._delay = params.get('delay')
@@ -290,6 +294,37 @@ class Config(object):
         """Ignore extensions resolver."""
 
         return self._ignore_extensions
+
+    @property
+    def is_recursive(self):
+        """If recursive scan is enabled."""
+
+        return self._is_recursive
+
+    @property
+    def recursive_depth(self):
+        """Maximum recursive scan depth."""
+
+        return self._recursive_depth
+
+    @property
+    def recursive_status(self):
+        """Statuses allowed for recursive expansion."""
+
+        return [] if self._recursive_status is None else [str(item).strip() for item in self._recursive_status if str(item).strip()]
+
+    @property
+    def recursive_exclude(self):
+        """Extensions excluded from recursive expansion."""
+
+        if self._recursive_exclude is None:
+            return []
+
+        return [
+            str(item).strip().lstrip('.').lower()
+            for item in self._recursive_exclude
+            if str(item).strip()
+        ]
 
     @property
     def reports(self):

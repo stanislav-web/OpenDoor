@@ -238,6 +238,42 @@ class Options(object):
                 "type": str
             },
             {
+                "group": "wordlist",
+                "args": None,
+                "argl": "--recursive",
+                "default": False,
+                "action": "store_true",
+                "help": "Enable recursive directory scan",
+                "type": bool
+            },
+            {
+                "group": "wordlist",
+                "args": None,
+                "argl": "--recursive-depth",
+                "default": 1,
+                "action": "store",
+                "help": "Maximum recursive scan depth",
+                "type": int
+            },
+            {
+                "group": "wordlist",
+                "args": None,
+                "argl": "--recursive-status",
+                "default": "200,301,302,307,308,403",
+                "action": "store",
+                "help": "HTTP status codes allowed for recursive expansion",
+                "type": str
+            },
+            {
+                "group": "wordlist",
+                "args": None,
+                "argl": "--recursive-exclude",
+                "default": "jpg,jpeg,png,gif,svg,css,js,ico,woff,woff2,ttf,map,pdf,zip,gz,tar",
+                "action": "store",
+                "help": "File extensions excluded from recursive expansion",
+                "type": str
+            },
+            {
                 "group": "sniff",
                 "args": None,
                 "argl": "--sniff",

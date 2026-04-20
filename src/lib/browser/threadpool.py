@@ -37,7 +37,7 @@ class ThreadPool(object):
         :param int timeout: delay between threads
         """
 
-        self.__queue = Queue(num_threads)
+        self.__queue = Queue()
         self.__workers = []
         self.__submitted = 0
         self.total_items_size = total_items
@@ -89,6 +89,17 @@ class ThreadPool(object):
         """
 
         return self.__submitted
+
+    def extend_total_items(self, amount):
+        """
+        Extend allowed submitted items size.
+
+        :param int amount:
+        :return: None
+        """
+
+        if int(amount) > 0:
+            self.total_items_size += int(amount)
 
     def add(self, func, *args, **kargs):
         """

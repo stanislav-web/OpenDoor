@@ -28,53 +28,54 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
 
 [Read The Docs](https://opendoor.readthedocs.io/)
 
-* *Current 5.1.0 (20.04.2026)*
+* *Current 5.2.0 (20.04.2026)*
     - Directories: 110977
     - Subdomains: 255359
 
 #### [Changelog](CHANGELOG.md) (last changes)
-v5.1.0 (20.04.2026)
+v5.2.0 (20.04.2026)
 ---------------------------
-- (feature)[#35](https://github.com/stanislav-web/OpenDoor/issues/35) Added response size to exported `txt`, `html`, and `json` reports.
-- (feature)[#39](https://github.com/stanislav-web/OpenDoor/issues/39) Feature Request: Output response codes
-- (feature) Populated directories by adding new unique +27965 actual paths
-- (bugfix) Report plugins now create nested target directories correctly, e.g. `reports/example.com` instead of `reportsexample.com`.
-- (bugfix)Fixed BOM decoding behavior in helper utilities and aligned tests with the corrected implementation.
-- (optimization) Refactored `FileSystem.readline()` to batch-load lines with much lower peak memory usage.
-- (optimization) Optimized `Reader.get_lines()` hot path by precomputing handler params and reducing repeated string formatting work.
-- (optimization) Optimized `ThreadPool.add()` submit-side accounting using submitted task tracking.
-- (optimization) Kept `Reader` extension filters on the fast in-memory path after benchmark validation.
-- (optimization) Updated benchmark workflow documentation and project maintenance flow.
-- (optimization) Fixed benchmark callback accounting for batched `readline()` processing.
-- (optimization) Improved compatibility of terminal, color, logger exception, and rainbow logger behavior under tests.
-- (tests) Test suite expanded to 400+ tests.
-- (tests) Added regression tests and edge case coverage for report size propagation.
-- (tests) Added broad unit test coverage across core, HTTP, reporter, browser, proxy, socket, logger, terminal, color, and filesystem modules.
+- (feature) Added recursive directory scan support.
+- (feature) Added configurable recursion depth via `--recursive-depth`.
+- (feature) Added configurable HTTP status allowlist for recursive expansion via `--recursive-status`.
+- (feature) Added configurable excluded extensions for recursive expansion via `--recursive-exclude`.
+- (optimization) Browser request flow is now depth-aware for recursive workloads.
+- (optimization) ThreadPool total items can be extended for recursive workloads.
+- (docs) Updated `README.md` and `docs/Usage.md` for recursive scan support and refreshed CLI help output.
+- (tests) Test suite expanded to 546 tests with recursive browser/config/thread-pool coverage.
 
 #### Main features
 
 - ✅ directories scanner
+- ✅ recursive directory scanner
 - ✅ subdomains scanner
 - ✅ multithreading control
-- ✅ scan's reports
 - ✅ HTTP(S) (PORT) support
 - ✅ Keep-alive long pooling
 - ✅ Invalid certificates scan
 - ✅ HTTP(S)/SOCKS proxies
-- ✅ dynamic request header
+- ✅ dynamic request headers
+    * custom cookies support
+    * custom or randomized user-agent support
+    * cache-control support
 - ✅ custom wordlists prefixes
 - ✅ custom wordlists, proxies, ignore lists
 - ✅ debug levels (1-3)
-- ✅ extensions filter
-- ✅ custom reports directory
+- ✅ extensions filters
 - ✅ custom config wizard (use random techniques)
+- ✅ scans reporting
+    * console reports
+    * json reports
+    * txt reports
+    * html reports
 - ✅ analyze techniques:
     * detect redirects
     * detect index of/ Apache
     * detect large files
     * skip 200 OK redirects
     * skip empty pages
-    * heuristic detect invalid pages
+    * cookie routing (reusing cookies)
+    * heuristic detect invalid pages (false 404)
     * blank success page filter
     * certificate required pages
 - ✅ randomization techniques:
@@ -82,6 +83,23 @@ v5.1.0 (20.04.2026)
     * random proxy per request
     * wordlists shuffling
     * wordlists filters
+
+#### Recursive scan
+
+Recursive scan is optional and reuses the active dictionary under discovered directory-like paths.
+
+```bash
+opendoor --host http://www.example.com --recursive
+opendoor --host http://www.example.com --recursive --recursive-depth 2
+opendoor --host http://www.example.com --recursive --recursive-status 200,403
+opendoor --host http://www.example.com --recursive --recursive-exclude jpg,png,css,js,pdf
+```
+
+Behavior:
+- `--recursive` enables recursive directory scan
+- `--recursive-depth` limits how deep recursive expansion may continue
+- `--recursive-status` controls which HTTP status codes are allowed to trigger recursive expansion
+- `--recursive-exclude` prevents file-like paths from spawning nested requests
 
 #### Install PIP
 ```bash
@@ -214,8 +232,8 @@ py -m build
 
 Generated artifacts:
 ```bash
-dist/opendoor-5.0.1.tar.gz
-dist/opendoor-5.0.1-py3-none-any.whl
+dist/opendoor-5.2.0.tar.gz
+dist/opendoor-5.2.0-py3-none-any.whl
 ```
 
 This flow is preferable for Linux distributions and package maintainers because:
@@ -230,13 +248,13 @@ The package is already present in BlackArch Linux, and this build layout is inte
 
 ##### Linux / macOS
 ```bash
-python3 -m pip install dist/opendoor-5.0.1-py3-none-any.whl
+python3 -m pip install dist/opendoor-5.2.0-py3-none-any.whl
 opendoor --host http://www.example.com
 ```
 
 ##### Windows (PowerShell)
 ```powershell
-py -m pip install dist/opendoor-5.0.1-py3-none-any.whl
+py -m pip install dist/opendoor-5.2.0-py3-none-any.whl
 opendoor --host http://www.example.com
 ```
 
@@ -281,7 +299,10 @@ usage: opendoor [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
                 [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
                 [--reports REPORTS] [--reports-dir REPORTS_DIR]
                 [--random-agent] [--random-list] [--prefix PREFIX]
-                [-e EXTENSIONS] [-i IGNORE_EXTENSIONS] [--sniff SNIFF]
+                [-e EXTENSIONS] [-i IGNORE_EXTENSIONS] [--recursive]
+                [--recursive-depth RECURSIVE_DEPTH]
+                [--recursive-status RECURSIVE_STATUS]
+                [--recursive-exclude RECURSIVE_EXCLUDE] [--sniff SNIFF]
                 [--update] [--version] [--examples] [--docs]
                 [--wizard [WIZARD]]
 
@@ -340,6 +361,13 @@ Wordlist tools:
                         Force selected extensions for scan session, e.g. php,json
   -i IGNORE_EXTENSIONS, --ignore-extensions IGNORE_EXTENSIONS
                         Ignore selected extensions for the scan session, e.g. aspx,jsp
+  --recursive           Enable recursive directory scan
+  --recursive-depth RECURSIVE_DEPTH
+                        Maximum recursive scan depth
+  --recursive-status RECURSIVE_STATUS
+                        HTTP status codes allowed for recursive expansion
+  --recursive-exclude RECURSIVE_EXCLUDE
+                        File extensions excluded from recursive expansion
 ```
 
 #### Maintainers

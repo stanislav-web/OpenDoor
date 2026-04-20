@@ -57,7 +57,18 @@ class TestBrowser(unittest.TestCase):
         """Create a browser instance without running __init__."""
 
         br = browser.__new__(browser)
-        setattr(br, '_Browser__result', {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()})
+        setattr(br, '_Browser__result',
+                {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()})
+        setattr(br, '_Browser__visited_recursive', set())
+        setattr(br, '_Browser__queued_recursive', set())
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'scan': 'directories',
+            'recursive': False,
+            'recursive_depth': 1,
+            'recursive_status': '200,301,302,307,308,403',
+            'recursive_exclude': 'jpg,jpeg,png,gif,svg,css,js,ico,woff,woff2,ttf,map,pdf,zip,gz,tar',
+        }))
         return br
 
     def test_init(self):
@@ -363,6 +374,38 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(result['total']['success'], 1)
         self.assertEqual(result['items']['success'], ['http://example.com/login.php'])
 
+    def test_http_request_accepts_depth_argument_without_affecting_handling(self):
+        """Browser.__http_request() should accept depth and preserve the existing handling flow."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = 'response'
+        pool = SimpleNamespace(items_size=2, total_items_size=10)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+        response_handler.handle.return_value = ('success', 'http://example.com/login.php', '42B', '200')
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+
+        br._Browser__http_request('http://example.com/login.php', depth=2)
+
+        client.request.assert_called_once_with('http://example.com/login.php')
+        response_handler.handle.assert_called_once_with(
+            'response',
+            request_url='http://example.com/login.php',
+            items_size=2,
+            total_size=10,
+            ignore_list=[],
+        )
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['success'], 1)
+        self.assertEqual(result['items']['success'], ['http://example.com/login.php'])
+
     def test_http_request_wraps_response_errors(self):
         """Browser.__http_request() should wrap response processing errors into BrowserError."""
 
@@ -413,8 +456,8 @@ class TestBrowser(unittest.TestCase):
         self.assertTrue(br._Browser__is_ignored('http://example.com/admin/'))
         self.assertFalse(br._Browser__is_ignored('http://example.com/login/'))
 
-    def test_add_urls_sends_only_non_ignored_urls_to_pool(self):
-        """Browser._add_urls() should enqueue only non-ignored URLs and keep ignored ones in report data."""
+    def test_add_urls_sends_only_non_ignored_urls_to_pool_with_zero_depth(self):
+        """Browser._add_urls() should enqueue only non-ignored URLs and pass root depth as 0."""
 
         br = self.make_browser()
         pool = MagicMock()
@@ -429,7 +472,11 @@ class TestBrowser(unittest.TestCase):
         with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
             br._add_urls(['http://example.com/admin', 'http://example.com/login'])
 
-        pool.add.assert_called_once()
+        pool.add.assert_called_once_with(
+            getattr(br, '_Browser__http_request'),
+            'http://example.com/login',
+            0
+        )
         pool.join.assert_called_once_with()
         warning_mock.assert_called_once()
 
@@ -722,6 +769,301 @@ class TestBrowser(unittest.TestCase):
             with self.assertRaises(BrowserError):
                 br.done()
 
+    def test_should_expand_recursively_returns_false_when_recursive_is_disabled(self):
+        """Browser recursive expansion should stay disabled when the feature is turned off."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'scan': 'directories',
+            'recursive': False,
+            'recursive_depth': 2,
+            'recursive_status': '200,403',
+            'recursive_exclude': 'jpg,png',
+        }))
+
+        actual = br._Browser__should_expand_recursively('200', 'http://example.com/admin', 0)
+
+        self.assertFalse(actual)
+
+    def test_should_expand_recursively_returns_false_for_non_default_scan(self):
+        """Browser recursive expansion should stay disabled for non-default scan types."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'scan': 'subdomains',
+            'recursive': True,
+            'recursive_depth': 2,
+            'recursive_status': '200,403',
+            'recursive_exclude': 'jpg,png',
+        }))
+
+        actual = br._Browser__should_expand_recursively('200', 'http://example.com/admin', 0)
+
+        self.assertFalse(actual)
+
+    def test_should_expand_recursively_respects_depth_limit(self):
+        """Browser recursive expansion should stop at the configured depth."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'scan': 'directories',
+            'recursive': True,
+            'recursive_depth': 1,
+            'recursive_status': '200,403',
+            'recursive_exclude': 'jpg,png',
+        }))
+
+        actual = br._Browser__should_expand_recursively('200', 'http://example.com/admin', 1)
+
+        self.assertFalse(actual)
+
+    def test_should_expand_recursively_respects_allowed_statuses(self):
+        """Browser recursive expansion should only allow configured HTTP statuses."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'scan': 'directories',
+            'recursive': True,
+            'recursive_depth': 2,
+            'recursive_status': '200,403',
+            'recursive_exclude': 'jpg,png',
+        }))
+
+        self.assertTrue(br._Browser__should_expand_recursively('200', 'http://example.com/admin', 0))
+        self.assertTrue(br._Browser__should_expand_recursively('403', 'http://example.com/admin', 0))
+        self.assertFalse(br._Browser__should_expand_recursively('302', 'http://example.com/admin', 0))
+
+    def test_should_expand_recursively_skips_excluded_extensions(self):
+        """Browser recursive expansion should skip excluded file extensions."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'scan': 'directories',
+            'recursive': True,
+            'recursive_depth': 2,
+            'recursive_status': '200,403',
+            'recursive_exclude': 'jpg,png,css',
+        }))
+
+        self.assertFalse(br._Browser__should_expand_recursively('200', 'http://example.com/assets/logo.png', 0))
+        self.assertFalse(br._Browser__should_expand_recursively('200', 'http://example.com/assets/site.css', 0))
+        self.assertTrue(br._Browser__should_expand_recursively('200', 'http://example.com/admin', 0))
+
+    def test_build_recursive_url_should_build_nested_path_from_root(self):
+        """Browser should build nested recursive URLs from a root-level parent path."""
+
+        br = self.make_browser()
+
+        actual = br._Browser__build_recursive_url('http://example.com', 'admin')
+
+        self.assertEqual(actual, 'http://example.com/admin')
+
+    def test_build_recursive_url_should_build_nested_path_from_existing_directory(self):
+        """Browser should build nested recursive URLs from an existing directory path."""
+
+        br = self.make_browser()
+
+        actual = br._Browser__build_recursive_url('http://example.com/admin/', 'panel')
+
+        self.assertEqual(actual, 'http://example.com/admin/panel')
+
+    def test_build_recursive_url_should_strip_leading_slash_and_ignore_empty_suffix(self):
+        """Browser recursive URL builder should normalize suffixes and ignore empty values."""
+
+        br = self.make_browser()
+
+        self.assertEqual(
+            br._Browser__build_recursive_url('http://example.com/admin', '/panel'),
+            'http://example.com/admin/panel'
+        )
+        self.assertIsNone(br._Browser__build_recursive_url('http://example.com/admin', ''))
+        self.assertIsNone(br._Browser__build_recursive_url('http://example.com/admin', '   '))
+
+    def test_enqueue_recursive_children_extends_pool_and_adds_nested_urls(self):
+        """Browser should extend the pool and enqueue nested recursive child URLs."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'scan': 'directories',
+            'recursive': True,
+            'recursive_depth': 2,
+            'recursive_status': '200,403',
+            'recursive_exclude': 'jpg,png',
+        }))
+
+        pool = MagicMock()
+        reader = MagicMock()
+
+        def fake_get_lines(params, loader):
+            loader([
+                'http://example.com/admin',
+                'http://example.com/login',
+            ])
+
+        reader.get_lines.side_effect = fake_get_lines
+
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        br._Browser__enqueue_recursive_children('http://example.com/panel', 0)
+
+        pool.extend_total_items.assert_called_once_with(2)
+        self.assertEqual(
+            pool.add.call_args_list,
+            [
+                unittest.mock.call(getattr(br, '_Browser__http_request'), 'http://example.com/panel/admin', 1),
+                unittest.mock.call(getattr(br, '_Browser__http_request'), 'http://example.com/panel/login', 1),
+            ]
+        )
+
+    def test_enqueue_recursive_children_skips_duplicate_urls(self):
+        """Browser recursive enqueue should skip duplicate nested URLs."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'scan': 'directories',
+            'recursive': True,
+            'recursive_depth': 2,
+            'recursive_status': '200,403',
+            'recursive_exclude': 'jpg,png',
+        }))
+
+        pool = MagicMock()
+        reader = MagicMock()
+
+        def fake_get_lines(params, loader):
+            loader([
+                'http://example.com/admin',
+                'http://example.com/admin',
+            ])
+
+        reader.get_lines.side_effect = fake_get_lines
+
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        br._Browser__enqueue_recursive_children('http://example.com/panel', 0)
+
+        pool.extend_total_items.assert_called_once_with(1)
+        pool.add.assert_called_once_with(
+            getattr(br, '_Browser__http_request'),
+            'http://example.com/panel/admin',
+            1
+        )
+    def test_enqueue_recursive_children_strips_configured_prefix_from_suffix(self):
+        """Browser recursive enqueue should not duplicate the configured prefix inside nested paths."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'prefix': '/api/',
+            'scan': 'directories',
+            'recursive': True,
+            'recursive_depth': 2,
+            'recursive_status': '200,403',
+            'recursive_exclude': 'jpg,png',
+        }))
+
+        pool = MagicMock()
+        reader = MagicMock()
+
+        def fake_get_lines(params, loader):
+            loader([
+                'http://example.com/api/login',
+            ])
+
+        reader.get_lines.side_effect = fake_get_lines
+
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        br._Browser__enqueue_recursive_children('http://example.com/api/admin', 0)
+
+        pool.extend_total_items.assert_called_once_with(1)
+        pool.add.assert_called_once_with(
+            getattr(br, '_Browser__http_request'),
+            'http://example.com/api/admin/login',
+            1
+        )
+
+    def test_http_request_enqueues_recursive_children_for_eligible_response(self):
+        """Browser.__http_request() should enqueue recursive children for eligible responses."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = 'response'
+        pool = SimpleNamespace(items_size=2, total_items_size=10)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+        response_handler.handle.return_value = ('success', 'http://example.com/admin', '42B', '200')
+
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'scan': 'directories',
+            'recursive': True,
+            'recursive_depth': 2,
+            'recursive_status': '200,403',
+            'recursive_exclude': 'jpg,png',
+        }))
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+        setattr(br, '_Browser__enqueue_recursive_children', MagicMock())
+
+        br._Browser__http_request('http://example.com/admin', depth=0)
+
+        getattr(br, '_Browser__enqueue_recursive_children').assert_called_once_with(
+            'http://example.com/admin',
+            0
+        )
+
+    def test_http_request_does_not_enqueue_recursive_children_for_non_eligible_response(self):
+        """Browser.__http_request() should not enqueue recursive children for non-eligible responses."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = 'response'
+        pool = SimpleNamespace(items_size=2, total_items_size=10)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+        response_handler.handle.return_value = ('ignored', 'http://example.com/missing', '0B', '404')
+
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'scan': 'directories',
+            'recursive': True,
+            'recursive_depth': 2,
+            'recursive_status': '200,403',
+            'recursive_exclude': 'jpg,png',
+        }))
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+        setattr(br, '_Browser__enqueue_recursive_children', MagicMock())
+
+        br._Browser__http_request('http://example.com/missing', depth=0)
+
+        getattr(br, '_Browser__enqueue_recursive_children').assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()

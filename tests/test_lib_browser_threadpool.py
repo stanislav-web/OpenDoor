@@ -76,6 +76,26 @@ class TestBrowserThreadPool(unittest.TestCase):
         self.assertIs(type(self._pool.items_size), int)
         self.assertEqual(self._pool.items_size, 0)
 
+    def test_extend_total_items_should_increase_total_items_size(self):
+        """ThreadPool.extend_total_items() should increase total_items_size."""
+
+        pool = ThreadPool(1, 10, 0)
+
+        pool.extend_total_items(5)
+
+        self.assertEqual(pool.total_items_size, 15)
+
+    def test_extend_total_items_should_ignore_non_positive_values(self):
+        """ThreadPool.extend_total_items() should ignore non-positive values."""
+
+        pool = ThreadPool(1, 10, 0)
+
+        pool.extend_total_items(0)
+        self.assertEqual(pool.total_items_size, 10)
+
+        pool.extend_total_items(-3)
+        self.assertEqual(pool.total_items_size, 10)
+
     def test_add(self):
         """ThreadPool.add() test."""
 

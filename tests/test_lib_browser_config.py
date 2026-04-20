@@ -98,6 +98,32 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertTrue(cfg.is_external_reports_dir)
         self.assertTrue(cfg.is_external_wordlist)
 
+    def test_recursive_settings_are_normalized(self):
+        """Config should normalize recursive scan settings."""
+
+        cfg = Config({
+            'reports': 'std',
+            'recursive': True,
+            'recursive_depth': 2,
+            'recursive_status': '200, 403 , 301',
+            'recursive_exclude': '.jpg, png , css ',
+        })
+
+        self.assertTrue(cfg.is_recursive)
+        self.assertEqual(cfg.recursive_depth, 2)
+        self.assertEqual(cfg.recursive_status, ['200', '403', '301'])
+        self.assertEqual(cfg.recursive_exclude, ['jpg', 'png', 'css'])
+
+    def test_recursive_settings_defaults_are_safe(self):
+        """Config should expose safe recursive defaults when the feature is disabled."""
+
+        cfg = Config({'reports': 'std'})
+
+        self.assertFalse(cfg.is_recursive)
+        self.assertEqual(cfg.recursive_depth, 1)
+        self.assertEqual(cfg.recursive_status, [])
+        self.assertEqual(cfg.recursive_exclude, [])
+
 
 if __name__ == '__main__':
     unittest.main()

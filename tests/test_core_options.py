@@ -170,6 +170,72 @@ class TestOptions(unittest.TestCase):
         with self.assertRaises(OptionsError):
             option.get_arg_values()
 
+    def test_init_should_parse_recursive_arguments(self):
+        """Options.__init__() should parse recursive scan arguments."""
+
+        with patch(
+            'src.core.options.options.sys.argv',
+            [
+                'opendoor.py',
+                '--host',
+                'example.com',
+                '--recursive',
+                '--recursive-depth',
+                '2',
+                '--recursive-status',
+                '200,403',
+                '--recursive-exclude',
+                'jpg,png,css',
+            ]
+        ):
+            option = Options()
+
+        self.assertTrue(option.args.recursive)
+        self.assertEqual(option.args.recursive_depth, 2)
+        self.assertEqual(option.args.recursive_status, '200,403')
+        self.assertEqual(option.args.recursive_exclude, 'jpg,png,css')
+
+    def test_get_arg_values_should_pass_recursive_arguments_through_filter(self):
+        """Options.get_arg_values() should preserve recursive arguments."""
+
+        namespace = Namespace(
+            host='example.com',
+            recursive=True,
+            recursive_depth=2,
+            recursive_status='200,403',
+            recursive_exclude='jpg,png',
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'recursive': True,
+            'recursive_depth': 2,
+            'recursive_status': '200,403',
+            'recursive_exclude': 'jpg,png',
+        }
+
+        with patch('src.core.options.options.Filter.filter', return_value=filtered) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, filtered)
+        filter_mock.assert_called_once_with(
+            {
+                'host': 'example.com',
+                'recursive': True,
+                'recursive_depth': 2,
+                'recursive_status': '200,403',
+                'recursive_exclude': 'jpg,png',
+            }
+        )
+
 
 if __name__ == '__main__':
     unittest.main()

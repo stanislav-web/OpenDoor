@@ -1,12 +1,24 @@
-Changes
+CHANGELOG
 =======
+v5.2.0 (20.04.2026)
+---------------------------
+- Added: recursive directory scan support
+- Added: `--recursive-depth` for configurable recursion depth
+- Added: `--recursive-status` for configurable recursive expansion status codes
+- Added: `--recursive-exclude` for configurable recursive extension exclusions
+- Changed: Browser request flow is now depth-aware for recursive scans
+- Changed: ThreadPool total items may be extended for recursive workloads
+- Changed: `README.md` and `docs/Usage.md` refreshed for recursive scan usage and updated CLI help output
+- Tests: browser, config, and thread-pool coverage expanded for recursive scan behavior
+- Tests: full suite now runs 546 passing tests
+
 v5.1.0 (20.04.2026)
 ---------------------------
 - (feature)[#35](https://github.com/stanislav-web/OpenDoor/issues/35) Added response size to exported `txt`, `html`, and `json` reports.
 - (feature)[#39](https://github.com/stanislav-web/OpenDoor/issues/39) Feature Request: Output response codes
 - (feature) Populated directories by adding new unique +27965 actual paths
 - (bugfix) Report plugins now create nested target directories correctly, e.g. `reports/example.com` instead of `reportsexample.com`.
-- (bugfix)Fixed BOM decoding behavior in helper utilities and aligned tests with the corrected implementation.
+- (bugfix) Fixed BOM decoding behavior in helper utilities and aligned tests with the corrected implementation.
 - (optimization) Refactored `FileSystem.readline()` to batch-load lines with much lower peak memory usage.
 - (optimization) Optimized `Reader.get_lines()` hot path by precomputing handler params and reducing repeated string formatting work.
 - (optimization) Optimized `ThreadPool.add()` submit-side accounting using submitted task tracking.

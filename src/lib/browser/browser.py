@@ -50,6 +50,8 @@ class Browser(Filter):
             self.__config = Config(params)
             self.__debug = Debug(self.__config)
             self.__result = {'total': {}, 'items': {}, 'report_items': {}}
+            self.__visited_recursive = set()
+            self.__queued_recursive = set()
             self.__reader = Reader(browser_config={
                 'list': self.__config.scan,
                 'torlist': self.__config.torlist,
@@ -163,28 +165,150 @@ class Browser(Filter):
                 self.__client = request_http(self.__config, agent_list=self.__reader.get_user_agents(),
                                              debug=self.__debug, tpl=tpl)
 
-    def __http_request(self, url):
+    def __http_request(self, url, depth=0):
         """
         Make HTTP request
         :param str url: received url
+        :param int depth: current recursion depth
         :return: None
         """
 
         try:
             resp = self.__client.request(url)
 
-            response_data = self.__response.handle(resp, request_url=url,
-                                                   items_size=self.__pool.items_size,
-                                                   total_size=self.__pool.total_items_size,
-                                                   ignore_list=self.__reader.get_ignored_list()
-                                                   )
+            response_data = self.__response.handle(
+                resp,
+                request_url=url,
+                items_size=self.__pool.items_size,
+                total_size=self.__pool.total_items_size,
+                ignore_list=self.__reader.get_ignored_list()
+            )
+
             if None is response_data:
                 self.__catch_report_data('ignored', url)
             else:
-                self.__catch_report_data(response_data[0], response_data[1], response_data[2], response_data[3])
+                self.__catch_report_data(
+                    response_data[0],
+                    response_data[1],
+                    response_data[2],
+                    response_data[3]
+                )
+
+                if self.__should_expand_recursively(response_data[3], response_data[1], depth):
+                    if response_data[1] not in self.__visited_recursive:
+                        self.__visited_recursive.add(response_data[1])
+                        self.__enqueue_recursive_children(response_data[1], depth)
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) as error:
             raise BrowserError(error)
+
+    def __should_expand_recursively(self, status, url, depth):
+        """
+        Decide whether the current response can be used for recursive expansion.
+
+        :param str status: actual response code
+        :param str url: current resolved url
+        :param int depth: current recursion depth
+        :return: bool
+        """
+
+        if True is not self.__config.is_recursive:
+            return False
+
+        if self.__config.scan != self.__config.DEFAULT_SCAN:
+            return False
+
+        if depth >= self.__config.recursive_depth:
+            return False
+
+        if str(status) not in self.__config.recursive_status:
+            return False
+
+        path = helper.parse_url(url).path or ''
+        last_part = path.rstrip('/').rsplit('/', 1)[-1].lower()
+
+        if '.' in last_part:
+            extension = last_part.rsplit('.', 1)[-1]
+            if extension in self.__config.recursive_exclude:
+                return False
+
+        return True
+
+    def __build_recursive_url(self, base_url, suffix):
+        """
+        Build nested url for recursive scans.
+
+        :param str base_url: parent url
+        :param str suffix: child path suffix
+        :return: str | None
+        """
+
+        suffix = str(suffix).strip().lstrip('/')
+        if not suffix:
+            return None
+
+        parsed = helper.parse_url(base_url)
+        base_path = (parsed.path or '').rstrip('/')
+
+        if base_path:
+            new_path = '{0}/{1}'.format(base_path, suffix)
+        else:
+            new_path = '/{0}'.format(suffix)
+
+        return '{0}://{1}{2}'.format(parsed.scheme, parsed.netloc, new_path)
+
+    def __enqueue_recursive_children(self, parent_url, depth):
+        """
+        Enqueue nested dictionary items under discovered parent path.
+
+        :param str parent_url: current parent url
+        :param int depth: current recursion depth
+        :return: None
+        """
+
+        if depth >= self.__config.recursive_depth:
+            return
+
+        child_urls = []
+        prefix = self.__config.prefix.strip('/')
+
+        def loader(batch):
+            for candidate in batch:
+                suffix = helper.parse_url(candidate).path.lstrip('/')
+
+                if prefix and suffix.startswith(prefix):
+                    suffix = suffix[len(prefix):].lstrip('/')
+
+                child_url = self.__build_recursive_url(parent_url, suffix)
+                if child_url is None:
+                    continue
+
+                if child_url in self.__queued_recursive:
+                    continue
+
+                self.__queued_recursive.add(child_url)
+                child_urls.append((child_url, depth + 1))
+
+        self.__reader.get_lines(
+            params={
+                'host': self.__config.host,
+                'port': self.__config.port,
+                'scheme': self.__config.scheme
+            },
+            loader=loader
+        )
+
+        if child_urls:
+            tpl.debug(
+                msg='Recursive expansion [{0}] -> +{1} urls (next depth: {2})'.format(
+                    parent_url,
+                    len(child_urls),
+                    depth + 1
+                )
+            )
+            self.__pool.extend_total_items(len(child_urls))
+            for child_url, child_depth in child_urls:
+                self.__pool.add(self.__http_request, child_url, child_depth)
 
     def __is_ignored(self, url):
         """
@@ -208,7 +332,7 @@ class Browser(Filter):
 
             for url in urllist:
                 if False is self.__is_ignored(url):
-                    self.__pool.add(self.__http_request, url)
+                    self.__pool.add(self.__http_request, url, 0)
                 else:
                     self.__catch_report_data('ignored', url)
                     tpl.warning(
