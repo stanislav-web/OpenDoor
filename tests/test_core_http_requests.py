@@ -324,6 +324,17 @@ class TestSocket(unittest.TestCase):
         with patch('src.core.http.socks.socket.gethostbyname_ex', side_effect=socket.gaierror('boom')):
             self.assertEqual(Socket.get_ips_addresses('example.com'), '')
 
+    def test_get_proxy_type_and_random_proxy(self):
+        """Proxy helpers should detect proxy type and return a trimmed random proxy."""
+
+        self.assertEqual(Proxy._Proxy__get_proxy_type('socks5://x'), 'socks')
+        self.assertEqual(Proxy._Proxy__get_proxy_type('socks://x'), 'socks')
+        self.assertEqual(Proxy._Proxy__get_proxy_type('https://x'), 'https')
+        self.assertEqual(Proxy._Proxy__get_proxy_type('http://x'), 'http')
+        self.assertEqual(
+            Proxy._Proxy__normalize_proxy_server(' socks://127.0.0.1:9050 '),
+            'socks5://127.0.0.1:9050',
+        )
 
 if __name__ == '__main__':
     unittest.main()

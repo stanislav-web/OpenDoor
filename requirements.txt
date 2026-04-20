@@ -4,3 +4,4 @@ packaging==26.1
 six==1.17.0
 tabulate==0.10.0
 urllib3==2.6.3
+PySocks==1.7.1

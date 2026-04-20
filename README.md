@@ -46,7 +46,8 @@ v5.3.0 (21.04.2026)
 - ✅ directories scanner
 - ✅ recursive directory scanner
 - ✅ subdomains scanner
-- ✅ multithreading control
+- ✅ session control
+    * runtime pause / resume session
 - ✅ HTTP(S) (PORT) support
 - ✅ Keep-alive long pooling
 - ✅ Invalid certificates scan
@@ -59,6 +60,9 @@ v5.3.0 (21.04.2026)
 - ✅ custom wordlists prefixes
 - ✅ custom wordlists, proxies, ignore lists
 - ✅ debug levels (1-3)
+    * silent mode
+    * info
+    * raw mode
 - ✅ extensions filters
 - ✅ custom config wizard (use random techniques)
 - ✅ scans reporting

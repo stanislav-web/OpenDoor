@@ -115,11 +115,15 @@ class Filter(object):
         :return: str
         """
 
-        proxy = helper.parse_url(proxyaddress)
+        normalized_proxy = proxyaddress
+        if re.match(r'^socks://', proxyaddress, re.IGNORECASE):
+            normalized_proxy = re.sub(r'^socks://', 'socks5://', proxyaddress, count=1, flags=re.IGNORECASE)
+
+        proxy = helper.parse_url(normalized_proxy)
 
         if proxy.scheme not in ['http', 'https', 'socks4', 'socks5'] or None is proxy.port:
             raise FilterError("\"{0}\" is invalid proxy in --proxy. Use scheme:ip:port format".format(proxyaddress))
-        return proxyaddress
+        return normalized_proxy
 
     @staticmethod
     def scan(choose):

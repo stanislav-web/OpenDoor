@@ -105,6 +105,12 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(Filter.scan('directories'), 'directories')
         self.assertEqual(Filter.scan('subdomains'), 'subdomains')
 
+    def test_proxy_accepts_supported_schemes(self):
+        """Filter.proxy() should accept supported proxy schemes with a port."""
+
+        self.assertEqual(Filter.proxy('http://127.0.0.1:8080'), 'http://127.0.0.1:8080')
+        self.assertEqual(Filter.proxy('socks5://127.0.0.1:9050'), 'socks5://127.0.0.1:9050')
+        self.assertEqual(Filter.proxy('socks://127.0.0.1:9050'), 'socks5://127.0.0.1:9050')
 
 if __name__ == '__main__':
     unittest.main()

@@ -72,7 +72,7 @@ setup(
     license='GPL-3.0-only',
     python_requires='>=3.12,<3.15',
     zip_safe=False,
-    packages=find_packages(),
+    packages=find_packages(exclude=('tests', 'tests.*')),
     include_package_data=True,
     data_files=[
         ('.', ['opendoor.conf']),

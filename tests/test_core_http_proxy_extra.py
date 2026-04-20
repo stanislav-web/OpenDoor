@@ -220,6 +220,44 @@ class TestProxyExtra(unittest.TestCase):
 
         tpl.warning.assert_not_called()
 
+    def test_get_random_proxy_normalizes_socks_alias(self):
+        """Proxy.__get_random_proxy() should normalize socks:// aliases to socks5://."""
+
+        cfg = self.make_cfg(is_standalone_proxy=False)
+        proxy = Proxy(
+            cfg,
+            self.make_debug(),
+            tpl=MagicMock(),
+            proxy_list=[' socks://127.0.0.1:9050 '],
+            agent_list=['UA'],
+        )
+
+        with patch('src.core.http.proxy.random.randrange', return_value=0):
+            actual = getattr(proxy, '_Proxy__get_random_proxy')()
+
+        self.assertEqual(actual, 'socks5://127.0.0.1:9050')
+
+    def test_get_proxy_type_detects_socks_https_and_http(self):
+        """Proxy.__get_proxy_type() should classify supported proxy schemes."""
+
+        proxy_type = getattr(Proxy, '_Proxy__get_proxy_type')
+
+        self.assertEqual(proxy_type('socks5://127.0.0.1:9050'), 'socks')
+        self.assertEqual(proxy_type('socks://127.0.0.1:9050'), 'socks')
+        self.assertEqual(proxy_type('https://proxy.example.com'), 'https')
+        self.assertEqual(proxy_type('http://proxy.example.com'), 'http')
+
+    def test_proxy_pool_wraps_missing_pysocks_for_socks_proxy(self):
+        """Proxy.__proxy_pool() should raise a helpful error when PySocks is missing."""
+
+        cfg = self.make_cfg(is_standalone_proxy=True, proxy='socks://127.0.0.1:9050')
+        proxy = Proxy(cfg, self.make_debug(), tpl=MagicMock(), proxy_list=['http://unused'], agent_list=['UA'])
+
+        with patch('src.core.http.proxy.importlib.import_module', side_effect=ImportError("No module named 'socks'")):
+            with self.assertRaises(ProxyRequestError) as context:
+                getattr(proxy, '_Proxy__proxy_pool')()
+
+        self.assertIn('PySocks', str(context.exception))
 
 if __name__ == '__main__':
     unittest.main()

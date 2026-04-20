@@ -18,6 +18,7 @@
 
 import importlib
 import random
+import re
 
 from urllib3 import ProxyManager, Timeout, disable_warnings
 from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown, ReadTimeoutError, InsecureRequestWarning
@@ -66,7 +67,8 @@ class Proxy(RequestProvider, DebugProvider):
         """
 
         try:
-            self.__server = self.__cfg.proxy if True is self.__cfg.is_standalone_proxy else self.__get_random_proxy()
+            server = self.__cfg.proxy if True is self.__cfg.is_standalone_proxy else self.__get_random_proxy()
+            self.__server = self.__normalize_proxy_server(server)
 
             if self.__get_proxy_type(self.__server) == 'socks':
                 disable_warnings(InsecureRequestWarning)
@@ -89,7 +91,13 @@ class Proxy(RequestProvider, DebugProvider):
                     block=True,
                 )
             return pool
-        except (DependencyWarning, ProxySchemeUnknown, ImportError) as error:
+        except (DependencyWarning, ProxySchemeUnknown) as error:
+            raise ProxyRequestError(error)
+        except ImportError as error:
+            if self.__server is not None and self.__get_proxy_type(self.__server) == 'socks':
+                raise ProxyRequestError(
+                    'SOCKS proxy support requires PySocks. Install dependencies with pip install -r requirements.txt'
+                ) from error
             raise ProxyRequestError(error)
 
     def request(self, url):
@@ -145,8 +153,20 @@ class Proxy(RequestProvider, DebugProvider):
         """
 
         index = random.randrange(0, len(self.__proxylist))
-        server = self.__proxylist[index].strip()
-        return server
+        server = self.__proxylist[index]
+        return self.__normalize_proxy_server(server)
+
+    @classmethod
+    def __normalize_proxy_server(cls, server):
+        """
+        Normalize proxy server aliases.
+
+        :param str server: input proxy server
+        :return: str
+        """
+
+        server = server.strip()
+        return re.sub(r'^socks://', 'socks5://', server, count=1, flags=re.IGNORECASE)
 
     @classmethod
     def __get_proxy_type(cls, server):
