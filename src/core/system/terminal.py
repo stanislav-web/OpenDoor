@@ -18,79 +18,110 @@
 
 import platform
 import shlex
+import shutil
 import struct
 import subprocess
 
 
 class Terminal(object):
 
-    """ Terminal class"""
-    
+    """Terminal class"""
+
+    DEFAULT_WIDTH = 80
+    DEFAULT_HEIGHT = 25
+
     def get_ts(self):
         """
-        Get width and height of console
-        :return: tuple
-        """
-    
-        current_os = platform.system()
-        tuple_xy = (80, 25)  # default value
-        if current_os == 'Windows':
-            tuple_xy = self.__get_ts_windows()
-            if tuple_xy is None:
-                tuple_xy = self.__get_ts_tput()
-        if current_os in ['Linux', 'Darwin'] or current_os.startswith('CYGWIN'):
-            tuple_xy = self.__get_ts_unix()
-        return tuple_xy
-    
-    @staticmethod
-    def __get_ts_windows():
-        """
-        Get windows terminal size
+        Get width and height of console.
+
         :return: tuple
         """
 
-        # noinspection PyBroadException
+        current_os = platform.system()
+
+        if current_os == 'Windows':
+            return self.__get_ts_windows() or self.__get_ts_tput() or self.__get_ts_fallback()
+
+        if current_os in ['Linux', 'Darwin'] or current_os.startswith('CYGWIN'):
+            return self.__get_ts_unix() or self.__get_ts_fallback()
+
+        return self.__get_ts_fallback()
+
+    @staticmethod
+    def __get_ts_windows():
+        """
+        Get windows terminal size.
+
+        :return: tuple
+        """
+
         try:
             from ctypes import windll, create_string_buffer
-            (sizex, sizey) = 25, 80  # default value
-            h = windll.kernel32.GetStdHandle(-12)
+
+            sizex, sizey = Terminal.DEFAULT_WIDTH, Terminal.DEFAULT_HEIGHT
+            handle = windll.kernel32.GetStdHandle(-12)
             csbi = create_string_buffer(22)
-            res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
-            if res:
-                (bufx, bufy, curx, cury, wattr,
-                 left, top, right, bottom,
-                 maxx, maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
+            result = windll.kernel32.GetConsoleScreenBufferInfo(handle, csbi)
+            if result:
+                (
+                    _bufx,
+                    _bufy,
+                    _curx,
+                    _cury,
+                    _wattr,
+                    left,
+                    top,
+                    right,
+                    bottom,
+                    _maxx,
+                    _maxy,
+                ) = struct.unpack("hhhhHhhhhhh", csbi.raw)
                 sizex = right - left + 1
                 sizey = bottom - top + 1
             return sizex, sizey
         except Exception:
-            pass
+            return None
 
     @staticmethod
     def __get_ts_unix():
         """
-        Get unix terminal size
+        Get unix terminal size.
+
         :return tuple
         """
-        (height, width) = 25, 80
-        
+
         try:
-            (height, width) = subprocess.check_output(['stty', 'size']).split()
-        except (AttributeError, subprocess.CalledProcessError):
-            subprocess.check_output = Terminal.__legacy_call
-            (height, width) = subprocess.check_output(['stty', 'size']).split()
-        finally:
-            return width, height
+            output = subprocess.check_output(['stty', 'size'], stderr=subprocess.DEVNULL)
+        except (AttributeError, subprocess.CalledProcessError, OSError, ValueError):
+            try:
+                output = Terminal.__legacy_call(['stty', 'size'])
+            except (subprocess.CalledProcessError, OSError, ValueError):
+                return None
+
+        if isinstance(output, bytes):
+            output = output.decode('utf-8', errors='ignore')
+
+        parts = str(output).strip().split()
+        if len(parts) != 2:
+            return None
+
+        try:
+            height, width = map(int, parts)
+        except ValueError:
+            return None
+
+        return width, height
 
     @staticmethod
     def __legacy_call(*popenargs, **kwargs):
         """
-        Subprocess check output for legacy python version 2.6
+        Subprocess check output for legacy python version 2.6.
+
         :param popenargs:
         :param kwargs:
         :return:
         """
-        
+
         if 'stdout' in kwargs:
             raise ValueError('stdout argument not allowed, it will be overridden.')
         process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
@@ -103,17 +134,29 @@ class Terminal(object):
             raise subprocess.CalledProcessError(retcode, cmd)
         del unused_err
         return output
-        
+
     @staticmethod
     def __get_ts_tput():
         """
-        Get terminal height / width
+        Get terminal height / width.
+
         :return: tuple
         """
-    
+
         try:
-            cols = int(subprocess.check_call(shlex.split('tput cols')))
-            rows = int(subprocess.check_call(shlex.split('tput lines')))
+            cols = int(subprocess.check_output(shlex.split('tput cols'), stderr=subprocess.DEVNULL).strip())
+            rows = int(subprocess.check_output(shlex.split('tput lines'), stderr=subprocess.DEVNULL).strip())
             return cols, rows
-        except subprocess.CalledProcessError:
-            pass
+        except (subprocess.CalledProcessError, OSError, ValueError):
+            return None
+
+    @staticmethod
+    def __get_ts_fallback():
+        """
+        Get terminal size using Python standard-library fallback.
+
+        :return: tuple
+        """
+
+        size = shutil.get_terminal_size((Terminal.DEFAULT_WIDTH, Terminal.DEFAULT_HEIGHT))
+        return size.columns, size.lines

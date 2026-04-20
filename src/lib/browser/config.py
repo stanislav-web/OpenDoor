@@ -36,7 +36,8 @@ class Config(object):
 
     def __init__(self, params):
         """
-        Read filtered input params
+        Read filtered input params.
+
         :param dict params: input cli arguments
         """
 
@@ -45,406 +46,285 @@ class Config(object):
         self._ssl = params.get('ssl')
         self._host = params.get('host')
         self._proxy = '' if params.get('proxy') is None else params.get('proxy')
-        self._accept_cookies = False if params.get('accept_cookies') is None else True
-        self._keep_alive = False if params.get('keep_alive') is None else True
+        self._accept_cookies = params.get('accept_cookies') is not None
+        self._keep_alive = params.get('keep_alive') is not None
         self._port = params.get('port')
         self._wordlist = params.get('wordlist')
         self._reports_dir = params.get('reports_dir')
-        self._prefix = "" if params.get('prefix') is None else params.get('prefix')
-        self._reports = params.get('reports')
-        self._extensions = params.get('extensions')
-        self._ignore_extensions = params.get('ignore_extensions')
+        self._prefix = '' if params.get('prefix') is None else params.get('prefix')
+        self._reports = self._normalize_csv(params.get('reports'))
+        self._extensions = self._normalize_csv(params.get('extensions'))
+        self._ignore_extensions = self._normalize_csv(params.get('ignore_extensions'))
         self._retries = False if params.get('retries') is None else params.get('retries')
         self._method = params.get('method')
         self._delay = params.get('delay')
-        self._timeout = params.get('timeout')
+        self._timeout = self.DEFAULT_SOCKET_TIMEOUT if params.get('timeout') is None else float(params.get('timeout'))
         self._debug = self.DEFAULT_DEBUG_LEVEL if params.get('debug') is None else params.get('debug')
         self._is_tor = params.get('tor')
-        self._torlist = '' if 'torlist' not in params else params.get('torlist')
+        self._torlist = '' if 'torlist' not in params or params.get('torlist') is None else params.get('torlist')
         self._is_random_user_agent = params.get('random_agent')
-        self._sniff = params.get('sniff')
-        self._is_random_list = False if params.get('random_list') is None else True
-        self._is_extension_filter = False if params.get('extensions') is None else True
-        self._is_ignore_extension_filter = False if params.get('ignore_extensions') is None else True
+        self._sniff = self._normalize_csv(params.get('sniff'))
+        self._is_random_list = params.get('random_list') is not None
+        self._is_extension_filter = params.get('extensions') is not None
+        self._is_ignore_extension_filter = params.get('ignore_extensions') is not None
         self._user_agent = self.DEFAULT_USER_AGENT
         self._threads = self.DEFAULT_MIN_THREADS if params.get('threads') is None else params.get('threads')
 
+    @staticmethod
+    def _normalize_csv(value):
+        """
+        Normalize comma separated values into a list.
+
+        :param value:
+        :return: list | None
+        """
+
+        if value is None:
+            return None
+        if isinstance(value, list):
+            return value
+        return [item.strip() for item in str(value).split(',') if item.strip()]
+
     @property
     def scan(self):
-        """
-        Scan property
-        :return: str
-        """
-        
+        """Scan property."""
+
         return self.DEFAULT_SCAN if self._scan is None else self._scan
 
     @scan.setter
     def scan(self, value):
-        """
-        scan param setter
-        :param str value:
-        :return: None
-        """
+        """scan param setter."""
+
         self._scan = value
 
     @property
     def scheme(self):
-        """
-        Protocol property
-        :return: str
-        """
+        """Protocol property."""
 
         return self._scheme
 
     @property
     def is_ssl(self):
-        """
-        If using ssl
-        :return: bool
-        """
+        """If using ssl."""
 
         return self._ssl
 
     @property
     def prefix(self):
-        """
-        Paths prefix
-        :return: str
-        """
+        """Paths prefix."""
 
-        return self._prefix.lstrip("/")
+        return self._prefix.lstrip('/')
 
     @property
     def host(self):
-        """
-        Hostname property
-        :return: str
-        """
+        """Hostname property."""
 
         return self._host
 
     @property
     def port(self):
-        """
-        Port property
-        :return: int
-        """
-        
-        if True is self._ssl and self._port is self.DEFAULT_HTTP_PORT:
+        """Port property."""
+
+        if self._ssl is True and self._port == self.DEFAULT_HTTP_PORT:
             self._port = self.DEFAULT_SSL_PORT
         return self._port
 
     @property
     def method(self):
-        """
-        Scan method property
-        :return: str
-        """
+        """Scan method property."""
 
-        if True is self.is_sniff:
-            if 1 == len(self.sniffers) and 'file' == self.sniffers[0]:
+        if self.is_sniff is True:
+            if len(self.sniffers) == 1 and self.sniffers[0] == 'file':
                 return 'HEAD'
             return 'GET'
         return self.DEFAULT_HTTP_METHOD if self._method is None else self._method
 
     @property
     def delay(self):
-        """
-        Delay property
-        :return: int
-        """
+        """Delay property."""
 
-        if None is self._delay:
+        if self._delay is None:
             self._delay = 0
-        elif 1 <= self._delay:
+        elif self._delay >= 1:
             self._delay = int(self._delay)
-
         return self._delay
 
     @property
     def timeout(self):
-        """
-        Timeout property
-        :return: float
-        """
+        """Timeout property."""
+
         return self._timeout
 
     @timeout.setter
     def timeout(self, value):
-        """
-        Timeout param setter
-        :param int value:
-        :return: None
-        @param value:
-        @return:
-        """
+        """Timeout param setter."""
 
         self._timeout = float(value)
         return self._timeout
 
     @property
     def retries(self):
-        """
-        Retries property
-        :return: int
-        """
+        """Retries property."""
 
         return self._retries
 
     @property
     def debug(self):
-        """
-         Debug level property
-         :return: int
-         """
+        """Debug level property."""
 
         return self._debug
 
     @property
     def proxy(self):
-        """
-        Standalone proxy property
-        :return: bool
-        """
+        """Standalone proxy property."""
 
         return self._proxy
 
     @property
     def is_proxy(self):
-        """
-        If proxy is available
-        :return: bool
-        """
+        """If proxy is available."""
 
-        if True is self._is_tor:
+        if self._is_tor is True:
             return True
-        elif None is not self._torlist and 0 < len(self._torlist):
+        if self._torlist is not None and len(self._torlist) > 0:
             return True
-        elif None is not self._torlist and 0 < len(self._proxy):
+        if self._proxy is not None and len(self._proxy) > 0:
             return True
-
         return False
 
     @property
     def is_random_user_agent(self):
-        """
-        If ua randomizing is available
-        :return: bool
-        """
+        """If ua randomizing is available."""
 
         return self._is_random_user_agent
 
     @property
     def is_sniff(self):
-        """
-        If sniffers are available
-        :return: bool
-        """
+        """If sniffers are available."""
 
-        if None is not self._sniff:
-            if False is isinstance(self._sniff, list):
-                self._sniff = self._sniff.split(",")
-            if 0 < len(self._sniff):
-                return True
-        return False
+        return self._sniff is not None and len(self._sniff) > 0
 
     @property
     def sniffers(self):
-        """
-        Get a sniffer
-        :return: list
-        """
+        """Get sniffers."""
 
         return self._sniff
 
     @property
     def is_random_list(self):
-        """
-        If scan lists randomize and are available
-        :return: bool
-        """
+        """If scan lists randomize and are available."""
 
         return self._is_random_list
 
     @property
     def is_extension_filter(self):
-        """
-        If scan lists filtered by extensions
-        :return: bool
-        """
+        """If scan list filtered by extensions."""
 
         return self._is_extension_filter
 
     @property
     def is_ignore_extension_filter(self):
-        """
-        If a scan list filtered by ignore extensions
-        :return: bool
-        """
+        """If a scan list filtered by ignore extensions."""
 
         return self._is_ignore_extension_filter
 
     @property
     def is_standalone_proxy(self):
-        """
-        If standalone proxy is available
-        :return: bool
-        """
+        """If standalone proxy is available."""
 
-        if True is self.is_proxy and 0 < len(self._proxy):
+        if self.is_proxy is True and len(self._proxy) > 0:
             self._torlist = ''
-
             return True
         return False
 
     @property
     def is_internal_torlist(self):
-        """
-        If internal torlist is available
-        :return: bool
-        """
+        """If internal torlist is available."""
 
-        if True is self._is_tor and 0 >= len(self._torlist):
-            return True
-        return False
+        return self._is_tor is True and len(self._torlist) <= 0
 
     @property
     def is_external_torlist(self):
-        """
-        If external torlist is available
-        :return: bool
-        """
+        """If external torlist is available."""
 
-        if None is not self._torlist and 0 < len(self._torlist):
-            return True
-        return False
+        return self._torlist is not None and len(self._torlist) > 0
 
     @property
     def torlist(self):
-        """
-        Torlist property
-        :return: bool
-        """
+        """Torlist property."""
 
         return self._torlist
 
     @property
     def is_external_wordlist(self):
-        """
-        If exteranl word list is available
-        :return: bool
-        """
+        """If external word list is available."""
 
-        if None is self._wordlist:
-            return False
-        return True
+        return self._wordlist is not None
 
     @property
     def is_external_reports_dir(self):
-        """
-        If exteranl reports directory selected
-        :return: bool
-        """
+        """If external reports directory selected."""
 
-        if None is self._reports_dir:
-            return False
-        return True
+        return self._reports_dir is not None
 
     @property
     def reports_dir(self):
-        """
-        Get reports dir
-        :return: str
-        """
+        """Get reports dir."""
 
         return self._reports_dir
 
     @property
     def wordlist(self):
-        """
-        Get external wordlist
-        :return: str
-        """
+        """Get external wordlist."""
 
         return self._wordlist
 
     @property
     def extensions(self):
-        """
-        Extensions resolver
-        :return: list
-        """
+        """Extensions resolver."""
 
-        extensions = None
-        if None is not self._extensions:
-            extensions = self._extensions.split(",")
-        return extensions
+        return self._extensions
 
     @property
     def ignore_extensions(self):
-        """
-        Extensions resolver
-        :return: list
-        """
+        """Ignore extensions resolver."""
 
-        extensions = None
-        if None is not self._ignore_extensions:
-            extensions = self._ignore_extensions.split(",")
-        return extensions
+        return self._ignore_extensions
 
     @property
     def reports(self):
-        """
-        Reports resolver
-        :return: list
-        """
+        """Reports resolver."""
 
-        reports = self._reports.split(",")
+        reports = [] if self._reports is None else list(self._reports)
         if self.DEFAULT_REPORT not in reports:
             reports.append(self.DEFAULT_REPORT)
         return reports
 
     @property
     def user_agent(self):
-        """
-        User agent property
-        :return: str
-        """
+        """User agent property."""
 
         return self._user_agent
 
     def set_threads(self, threads):
-        """
-        Threads setter
-        :param int threads: threads
-        :return: int
-        """
+        """Threads setter."""
 
         self._threads = threads
 
     @property
     def threads(self):
-        """
-        Threads property
-        :return: int
-        """
+        """Threads property."""
 
         return self._threads
 
     @property
     def accept_cookies(self):
-        """
-        Accept cookies property
-        :return: bool
-        """
+        """Accept cookies property."""
 
         return self._accept_cookies
 
     @property
     def keep_alive(self):
-        """
-        If connection keep-alive
-        :return: bool
-        """
+        """If connection keep-alive."""
 
         return self._keep_alive

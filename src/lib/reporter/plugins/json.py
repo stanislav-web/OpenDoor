@@ -16,6 +16,8 @@
     Development Team: Brain Storm Team
 """
 
+import os
+
 from .provider import PluginProvider
 from src.core import CoreConfig
 from src.core import filesystem, FileSystemError
@@ -41,7 +43,7 @@ class JsonReportPlugin(PluginProvider):
         try:
             if None is directory:
                 directory = CoreConfig.get('data').get('reports')
-            self.__target_dir = filesystem.makedir("".join((directory, self._target)))
+            self.__target_dir = filesystem.makedir(os.path.join(directory, self._target))
         except FileSystemError as error:
             raise Exception(error)
 

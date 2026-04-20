@@ -1,0 +1,130 @@
+{
+  "project": "OpenDoor",
+  "captured_at_utc": "2026-04-19T20:48:45.202936+00:00",
+  "python": "3.14.4 (main, Apr  7 2026, 13:13:20) [Clang 17.0.0 (clang-1700.6.4.2)]",
+  "platform": "macOS-15.7.3-arm64-arm-64bit-Mach-O",
+  "parameters": {
+    "lines": 100000,
+    "repeat": 5,
+    "warmup": 1
+  },
+  "benchmarks": [
+    {
+      "name": "filesystem.readline",
+      "iterations": 5,
+      "warmup": 1,
+      "samples_ms": [
+        39.225,
+        38.135,
+        39.456,
+        40.291,
+        39.493
+      ],
+      "best_ms": 38.135,
+      "mean_ms": 39.32,
+      "median_ms": 39.456,
+      "stdev_ms": 0.694,
+      "peak_memory_mb": 0.297,
+      "extra": {
+        "lines": 100000,
+        "chars": 2902780,
+        "lines_per_second_best": 2622263.01
+      }
+    },
+    {
+      "name": "reader.filter_by_extension",
+      "iterations": 5,
+      "warmup": 1,
+      "samples_ms": [
+        75.392,
+        77.351,
+        76.232,
+        75.329,
+        75.147
+      ],
+      "best_ms": 75.147,
+      "mean_ms": 75.89,
+      "median_ms": 75.392,
+      "stdev_ms": 0.821,
+      "peak_memory_mb": 14.981,
+      "extra": {
+        "matched_lines": 25000,
+        "source_lines": 100000,
+        "source_lines_per_second_best": 1330725.11
+      }
+    },
+    {
+      "name": "threadpool.add_overhead",
+      "iterations": 5,
+      "warmup": 1,
+      "samples_ms": [
+        832.795,
+        1176.584,
+        1700.612,
+        1372.725,
+        868.11
+      ],
+      "best_ms": 832.795,
+      "mean_ms": 1190.165,
+      "median_ms": 1176.584,
+      "stdev_ms": 324.192,
+      "peak_memory_mb": 229.438,
+      "extra": {
+        "add_calls": 100000,
+        "workers": 25,
+        "submitted": 100000,
+        "inner_elapsed_ms": 867.533,
+        "adds_per_second_best": 120077.57
+      }
+    },
+    {
+      "name": "reader.get_lines_pipeline",
+      "iterations": 5,
+      "warmup": 1,
+      "samples_ms": [
+        101.59,
+        101.421,
+        100.091,
+        99.535,
+        102.411
+      ],
+      "best_ms": 99.535,
+      "mean_ms": 101.01,
+      "median_ms": 101.421,
+      "stdev_ms": 1.048,
+      "peak_memory_mb": 0.332,
+      "extra": {
+        "loaded_lines": 100000,
+        "loaded_chars": 4702780,
+        "batches": 49,
+        "loaded_lines_per_second_best": 1004671.72
+      }
+    },
+    {
+      "name": "threadpool.enqueue_and_drain",
+      "iterations": 5,
+      "warmup": 1,
+      "samples_ms": [
+        867.458,
+        743.936,
+        791.52,
+        904.303,
+        900.772
+      ],
+      "best_ms": 743.936,
+      "mean_ms": 841.598,
+      "median_ms": 867.458,
+      "stdev_ms": 63.479,
+      "peak_memory_mb": 0.779,
+      "extra": {
+        "tasks": 100000,
+        "workers": 25,
+        "submitted": 100000,
+        "processed": 100000,
+        "queue_size_after_join": 0,
+        "inner_elapsed_ms": 899.475,
+        "tasks_per_second_best": 134420.17
+      }
+    }
+  ]
+}

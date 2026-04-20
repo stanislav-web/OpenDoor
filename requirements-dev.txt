@@ -1,3 +1,4 @@
+# requirements-dev.txt
 build==1.4.3
 ddt==1.7.2
 json2html==1.3.0
@@ -6,3 +7,4 @@ six==1.17.0
 tabulate==0.10.0
 urllib3==2.6.3
 ruff==0.15.11
+coverage==7.13.5

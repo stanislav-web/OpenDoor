@@ -138,6 +138,13 @@ Do not replace the repository style with an unrelated template.
 - Avoid tests that depend on real network, DNS, SSH, or shell environment when deterministic patching is possible.
 - When touching old tests, keep their intent unchanged unless the existing behavior is invalid under the new Python baseline.
 - When fixing test fragility, prefer precise patches over broad rewrites.
+- Keep normal correctness tests and performance measurements separate.
+
+---
+## Coverage rule
+- Keep the project at 90%+ total coverage
+- Do not lower the current baseline without explicit maintainer approval
+- Prefer small targeted tests that protect current behavior before refactoring
 
 ---
 
@@ -163,17 +170,37 @@ When preparing release-related work:
 
 ---
 
-## Future work guidance
+## Performance verification rules
 
-Planned next work after the modernization baseline:
-- warning cleanup
-- deeper internal refactoring
-- broader automated test coverage
-- metadata refinement
-- release polish
-- better distro packaging ergonomics where useful
+Performance-sensitive changes must not be merged on intuition alone. The repository now includes a standalone benchmark runner:
+```bash
+python benchmarks/perf_baseline.py
+```
+Before a performance refactor capture a baseline and save it:
+```bash
+python benchmarks/perf_baseline.py --save benchmarks/results/perf-baseline.json
+```
+Optional larger run for stronger baselines:
+```bash
+python benchmarks/perf_baseline.py --lines 200000 --repeat 7 --warmup 2 --save benchmarks/results/perf-baseline.large.json
+```
 
-These are valid directions, but should be delivered in controlled steps.
+After a performance refactor compare the new result against the saved baseline:
+
+```bash
+python benchmarks/perf_baseline.py --compare benchmarks/results/perf-baseline.json
+```
+Or save the post-change snapshot too:
+```bash
+python benchmarks/perf_baseline.py \
+  --compare benchmarks/results/perf-baseline.json \
+  --save benchmarks/results/perf-after-refactor.json
+```
+Important benchmark policy:
+- `benchmarks/perf_baseline.py` is not part of the normal unittest discovery suite
+- do not convert benchmark timings into brittle pass/fail unit tests
+- benchmark numbers should be used for before/after comparison
+- performance changes must preserve scanner correctness and existing test
 
 ---
 

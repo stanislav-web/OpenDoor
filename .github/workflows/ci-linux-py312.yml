@@ -16,3 +16,5 @@ jobs:
     with:
       runner: ubuntu-latest
       python-version: "3.12"
+      upload-coverage: true
+    secrets: inherit

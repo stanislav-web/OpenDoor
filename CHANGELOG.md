@@ -1,5 +1,23 @@
 Changes
 =======
+v5.1.0 (20.04.2026)
+---------------------------
+- (feature)[#35](https://github.com/stanislav-web/OpenDoor/issues/35) Added response size to exported `txt`, `html`, and `json` reports.
+- (feature)[#39](https://github.com/stanislav-web/OpenDoor/issues/39) Feature Request: Output response codes
+- (feature) Populated directories by adding new unique +27965 actual paths
+- (bugfix) Report plugins now create nested target directories correctly, e.g. `reports/example.com` instead of `reportsexample.com`.
+- (bugfix)Fixed BOM decoding behavior in helper utilities and aligned tests with the corrected implementation.
+- (optimization) Refactored `FileSystem.readline()` to batch-load lines with much lower peak memory usage.
+- (optimization) Optimized `Reader.get_lines()` hot path by precomputing handler params and reducing repeated string formatting work.
+- (optimization) Optimized `ThreadPool.add()` submit-side accounting using submitted task tracking.
+- (optimization) Kept `Reader` extension filters on the fast in-memory path after benchmark validation.
+- (optimization) Updated benchmark workflow documentation and project maintenance flow.
+- (optimization) Fixed benchmark callback accounting for batched `readline()` processing.
+- (optimization) Improved compatibility of terminal, color, logger exception, and rainbow logger behavior under tests.
+- (tests) Test suite expanded to 400+ tests.
+- (tests) Added regression tests and edge case coverage for report size propagation.
+- (tests) Added broad unit test coverage across core, HTTP, reporter, browser, proxy, socket, logger, terminal, color, and filesystem modules.
+
 v5.0.1 (19.04.2026)
 ---------------------------
 - Fixed: Read the Docs badge updated to the current badge endpoint

@@ -1,205 +1,727 @@
 # -*- coding: utf-8 -*-
 
-"""
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-    Development Team: Brain Storm Team
-"""
-
 import os
 import unittest
 from configparser import RawConfigParser
-from unittest.mock import patch
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
-from ddt import data, ddt
-
-from src.core import filesystem, helper
+from src.core import filesystem, helper, SocketError, ResponseError, HttpRequestError
 from src.core.http.response import Response
-from src.lib import BrowserError, browser
+from src.lib import BrowserError, ReporterError, browser
 from src.lib.browser.config import Config
 from src.lib.browser.debug import Debug
 from src.lib.browser.threadpool import ThreadPool
-from src.lib.reader.reader import Reader
+from src.lib.reader.reader import Reader, ReaderError
+from src.lib.reporter import Reporter
 from src.lib.tpl.tpl import Tpl
 
 
-@ddt
 class TestBrowser(unittest.TestCase):
     """TestBrowser class."""
 
     THREADS = 1
 
     @property
-    def __configuration(self):
-        """
-        Load the test configuration file.
+    def configuration(self):
+        """Load the test configuration file."""
 
-        :return: RawConfigParser
-        """
         test_config = filesystem.getabsname(os.path.join('tests', 'data', 'setup-scan.cfg'))
         config = RawConfigParser()
         config.read(test_config)
         return config
 
     def setUp(self):
-        """
-        Prepare thread pool for each test.
+        """Prepare thread pool for each test."""
 
-        :return: None
-        """
-        self.__pool = ThreadPool(num_threads=self.THREADS, total_items=10, timeout=0)
+        self.pool = ThreadPool(num_threads=self.THREADS, total_items=10, timeout=0)
+        Reporter.external_directory = None
 
     def tearDown(self):
-        """
-        Cleanup thread pool after each test.
+        """Cleanup thread pool after each test."""
 
-        :return: None
-        """
-        del self.__pool
+        Reporter.external_directory = None
+        del self.pool
 
-    def __browser_configuration(self, params):
-        """
-        Build browser configuration object.
+    def browser_configuration(self, params):
+        """Build browser configuration object."""
 
-        :param dict params: Browser params.
-        :return: Config
-        """
         return Config(params)
 
-    def __browser_init(self, params):
-        """
-        Initialize browser instance.
+    def browser_init(self, params):
+        """Initialize browser instance."""
 
-        :param dict params: Browser params.
-        :return: browser
-        """
         return browser(params)
 
+    def make_browser(self):
+        """Create a browser instance without running __init__."""
+
+        br = browser.__new__(browser)
+        setattr(br, '_Browser__result', {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()})
+        return br
+
     def test_init(self):
-        """Browser.init() test."""
+        """Browser.__init__() should initialize all internal collaborators."""
 
-        br = self.__browser_init({'host': 'test.local', 'port': 80})
-        __client = getattr(br, '_Browser__client')
-        __config = getattr(br, '_Browser__config')
-        __debug = getattr(br, '_Browser__debug')
-        __result = getattr(br, '_Browser__result')
-        __reader = getattr(br, '_Browser__reader')
-        __pool = getattr(br, '_Browser__pool')
-        __response = getattr(br, '_Browser__response')
-
-        self.assertIs(__client, None)
-        self.assertTrue(isinstance(__config, Config))
-        self.assertTrue(isinstance(__debug, Debug))
-        self.assertTrue(isinstance(__result, dict))
-        self.assertTrue(isinstance(__reader, Reader))
-        self.assertTrue(isinstance(__pool, ThreadPool))
-        self.assertTrue(isinstance(__response, Response))
+        br = self.browser_init({'host': 'test.local', 'port': 80})
+        self.assertIs(getattr(br, '_Browser__client'), None)
+        self.assertIsInstance(getattr(br, '_Browser__config'), Config)
+        self.assertIsInstance(getattr(br, '_Browser__debug'), Debug)
+        self.assertIsInstance(getattr(br, '_Browser__result'), dict)
+        self.assertIsInstance(getattr(br, '_Browser__reader'), Reader)
+        self.assertIsInstance(getattr(br, '_Browser__pool'), ThreadPool)
+        self.assertIsInstance(getattr(br, '_Browser__response'), Response)
 
     def test_init_exception(self):
-        """Browser.init() exception test."""
+        """Browser.__init__() should wrap reader/response setup errors into BrowserError."""
 
-        with self.assertRaises(BrowserError) as context:
-            self.__browser_init({'host': 'test.local', 'port': 80, 'wordlist': '/wrong'})
+        with self.assertRaises(BrowserError):
+            self.browser_init({'host': 'test.local', 'port': 80, 'wordlist': '/wrong'})
 
-        self.assertTrue(BrowserError == context.expected)
+    def test_init_sets_external_report_directory(self):
+        """Browser.__init__() should set Reporter.external_directory for external report paths."""
 
-    @data(
-        Config({'host': 'http://example.com', 'port': 80, 'debug': 3, 'torlist': '/failed'}),
-    )
-    def test_browser_error(self, config):
-        """Browser.scan() exception test."""
+        with patch('src.lib.browser.browser.Config') as config_cls, \
+                patch('src.lib.browser.browser.Debug', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.Reader') as reader_cls, \
+                patch('src.lib.browser.browser.Filter.__init__', return_value=None), \
+                patch('src.lib.browser.browser.ThreadPool') as pool_cls, \
+                patch('src.lib.browser.browser.response', return_value=MagicMock()):
 
-        br = browser.__new__(browser)
+            cfg = SimpleNamespace(
+                scan='directories',
+                DEFAULT_SCAN='directories',
+                torlist=None,
+                is_random_list=False,
+                is_extension_filter=False,
+                is_ignore_extension_filter=False,
+                is_external_wordlist=False,
+                wordlist='',
+                is_standalone_proxy=False,
+                is_external_torlist=False,
+                prefix='',
+                is_external_reports_dir=True,
+                reports_dir='/custom/reports',
+                extensions=[],
+                ignore_extensions=[],
+                threads=1,
+                delay=0,
+            )
+            config_cls.return_value = cfg
 
-        with self.assertRaises(BrowserError) as context:
-            reader = Reader(browser_config={
-                'list': config.scan,
-                'torlist': config.torlist,
-                'use_random': config.is_random_list,
-                'is_external_wordlist': config.is_external_wordlist,
-                'is_standalone_proxy': config.is_standalone_proxy,
-                'is_external_torlist': config.is_external_torlist,
-                'prefix': config.prefix
-            })
+            reader = MagicMock()
+            reader.total_lines = 5
+            reader_cls.return_value = reader
+            pool_cls.return_value = MagicMock()
 
-            result = {
-                'total': helper.counter(),
-                'items': helper.list(),
-            }
+            browser({'host': 'test.local', 'port': 80})
 
-            setattr(reader, '_Reader__config', self.__configuration)
-            setattr(br, '_Browser__debug', Debug(config))
-            setattr(br, '_Browser__pool', self.__pool)
-            setattr(br, '_Browser__config', config)
-            setattr(br, '_Browser__reader', reader)
-            setattr(br, '_Browser__response', Response(config=config, debug=Debug(config), tpl=Tpl))
-            setattr(br, '_Browser__result', result)
+        self.assertEqual(Reporter.external_directory, '/custom/reports')
 
-            br.scan()
+    def test_init_applies_ignore_extension_filter_on_default_scan(self):
+        """Browser.__init__() should build ignore_extensionlist when ignore-extension mode is enabled."""
 
-        self.assertTrue(BrowserError == context.expected)
+        with patch('src.lib.browser.browser.Config') as config_cls, \
+                patch('src.lib.browser.browser.Debug', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.Reader') as reader_cls, \
+                patch('src.lib.browser.browser.Filter.__init__', return_value=None), \
+                patch('src.lib.browser.browser.ThreadPool', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.response', return_value=MagicMock()):
 
-    @data({'reports': 'std', 'host': 'example.com', 'port': 80})
-    def test_ping(self, params):
-        """Browser.ping() test."""
+            cfg = SimpleNamespace(
+                scan='directories',
+                DEFAULT_SCAN='directories',
+                torlist=None,
+                is_random_list=False,
+                is_extension_filter=False,
+                is_ignore_extension_filter=True,
+                is_external_wordlist=False,
+                wordlist='',
+                is_standalone_proxy=False,
+                is_external_torlist=False,
+                prefix='',
+                is_external_reports_dir=False,
+                reports_dir='',
+                extensions=[],
+                ignore_extensions=['jpg', 'png'],
+                threads=1,
+                delay=0,
+            )
+            config_cls.return_value = cfg
 
-        br = browser.__new__(browser)
-        setattr(br, '_Browser__config', self.__browser_configuration(params))
+            reader = MagicMock()
+            reader.total_lines = 5
+            reader_cls.return_value = reader
+
+            browser({'host': 'test.local', 'port': 80})
+
+        reader.filter_by_ignore_extension.assert_called_once_with(
+            target='directories',
+            output='ignore_extensionlist',
+            extensions=['jpg', 'png'],
+        )
+        reader.filter_by_extension.assert_not_called()
+
+    def test_init_skips_filtering_for_non_default_scan(self):
+        """Browser.__init__() should skip extension filtering for non-default scans."""
+
+        with patch('src.lib.browser.browser.Config') as config_cls, \
+                patch('src.lib.browser.browser.Debug', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.Reader') as reader_cls, \
+                patch('src.lib.browser.browser.Filter.__init__', return_value=None), \
+                patch('src.lib.browser.browser.ThreadPool', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.response', return_value=MagicMock()):
+
+            cfg = SimpleNamespace(
+                scan='subdomains',
+                DEFAULT_SCAN='directories',
+                torlist=None,
+                is_random_list=False,
+                is_extension_filter=True,
+                is_ignore_extension_filter=True,
+                is_external_wordlist=False,
+                wordlist='',
+                is_standalone_proxy=False,
+                is_external_torlist=False,
+                prefix='',
+                is_external_reports_dir=False,
+                reports_dir='',
+                extensions=['php'],
+                ignore_extensions=['jpg'],
+                threads=1,
+                delay=0,
+            )
+            config_cls.return_value = cfg
+
+            reader = MagicMock()
+            reader.total_lines = 5
+            reader_cls.return_value = reader
+
+            browser({'host': 'test.local', 'port': 80})
+
+        reader.filter_by_extension.assert_not_called()
+        reader.filter_by_ignore_extension.assert_not_called()
+
+    def test_init_wraps_response_factory_error(self):
+        """Browser.__init__() should wrap response factory failures into BrowserError."""
+
+        with patch('src.lib.browser.browser.Config') as config_cls, \
+                patch('src.lib.browser.browser.Debug', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.Reader') as reader_cls, \
+                patch('src.lib.browser.browser.Filter.__init__', return_value=None), \
+                patch('src.lib.browser.browser.ThreadPool', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.response', side_effect=ResponseError('boom')):
+
+            cfg = SimpleNamespace(
+                scan='directories',
+                DEFAULT_SCAN='directories',
+                torlist=None,
+                is_random_list=False,
+                is_extension_filter=False,
+                is_ignore_extension_filter=False,
+                is_external_wordlist=False,
+                wordlist='',
+                is_standalone_proxy=False,
+                is_external_torlist=False,
+                prefix='',
+                is_external_reports_dir=False,
+                reports_dir='',
+                extensions=[],
+                ignore_extensions=[],
+                threads=1,
+                delay=0,
+            )
+            config_cls.return_value = cfg
+
+            reader = MagicMock()
+            reader.total_lines = 5
+            reader_cls.return_value = reader
+
+            with self.assertRaises(BrowserError):
+                browser({'host': 'test.local', 'port': 80})
+
+    def test_ping(self):
+        """Browser.ping() should check socket connectivity and resolve host IP."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({'reports': 'std', 'host': 'example.com', 'port': 80}))
 
         with patch('src.lib.browser.browser.socket.ping', return_value=None) as mock_ping, \
-             patch('src.lib.browser.browser.socket.get_ip_address', return_value='127.0.0.1') as mock_ip:
+                patch('src.lib.browser.browser.socket.get_ip_address', return_value='127.0.0.1') as mock_ip:
             self.assertIs(br.ping(), None)
             mock_ping.assert_called_once()
             mock_ip.assert_called_once_with('example.com')
 
-    @data({'reports': 'std', 'host': 'test.local'})
-    def test_done(self, params):
-        """Browser.done() test."""
+    def test_ping_wraps_socket_errors(self):
+        """Browser.ping() should wrap socket failures into BrowserError."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({'reports': 'std', 'host': 'example.com', 'port': 80}))
+
+        with patch('src.lib.browser.browser.socket.ping', side_effect=SocketError('offline')):
+            with self.assertRaises(BrowserError):
+                br.ping()
+
+    def test_start_request_provider_uses_proxy_client(self):
+        """Browser should choose proxy request provider when proxy mode is enabled."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(is_proxy=True, is_ssl=False)
+        reader = MagicMock()
+        reader.get_proxies.return_value = ['http://proxy:8080']
+        reader.get_user_agents.return_value = ['UA']
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__debug', MagicMock())
+
+        with patch('src.lib.browser.browser.request_proxy', return_value='proxy-client') as proxy_mock:
+            br._Browser__start_request_provider()
+
+        self.assertEqual(getattr(br, '_Browser__client'), 'proxy-client')
+        proxy_mock.assert_called_once()
+
+    def test_start_request_provider_uses_https_client(self):
+        """Browser should choose HTTPS request provider when SSL mode is enabled."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(is_proxy=False, is_ssl=True)
+        reader = MagicMock()
+        reader.get_user_agents.return_value = ['UA']
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__debug', MagicMock())
+
+        with patch('src.lib.browser.browser.request_https', return_value='https-client') as https_mock:
+            br._Browser__start_request_provider()
+
+        self.assertEqual(getattr(br, '_Browser__client'), 'https-client')
+        https_mock.assert_called_once()
+
+    def test_start_request_provider_uses_http_client(self):
+        """Browser should choose HTTP request provider for plain HTTP scans."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(is_proxy=False, is_ssl=False)
+        reader = MagicMock()
+        reader.get_user_agents.return_value = ['UA']
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__debug', MagicMock())
+
+        with patch('src.lib.browser.browser.request_http', return_value='http-client') as http_mock:
+            br._Browser__start_request_provider()
+
+        self.assertEqual(getattr(br, '_Browser__client'), 'http-client')
+        http_mock.assert_called_once()
+
+    def test_http_request_records_ignored_when_response_handler_returns_none(self):
+        """Browser.__http_request() should classify handled None as ignored."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = 'response'
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = ['admin']
+        response_handler = MagicMock()
+        response_handler.handle.return_value = None
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+
+        br._Browser__http_request('http://example.com/admin')
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['ignored'], 1)
+        self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
+
+    def test_http_request_records_status_from_response_handler(self):
+        """Browser.__http_request() should record the tuple returned by the response handler."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = 'response'
+        pool = SimpleNamespace(items_size=2, total_items_size=10)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+        response_handler.handle.return_value = ('success', 'http://example.com/login.php', '42B', '200')
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+
+        br._Browser__http_request('http://example.com/login.php')
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['success'], 1)
+        self.assertEqual(result['items']['success'], ['http://example.com/login.php'])
+
+    def test_http_request_wraps_response_errors(self):
+        """Browser.__http_request() should wrap response processing errors into BrowserError."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = 'response'
+        pool = SimpleNamespace(items_size=0, total_items_size=0)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+        response_handler.handle.side_effect = ResponseError('boom')
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+
+        with self.assertRaises(BrowserError):
+            br._Browser__http_request('http://example.com')
+
+    def test_http_request_wraps_client_request_errors(self):
+        """Browser.__http_request() should wrap low-level client request failures into BrowserError."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.side_effect = HttpRequestError('boom')
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+
+        with self.assertRaises(BrowserError):
+            br._Browser__http_request('http://example.com')
+
+    def test_is_ignored_checks_normalized_path_against_reader_list(self):
+        """Browser.__is_ignored() should compare normalized URL paths with ignored items."""
+
+        br = self.make_browser()
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = ['admin']
+        setattr(br, '_Browser__reader', reader)
+
+        self.assertTrue(br._Browser__is_ignored('http://example.com/admin/'))
+        self.assertFalse(br._Browser__is_ignored('http://example.com/login/'))
+
+    def test_add_urls_sends_only_non_ignored_urls_to_pool(self):
+        """Browser._add_urls() should enqueue only non-ignored URLs and keep ignored ones in report data."""
+
+        br = self.make_browser()
+        pool = MagicMock()
+        pool.join.return_value = None
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = ['admin']
+        type(reader).total_lines = property(lambda _self: 20)
+
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._add_urls(['http://example.com/admin', 'http://example.com/login'])
+
+        pool.add.assert_called_once()
+        pool.join.assert_called_once_with()
+        warning_mock.assert_called_once()
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['ignored'], 1)
+        self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
+
+    def test_add_urls_propagates_keyboard_interrupt(self):
+        """Browser._add_urls() should re-raise KeyboardInterrupt from the pool layer."""
+
+        br = self.make_browser()
+        pool = MagicMock()
+        pool.join.side_effect = KeyboardInterrupt
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        type(reader).total_lines = property(lambda _self: 5)
+
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        with self.assertRaises(KeyboardInterrupt):
+            br._add_urls(['http://example.com/login'])
+
+    def test_scan_randomizes_list_and_reads_urls_when_pool_started(self):
+        """Browser.scan() should randomize the selected list and load URLs when the pool is started."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(
+            is_random_list=True,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=True,
+            is_ignore_extension_filter=False,
+            host='example.com',
+            port=80,
+            scheme='http://'
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+        reader.total_lines = 10
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        with patch.object(br, '_Browser__start_request_provider') as start_provider, \
+                patch('src.lib.browser.browser.tpl.info') as info_mock:
+            br.scan()
+
+        self.assertEqual(config.scan, 'extensionlist')
+        reader.randomize_list.assert_called_once_with(target='extensionlist', output='tmplist')
+        reader.get_lines.assert_called_once()
+        start_provider.assert_called_once_with()
+        debug.debug_user_agents.assert_called_once_with()
+        debug.debug_list.assert_called_once_with(total_lines=10)
+        info_mock.assert_any_call(key='scanning', host='example.com')
+
+    def test_scan_randomizes_ignore_extension_list(self):
+        """Browser.scan() should switch to ignore_extensionlist when randomizing ignored extensions."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(
+            is_random_list=True,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=True,
+            host='example.com',
+            port=80,
+            scheme='http://'
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+        reader.total_lines = 10
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        with patch.object(br, '_Browser__start_request_provider') as start_provider, \
+                patch('src.lib.browser.browser.tpl.info'):
+            br.scan()
+
+        self.assertEqual(config.scan, 'ignore_extensionlist')
+        reader.randomize_list.assert_called_once_with(target='ignore_extensionlist', output='tmplist')
+        reader.get_lines.assert_called_once()
+        start_provider.assert_called_once_with()
+
+    def test_scan_randomizes_non_default_scan_without_rewriting_target(self):
+        """Browser.scan() should randomize the current non-default scan target as-is."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(
+            is_random_list=True,
+            scan='subdomains',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+            host='example.com',
+            port=80,
+            scheme='http://'
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+        reader.total_lines = 10
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        with patch.object(br, '_Browser__start_request_provider') as start_provider, \
+                patch('src.lib.browser.browser.tpl.info'):
+            br.scan()
+
+        self.assertEqual(config.scan, 'subdomains')
+        reader.randomize_list.assert_called_once_with(target='subdomains', output='tmplist')
+        reader.get_lines.assert_called_once()
+        start_provider.assert_called_once_with()
+
+    def test_scan_skips_loading_lines_when_pool_is_not_started(self):
+        """Browser.scan() should not request lines when the thread pool is paused."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(
+            is_random_list=False,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+            host='example.com',
+            port=80,
+            scheme='http://'
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=False)
+        reader = MagicMock()
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        with patch.object(br, '_Browser__start_request_provider') as start_provider, \
+                patch('src.lib.browser.browser.tpl.info'):
+            br.scan()
+
+        reader.get_lines.assert_not_called()
+        start_provider.assert_called_once_with()
+
+    def test_scan_wraps_reader_errors(self):
+        """Browser.scan() should wrap reader failures into BrowserError."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(
+            is_random_list=True,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+            host='example.com',
+            port=80,
+            scheme='http://'
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+        reader.randomize_list.side_effect = ReaderError('bad list')
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        with self.assertRaises(BrowserError):
+            br.scan()
+
+    def test_scan_wraps_request_provider_start_errors(self):
+        """Browser.scan() should wrap request provider initialization errors into BrowserError."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(
+            is_random_list=False,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+            host='example.com',
+            port=80,
+            scheme='http://'
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        with patch.object(br, '_Browser__start_request_provider', side_effect=HttpRequestError('boom')), \
+                patch('src.lib.browser.browser.tpl.info'):
+            with self.assertRaises(BrowserError):
+                br.scan()
+
+    def test_catch_report_data_initializes_report_items_when_missing(self):
+        """Browser.__catch_report_data() should restore report_items when old payloads do not have it."""
 
         br = browser.__new__(browser)
-        result = {
-            'total': helper.counter(),
-            'items': helper.list(),
-        }
+        setattr(br, '_Browser__result', {'total': helper.counter(), 'items': helper.list()})
 
-        setattr(br, '_Browser__result', result)
-        setattr(br, '_Browser__pool', self.__pool)
-        setattr(br, '_Browser__pool.size', 0)
-        setattr(br, '_Browser__config', self.__browser_configuration(params))
+        br._Browser__catch_report_data('success', 'http://example.com/admin', '5B', '200')
 
-        self.assertIs(br.done(), None)
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['items']['success'], ['http://example.com/admin'])
+        self.assertEqual(result['report_items']['success'], [{'url': 'http://example.com/admin', 'size': '5B', 'code': '200'}])
 
-    @data({'reports': 'raisesexc', 'host': 'test.local'})
-    def test_done_exception(self, params):
-        """Browser.done() exception test."""
+    def test_done_processes_reports_when_queue_is_empty(self):
+        """Browser.done() should load and process all configured reports when the queue is the queue is empty."""
 
-        br = browser.__new__(browser)
-        result = {
-            'total': helper.counter(),
-            'items': helper.list(),
-        }
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(total_items_size=10, workers_size=2, size=0))
+        setattr(br, '_Browser__config', SimpleNamespace(reports=['std', 'json'], host='test.local'))
+        report_one = MagicMock()
+        report_two = MagicMock()
 
-        setattr(br, '_Browser__result', result)
-        setattr(br, '_Browser__pool', self.__pool)
-        setattr(br, '_Browser__pool.size', 0)
-        setattr(br, '_Browser__config', self.__browser_configuration(params))
-
-        with self.assertRaises(BrowserError) as context:
+        with patch('src.lib.browser.browser.Reporter.load', side_effect=[report_one, report_two]) as load_mock:
             br.done()
 
-        self.assertTrue('raisesexc' in str(context.exception))
-        self.assertTrue(BrowserError == context.expected)
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['items'], 10)
+        self.assertEqual(result['total']['workers'], 2)
+        self.assertEqual(load_mock.call_count, 2)
+        report_one.process.assert_called_once_with()
+        report_two.process.assert_called_once_with()
+
+    def test_done_passes_enriched_result_to_reporter(self):
+        """Browser.done() should pass report_items metadata into Reporter.load()."""
+
+        br = self.make_browser()
+        result = {
+            'total': helper.counter(),
+            'items': helper.list(),
+            'report_items': helper.list(),
+        }
+        result['items']['success'] += ['http://example.com/admin']
+        result['report_items']['success'] += [{'url': 'http://example.com/admin', 'size': '5B', 'code': '200'}]
+
+        setattr(br, '_Browser__result', result)
+        setattr(br, '_Browser__pool', SimpleNamespace(total_items_size=1, workers_size=1, size=0))
+        setattr(br, '_Browser__config', SimpleNamespace(reports=['json'], host='test.local'))
+
+        report = MagicMock()
+        with patch('src.lib.browser.browser.Reporter.load', return_value=report) as load_mock:
+            br.done()
+
+        passed_result = load_mock.call_args[0][2]
+        self.assertIn('report_items', passed_result)
+        self.assertEqual(
+            passed_result['report_items']['success'],
+            [{'url': 'http://example.com/admin', 'size': '5B', 'code': '200'}]
+        )
+        report.process.assert_called_once_with()
+
+    def test_done_skips_report_generation_when_queue_is_not_empty(self):
+        """Browser.done() should skip reporting while there are still queued items."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(total_items_size=10, workers_size=2, size=1))
+        setattr(br, '_Browser__config', SimpleNamespace(reports=['std'], host='test.local'))
+
+        with patch('src.lib.browser.browser.Reporter.load') as load_mock:
+            br.done()
+
+        load_mock.assert_not_called()
+
+    def test_done_wraps_reporter_errors(self):
+        """Browser.done() should wrap reporter failures into BrowserError."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(total_items_size=10, workers_size=2, size=0))
+        setattr(br, '_Browser__config', SimpleNamespace(reports=['raisesexc'], host='test.local'))
+
+        with patch('src.lib.browser.browser.Reporter.load', side_effect=ReporterError('raisesexc')):
+            with self.assertRaises(BrowserError):
+                br.done()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

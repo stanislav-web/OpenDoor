@@ -33,6 +33,7 @@ pip-wheel-metadata/
 # Runtime/project-generated files
 tmp/
 reports/
+scripts/
 syslog/
 site/
 

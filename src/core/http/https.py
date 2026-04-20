@@ -94,7 +94,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
         """
 
         self.__headers.update({'User-Agent': self._user_agent})
-        if 'default' is not self.__connection_header:
+        if 'default' != self.__connection_header:
             self.__headers.update({'Connection': self.__connection_header})
 
         if self._HTTP_DBG_LEVEL <= self.__debug.level:

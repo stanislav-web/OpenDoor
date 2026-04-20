@@ -25,11 +25,12 @@ from .terminal import Terminal
 
 class Process(object):
 
-    """ Process class"""
+    """Process class"""
 
     def __init__(self, classname=None, typeobj=None, params=None):
         """
-        Init metaclass
+        Init metaclass.
+
         :param classname: passed classname
         :param str typeobj: passed classname type
         :param dict params: passed params
@@ -41,26 +42,29 @@ class Process(object):
     @property
     def terminal_size(self):
         """
-        Get terminal window size
+        Get terminal window size.
+
         :raise CoreSystemError
         :return: dict
         """
 
         if getattr(self, 'ts', None) is None:
-            (width, height) = Terminal().get_ts()
+            width, height = Terminal().get_ts()
             self.ts = {'height': height, 'width': width}
         return self.ts
 
     @staticmethod
     def termination_handler():
         """
-        Exit Ctrl-Z handler
+        Exit Ctrl-Z handler.
+
         :return: None
         """
 
         def kill_process(signum, frame):
             """
-            Kill process os signal
+            Kill process os signal.
+
             :param int signum: signal code
             :param object frame: frame object
             :return: None
@@ -68,7 +72,6 @@ class Process(object):
 
             del signum
             del frame
-
             os.kill(os.getpid(), signal.SIGTERM)
 
         sig = getattr(signal, 'SIGTSTP', signal.SIGABRT)
@@ -77,29 +80,37 @@ class Process(object):
     @staticmethod
     def kill():
         """
-        Immediatelly terminate process
+        Immediately terminate process.
+
         :return: None
         """
 
-        os.kill(os.getpid(), signal.SIGTERM)  # or signal.SIGKILL
+        os.kill(os.getpid(), signal.SIGTERM)
 
     @staticmethod
     def execute(process):
         """
-        Excecute OS process
+        Execute OS process.
+
         :param str process: os command
         :raise CoreSystemError
-        :return: dic
+        :return: bytes
         """
 
         try:
-            pr = subprocess.Popen(process, cwd=os.getcwd(), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            (out, error) = pr.communicate()
-            if pr.returncode != 0:
-                raise OSError(error.strip())
-
-            return out
-        except (subprocess.CalledProcessError, OSError) as error:
+            completed = subprocess.run(
+                process,
+                cwd=os.getcwd(),
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            if completed.returncode != 0:
+                error_message = completed.stderr.strip() or completed.stdout.strip() or b'Command execution failed'
+                raise OSError(error_message)
+            return completed.stdout
+        except (subprocess.SubprocessError, OSError) as error:
             raise CoreSystemError(error)
 
 

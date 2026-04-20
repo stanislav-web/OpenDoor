@@ -1,0 +1,16 @@
+{
+  "repo_notes": [
+    {
+      "author": "Stanislav",
+      "content": "OpenDoor OWASP is a multifunctional console web directory scanner for security auditing. Documentation should prioritize the scanning engine, dictionary-based discovery, external dictionary support, proxy/anonymity features, detection of index-of directories, login entry points, restricted paths, web shells, hidden data, subdomains, and large backup files."
+    },
+    {
+      "author": "Stanislav",
+      "content": "The most important documentation outcome is to explain how targets are discovered, how scan dictionaries and signatures are organized, how proxy support affects scan execution, what findings are produced, and how tests validate detection logic and scanner behavior."
+    },
+    {
+      "author": "Stanislav",
+      "content": "If present, documentation should explicitly cover docs/, src/, tests/, scripts/, examples/, and any dictionaries or signature directories because these are essential to understanding scanner coverage and operation."
+    }
+  ]
+}

@@ -16,6 +16,8 @@
     Development Team: Brain Storm Team
 """
 
+import re
+
 from src.core import FileSystemError
 from src.core import CoreSystemError
 from src.core import CoreConfig
@@ -44,6 +46,93 @@ class Reader(object):
         self.__ignored = []
         self.__counter = 0
 
+    @staticmethod
+    def _is_default_port(port):
+        """
+        Check whether port is one of the default HTTP/HTTPS ports.
+
+        :param int port:
+        :return: bool
+        """
+
+        return port == Config.ssl_port or port == Config.http_port
+
+    @staticmethod
+    def _format_port(port):
+        """
+        Convert a port to an URL suffix.
+
+        :param int port:
+        :return: str
+        """
+
+        if Reader._is_default_port(port):
+            return ''
+        return ':{0}'.format(port)
+
+    @staticmethod
+    def _normalize_extensions(extensions):
+        """
+        Normalize extension names for regex-based filters.
+
+        :param list extensions:
+        :return: list
+        """
+
+        normalized = []
+        for extension in extensions:
+            extension = str(extension).strip().lstrip('.')
+            if extension:
+                normalized.append(extension)
+        return normalized
+
+    @staticmethod
+    def _build_include_extension_pattern(extensions):
+        """
+        Build a regex that keeps only the selected extensions.
+
+        :param list extensions:
+        :return: str
+        """
+
+        normalized = Reader._normalize_extensions(extensions)
+        escaped = [re.escape(extension) for extension in normalized]
+        return r'.*\.({0})$'.format('|'.join(escaped))
+
+    @staticmethod
+    def _build_ignore_extension_pattern(extensions):
+        """
+        Build a regex that excludes the selected extensions.
+
+        :param list extensions:
+        :return: str
+        """
+
+        normalized = Reader._normalize_extensions(extensions)
+        escaped = [re.escape(extension) for extension in normalized]
+        return r'^(?!.*\.({0})$).*$'.format('|'.join(escaped))
+
+    def _get_dirlist_path(self):
+        """
+        Resolve the active wordlist path according to browser configuration.
+
+        :return: str
+        """
+
+        if True is self.__browser_config.get('use_random'):
+            return self.__config.get('tmplist')
+
+        if True is self.__browser_config.get('use_extensions') and 'directories' == self.__browser_config.get('list'):
+            return self.__config.get('extensionlist')
+
+        if True is self.__browser_config.get('use_ignore_extensions') and 'directories' == self.__browser_config.get('list'):
+            return self.__config.get('ignore_extensionlist')
+
+        if True is self.__browser_config.get('is_external_wordlist'):
+            return self.__browser_config.get('wordlist')
+
+        return self.__config.get(self.__browser_config.get('list'))
+
     def get_user_agents(self):
         """
         Get user agents from user-agents list
@@ -52,7 +141,7 @@ class Reader(object):
         """
 
         try:
-            if not len(self.__useragents):
+            if not self.__useragents:
                 self.__useragents = filesystem.read(self.__config.get('useragents'))
             return self.__useragents
 
@@ -67,14 +156,16 @@ class Reader(object):
         """
 
         try:
-
-            if not len(self.__ignored):
+            if not self.__ignored:
                 ignored = filesystem.read(self.__config.get('ignored'))
                 for item in ignored:
-                    item = item.replace("\n", "")
-                    if "/" == item[0]:
+                    item = item.replace("\n", "").strip()
+                    if not item:
+                        continue
+                    if item.startswith('/'):
                         item = item.strip('/')
-                    self.__ignored.append(item)
+                    if item:
+                        self.__ignored.append(item)
 
             return self.__ignored
 
@@ -90,16 +181,12 @@ class Reader(object):
 
         try:
             if False is self.__browser_config.get('is_standalone_proxy'):
-
                 if True is self.__browser_config.get('is_external_torlist'):
                     self.__proxies = filesystem.read(self.__browser_config.get('torlist'))
-                else:
-
-                    if not len(self.__proxies):
-                        self.__proxies = filesystem.read(self.__config.get('proxies'))
+                elif not self.__proxies:
+                    self.__proxies = filesystem.read(self.__config.get('proxies'))
                 return self.__proxies
-            else:
-                return []
+            return []
 
         except (TypeError, FileSystemError) as error:
             raise ReaderError(error)
@@ -108,28 +195,36 @@ class Reader(object):
         """
         Read lines from large file
         :param dict params: input params
-        :param funct loader:  callback function
+        :param funct loader: callback function
         :raise ReaderError
         :return: None
         """
 
         try:
-            if True is self.__browser_config.get('use_random'):
-                # use randomizing list.dat
-                dirlist = self.__config.get('tmplist')
-            elif True is self.__browser_config.get('use_extensions')\
-                    and 'directories' == self.__browser_config.get('list'):
-                dirlist = self.__config.get('extensionlist')
-            elif True is self.__browser_config.get('use_ignore_extensions')\
-                    and 'directories' == self.__browser_config.get('list'):
-                dirlist = self.__config.get('ignore_extensionlist')
-            else:
-                if True is self.__browser_config.get('is_external_wordlist'):
-                    dirlist = self.__browser_config.get('wordlist')
-                else:
-                    dirlist = self.__config.get(self.__browser_config.get('list'))
-            filesystem.readline(dirlist, handler=getattr(self, '_{0}__line'.format(self.__browser_config.get('list'))),
-                                handler_params=params, loader=loader)
+            dirlist = self._get_dirlist_path()
+            list_type = self.__browser_config.get('list')
+            line_handler = getattr(self, '_{0}__line'.format(list_type))
+
+            prepared_params = dict(params)
+            scheme = prepared_params.get('scheme')
+            port_suffix = self._format_port(prepared_params.get('port'))
+
+            if 'directories' == list_type:
+                prepared_params['prefix'] = self.__browser_config.get('prefix', '')
+                prepared_params['base_url'] = scheme + prepared_params.get('host') + port_suffix + '/'
+            elif 'subdomains' == list_type:
+                host = prepared_params.get('host')
+                if host.startswith('www.'):
+                    host = host[4:]
+                prepared_params['host_no_www'] = host
+                prepared_params['port_suffix'] = port_suffix
+
+            filesystem.readline(
+                dirlist,
+                handler=line_handler,
+                handler_params=prepared_params,
+                loader=loader,
+            )
         except (TypeError, FileSystemError) as error:
             raise ReaderError(error)
 
@@ -144,23 +239,17 @@ class Reader(object):
 
         line = helper.filter_domain_string(line)
 
-        host = params.get('host')
-        port = params.get('port')
+        host = params.get('host_no_www')
+        if host is None:
+            host = params.get('host')
+            if 'www.' in host:
+                host = host.replace("www.", "")
 
-        if 'www.' in host:
-            host = host.replace("www.", "")
+        port = params.get('port_suffix')
+        if port is None:
+            port = cls._format_port(params.get('port'))
 
-        if port is Config.ssl_port or port is Config.http_port:
-            port = ''
-        else:
-            port = ':{0}'.format(port)
-
-        line = "{scheme}{sub}.{host}{port}".format(scheme=params.get('scheme'),
-                                                   host=host,
-                                                   port=port,
-                                                   sub=line)
-
-        return line
+        return params.get('scheme') + line + '.' + host + port
 
     def _directories__line(self, line, params):
         """
@@ -172,18 +261,19 @@ class Reader(object):
 
         line = helper.filter_directory_string(line)
 
-        if 'prefix' in self.__browser_config and 0 < len(self.__browser_config.get('prefix')):
-            line = self.__browser_config.get('prefix') + line
-        port = params.get('port')
+        prefix = params.get('prefix')
+        if prefix is None:
+            prefix = self.__browser_config.get('prefix', '')
 
-        if port is Config.ssl_port or port is Config.http_port:
-            port = ''
-        else:
-            port = ':{0}'.format(port)
-        line = "{scheme}{host}{port}/{uri}".format(scheme=params.get('scheme'), host=params.get('host'), port=port,
-                                                   uri=line, )
+        if prefix:
+            line = prefix + line
 
-        return line
+        base_url = params.get('base_url')
+        if base_url is None:
+            port = self._format_port(params.get('port'))
+            base_url = params.get('scheme') + params.get('host') + port + '/'
+
+        return base_url + line
 
     def randomize_list(self, target, output):
         """
@@ -195,7 +285,6 @@ class Reader(object):
         """
 
         try:
-
             target_file = self.__config.get(target)
             tmp_file = self.__config.get(output)
             output_file = filesystem.makefile(tmp_file)
@@ -209,7 +298,11 @@ class Reader(object):
 
     def filter_by_extension(self, target, output, extensions):
         """
-        Filter list by multiple extensions
+        Filter list by multiple extensions.
+
+        Fast in-memory path retained intentionally because the fully streaming
+        variant reduced memory significantly but caused unacceptable runtime
+        regression in benchmark measurements.
 
         :param str target: target list
         :param str output: output list
@@ -218,13 +311,12 @@ class Reader(object):
         """
 
         try:
-
             target_file = self.__config.get(target)
             output_file = self.__config.get(output)
 
             dirlist = filesystem.read(target_file)
-            dirlist = [i.strip() for i in dirlist]
-            pattern = '.*\.' + '|.*\.'.join(extensions)
+            dirlist = [item.strip() for item in dirlist]
+            pattern = self._build_include_extension_pattern(extensions)
             newlist = filesystem.filter_file_lines(dirlist, pattern)
             filesystem.makefile(output_file)
             filesystem.writelist(output_file, newlist, '\n')
@@ -235,7 +327,11 @@ class Reader(object):
 
     def filter_by_ignore_extension(self, target, output, extensions):
         """
-        Specific filter for selected extensions
+        Specific filter for selected extensions.
+
+        Fast in-memory path retained intentionally because the fully streaming
+        variant reduced memory significantly but caused unacceptable runtime
+        regression in benchmark measurements.
 
         :param str target: target list
         :param str output: output list
@@ -244,15 +340,11 @@ class Reader(object):
         """
 
         try:
-
             target_file = self.__config.get(target)
             output_file = self.__config.get(output)
             dirlist = filesystem.read(target_file)
-            dirlist = [i.strip() for i in dirlist]
-            pattern = '^('
-            for ext in extensions:
-                pattern += '(?!\.{0})'.format(ext)
-            pattern += '.)*$'
+            dirlist = [item.strip() for item in dirlist]
+            pattern = self._build_ignore_extension_pattern(extensions)
             newlist = filesystem.filter_file_lines(dirlist, pattern)
             filesystem.makefile(output_file)
             filesystem.writelist(output_file, newlist, '\n')
@@ -266,12 +358,13 @@ class Reader(object):
         :raise ReaderError
         :return: int
         """
+
         try:
             if 0 == self.__counter:
-                if True is self.__browser_config.get('is_external_wordlist'):
-                    dirlist = self.__browser_config.get('wordlist')
+                if True is self.__browser_config.get('use_random'):
+                    dirlist = self.__config.get('tmplist')
                 else:
-                    dirlist = self.__config.get(self.__browser_config.get('list'))
+                    dirlist = self._get_dirlist_path()
                 self.__counter = filesystem.count_lines(dirlist)
 
             return self.__counter

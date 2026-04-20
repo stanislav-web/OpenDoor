@@ -18,17 +18,16 @@
 from src.core import helper
 from src.core import sys
 from src.core.http.providers.debug import DebugProvider
-# noinspection PyPep8Naming
 from src.lib.tpl import Tpl as tpl
 
 
 class Debug(DebugProvider):
     """Debug class"""
 
-    # noinspection PyPep8Naming
     def __init__(self, Config):
         """
-        Debug constructor
+        Debug constructor.
+
         :param Config: Config
         """
 
@@ -37,26 +36,20 @@ class Debug(DebugProvider):
         self.__cfg = Config
         self.__level = self.__cfg.debug
 
-        if 0 < self.__level:
+        if self.__level > 0:
             tpl.debug(key='debug', level=self.__cfg.debug, method=self.__cfg.method)
 
     @property
     def level(self):
-        """
-        Get debug level
-        :return: int
-        """
+        """Get debug level."""
 
         return self.__level
 
     def debug_user_agents(self):
-        """
-        Debug info for user agent
-        :return: bool
-        """
+        """Debug info for user agent."""
 
-        if 0 < self.__level:
-            if True is self.__cfg.is_random_user_agent:
+        if self.__level > 0:
+            if self.__cfg.is_random_user_agent is True:
                 tpl.debug(key='random_browser')
             else:
                 tpl.debug(key='browser', browser=self.__cfg.user_agent)
@@ -64,19 +57,15 @@ class Debug(DebugProvider):
         return True
 
     def debug_list(self, total_lines):
-        """
-        Debug scan list
-        :param int total_lines:  lines
-        :return: bool
-        """
+        """Debug scan list."""
 
-        if 0 < self.__level:
-            if True is self.__cfg.is_random_list:
+        if self.__level > 0:
+            if self.__cfg.is_random_list is True:
                 tpl.debug(key='randomizing')
-            if self.__cfg.DEFAULT_SCAN is self.__cfg.scan:
-                if True is self.__cfg.is_extension_filter:
+            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
+                if self.__cfg.is_extension_filter is True:
                     tpl.debug(key='ext_filter', total=total_lines, ext=', '.join(self.__cfg.extensions))
-                elif True is self.__cfg.is_ignore_extension_filter:
+                elif self.__cfg.is_ignore_extension_filter is True:
                     tpl.debug(key='ext_ignore_filter', total=total_lines, ext=', '.join(self.__cfg.ignore_extensions))
                 else:
                     tpl.debug(key='directories', total=total_lines)
@@ -87,13 +76,7 @@ class Debug(DebugProvider):
         return True
 
     def debug_connection_pool(self, keymsg, pool, connection_type):
-        """
-        Debug connection pool message
-        :param str keymsg: tpl key
-        :param object pool: pool object
-        :param object connection_type: type string
-        :return: bool
-        """
+        """Debug connection pool message."""
 
         tpl.debug(key=keymsg, type=connection_type)
         if pool:
@@ -102,66 +85,44 @@ class Debug(DebugProvider):
         return True
 
     def debug_proxy_pool(self):
-        """
-        Debug proxy pool message
-        :return: bool
-        """
+        """Debug proxy pool message."""
 
-        if True is self.__cfg.is_external_torlist:
+        if self.__cfg.is_external_torlist is True:
             tpl.debug(key='proxy_pool_external_start')
-
-        elif True is self.__cfg.is_standalone_proxy:
+        elif self.__cfg.is_standalone_proxy is True:
             tpl.debug(key='proxy_pool_standalone', server=self.__cfg.proxy)
-
-        elif True is self.__cfg.is_internal_torlist:
+        elif self.__cfg.is_internal_torlist is True:
             tpl.debug(key='proxy_pool_internal_start')
 
         return True
 
     def debug_request(self, request_header, url, method):
-        """
-        Debug request
-        :param dict request_header: request header
-        :param str url: request url
-        :param str method: request method
-        :return: bool
-        """
-        if type(request_header) is not dict:
+        """Debug request."""
+
+        if not isinstance(request_header, dict):
             request_header = request_header.__dict__
 
-        request_header.update({'Request URI': url})
-        request_header.update({'Request Method': method})
+        request_data = dict(request_header)
+        request_data.update({'Request URI': url, 'Request Method': method})
 
-        tpl.debug(key='request_header_dbg', dbg=helper.to_json(request_header))
+        tpl.debug(key='request_header_dbg', dbg=helper.to_json(request_data))
 
         return True
 
     def debug_response(self, response_header):
-        """
-        Debug response
-        :param dict response_header: response header
-        :return: bool
-        """
+        """Debug response."""
 
         tpl.debug(key='response_header_dbg', dbg=helper.to_json(response_header))
 
         return True
 
     def debug_request_uri(self, status, request_uri, **kwargs):
-        """
-        Debug request_uri
-        :param str status: response status
-        :param str request_uri: http request uri
-        :param mixed kwargs:
-        :return: bool
-        """
+        """Debug request_uri."""
 
-        percentage = tpl.line(
-            msg=helper.percent(kwargs.get('items_size', 0), kwargs.get('total_size', 1)),
-            color='cyan')
+        percentage = tpl.line(msg=helper.percent(kwargs.get('items_size', 0), kwargs.get('total_size', 1)), color='cyan')
         total_len = len(str(abs(kwargs.get('total_size', 1))))
 
-        if self.__cfg.DEFAULT_SCAN is self.__cfg.scan:
+        if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
             urlpath = helper.parse_url(request_uri).path
         else:
             urlpath = request_uri
@@ -171,44 +132,42 @@ class Debug(DebugProvider):
         elif status in ['bad', 'forbidden']:
             request_uri = tpl.line(key='forbidden', color='yellow', url=urlpath)
         elif status in ['redirect']:
-            request_uri = tpl.line(key='redirect', color='blue', url=urlpath,
-                                   rurl=kwargs.get('redirect_uri'))
+            request_uri = tpl.line(key='redirect', color='blue', url=urlpath, rurl=kwargs.get('redirect_uri'))
 
         self.__clear = True if self.__catched else False
 
         if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'indexof', 'certificate', 'auth']:
-
-            sys.writels("", flush=True)
-            tpl.info(key='get_item',
-                     clear=self.__clear,
-                     percent=percentage,
-                     current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
-                     total=kwargs.get('total_size', 1),
-                     item=request_uri,
-                     size=kwargs.get('content_size')
-                     )
+            sys.writels('', flush=True)
+            tpl.info(
+                key='get_item',
+                clear=self.__clear,
+                percent=percentage,
+                current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
+                total=kwargs.get('total_size', 1),
+                item=request_uri,
+                size=kwargs.get('content_size'),
+                code=kwargs.get('response_code', '-'),
+            )
             self.__catched = True
         else:
             if self.__level != -1:
-                tpl.line_log(key='get_item',
-                             percent=percentage,
-                             current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
-                             total=kwargs.get('total_size', 1),
-                             item=request_uri,
-                             size=kwargs.get('content_size'),
-                             )
+                tpl.line_log(
+                    key='get_item',
+                    percent=percentage,
+                    current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
+                    total=kwargs.get('total_size', 1),
+                    item=request_uri,
+                    size=kwargs.get('content_size'),
+                    code=kwargs.get('response_code', '-'),
+                )
             self.__catched = False
-            if kwargs.get('items_size', 0) is kwargs.get('total_size', 1):
-                sys.writels("", flush=True)
+            if kwargs.get('items_size', 0) == kwargs.get('total_size', 1):
+                sys.writels('', flush=True)
 
         return True
 
     def debug_load_sniffer_plugin(self, description):
-        """
-        Debug load sniffers plugin
-        :param str description: plugin description
-        :return: bool
-        """
+        """Debug load sniffers plugin."""
 
         tpl.debug(key='load_sniffer_plugin', description=description)
 

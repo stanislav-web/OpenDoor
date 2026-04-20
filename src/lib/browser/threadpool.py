@@ -39,6 +39,7 @@ class ThreadPool(object):
 
         self.__queue = Queue(num_threads)
         self.__workers = []
+        self.__submitted = 0
         self.total_items_size = total_items
         self.is_started = True
 
@@ -71,7 +72,7 @@ class ThreadPool(object):
     @property
     def items_size(self):
         """
-        Get pool items size
+        Get pool processed items size
         :return: int
         """
 
@@ -79,6 +80,15 @@ class ThreadPool(object):
         for worker in self.__workers:
             counter += worker.counter
         return counter
+
+    @property
+    def submitted_size(self):
+        """
+        Get pool submitted items size
+        :return: int
+        """
+
+        return self.__submitted
 
     def add(self, func, *args, **kargs):
         """
@@ -91,8 +101,9 @@ class ThreadPool(object):
 
         try:
             if True is self.is_started:
-                if self.items_size < self.total_items_size:
+                if self.__submitted < self.total_items_size:
                     self.__queue.put((func, args, kargs))
+                    self.__submitted += 1
         except (SystemExit, KeyboardInterrupt):
             time.sleep(2)
             self.pause()

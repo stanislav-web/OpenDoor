@@ -55,7 +55,7 @@ class ResponseProvider(object):
         location = response.get_redirect_location()
 
         if location is not False:
-            matches = re.search("(?P<url>https?://[^\s]+)", location)
+            matches = matches = re.search(r"(?P<url>https?://[^\s]+)", location)
             if matches is not None:
                 redirect_url = matches.group("url")
             else:

@@ -30,7 +30,7 @@ class ReaderError(Exception):
 
         class_name = type(error).__name__
 
-        if self.__class__.__name__ is not class_name:
+        if self.__class__.__name__ != class_name:
             exception.log(class_name=class_name, message=error)
 
         super(ReaderError, self).__init__("{0}: {1}".format(str(class_name), str(error)))

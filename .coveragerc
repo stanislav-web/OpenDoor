@@ -1,12 +1,23 @@
-# .coveragerc to control coverage.py
 [run]
-omit =
-    *__init__*
 branch = true
 cover_pylib = false
 source = src/
-
-[report]
 omit =
     *__init__*
-show_missing = false
+    */docs/*
+    */benchmarks/*
+    */scripts/*
+
+[report]
+show_missing = true
+skip_covered = false
+fail_under = 90
+omit =
+    *__init__*
+    */benchmarks/*
+    */docs/*
+    */scripts/*
+
+[html]
+directory = htmlcov
+title = OpenDoor Coverage Report

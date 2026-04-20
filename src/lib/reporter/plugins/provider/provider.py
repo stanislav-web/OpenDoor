@@ -22,10 +22,10 @@ from src.lib import tpl
 
 class PluginProvider(object):
     """"PluginProvider class"""
-    
+
     PLUGIN_NAME = 'PluginProvider'
     EXTENSION_SET = '.pp'
-    
+
     def __init__(self, target, data):
         """
         PluginProvider constructor
@@ -48,6 +48,39 @@ class PluginProvider(object):
             raise TypeError("Report data has a wrong type")
         self._data = data
 
+    def get_report_items(self, status):
+        """
+        Return detailed report items for the requested status.
+        Falls back to legacy URL-only buckets when detailed metadata is absent.
+        :param str status: bucket status
+        :return: list
+        """
+
+        report_items = self._data.get('report_items', {})
+        items = report_items.get(status)
+        if items is None:
+            items = [
+                {'url': url, 'size': '0B', 'code': '-'}
+                for url in self._data.get('items', {}).get(status, [])
+            ]
+        return items
+
+    @staticmethod
+    def format_report_item(item):
+        """
+        Format report item for text-based report sinks.
+        :param dict|str item: report item payload
+        :return: str
+        """
+
+        if isinstance(item, dict):
+            return '{0} - {1} - {2}'.format(
+                item.get('url', ''),
+                item.get('code', '-'),
+                item.get('size', '0B')
+            )
+        return str(item)
+
     def process(self):
         """
         Process data
@@ -55,7 +88,7 @@ class PluginProvider(object):
         """
 
         pass
-    
+
     @classmethod
     def record(cls, dirname, filename, resultset, separator=''):
         """
@@ -67,7 +100,7 @@ class PluginProvider(object):
         :raise Exception
         :return: None
         """
-        
+
         try:
             filename = "".join((dirname, filesystem.sep, filename, cls.EXTENSION_SET))
             filename = filesystem.makefile(filename)

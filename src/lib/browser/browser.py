@@ -49,7 +49,7 @@ class Browser(Filter):
             self.__client = None
             self.__config = Config(params)
             self.__debug = Debug(self.__config)
-            self.__result = {'total': {}, 'items': {}}
+            self.__result = {'total': {}, 'items': {}, 'report_items': {}}
             self.__reader = Reader(browser_config={
                 'list': self.__config.scan,
                 'torlist': self.__config.torlist,
@@ -84,7 +84,7 @@ class Browser(Filter):
             self.__pool = ThreadPool(num_threads=self.__config.threads, total_items=self.__reader.total_lines,
                                      timeout=self.__config.delay)
 
-            self.__result = {'total': helper.counter(), 'items': helper.list()}
+            self.__result = {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()}
 
             self.__response = response(config=self.__config, debug=self.__debug, tpl=tpl)
 
@@ -181,7 +181,7 @@ class Browser(Filter):
             if None is response_data:
                 self.__catch_report_data('ignored', url)
             else:
-                self.__catch_report_data(response_data[0], response_data[1])
+                self.__catch_report_data(response_data[0], response_data[1], response_data[2], response_data[3])
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) as error:
             raise BrowserError(error)
@@ -221,16 +221,22 @@ class Browser(Filter):
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt
 
-    def __catch_report_data(self, status, url):
+    def __catch_report_data(self, status, url, size='0B', code='-'):
         """
         Add to basket report pool
         :param str status: response status
         :param url: request url
+        :param str size: response content size
+        :param str code: actual response code
         :return: None
         """
 
+        if 'report_items' not in self.__result:
+            self.__result['report_items'] = helper.list()
+
         self.__result['total'].update((status,))
         self.__result['items'][status] += [url]
+        self.__result['report_items'][status] += [{'url': url, 'size': size, 'code': str(code)}]
 
     def done(self):
         """

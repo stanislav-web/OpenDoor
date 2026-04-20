@@ -1,7 +1,7 @@
 OWASP WEB Directory Scanner [![Twitter](https://img.shields.io/twitter/url/https/github.com/stanislav-web/OpenDoor.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https://github.com/stanislav-web/OpenDoor)
 ===============================================================================================================================================================================================================================
 
-![Alt text](./logo.png "OpenDoor OWASP")
+![OpenDoor OWASP](https://raw.githubusercontent.com/stanislav-web/OpenDoor/master/logo.png)
 
 | Python | Linux | macOS | Windows |
 |---|---|---|---|
@@ -9,15 +9,17 @@ OWASP WEB Directory Scanner [![Twitter](https://img.shields.io/twitter/url/https
 | 3.13 | [![CI Linux Python 3.13](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-linux-py313.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-linux-py313.yml) | [![CI macOS Python 3.13](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-macos-py313.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-macos-py313.yml) | [![CI Windows Python 3.13](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-windows-py313.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-windows-py313.yml) |
 | 3.14 | [![CI Linux Python 3.14](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-linux-py314.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-linux-py314.yml) | [![CI macOS Python 3.14](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-macos-py314.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-macos-py314.yml) | [![CI Windows Python 3.14](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-windows-py314.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/ci-windows-py314.yml) |
 
-**OpenDoor OWASP** is console multifunctional website's scanner.  
-This application finds all possible ways to login, index of/ directories, web shells, restricted access points, subdomains, hidden data and large backups.  
-The scanning is performed by the built-in dictionary and external dictionaries as well. Anonymity and speed are provided by means of using proxy servers.  
-Software is written for informational purposes and is open source product under the GPL license.
+**OpenDoor OWASP** is a multifunctional console website scanner.  
+This application finds possible login entry points, `Index of/` directories, web shells, restricted access points, subdomains, hidden data, and large backup files.  
+Scanning is performed using both the built-in dictionary and external dictionaries.  
+Anonymity and speed are provided through the use of proxy servers.  
+The software is written for informational purposes and is released as an open-source product under the GPL license.  
+The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and is maintained and supported by the community.
 
 ![Maintainer](https://img.shields.io/badge/maintainer-stanislav_web-blue)
 [![Contributors](https://img.shields.io/github/contributors/stanislav-web/Opendoor)](https://github.com/stanislav-web/OpenDoor/graphs/contributors)
 [![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12%20%2B-green.svg)](https://www.python.org/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%20%2B-green.svg)](https://www.python.org/) [![codecov](https://codecov.io/github/stanislav-web/OpenDoor/graph/badge.svg?token=dyBxutYBso)](https://codecov.io/github/stanislav-web/OpenDoor)
 
 [![Documentation Status](https://app.readthedocs.org/projects/opendoor/badge/?version=latest)](https://opendoor.readthedocs.io/en/latest/)
 [![Codacy Security Scan](https://github.com/stanislav-web/OpenDoor/actions/workflows/codacy.yml/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/codacy.yml)
@@ -26,22 +28,28 @@ Software is written for informational purposes and is open source product under 
 
 [Read The Docs](https://opendoor.readthedocs.io/)
 
-* *Current 5.0.1 (19.04.2026)*
-    - Directories: 83012
+* *Current 5.1.0 (20.04.2026)*
+    - Directories: 110977
     - Subdomains: 255359
 
 #### [Changelog](CHANGELOG.md) (last changes)
-v5.0.1 (19.04.2026)
+v5.1.0 (20.04.2026)
 ---------------------------
-- Fixed: Read the Docs badge updated to the current badge endpoint
-- Removed: stale Codespaces Prebuilds badge that no longer resolves
-- Changed: documentation stack refreshed for current Read the Docs / MkDocs workflow
-- Changed: `docs/requirements.txt` reduced to the active MkDocs-based documentation stack
-- Changed: `.readthedocs.yaml` updated for current RTD configuration
-- Changed: documentation pages refreshed for the modern packaging and installation flow
-- Fixed: docs build now aligns with the current project packaging and supported Python baseline
-- Fixed: Windows CI now uses UTF-8-safe text file handling for bundled data files
-- Added: Windows installation instructions for PyPI, pipx, local development, and build flows
+- (feature)[#35](https://github.com/stanislav-web/OpenDoor/issues/35) Added response size to exported `txt`, `html`, and `json` reports.
+- (feature)[#39](https://github.com/stanislav-web/OpenDoor/issues/39) Feature Request: Output response codes
+- (feature) Populated directories by adding new unique +27965 actual paths
+- (bugfix) Report plugins now create nested target directories correctly, e.g. `reports/example.com` instead of `reportsexample.com`.
+- (bugfix)Fixed BOM decoding behavior in helper utilities and aligned tests with the corrected implementation.
+- (optimization) Refactored `FileSystem.readline()` to batch-load lines with much lower peak memory usage.
+- (optimization) Optimized `Reader.get_lines()` hot path by precomputing handler params and reducing repeated string formatting work.
+- (optimization) Optimized `ThreadPool.add()` submit-side accounting using submitted task tracking.
+- (optimization) Kept `Reader` extension filters on the fast in-memory path after benchmark validation.
+- (optimization) Updated benchmark workflow documentation and project maintenance flow.
+- (optimization) Fixed benchmark callback accounting for batched `readline()` processing.
+- (optimization) Improved compatibility of terminal, color, logger exception, and rainbow logger behavior under tests.
+- (tests) Test suite expanded to 400+ tests.
+- (tests) Added regression tests and edge case coverage for report size propagation.
+- (tests) Added broad unit test coverage across core, HTTP, reporter, browser, proxy, socket, logger, terminal, color, and filesystem modules.
 
 #### Main features
 
@@ -359,7 +367,7 @@ ruff check .
 If you like to contribute to the development of the project, in that case, pull requests are open for you.
 Also, you can suggest ideas and create a task in my track list.
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/stanislav-web/OpenDoor) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
 ### Documentation
 - [Read The Docs](https://opendoor.readthedocs.io/)

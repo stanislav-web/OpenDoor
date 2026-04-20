@@ -16,6 +16,8 @@
     Development Team: Brain Storm Team
 """
 
+import os
+
 from .provider import PluginProvider
 from src.core import CoreConfig
 from src.core import filesystem, FileSystemError
@@ -42,7 +44,7 @@ class HtmlReportPlugin(PluginProvider):
 
             if None is directory:
                 directory = CoreConfig.get('data').get('reports')
-            self.__target_dir = filesystem.makedir("".join((directory, self._target)))
+            self.__target_dir = filesystem.makedir(os.path.join(directory, self._target))
         except FileSystemError as error:
             raise Exception(error)
 
@@ -54,7 +56,12 @@ class HtmlReportPlugin(PluginProvider):
 
         try:
             filesystem.clear(self.__target_dir, extension=self.EXTENSION_SET)
-            resultset = Json2Html().convert(json=self._data, table_attributes='border="1" cellpadding="2"')
+            report_data = dict(self._data)
+            report_data['report_items'] = {
+                status: self.get_report_items(status)
+                for status in self._data.get('items', {}).keys()
+            }
+            resultset = Json2Html().convert(json=report_data, table_attributes='border="1" cellpadding="2"')
             self.record(self.__target_dir, self._target, resultset)
         except FileSystemError as error:
             raise Exception(error)

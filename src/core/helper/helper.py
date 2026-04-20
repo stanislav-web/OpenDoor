@@ -174,35 +174,38 @@ class Helper(object):
         return str(domain.encode("idna").decode("utf-8"))
 
     @staticmethod
-    def decode(str, errors='strict'):
+    def decode(data, errors='strict'):
         """
         Decode strings
 
-        :param str str: input string
-        :param str errors:error level
+        :param bytes data: input bytes
+        :param str errors: error level
         :return: str
         """
 
         output = ''
         try:
-            if len(str) < 3:
-                if codecs.BOM_UTF8.startswith(str):
+            if len(data) < 3:
+                if codecs.BOM_UTF8.startswith(data):
                     # not enough data to decide if this is a BOM
                     # => try again on the next call
-                    output = ""
+                    output = ''
+                else:
+                    output, _ = codecs.utf_8_decode(data, errors)
 
-            elif str[:3] == codecs.BOM_UTF8:
-                (output, sizes) = codecs.utf_8_decode(str[3:], errors)
-            elif str[:3] == codecs.BOM_UTF16:
-                output = str[3:].decode('utf16')
+            elif data[:3] == codecs.BOM_UTF8:
+                output, _ = codecs.utf_8_decode(data[3:], errors)
+            elif data[:2] == codecs.BOM_UTF16:
+                output = data[2:].decode('utf16')
             else:
                 # (else) no BOM present
-                (output, sizes) = codecs.utf_8_decode(str, errors)
+                output, _ = codecs.utf_8_decode(data, errors)
+
             return str(output)
         except (UnicodeDecodeError, Exception):
             # seems, its getting not a content (img, file, etc)
             try:
-                return str.decode('cp1251')
+                return data.decode('cp1251')
             except (UnicodeDecodeError, Exception):
                 return ""
 

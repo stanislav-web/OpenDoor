@@ -59,11 +59,13 @@ class HttpRequest(RequestProvider, DebugProvider):
         """
 
         try:
-            pool = HTTPConnectionPool(self.__cfg.host,
-                                      port=self.__cfg.port,
-                                      maxsize=self.__cfg.threads,
-                                      timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
-                                      block=True)
+            pool = HTTPConnectionPool(
+                self.__cfg.host,
+                port=self.__cfg.port,
+                maxsize=self.__cfg.threads,
+                timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
+                block=True,
+            )
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_connection_pool('http_pool_start', pool, self.__connection_header)
             return pool
@@ -78,41 +80,44 @@ class HttpRequest(RequestProvider, DebugProvider):
         """
 
         self.__headers.update({'User-Agent': self._user_agent})
-        if 'default' is not self.__connection_header:
+        if self.__connection_header != 'default':
             self.__headers.update({'Connection': self.__connection_header})
+
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
             self.__debug.debug_request(self.__headers, url, self.__cfg.method)
+
         try:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
-                response = self.__pool.request(self.__cfg.method,
-                                               helper.parse_url(url).path,
-                                               headers=self.__headers,
-                                               retries=self.__cfg.retries,
-                                               assert_same_host=True,
-                                               redirect=False)
+                response = self.__pool.request(
+                    self.__cfg.method,
+                    helper.parse_url(url).path,
+                    headers=self.__headers,
+                    retries=self.__cfg.retries,
+                    assert_same_host=True,
+                    redirect=False,
+                )
                 self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             else:
-                response = PoolManager().request(self.__cfg.method, url,
-                                                 headers=self.__headers,
-                                                 retries=self.__cfg.retries,
-                                                 assert_same_host=False,
-                                                 redirect=False,
-                                                 timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout))
+                response = PoolManager().request(
+                    self.__cfg.method,
+                    url,
+                    headers=self.__headers,
+                    retries=self.__cfg.retries,
+                    assert_same_host=False,
+                    redirect=False,
+                    timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
+                )
             return response
 
         except MaxRetryError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
-            pass
 
         except HostChangedError as error:
             self.__tpl.warning(key='host_changed_error', details=error)
-            pass
 
         except ReadTimeoutError:
             self.__tpl.warning(key='read_timeout_error', url=url)
-            pass
 
         except ConnectTimeoutError:
             self.__tpl.warning(key='connection_timeout_error', url=url)
-            pass

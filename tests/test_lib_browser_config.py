@@ -1,105 +1,103 @@
 # -*- coding: utf-8 -*-
 
-"""
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-    Development Team: Brain Storm Team
-"""
 import unittest
+
 from src.lib.browser.config import Config
 
 
 class TestBrowserConfig(unittest.TestCase):
-    """TestBrowserConfig class"""
+    """TestBrowserConfig class."""
 
-    def test_config_properties(self):
-        """ Config.init() """
-        
-        empty_config = Config({})
-        self.assertIs(type(Config.scan), property)
-        self.assertTrue(str(Config.DEFAULT_SCAN) is str(empty_config.scan))
-        
-        self.assertIs(type(Config.scheme), property)
-        self.assertTrue('http://' is str(Config({'scheme' : 'http://'}).scheme))
-        
-        self.assertIs(type(Config.is_ssl), property)
-        self.assertFalse(empty_config.is_ssl)
+    def test_defaults_are_normalized(self):
+        """Config should expose normalized defaults when params are missing."""
 
-        self.assertIs(type(Config.prefix), property)
-        self.assertTrue('test/' is str(Config({'prefix': 'test/'}).prefix))
+        cfg = Config({'reports': 'std'})
 
-        self.assertIs(type(Config.host), property)
-        self.assertTrue('example.com' is str(Config({'host': 'example.com'}).host))
+        self.assertEqual(cfg.scan, Config.DEFAULT_SCAN)
+        self.assertEqual(cfg.scheme, Config.DEFAULT_SCHEME)
+        self.assertFalse(cfg.is_ssl)
+        self.assertEqual(cfg.prefix, '')
+        self.assertEqual(cfg.proxy, '')
+        self.assertFalse(cfg.is_proxy)
+        self.assertFalse(cfg.is_random_list)
+        self.assertFalse(cfg.is_extension_filter)
+        self.assertFalse(cfg.is_ignore_extension_filter)
+        self.assertFalse(cfg.is_external_wordlist)
+        self.assertFalse(cfg.is_external_reports_dir)
+        self.assertEqual(cfg.torlist, '')
+        self.assertEqual(cfg.user_agent, Config.DEFAULT_USER_AGENT)
+        self.assertEqual(cfg.threads, Config.DEFAULT_MIN_THREADS)
+        self.assertFalse(cfg.accept_cookies)
+        self.assertFalse(cfg.keep_alive)
+        self.assertEqual(cfg.timeout, Config.DEFAULT_SOCKET_TIMEOUT)
 
-        self.assertIs(type(Config.port), property)
-        self.assertTrue(80 is Config({'port': 80}).port)
-        
-        self.assertIs(type(Config.method), property)
-        self.assertTrue(str(Config.DEFAULT_HTTP_METHOD) is str(Config({'method' : 'HEAD'}).method))
+    def test_port_switches_to_ssl_default_for_https(self):
+        """Config.port should switch from 80 to 443 when SSL is enabled."""
 
-        self.assertIs(type(Config.delay), property)
-        self.assertTrue(1 is Config({'delay' : 1}).delay)
+        cfg = Config({'reports': 'std', 'ssl': True, 'port': 80})
+        self.assertEqual(cfg.port, 443)
 
-        self.assertIs(type(Config.timeout), property)
+    def test_method_uses_get_for_non_file_sniffers(self):
+        """Config.method should use GET when multiple sniffers are enabled."""
 
-        self.assertAlmostEqual(Config.DEFAULT_SOCKET_TIMEOUT, Config({'timeout' : 10}).timeout)
+        cfg = Config({'reports': 'std', 'sniff': 'file,indexof'})
+        self.assertEqual(cfg.method, 'GET')
 
-        self.assertIs(type(Config.retries), property)
-        self.assertTrue(3 is Config({'retries' : 3}).retries)
+    def test_method_uses_head_for_single_file_sniffer(self):
+        """Config.method should use HEAD for a single file sniffer."""
 
-        self.assertIs(type(Config.debug), property)
-        self.assertTrue(1 is Config({'debug' : 1}).debug)
-        
-        self.assertIs(type(Config.proxy), property)
-        self.assertTrue('' is empty_config.proxy)
-        
-        self.assertIs(type(Config.is_proxy), property)
-        self.assertFalse(empty_config.is_proxy)
+        cfg = Config({'reports': 'std', 'sniff': 'file'})
+        self.assertEqual(cfg.method, 'HEAD')
 
-        self.assertIs(type(Config.is_random_user_agent), property)
-        self.assertFalse(empty_config.is_random_user_agent)
+    def test_reports_extensions_and_ignore_extensions_are_normalized(self):
+        """Config should normalize CSV values into clean lists."""
 
-        self.assertIs(type(Config.is_random_list), property)
-        self.assertFalse(empty_config.is_random_list)
-        
-        self.assertIs(type(Config.is_standalone_proxy), property)
-        self.assertFalse(empty_config.is_standalone_proxy)
+        cfg = Config({
+            'reports': 'json, html',
+            'extensions': 'php, html ',
+            'ignore_extensions': 'jpg, png ',
+        })
 
-        self.assertIs(type(Config.is_internal_torlist), property)
-        self.assertFalse(empty_config.is_internal_torlist)
+        self.assertEqual(cfg.reports, ['json', 'html', 'std'])
+        self.assertEqual(cfg.extensions, ['php', 'html'])
+        self.assertEqual(cfg.ignore_extensions, ['jpg', 'png'])
 
-        self.assertIs(type(Config.is_external_torlist), property)
-        self.assertFalse(empty_config.is_external_torlist)
+    def test_proxy_related_flags_are_derived_from_input(self):
+        """Config should resolve standalone and tor proxy modes correctly."""
 
-        self.assertIs(type(Config.is_external_wordlist), property)
-        self.assertFalse(empty_config.is_external_wordlist)
-        
-        self.assertIs(type(Config.torlist), property)
-        self.assertTrue('' is empty_config.torlist)
+        standalone = Config({'reports': 'std', 'proxy': 'http://127.0.0.1:8080'})
+        self.assertTrue(standalone.is_proxy)
+        self.assertTrue(standalone.is_standalone_proxy)
+        self.assertFalse(standalone.is_external_torlist)
 
-        self.assertIs(type(Config.reports), property)
-        self.assertIs(type(Config({'reports' : 'std'}).reports), list)
-        self.assertTrue(Config.DEFAULT_REPORT in Config({'reports' : 'std'}).reports)
-        
-        self.assertIs(type(Config.user_agent), property)
-        self.assertTrue(Config.DEFAULT_USER_AGENT is empty_config.user_agent)
+        external = Config({'reports': 'std', 'torlist': 'torlist.txt'})
+        self.assertTrue(external.is_proxy)
+        self.assertTrue(external.is_external_torlist)
 
-        empty_config.set_threads(Config.DEFAULT_MIN_THREADS)
-        self.assertIs(type(Config.threads), property)
-        self.assertTrue(empty_config.threads == Config.DEFAULT_MIN_THREADS)
-        
-        self.assertIs(type(Config.accept_cookies), property)
-        self.assertFalse(empty_config.accept_cookies)
+        internal = Config({'reports': 'std', 'tor': True})
+        self.assertTrue(internal.is_proxy)
+        self.assertTrue(internal.is_internal_torlist)
 
-if __name__ == "__main__":
+    def test_timeout_setter_converts_to_float(self):
+        """Config.timeout setter should coerce the value to float."""
+
+        cfg = Config({'reports': 'std'})
+        cfg.timeout = '4.5'
+        self.assertEqual(cfg.timeout, 4.5)
+
+    def test_threads_and_prefix_mutators_work(self):
+        """Config should expose configurable threads and normalized prefixes."""
+
+        cfg = Config({'reports': 'std', 'prefix': '/admin/', 'threads': 5, 'reports_dir': '/tmp/reports', 'wordlist': '/tmp/list'})
+        self.assertEqual(cfg.prefix, 'admin/')
+        self.assertEqual(cfg.threads, 5)
+        cfg.set_threads(9)
+        self.assertEqual(cfg.threads, 9)
+        self.assertEqual(cfg.reports_dir, '/tmp/reports')
+        self.assertEqual(cfg.wordlist, '/tmp/list')
+        self.assertTrue(cfg.is_external_reports_dir)
+        self.assertTrue(cfg.is_external_wordlist)
+
+
+if __name__ == '__main__':
     unittest.main()

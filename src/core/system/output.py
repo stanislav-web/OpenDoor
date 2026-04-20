@@ -16,9 +16,9 @@
     Development Team: Brain Storm Team
 """
 
-import sys
-import platform
 import os
+import platform
+import sys
 
 
 class Output(object):
@@ -30,7 +30,8 @@ class Output(object):
     @staticmethod
     def exit(msg):
         """
-        Abort session
+        Abort session.
+
         :param str msg: input message
         :return: None
         """
@@ -40,20 +41,22 @@ class Output(object):
     @staticmethod
     def writels(msg, flush=True):
         """
-        Write to stdout on one line dynamically
+        Write to stdout on one line dynamically.
+
         :param str msg: input message
         :param bool flush: force clear line
         :return: None
         """
 
-        sys.stdout.write("\r\x1b[K" + msg.__str__())
-        if True is flush:
+        sys.stdout.write("\r\x1b[K" + str(msg))
+        if flush:
             sys.stdout.flush()
 
     @staticmethod
     def writeln(msg):
         """
-        Write new line
+        Write new line.
+
         :param str msg: input message
         :return: None
         """
@@ -63,20 +66,22 @@ class Output(object):
     @staticmethod
     def version():
         """
-        Interpreter version
+        Interpreter version.
+
         :return: string
         """
 
-        version = platform.python_version().split(".")
-        return "{0}.{1}".format(version[0], version[1])
+        major, minor, _patch = platform.python_version().split(".")
+        return "{0}.{1}".format(major, minor)
 
     @property
     def is_windows(self):
         """
-        Check for windows signature
+        Check for windows signature.
+
         :return: bool
         """
 
-        if None is Output.__is_windows:
-            Output.__is_windows = True if sys.platform.startswith('win') or os.name == 'nt' else False
+        if Output.__is_windows is None:
+            Output.__is_windows = sys.platform.startswith('win') or os.name == 'nt'
         return Output.__is_windows

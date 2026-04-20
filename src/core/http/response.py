@@ -71,7 +71,7 @@ class Response(ResponseProvider):
         :param int total_size: response object
         :param list ignore_list: ignore list
         :raise ResponseError
-        :return: dict
+        :return: tuple
         """
 
         if hasattr(response, 'status'):
@@ -85,44 +85,52 @@ class Response(ResponseProvider):
             try:
                 status = super(Response, self).detect(request_url, response)
                 redirect_uri = None
+                content_size = ResponseProvider._get_content_size(response)
+                response_code = str(response.status)
 
                 if status in ['redirect']:
                     redirect_uri = self._get_redirect_url(request_url, response)
                     check_for_ignored = helper.parse_url(redirect_uri).path[1:]
                     if check_for_ignored in ignore_list:
                         status = 'failed'
-                    if self.__config.SUBDOMAINS_SCAN == self.__config.scan:  # subdomains
+                    if self.__config.SUBDOMAINS_SCAN == self.__config.scan:
                         ips = Socket.get_ips_addresses(helper.parse_url(request_url).hostname)
                         url = request_url = '{0} {1}'.format(request_url, ips)
                     else:
                         url = redirect_uri
                 else:
-                    if self.__config.SUBDOMAINS_SCAN == self.__config.scan:  # subdomains
+                    if self.__config.SUBDOMAINS_SCAN == self.__config.scan:
                         ips = Socket.get_ips_addresses(helper.parse_url(request_url).hostname)
                         url = request_url = '{0} {1}'.format(request_url, ips)
                     else:
                         url = request_url
-                self.__debug.debug_request_uri(status=status,
-                                               request_uri=request_url,
-                                               redirect_uri=redirect_uri,
-                                               items_size=items_size,
-                                               total_size=total_size,
-                                               content_size=ResponseProvider._get_content_size(response)
-                                               )
 
-                return status, url
+                self.__debug.debug_request_uri(
+                    status=status,
+                    request_uri=request_url,
+                    redirect_uri=redirect_uri,
+                    items_size=items_size,
+                    total_size=total_size,
+                    content_size=content_size,
+                    response_code=response_code,
+                )
+
+                return status, url, content_size, response_code
 
             except Exception as error:
                 raise ResponseError(str(error))
-        
+
         elif 'subdomains' in self._cfg.scan:
             status = 'failed'
-            self.__debug.debug_request_uri(status=status,
-                                           request_uri=request_url,
-                                           items_size=items_size,
-                                           total_size=total_size,
-                                           content_size=ResponseProvider._get_content_size(response)
-                                           )
-            return status, request_url
+            content_size = ResponseProvider._get_content_size(response)
+            self.__debug.debug_request_uri(
+                status=status,
+                request_uri=request_url,
+                items_size=items_size,
+                total_size=total_size,
+                content_size=content_size,
+                response_code='-'
+            )
+            return status, request_url, content_size, '-'
         else:
             pass

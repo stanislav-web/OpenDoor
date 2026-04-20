@@ -1,0 +1,47 @@
+name: Refresh DeepWiki
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "README.md"
+      - "docs/**"
+      - "src/**"
+      - "tests/**"
+      - "benchmarks/**"
+      - "data/**"
+      - ".devin/wiki.json"
+      - ".github/workflows/deepwiki.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deepwiki-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  refresh-deepwiki:
+    name: Refresh DeepWiki index
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Trigger DeepWiki crawl
+        id: deepwiki
+        uses: erayack/deepwiki-action@v1
+        with:
+          repository: ${{ github.repository }}
+          max_concurrency: "3"
+          request_timeout: "30000"
+          retry_attempts: "3"
+
+      - name: Print DeepWiki result
+        run: |
+          echo "DeepWiki URL: ${{ steps.deepwiki.outputs.deepwiki_url }}"
+          echo "Repo exists: ${{ steps.deepwiki.outputs.repo_exists }}"
+          echo "Repo slug: ${{ steps.deepwiki.outputs.org_repo }}"

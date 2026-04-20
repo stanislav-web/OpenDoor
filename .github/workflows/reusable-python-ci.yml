@@ -9,6 +9,10 @@ on:
       python-version:
         required: true
         type: string
+      upload-coverage:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -38,8 +42,21 @@ jobs:
           python -m pip install -r requirements-dev.txt
           python -m pip install -e .
 
-      - name: Run unit tests
-        run: python -m unittest
+      - name: Run unit tests with coverage
+        run: |
+          coverage run -m unittest
+          coverage xml -o coverage.xml
+          coverage report -m
+
+      - name: Upload coverage to Codecov
+        if: ${{ inputs.upload-coverage }}
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          disable_search: true
+          fail_ci_if_error: true
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Build distributions
         run: python -m build
