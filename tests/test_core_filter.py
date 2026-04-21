@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import io
+import os
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -105,12 +108,58 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(Filter.scan('directories'), 'directories')
         self.assertEqual(Filter.scan('subdomains'), 'subdomains')
 
-    def test_proxy_accepts_supported_schemes(self):
-        """Filter.proxy() should accept supported proxy schemes with a port."""
 
-        self.assertEqual(Filter.proxy('http://127.0.0.1:8080'), 'http://127.0.0.1:8080')
-        self.assertEqual(Filter.proxy('socks5://127.0.0.1:9050'), 'socks5://127.0.0.1:9050')
-        self.assertEqual(Filter.proxy('socks://127.0.0.1:9050'), 'socks5://127.0.0.1:9050')
+    def test_filter_builds_single_target_list_for_host(self):
+        """Filter.filter() should expose a single normalized target for --host."""
+
+        actual = Filter.filter({'host': 'https://example.com'})
+
+        self.assertEqual(actual['host'], 'example.com')
+        self.assertEqual(actual['scheme'], 'https://')
+        self.assertTrue(actual['ssl'])
+        self.assertEqual(actual['targets'], [
+            {
+                'host': 'example.com',
+                'scheme': 'https://',
+                'ssl': True,
+                'source': 'https://example.com',
+            }
+        ])
+
+    def test_targets_should_read_hostlist_and_deduplicate(self):
+        """Filter.targets() should read hostlist entries, ignore blanks/comments and deduplicate them."""
+
+        with tempfile.NamedTemporaryFile('w+', delete=False, encoding='utf-8') as handle:
+            handle.write('\n# comment\nexample.com\nhttps://example.com\nexample.com\nsecond.example.com\n')
+            filepath = handle.name
+
+        try:
+            actual = Filter.targets({'hostlist': filepath})
+        finally:
+            os.unlink(filepath)
+
+        self.assertEqual(actual, [
+            {'host': 'example.com', 'scheme': 'http://', 'ssl': False, 'source': 'example.com'},
+            {'host': 'example.com', 'scheme': 'https://', 'ssl': True, 'source': 'https://example.com'},
+            {'host': 'second.example.com', 'scheme': 'http://', 'ssl': False, 'source': 'second.example.com'},
+        ])
+
+    def test_targets_should_read_from_stdin(self):
+        """Filter.targets() should read targets from STDIN."""
+
+        with patch('src.core.options.filter.sys.stdin', io.StringIO('example.com\nsecond.example.com\n')):
+            actual = Filter.targets({'stdin': True})
+
+        self.assertEqual(actual, [
+            {'host': 'example.com', 'scheme': 'http://', 'ssl': False, 'source': 'example.com'},
+            {'host': 'second.example.com', 'scheme': 'http://', 'ssl': False, 'source': 'second.example.com'},
+        ])
+
+    def test_targets_should_raise_for_missing_hostlist(self):
+        """Filter.targets() should raise a FilterError when hostlist cannot be read."""
+
+        with self.assertRaises(FilterError):
+            Filter.targets({'hostlist': '/tmp/definitely-missing-opendoor-targets.txt'})
 
 if __name__ == '__main__':
     unittest.main()

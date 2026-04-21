@@ -17,6 +17,7 @@
 """
 
 import re
+import sys
 
 from src.core import helper
 from .exceptions import FilterError
@@ -37,19 +38,26 @@ class Filter(object):
         """
 
         filtered = {}
+        targets = Filter.targets(args)
 
         for key, value in args.items():
             if 'scan' == key:
                 filtered['scan'] = Filter.scan(value)
-            elif 'host' == key:
-                filtered['host'] = Filter.host(value)
-                filtered['scheme'] = Filter.scheme(value)
-                filtered['ssl'] = Filter.ssl(filtered['scheme'])
+            elif key in ['host', 'hostlist', 'stdin']:
+                continue
             else:
                 if 'proxy' == key:
                     filtered[key] = Filter.proxy(value)
                 else:
                     filtered[key] = value
+
+        if len(targets) == 1:
+            filtered['host'] = targets[0]['host']
+            filtered['scheme'] = targets[0]['scheme']
+            filtered['ssl'] = targets[0]['ssl']
+
+        if len(targets) > 0:
+            filtered['targets'] = targets
 
         return filtered
 
@@ -78,6 +86,91 @@ class Filter(object):
         """
 
         return 'https://' == scheme
+
+
+    @staticmethod
+    def targets(args):
+        """
+        Build normalized targets from a single host, host file or STDIN.
+
+        :param dict args:
+        :raise FilterError:
+        :return: list[dict]
+        """
+
+        raw_targets = []
+
+        if args.get('host'):
+            raw_targets = [args.get('host')]
+        elif args.get('hostlist'):
+            raw_targets = Filter._read_target_lines(args.get('hostlist'))
+        elif args.get('stdin') is True:
+            raw_targets = Filter._read_target_stream(sys.stdin)
+
+        targets = []
+        seen = set()
+
+        for raw_target in raw_targets:
+            cleaned = Filter._clean_target(raw_target)
+            if not cleaned:
+                continue
+            if cleaned in seen:
+                continue
+
+            host = Filter.host(cleaned)
+            scheme = Filter.scheme(cleaned)
+            targets.append({
+                'host': host,
+                'scheme': scheme,
+                'ssl': Filter.ssl(scheme),
+                'source': cleaned,
+            })
+            seen.add(cleaned)
+
+        return targets
+
+    @staticmethod
+    def _read_target_lines(filepath):
+        """
+        Read targets from a file.
+
+        :param str filepath:
+        :raise FilterError:
+        :return: list[str]
+        """
+
+        try:
+            with open(filepath, 'r', encoding='utf-8') as file:
+                return Filter._read_target_stream(file)
+        except OSError as error:
+            raise FilterError("Unable to read targets from --hostlist `{0}`. {1}".format(filepath, error))
+
+    @staticmethod
+    def _read_target_stream(stream):
+        """
+        Read targets from a stream-like object.
+
+        :param stream:
+        :return: list[str]
+        """
+
+        return [line for line in stream.readlines()]
+
+    @staticmethod
+    def _clean_target(value):
+        """
+        Normalize a raw target line.
+
+        :param str value:
+        :return: str
+        """
+
+        if value is None:
+            return ''
+        value = str(value).strip()
+        if not value or value.startswith('#'):
+            return ''
+        return value
 
     @staticmethod
     def host(hostname):
@@ -115,15 +208,11 @@ class Filter(object):
         :return: str
         """
 
-        normalized_proxy = proxyaddress
-        if re.match(r'^socks://', proxyaddress, re.IGNORECASE):
-            normalized_proxy = re.sub(r'^socks://', 'socks5://', proxyaddress, count=1, flags=re.IGNORECASE)
-
-        proxy = helper.parse_url(normalized_proxy)
+        proxy = helper.parse_url(proxyaddress)
 
         if proxy.scheme not in ['http', 'https', 'socks4', 'socks5'] or None is proxy.port:
             raise FilterError("\"{0}\" is invalid proxy in --proxy. Use scheme:ip:port format".format(proxyaddress))
-        return normalized_proxy
+        return proxyaddress
 
     @staticmethod
     def scan(choose):

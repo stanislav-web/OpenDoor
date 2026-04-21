@@ -134,6 +134,7 @@ setup(
         'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3.13',
         'Programming Language :: Python :: 3.14',
+        'Software Development :: Bug Tracking',
         'Topic :: Internet',
         'Topic :: Internet :: Name Service (DNS)',
         'Topic :: Internet :: Proxy Servers',

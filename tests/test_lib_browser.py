@@ -1065,5 +1065,50 @@ class TestBrowser(unittest.TestCase):
 
         getattr(br, '_Browser__enqueue_recursive_children').assert_not_called()
 
+    def test_init_warns_when_head_is_overridden_to_get(self):
+        """Browser.__init__() should emit a warning for explicit HEAD to GET override."""
+
+        with patch('src.lib.browser.browser.Config') as config_cls, \
+                patch('src.lib.browser.browser.Debug', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.Reader') as reader_cls, \
+                patch('src.lib.browser.browser.Filter.__init__', return_value=None), \
+                patch('src.lib.browser.browser.ThreadPool', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.response', return_value=MagicMock()), \
+                patch.object(Tpl, 'warning') as warning_mock:
+            cfg = SimpleNamespace(
+                scan='directories',
+                DEFAULT_SCAN='directories',
+                torlist=None,
+                is_random_list=False,
+                is_extension_filter=False,
+                is_ignore_extension_filter=False,
+                is_external_wordlist=False,
+                wordlist='',
+                is_standalone_proxy=False,
+                is_external_torlist=False,
+                prefix='',
+                is_external_reports_dir=False,
+                reports_dir='',
+                extensions=[],
+                ignore_extensions=[],
+                threads=1,
+                delay=0,
+                _method='HEAD',
+                method='GET',
+                sniffers=['file', 'indexof', 'collation', 'skipempty'],
+            )
+            config_cls.return_value = cfg
+
+            reader = MagicMock()
+            reader.total_lines = 5
+            reader_cls.return_value = reader
+
+            browser({'host': 'test.local', 'port': 80})
+
+        warning_mock.assert_called_once_with(
+            key='method_override',
+            sniffers='indexof, collation'
+        )
+
 if __name__ == '__main__':
     unittest.main()

@@ -44,12 +44,16 @@ class Controller(object):
         events.terminate()
 
         try:
-
             interpreter = package.check_interpreter()
 
             if interpreter is not True:
-                raise SrcError(tpl.error(key='unsupported', actual=interpreter.get('actual'),
-                                         expected=interpreter.get('expected')))
+                raise SrcError(
+                    tpl.error(
+                        key='unsupported',
+                        actual=interpreter.get('actual'),
+                        expected=interpreter.get('expected')
+                    )
+                )
             else:
                 self.ioargs = args().get_arguments()
         except ArgumentsError as error:
@@ -64,14 +68,13 @@ class Controller(object):
         """
 
         try:
-
             tpl.message(package.banner())
-            if 'host' in self.ioargs or 'wizard' in self.ioargs:
+
+            if 'host' in self.ioargs or 'targets' in self.ioargs or 'wizard' in self.ioargs:
                 getattr(self, 'scan_action')(self.ioargs)
             else:
                 for action in self.ioargs.keys():
-
-                    if hasattr(self, '{0}_action'.format(action))\
+                    if hasattr(self, '{0}_action'.format(action)) \
                             and args().is_arg_callable(getattr(self, '{0}_action'.format(action))):
                         getattr(self, '{func}_action'.format(func=action))()
                         break
@@ -109,6 +112,7 @@ class Controller(object):
         :raises SrcError: If there is an error with the package or attribute.
         :return: None
         """
+
         try:
             package.docs()
         except (AttributeError, PackageError) as error:
@@ -119,7 +123,7 @@ class Controller(object):
         """
         Show app version action
 
-        :raise: SrcError
+        :raise SrcError
         :return: None
         """
 
@@ -152,25 +156,58 @@ class Controller(object):
         """
 
         try:
-
             if 'wizard' in params:
                 tpl.info(key='load_wizard', config=params['wizard'])
                 params = package.wizard(params['wizard'])
-            brows = browser(params)
-            if True is reporter.is_reported(params.get('host')):
-                try:
-                    tpl.prompt(key='logged')
-                except KeyboardInterrupt:
-                    tpl.cancel(key='abort')
+
+            targets = cls._resolve_scan_targets(params)
 
             if reporter.default is params.get('reports'):
                 tpl.info(key='use_reports')
 
-            brows.ping()
-            brows.scan()
-            brows.done()
+            for target in targets:
+                target_params = dict(params)
+                target_params.update(target)
+
+                brows = browser(target_params)
+
+                if True is reporter.is_reported(target_params.get('host')):
+                    try:
+                        tpl.prompt(key='logged')
+                    except KeyboardInterrupt:
+                        tpl.cancel(key='abort')
+
+                brows.ping()
+                brows.scan()
+                brows.done()
 
         except (AttributeError, BrowserError, ReporterError, TplError) as error:
             raise SrcError(error)
         except (KeyboardInterrupt, SystemExit):
             tpl.cancel(key='abort')
+
+    @staticmethod
+    def _resolve_scan_targets(params):
+        """
+        Build the list of scan targets from filtered params.
+
+        :param dict params:
+        :return: list[dict]
+        """
+
+        targets = params.get('targets')
+        if targets:
+            return targets
+
+        if params.get('host'):
+            target = {'host': params.get('host')}
+
+            if params.get('scheme') is not None:
+                target['scheme'] = params.get('scheme')
+
+            if params.get('ssl') is not None:
+                target['ssl'] = params.get('ssl')
+
+            return [target]
+
+        return []

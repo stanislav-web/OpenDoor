@@ -273,5 +273,55 @@ class TestController(unittest.TestCase):
         cancel_mock.assert_called_once_with(key='abort')
 
 
+    def test_run_calls_scan_action_when_targets_are_present(self):
+        """Controller.run() should treat target lists as a scan action."""
+
+        controller = self.make_controller({'targets': [{'host': 'example.com', 'scheme': 'http://', 'ssl': False}]})
+
+        with patch('src.controller.package.banner', return_value='banner'),                 patch('src.controller.tpl.message'),                 patch.object(Controller, 'scan_action') as scan_mock,                 patch('src.controller.tpl.debug'):
+            controller.run()
+
+        scan_mock.assert_called_once_with(controller.ioargs)
+
+    def test_scan_action_runs_browser_flow_for_each_target(self):
+        """Controller.scan_action() should scan each normalized target sequentially."""
+
+        browser_first = MagicMock()
+        browser_second = MagicMock()
+        params = {
+            'targets': [
+                {'host': 'example.com', 'scheme': 'http://', 'ssl': False},
+                {'host': 'secure.example.com', 'scheme': 'https://', 'ssl': True},
+            ],
+            'reports': 'std',
+        }
+
+        with patch('src.controller.tpl.info') as info_mock,                 patch('src.controller.browser', side_effect=[browser_first, browser_second]) as browser_mock,                 patch('src.controller.reporter.is_reported', return_value=False),                 patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action(params)
+
+        info_mock.assert_called_once_with(key='use_reports')
+        self.assertEqual(browser_mock.call_count, 2)
+        browser_mock.assert_any_call({'targets': params['targets'], 'reports': 'std', 'host': 'example.com', 'scheme': 'http://', 'ssl': False})
+        browser_mock.assert_any_call({'targets': params['targets'], 'reports': 'std', 'host': 'secure.example.com', 'scheme': 'https://', 'ssl': True})
+        browser_first.ping.assert_called_once_with()
+        browser_first.scan.assert_called_once_with()
+        browser_first.done.assert_called_once_with()
+        browser_second.ping.assert_called_once_with()
+        browser_second.scan.assert_called_once_with()
+        browser_second.done.assert_called_once_with()
+
+    def test_resolve_scan_targets_falls_back_to_single_host(self):
+        """Controller._resolve_scan_targets() should preserve the single-host flow."""
+
+        actual = Controller._resolve_scan_targets({
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+        })
+
+        self.assertEqual(actual, [
+            {'host': 'example.com', 'scheme': 'http://', 'ssl': False}
+        ])
+
 if __name__ == '__main__':
     unittest.main()

@@ -49,6 +49,22 @@ class Browser(Filter):
             self.__client = None
             self.__config = Config(params)
             self.__debug = Debug(self.__config)
+            requested_method = str(getattr(self.__config, '_method', '') or '').upper()
+            effective_method = str(getattr(self.__config, 'method', '') or '').upper()
+            sniffers = list(getattr(self.__config, 'sniffers', []) or [])
+
+            if requested_method == 'HEAD' and effective_method == 'GET':
+                body_required_sniffers = []
+
+                for sniffer in sniffers:
+                    if sniffer in ('indexof', 'collation') and sniffer not in body_required_sniffers:
+                        body_required_sniffers.append(sniffer)
+
+                if body_required_sniffers:
+                    tpl.warning(
+                        key='method_override',
+                        sniffers=', '.join(body_required_sniffers)
+                    )
             self.__result = {'total': {}, 'items': {}, 'report_items': {}}
             self.__visited_recursive = set()
             self.__queued_recursive = set()

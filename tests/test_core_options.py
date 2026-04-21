@@ -67,6 +67,8 @@ class TestOptions(unittest.TestCase):
 
         namespace = Namespace(
             host='',
+            hostlist=None,
+            stdin=False,
             version=True,
             update=True,
             examples=False,
@@ -82,6 +84,8 @@ class TestOptions(unittest.TestCase):
 
         namespace = Namespace(
             host='example.com',
+            hostlist=None,
+            stdin=False,
             port=8080,
             scan='subdomains',
             proxy='http://127.0.0.1:8080',
@@ -112,6 +116,8 @@ class TestOptions(unittest.TestCase):
 
         namespace = Namespace(
             host='',
+            hostlist=None,
+            stdin=False,
             version=False,
             update=False,
             examples=False,
@@ -131,6 +137,8 @@ class TestOptions(unittest.TestCase):
 
         namespace = Namespace(
             host='',
+            hostlist=None,
+            stdin=False,
             version=False,
             update=False,
             examples=False,
@@ -150,6 +158,8 @@ class TestOptions(unittest.TestCase):
 
         namespace = Namespace(
             host='example.com',
+            hostlist=None,
+            stdin=False,
             version=False,
             update=False,
             examples=False,
@@ -200,6 +210,8 @@ class TestOptions(unittest.TestCase):
 
         namespace = Namespace(
             host='example.com',
+            hostlist=None,
+            stdin=False,
             recursive=True,
             recursive_depth=2,
             recursive_status='200,403',
@@ -340,6 +352,84 @@ class TestOptions(unittest.TestCase):
                 'cookie': ['sid=abc123', 'locale=en'],
             }
         )
+
+    def test_init_should_parse_hostlist_argument(self):
+        """Options.__init__() should parse --hostlist."""
+
+        with patch(
+            'src.core.options.options.sys.argv',
+            ['opendoor.py', '--hostlist', 'targets.txt']
+        ):
+            option = Options()
+
+        self.assertEqual(option.args.hostlist, 'targets.txt')
+        self.assertFalse(option.args.stdin)
+
+    def test_init_should_parse_stdin_argument(self):
+        """Options.__init__() should parse --stdin."""
+
+        with patch(
+            'src.core.options.options.sys.argv',
+            ['opendoor.py', '--stdin']
+        ):
+            option = Options()
+
+        self.assertTrue(option.args.stdin)
+        self.assertIsNone(option.args.hostlist)
+
+    def test_init_should_reject_multiple_target_sources(self):
+        """Options.__init__() should reject conflicting target sources."""
+
+        with patch(
+            'src.core.options.options.sys.argv',
+            ['opendoor.py', '--host', 'example.com', '--hostlist', 'targets.txt']
+        ):
+            with self.assertRaises(OptionsError):
+                Options()
+
+    def test_get_arg_values_filters_hostlist_arguments(self):
+        """Options.get_arg_values() should pass hostlist through Filter.filter()."""
+
+        namespace = Namespace(
+            host='',
+            hostlist='targets.txt',
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {'targets': [{'host': 'example.com', 'scheme': 'http://', 'ssl': False}]}
+        with patch('src.core.options.options.Filter.filter', return_value=filtered) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, filtered)
+        filter_mock.assert_called_once_with({'hostlist': 'targets.txt'})
+
+    def test_get_arg_values_filters_stdin_arguments(self):
+        """Options.get_arg_values() should pass stdin through Filter.filter()."""
+
+        namespace = Namespace(
+            host='',
+            hostlist=None,
+            stdin=True,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {'targets': [{'host': 'example.com', 'scheme': 'http://', 'ssl': False}]}
+        with patch('src.core.options.options.Filter.filter', return_value=filtered) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, filtered)
+        filter_mock.assert_called_once_with({'stdin': True})
 
 if __name__ == '__main__':
     unittest.main()

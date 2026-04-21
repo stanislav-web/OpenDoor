@@ -18,7 +18,7 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
 
 ![Maintainer](https://img.shields.io/badge/maintainer-stanislav_web-blue)
 [![Contributors](https://img.shields.io/github/contributors/stanislav-web/Opendoor)](https://github.com/stanislav-web/OpenDoor/graphs/contributors)
-[![PyPI version](https://badge.fury.io/py/opendoor.svg)](https://badge.fury.io/py/opendoor)
+![PyPI - Version](https://img.shields.io/pypi/v/opendoor)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%20%2B-green.svg)](https://www.python.org/) [![codecov](https://codecov.io/github/stanislav-web/OpenDoor/graph/badge.svg?token=dyBxutYBso)](https://codecov.io/github/stanislav-web/OpenDoor)
 
 [![Documentation Status](https://app.readthedocs.org/projects/opendoor/badge/?version=latest)](https://opendoor.readthedocs.io/en/latest/)
@@ -28,24 +28,31 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
 
 [Read The Docs](https://opendoor.readthedocs.io/)
 
-* *Current 5.3.0 (21.04.2026)*
+* *Current 5.4.0 (21.04.2026)*
     - Directories: 110977
     - Subdomains: 255359
 
 #### [Changelog](CHANGELOG.md) (last changes)
-v5.3.1 (21.04.2026)
+v5.4.0 (21.04.2026)
 ---------------------------
-- (fix) Fixed SOCKS proxy runtime support by adding `PySocks` as a required dependency.
-- (fix) Added support for `socks://` proxy alias and normalized it to `socks5://`.
-- (fix) Fixed proxy normalization for both standalone `--proxy` usage and proxy list entries.
-- (tests) Added regression tests for SOCKS proxy alias handling and missing `PySocks` dependency behavior.
-- (build) Refreshed package metadata and distribution artifacts for the `5.3.1` patch release.
+- (feature) `--hostlist` support for multi-target scanning from a file
+- (feature) `--stdin` support for reading targets from standard input
+- (feature) mutually exclusive target source validation for `--host`, `--hostlist`, and `--stdin`
+- (feature) target normalization, comment skipping, empty-line skipping, and deduplication
+- (feature) sequential multi-target scan orchestration without breaking the single-host flow
+- (tests) Added regression coverage for target source parsing in options/filter
+- (tests) Added controller coverage for multi-target scan execution
+- (tests) Full unittest suite passes after integration
 
 #### Main features
 
 - ✅ directories scanner
 - ✅ recursive directory scanner
 - ✅ subdomains scanner
+- ✅ target input sources
+    * single target via `--host`
+    * multi-target file via `--hostlist`
+    * standard input via `--stdin`
 - ✅ session control
     * runtime pause / resume session
 - ✅ HTTP(S) (PORT) support
@@ -196,6 +203,12 @@ python -m pip install -e .
 opendoor --host http://www.example.com
 ```
 
+OpenDoor 5.4.0 also supports multi-target input:
+```bash
+opendoor --hostlist targets.txt
+cat targets.txt | opendoor --stdin
+```
+
 #### Installation from source for OS distributions / maintainers
 This flow is intended for Linux distributions, package maintainers, and release pipelines.
 
@@ -217,8 +230,8 @@ py -m build
 
 Generated artifacts:
 ```bash
-dist/opendoor-5.3.0.tar.gz
-dist/opendoor-5.3.0-py3-none-any.whl
+dist/opendoor-5.4.0.tar.gz
+dist/opendoor-5.4.0-py3-none-any.whl
 ```
 
 This flow is preferable for Linux distributions and package maintainers because:
@@ -233,13 +246,13 @@ The package is already present in BlackArch Linux, and this build layout is inte
 
 ##### Linux / macOS
 ```bash
-python3 -m pip install dist/opendoor-5.3.0-py3-none-any.whl
+python3 -m pip install dist/opendoor-5.4.0-py3-none-any.whl
 opendoor --host http://www.example.com
 ```
 
 ##### Windows (PowerShell)
 ```powershell
-py -m pip install dist/opendoor-5.3.0-py3-none-any.whl
+py -m pip install dist/opendoor-5.4.0-py3-none-any.whl
 opendoor --host http://www.example.com
 ```
 
@@ -276,9 +289,19 @@ git pull
 py -m pip install -e .
 ```
 
+#### Multi-target examples
+```bash
+opendoor --hostlist targets.txt --threads 10 --reports json,html
+```
+
+```bash
+cat targets.txt | opendoor --stdin --threads 10 --reports std
+```
+
 #### Help
 ```bash
-usage: opendoor [-h] [--host HOST] [-p PORT] [-m METHOD] [-t THREADS]
+usage: opendoor [-h] [--host HOST | --hostlist HOSTLIST | --stdin]
+                [-p PORT] [-m METHOD] [-t THREADS]
                 [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
                 [--keep-alive] [--accept-cookies] [--header HEADER]
                 [--cookie COOKIE] [--debug DEBUG] [--tor]
@@ -297,6 +320,8 @@ options:
 
 required named options:
   --host HOST           Target host; example: --host http://example.com
+  --hostlist HOSTLIST   Path to file with targets, one per line
+  --stdin               Read targets from STDIN, one per line
 
 Application tools:
   --update              Show package update instructions

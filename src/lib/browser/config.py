@@ -21,6 +21,7 @@ class Config(object):
 
     """Config class"""
 
+    BODY_REQUIRED_SNIFFERS = ('indexof', 'collation')
     DEFAULT_SOCKET_TIMEOUT = 10
     DEFAULT_MIN_THREADS = 1
     DEFAULT_MAX_THREADS = 25
@@ -135,6 +136,38 @@ class Config(object):
             self._port = self.DEFAULT_SSL_PORT
         return self._port
 
+
+    @property
+    def requested_method(self):
+        """Requested scan method property."""
+
+        return self.DEFAULT_HTTP_METHOD if self._method is None else str(self._method).upper()
+
+    @property
+    def selected_body_required_sniffers(self):
+        """Selected sniffers that require response body."""
+
+        if self.is_sniff is not True:
+            return []
+
+        return [
+            sniffer for sniffer in self.sniffers
+            if sniffer in self.BODY_REQUIRED_SNIFFERS
+        ]
+
+    @property
+    def method_override_warning(self):
+        """Warn when requested HEAD must be overridden to GET."""
+
+        body_required_sniffers = self.selected_body_required_sniffers
+
+        if self.requested_method != 'HEAD' or len(body_required_sniffers) <= 0:
+            return ''
+
+        return 'HEAD overridden to GET because selected sniffers require response body: {0}'.format(
+            ', '.join(body_required_sniffers)
+        )
+
     @property
     def method(self):
         """Scan method property."""
@@ -143,7 +176,7 @@ class Config(object):
             if len(self.sniffers) == 1 and self.sniffers[0] == 'file':
                 return 'HEAD'
             return 'GET'
-        return self.DEFAULT_HTTP_METHOD if self._method is None else self._method
+        return self.requested_method
 
     @property
     def delay(self):

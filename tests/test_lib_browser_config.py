@@ -49,6 +49,23 @@ class TestBrowserConfig(unittest.TestCase):
         cfg = Config({'reports': 'std', 'sniff': 'file'})
         self.assertEqual(cfg.method, 'HEAD')
 
+    def test_method_override_warning_lists_body_required_sniffers(self):
+        """Config should describe why HEAD is overridden when body sniffers are selected."""
+
+        cfg = Config({'reports': 'std', 'method': 'HEAD', 'sniff': 'file,indexof,collation,skipempty'})
+
+        self.assertEqual(
+            cfg.method_override_warning,
+            'HEAD overridden to GET because selected sniffers require response body: indexof, collation'
+        )
+
+    def test_method_override_warning_is_empty_without_body_required_sniffers(self):
+        """Config should not warn when selected sniffers can still work with HEAD."""
+
+        cfg = Config({'reports': 'std', 'method': 'HEAD', 'sniff': 'file,skipempty'})
+
+        self.assertEqual(cfg.method_override_warning, '')
+
     def test_reports_extensions_and_ignore_extensions_are_normalized(self):
         """Config should normalize CSV values into clean lists."""
 
@@ -160,6 +177,7 @@ class TestBrowserConfig(unittest.TestCase):
         cfg = Config({'reports': 'std'})
 
         self.assertEqual(cfg.cookies, [])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,5 +1,16 @@
 Changelog
 =========
+v5.4.0 (21.04.2026)
+---------------------------
+- (feature) `--hostlist` support for multi-target scanning from a file
+- (feature) `--stdin` support for reading targets from standard input
+- (feature) mutually exclusive target source validation for `--host`, `--hostlist`, and `--stdin`
+- (feature) target normalization, comment skipping, empty-line skipping, and deduplication
+- (feature) sequential multi-target scan orchestration without breaking the single-host flow
+- (tests) Added regression coverage for target source parsing in options/filter
+- (tests) Added controller coverage for multi-target scan execution
+- (tests) Full unittest suite passes after integration
+
 
 v5.3.1 (21.04.2026)
 ---------------------------

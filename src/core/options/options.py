@@ -353,7 +353,11 @@ class Options(object):
         try:
             self.parser = ThrowingArgumentParser(formatter_class=RawDescriptionHelpFormatter)
             required_named = self.parser.add_argument_group('required named options')
-            required_named.add_argument('--host', help="Target host; example: --host http://example.com")
+            target_group = required_named.add_mutually_exclusive_group()
+            target_group.add_argument('--host', help="Target host; example: --host http://example.com")
+            target_group.add_argument('--hostlist', help="Path to file with targets, one per line")
+            target_group.add_argument('--stdin', default=False, action='store_true',
+                                      help="Read targets from STDIN, one per line")
             arguments_len = len(__arguments)
 
             for group, description in sorted(__groups.items()):
@@ -439,12 +443,7 @@ class Options(object):
         try:
             arguments = self.args
 
-            if not self.args.host \
-                    and True is not self.args.version \
-                    and True is not self.args.update \
-                    and True is not self.args.docs \
-                    and True is not self.args.examples \
-                    and None is self.args.wizard:
+            if not self.args.host                     and not getattr(self.args, 'hostlist', None)                     and True is not getattr(self.args, 'stdin', False)                     and True is not self.args.version                     and True is not self.args.update                     and True is not self.args.docs                     and True is not self.args.examples                     and None is self.args.wizard:
                 sys.exit(self.parser.print_help())
 
             if True is self.args.version or True is self.args.update \
