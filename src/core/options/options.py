@@ -43,6 +43,7 @@ class Options(object):
             'wordlist': "Wordlist tools",
             'sniff': "Sniff tools",
             'report': "Reports tools",
+            'filter': "Response filters",
             'app': "Application tools"
         }
 
@@ -299,6 +300,96 @@ class Options(object):
                 "action": "store",
                 "help": "Response sniff plugins (indexof,collation,file,skipempty,skipsizes=NUM:NUM...)",
                 "type": str
+            },
+            {
+                "group": "filter",
+                "args": None,
+                "argl": "--include-status",
+                "default": None,
+                "action": "store",
+                "help": "Include only response codes, e.g. 200-299,301,302,403",
+                "type": str
+            },
+            {
+                "group": "filter",
+                "args": None,
+                "argl": "--exclude-status",
+                "default": None,
+                "action": "store",
+                "help": "Exclude response codes, e.g. 404,429,500-599",
+                "type": str
+            },
+            {
+                "group": "filter",
+                "args": None,
+                "argl": "--exclude-size",
+                "default": None,
+                "action": "store",
+                "help": "Exclude exact response sizes in bytes, e.g. 0,1234",
+                "type": str
+            },
+            {
+                "group": "filter",
+                "args": None,
+                "argl": "--exclude-size-range",
+                "default": None,
+                "action": "store",
+                "help": "Exclude response size ranges in bytes, e.g. 0-256,1024-2048",
+                "type": str
+            },
+            {
+                "group": "filter",
+                "args": None,
+                "argl": "--match-text",
+                "default": None,
+                "action": "append",
+                "help": "Keep only responses whose body contains the given text. Repeatable",
+                "type": str
+            },
+            {
+                "group": "filter",
+                "args": None,
+                "argl": "--exclude-text",
+                "default": None,
+                "action": "append",
+                "help": "Exclude responses whose body contains the given text. Repeatable",
+                "type": str
+            },
+            {
+                "group": "filter",
+                "args": None,
+                "argl": "--match-regex",
+                "default": None,
+                "action": "append",
+                "help": "Keep only responses whose body matches the given regex. Repeatable",
+                "type": str
+            },
+            {
+                "group": "filter",
+                "args": None,
+                "argl": "--exclude-regex",
+                "default": None,
+                "action": "append",
+                "help": "Exclude responses whose body matches the given regex. Repeatable",
+                "type": str
+            },
+            {
+                "group": "filter",
+                "args": None,
+                "argl": "--min-response-length",
+                "default": None,
+                "action": "store",
+                "help": "Keep only responses whose size is at least N bytes",
+                "type": int
+            },
+            {
+                "group": "filter",
+                "args": None,
+                "argl": "--max-response-length",
+                "default": None,
+                "action": "store",
+                "help": "Keep only responses whose size is at most N bytes",
+                "type": int
             },
             {
                 "group": "app",

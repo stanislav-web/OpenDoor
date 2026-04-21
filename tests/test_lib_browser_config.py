@@ -56,7 +56,7 @@ class TestBrowserConfig(unittest.TestCase):
 
         self.assertEqual(
             cfg.method_override_warning,
-            'HEAD overridden to GET because selected sniffers require response body: indexof, collation'
+            'HEAD overridden to GET because selected sniffers/filters require response body: indexof, collation'
         )
 
     def test_method_override_warning_is_empty_without_body_required_sniffers(self):

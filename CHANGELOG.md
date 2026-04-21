@@ -1,5 +1,14 @@
 CHANGELOG
 =======
+v5.5.0 (21.04.2026)
+---------------------------
+- (feature) Added response filter flags: `--include-status`, `--exclude-status`, `--exclude-size`, `--exclude-size-range`, `--match-text`, `--exclude-text`, `--match-regex`, `--exclude-regex`, `--min-response-length`, and `--max-response-length`.
+- (feature) Added HTTP status range support for response filtering, e.g. `200-299,301,302,403`.
+- (feature) Added exact size and inclusive byte-range filtering for noisy responses and false positives.
+- (feature) Added body text and regex response filtering for more precise discovery workflows.
+- (ux) Automatically override explicit `HEAD` to `GET` when selected response filters require response body access.
+- (tests) Added regression coverage for response filter option parsing, validation, browser config normalization, and browser filtering behavior.
+- (tests) Full unittest suite passes after integration (`585` tests).
 
 v5.4.0 (21.04.2026)
 ---------------------------

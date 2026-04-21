@@ -161,5 +161,50 @@ class TestFilter(unittest.TestCase):
         with self.assertRaises(FilterError):
             Filter.targets({'hostlist': '/tmp/definitely-missing-opendoor-targets.txt'})
 
+
+    def test_status_ranges_accept_exact_codes_and_ranges(self):
+        """Filter.status_ranges() should normalize exact codes and inclusive ranges."""
+
+        self.assertEqual(
+            Filter.status_ranges('200-299,301,403', key='--include-status'),
+            ['200-299', '301', '403']
+        )
+
+    def test_status_ranges_reject_invalid_codes(self):
+        """Filter.status_ranges() should reject malformed or unsupported HTTP codes."""
+
+        with self.assertRaises(FilterError):
+            Filter.status_ranges('99,200', key='--include-status')
+
+        with self.assertRaises(FilterError):
+            Filter.status_ranges('500-400', key='--exclude-status')
+
+    def test_integer_ranges_reject_invalid_ranges(self):
+        """Filter.integer_ranges() should reject malformed or descending byte ranges."""
+
+        with self.assertRaises(FilterError):
+            Filter.integer_ranges('abc', key='--exclude-size-range')
+
+        with self.assertRaises(FilterError):
+            Filter.integer_ranges('128-64', key='--exclude-size-range')
+
+    def test_regex_values_validate_patterns(self):
+        """Filter.regex_values() should validate regex syntax before runtime."""
+
+        self.assertEqual(Filter.regex_values(['(?i)admin'], key='--match-regex'), ['(?i)admin'])
+
+        with self.assertRaises(FilterError):
+            Filter.regex_values(['([unclosed'], key='--match-regex')
+
+    def test_filter_rejects_invalid_response_length_bounds(self):
+        """Filter.filter() should reject inverted min/max response length filters."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({
+                'host': 'example.com',
+                'min_response_length': 1024,
+                'max_response_length': 64,
+            })
+
 if __name__ == '__main__':
     unittest.main()

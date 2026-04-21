@@ -18,7 +18,7 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
 
 ![Maintainer](https://img.shields.io/badge/maintainer-stanislav_web-blue)
 [![Contributors](https://img.shields.io/github/contributors/stanislav-web/Opendoor)](https://github.com/stanislav-web/OpenDoor/graphs/contributors)
-![PyPI - Version](https://img.shields.io/pypi/v/opendoor)
+[![PyPI - Version](https://img.shields.io/pypi/v/opendoor)](https://pypi.org/project/opendoor/)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%20%2B-green.svg)](https://www.python.org/) [![codecov](https://codecov.io/github/stanislav-web/OpenDoor/graph/badge.svg?token=dyBxutYBso)](https://codecov.io/github/stanislav-web/OpenDoor)
 
 [![Documentation Status](https://app.readthedocs.org/projects/opendoor/badge/?version=latest)](https://opendoor.readthedocs.io/en/latest/)
@@ -29,20 +29,19 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
 [Read The Docs](https://opendoor.readthedocs.io/)
 
 * *Current 5.4.0 (21.04.2026)*
-    - Directories: 110977
+    - Directories: 110976
     - Subdomains: 255359
 
 #### [Changelog](CHANGELOG.md) (last changes)
-v5.4.0 (21.04.2026)
+v5.5.0 (21.04.2026)
 ---------------------------
-- (feature) `--hostlist` support for multi-target scanning from a file
-- (feature) `--stdin` support for reading targets from standard input
-- (feature) mutually exclusive target source validation for `--host`, `--hostlist`, and `--stdin`
-- (feature) target normalization, comment skipping, empty-line skipping, and deduplication
-- (feature) sequential multi-target scan orchestration without breaking the single-host flow
-- (tests) Added regression coverage for target source parsing in options/filter
-- (tests) Added controller coverage for multi-target scan execution
-- (tests) Full unittest suite passes after integration
+- (feature) Added response filter flags: `--include-status`, `--exclude-status`, `--exclude-size`, `--exclude-size-range`, `--match-text`, `--exclude-text`, `--match-regex`, `--exclude-regex`, `--min-response-length`, and `--max-response-length`.
+- (feature) Added HTTP status range support for response filtering, e.g. `200-299,301,302,403`.
+- (feature) Added exact size and inclusive byte-range filtering for noisy responses and false positives.
+- (feature) Added body text and regex response filtering for more precise discovery workflows.
+- (ux) Automatically override explicit `HEAD` to `GET` when selected response filters require response body access.
+- (tests) Added regression coverage for response filter option parsing, validation, browser config normalization, and browser filtering behavior.
+- (tests) Full unittest suite passes after integration (`585` tests).
 
 #### Main features
 
@@ -92,6 +91,15 @@ v5.4.0 (21.04.2026)
     * random proxy per request
     * wordlists shuffling
     * wordlists filters
+- ✅ response filters
+    * include/exclude HTTP status codes
+    * HTTP status ranges, e.g. `200-299,301,302,403`
+    * exclude exact response sizes
+    * exclude inclusive response size ranges
+    * match or exclude body text fragments
+    * match or exclude body regex patterns
+    * min/max response length filters
+    * automatic `HEAD` -> `GET` override for body-required filters
 
 #### Install PIP
 ```bash
@@ -203,12 +211,6 @@ python -m pip install -e .
 opendoor --host http://www.example.com
 ```
 
-OpenDoor 5.4.0 also supports multi-target input:
-```bash
-opendoor --hostlist targets.txt
-cat targets.txt | opendoor --stdin
-```
-
 #### Installation from source for OS distributions / maintainers
 This flow is intended for Linux distributions, package maintainers, and release pipelines.
 
@@ -228,12 +230,6 @@ py -m pip install --upgrade build
 py -m build
 ```
 
-Generated artifacts:
-```bash
-dist/opendoor-5.4.0.tar.gz
-dist/opendoor-5.4.0-py3-none-any.whl
-```
-
 This flow is preferable for Linux distributions and package maintainers because:
 - source package and wheel are generated through the standard Python build backend
 - installation can be managed by the distribution package manager
@@ -241,22 +237,6 @@ This flow is preferable for Linux distributions and package maintainers because:
 - no legacy `setup.py install` flow is required
 
 The package is already present in BlackArch Linux, and this build layout is intended to make packaging for other Linux distributions easier as well.
-
-#### Manual installation from built wheel
-
-##### Linux / macOS
-```bash
-python3 -m pip install dist/opendoor-5.4.0-py3-none-any.whl
-opendoor --host http://www.example.com
-```
-
-##### Windows (PowerShell)
-```powershell
-py -m pip install dist/opendoor-5.4.0-py3-none-any.whl
-opendoor --host http://www.example.com
-```
-
-#### Updates
 
 ##### PyPI installation
 
@@ -287,15 +267,6 @@ Windows:
 ```powershell
 git pull
 py -m pip install -e .
-```
-
-#### Multi-target examples
-```bash
-opendoor --hostlist targets.txt --threads 10 --reports json,html
-```
-
-```bash
-cat targets.txt | opendoor --stdin --threads 10 --reports std
 ```
 
 #### Help

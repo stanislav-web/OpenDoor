@@ -49,7 +49,7 @@ class Config(object):
         'option_prompt': 'Press "[C]ontinue" to resume or "[E]xit" to abort session: ',
         'resume_threads': 'Resuming scan...',
         'get_item': '{percent} [{current}/{total}] - {code} - {size} - {item}',
-        'method_override': 'HEAD overridden to GET because selected sniffers require response body: {sniffers}',
+        'method_override': 'HEAD overridden to GET because selected sniffers/filters require response body: {sniffers}',
         'ignored_item': 'skip [{current}/{total}] - Ignored {item}',
         'max_retry_error': 'skip. Max retries exceeded: {url}',
         'addtopool': 'Adding {total} lines to queue...',

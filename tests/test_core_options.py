@@ -431,5 +431,98 @@ class TestOptions(unittest.TestCase):
         self.assertEqual(actual, filtered)
         filter_mock.assert_called_once_with({'stdin': True})
 
+
+    def test_init_should_parse_response_filter_arguments(self):
+        """Options.__init__() should parse response filter flags without changing legacy UX."""
+
+        with patch(
+            'src.core.options.options.sys.argv',
+            [
+                'opendoor.py',
+                '--host', 'example.com',
+                '--include-status', '200-299,403',
+                '--exclude-status', '404,500-599',
+                '--exclude-size', '0,1234',
+                '--exclude-size-range', '0-64,1024-2048',
+                '--match-text', 'Index of',
+                '--exclude-text', 'Not Found',
+                '--match-regex', '(?i)admin',
+                '--exclude-regex', '(?i)forbidden',
+                '--min-response-length', '32',
+                '--max-response-length', '4096',
+            ]
+        ):
+            option = Options()
+
+        self.assertEqual(option.args.include_status, '200-299,403')
+        self.assertEqual(option.args.exclude_status, '404,500-599')
+        self.assertEqual(option.args.exclude_size, '0,1234')
+        self.assertEqual(option.args.exclude_size_range, '0-64,1024-2048')
+        self.assertEqual(option.args.match_text, ['Index of'])
+        self.assertEqual(option.args.exclude_text, ['Not Found'])
+        self.assertEqual(option.args.match_regex, ['(?i)admin'])
+        self.assertEqual(option.args.exclude_regex, ['(?i)forbidden'])
+        self.assertEqual(option.args.min_response_length, 32)
+        self.assertEqual(option.args.max_response_length, 4096)
+
+    def test_get_arg_values_should_preserve_response_filter_arguments(self):
+        """Options.get_arg_values() should pass response filters through Filter.filter()."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            include_status='200-299,403',
+            exclude_status='404,500-599',
+            exclude_size='0,1234',
+            exclude_size_range='0-64,1024-2048',
+            match_text=['Index of'],
+            exclude_text=['Not Found'],
+            match_regex=['(?i)admin'],
+            exclude_regex=['(?i)forbidden'],
+            min_response_length=32,
+            max_response_length=4096,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'include_status': ['200-299', '403'],
+            'exclude_status': ['404', '500-599'],
+            'exclude_size': ['0', '1234'],
+            'exclude_size_range': ['0-64', '1024-2048'],
+            'match_text': ['Index of'],
+            'exclude_text': ['Not Found'],
+            'match_regex': ['(?i)admin'],
+            'exclude_regex': ['(?i)forbidden'],
+            'min_response_length': 32,
+            'max_response_length': 4096,
+        }
+
+        with patch('src.core.options.options.Filter.filter', return_value=filtered) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, filtered)
+        filter_mock.assert_called_once_with({
+            'host': 'example.com',
+            'include_status': '200-299,403',
+            'exclude_status': '404,500-599',
+            'exclude_size': '0,1234',
+            'exclude_size_range': '0-64,1024-2048',
+            'match_text': ['Index of'],
+            'exclude_text': ['Not Found'],
+            'match_regex': ['(?i)admin'],
+            'exclude_regex': ['(?i)forbidden'],
+            'min_response_length': 32,
+            'max_response_length': 4096,
+        })
+
 if __name__ == '__main__':
     unittest.main()

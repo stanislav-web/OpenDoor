@@ -71,6 +71,16 @@ class Config(object):
         self._torlist = '' if 'torlist' not in params or params.get('torlist') is None else params.get('torlist')
         self._is_random_user_agent = params.get('random_agent')
         self._sniff = self._normalize_csv(params.get('sniff'))
+        self._include_status = self._normalize_csv(params.get('include_status'))
+        self._exclude_status = self._normalize_csv(params.get('exclude_status'))
+        self._exclude_size = self._normalize_csv(params.get('exclude_size'))
+        self._exclude_size_range = self._normalize_csv(params.get('exclude_size_range'))
+        self._match_text = self._normalize_csv(params.get('match_text'))
+        self._exclude_text = self._normalize_csv(params.get('exclude_text'))
+        self._match_regex = self._normalize_csv(params.get('match_regex'))
+        self._exclude_regex = self._normalize_csv(params.get('exclude_regex'))
+        self._min_response_length = None if params.get('min_response_length') is None else int(params.get('min_response_length'))
+        self._max_response_length = None if params.get('max_response_length') is None else int(params.get('max_response_length'))
         self._is_random_list = params.get('random_list') is not None
         self._is_extension_filter = params.get('extensions') is not None
         self._is_ignore_extension_filter = params.get('ignore_extensions') is not None
@@ -91,6 +101,43 @@ class Config(object):
         if isinstance(value, list):
             return value
         return [item.strip() for item in str(value).split(',') if item.strip()]
+
+    @staticmethod
+    def _expand_numeric_tokens(values):
+        """Expand exact numeric tokens and inclusive numeric ranges."""
+
+        expanded = []
+
+        for value in values or []:
+            item = str(value).strip()
+            if not item:
+                continue
+
+            if '-' in item:
+                start, end = [int(chunk) for chunk in item.split('-', 1)]
+                expanded.extend([str(number) for number in range(start, end + 1)])
+            else:
+                expanded.append(str(int(item)))
+
+        return expanded
+
+    @staticmethod
+    def _expand_integer_values(values):
+        """Normalize integer token lists."""
+
+        return [int(item) for item in (values or [])]
+
+    @staticmethod
+    def _expand_integer_ranges(values):
+        """Normalize inclusive integer range tokens."""
+
+        ranges = []
+
+        for value in values or []:
+            start, end = [int(chunk) for chunk in str(value).split('-', 1)]
+            ranges.append((start, end))
+
+        return ranges
 
     @property
     def scan(self):
@@ -136,7 +183,6 @@ class Config(object):
             self._port = self.DEFAULT_SSL_PORT
         return self._port
 
-
     @property
     def requested_method(self):
         """Requested scan method property."""
@@ -150,27 +196,62 @@ class Config(object):
         if self.is_sniff is not True:
             return []
 
-        return [
-            sniffer for sniffer in self.sniffers
-            if sniffer in self.BODY_REQUIRED_SNIFFERS
-        ]
+        return [sniffer for sniffer in self.sniffers if sniffer in self.BODY_REQUIRED_SNIFFERS]
+
+    @property
+    def selected_body_required_filters(self):
+        """Selected response filters that require response body access."""
+
+        selected = []
+        mapping = {
+            'match_text': '--match-text',
+            'exclude_text': '--exclude-text',
+            'match_regex': '--match-regex',
+            'exclude_regex': '--exclude-regex',
+        }
+
+        for attr, label in mapping.items():
+            values = getattr(self, attr)
+            if len(values) > 0 and label not in selected:
+                selected.append(label)
+
+        return selected
+
+    @property
+    def method_override_items(self):
+        """List body-dependent sniffers and filters that force GET."""
+
+        items = list(self.selected_body_required_sniffers)
+        for item in self.selected_body_required_filters:
+            if item not in items:
+                items.append(item)
+        return items
 
     @property
     def method_override_warning(self):
         """Warn when requested HEAD must be overridden to GET."""
 
-        body_required_sniffers = self.selected_body_required_sniffers
+        items = self.method_override_items
 
-        if self.requested_method != 'HEAD' or len(body_required_sniffers) <= 0:
+        if self.requested_method != 'HEAD' or len(items) <= 0:
             return ''
 
-        return 'HEAD overridden to GET because selected sniffers require response body: {0}'.format(
-            ', '.join(body_required_sniffers)
+        return 'HEAD overridden to GET because selected sniffers/filters require response body: {0}'.format(
+            ', '.join(items)
         )
+
+    @property
+    def is_body_required_response_filtering(self):
+        """If any selected response filter requires body content."""
+
+        return len(self.selected_body_required_filters) > 0
 
     @property
     def method(self):
         """Scan method property."""
+
+        if self.is_body_required_response_filtering is True:
+            return 'GET'
 
         if self.is_sniff is True:
             if len(self.sniffers) == 1 and self.sniffers[0] == 'file':
@@ -248,6 +329,23 @@ class Config(object):
         """Get sniffers."""
 
         return self._sniff
+
+    @property
+    def is_response_filtering(self):
+        """If any response filter is enabled."""
+
+        return any([
+            len(self.include_status) > 0,
+            len(self.exclude_status) > 0,
+            len(self.exclude_size) > 0,
+            len(self.exclude_size_range) > 0,
+            len(self.match_text) > 0,
+            len(self.exclude_text) > 0,
+            len(self.match_regex) > 0,
+            len(self.exclude_regex) > 0,
+            self.min_response_length is not None,
+            self.max_response_length is not None,
+        ])
 
     @property
     def is_random_list(self):
@@ -392,6 +490,66 @@ class Config(object):
         """Custom request headers."""
 
         return [] if self._headers is None else [str(item).strip() for item in self._headers if str(item).strip()]
+
+    @property
+    def include_status(self):
+        """Expanded include-status filter values."""
+
+        return self._expand_numeric_tokens(self._include_status)
+
+    @property
+    def exclude_status(self):
+        """Expanded exclude-status filter values."""
+
+        return self._expand_numeric_tokens(self._exclude_status)
+
+    @property
+    def exclude_size(self):
+        """Exact response sizes excluded in bytes."""
+
+        return self._expand_integer_values(self._exclude_size)
+
+    @property
+    def exclude_size_range(self):
+        """Response size ranges excluded in bytes."""
+
+        return self._expand_integer_ranges(self._exclude_size_range)
+
+    @property
+    def match_text(self):
+        """Body text fragments required for a response match."""
+
+        return [] if self._match_text is None else [str(item).strip() for item in self._match_text if str(item).strip()]
+
+    @property
+    def exclude_text(self):
+        """Body text fragments excluded from matching responses."""
+
+        return [] if self._exclude_text is None else [str(item).strip() for item in self._exclude_text if str(item).strip()]
+
+    @property
+    def match_regex(self):
+        """Regex patterns required for a response match."""
+
+        return [] if self._match_regex is None else [str(item).strip() for item in self._match_regex if str(item).strip()]
+
+    @property
+    def exclude_regex(self):
+        """Regex patterns excluded from matching responses."""
+
+        return [] if self._exclude_regex is None else [str(item).strip() for item in self._exclude_regex if str(item).strip()]
+
+    @property
+    def min_response_length(self):
+        """Minimum accepted response length in bytes."""
+
+        return self._min_response_length
+
+    @property
+    def max_response_length(self):
+        """Maximum accepted response length in bytes."""
+
+        return self._max_response_length
 
     @property
     def cookies(self):

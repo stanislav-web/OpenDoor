@@ -1095,7 +1095,7 @@ class TestBrowser(unittest.TestCase):
                 delay=0,
                 _method='HEAD',
                 method='GET',
-                sniffers=['file', 'indexof', 'collation', 'skipempty'],
+                method_override_items=['indexof', 'collation'],
             )
             config_cls.return_value = cfg
 

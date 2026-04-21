@@ -51,19 +51,14 @@ class Browser(Filter):
             self.__debug = Debug(self.__config)
             requested_method = str(getattr(self.__config, '_method', '') or '').upper()
             effective_method = str(getattr(self.__config, 'method', '') or '').upper()
-            sniffers = list(getattr(self.__config, 'sniffers', []) or [])
 
             if requested_method == 'HEAD' and effective_method == 'GET':
-                body_required_sniffers = []
+                method_override_items = self.__config.method_override_items
 
-                for sniffer in sniffers:
-                    if sniffer in ('indexof', 'collation') and sniffer not in body_required_sniffers:
-                        body_required_sniffers.append(sniffer)
-
-                if body_required_sniffers:
+                if len(method_override_items) > 0:
                     tpl.warning(
                         key='method_override',
-                        sniffers=', '.join(body_required_sniffers)
+                        sniffers=', '.join(method_override_items)
                     )
             self.__result = {'total': {}, 'items': {}, 'report_items': {}}
             self.__visited_recursive = set()
@@ -202,6 +197,8 @@ class Browser(Filter):
 
             if None is response_data:
                 self.__catch_report_data('ignored', url)
+            elif False is self.__is_response_allowed(resp, response_data):
+                self.__catch_report_data('ignored', response_data[1], response_data[2], response_data[3])
             else:
                 self.__catch_report_data(
                     response_data[0],
@@ -217,6 +214,94 @@ class Browser(Filter):
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) as error:
             raise BrowserError(error)
+
+    def __get_response_length(self, response):
+        """Resolve response size in bytes for response filters."""
+
+        try:
+            if hasattr(response, 'headers') and response.headers.get('Content-Length') is not None:
+                return int(response.headers.get('Content-Length'))
+        except (TypeError, ValueError, AttributeError):
+            pass
+
+        try:
+            return len(response.data)
+        except AttributeError:
+            return 0
+
+    def __get_response_body(self, response):
+        """Decode response body to text for text and regex filters."""
+
+        try:
+            return helper.decode(response.data)
+        except AttributeError:
+            return ''
+
+    def __is_response_allowed(self, response, response_data):
+        """Apply response filters without altering default behaviour when disabled."""
+
+        if True is not self.__config.is_response_filtering:
+            return True
+
+        response_code = str(response_data[3])
+        response_size = self.__get_response_length(response)
+
+        include_status = set(self.__config.include_status)
+        if len(include_status) > 0 and response_code not in include_status:
+            return False
+
+        exclude_status = set(self.__config.exclude_status)
+        if response_code in exclude_status:
+            return False
+
+        if response_size in set(self.__config.exclude_size):
+            return False
+
+        for minimum, maximum in self.__config.exclude_size_range:
+            if minimum <= response_size <= maximum:
+                return False
+
+        if self.__config.min_response_length is not None and response_size < self.__config.min_response_length:
+            return False
+
+        if self.__config.max_response_length is not None and response_size > self.__config.max_response_length:
+            return False
+
+        response_body = None
+
+        def body():
+            nonlocal response_body
+            if response_body is None:
+                response_body = self.__get_response_body(response)
+            return response_body
+
+        for needle in self.__config.match_text:
+            if needle not in body():
+                return False
+
+        for needle in self.__config.exclude_text:
+            if needle in body():
+                return False
+
+        if len(self.__config.match_regex) > 0 or len(self.__config.exclude_regex) > 0:
+            return self.__apply_regex_filters(body())
+
+        return True
+
+    def __apply_regex_filters(self, response_body):
+        """Apply regex-based response filters."""
+
+        import re
+
+        for pattern in self.__config.match_regex:
+            if re.search(pattern, response_body) is None:
+                return False
+
+        for pattern in self.__config.exclude_regex:
+            if re.search(pattern, response_body) is not None:
+                return False
+
+        return True
 
     def __should_expand_recursively(self, status, url, depth):
         """
