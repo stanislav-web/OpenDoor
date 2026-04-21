@@ -178,6 +178,128 @@ class TestBrowserConfig(unittest.TestCase):
 
         self.assertEqual(cfg.cookies, [])
 
+    def test_response_filter_properties_are_normalized(self):
+        """Config should normalize all response-filter properties."""
+
+        cfg = Config({
+            'reports': 'std',
+            'include_status': ['200-201', '403'],
+            'exclude_status': ['404'],
+            'exclude_size': ['0', '12'],
+            'exclude_size_range': ['1-8', '10-20'],
+            'match_text': ['login'],
+            'exclude_text': ['forbidden'],
+            'match_regex': ['(?i)admin'],
+            'exclude_regex': ['(?i)denied'],
+            'min_response_length': 5,
+            'max_response_length': 50,
+        })
+
+        self.assertEqual(cfg.include_status, ['200', '201', '403'])
+        self.assertEqual(cfg.exclude_status, ['404'])
+        self.assertEqual(cfg.exclude_size, [0, 12])
+        self.assertEqual(cfg.exclude_size_range, [(1, 8), (10, 20)])
+        self.assertEqual(cfg.match_text, ['login'])
+        self.assertEqual(cfg.exclude_text, ['forbidden'])
+        self.assertEqual(cfg.match_regex, ['(?i)admin'])
+        self.assertEqual(cfg.exclude_regex, ['(?i)denied'])
+        self.assertEqual(cfg.min_response_length, 5)
+        self.assertEqual(cfg.max_response_length, 50)
+        self.assertTrue(cfg.is_response_filtering)
+        self.assertTrue(cfg.is_body_required_response_filtering)
+
+    def test_method_override_items_merge_filters_and_sniffers_without_duplicates(self):
+        """Config should merge body-required sniffers and filters into one override list."""
+
+        cfg = Config({
+            'reports': 'std',
+            'method': 'HEAD',
+            'sniff': 'indexof,file',
+            'match_text': ['login'],
+            'exclude_regex': ['(?i)forbidden'],
+        })
+
+        self.assertEqual(cfg.method_override_items, ['indexof', '--match-text', '--exclude-regex'])
+        self.assertIn('--match-text', cfg.method_override_warning)
+        self.assertIn('indexof', cfg.method_override_warning)
+        self.assertEqual(cfg.method, 'GET')
+
+    def test_method_preserves_requested_method_without_sniffers_or_filters(self):
+        """Config.method should preserve the explicit method when no body-dependent features are active."""
+
+        cfg = Config({'reports': 'std', 'method': 'post'})
+        self.assertEqual(cfg.method, 'POST')
+        self.assertFalse(cfg.is_response_filtering)
+
+    def test_delay_reports_and_recursive_exclude_cover_edge_paths(self):
+        """Config should normalize delay rounding, report defaults and empty recursive excludes."""
+
+        cfg = Config({'delay': 1.7, 'reports': None, 'recursive_exclude': None})
+        self.assertEqual(cfg.delay, 1)
+        self.assertEqual(cfg.reports, ['std'])
+        self.assertEqual(cfg.recursive_exclude, [])
+
+    def test_normalize_csv_passthrough_for_lists(self):
+        """Config._normalize_csv() should keep list values unchanged."""
+
+        self.assertEqual(Config._normalize_csv(['200', '403']), ['200', '403'])
+
+    def test_expand_numeric_tokens_should_ignore_blank_entries(self):
+        """Config._expand_numeric_tokens() should skip blank tokens while expanding ranges."""
+
+        self.assertEqual(
+            Config._expand_numeric_tokens(['200', ' ', '201-202']),
+            ['200', '201', '202']
+        )
+
+    def test_scan_setter_request_body_and_raw_request_flags_should_work(self):
+        """Config should expose scan setter, raw-request flag and request-body accessors."""
+
+        cfg = Config({
+            'reports': 'std',
+            'raw_request': 'request.txt',
+            'request_body': 'username=admin',
+        })
+
+        cfg.scan = 'subdomains'
+
+        self.assertEqual(cfg.scan, 'subdomains')
+        self.assertTrue(cfg.is_raw_request)
+        self.assertEqual(cfg.request_body, 'username=admin')
+
+    def test_method_override_warning_should_be_empty_for_non_head_requests(self):
+        """Config should not warn about HEAD override when explicit method is not HEAD."""
+
+        cfg = Config({
+            'reports': 'std',
+            'method': 'POST',
+            'match_text': ['login'],
+        })
+
+        self.assertEqual(cfg.method_override_warning, '')
+        self.assertEqual(cfg.method, 'POST')
+
+    def test_is_standalone_proxy_should_clear_torlist(self):
+        """Config.is_standalone_proxy should clear torlist when standalone proxy mode wins."""
+
+        cfg = Config({
+            'reports': 'std',
+            'proxy': 'http://127.0.0.1:8080',
+            'torlist': 'custom-torlist.txt',
+        })
+
+        self.assertTrue(cfg.is_standalone_proxy)
+        self.assertEqual(cfg.torlist, '')
+
+    def test_recursive_exclude_should_return_empty_list_when_not_configured(self):
+        """Config.recursive_exclude should safely return an empty list when unset."""
+
+        cfg = Config({
+            'reports': 'std',
+            'recursive_exclude': None,
+        })
+
+        self.assertEqual(cfg.recursive_exclude, [])
 
 if __name__ == '__main__':
     unittest.main()

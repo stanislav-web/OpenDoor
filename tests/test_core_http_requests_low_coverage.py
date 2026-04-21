@@ -146,6 +146,23 @@ class TestHttpRequestLowCoverage(unittest.TestCase):
         tpl.warning.assert_called_once()
 
 
+    def test_http_request_preserves_explicit_user_agent_and_forwards_body(self):
+        """HttpRequest.request() should not override explicit raw User-Agent and should forward body."""
+
+        cfg = self.make_cfg(method='POST', request_body='username=admin', headers=['User-Agent: RawUA'])
+        requester = HttpRequest(cfg, self.make_debug(), tpl=MagicMock(), agent_list=['UA'])
+        response = HTTPResponse(status=200, body=b'ok', headers={})
+        pool = MagicMock()
+        pool.request.return_value = response
+        requester._HttpRequest__pool = pool
+
+        requester.request('http://example.com/admin')
+
+        kwargs = pool.request.call_args.kwargs
+        self.assertEqual(kwargs['headers']['User-Agent'], 'RawUA')
+        self.assertEqual(kwargs['body'], 'username=admin')
+
+
 class TestHttpsRequestLowCoverage(unittest.TestCase):
     """TestHttpsRequestLowCoverage class."""
 

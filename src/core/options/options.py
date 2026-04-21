@@ -67,6 +67,24 @@ class Options(object):
                 "type": str
             },
             {
+                "group": "request",
+                "args": None,
+                "argl": "--scheme",
+                "default": None,
+                "action": "store",
+                "help": "Raw-request scheme when request line uses a relative path (http or https)",
+                "type": str
+            },
+            {
+                "group": "request",
+                "args": None,
+                "argl": "--raw-request",
+                "default": None,
+                "action": "store",
+                "help": "Path to raw HTTP request file exported from a proxy or repeater",
+                "type": str
+            },
+            {
                 "group": "stream",
                 "args": "-t",
                 "argl": "--threads",
@@ -534,7 +552,7 @@ class Options(object):
         try:
             arguments = self.args
 
-            if not self.args.host                     and not getattr(self.args, 'hostlist', None)                     and True is not getattr(self.args, 'stdin', False)                     and True is not self.args.version                     and True is not self.args.update                     and True is not self.args.docs                     and True is not self.args.examples                     and None is self.args.wizard:
+            if not self.args.host                     and not getattr(self.args, 'hostlist', None)                     and True is not getattr(self.args, 'stdin', False)                     and not getattr(self.args, 'raw_request', None)                     and True is not self.args.version                     and True is not self.args.update                     and True is not self.args.docs                     and True is not self.args.examples                     and None is self.args.wizard:
                 sys.exit(self.parser.print_help())
 
             if True is self.args.version or True is self.args.update \

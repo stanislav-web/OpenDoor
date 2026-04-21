@@ -100,6 +100,73 @@ class TestHttpProviders(unittest.TestCase):
         for exc in [SocketError('a'), ProxyRequestError('b'), HttpRequestError('c'), HttpsRequestError('d'), ResponseError('e')]:
             self.assertTrue(str(exc))
 
+    def test_request_provider_should_apply_header_fallback_and_skip_invalid_entries(self):
+        """RequestProvider should use config.header fallback and ignore malformed custom header values."""
+
+        cfg = SimpleNamespace(
+            scheme='http://',
+            host='example.com',
+            port=80,
+            is_random_user_agent=False,
+            user_agent='UA',
+            headers=None,
+            header=['Broken', 'X-Test: 1', ': empty', 'X-Ok: yes'],
+            cookies=None,
+            cookie=None,
+            request_body=None,
+        )
+
+        provider = RequestProvider(cfg, ['UA'])
+        headers = provider._headers
+
+        self.assertEqual(headers['X-Test'], '1')
+        self.assertEqual(headers['X-Ok'], 'yes')
+        self.assertNotIn('Broken', headers)
+
+    def test_request_provider_should_apply_cookie_fallback_and_skip_empty_values(self):
+        """RequestProvider should use config.cookie fallback and skip blank cookie values."""
+
+        cfg = SimpleNamespace(
+            scheme='http://',
+            host='example.com',
+            port=80,
+            is_random_user_agent=False,
+            user_agent='UA',
+            headers=None,
+            header=None,
+            cookies=None,
+            cookie=[' sid=abc ', '   ', 'locale=en'],
+            request_body=None,
+        )
+
+        provider = RequestProvider(cfg, ['UA'])
+
+        self.assertEqual(provider._headers['Cookie'], 'sid=abc; locale=en')
+
+    def test_request_provider_cookie_middleware_should_skip_non_accepted_or_headerless_responses(self):
+        """RequestProvider.cookies_middleware() should not fetch cookies when preconditions are not met."""
+
+        cfg = SimpleNamespace(
+            scheme='http://',
+            host='example.com',
+            port=80,
+            is_random_user_agent=False,
+            user_agent='UA',
+            headers=None,
+            header=None,
+            cookies=None,
+            cookie=None,
+            request_body=None,
+        )
+        provider = RequestProvider(cfg, ['UA'])
+
+        with patch.object(provider, '_fetch_cookies') as fetch_mock:
+            provider.cookies_middleware(False, SimpleNamespace(headers={'set-cookie': 'a=b'}))
+            fetch_mock.assert_not_called()
+
+        with patch.object(provider, '_fetch_cookies') as fetch_mock:
+            provider.cookies_middleware(True, SimpleNamespace())
+            fetch_mock.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()

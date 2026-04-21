@@ -524,5 +524,155 @@ class TestOptions(unittest.TestCase):
             'max_response_length': 4096,
         })
 
+
+    def test_init_should_parse_raw_request_and_scheme(self):
+        """Options.__init__() should parse raw-request template arguments."""
+
+        with patch(
+            'src.core.options.options.sys.argv',
+            ['opendoor.py', '--raw-request', 'request.txt', '--scheme', 'https']
+        ):
+            option = Options()
+
+        self.assertEqual(option.args.raw_request, 'request.txt')
+        self.assertEqual(option.args.scheme, 'https')
+
+    def test_get_arg_values_filters_raw_request_arguments(self):
+        """Options.get_arg_values() should pass raw-request arguments through Filter.filter()."""
+
+        namespace = Namespace(
+            host='',
+            hostlist=None,
+            stdin=False,
+            raw_request='request.txt',
+            scheme='https',
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {'host': 'example.com', 'scheme': 'https://', 'ssl': True, 'method': 'POST'}
+        with patch('src.core.options.options.Filter.filter', return_value=filtered) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, filtered)
+        filter_mock.assert_called_once_with({'raw_request': 'request.txt', 'scheme': 'https'})
+
+    def test_get_arg_values_allows_raw_request_without_target_sources(self):
+        """Options.get_arg_values() should allow raw-request mode without --host/--hostlist/--stdin."""
+
+        namespace = Namespace(
+            host='',
+            hostlist=None,
+            stdin=False,
+            raw_request='request.txt',
+            scheme='https',
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {'raw_request': 'request.txt', 'scheme': 'https://', 'host': 'example.com'}
+        with patch('src.core.options.options.Filter.filter', return_value=filtered) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, filtered)
+        filter_mock.assert_called_once_with({
+            'raw_request': 'request.txt',
+            'scheme': 'https',
+        })
+
+    def test_get_arg_values_prints_help_when_no_target_or_action_is_selected(self):
+        """Options.get_arg_values() should print help and exit when nothing actionable was provided."""
+
+        namespace = Namespace(
+            host='',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('sys.exit', side_effect=SystemExit) as exit_mock:
+            with self.assertRaises(SystemExit):
+                option.get_arg_values()
+
+        exit_mock.assert_called_once()
+
+    def test_get_arg_values_keeps_first_enabled_standalone_action(self):
+        """Options.get_arg_values() should return the first enabled standalone action only."""
+
+        namespace = Namespace(
+            host='',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            version=False,
+            update=True,
+            examples=True,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'update': True})
+
+    def test_get_arg_values_prints_help_and_exits_when_nothing_is_selected(self):
+        """Options.get_arg_values() should print help and exit when no target or action is selected."""
+
+        namespace = Namespace(
+            host='',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('sys.exit', side_effect=SystemExit) as exit_mock:
+            with self.assertRaises(SystemExit):
+                option.get_arg_values()
+
+        option.parser.print_help.assert_called_once()
+        exit_mock.assert_called_once()
+
+    def test_get_arg_values_wraps_filter_errors_into_options_error(self):
+        """Options.get_arg_values() should wrap filter failures into OptionsError."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', side_effect=FilterError('bad filter')):
+            with self.assertRaises(OptionsError) as context:
+                option.get_arg_values()
+
+        self.assertEqual(str(context.exception), 'bad filter')
+
 if __name__ == '__main__':
     unittest.main()

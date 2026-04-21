@@ -1,5 +1,15 @@
 Changelog
 =========
+v5.6.0 (22.04.2026)
+---------------------------
+- (feature) Added `--raw-request` to load raw HTTP request templates from a file.
+- (feature) Added `--scheme` to resolve relative raw request lines with explicit `http` or `https` scheme selection.
+- (feature) Added raw-request parsing for request method, host, port, headers, cookies, body, and derived path prefix.
+- (feature) Added host fallback from raw requests when `--host`, `--hostlist`, or `--stdin` are not provided.
+- (feature) Added raw-request merge behavior where CLI `--host`, `--method`, `--header`, `--cookie`, `--prefix`, and `--port` override template defaults.
+- (ux) Preserved explicit non-`HEAD` methods for raw-request templates while keeping legacy `HEAD -> GET` overrides only for body-required sniffers and filters.
+- (tests) Added regression coverage for raw-request option parsing, filter normalization, browser config exposure, and HTTP/HTTPS request body forwarding.
+- (tests) Full unittest suite passes after integration (`610` tests).
 
 v5.5.0 (21.04.2026)
 ---------------------------

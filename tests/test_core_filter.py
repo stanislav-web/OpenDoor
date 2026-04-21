@@ -206,5 +206,278 @@ class TestFilter(unittest.TestCase):
                 'max_response_length': 64,
             })
 
+
+
+    def test_filter_normalizes_response_filter_arguments(self):
+        """Filter.filter() should normalize all response-filter option families."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'include_status': '200-201,403',
+            'exclude_status': '404,500-501',
+            'exclude_size': '0, 12',
+            'exclude_size_range': '1-8,10-20',
+            'match_regex': ['(?i)admin'],
+            'exclude_regex': ['(?i)forbidden'],
+            'match_text': [' login ', '   '],
+            'exclude_text': 'Not Found',
+            'min_response_length': 10,
+            'max_response_length': 100,
+        })
+
+        self.assertEqual(actual['include_status'], ['200-201', '403'])
+        self.assertEqual(actual['exclude_status'], ['404', '500-501'])
+        self.assertEqual(actual['exclude_size'], ['0', '12'])
+        self.assertEqual(actual['exclude_size_range'], ['1-8', '10-20'])
+        self.assertEqual(actual['match_regex'], ['(?i)admin'])
+        self.assertEqual(actual['exclude_regex'], ['(?i)forbidden'])
+        self.assertEqual(actual['match_text'], ['login'])
+        self.assertEqual(actual['exclude_text'], ['Not Found'])
+        self.assertEqual(actual['min_response_length'], 10)
+        self.assertEqual(actual['max_response_length'], 100)
+
+    def test_filter_keeps_empty_targets_out_of_single_target_projection(self):
+        """Filter.filter() should not inject single-host keys when no targets are resolved."""
+
+        with patch('src.core.options.filter.sys.stdin', io.StringIO('')):
+            actual = Filter.filter({'stdin': True})
+
+        self.assertNotIn('host', actual)
+        self.assertNotIn('scheme', actual)
+        self.assertNotIn('ssl', actual)
+        self.assertNotIn('targets', actual)
+
+    def test_targets_should_allow_explicit_none_target_cleanup(self):
+        """Filter.targets() should ignore None values after cleaning raw target input."""
+
+        with patch.object(Filter, '_read_target_stream', return_value=[None, 'example.com']):
+            actual = Filter.targets({'stdin': True})
+
+        self.assertEqual(actual, [
+            {'host': 'example.com', 'scheme': 'http://', 'ssl': False, 'source': 'example.com'},
+        ])
+
+    def test_integer_and_text_helpers_cover_edge_paths(self):
+        """Filter helper normalizers should handle empty and scalar values."""
+
+        self.assertEqual(Filter.integer_values('001,2', key='--exclude-size'), ['1', '2'])
+        self.assertEqual(Filter.integer_ranges('0-0', key='--exclude-size-range'), ['0-0'])
+        self.assertEqual(Filter.text_values('  abc  '), ['abc'])
+        self.assertEqual(Filter.text_values('   '), [])
+        self.assertEqual(Filter.non_negative_int('0', key='--min-response-length'), 0)
+        with self.assertRaises(FilterError):
+            Filter.non_negative_int(None, key='--min-response-length')
+        with self.assertRaises(FilterError):
+            Filter.non_negative_int('-1', key='--min-response-length')
+
+    def test_status_ranges_reject_upper_out_of_range_code(self):
+        """Filter.status_ranges() should reject status codes above 599."""
+
+        with self.assertRaises(FilterError):
+            Filter.status_ranges('600', key='--include-status')
+
+
+    def test_raw_request_should_parse_relative_request_with_scheme(self):
+        """Filter.raw_request() should parse relative request files when scheme is provided."""
+
+        with tempfile.NamedTemporaryFile('w+', delete=False, encoding='utf-8') as handle:
+            handle.write('POST /admin/login.php HTTP/1.1\nHost: example.com:8443\nUser-Agent: CustomUA\nCookie: sid=abc; theme=dark\nX-Test: 1\n\nusername=admin')
+            filepath = handle.name
+
+        try:
+            actual = Filter.raw_request(filepath, scheme='https')
+        finally:
+            os.unlink(filepath)
+
+        self.assertEqual(actual['method'], 'POST')
+        self.assertEqual(actual['host'], 'example.com')
+        self.assertEqual(actual['scheme'], 'https://')
+        self.assertEqual(actual['port'], 8443)
+        self.assertEqual(actual['prefix'], 'admin/')
+        self.assertEqual(actual['cookies'], ['sid=abc', 'theme=dark'])
+        self.assertEqual(actual['headers'], ['User-Agent: CustomUA', 'X-Test: 1'])
+        self.assertEqual(actual['body'], 'username=admin')
+
+    def test_filter_should_use_raw_request_target_when_host_not_provided(self):
+        """Filter.filter() should resolve target data from raw-request files."""
+
+        with tempfile.NamedTemporaryFile('w+', delete=False, encoding='utf-8') as handle:
+            handle.write('GET /api/v1/users HTTP/1.1\nHost: api.example.com\nX-Test: 1\n\n')
+            filepath = handle.name
+
+        try:
+            actual = Filter.filter({'raw_request': filepath, 'scheme': 'https'})
+        finally:
+            os.unlink(filepath)
+
+        self.assertEqual(actual['host'], 'api.example.com')
+        self.assertEqual(actual['scheme'], 'https://')
+        self.assertTrue(actual['ssl'])
+        self.assertEqual(actual['method'], 'GET')
+        self.assertEqual(actual['prefix'], 'api/v1/')
+        self.assertEqual(actual['header'], ['X-Test: 1'])
+        self.assertNotIn('port', actual['targets'][0])
+
+    def test_filter_should_merge_raw_request_headers_and_cli_overrides(self):
+        """Filter.filter() should merge raw-request values with CLI overrides."""
+
+        with tempfile.NamedTemporaryFile('w+', delete=False, encoding='utf-8') as handle:
+            handle.write('POST /admin/login.php HTTP/1.1\nHost: example.com\nUser-Agent: RawUA\nCookie: sid=abc\nX-Test: 1\n\nusername=admin')
+            filepath = handle.name
+
+        try:
+            actual = Filter.filter({
+                'host': 'https://override.local',
+                'raw_request': filepath,
+                'header': ['User-Agent: CliUA'],
+                'cookie': ['session=xyz'],
+                'method': 'PUT',
+                'prefix': 'forced/',
+            })
+        finally:
+            os.unlink(filepath)
+
+        self.assertEqual(actual['host'], 'override.local')
+        self.assertEqual(actual['scheme'], 'https://')
+        self.assertEqual(actual['method'], 'PUT')
+        self.assertEqual(actual['prefix'], 'forced/')
+        self.assertEqual(actual['header'], ['User-Agent: RawUA', 'X-Test: 1', 'User-Agent: CliUA'])
+        self.assertEqual(actual['cookie'], ['sid=abc', 'session=xyz'])
+        self.assertEqual(actual['request_body'], 'username=admin')
+
+    def test_filter_should_require_scheme_for_relative_raw_request_target(self):
+        """Filter.filter() should require --scheme when raw-request uses a relative path as the target source."""
+
+        with tempfile.NamedTemporaryFile('w+', delete=False, encoding='utf-8') as handle:
+            handle.write('GET /admin HTTP/1.1\nHost: example.com\n\n')
+            filepath = handle.name
+
+        try:
+            with self.assertRaises(FilterError):
+                Filter.filter({'raw_request': filepath})
+        finally:
+            os.unlink(filepath)
+
+    def test_filter_should_accept_absolute_raw_request_without_scheme(self):
+        """Filter.filter() should infer scheme and host from absolute raw-request URLs."""
+
+        with tempfile.NamedTemporaryFile('w+', delete=False, encoding='utf-8') as handle:
+            handle.write('GET https://secure.example.com:9443/api/v2/items HTTP/1.1\nUser-Agent: RawUA\n\n')
+            filepath = handle.name
+
+        try:
+            actual = Filter.filter({'raw_request': filepath})
+        finally:
+            os.unlink(filepath)
+
+        self.assertEqual(actual['host'], 'secure.example.com')
+        self.assertEqual(actual['scheme'], 'https://')
+        self.assertTrue(actual['ssl'])
+        self.assertEqual(actual['port'], 9443)
+        self.assertEqual(actual['prefix'], 'api/v2/')
+
+    def test_explicit_scheme_handles_blank_and_invalid_values(self):
+        """Filter.explicit_scheme() should accept blanks and reject unsupported schemes."""
+
+        self.assertIsNone(Filter.explicit_scheme('   ', key='--scheme'))
+
+        with self.assertRaises(FilterError):
+            Filter.explicit_scheme('ftp', key='--scheme')
+
+    def test_raw_request_should_raise_for_missing_file(self):
+        """Filter.raw_request() should wrap file read failures."""
+
+        with self.assertRaises(FilterError):
+            Filter.raw_request('/tmp/definitely-missing-opendoor-request.txt', scheme='https')
+
+    def test_parse_raw_request_should_reject_empty_payload(self):
+        """Filter._parse_raw_request() should reject empty request files."""
+
+        with self.assertRaises(FilterError):
+            Filter._parse_raw_request('', scheme='https')
+
+    def test_parse_raw_request_should_reject_invalid_request_line(self):
+        """Filter._parse_raw_request() should reject malformed request lines."""
+
+        with self.assertRaises(FilterError):
+            Filter._parse_raw_request('BROKEN\nHost: example.com\n\n', scheme='https')
+
+    def test_parse_raw_request_should_reject_invalid_header_lines(self):
+        """Filter._parse_raw_request() should reject malformed headers."""
+
+        with self.assertRaises(FilterError):
+            Filter._parse_raw_request(
+                'GET / HTTP/1.1\nHost: example.com\nBrokenHeader\n\n',
+                scheme='https'
+            )
+
+        with self.assertRaises(FilterError):
+            Filter._parse_raw_request(
+                'GET / HTTP/1.1\nHost: example.com\n: empty-key\n\n',
+                scheme='https'
+            )
+
+    def test_parse_raw_request_should_skip_content_length_and_keep_query_string(self):
+        """Filter._parse_raw_request() should ignore Content-Length and preserve query strings."""
+
+        actual = Filter._parse_raw_request(
+            'GET https://example.com/api/items?x=1 HTTP/1.1\n'
+            'Content-Length: 999\n'
+            'X-Test: 1\n\n',
+            scheme=None
+        )
+
+        self.assertEqual(actual['scheme'], 'https://')
+        self.assertEqual(actual['host'], 'example.com')
+        self.assertEqual(actual['path'], '/api/items?x=1')
+        self.assertEqual(actual['prefix'], 'api/')
+        self.assertEqual(actual['headers'], ['X-Test: 1'])
+
+    def test_parse_raw_request_can_remain_unresolved_without_host_and_scheme(self):
+        """Filter._parse_raw_request() should keep unresolved target fields when host cannot be inferred."""
+
+        actual = Filter._parse_raw_request('GET /health HTTP/1.1\n\n', scheme=None)
+
+        self.assertIsNone(actual['host'])
+        self.assertIsNone(actual['scheme'])
+        self.assertEqual(actual['path'], '/health')
+        self.assertEqual(actual['prefix'], '')
+
+    def test_filter_should_raise_when_raw_request_cannot_resolve_target(self):
+        """Filter.filter() should fail when raw-request exists but target cannot be resolved."""
+
+        with tempfile.NamedTemporaryFile('w+', delete=False, encoding='utf-8') as handle:
+            handle.write('GET /admin HTTP/1.1\nX-Test: 1\n\n')
+            filepath = handle.name
+
+        try:
+            with self.assertRaises(FilterError):
+                Filter.filter({
+                    'raw_request': filepath,
+                    'scheme': 'https',
+                })
+        finally:
+            os.unlink(filepath)
+
+    def test_raw_request_helper_paths_cover_edge_cases(self):
+        """Filter raw-request helpers should cover root paths, directory paths and non-digit ports."""
+
+        self.assertEqual(Filter._raw_request_prefix('/'), '')
+        self.assertEqual(Filter._raw_request_prefix('/admin/'), 'admin/')
+        self.assertEqual(Filter._split_host_and_port('example.com:abc'), ('example.com:abc', None))
+        self.assertIsNone(Filter._raw_request_target_source(None, 'https://', 443))
+
+    def test_status_integer_and_csv_helpers_cover_remaining_edge_paths(self):
+        """Filter helper validators should reject invalid ranges and normalize CSV list inputs."""
+
+        with self.assertRaises(FilterError):
+            Filter.status_ranges('100-600', key='--include-status')
+
+        with self.assertRaises(FilterError):
+            Filter.integer_values('1,abc', key='--exclude-size')
+
+        self.assertEqual(Filter._split_csv(None), [])
+        self.assertEqual(Filter._split_csv(['1,2', '3']), ['1', '2', '3'])
+
 if __name__ == '__main__':
     unittest.main()

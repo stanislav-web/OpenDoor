@@ -1110,5 +1110,288 @@ class TestBrowser(unittest.TestCase):
             sniffers='indexof, collation'
         )
 
+    def test_build_recursive_url_and_enqueue_children_cover_skip_paths(self):
+        """Browser recursive helpers should skip blank/duplicate children and handle nested parents."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'prefix': '/api/',
+            'scan': 'directories',
+            'recursive': True,
+            'recursive_depth': 2,
+            'recursive_status': '200,403',
+            'recursive_exclude': 'jpg,png',
+        }))
+        reader = MagicMock()
+        setattr(br, '_Browser__reader', reader)
+        pool = MagicMock()
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__queued_recursive', set(['http://example.com/api/users']))
+
+        self.assertIsNone(br._Browser__build_recursive_url('http://example.com/api', '   '))
+        self.assertEqual(
+            br._Browser__build_recursive_url('http://example.com/api', 'users'),
+            'http://example.com/api/users'
+        )
+        self.assertEqual(
+            br._Browser__build_recursive_url('http://example.com', 'users'),
+            'http://example.com/users'
+        )
+
+        def fake_get_lines(params, loader):
+            loader([
+                'http://example.com/api/users',
+                'http://example.com/api/roles',
+                'http://example.com/api/',
+            ])
+
+        reader.get_lines.side_effect = fake_get_lines
+        br._Browser__enqueue_recursive_children('http://example.com/api', 0)
+
+        pool.extend_total_items.assert_called_once_with(1)
+        pool.add.assert_called_once_with(
+            getattr(br, '_Browser__http_request'),
+            'http://example.com/api/roles',
+            1
+        )
+
+    def test_enqueue_recursive_children_stops_at_depth_limit(self):
+        """Browser recursive child enqueue should stop immediately at the configured depth limit."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'recursive': True,
+            'recursive_depth': 0,
+        }))
+        reader = MagicMock()
+        setattr(br, '_Browser__reader', reader)
+        pool = MagicMock()
+        setattr(br, '_Browser__pool', pool)
+
+        br._Browser__enqueue_recursive_children('http://example.com/admin', 0)
+
+        reader.get_lines.assert_not_called()
+        pool.add.assert_not_called()
+
+    def test_apply_regex_filters_handles_match_and_exclude_paths(self):
+        """Browser regex filter helper should return False for unmet match or hit exclude patterns."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'match_regex': ['admin'],
+            'exclude_regex': ['forbidden'],
+        }))
+
+        self.assertTrue(br._Browser__apply_regex_filters('admin panel'))
+        self.assertFalse(br._Browser__apply_regex_filters('public panel'))
+        self.assertFalse(br._Browser__apply_regex_filters('admin forbidden'))
+
+    def test_get_response_length_prefers_content_length_and_falls_back_to_body(self):
+        """Browser response size helper should prefer Content-Length and fall back to raw body bytes."""
+
+        br = self.make_browser()
+
+        response = SimpleNamespace(headers={'Content-Length': '12'}, data=b'abcdef')
+        self.assertEqual(br._Browser__get_response_length(response), 12)
+
+        response = SimpleNamespace(headers={'Content-Length': 'bad'}, data=b'abcdef')
+        self.assertEqual(br._Browser__get_response_length(response), 6)
+
+        response = SimpleNamespace(data=b'xyz')
+        self.assertEqual(br._Browser__get_response_length(response), 3)
+
+        response = SimpleNamespace(headers={})
+        self.assertEqual(br._Browser__get_response_length(response), 0)
+
+    def test_get_response_body_returns_decoded_text_or_empty_string(self):
+        """Browser body helper should decode response bytes and gracefully handle missing data."""
+
+        br = self.make_browser()
+        response = SimpleNamespace(data='тест'.encode('utf-8'))
+        self.assertEqual(br._Browser__get_response_body(response), 'тест')
+        self.assertEqual(br._Browser__get_response_body(SimpleNamespace()), '')
+
+    def test_is_response_allowed_respects_status_and_size_filters(self):
+        """Browser response filters should honor status and size constraints before body checks."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'include_status': ['200-201'],
+            'exclude_status': ['404'],
+            'exclude_size': ['12'],
+            'exclude_size_range': ['20-30'],
+            'min_response_length': 5,
+            'max_response_length': 15,
+        }))
+
+        allowed_resp = SimpleNamespace(headers={'Content-Length': '10'}, data=b'0123456789')
+        self.assertTrue(br._Browser__is_response_allowed(allowed_resp, ('success', 'u', '10B', '200')))
+        self.assertFalse(
+            br._Browser__is_response_allowed(
+                SimpleNamespace(headers={'Content-Length': '10'}, data=b'0123456789'),
+                ('success', 'u', '10B', '404')
+            )
+        )
+        self.assertFalse(
+            br._Browser__is_response_allowed(
+                SimpleNamespace(headers={'Content-Length': '12'}, data=b'012345678901'),
+                ('success', 'u', '12B', '200')
+            )
+        )
+        self.assertFalse(
+            br._Browser__is_response_allowed(
+                SimpleNamespace(headers={'Content-Length': '25'}, data=b'x' * 25),
+                ('success', 'u', '25B', '200')
+            )
+        )
+        self.assertFalse(
+            br._Browser__is_response_allowed(
+                SimpleNamespace(headers={'Content-Length': '4'}, data=b'1234'),
+                ('success', 'u', '4B', '200')
+            )
+        )
+        self.assertFalse(
+            br._Browser__is_response_allowed(
+                SimpleNamespace(headers={'Content-Length': '16'}, data=b'x' * 16),
+                ('success', 'u', '16B', '200')
+            )
+        )
+
+    def test_is_response_allowed_respects_text_and_regex_filters(self):
+        """Browser response filters should honor body text and regex match/exclude rules."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'match_text': ['login'],
+            'exclude_text': ['forbidden'],
+            'match_regex': ['(?i)admin'],
+            'exclude_regex': ['(?i)denied'],
+        }))
+
+        self.assertTrue(
+            br._Browser__is_response_allowed(
+                SimpleNamespace(data=b'login admin portal'),
+                ('success', 'u', '18B', '200')
+            )
+        )
+        self.assertFalse(
+            br._Browser__is_response_allowed(
+                SimpleNamespace(data=b'admin portal'),
+                ('success', 'u', '12B', '200')
+            )
+        )
+        self.assertFalse(
+            br._Browser__is_response_allowed(
+                SimpleNamespace(data=b'login admin forbidden area'),
+                ('success', 'u', '26B', '200')
+            )
+        )
+        self.assertFalse(
+            br._Browser__is_response_allowed(
+                SimpleNamespace(data=b'login portal'),
+                ('success', 'u', '12B', '200')
+            )
+        )
+        self.assertFalse(
+            br._Browser__is_response_allowed(
+                SimpleNamespace(data=b'login admin access denied'),
+                ('success', 'u', '24B', '200')
+            )
+        )
+
+    def test_init_warns_when_head_is_overridden_to_get(self):
+        """Browser.__init__() should emit a warning for explicit HEAD to GET override."""
+
+        with patch('src.lib.browser.browser.Config') as config_cls, \
+                patch('src.lib.browser.browser.Debug', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.Reader') as reader_cls, \
+                patch('src.lib.browser.browser.Filter.__init__', return_value=None), \
+                patch('src.lib.browser.browser.ThreadPool', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.response', return_value=MagicMock()), \
+                patch.object(Tpl, 'warning') as warning_mock:
+            cfg = SimpleNamespace(
+                scan='directories',
+                DEFAULT_SCAN='directories',
+                torlist=None,
+                is_random_list=False,
+                is_extension_filter=False,
+                is_ignore_extension_filter=False,
+                is_external_wordlist=False,
+                wordlist='',
+                is_standalone_proxy=False,
+                is_external_torlist=False,
+                prefix='',
+                is_external_reports_dir=False,
+                reports_dir='',
+                extensions=[],
+                ignore_extensions=[],
+                threads=1,
+                delay=0,
+                _method='HEAD',
+                method='GET',
+                method_override_items=['indexof', 'collation'],
+            )
+            config_cls.return_value = cfg
+
+            reader = MagicMock()
+            reader.total_lines = 5
+            reader_cls.return_value = reader
+
+            browser({'host': 'test.local', 'port': 80})
+
+        warning_mock.assert_called_once_with(
+            key='method_override',
+            sniffers='indexof, collation'
+        )
+
+    def test_done_skips_report_generation_when_queue_is_not_empty(self):
+        """Browser.done() should skip reporting while there are still queued items."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(total_items_size=10, workers_size=2, size=1))
+        setattr(br, '_Browser__config', SimpleNamespace(reports=['std'], host='test.local'))
+
+        with patch('src.lib.browser.browser.Reporter.load') as load_mock:
+            br.done()
+
+        load_mock.assert_not_called()
+
+    def test_done_wraps_reporter_errors(self):
+        """Browser.done() should wrap reporter failures into BrowserError."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(total_items_size=10, workers_size=2, size=0))
+        setattr(br, '_Browser__config', SimpleNamespace(reports=['raisesexc'], host='test.local'))
+
+        with patch('src.lib.browser.browser.Reporter.load', side_effect=ReporterError('raisesexc')):
+            with self.assertRaises(BrowserError):
+                br.done()
+
+    def test_catch_report_data_initializes_report_items_when_missing(self):
+        """Browser.__catch_report_data() should restore report_items when old payloads do not have it."""
+
+        br = browser.__new__(browser)
+        setattr(br, '_Browser__result', {'total': helper.counter(), 'items': helper.list()})
+
+        br._Browser__catch_report_data('success', 'http://example.com/admin', '5B', '200')
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['items']['success'], ['http://example.com/admin'])
+        self.assertEqual(
+            result['report_items']['success'],
+            [{'url': 'http://example.com/admin', 'size': '5B', 'code': '200'}]
+        )
+
 if __name__ == '__main__':
     unittest.main()

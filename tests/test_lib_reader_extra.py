@@ -282,6 +282,93 @@ class TestReaderExtra(unittest.TestCase):
             with self.assertRaises(ReaderError):
                 reader.count_total_lines()
 
+    def test_normalize_extensions_drops_empty_items(self):
+        """Reader._normalize_extensions() should skip empty or dot-only entries."""
+
+        self.assertEqual(
+            Reader._normalize_extensions(['.php', '', ' .js ', '.']),
+            ['php', 'js']
+        )
+
+    def test_get_ignored_list_uses_cached_values_without_reread(self):
+        """Reader.get_ignored_list() should return cached ignored values without rereading the file."""
+
+        reader = self.make_reader()
+        setattr(reader, '_Reader__ignored', ['admin'])
+
+        with patch('src.lib.reader.reader.filesystem.read') as read_mock:
+            actual = reader.get_ignored_list()
+
+        self.assertEqual(actual, ['admin'])
+        read_mock.assert_not_called()
+
+    def test_get_ignored_list_skips_blank_and_root_only_entries(self):
+        """Reader.get_ignored_list() should skip blanks and slash-only entries."""
+
+        reader = self.make_reader()
+        with patch('src.lib.reader.reader.filesystem.read', return_value=['\n', '/\n', '/admin/\n']):
+            actual = reader.get_ignored_list()
+
+        self.assertEqual(actual, ['admin'])
+
+    def test_get_lines_prepares_subdomain_params_without_www_prefix(self):
+        """Reader.get_lines() should preserve host when it does not start with www."""
+
+        reader = self.make_reader({
+            'list': 'subdomains',
+            'torlist': 'external-tor.txt',
+            'use_random': False,
+            'use_extensions': False,
+            'use_ignore_extensions': False,
+            'is_external_wordlist': False,
+            'wordlist': '/tmp/external.txt',
+            'is_standalone_proxy': False,
+            'is_external_torlist': False,
+            'prefix': '',
+        })
+
+        with patch('src.lib.reader.reader.filesystem.readline') as readline_mock:
+            reader.get_lines(
+                params={'scheme': 'https://', 'host': 'api.example.com', 'port': 8080},
+                loader='loader-callback'
+            )
+
+        kwargs = readline_mock.call_args.kwargs
+        self.assertEqual(kwargs['handler_params']['host_no_www'], 'api.example.com')
+        self.assertEqual(kwargs['handler_params']['port_suffix'], ':8080')
+
+    def test_subdomains_line_prefers_prepared_host_and_port_suffix(self):
+        """Reader._subdomains__line() should use host_no_www and port_suffix when already prepared."""
+
+        result = Reader._subdomains__line(
+            'admin',
+            {'scheme': 'https://', 'host_no_www': 'example.com', 'port_suffix': ':8443'}
+        )
+
+        self.assertEqual(result, 'https://admin.example.com:8443')
+
+    def test_directories_line_uses_prepared_prefix_and_base_url(self):
+        """Reader._directories__line() should use prepared prefix and base_url when provided."""
+
+        reader = self.make_reader({
+            'list': 'directories',
+            'torlist': 'external-tor.txt',
+            'use_random': False,
+            'use_extensions': False,
+            'use_ignore_extensions': False,
+            'is_external_wordlist': False,
+            'wordlist': '/tmp/external.txt',
+            'is_standalone_proxy': False,
+            'is_external_torlist': False,
+            'prefix': '',
+        })
+
+        result = reader._directories__line(
+            'users',
+            {'prefix': 'api/', 'base_url': 'https://example.com:8443/'}
+        )
+
+        self.assertEqual(result, 'https://example.com:8443/api/users')
 
 if __name__ == '__main__':
     unittest.main()

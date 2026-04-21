@@ -28,20 +28,21 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
 
 [Read The Docs](https://opendoor.readthedocs.io/)
 
-* *Current 5.4.0 (21.04.2026)*
-    - Directories: 110976
+* *Current 5.6.0 (21.04.2026)*
+    - Directories: 110880
     - Subdomains: 255359
 
 #### [Changelog](CHANGELOG.md) (last changes)
-v5.5.0 (21.04.2026)
+v5.6.0 (22.04.2026)
 ---------------------------
-- (feature) Added response filter flags: `--include-status`, `--exclude-status`, `--exclude-size`, `--exclude-size-range`, `--match-text`, `--exclude-text`, `--match-regex`, `--exclude-regex`, `--min-response-length`, and `--max-response-length`.
-- (feature) Added HTTP status range support for response filtering, e.g. `200-299,301,302,403`.
-- (feature) Added exact size and inclusive byte-range filtering for noisy responses and false positives.
-- (feature) Added body text and regex response filtering for more precise discovery workflows.
-- (ux) Automatically override explicit `HEAD` to `GET` when selected response filters require response body access.
-- (tests) Added regression coverage for response filter option parsing, validation, browser config normalization, and browser filtering behavior.
-- (tests) Full unittest suite passes after integration (`585` tests).
+- (feature) Added `--raw-request` to load raw HTTP request templates from a file.
+- (feature) Added `--scheme` to resolve relative raw request lines with explicit `http` or `https` scheme selection.
+- (feature) Added raw-request parsing for request method, host, port, headers, cookies, body, and derived path prefix.
+- (feature) Added host fallback from raw requests when `--host`, `--hostlist`, or `--stdin` are not provided.
+- (feature) Added raw-request merge behavior where CLI `--host`, `--method`, `--header`, `--cookie`, `--prefix`, and `--port` override template defaults.
+- (ux) Preserved explicit non-`HEAD` methods for raw-request templates while keeping legacy `HEAD -> GET` overrides only for body-required sniffers and filters.
+- (tests) Added regression coverage for raw-request option parsing, filter normalization, browser config exposure, and HTTP/HTTPS request body forwarding.
+- (tests) Full unittest suite passes after integration (`610` tests).
 
 #### Main features
 
@@ -73,9 +74,9 @@ v5.5.0 (21.04.2026)
 - ✅ custom config wizard (use random techniques)
 - ✅ scans reporting
     * console reports
-    * json reports
-    * txt reports
-    * html reports
+    * JSON reports
+    * TXT reports
+    * HTML reports
 - ✅ analyze techniques:
     * detect redirects
     * detect index of/ Apache
@@ -100,6 +101,12 @@ v5.5.0 (21.04.2026)
     * match or exclude body regex patterns
     * min/max response length filters
     * automatic `HEAD` -> `GET` override for body-required filters
+- ✅ raw-request templates
+    * load raw HTTP requests via `--raw-request request.txt`
+    * resolve relative request lines with `--scheme http|https`
+    * parse method, host, port, headers, cookies, and request body
+    * derive prefix automatically from raw request path
+    * allow CLI host/header/cookie/method/prefix overrides on top of the template
 
 #### Install PIP
 ```bash
@@ -271,20 +278,28 @@ py -m pip install -e .
 
 #### Help
 ```bash
-usage: opendoor [-h] [--host HOST | --hostlist HOSTLIST | --stdin]
-                [-p PORT] [-m METHOD] [-t THREADS]
-                [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
-                [--keep-alive] [--accept-cookies] [--header HEADER]
-                [--cookie COOKIE] [--debug DEBUG] [--tor]
-                [--torlist TORLIST] [--proxy PROXY] [-s SCAN] [-w WORDLIST]
-                [--reports REPORTS] [--reports-dir REPORTS_DIR]
-                [--random-agent] [--random-list] [--prefix PREFIX]
-                [-e EXTENSIONS] [-i IGNORE_EXTENSIONS] [--recursive]
-                [--recursive-depth RECURSIVE_DEPTH]
-                [--recursive-status RECURSIVE_STATUS]
-                [--recursive-exclude RECURSIVE_EXCLUDE] [--sniff SNIFF]
-                [--update] [--version] [--examples] [--docs]
-                [--wizard [WIZARD]]
+usage: opendoor.py [-h] [--host HOST | --hostlist HOSTLIST | --stdin]
+                   [-p PORT] [-m METHOD] [--scheme SCHEME]
+                   [--raw-request RAW_REQUEST] [-t THREADS] [-d DELAY]
+                   [--timeout TIMEOUT] [-r RETRIES] [--keep-alive]
+                   [--header HEADER] [--cookie COOKIE] [--accept-cookies]
+                   [--debug DEBUG] [--tor] [--torlist TORLIST] [--proxy PROXY]
+                   [-s SCAN] [-w WORDLIST] [--reports REPORTS]
+                   [--reports-dir REPORTS_DIR] [--random-agent]
+                   [--random-list] [--prefix PREFIX] [-e EXTENSIONS]
+                   [-i IGNORE_EXTENSIONS] [--recursive]
+                   [--recursive-depth RECURSIVE_DEPTH]
+                   [--recursive-status RECURSIVE_STATUS]
+                   [--recursive-exclude RECURSIVE_EXCLUDE] [--sniff SNIFF]
+                   [--include-status INCLUDE_STATUS]
+                   [--exclude-status EXCLUDE_STATUS]
+                   [--exclude-size EXCLUDE_SIZE]
+                   [--exclude-size-range EXCLUDE_SIZE_RANGE]
+                   [--match-text MATCH_TEXT] [--exclude-text EXCLUDE_TEXT]
+                   [--match-regex MATCH_REGEX] [--exclude-regex EXCLUDE_REGEX]
+                   [--min-response-length MIN_RESPONSE_LENGTH]
+                   [--max-response-length MAX_RESPONSE_LENGTH] [--update]
+                   [--version] [--examples] [--docs] [--wizard [WIZARD]]
 
 options:
   -h, --help            show this help message and exit
@@ -304,47 +319,74 @@ Application tools:
 Debug tools:
   --debug DEBUG         Debug level -1 (silent), 1 - 3
 
+Response filters:
+  --include-status INCLUDE_STATUS
+                        Include only response codes, e.g. 200-299,301,302,403
+  --exclude-status EXCLUDE_STATUS
+                        Exclude response codes, e.g. 404,429,500-599
+  --exclude-size EXCLUDE_SIZE
+                        Exclude exact response sizes in bytes, e.g. 0,1234
+  --exclude-size-range EXCLUDE_SIZE_RANGE
+                        Exclude response size ranges in bytes, e.g.
+                        0-256,1024-2048
+  --match-text MATCH_TEXT
+                        Keep only responses whose body contains the given
+                        text. Repeatable
+  --exclude-text EXCLUDE_TEXT
+                        Exclude responses whose body contains the given text.
+                        Repeatable
+  --match-regex MATCH_REGEX
+                        Keep only responses whose body matches the given
+                        regex. Repeatable
+  --exclude-regex EXCLUDE_REGEX
+                        Exclude responses whose body matches the given regex.
+                        Repeatable
+  --min-response-length MIN_RESPONSE_LENGTH
+                        Keep only responses whose size is at least N bytes
+  --max-response-length MAX_RESPONSE_LENGTH
+                        Keep only responses whose size is at most N bytes
+
 Reports tools:
   --reports REPORTS     Scan reports (json,std,txt,html)
   --reports-dir REPORTS_DIR
                         Path to custom reports directory
 
 Request tools:
-  -p PORT, --port PORT  Custom port (default 80)
-  -m METHOD, --method METHOD
-                        Request method (HEAD by default)
-  -d DELAY, --delay DELAY
-                        Delay between threaded requests
+  -p, --port PORT       Custom port (default 80)
+  -m, --method METHOD   Request method (HEAD by default)
+  -d, --delay DELAY     Delay between threaded requests
   --timeout TIMEOUT     Request timeout (30 sec default)
-  -r RETRIES, --retries RETRIES
+  -r, --retries RETRIES
                         Maximum reconnect retries (default 3)
   --keep-alive          Use keep-alive connection
-  --accept-cookies      Accept and route cookies from responses
   --header HEADER       Add custom request header, e.g. --header 'X-Test: 1'
   --cookie COOKIE       Add custom cookie, e.g. --cookie 'sid=abc123'
+  --accept-cookies      Accept and route cookies from responses
   --tor                 Use built-in proxy list
   --torlist TORLIST     Path to custom proxy list
   --proxy PROXY         Custom permanent proxy server
   --random-agent        Randomize user-agent per request
 
 Sniff tools:
-  --sniff SNIFF         Response sniff plugins
-                        (indexof,collation,file,skipempty,skipsizes=NUM:NUM...)
+  --sniff SNIFF         Response sniff plugins (indexof,collation,file,skipemp
+                        ty,skipsizes=NUM:NUM...)
 
 Stream tools:
-  -t THREADS, --threads THREADS
+  -t, --threads THREADS
                         Allowed threads
 
 Wordlist tools:
-  -s SCAN, --scan SCAN  Scan type: directories or subdomains
-  -w WORDLIST, --wordlist WORDLIST
+  -s, --scan SCAN       Scan type: directories or subdomains
+  -w, --wordlist WORDLIST
                         Path to custom wordlist
   --random-list         Shuffle scan list
   --prefix PREFIX       Append path prefix to scan host
-  -e EXTENSIONS, --extensions EXTENSIONS
-                        Force selected extensions for scan session, e.g. php,json
-  -i IGNORE_EXTENSIONS, --ignore-extensions IGNORE_EXTENSIONS
-                        Ignore selected extensions for the scan session, e.g. aspx,jsp
+  -e, --extensions EXTENSIONS
+                        Force selected extensions for the scan session, e.g.
+                        php,json
+  -i, --ignore-extensions IGNORE_EXTENSIONS
+                        Ignore selected extensions for the scan session, e.g.
+                        aspx,jsp
   --recursive           Enable recursive directory scan
   --recursive-depth RECURSIVE_DEPTH
                         Maximum recursive scan depth

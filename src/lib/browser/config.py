@@ -49,6 +49,8 @@ class Config(object):
         self._proxy = '' if params.get('proxy') is None else params.get('proxy')
         self._headers = params.get('header')
         self._cookies = params.get('cookie')
+        self._raw_request = params.get('raw_request')
+        self._request_body = params.get('request_body')
         self._accept_cookies = params.get('accept_cookies') is not None
         self._keep_alive = params.get('keep_alive') is not None
         self._port = params.get('port')
@@ -71,6 +73,12 @@ class Config(object):
         self._torlist = '' if 'torlist' not in params or params.get('torlist') is None else params.get('torlist')
         self._is_random_user_agent = params.get('random_agent')
         self._sniff = self._normalize_csv(params.get('sniff'))
+        self._is_random_list = params.get('random_list') is not None
+        self._is_extension_filter = params.get('extensions') is not None
+        self._is_ignore_extension_filter = params.get('ignore_extensions') is not None
+        self._user_agent = self.DEFAULT_USER_AGENT
+        self._threads = self.DEFAULT_MIN_THREADS if params.get('threads') is None else params.get('threads')
+
         self._include_status = self._normalize_csv(params.get('include_status'))
         self._exclude_status = self._normalize_csv(params.get('exclude_status'))
         self._exclude_size = self._normalize_csv(params.get('exclude_size'))
@@ -79,13 +87,8 @@ class Config(object):
         self._exclude_text = self._normalize_csv(params.get('exclude_text'))
         self._match_regex = self._normalize_csv(params.get('match_regex'))
         self._exclude_regex = self._normalize_csv(params.get('exclude_regex'))
-        self._min_response_length = None if params.get('min_response_length') is None else int(params.get('min_response_length'))
-        self._max_response_length = None if params.get('max_response_length') is None else int(params.get('max_response_length'))
-        self._is_random_list = params.get('random_list') is not None
-        self._is_extension_filter = params.get('extensions') is not None
-        self._is_ignore_extension_filter = params.get('ignore_extensions') is not None
-        self._user_agent = self.DEFAULT_USER_AGENT
-        self._threads = self.DEFAULT_MIN_THREADS if params.get('threads') is None else params.get('threads')
+        self._min_response_length = params.get('min_response_length')
+        self._max_response_length = params.get('max_response_length')
 
     @staticmethod
     def _normalize_csv(value):
@@ -104,18 +107,25 @@ class Config(object):
 
     @staticmethod
     def _expand_numeric_tokens(values):
-        """Expand exact numeric tokens and inclusive numeric ranges."""
+        """
+        Expand response status tokens so ranges become flat string lists.
+
+        :param list values:
+        :return: list[str]
+        """
+
+        if values is None:
+            return []
 
         expanded = []
-
-        for value in values or []:
-            item = str(value).strip()
+        for item in values:
+            item = str(item).strip()
             if not item:
                 continue
 
             if '-' in item:
                 start, end = [int(chunk) for chunk in item.split('-', 1)]
-                expanded.extend([str(number) for number in range(start, end + 1)])
+                expanded.extend([str(code) for code in range(start, end + 1)])
             else:
                 expanded.append(str(int(item)))
 
@@ -123,18 +133,37 @@ class Config(object):
 
     @staticmethod
     def _expand_integer_values(values):
-        """Normalize integer token lists."""
+        """
+        Normalize exact integer filter values.
 
-        return [int(item) for item in (values or [])]
+        :param list values:
+        :return: list[int]
+        """
+
+        if values is None:
+            return []
+
+        return [int(str(item).strip()) for item in values if str(item).strip()]
 
     @staticmethod
     def _expand_integer_ranges(values):
-        """Normalize inclusive integer range tokens."""
+        """
+        Normalize inclusive integer range filters.
+
+        :param list values:
+        :return: list[tuple[int, int]]
+        """
+
+        if values is None:
+            return []
 
         ranges = []
+        for item in values:
+            token = str(item).strip()
+            if not token:
+                continue
 
-        for value in values or []:
-            start, end = [int(chunk) for chunk in str(value).split('-', 1)]
+            start, end = [int(chunk) for chunk in token.split('-', 1)]
             ranges.append((start, end))
 
         return ranges
@@ -250,6 +279,9 @@ class Config(object):
     def method(self):
         """Scan method property."""
 
+        if self.requested_method != 'HEAD':
+            return self.requested_method
+
         if self.is_body_required_response_filtering is True:
             return 'GET'
 
@@ -257,6 +289,7 @@ class Config(object):
             if len(self.sniffers) == 1 and self.sniffers[0] == 'file':
                 return 'HEAD'
             return 'GET'
+
         return self.requested_method
 
     @property
@@ -568,3 +601,21 @@ class Config(object):
         """If connection keep-alive."""
 
         return self._keep_alive
+
+    @property
+    def raw_request(self):
+        """Raw request file source path."""
+
+        return self._raw_request
+
+    @property
+    def is_raw_request(self):
+        """If raw-request mode is enabled."""
+
+        return self._raw_request is not None and len(str(self._raw_request).strip()) > 0
+
+    @property
+    def request_body(self):
+        """Optional request body loaded from raw-request template."""
+
+        return self._request_body

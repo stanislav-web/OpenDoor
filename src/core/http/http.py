@@ -79,8 +79,9 @@ class HttpRequest(RequestProvider, DebugProvider):
         :return: urllib3.HTTPResponse
         """
 
-        self.__headers.update({'User-Agent': self._user_agent})
-        if self.__connection_header != 'default':
+        if self.__headers.get('User-Agent') is None:
+            self.__headers.update({'User-Agent': self._user_agent})
+        if self.__connection_header != 'default' and self.__headers.get('Connection') is None:
             self.__headers.update({'Connection': self.__connection_header})
 
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
@@ -92,6 +93,7 @@ class HttpRequest(RequestProvider, DebugProvider):
                     self.__cfg.method,
                     helper.parse_url(url).path,
                     headers=self.__headers,
+                    body=self._request_body,
                     retries=self.__cfg.retries,
                     assert_same_host=True,
                     redirect=False,
@@ -102,6 +104,7 @@ class HttpRequest(RequestProvider, DebugProvider):
                     self.__cfg.method,
                     url,
                     headers=self.__headers,
+                    body=self._request_body,
                     retries=self.__cfg.retries,
                     assert_same_host=False,
                     redirect=False,

@@ -11,7 +11,7 @@ omit =
 [report]
 show_missing = true
 skip_covered = false
-fail_under = 96
+fail_under = 98
 omit =
     *__init__*
     */benchmarks/*

@@ -26,7 +26,6 @@ from .providers import RequestProvider
 
 
 class HttpsRequest(RequestProvider, DebugProvider):
-
     """HttpsRequest class"""
 
     DEFAULT_SSL_CERT_REQUIRED_STATUSES = 496
@@ -52,18 +51,18 @@ class HttpsRequest(RequestProvider, DebugProvider):
         self.__debug = debug
         if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
             self.__pool = self.__https_pool()
-    
+
     def _provide_ssl_auth_required(self):
         """
         Provide ssl auth response
         :return: urllib3.HTTPResponse
         """
-        
+
         response = HTTPResponse()
         response.status = self.DEFAULT_SSL_CERT_REQUIRED_STATUSES
         response.__setattr__('_body', ' ')
         return response
-        
+
     def __https_pool(self):
         """
         Create HTTP connection pool
@@ -73,12 +72,12 @@ class HttpsRequest(RequestProvider, DebugProvider):
 
         try:
             pool = HTTPSConnectionPool(
-                    host=self.__cfg.host,
-                    port=self.__cfg.port,
-                    maxsize=self.__cfg.threads,
-                    timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
-                    cert_reqs='CERT_NONE',
-                    )
+                host=self.__cfg.host,
+                port=self.__cfg.port,
+                maxsize=self.__cfg.threads,
+                timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
+                cert_reqs='CERT_NONE',
+            )
             if self._HTTP_DBG_LEVEL <= self.__debug.level:
                 self.__debug.debug_connection_pool('https_pool_start', pool, self.__connection_header)
 
@@ -93,8 +92,9 @@ class HttpsRequest(RequestProvider, DebugProvider):
         :return: urllib3.HTTPResponse
         """
 
-        self.__headers.update({'User-Agent': self._user_agent})
-        if 'default' != self.__connection_header:
+        if self.__headers.get('User-Agent') is None:
+            self.__headers.update({'User-Agent': self._user_agent})
+        if 'default' != self.__connection_header and self.__headers.get('Connection') is None:
             self.__headers.update({'Connection': self.__connection_header})
 
         if self._HTTP_DBG_LEVEL <= self.__debug.level:
@@ -105,6 +105,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
                 response = self.__pool.request(self.__cfg.method,
                                                helper.parse_url(url).path,
                                                headers=self.__headers,
+                                               body=self._request_body,
                                                retries=self.__cfg.retries,
                                                assert_same_host=False,
                                                redirect=False)
@@ -113,6 +114,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
 
                 response = PoolManager().request(self.__cfg.method, url,
                                                  headers=self.__headers,
+                                                 body=self._request_body,
                                                  retries=self.__cfg.retries,
                                                  assert_same_host=False,
                                                  redirect=False,

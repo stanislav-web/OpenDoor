@@ -75,6 +75,21 @@ class TestHttpResponsePluginsExtra(unittest.TestCase):
         self.assertIsNone(plugin.process(self.make_response(body=second, headers={'Content-Length': str(len(second))})))
         self.assertEqual(plugin.process(self.make_response(body=third, headers={'Content-Length': str(len(third))})), 'failed')
 
+    def test_skipsizes_returns_none_for_unsupported_status(self):
+        """SkipSizesResponsePlugin should immediately return None for unsupported statuses."""
+
+        plugin = SkipSizesResponsePlugin('2:4')
+        response = self.make_response(status=404, body=b'x' * 2048, headers={'Content-Length': '2048'})
+
+        self.assertIsNone(plugin.process(response))
+
+    def test_skipsizes_header_branch_returns_none_when_size_does_not_match(self):
+        """SkipSizesResponsePlugin should cover header-based no-match branch."""
+
+        plugin = SkipSizesResponsePlugin('2')
+        response = self.make_response(status=200, body=b'x' * 10, headers={'Content-Length': '1024'})
+
+        self.assertIsNone(plugin.process(response))
 
 if __name__ == '__main__':
     unittest.main()

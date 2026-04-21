@@ -38,6 +38,7 @@ class RequestProvider(CookiesProvider, HeaderProvider, UserAgentHeaderProvider, 
         ConnectionHeaderProvider.__init__(self, config)
         UserAgentHeaderProvider.__init__(self, config, agent_list)
         CookiesProvider.__init__(self)
+        self._request_body = getattr(config, 'request_body', None)
         self._apply_custom_headers(config)
         self._apply_custom_cookies(config)
 

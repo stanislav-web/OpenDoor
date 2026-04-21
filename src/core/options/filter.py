@@ -19,6 +19,8 @@
 import re
 import sys
 
+from urllib.parse import unquote
+
 from src.core import helper
 from .exceptions import FilterError
 
@@ -40,15 +42,18 @@ class Filter(object):
         """
 
         filtered = {}
-        targets = Filter.targets(args)
+        raw_request = Filter.raw_request(args.get('raw_request'), scheme=args.get('scheme'))
+        targets = Filter.targets(args, raw_request=raw_request)
 
         for key, value in args.items():
             if 'scan' == key:
                 filtered['scan'] = Filter.scan(value)
-            elif key in ['host', 'hostlist', 'stdin']:
+            elif key in ['host', 'hostlist', 'stdin', 'raw_request']:
                 continue
             elif 'proxy' == key:
                 filtered[key] = Filter.proxy(value)
+            elif 'scheme' == key:
+                filtered[key] = Filter.explicit_scheme(value, key='--scheme')
             elif key in ['include_status', 'exclude_status']:
                 filtered[key] = Filter.status_ranges(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['exclude_size']:
@@ -64,6 +69,30 @@ class Filter(object):
             else:
                 filtered[key] = value
 
+        if raw_request is not None:
+            if 'method' not in filtered and raw_request.get('method'):
+                filtered['method'] = raw_request.get('method')
+
+            raw_headers = raw_request.get('headers') or []
+            cli_headers = filtered.get('header') or []
+            merged_headers = list(raw_headers) + list(cli_headers)
+            if merged_headers:
+                filtered['header'] = merged_headers
+
+            raw_cookies = raw_request.get('cookies') or []
+            cli_cookies = filtered.get('cookie') or []
+            merged_cookies = list(raw_cookies) + list(cli_cookies)
+            if merged_cookies:
+                filtered['cookie'] = merged_cookies
+
+            if 'prefix' not in filtered and raw_request.get('prefix'):
+                filtered['prefix'] = raw_request.get('prefix')
+
+            if raw_request.get('body') not in [None, '']:
+                filtered['request_body'] = raw_request.get('body')
+
+            filtered['raw_request'] = raw_request.get('source')
+
         if filtered.get('min_response_length') is not None and filtered.get('max_response_length') is not None:
             if filtered.get('min_response_length') > filtered.get('max_response_length'):
                 raise FilterError('--min-response-length cannot be greater than --max-response-length')
@@ -72,9 +101,14 @@ class Filter(object):
             filtered['host'] = targets[0]['host']
             filtered['scheme'] = targets[0]['scheme']
             filtered['ssl'] = targets[0]['ssl']
+            if targets[0].get('port') is not None and 'port' not in filtered:
+                filtered['port'] = targets[0]['port']
 
         if len(targets) > 0:
             filtered['targets'] = targets
+
+        if raw_request is not None and len(targets) <= 0:
+            raise FilterError('Unable to resolve target from --raw-request. Provide a Host header or use --host/--hostlist/--stdin')
 
         return filtered
 
@@ -105,11 +139,12 @@ class Filter(object):
         return 'https://' == scheme
 
     @staticmethod
-    def targets(args):
+    def targets(args, raw_request=None):
         """
-        Build normalized targets from a single host, host file or STDIN.
+        Build normalized targets from a single host, host file, STDIN or raw request.
 
         :param dict args:
+        :param dict raw_request:
         :raise FilterError:
         :return: list[dict]
         """
@@ -142,6 +177,23 @@ class Filter(object):
                 'source': cleaned,
             })
             seen.add(cleaned)
+
+        if len(targets) <= 0 and raw_request is not None and raw_request.get('host'):
+            scheme = raw_request.get('scheme')
+            if scheme is None:
+                raise FilterError('--scheme is required when --raw-request uses a relative request line')
+
+            target = {
+                'host': raw_request.get('host'),
+                'scheme': scheme,
+                'ssl': Filter.ssl(scheme),
+                'source': raw_request.get('target_source') or raw_request.get('host'),
+            }
+
+            if raw_request.get('port') is not None:
+                target['port'] = raw_request.get('port')
+
+            targets.append(target)
 
         return targets
 
@@ -187,6 +239,182 @@ class Filter(object):
         if not value or value.startswith('#'):
             return ''
         return value
+
+    @staticmethod
+    def explicit_scheme(value, key='--scheme'):
+        """
+        Normalize explicit scheme values.
+
+        :param str value:
+        :param str key:
+        :return: str | None
+        """
+
+        if value is None:
+            return None
+
+        scheme = str(value).strip().lower()
+        if not scheme:
+            return None
+
+        scheme = scheme.replace('://', '')
+        if scheme not in ['http', 'https']:
+            raise FilterError('{0} accepts only http or https'.format(key))
+
+        return scheme + '://'
+
+    @staticmethod
+    def raw_request(filepath, scheme=None):
+        """
+        Read and parse a raw HTTP request file.
+
+        :param str filepath:
+        :param str scheme:
+        :return: dict | None
+        """
+
+        if filepath is None:
+            return None
+
+        try:
+            with open(filepath, 'r', encoding='utf-8') as file:
+                content = file.read()
+        except OSError as error:
+            raise FilterError('Unable to read raw request from --raw-request `{0}`. {1}'.format(filepath, error))
+
+        parsed = Filter._parse_raw_request(content, scheme=scheme)
+        parsed['source'] = filepath
+        return parsed
+
+    @staticmethod
+    def _parse_raw_request(content, scheme=None):
+        """
+        Parse a raw HTTP request payload.
+
+        :param str content:
+        :param str scheme:
+        :return: dict
+        """
+
+        content = '' if content is None else str(content)
+        parts = re.split(r'\r?\n\r?\n', content, maxsplit=1)
+        head = parts[0] if len(parts) > 0 else ''
+        body = parts[1] if len(parts) > 1 else ''
+        lines = [line.rstrip('\r') for line in head.splitlines() if line.strip()]
+
+        if len(lines) <= 0:
+            raise FilterError('--raw-request file is empty')
+
+        request_line = lines[0].strip()
+        request_line_parts = request_line.split()
+        if len(request_line_parts) < 2:
+            raise FilterError('Invalid request line in --raw-request')
+
+        method = request_line_parts[0].upper()
+        request_target = request_line_parts[1].strip()
+        explicit_scheme = Filter.explicit_scheme(scheme, key='--scheme')
+
+        headers = []
+        cookies = []
+        host_header = None
+
+        for line in lines[1:]:
+            if ':' not in line:
+                raise FilterError('Invalid header in --raw-request: `{0}`'.format(line))
+
+            key, value = line.split(':', 1)
+            key = key.strip()
+            value = value.strip()
+
+            if not key:
+                raise FilterError('Invalid header in --raw-request: `{0}`'.format(line))
+
+            lower_key = key.lower()
+            if lower_key == 'host':
+                host_header = value
+                continue
+            if lower_key == 'cookie':
+                cookies.extend([item.strip() for item in value.split(';') if item.strip()])
+                continue
+            if lower_key == 'content-length':
+                continue
+
+            headers.append('{0}: {1}'.format(key, value))
+
+        resolved_scheme = explicit_scheme
+        resolved_host = None
+        resolved_port = None
+        request_path = request_target
+
+        if re.match(r'^https?://', request_target, re.IGNORECASE):
+            parsed_url = helper.parse_url(request_target)
+            resolved_scheme = parsed_url.scheme + '://'
+            resolved_host, resolved_port = Filter._split_host_and_port(parsed_url.netloc)
+            request_path = parsed_url.path or '/'
+            if parsed_url.query:
+                request_path += '?' + parsed_url.query
+        elif host_header is not None:
+            resolved_host, resolved_port = Filter._split_host_and_port(host_header)
+        elif explicit_scheme is None:
+            resolved_host = None
+
+        normalized_host = None
+        if resolved_host:
+            host_for_validation = resolved_host
+            if re.match(r'^https?://', host_for_validation, re.IGNORECASE) is None and resolved_scheme is not None:
+                host_for_validation = resolved_scheme + resolved_host
+            normalized_host = Filter.host(host_for_validation)
+
+        return {
+            'method': method,
+            'headers': headers,
+            'cookies': cookies,
+            'body': body,
+            'host': normalized_host,
+            'port': resolved_port,
+            'scheme': resolved_scheme,
+            'path': request_path,
+            'prefix': Filter._raw_request_prefix(request_path),
+            'target_source': Filter._raw_request_target_source(normalized_host, resolved_scheme, resolved_port),
+        }
+
+    @staticmethod
+    def _split_host_and_port(value):
+        """Split host header into host and port parts."""
+
+        raw = str(value).strip()
+        if ':' in raw:
+            host, port = raw.rsplit(':', 1)
+            if port.isdigit():
+                return host.strip(), int(port)
+        return raw, None
+
+    @staticmethod
+    def _raw_request_prefix(path):
+        """Derive scan prefix from request path."""
+
+        parsed_path = helper.parse_url('http://raw.local' + (path if str(path).startswith('/') else '/' + str(path))).path
+        if not parsed_path or parsed_path == '/':
+            return ''
+
+        if parsed_path.endswith('/'):
+            prefix = parsed_path
+        else:
+            prefix = parsed_path.rsplit('/', 1)[0] + '/'
+
+        return unquote(prefix.lstrip('/'))
+
+    @staticmethod
+    def _raw_request_target_source(host, scheme, port):
+        """Build readable target source string for raw requests."""
+
+        if host is None or scheme is None:
+            return None
+
+        source = '{0}{1}'.format(scheme, host)
+        if port is not None:
+            source += ':{0}'.format(port)
+        return source
 
     @staticmethod
     def host(hostname):
