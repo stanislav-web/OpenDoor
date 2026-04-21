@@ -41,6 +41,22 @@ class StdReportPlugin(PluginProvider):
         :return: str
         """
 
-        data = self._data.get('total').items()
+        data = list(self._data.get('total').items())
+        fingerprint = self._data.get('fingerprint')
+
+        if isinstance(fingerprint, dict) and len(fingerprint) > 0:
+            data += [
+                ('fingerprint_category', fingerprint.get('category', 'custom')),
+                ('fingerprint_name', fingerprint.get('name', 'Unknown custom stack')),
+                ('fingerprint_confidence', '{0}%'.format(fingerprint.get('confidence', 0))),
+            ]
+
+            infrastructure = fingerprint.get('infrastructure')
+            if isinstance(infrastructure, dict) and len(infrastructure) > 0:
+                data += [
+                    ('fingerprint_infra', infrastructure.get('provider', 'unknown')),
+                    ('fingerprint_infra_confidence', '{0}%'.format(infrastructure.get('confidence', 0))),
+                ]
+
         title = 'Statistics ({0})'.format(self._target)
         sys.writeln(tabulate(data, headers=[title, 'Summary'], tablefmt="psql"))

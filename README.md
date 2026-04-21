@@ -28,21 +28,20 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
 
 [Read The Docs](https://opendoor.readthedocs.io/)
 
-* *Current 5.6.0 (21.04.2026)*
+* *Current 5.7.0 (22.04.2026)*
     - Directories: 110880
     - Subdomains: 255359
 
 #### [Changelog](CHANGELOG.md) (last changes)
-v5.6.0 (22.04.2026)
+v5.7.0 (22.04.2026)
 ---------------------------
-- (feature) Added `--raw-request` to load raw HTTP request templates from a file.
-- (feature) Added `--scheme` to resolve relative raw request lines with explicit `http` or `https` scheme selection.
-- (feature) Added raw-request parsing for request method, host, port, headers, cookies, body, and derived path prefix.
-- (feature) Added host fallback from raw requests when `--host`, `--hostlist`, or `--stdin` are not provided.
-- (feature) Added raw-request merge behavior where CLI `--host`, `--method`, `--header`, `--cookie`, `--prefix`, and `--port` override template defaults.
-- (ux) Preserved explicit non-`HEAD` methods for raw-request templates while keeping legacy `HEAD -> GET` overrides only for body-required sniffers and filters.
-- (tests) Added regression coverage for raw-request option parsing, filter normalization, browser config exposure, and HTTP/HTTPS request body forwarding.
-- (tests) Full unittest suite passes after integration (`610` tests).
+- (feature) Added `--fingerprint` to run heuristic technology fingerprinting before the main scan.
+- (feature) Added probable application stack detection for popular CMS, ecommerce platforms, frameworks, site builders, and static-site tooling.
+- (feature) Added infrastructure fingerprinting for AWS (CloudFront, S3, ELB/ALB, API Gateway, Amplify), Cloudflare, Vercel, Netlify, GitHub Pages, GitLab Pages, Heroku, Azure, Google Cloud, Fastly, Akamai, and OpenResty.
+- (feature) Added fingerprint summary fields to the standard report output, including application category/name/confidence and infrastructure provider/confidence.
+- (ux) Fingerprinting now runs after connectivity checks and before the main scan without breaking the existing scan pipeline.
+- (tests) Added regression coverage for fingerprint detection rules, runtime browser integration, controller orchestration, and report rendering.
+- (tests) Full unittest suite passes after integration (`679` tests).
 
 #### Main features
 
@@ -53,6 +52,11 @@ v5.6.0 (22.04.2026)
     * single target via `--host`
     * multi-target file via `--hostlist`
     * standard input via `--stdin`
+- ✅ technology fingerprinting
+    * heuristic application stack detection via `--fingerprint`
+    * identify probable CMS, ecommerce platforms, frameworks, site builders, and static-site tooling
+    * detect infrastructure providers such as AWS, Cloudflare, Vercel, Netlify, GitHub Pages, GitLab Pages, Heroku, Azure, Google Cloud, Fastly, Akamai, and OpenResty
+    * print application and infrastructure confidence in the standard report
 - ✅ session control
     * runtime pause / resume session
 - ✅ HTTP(S) (PORT) support
@@ -362,6 +366,7 @@ Request tools:
   --header HEADER       Add custom request header, e.g. --header 'X-Test: 1'
   --cookie COOKIE       Add custom cookie, e.g. --cookie 'sid=abc123'
   --accept-cookies      Accept and route cookies from responses
+  --fingerprint         Detect probable CMS, framework, or custom stack before the scan
   --tor                 Use built-in proxy list
   --torlist TORLIST     Path to custom proxy list
   --proxy PROXY         Custom permanent proxy server

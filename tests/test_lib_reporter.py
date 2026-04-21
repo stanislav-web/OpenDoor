@@ -239,6 +239,33 @@ class TestReporter(unittest.TestCase):
         self.assertIsInstance(plugin, JsonReportPlugin)
         makedir_mock.assert_called_once_with(os.path.join(self.base_dir, 'test.local'))
 
+    def test_std_plugin_process_renders_fingerprint_and_infrastructure(self):
+        """StdReportPlugin.process() should render fingerprint summary when present."""
+
+        data = {
+            'items': {},
+            'total': {'items': 1, 'success': 1, 'failed': 0, 'workers': 1},
+            'fingerprint': {
+                'category': 'framework',
+                'name': 'Next.js',
+                'confidence': 96,
+                'infrastructure': {
+                    'provider': 'AWS CloudFront',
+                    'confidence': 98,
+                }
+            }
+        }
+
+        plugin = StdReportPlugin('test.local', data)
+
+        with patch('src.lib.reporter.plugins.std.sys.writeln') as writeln_mock:
+            plugin.process()
+
+        rendered = writeln_mock.call_args[0][0]
+        self.assertIn('fingerprint_category', rendered)
+        self.assertIn('Next.js', rendered)
+        self.assertIn('fingerprint_infra', rendered)
+        self.assertIn('AWS CloudFront', rendered)
 
 if __name__ == '__main__':
     unittest.main()

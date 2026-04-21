@@ -1,5 +1,15 @@
 CHANGELOG
 =======
+v5.7.0 (22.04.2026)
+---------------------------
+- (feature) Added `--fingerprint` to run heuristic technology fingerprinting before the main scan.
+- (feature) Added probable application stack detection for popular CMS, ecommerce platforms, frameworks, site builders, and static-site tooling.
+- (feature) Added infrastructure fingerprinting for AWS (CloudFront, S3, ELB/ALB, API Gateway, Amplify), Cloudflare, Vercel, Netlify, GitHub Pages, GitLab Pages, Heroku, Azure, Google Cloud, Fastly, Akamai, and OpenResty.
+- (feature) Added fingerprint summary fields to the standard report output, including application category/name/confidence and infrastructure provider/confidence.
+- (ux) Fingerprinting now runs after connectivity checks and before the main scan without breaking the existing scan pipeline.
+- (tests) Added regression coverage for fingerprint detection rules, runtime browser integration, controller orchestration, and report rendering.
+- (tests) Full unittest suite passes after integration (`679` tests).
+
 v5.6.0 (22.04.2026)
 ---------------------------
 - (feature) Added `--raw-request` to load raw HTTP request templates from a file.

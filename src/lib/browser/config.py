@@ -58,6 +58,7 @@ class Config(object):
         self._reports_dir = params.get('reports_dir')
         self._prefix = '' if params.get('prefix') is None else params.get('prefix')
         self._reports = self._normalize_csv(params.get('reports'))
+        self._is_fingerprint = params.get('fingerprint') is True
         self._extensions = self._normalize_csv(params.get('extensions'))
         self._ignore_extensions = self._normalize_csv(params.get('ignore_extensions'))
         self._is_recursive = params.get('recursive') is True
@@ -344,6 +345,12 @@ class Config(object):
         if self._proxy is not None and len(self._proxy) > 0:
             return True
         return False
+
+    @property
+    def is_fingerprint(self):
+        """If heuristic fingerprinting is enabled."""
+
+        return self._is_fingerprint
 
     @property
     def is_random_user_agent(self):

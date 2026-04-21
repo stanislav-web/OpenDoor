@@ -31,6 +31,7 @@ from src.lib.tpl import Tpl as tpl
 from .config import Config
 from .debug import Debug
 from .exceptions import BrowserError
+from .fingerprint import Fingerprint
 from .filter import Filter
 from .threadpool import ThreadPool
 
@@ -156,6 +157,45 @@ class Browser(Filter):
 
         except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as error:
             raise BrowserError(error)
+
+    def fingerprint(self):
+        """
+        Run heuristic technology fingerprinting before the main scan.
+
+        :return: dict | None
+        """
+
+        if True is not self.__config.is_fingerprint:
+            return None
+
+        try:
+            tpl.info(msg='Fingerprinting {0} before the scan ...'.format(self.__config.host))
+
+            if self.__client is None:
+                self.__start_request_provider()
+
+            result = Fingerprint(config=self.__config, client=self.__client).detect()
+            self.__result['fingerprint'] = result
+
+            tpl.debug(
+                msg='Fingerprint result: {category}/{name} ({confidence}%)'.format(
+                    category=result.get('category', 'custom'),
+                    name=result.get('name', 'Unknown custom stack'),
+                    confidence=result.get('confidence', 0),
+                )
+            )
+
+            if result.get('signals'):
+                evidence = ', '.join([signal.get('value', '') for signal in result.get('signals', [])[:4]])
+                tpl.debug(msg='Fingerprint evidence: {0}'.format(evidence))
+
+            return result
+
+        except (ProxyRequestError, HttpRequestError, HttpsRequestError, AttributeError, TypeError, ValueError) as error:
+            tpl.warning(msg='Fingerprint skipped: {0}'.format(error))
+            result = dict(Fingerprint.DEFAULT_RESULT)
+            self.__result['fingerprint'] = result
+            return result
 
     def __start_request_provider(self):
         """

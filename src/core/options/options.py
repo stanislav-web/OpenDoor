@@ -157,6 +157,15 @@ class Options(object):
                 "type": bool
             },
             {
+                "group": "request",
+                "args": None,
+                "argl": "--fingerprint",
+                "default": False,
+                "action": "store_true",
+                "help": "Detect probable CMS, framework or custom stack before the scan",
+                "type": bool
+            },
+            {
                 "group": "debug",
                 "args": None,
                 "argl": "--debug",

@@ -178,6 +178,9 @@ class Controller(object):
                         tpl.cancel(key='abort')
 
                 brows.ping()
+                if params.get('fingerprint') is True:
+                    brows.fingerprint()
+
                 brows.scan()
                 brows.done()
 
