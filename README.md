@@ -85,6 +85,7 @@ v5.8.1 (23.04.2026)
     * JSON reports
     * TXT reports
     * HTML reports
+    * SQLITE reports
 - ✅ analyze techniques:
     * detect redirects
     * detect index of/ Apache
