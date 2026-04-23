@@ -46,6 +46,10 @@ class Config(object):
         self._scheme = self.DEFAULT_SCHEME if params.get('scheme') is None else params.get('scheme')
         self._ssl = params.get('ssl')
         self._host = params.get('host')
+        self._session_save = params.get('session_save')
+        self._session_load = params.get('session_load')
+        self._session_autosave_sec = 20 if params.get('session_autosave_sec') is None else int(params.get('session_autosave_sec'))
+        self._session_autosave_items = 200 if params.get('session_autosave_items') is None else int(params.get('session_autosave_items'))
         self._proxy = '' if params.get('proxy') is None else params.get('proxy')
         self._headers = params.get('header')
         self._cookies = params.get('cookie')
@@ -626,3 +630,28 @@ class Config(object):
         """Optional request body loaded from raw-request template."""
 
         return self._request_body
+
+    @property
+    def session_save(self):
+        """Checkpoint file path for persistent sessions."""
+        return self._session_save
+
+    @property
+    def session_load(self):
+        """Loaded checkpoint file path."""
+        return self._session_load
+
+    @property
+    def session_autosave_sec(self):
+        """Autosave interval in seconds."""
+        return self._session_autosave_sec
+
+    @property
+    def session_autosave_items(self):
+        """Autosave processed-items threshold."""
+        return self._session_autosave_items
+
+    @property
+    def is_session_enabled(self):
+        """If persistent session checkpoints are enabled."""
+        return self._session_save is not None and len(str(self._session_save).strip()) > 0

@@ -16,6 +16,9 @@
     Development Team: Brain Storm Team
 """
 
+import copy
+import threading
+from .session import SessionManager, SessionError
 from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError
 from src.core import SocketError
 from src.core import helper
@@ -26,7 +29,6 @@ from src.core import response
 from src.core import socket
 from src.lib.reader import Reader, ReaderError
 from src.lib.reporter import Reporter, ReporterError
-# noinspection PyPep8Naming
 from src.lib.tpl import Tpl as tpl
 from .config import Config
 from .debug import Debug
@@ -50,6 +52,13 @@ class Browser(Filter):
             self.__client = None
             self.__config = Config(params)
             self.__debug = Debug(self.__config)
+            self.__session_lock = threading.RLock()
+            self.__session = None
+            self.__session_dirty = False
+            self.__completed_requests = set()
+            self.__pending_requests = {}
+            self.__processed_offset = 0
+            self.__session_snapshot = params.get('session_snapshot')
             requested_method = str(getattr(self.__config, '_method', '') or '').upper()
             effective_method = str(getattr(self.__config, 'method', '') or '').upper()
 
@@ -102,6 +111,16 @@ class Browser(Filter):
 
             self.__response = response(config=self.__config, debug=self.__debug, tpl=tpl)
 
+            if True is getattr(self.__config, 'is_session_enabled', False):
+                self.__session = SessionManager(
+                    self.__config.session_save,
+                    autosave_sec=self.__config.session_autosave_sec,
+                    autosave_items=self.__config.session_autosave_items
+                )
+
+            if self.__session_snapshot is not None:
+                self.__restore_session_state(self.__session_snapshot)
+
         except (ResponseError, ReaderError) as error:
             raise BrowserError(error)
 
@@ -130,6 +149,7 @@ class Browser(Filter):
 
         self.__debug.debug_user_agents()
         self.__debug.debug_list(total_lines=self.__pool.total_items_size)
+        self.__ensure_session_runtime_state()
 
         try:  # beginning scan processes
             if True is self.__config.is_random_list:
@@ -145,7 +165,10 @@ class Browser(Filter):
 
             self.__start_request_provider()
 
-            if True is self.__pool.is_started:
+            if self.__session_snapshot is not None and len(self.__pending_requests) > 0:
+                self.__resume_pending_requests()
+                self.__pool.join()
+            elif True is self.__pool.is_started:
                 self.__reader.get_lines(
                     params={
                         'host': self.__config.host,
@@ -158,12 +181,24 @@ class Browser(Filter):
         except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as error:
             raise BrowserError(error)
 
+        except (SystemExit, KeyboardInterrupt):
+            try:
+                self.__save_session(reason='signal', force=True)
+            except SessionError as error:
+                tpl.warning(msg='Session checkpoint failed during interruption: {0}'.format(error))
+            raise
+
     def fingerprint(self):
         """
         Run heuristic technology fingerprinting before the main scan.
 
         :return: dict | None
         """
+
+        self.__ensure_session_runtime_state()
+
+        if self.__result.get('fingerprint') is not None:
+            return self.__result.get('fingerprint')
 
         if True is not self.__config.is_fingerprint:
             return None
@@ -224,6 +259,8 @@ class Browser(Filter):
         :return: None
         """
 
+        self.__ensure_session_runtime_state()
+
         try:
             resp = self.__client.request(url)
 
@@ -254,6 +291,8 @@ class Browser(Filter):
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) as error:
             raise BrowserError(error)
+        finally:
+            self.__finalize_processed_request(url, depth)
 
     def __get_response_length(self, response):
         """Resolve response size in bytes for response filters."""
@@ -449,7 +488,8 @@ class Browser(Filter):
             )
             self.__pool.extend_total_items(len(child_urls))
             for child_url, child_depth in child_urls:
-                self.__pool.add(self.__http_request, child_url, child_depth)
+                if self.__register_pending_request(child_url, child_depth):
+                    self.__pool.add(self.__http_request, child_url, child_depth)
 
     def __is_ignored(self, url):
         """
@@ -469,11 +509,14 @@ class Browser(Filter):
         :return: None
         """
 
+        self.__ensure_session_runtime_state()
+
         try:
 
             for url in urllist:
                 if False is self.__is_ignored(url):
-                    self.__pool.add(self.__http_request, url, 0)
+                    if self.__register_pending_request(url, 0):
+                        self.__pool.add(self.__http_request, url, 0)
                 else:
                     self.__catch_report_data('ignored', url)
                     tpl.warning(
@@ -510,12 +553,16 @@ class Browser(Filter):
         :return: None
         """
 
+        self.__ensure_session_runtime_state()
+
         self.__result['total'].update({"items": self.__pool.total_items_size})
         self.__result['total'].update({"workers": self.__pool.workers_size})
 
         if 0 == self.__pool.size:
 
             try:
+                self.__save_session(reason='finish', force=True)
+
                 for rtype in self.__config.reports:
                     report = Reporter.load(rtype, self.__config.host, self.__result)
                     report.process()
@@ -523,3 +570,249 @@ class Browser(Filter):
                 raise BrowserError(error)
         else:
             pass
+
+    def __task_key(self, url, depth):
+        """Build stable request key for session tracking."""
+
+        return '{0}::{1}'.format(int(depth), str(url))
+
+    def __mark_session_dirty(self):
+        """Mark current logical scan state as changed."""
+
+        self.__session_dirty = True
+
+    def __register_pending_request(self, url, depth):
+        """Register a queued request in persistent state."""
+
+        self.__ensure_session_runtime_state()
+
+        key = self.__task_key(url, depth)
+        if key in self.__completed_requests:
+            return False
+        if key in self.__pending_requests:
+            return False
+
+        self.__pending_requests[key] = {'url': url, 'depth': int(depth)}
+        self.__mark_session_dirty()
+        return True
+
+    def __complete_request(self, url, depth):
+        """Finalize a processed request in persistent state."""
+
+        self.__ensure_session_runtime_state()
+
+        key = self.__task_key(url, depth)
+        self.__pending_requests.pop(key, None)
+        self.__completed_requests.add(key)
+        self.__mark_session_dirty()
+
+    def __build_session_snapshot(self, reason='periodic'):
+        """Build a serializable checkpoint snapshot."""
+
+        self.__ensure_session_runtime_state()
+
+        return {
+            'createdAt': self.__session_snapshot.get('createdAt') if isinstance(self.__session_snapshot, dict) else SessionManager.now(),
+            'updatedAt': SessionManager.now(),
+            'params': self.__export_session_params(),
+            'targets': self.__export_targets(),
+            'pending': list(self.__pending_requests.values()),
+            'seen': sorted(self.__completed_requests),
+            'queuedRecursive': sorted(self.__queued_recursive),
+            'visitedRecursive': sorted(self.__visited_recursive),
+            'result': copy.deepcopy(self.__result),
+            'stats': {
+                'processed': self.__processed_offset + self.__pool.items_size,
+                'total_items': self.__pool.total_items_size,
+            },
+            'checkpointReason': reason,
+        }
+
+    def __export_session_params(self):
+        """Export filtered params needed to resume the scan."""
+
+        params = {
+            'scan': self.__config.scan,
+            'scheme': self.__config.scheme,
+            'ssl': self.__config.is_ssl,
+            'host': self.__config.host,
+            'port': self.__config.port,
+            'proxy': self.__config.proxy if self.__config.proxy else None,
+            'header': self.__config.headers if len(self.__config.headers) > 0 else None,
+            'cookie': self.__config.cookies if len(self.__config.cookies) > 0 else None,
+            'raw_request': self.__config.raw_request,
+            'request_body': self.__config.request_body,
+            'accept_cookies': self.__config.accept_cookies,
+            'keep_alive': self.__config.keep_alive,
+            'fingerprint': getattr(self.__config, 'is_fingerprint', False),
+            'wordlist': getattr(self.__config, 'wordlist', None),
+            'reports': ','.join(self.__config.reports),
+            'reports_dir': getattr(self.__config, 'reports_dir', None),
+            'random_agent': self.__config.is_random_user_agent,
+            'random_list': self.__config.is_random_list,
+            'prefix': getattr(self.__config, 'prefix', ''),
+            'extensions': ','.join(self.__config.extensions) if self.__config.extensions else None,
+            'ignore_extensions': ','.join(self.__config.ignore_extensions) if self.__config.ignore_extensions else None,
+            'recursive': self.__config.is_recursive,
+            'recursive_depth': self.__config.recursive_depth,
+            'recursive_status': ','.join(self.__config.recursive_status),
+            'recursive_exclude': ','.join(self.__config.recursive_exclude),
+            'sniff': ','.join(self.__config.sniffers) if self.__config.sniffers else None,
+            'include_status': ','.join(self.__config.include_status) if self.__config.include_status else None,
+            'exclude_status': ','.join(self.__config.exclude_status) if self.__config.exclude_status else None,
+            'exclude_size': ','.join([str(i) for i in self.__config.exclude_size]) if self.__config.exclude_size else None,
+            'exclude_size_range': ','.join(['{0}-{1}'.format(a, b) for a, b in self.__config.exclude_size_range]) if self.__config.exclude_size_range else None,
+            'match_text': self.__config.match_text if self.__config.match_text else None,
+            'exclude_text': self.__config.exclude_text if self.__config.exclude_text else None,
+            'match_regex': self.__config.match_regex if self.__config.match_regex else None,
+            'exclude_regex': self.__config.exclude_regex if self.__config.exclude_regex else None,
+            'min_response_length': self.__config.min_response_length,
+            'max_response_length': self.__config.max_response_length,
+            'threads': self.__config.threads,
+            'delay': self.__config.delay,
+            'timeout': self.__config.timeout,
+            'retries': self.__config.retries,
+            'debug': self.__config.debug,
+            'tor': self.__config.is_internal_torlist,
+            'torlist': self.__config.torlist if self.__config.is_external_torlist else None,
+            'method': self.__config.requested_method,
+            'session_save': getattr(self.__config, 'session_save', None),
+            'session_autosave_sec': getattr(self.__config, 'session_autosave_sec', None),
+            'session_autosave_items': getattr(self.__config, 'session_autosave_items', None),
+        }
+
+        return {key: value for key, value in params.items() if value is not None}
+
+    def __export_targets(self):
+        """Export resolved session targets."""
+
+        targets = []
+        if self.__config.host:
+            target = {
+                'host': self.__config.host,
+                'scheme': self.__config.scheme,
+                'ssl': self.__config.is_ssl,
+            }
+            if self.__config.port is not None:
+                target['port'] = self.__config.port
+            targets.append(target)
+        return targets
+
+    def __restore_session_state(self, snapshot):
+        """Hydrate browser state from loaded checkpoint."""
+
+        self.__session_snapshot = snapshot
+        self.__result = snapshot.get('result') or {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()}
+        if 'report_items' not in self.__result:
+            self.__result['report_items'] = helper.list()
+
+        self.__visited_recursive = set(snapshot.get('visitedRecursive', []))
+        self.__queued_recursive = set(snapshot.get('queuedRecursive', []))
+        self.__completed_requests = set(snapshot.get('seen', []))
+        self.__pending_requests = {}
+
+        for item in snapshot.get('pending', []):
+            self.__pending_requests[self.__task_key(item.get('url'), item.get('depth', 0))] = {
+                'url': item.get('url'),
+                'depth': int(item.get('depth', 0))
+            }
+
+        self.__processed_offset = int(snapshot.get('stats', {}).get('processed', 0))
+        saved_total = int(snapshot.get('stats', {}).get('total_items', self.__pool.total_items_size))
+        if saved_total > self.__pool.total_items_size:
+            self.__pool.total_items_size = saved_total
+
+        self.__session_dirty = False
+
+    def __save_session(self, reason='periodic', force=False):
+        """Persist session snapshot if configured and needed."""
+
+        self.__ensure_session_runtime_state()
+
+        if True is not getattr(self.__config, 'is_session_enabled', False):
+            return
+
+        if self.__session is None:
+            return
+
+        processed = self.__processed_offset + self.__pool.items_size
+        if True is not self.__session.should_save(self.__session_dirty, processed, force=force):
+            return
+
+        snapshot = self.__build_session_snapshot(reason=reason)
+        self.__session.save(snapshot)
+        self.__session_dirty = False
+        tpl.info(msg='Session checkpoint saved: {0}'.format(self.__session.path))
+
+    def __resume_pending_requests(self):
+        """Re-enqueue restored pending requests."""
+
+        self.__ensure_session_runtime_state()
+
+        if len(self.__pending_requests) <= 0:
+            return
+
+        tpl.info(msg='Restoring {0} pending requests from session checkpoint ...'.format(len(self.__pending_requests)))
+
+        if self.__pool.total_items_size < (self.__processed_offset + len(self.__pending_requests)):
+            self.__pool.total_items_size = self.__processed_offset + len(self.__pending_requests)
+
+        for item in list(self.__pending_requests.values()):
+            self.__pool.add(self.__http_request, item['url'], item['depth'])
+
+    def __finalize_processed_request(self, url, depth):
+        """Mark request as processed and maybe save session."""
+
+        self.__ensure_session_runtime_state()
+
+        if True is not getattr(self.__config, 'is_session_enabled', False):
+            return
+
+        with self.__session_lock:
+            self.__complete_request(url, depth)
+            self.__save_session(reason='items', force=False)
+
+    def __ensure_session_runtime_state(self):
+        """
+        Lazily initialize session-related runtime state.
+
+        This keeps legacy tests and non-session runs fully backward compatible,
+        especially when Browser is created through __new__() or Config is mocked
+        by SimpleNamespace without session-specific properties.
+
+        :return: None
+        """
+
+        if not hasattr(self, '_Browser__session_lock'):
+            self.__session_lock = threading.RLock()
+
+        if not hasattr(self, '_Browser__session'):
+            self.__session = None
+
+        if not hasattr(self, '_Browser__session_dirty'):
+            self.__session_dirty = False
+
+        if not hasattr(self, '_Browser__completed_requests'):
+            self.__completed_requests = set()
+
+        if not hasattr(self, '_Browser__pending_requests'):
+            self.__pending_requests = {}
+
+        if not hasattr(self, '_Browser__processed_offset'):
+            self.__processed_offset = 0
+
+        if not hasattr(self, '_Browser__session_snapshot'):
+            self.__session_snapshot = None
+
+        if not hasattr(self, '_Browser__visited_recursive'):
+            self.__visited_recursive = set()
+
+        if not hasattr(self, '_Browser__queued_recursive'):
+            self.__queued_recursive = set()
+
+        if not hasattr(self, '_Browser__result'):
+            self.__result = {
+                'total': helper.counter(),
+                'items': helper.list(),
+                'report_items': helper.list()
+            }

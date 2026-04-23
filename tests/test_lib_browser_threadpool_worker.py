@@ -225,6 +225,21 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         terminate_mock.assert_called_once()
 
+    def test_worker_run_honors_timeout_before_processing(self):
+        """Worker.run() should sleep for timeout-enabled workers before processing."""
+
+        worker = Worker(Queue(1), num_threads=1, timeout=0.5)
+
+        def fake_process():
+            setattr(worker, '_Worker__running', False)
+
+        with patch.object(worker, '_Worker__process', side_effect=fake_process) as process_mock, \
+                patch.object(getattr(worker, '_Worker__event'), 'wait', return_value=True), \
+                patch('src.lib.browser.worker.time.sleep') as sleep_mock:
+            worker.run()
+
+        sleep_mock.assert_called_once_with(0.5)
+        process_mock.assert_called_once_with()
 
 if __name__ == '__main__':
     unittest.main()

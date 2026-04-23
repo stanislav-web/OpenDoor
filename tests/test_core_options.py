@@ -674,5 +674,61 @@ class TestOptions(unittest.TestCase):
 
         self.assertEqual(str(context.exception), 'bad filter')
 
+    def test_get_arg_values_allows_session_load_without_target_sources(self):
+        """Options.get_arg_values() should allow session-load mode without host inputs."""
+
+        namespace = Namespace(
+            host='',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load='session.json',
+            session_autosave_sec=20,
+            session_autosave_items=200,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {
+            'session_load': '/tmp/session.json',
+            'session_autosave_sec': 20,
+            'session_autosave_items': 200,
+        }
+
+        with patch('src.core.options.options.Filter.filter', return_value=filtered) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, filtered)
+        filter_mock.assert_called_once_with({
+            'session_load': 'session.json',
+            'session_autosave_sec': 20,
+            'session_autosave_items': 200,
+        })
+
+    def test_get_arg_values_returns_docs_as_standalone_action(self):
+        """Options.get_arg_values() should return docs as the selected standalone action."""
+
+        namespace = Namespace(
+            host='',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=True,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'docs': True})
+
 if __name__ == '__main__':
     unittest.main()

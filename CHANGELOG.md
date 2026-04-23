@@ -1,5 +1,20 @@
 CHANGELOG
 =======
+
+v5.8.0 (23.04.2026)
+---------------------------
+- (feature) Added persistent scan sessions with `--session-save` and `--session-load`.
+- (feature) Added checkpoint autosave controls: `--session-autosave-sec` and `--session-autosave-items`.
+- (feature) Added logical scan state restore for pending queue, processed items, recursive state and partial results.
+- (feature) Added session snapshot validation with schema version checks and checksum verification.
+- (feature) Added atomic session writes with `.tmp` swap and `.bak` fallback recovery.
+- (feature) Added controller-level restore flow so resumed scans continue from saved session state instead of restarting from zero.
+- (feature) Kept persistent sessions strictly opt-in: no session file is created or updated unless session mode is explicitly enabled.
+- (improvement) Hardened browser runtime so legacy non-session flows and existing pause/resume behavior remain unchanged when session mode is disabled.
+- (improvement) Improved session compatibility across interrupted scans, graceful stops and resumed executions.
+- (tests) Expanded regression coverage across browser session lifecycle, controller restore flow, config accessors and session file validation.
+- (tests) Coverage gate now passes at 98%.
+
 v5.7.0 (22.04.2026)
 ---------------------------
 - (feature) Added `--fingerprint` to run heuristic technology fingerprinting before the main scan.

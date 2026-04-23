@@ -301,5 +301,44 @@ class TestBrowserConfig(unittest.TestCase):
 
         self.assertEqual(cfg.recursive_exclude, [])
 
+    def test_session_mode_is_disabled_by_default(self):
+        """Config should keep session mode disabled when session_save is not provided."""
+
+        cfg = Config({
+            'reports': 'std',
+            'host': 'example.com',
+        })
+
+        self.assertFalse(cfg.is_session_enabled)
+
+    def test_session_mode_is_enabled_only_when_session_save_is_present(self):
+        """Config should enable persistent sessions only when session_save is configured."""
+
+        cfg = Config({
+            'reports': 'std',
+            'host': 'example.com',
+            'session_save': '/tmp/session.json',
+        })
+
+        self.assertTrue(cfg.is_session_enabled)
+        self.assertEqual(cfg.session_save, '/tmp/session.json')
+
+    def test_session_config_accessors_cover_load_and_thresholds(self):
+        """Config should expose session load/save and autosave threshold accessors."""
+
+        cfg = Config({
+            'reports': 'std',
+            'session_save': '/tmp/session.json',
+            'session_load': '/tmp/session.json',
+            'session_autosave_sec': 7,
+            'session_autosave_items': 13,
+        })
+
+        self.assertEqual(cfg.session_save, '/tmp/session.json')
+        self.assertEqual(cfg.session_load, '/tmp/session.json')
+        self.assertEqual(cfg.session_autosave_sec, 7)
+        self.assertEqual(cfg.session_autosave_items, 13)
+        self.assertTrue(cfg.is_session_enabled)
+
 if __name__ == '__main__':
     unittest.main()

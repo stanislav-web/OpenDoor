@@ -1393,5 +1393,91 @@ class TestBrowser(unittest.TestCase):
             [{'url': 'http://example.com/admin', 'size': '5B', 'code': '200'}]
         )
 
+    def test_finalize_processed_request_is_noop_when_session_is_disabled(self):
+        """Browser session finalization should not mutate state when session mode is disabled."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'session_save': None,
+        }))
+
+        with patch.object(br, '_Browser__complete_request') as complete_mock, \
+                patch.object(br, '_Browser__save_session') as save_mock:
+            br._Browser__finalize_processed_request('http://example.com/admin', 0)
+
+        complete_mock.assert_not_called()
+        save_mock.assert_not_called()
+
+    def test_register_pending_request_self_initializes_session_state_for_legacy_objects(self):
+        """Browser session bookkeeping should self-initialize for legacy __new__()-style test objects."""
+
+        br = browser.__new__(browser)
+
+        actual = br._Browser__register_pending_request('http://example.com/admin', 0)
+
+        self.assertTrue(actual)
+        self.assertIn(
+            '0::http://example.com/admin',
+            getattr(br, '_Browser__pending_requests')
+        )
+
+    def test_http_request_legacy_objects_do_not_fail_on_session_finalize_paths(self):
+        """Browser.__http_request() should remain safe for legacy objects without session attributes."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'session_save': None,
+        }))
+
+        client = MagicMock()
+        client.request.return_value = SimpleNamespace(status=200, headers={}, data=b'ok')
+        setattr(br, '_Browser__client', client)
+
+        response_handler = MagicMock()
+        response_handler.handle.return_value = ('success', 'http://example.com/admin', '2B', '200')
+        setattr(br, '_Browser__response', response_handler)
+
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        setattr(br, '_Browser__reader', reader)
+
+        pool = SimpleNamespace(items_size=0, total_items_size=1)
+        setattr(br, '_Browser__pool', pool)
+
+        result = {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()}
+        setattr(br, '_Browser__result', result)
+
+        br._Browser__http_request('http://example.com/admin')
+
+        self.assertEqual(result['items']['success'], ['http://example.com/admin'])
+
+        client = MagicMock()
+        client.request.return_value = SimpleNamespace(status=200, headers={}, data=b'ok')
+        setattr(br, '_Browser__client', client)
+
+        response_handler = MagicMock()
+        response_handler.handle.return_value = ('success', 'http://example.com/admin', '2B', '200')
+        setattr(br, '_Browser__response', response_handler)
+
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        setattr(br, '_Browser__reader', reader)
+
+        result = {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()}
+        setattr(br, '_Browser__result', result)
+
+        br._Browser__http_request('http://example.com/admin')
+
+        self.assertEqual(result['items']['success'], ['http://example.com/admin'])
+
+
 if __name__ == '__main__':
     unittest.main()

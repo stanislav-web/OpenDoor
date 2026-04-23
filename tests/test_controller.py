@@ -323,5 +323,29 @@ class TestController(unittest.TestCase):
             {'host': 'example.com', 'scheme': 'http://', 'ssl': False}
         ])
 
+    def test_scan_action_loads_session_snapshot_and_runs_browser_once(self):
+        """Controller.scan_action() should restore params from session snapshot."""
+
+        snapshot = {
+            'params': {
+                'host': 'example.com',
+                'scheme': 'http://',
+                'ssl': False,
+                'port': 80,
+                'reports': 'std',
+            }
+        }
+
+        browser_mock = MagicMock()
+
+        with patch('src.controller.SessionManager.load', return_value=snapshot), \
+                patch('src.controller.browser', return_value=browser_mock), \
+                patch('src.controller.reporter.is_reported', return_value=False):
+            Controller.scan_action({'session_load': '/tmp/session.json'})
+
+        browser_mock.ping.assert_called_once()
+        browser_mock.scan.assert_called_once()
+        browser_mock.done.assert_called_once()
+
 if __name__ == '__main__':
     unittest.main()

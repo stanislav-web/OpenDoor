@@ -28,20 +28,24 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
 
 [Read The Docs](https://opendoor.readthedocs.io/)
 
-* *Current 5.7.0 (22.04.2026)*
-    - Directories: 110880
+* *Current 5.8.0 (23.04.2026)*
+    - Directories: 110875
     - Subdomains: 255359
 
 #### [Changelog](CHANGELOG.md) (last changes)
-v5.7.0 (22.04.2026)
+v5.8.0 (23.04.2026)
 ---------------------------
-- (feature) Added `--fingerprint` to run heuristic technology fingerprinting before the main scan.
-- (feature) Added probable application stack detection for popular CMS, ecommerce platforms, frameworks, site builders, and static-site tooling.
-- (feature) Added infrastructure fingerprinting for AWS (CloudFront, S3, ELB/ALB, API Gateway, Amplify), Cloudflare, Vercel, Netlify, GitHub Pages, GitLab Pages, Heroku, Azure, Google Cloud, Fastly, Akamai, and OpenResty.
-- (feature) Added fingerprint summary fields to the standard report output, including application category/name/confidence and infrastructure provider/confidence.
-- (ux) Fingerprinting now runs after connectivity checks and before the main scan without breaking the existing scan pipeline.
-- (tests) Added regression coverage for fingerprint detection rules, runtime browser integration, controller orchestration, and report rendering.
-- (tests) Full unittest suite passes after integration (`679` tests).
+- (feature) Added persistent scan sessions with `--session-save` and `--session-load`.
+- (feature) Added checkpoint autosave controls: `--session-autosave-sec` and `--session-autosave-items`.
+- (feature) Added logical scan state restore for pending queue, processed items, recursive state and partial results.
+- (feature) Added session snapshot validation with schema version checks and checksum verification.
+- (feature) Added atomic session writes with `.tmp` swap and `.bak` fallback recovery.
+- (feature) Added controller-level restore flow so resumed scans continue from saved session state instead of restarting from zero.
+- (feature) Kept persistent sessions strictly opt-in: no session file is created or updated unless session mode is explicitly enabled.
+- (improvement) Hardened browser runtime so legacy non-session flows and existing pause/resume behavior remain unchanged when session mode is disabled.
+- (improvement) Improved session compatibility across interrupted scans, graceful stops and resumed executions.
+- (tests) Expanded regression coverage across browser session lifecycle, controller restore flow, config accessors and session file validation.
+- (tests) Coverage gate now passes at 98%.
 
 #### Main features
 
@@ -59,6 +63,11 @@ v5.7.0 (22.04.2026)
     * print application and infrastructure confidence in the standard report
 - ✅ session control
     * runtime pause / resume session
+    * persistent scan sessions
+    * checkpoint autosave
+    * session snapshot validation
+    * atomic session writes
+    * restore flow
 - ✅ HTTP(S) (PORT) support
 - ✅ Keep-alive long pooling
 - ✅ Invalid certificates scan
@@ -282,12 +291,17 @@ py -m pip install -e .
 
 #### Help
 ```bash
-usage: opendoor.py [-h] [--host HOST | --hostlist HOSTLIST | --stdin]
+usage: opendoor.py [-h]
+                   [--host HOST | --hostlist HOSTLIST | --stdin | --session-load SESSION_LOAD]
                    [-p PORT] [-m METHOD] [--scheme SCHEME]
-                   [--raw-request RAW_REQUEST] [-t THREADS] [-d DELAY]
-                   [--timeout TIMEOUT] [-r RETRIES] [--keep-alive]
-                   [--header HEADER] [--cookie COOKIE] [--accept-cookies]
-                   [--debug DEBUG] [--tor] [--torlist TORLIST] [--proxy PROXY]
+                   [--raw-request RAW_REQUEST]
+                   [--session-save SESSION_SAVE]
+                   [--session-autosave-sec SESSION_AUTOSAVE_SEC]
+                   [--session-autosave-items SESSION_AUTOSAVE_ITEMS]
+                   [-t THREADS] [-d DELAY] [--timeout TIMEOUT] [-r RETRIES]
+                   [--keep-alive] [--header HEADER] [--cookie COOKIE]
+                   [--accept-cookies] [--fingerprint] [--debug DEBUG]
+                   [--tor] [--torlist TORLIST] [--proxy PROXY]
                    [-s SCAN] [-w WORDLIST] [--reports REPORTS]
                    [--reports-dir REPORTS_DIR] [--random-agent]
                    [--random-list] [--prefix PREFIX] [-e EXTENSIONS]
@@ -302,8 +316,9 @@ usage: opendoor.py [-h] [--host HOST | --hostlist HOSTLIST | --stdin]
                    [--match-text MATCH_TEXT] [--exclude-text EXCLUDE_TEXT]
                    [--match-regex MATCH_REGEX] [--exclude-regex EXCLUDE_REGEX]
                    [--min-response-length MIN_RESPONSE_LENGTH]
-                   [--max-response-length MAX_RESPONSE_LENGTH] [--update]
-                   [--version] [--examples] [--docs] [--wizard [WIZARD]]
+                   [--max-response-length MAX_RESPONSE_LENGTH]
+                   [--update] [--version] [--examples] [--docs]
+                   [--wizard [WIZARD]]
 
 options:
   -h, --help            show this help message and exit
@@ -312,6 +327,8 @@ required named options:
   --host HOST           Target host; example: --host http://example.com
   --hostlist HOSTLIST   Path to file with targets, one per line
   --stdin               Read targets from STDIN, one per line
+  --session-load SESSION_LOAD
+                        Resume a scan from a saved session file
 
 Application tools:
   --update              Show package update instructions
@@ -356,40 +373,58 @@ Reports tools:
                         Path to custom reports directory
 
 Request tools:
-  -p, --port PORT       Custom port (default 80)
-  -m, --method METHOD   Request method (HEAD by default)
-  -d, --delay DELAY     Delay between threaded requests
+  -p PORT, --port PORT  Custom port (default 80)
+  -m METHOD, --method METHOD
+                        Request method (HEAD by default)
+  --scheme SCHEME       Raw-request scheme when request line uses a relative
+                        path (http or https)
+  --raw-request RAW_REQUEST
+                        Path to raw HTTP request file exported from a proxy or
+                        repeater
+  -d DELAY, --delay DELAY
+                        Delay between threaded requests
   --timeout TIMEOUT     Request timeout (30 sec default)
-  -r, --retries RETRIES
+  -r RETRIES, --retries RETRIES
                         Maximum reconnect retries (default 3)
   --keep-alive          Use keep-alive connection
   --header HEADER       Add custom request header, e.g. --header 'X-Test: 1'
   --cookie COOKIE       Add custom cookie, e.g. --cookie 'sid=abc123'
   --accept-cookies      Accept and route cookies from responses
-  --fingerprint         Detect probable CMS, framework, or custom stack before the scan
+  --fingerprint         Detect probable CMS, framework or custom stack before
+                        the scan
   --tor                 Use built-in proxy list
   --torlist TORLIST     Path to custom proxy list
   --proxy PROXY         Custom permanent proxy server
   --random-agent        Randomize user-agent per request
 
+Session tools:
+  --session-save SESSION_SAVE
+                        Persist scan state to a checkpoint file
+  --session-autosave-sec SESSION_AUTOSAVE_SEC
+                        Autosave session checkpoint every N seconds
+                        (default 20)
+  --session-autosave-items SESSION_AUTOSAVE_ITEMS
+                        Autosave session checkpoint after N processed items
+                        (default 200)
+
 Sniff tools:
-  --sniff SNIFF         Response sniff plugins (indexof,collation,file,skipemp
-                        ty,skipsizes=NUM:NUM...)
+  --sniff SNIFF         Response sniff plugins
+                        (indexof,collation,file,skipempty,skipsizes=NUM:NUM...)
 
 Stream tools:
-  -t, --threads THREADS
+  -t THREADS, --threads THREADS
                         Allowed threads
 
 Wordlist tools:
-  -s, --scan SCAN       Scan type: directories or subdomains
-  -w, --wordlist WORDLIST
+  -s SCAN, --scan SCAN  Scan type: directories or subdomains
+  -w WORDLIST, --wordlist WORDLIST
                         Path to custom wordlist
   --random-list         Shuffle scan list
   --prefix PREFIX       Append path prefix to scan host
-  -e, --extensions EXTENSIONS
+  -e EXTENSIONS, --extensions EXTENSIONS
                         Force selected extensions for the scan session, e.g.
                         php,json
-  -i, --ignore-extensions IGNORE_EXTENSIONS
+  -i IGNORE_EXTENSIONS, --ignore-extensions IGNORE_EXTENSIONS
                         Ignore selected extensions for the scan session, e.g.
                         aspx,jsp
   --recursive           Enable recursive directory scan

@@ -42,6 +42,7 @@ class Options(object):
             'debug': "Debug tools",
             'wordlist': "Wordlist tools",
             'sniff': "Sniff tools",
+            'session': "Session tools",
             'report': "Reports tools",
             'filter': "Response filters",
             'app': "Application tools"
@@ -83,6 +84,33 @@ class Options(object):
                 "action": "store",
                 "help": "Path to raw HTTP request file exported from a proxy or repeater",
                 "type": str
+            },
+            {
+                "group": "session",
+                "args": None,
+                "argl": "--session-save",
+                "default": None,
+                "action": "store",
+                "help": "Persist scan state to a checkpoint file",
+                "type": str
+            },
+            {
+                "group": "session",
+                "args": None,
+                "argl": "--session-autosave-sec",
+                "default": 20,
+                "action": "store",
+                "help": "Autosave session checkpoint every N seconds (default 20)",
+                "type": int
+            },
+            {
+                "group": "session",
+                "args": None,
+                "argl": "--session-autosave-items",
+                "default": 200,
+                "action": "store",
+                "help": "Autosave session checkpoint after N processed items (default 200)",
+                "type": int
             },
             {
                 "group": "stream",
@@ -476,6 +504,7 @@ class Options(object):
             target_group.add_argument('--hostlist', help="Path to file with targets, one per line")
             target_group.add_argument('--stdin', default=False, action='store_true',
                                       help="Read targets from STDIN, one per line")
+            target_group.add_argument('--session-load', help="Resume a scan from a saved session file")
             arguments_len = len(__arguments)
 
             for group, description in sorted(__groups.items()):
@@ -561,7 +590,16 @@ class Options(object):
         try:
             arguments = self.args
 
-            if not self.args.host                     and not getattr(self.args, 'hostlist', None)                     and True is not getattr(self.args, 'stdin', False)                     and not getattr(self.args, 'raw_request', None)                     and True is not self.args.version                     and True is not self.args.update                     and True is not self.args.docs                     and True is not self.args.examples                     and None is self.args.wizard:
+            if not self.args.host \
+                    and not getattr(self.args, 'hostlist', None) \
+                    and True is not getattr(self.args, 'stdin', False) \
+                    and not getattr(self.args, 'raw_request', None) \
+                    and not getattr(self.args, 'session_load', None) \
+                    and True is not self.args.version \
+                    and True is not self.args.update \
+                    and True is not self.args.docs \
+                    and True is not self.args.examples \
+                    and None is self.args.wizard:
                 sys.exit(self.parser.print_help())
 
             if True is self.args.version or True is self.args.update \

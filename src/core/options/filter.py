@@ -16,6 +16,7 @@
     Development Team: Brain Storm Team
 """
 
+import os
 import re
 import sys
 
@@ -42,6 +43,31 @@ class Filter(object):
         """
 
         filtered = {}
+
+        if args.get('session_load') is not None:
+            if args.get('raw_request') is not None:
+                raise FilterError('--session-load cannot be used together with --raw-request')
+
+            if args.get('host') or args.get('hostlist') or args.get('stdin') is True:
+                raise FilterError('--session-load cannot be used together with target source options')
+
+            filtered = {
+                'session_load': Filter.session_file(args.get('session_load'), key='--session-load')
+            }
+
+            if args.get('session_autosave_sec') is not None:
+                filtered['session_autosave_sec'] = Filter.positive_int(
+                    args.get('session_autosave_sec'),
+                    key='--session-autosave-sec'
+                )
+
+            if args.get('session_autosave_items') is not None:
+                filtered['session_autosave_items'] = Filter.positive_int(
+                    args.get('session_autosave_items'),
+                    key='--session-autosave-items'
+                )
+
+            return filtered
         raw_request = Filter.raw_request(args.get('raw_request'), scheme=args.get('scheme'))
         targets = Filter.targets(args, raw_request=raw_request)
 
@@ -50,6 +76,10 @@ class Filter(object):
                 filtered['scan'] = Filter.scan(value)
             elif key in ['host', 'hostlist', 'stdin', 'raw_request']:
                 continue
+            elif key in ['session_save']:
+                filtered[key] = Filter.session_file(value, key='--{0}'.format(key.replace('_', '-')))
+            elif key in ['session_autosave_sec', 'session_autosave_items']:
+                filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
             elif 'proxy' == key:
                 filtered[key] = Filter.proxy(value)
             elif 'scheme' == key:
@@ -573,3 +603,42 @@ class Filter(object):
             return items
 
         return [item.strip() for item in str(value).split(',') if item.strip()]
+
+    @staticmethod
+    def session_file(value, key='--session-file'):
+        """
+        Normalize session file path.
+
+        :param str value:
+        :param str key:
+        :return: str
+        """
+
+        if value is None:
+            raise FilterError('{0} requires a file path'.format(key))
+
+        filepath = str(value).strip()
+        if not filepath:
+            raise FilterError('{0} requires a non-empty file path'.format(key))
+
+        return os.path.abspath(filepath)
+
+    @staticmethod
+    def positive_int(value, key='--value'):
+        """
+        Validate a positive integer option.
+
+        :param value:
+        :param str key:
+        :return: int
+        """
+
+        try:
+            value = int(value)
+        except (TypeError, ValueError):
+            raise FilterError('{0} must be a positive integer'.format(key))
+
+        if value <= 0:
+            raise FilterError('{0} must be a positive integer'.format(key))
+
+        return value

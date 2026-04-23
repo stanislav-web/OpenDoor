@@ -28,6 +28,7 @@ from src.lib import events
 from src.lib import package
 from src.lib import reporter
 from src.lib import tpl
+from src.lib.browser.session import SessionManager, SessionError
 from .exceptions import SrcError
 
 
@@ -70,7 +71,7 @@ class Controller(object):
         try:
             tpl.message(package.banner())
 
-            if 'host' in self.ioargs or 'targets' in self.ioargs or 'wizard' in self.ioargs:
+            if 'host' in self.ioargs or 'targets' in self.ioargs or 'wizard' in self.ioargs or 'session_load' in self.ioargs:
                 getattr(self, 'scan_action')(self.ioargs)
             else:
                 for action in self.ioargs.keys():
@@ -160,7 +161,25 @@ class Controller(object):
                 tpl.info(key='load_wizard', config=params['wizard'])
                 params = package.wizard(params['wizard'])
 
+            if params.get('session_load'):
+                snapshot = SessionManager.load(params.get('session_load'))
+                restored = dict(snapshot.get('params') or {})
+                restored['session_snapshot'] = snapshot
+                restored['session_save'] = params.get('session_load')
+
+                if params.get('session_autosave_sec') is not None:
+                    restored['session_autosave_sec'] = params.get('session_autosave_sec')
+
+                if params.get('session_autosave_items') is not None:
+                    restored['session_autosave_items'] = params.get('session_autosave_items')
+
+                params = restored
+                tpl.info(msg='Loaded session checkpoint from {0}'.format(snapshot.get('_loaded_from', restored['session_save'])))
+
             targets = cls._resolve_scan_targets(params)
+
+            if params.get('session_save') and len(targets) > 1:
+                raise BrowserError(Exception('Persistent sessions currently support one target per run'))
 
             if reporter.default is params.get('reports'):
                 tpl.info(key='use_reports')
@@ -178,13 +197,13 @@ class Controller(object):
                         tpl.cancel(key='abort')
 
                 brows.ping()
-                if params.get('fingerprint') is True:
+                if target_params.get('fingerprint') is True:
                     brows.fingerprint()
 
                 brows.scan()
                 brows.done()
 
-        except (AttributeError, BrowserError, ReporterError, TplError) as error:
+        except (AttributeError, BrowserError, ReporterError, TplError, SessionError) as error:
             raise SrcError(error)
         except (KeyboardInterrupt, SystemExit):
             tpl.cancel(key='abort')
@@ -210,6 +229,9 @@ class Controller(object):
 
             if params.get('ssl') is not None:
                 target['ssl'] = params.get('ssl')
+
+            if params.get('port') is not None:
+                target['port'] = params.get('port')
 
             return [target]
 

@@ -479,5 +479,51 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(Filter._split_csv(None), [])
         self.assertEqual(Filter._split_csv(['1,2', '3']), ['1', '2', '3'])
 
+    def test_filter_rejects_session_load_with_host_sources(self):
+        """Filter.filter() should reject session-load mixed with direct target sources."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({
+                'session_load': 'session.json',
+                'host': 'http://example.com',
+            })
+
+    def test_filter_accepts_session_load_only_mode(self):
+        """Filter.filter() should normalize session-load mode without target resolution."""
+
+        actual = Filter.filter({
+            'session_load': 'session.json',
+            'session_autosave_sec': 10,
+            'session_autosave_items': 50,
+        })
+
+        self.assertTrue(actual['session_load'].endswith('session.json'))
+        self.assertEqual(actual['session_autosave_sec'], 10)
+        self.assertEqual(actual['session_autosave_items'], 50)
+
+    def test_session_file_and_positive_int_helpers_cover_error_paths(self):
+        """Filter session helpers should validate empty paths and non-positive thresholds."""
+
+        with self.assertRaises(FilterError):
+            Filter.session_file('   ', key='--session-save')
+
+        with self.assertRaises(FilterError):
+            Filter.positive_int(0, key='--session-autosave-sec')
+
+        with self.assertRaises(FilterError):
+            Filter.positive_int('x', key='--session-autosave-items')
+
+    def test_session_helpers_reject_invalid_inputs(self):
+        """Filter session helper validators should reject empty paths and non-positive thresholds."""
+
+        with self.assertRaises(FilterError):
+            Filter.session_file('   ', key='--session-save')
+
+        with self.assertRaises(FilterError):
+            Filter.positive_int(0, key='--session-autosave-sec')
+
+        with self.assertRaises(FilterError):
+            Filter.positive_int('bad', key='--session-autosave-items')
+
 if __name__ == '__main__':
     unittest.main()
