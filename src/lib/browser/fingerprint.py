@@ -54,7 +54,23 @@ class Fingerprint(object):
         '/_next/static/',
         '/_nuxt/',
         '/build/',
+        '/swagger',
+        '/swagger/',
+        '/swagger-json',
+        '/api-json',
+        '/openapi.json',
+        '/docs',
+        '/redoc',
+        '/admin',
+        '/admin/init',
+        '/uploads/',
+        '/catalog/view/theme/',
+        '/typo3/',
+        '/typo3conf/',
+        '/typo3temp/',
     )
+
+    NOT_FOUND_PROBE_PATH = '/.opendoor-fingerprint-not-found-probe'
 
     CMS_CATEGORY = 'cms'
     FRAMEWORK_CATEGORY = 'framework'
@@ -104,6 +120,7 @@ class Fingerprint(object):
         cookies = self._extract_cookies(root_response)
         generator = self._extract_generator(body)
         probe_statuses = self._probe_endpoints(final_root_url)
+        not_found_status, not_found_body, not_found_headers = self._probe_not_found_signature(final_root_url)
 
         self._apply_detection_rules(
             body=body,
@@ -113,6 +130,9 @@ class Fingerprint(object):
             generator=generator,
             probe_statuses=probe_statuses,
             final_root_url=final_root_url,
+            not_found_status=not_found_status,
+            not_found_body=not_found_body,
+            not_found_headers=not_found_headers,
         )
 
         app_candidates = self._build_candidates()
@@ -318,6 +338,30 @@ class Fingerprint(object):
                 statuses[probe_path] = int(getattr(response, 'status', 0))
         return statuses
 
+
+    def _probe_not_found_signature(self, base_url):
+        """
+        Request a guaranteed-missing path to capture framework-specific 404 signatures.
+
+        :param str base_url:
+        :return: tuple[int, str, dict]
+        """
+
+        probe_url = urljoin(base_url, self.NOT_FOUND_PROBE_PATH.lstrip('/'))
+        response = self._request(probe_url, method='GET')
+        if response is None:
+            return 0, '', {}
+
+        response, _ = self._follow_redirects(response, probe_url, method='GET')
+        if response is None:
+            return 0, '', {}
+
+        return (
+            int(getattr(response, 'status', 0)),
+            self._extract_body(response),
+            self._extract_headers(response),
+        )
+
     def _register(self, technology, category):
         """
         Register category for a technology.
@@ -380,7 +424,19 @@ class Fingerprint(object):
 
         return needle in str(headers.get(name, '')).lower()
 
-    def _apply_detection_rules(self, body, body_lower, headers, cookies, generator, probe_statuses, final_root_url):
+    def _apply_detection_rules(
+        self,
+        body,
+        body_lower,
+        headers,
+        cookies,
+        generator,
+        probe_statuses,
+        final_root_url,
+        not_found_status=0,
+        not_found_body='',
+        not_found_headers=None,
+    ):
         """
         Apply heuristic rules.
 
@@ -391,11 +447,15 @@ class Fingerprint(object):
         :param str generator:
         :param dict probe_statuses:
         :param str final_root_url:
+        :param int not_found_status:
+        :param str not_found_body:
+        :param dict not_found_headers:
         :return: None
         """
 
         del body
 
+        not_found_headers = not_found_headers or {}
         generator_lower = str(generator).lower()
         x_powered_by = str(headers.get('x-powered-by', '')).lower()
         server = str(headers.get('server', '')).lower()
@@ -406,6 +466,17 @@ class Fingerprint(object):
         x_amz_request_id = str(headers.get('x-amz-request-id', '')).lower()
         x_amz_id_2 = str(headers.get('x-amz-id-2', '')).lower()
         final_root_lower = str(final_root_url).lower()
+        not_found_body_lower = str(not_found_body).lower()
+        not_found_powered_by = str(not_found_headers.get('x-powered-by', '')).lower()
+        not_found_server = str(not_found_headers.get('server', '')).lower()
+        swagger_probe_up = any(probe_statuses.get(path) in [200, 301, 302, 401, 403] for path in [
+            '/swagger',
+            '/swagger/',
+            '/swagger-json',
+            '/api-json',
+            '/openapi.json',
+        ])
+        docs_probe_up = any(probe_statuses.get(path) in [200, 301, 302, 401, 403] for path in ['/docs', '/redoc'])
 
         # WordPress
         if 'wordpress' in generator_lower:
@@ -515,6 +586,69 @@ class Fingerprint(object):
         if 'ghost-content' in body_lower or 'casper' in body_lower:
             self._add_signal('Ghost', self.CMS_CATEGORY, 'markup', 'ghost-content|casper', 4)
 
+
+        # WooCommerce
+        if '/wp-content/plugins/woocommerce/' in body_lower:
+            self._add_signal('WooCommerce', self.ECOMMERCE_CATEGORY, 'asset', '/wp-content/plugins/woocommerce/', 7)
+        if 'wc-ajax=' in body_lower:
+            self._add_signal('WooCommerce', self.ECOMMERCE_CATEGORY, 'markup', 'wc-ajax=', 6)
+        if 'woocommerce-notices-wrapper' in body_lower or 'add_to_cart_button' in body_lower:
+            self._add_signal('WooCommerce', self.ECOMMERCE_CATEGORY, 'markup', 'woocommerce-notices-wrapper|add_to_cart_button', 5)
+        if any(cookie.startswith('woocommerce_') or cookie.startswith('wp_woocommerce_session_') for cookie in cookies):
+            self._add_signal('WooCommerce', self.ECOMMERCE_CATEGORY, 'cookie', 'woocommerce_*', 7)
+
+        # OpenCart
+        if 'index.php?route=' in body_lower or 'route=common/home' in body_lower:
+            self._add_signal('OpenCart', self.ECOMMERCE_CATEGORY, 'markup', 'index.php?route=|route=common/home', 7)
+        if '/catalog/view/theme/' in body_lower:
+            self._add_signal('OpenCart', self.ECOMMERCE_CATEGORY, 'asset', '/catalog/view/theme/', 6)
+        if 'ocsessid' in cookies:
+            self._add_signal('OpenCart', self.ECOMMERCE_CATEGORY, 'cookie', 'OCSESSID', 7)
+        if probe_statuses.get('/catalog/view/theme/') in [200, 301, 302, 401, 403]:
+            self._add_signal('OpenCart', self.ECOMMERCE_CATEGORY, 'endpoint', '/catalog/view/theme/', 4)
+
+        # PrestaShop
+        if 'prestashop' in body_lower:
+            self._add_signal('PrestaShop', self.ECOMMERCE_CATEGORY, 'markup', 'prestashop', 7)
+        if any(cookie.startswith('prestashop-') for cookie in cookies):
+            self._add_signal('PrestaShop', self.ECOMMERCE_CATEGORY, 'cookie', 'PrestaShop-*', 7)
+        if ('/modules/' in body_lower or '/themes/' in body_lower) and 'prestashop' in body_lower:
+            self._add_signal('PrestaShop', self.ECOMMERCE_CATEGORY, 'asset', '/modules/|/themes/', 4)
+
+        # TYPO3
+        if 'typo3.settings' in body_lower:
+            self._add_signal('TYPO3', self.CMS_CATEGORY, 'script', 'TYPO3.settings', 7)
+        if '/typo3/' in body_lower or '/typo3conf/' in body_lower or '/typo3temp/' in body_lower:
+            self._add_signal('TYPO3', self.CMS_CATEGORY, 'asset', '/typo3/|/typo3conf/|/typo3temp/', 6)
+        if any(probe_statuses.get(path) in [200, 301, 302, 401, 403] for path in ['/typo3/', '/typo3conf/', '/typo3temp/']):
+            self._add_signal('TYPO3', self.CMS_CATEGORY, 'endpoint', '/typo3/*', 4)
+
+        # Strapi
+        if 'strapi' in x_powered_by:
+            self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 8)
+        if '/admin/init' in body_lower or ('strapi' in body_lower and '/uploads/' in body_lower):
+            self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'markup', '/admin/init|strapi + /uploads/', 7)
+        if probe_statuses.get('/admin/init') in [200, 301, 302, 401, 403]:
+            self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'endpoint', '/admin/init', 7)
+        if probe_statuses.get('/admin') in [200, 301, 302, 401, 403]:
+            self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'endpoint', '/admin', 4)
+        if probe_statuses.get('/uploads/') in [200, 301, 302, 401, 403]:
+            self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'endpoint', '/uploads/', 4)
+
+        # MkDocs / Jekyll / Hugo / VitePress
+        if 'mkdocs' in generator_lower:
+            self._add_signal('MkDocs', self.STATIC_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'mkdocs_page_name' in body_lower or 'mkdocs_page_input_path' in body_lower:
+            self._add_signal('MkDocs', self.STATIC_CATEGORY, 'markup', 'mkdocs_page_name|mkdocs_page_input_path', 6)
+        if 'jekyll' in generator_lower:
+            self._add_signal('Jekyll', self.STATIC_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'begin jekyll seo tag' in body_lower:
+            self._add_signal('Jekyll', self.STATIC_CATEGORY, 'markup', 'Begin Jekyll SEO tag', 6)
+        if 'hugo' in generator_lower:
+            self._add_signal('Hugo', self.STATIC_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'vitepress' in body_lower or 'vpcontent' in body_lower or 'vpnav' in body_lower:
+            self._add_signal('VitePress', self.STATIC_CATEGORY, 'markup', 'vitepress|VPContent|VPNav', 7)
+
         # Docusaurus
         if 'docusaurus' in generator_lower:
             self._add_signal('Docusaurus', self.STATIC_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
@@ -597,13 +731,42 @@ class Fingerprint(object):
         if 'csrf-param' in body_lower and 'csrf-token' in body_lower:
             self._add_signal('Ruby on Rails', self.FRAMEWORK_CATEGORY, 'markup', 'csrf-param|csrf-token', 5)
 
-        # Express / NestJS
-        if 'express' in x_powered_by:
-            self._add_signal('Express', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 8)
-        if 'nest' in x_powered_by:
-            self._add_signal('NestJS', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 8)
+        # Express / NestJS / Fastify / FastAPI / Koa / Hapi
+        if 'express' in x_powered_by or 'express' in not_found_powered_by:
+            self._add_signal('Express', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by') or not_found_headers.get('x-powered-by')), 8)
         if 'connect.sid' in cookies:
             self._add_signal('Express', self.FRAMEWORK_CATEGORY, 'cookie', 'connect.sid', 6)
+        if not_found_status == 404 and ('cannot get /' in not_found_body_lower or 'cannot post /' in not_found_body_lower):
+            self._add_signal('Express', self.FRAMEWORK_CATEGORY, '404', 'Cannot GET/POST', 7)
+
+        if 'nest' in x_powered_by or 'nest' in not_found_powered_by:
+            self._add_signal('NestJS', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by') or not_found_headers.get('x-powered-by')), 8)
+        if not_found_status == 404 and 'statuscode' in not_found_body_lower and 'cannot get /' in not_found_body_lower and 'not found' in not_found_body_lower:
+            self._add_signal('NestJS', self.FRAMEWORK_CATEGORY, '404', 'statusCode + Cannot GET + Not Found', 9)
+        if swagger_probe_up:
+            self._add_signal('NestJS', self.FRAMEWORK_CATEGORY, 'endpoint', 'swagger/openapi', 4)
+
+        if 'fastify' in x_powered_by or 'fastify' in server or 'fastify' in not_found_powered_by or 'fastify' in not_found_server:
+            self._add_signal('Fastify', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by|server=fastify', 8)
+        if not_found_status == 404 and 'route get:' in not_found_body_lower and 'not found' in not_found_body_lower:
+            self._add_signal('Fastify', self.FRAMEWORK_CATEGORY, '404', 'Route GET:* not found', 9)
+
+        if 'uvicorn' in server or 'hypercorn' in server or 'uvicorn' in not_found_server or 'hypercorn' in not_found_server:
+            self._add_signal('FastAPI', self.FRAMEWORK_CATEGORY, 'header', 'server=uvicorn|hypercorn', 6)
+        if not_found_status == 404 and '"detail"' in not_found_body_lower and 'not found' in not_found_body_lower:
+            self._add_signal('FastAPI', self.FRAMEWORK_CATEGORY, '404', '{"detail":"Not Found"}', 8)
+        if probe_statuses.get('/openapi.json') in [200, 301, 302, 401, 403] or docs_probe_up:
+            self._add_signal('FastAPI', self.FRAMEWORK_CATEGORY, 'endpoint', '/openapi.json|/docs|/redoc', 5)
+
+        if 'koa' in x_powered_by or 'koa' in not_found_powered_by:
+            self._add_signal('Koa', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by') or not_found_headers.get('x-powered-by')), 8)
+        if 'koa:sess' in cookies or 'koa.sess' in cookies:
+            self._add_signal('Koa', self.FRAMEWORK_CATEGORY, 'cookie', 'koa:sess|koa.sess', 7)
+
+        if 'hapi' in x_powered_by or 'hapi' in not_found_powered_by:
+            self._add_signal('Hapi', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by') or not_found_headers.get('x-powered-by')), 8)
+        if not_found_status == 404 and '"statuscode":404' in not_found_body_lower and '"error":"not found"' in not_found_body_lower and '"message":"not found"' in not_found_body_lower:
+            self._add_signal('Hapi', self.FRAMEWORK_CATEGORY, '404', 'statusCode/error/message Not Found', 7)
 
         # Symfony
         if 'symfony' in x_powered_by:

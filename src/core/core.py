@@ -124,7 +124,7 @@ CoreConfig = {
                 python3 ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10
                 python3 ./opendoor.py --host "http://example.com"  --random-list --threads 10 --delay 10 --timeout 10
                 python3 ./opendoor.py --host "http://example.com" --threads 10 --delay 10 --timeout 10 --debug 1
-                python3 ./opendoor.py --host "http://example.com" --threads 10 --debug 1 --reports std,txt
+                python3 ./opendoor.py --host "http://example.com" --threads 10 --debug 1 --reports std,txt,json,html,sqlite
                 python3 ./opendoor.py --host "http://example.com" --debug 1 --reports std,txt --reports-dir /reports
                 python3 ./opendoor.py --host "http://example.com" --threads 10 --debug 1 --extensions php,html
             """,

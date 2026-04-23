@@ -111,7 +111,18 @@ class TestFingerprintFullCoverage(unittest.TestCase):
         detector = Fingerprint(config=config, client=client)
         return detector, config, client
 
-    def apply_case(self, body='', headers=None, cookies=None, generator='', probes=None, final_root_url='http://example.com/'):
+    def apply_case(
+        self,
+        body='',
+        headers=None,
+        cookies=None,
+        generator='',
+        probes=None,
+        final_root_url='http://example.com/',
+        not_found_status=0,
+        not_found_body='',
+        not_found_headers=None,
+    ):
         """
         Apply detection rules once and return sorted candidates.
 
@@ -121,6 +132,9 @@ class TestFingerprintFullCoverage(unittest.TestCase):
         :param str generator: generator meta
         :param dict probes: probe status mapping
         :param str final_root_url: final root URL
+        :param int not_found_status: 404 probe status
+        :param str not_found_body: 404 probe body
+        :param dict not_found_headers: 404 probe headers
         :return: tuple[list, list]
         """
 
@@ -128,6 +142,7 @@ class TestFingerprintFullCoverage(unittest.TestCase):
         headers = headers or {}
         cookies = cookies or []
         probes = probes or {}
+        not_found_headers = not_found_headers or {}
 
         detector._apply_detection_rules(
             body=body,
@@ -137,6 +152,9 @@ class TestFingerprintFullCoverage(unittest.TestCase):
             generator=generator,
             probe_statuses=probes,
             final_root_url=final_root_url,
+            not_found_status=not_found_status,
+            not_found_body=not_found_body,
+            not_found_headers=not_found_headers,
         )
 
         return detector._build_candidates(), detector._build_infrastructure_candidates()
@@ -249,6 +267,29 @@ class TestFingerprintFullCoverage(unittest.TestCase):
         self.assertEqual(probes['/wp-json/'], 200)
         self.assertEqual(probes['/_next/static/'], 403)
         self.assertNotIn('/bitrix/', probes)
+
+
+    def test_probe_not_found_signature_collects_framework_404_response(self):
+        """
+        Fingerprint._probe_not_found_signature() should return status, body and headers for a missing route.
+
+        :return: None
+        """
+
+        responses = {
+            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(
+                404,
+                '{"message":"Cannot GET /.opendoor-fingerprint-not-found-probe","error":"Not Found","statusCode":404}',
+                {'X-Powered-By': 'NestJS'},
+            ),
+        }
+        detector, _, _ = self.make_detector(responses=responses)
+
+        status, body, headers = detector._probe_not_found_signature('http://example.com/')
+
+        self.assertEqual(status, 404)
+        self.assertIn('Cannot GET', body)
+        self.assertEqual(headers['x-powered-by'], 'NestJS')
 
     def test_detect_returns_default_when_root_response_is_missing(self):
         """
@@ -368,6 +409,86 @@ class TestFingerprintFullCoverage(unittest.TestCase):
         self.assertEqual(detector._calculate_confidence(0, 0), 35)
         self.assertEqual(detector._calculate_confidence(100, 50), 98)
 
+
+    def test_helper_edge_cases_cover_fallback_branches(self):
+        """
+        Fingerprint helper methods should handle secondary candidates and fallback parsing branches.
+
+        :return: None
+        """
+
+        class DictWithoutItems(dict):
+            """Dictionary that hides items() to exercise the isinstance(dict) branch."""
+
+            def __getattribute__(self, name):
+                if name == 'items':
+                    raise AttributeError(name)
+                return dict.__getattribute__(self, name)
+
+        class HeadersWithoutItems(object):
+            """Header object without items() to exercise the empty fallback branch."""
+
+            pass
+
+        class BrokenHeaderBag(object):
+            """Cookie bag with a failing getlist() implementation."""
+
+            def getlist(self, key):
+                raise RuntimeError(key)
+
+        detector, _, _ = self.make_detector()
+
+        headers = detector._extract_headers(FakeResponse(status=200, headers=DictWithoutItems({'Server': 'nginx'})))
+        self.assertEqual(headers['server'], 'nginx')
+
+        response_without_items = type('ResponseNoItems', (), {'status': 200, 'data': b'', 'headers': HeadersWithoutItems()})()
+        headers = detector._extract_headers(response_without_items)
+        self.assertEqual(headers, {})
+
+        self.assertEqual(detector._extract_body(FakeResponse(status=200, data=None)), '')
+        self.assertEqual(detector._extract_body(FakeResponse(status=200, data='plain-string')), 'plain-string')
+
+        broken_cookie_response = type('BrokenCookieResponse', (), {'status': 200, 'data': b'', 'headers': BrokenHeaderBag()})()
+        cookies = detector._extract_cookies(broken_cookie_response)
+        self.assertEqual(cookies, [])
+
+        cookies = detector._extract_cookies(FakeResponse(status=200, headers=HeaderBag({'Set-Cookie': ['flagonly; Path=/', '=empty; Path=/', 'real=1; Path=/']})))
+        self.assertEqual(cookies, ['real'])
+
+        redirect_detector, _, _ = self.make_detector()
+        response, final_url = redirect_detector._follow_redirects(
+            FakeResponse(status=302, headers={'Location': '/lost'}),
+            'http://example.com/',
+            method='GET',
+            max_hops=1,
+        )
+        self.assertIsNone(response)
+        self.assertEqual(final_url, 'http://example.com/lost')
+
+        responses = {
+            ('GET', 'http://example.com/'): FakeResponse(
+                200,
+                '<html><head><meta name="generator" content="WordPress 6.8"></head>'
+                '<body><link href="/wp-content/plugins/woocommerce/assets/app.css">'
+                '<script src="/wp-includes/js/jquery.js"></script>woocommerce-notices-wrapper</body></html>',
+                {'Server': 'cloudflare', 'CF-Ray': 'abc', 'CF-Cache-Status': 'HIT', 'X-Served-By': 'cache-fra', 'X-Fastly-Request-Id': 'fastly'}
+            ),
+            ('HEAD', 'http://example.com/wp-json/'): FakeResponse(200, '', {}),
+            ('HEAD', 'http://example.com/wp-login.php'): FakeResponse(200, '', {}),
+            ('HEAD', 'http://example.com/xmlrpc.php'): FakeResponse(405, '', {}),
+        }
+        detect_detector, _, _ = self.make_detector(responses=responses)
+        result = detect_detector.detect()
+
+        self.assertEqual(result['name'], 'WordPress')
+        self.assertGreater(len(result['candidates']), 1)
+        self.assertGreater(len(result['infrastructure']['candidates']), 1)
+
+        top_two = detect_detector._build_infrastructure_candidates()[:2]
+        built = detect_detector._build_infrastructure_result(top_two)
+        self.assertEqual(built['provider'], top_two[0]['provider'])
+        self.assertGreaterEqual(built['confidence'], 35)
+
     def test_application_matrix_hits_popular_cms_framework_and_builder_rules(self):
         """
         Fingerprint._apply_detection_rules() should classify a wide matrix of application signatures.
@@ -446,6 +567,60 @@ class TestFingerprintFullCoverage(unittest.TestCase):
                 'generator': 'Ghost 5.0',
                 'body': '<script src="/ghost/api/content/posts/"></script><div class="ghost-content casper"></div>',
                 'probes': {'/ghost/api/content/': 403},
+            },
+            {
+                'name': 'WooCommerce',
+                'category': 'ecommerce',
+                'body': '<script src="/wp-content/plugins/woocommerce/assets/js/frontend/add-to-cart.js"></script>?wc-ajax=get_refreshed_fragments<div class="woocommerce-notices-wrapper"></div><a class="add_to_cart_button">Buy</a>',
+                'cookies': ['woocommerce_cart_hash', 'wp_woocommerce_session_abc'],
+            },
+            {
+                'name': 'OpenCart',
+                'category': 'ecommerce',
+                'body': '<link href="/catalog/view/theme/default/stylesheet/stylesheet.css"><a href="index.php?route=common/home">Home</a>',
+                'cookies': ['ocsessid'],
+                'probes': {'/catalog/view/theme/': 403},
+            },
+            {
+                'name': 'PrestaShop',
+                'category': 'ecommerce',
+                'body': '<script>var prestashop = {};</script><link href="/themes/classic/assets/theme.css"><script src="/modules/ps_shoppingcart/cart.js"></script>',
+                'cookies': ['prestashop-abc'],
+            },
+            {
+                'name': 'TYPO3',
+                'category': 'cms',
+                'body': '<script>TYPO3.settings = {};</script><link href="/typo3conf/ext/site.css"><script src="/typo3temp/assets/app.js"></script>',
+                'probes': {'/typo3/': 403},
+            },
+            {
+                'name': 'Strapi',
+                'category': 'framework',
+                'body': '<script>window.strapi = true;</script><script src="/admin/init"></script><img src="/uploads/logo.png">',
+                'headers': {'x-powered-by': 'Strapi'},
+                'probes': {'/admin/init': 200, '/admin': 302, '/uploads/': 200},
+            },
+            {
+                'name': 'MkDocs',
+                'category': 'static',
+                'generator': 'MkDocs 1.6',
+                'body': '<script>var mkdocs_page_name = "Home"; var mkdocs_page_input_path = "index.md";</script>',
+            },
+            {
+                'name': 'Jekyll',
+                'category': 'static',
+                'generator': 'Jekyll v4.4.1',
+                'body': '<!-- Begin Jekyll SEO tag v2.8.0 -->',
+            },
+            {
+                'name': 'Hugo',
+                'category': 'static',
+                'generator': 'Hugo 0.145.0',
+            },
+            {
+                'name': 'VitePress',
+                'category': 'static',
+                'body': '<div class="vitepress-theme"><div class="VPContent"></div><nav class="VPNav"></nav></div>',
             },
             {
                 'name': 'Docusaurus',
@@ -529,11 +704,44 @@ class TestFingerprintFullCoverage(unittest.TestCase):
                 'category': 'framework',
                 'headers': {'x-powered-by': 'Express'},
                 'cookies': ['connect.sid'],
+                'not_found_status': 404,
+                'not_found_body': 'Cannot GET /.opendoor-fingerprint-not-found-probe',
             },
             {
                 'name': 'NestJS',
                 'category': 'framework',
-                'headers': {'x-powered-by': 'NestJS'},
+                'probes': {'/swagger': 200, '/openapi.json': 200},
+                'not_found_status': 404,
+                'not_found_body': '{"message":"Cannot GET /.opendoor-fingerprint-not-found-probe","error":"Not Found","statusCode":404}',
+                'not_found_headers': {'x-powered-by': 'NestJS'},
+            },
+            {
+                'name': 'Fastify',
+                'category': 'framework',
+                'headers': {'server': 'fastify'},
+                'not_found_status': 404,
+                'not_found_body': 'Route GET:/.opendoor-fingerprint-not-found-probe not found',
+            },
+            {
+                'name': 'FastAPI',
+                'category': 'framework',
+                'headers': {'server': 'uvicorn'},
+                'probes': {'/openapi.json': 200, '/docs': 200, '/redoc': 200},
+                'not_found_status': 404,
+                'not_found_body': '{"detail":"Not Found"}',
+            },
+            {
+                'name': 'Koa',
+                'category': 'framework',
+                'headers': {'x-powered-by': 'Koa'},
+                'cookies': ['koa:sess'],
+            },
+            {
+                'name': 'Hapi',
+                'category': 'framework',
+                'headers': {'x-powered-by': 'hapi'},
+                'not_found_status': 404,
+                'not_found_body': '{"statusCode":404,"error":"Not Found","message":"Not Found"}',
             },
             {
                 'name': 'Symfony',
@@ -570,6 +778,9 @@ class TestFingerprintFullCoverage(unittest.TestCase):
                     cookies=case.get('cookies', []),
                     generator=case.get('generator', ''),
                     probes=case.get('probes', {}),
+                    not_found_status=case.get('not_found_status', 0),
+                    not_found_body=case.get('not_found_body', ''),
+                    not_found_headers=case.get('not_found_headers', {}),
                 )
 
                 self.assertGreater(len(candidates), 0)

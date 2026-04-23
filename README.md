@@ -28,24 +28,19 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
 
 [Read The Docs](https://opendoor.readthedocs.io/)
 
-* *Current 5.8.0 (23.04.2026)*
-    - Directories: 110875
+* *Current 5.8.1 (24.04.2026)*
+    - Directories: 110861
     - Subdomains: 255359
 
 #### [Changelog](CHANGELOG.md) (last changes)
-v5.8.0 (23.04.2026)
+
+v5.8.1 (23.04.2026)
 ---------------------------
-- (feature) Added persistent scan sessions with `--session-save` and `--session-load`.
-- (feature) Added checkpoint autosave controls: `--session-autosave-sec` and `--session-autosave-items`.
-- (feature) Added logical scan state restore for pending queue, processed items, recursive state and partial results.
-- (feature) Added session snapshot validation with schema version checks and checksum verification.
-- (feature) Added atomic session writes with `.tmp` swap and `.bak` fallback recovery.
-- (feature) Added controller-level restore flow so resumed scans continue from saved session state instead of restarting from zero.
-- (feature) Kept persistent sessions strictly opt-in: no session file is created or updated unless session mode is explicitly enabled.
-- (improvement) Hardened browser runtime so legacy non-session flows and existing pause/resume behavior remain unchanged when session mode is disabled.
-- (improvement) Improved session compatibility across interrupted scans, graceful stops and resumed executions.
-- (tests) Expanded regression coverage across browser session lifecycle, controller restore flow, config accessors and session file validation.
-- (tests) Coverage gate now passes at 98%.
+- (feature) Extend fingerprinting (`--fingerpring`). Better defined Node/API backend stack
+- (feature) Extend fingerprinting (`--fingerpring`). Better defined e-commerce/CMS
+- (feature) Extend fingerprinting (`--fingerpring`). Better defined docs/static tooling
+- (feature) Extend reporting (`--reports`) by adding `sqlite` report format
+- (bugfix) ResponseError: Unknown response status : `511`
 
 #### Main features
 
@@ -368,7 +363,7 @@ Response filters:
                         Keep only responses whose size is at most N bytes
 
 Reports tools:
-  --reports REPORTS     Scan reports (json,std,txt,html)
+  --reports REPORTS     Scan reports (json,std,txt,html,sqlite)
   --reports-dir REPORTS_DIR
                         Path to custom reports directory
 

@@ -253,7 +253,7 @@ class Options(object):
                 "argl": "--reports",
                 "default": "std",
                 "action": "store",
-                "help": "Scan reports (json,std,txt,html)",
+                "help": "Scan reports (json,std,txt,html,sqlite)",
                 "type": str
             },
             {

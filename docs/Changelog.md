@@ -1,5 +1,12 @@
 Changelog
 =========
+v5.8.1 (23.04.2026)
+---------------------------
+- (feature) Extend fingerprinting (`--fingerpring`). Better defined Node/API backend stack
+- (feature) Extend fingerprinting (`--fingerpring`). Better defined e-commerce/CMS
+- (feature) Extend fingerprinting (`--fingerpring`). Better defined docs/static tooling
+- (feature) Extend reporting (`--reports`) by adding `sqlite` report format
+- (bugfix) ResponseError: Unknown response status : `511`
 
 v5.8.0 (23.04.2026)
 ---------------------------

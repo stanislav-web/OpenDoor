@@ -24,4 +24,5 @@ from .txt import TextReportPlugin as txt
 from .json import JsonReportPlugin as json
 # noinspection PyPep8Naming
 from .html import HtmlReportPlugin as html
-
+# noinspection PyPep8Naming
+from .sqlite import SqliteReportPlugin as sqlite
