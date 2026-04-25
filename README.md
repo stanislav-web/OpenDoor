@@ -26,13 +26,25 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
 [![Dependency Review](https://github.com/stanislav-web/OpenDoor/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/dependency-review.yml)
 [![CodeQL](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql)
 
-##### 5.8.2 (25.04.2026)
 * *Built-in dictionaries*
     - Directories: 110861
     - Subdomains: 255359
+
+##### 5.8.2 (25.04.2026)
+- (dictionary) added `+11572` new potencial directries to wordlist
 - (enhancement) heuristic fingerprinting ( `--fingerprint` stabilizes and expands)
 - (enhancement) improved infrastructure detection
 - (enhancement) collision hardening for generic admin/backend/assets patterns
+- (enhancement) `--sniff indexof` improved to detect directory listings across Apache, nginx, IIS and generic layouts
+- (enhancement) `--sniff collation` improved to better detect repeated soft404/error templates
+- (enhancement) `--sniff file` improved to detect explicit downloads, binary responses and large bodies without `Content-Length`
+- (enhancement) `--sniff skipempty` improved to skip only truly empty or semantically empty short responses
+- (enhancement) `--sniff skipsizes` improved with safer size handling, invalid header fallback and KB range support
+- (bugfix) fixed false positives in sniff plugins for short login pages, short useful JSON responses and binary placeholders
+- (bugfix) fixed backward compatibility regressions in `CollationResponsePlugin`
+- (tests) negative regression coverage to reduce false positives
+- (tests) expanded coverage for `file`, `indexof`, `collation`, `skipempty` and `skipsizes`
+- (tests) full unittest suite passes after integration (`790` tests)
 - (tests) negative regression coverage to reduce false positives
 
 #### [Changelog](CHANGELOG.md) (last changes)

@@ -36,6 +36,7 @@ reports/
 scripts/
 syslog/
 site/
+release.sh
 
 # Local binaries / keys
 opendoor
