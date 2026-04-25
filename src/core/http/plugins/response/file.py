@@ -20,31 +20,153 @@ from .provider import ResponsePluginProvider
 
 
 class FileResponsePlugin(ResponsePluginProvider):
-    """ FileResponsePlugin class"""
+    """Detect large files and explicit download/binary responses."""
 
-    DESCRIPTION = 'File (detect large files)'
+    DESCRIPTION = 'File (detect large files and explicit downloads)'
     RESPONSE_INDEX = 'file'
     DEFAULT_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
 
+    BINARY_CONTENT_TYPES = (
+        'application/octet-stream',
+        'application/zip',
+        'application/x-zip-compressed',
+        'application/gzip',
+        'application/x-gzip',
+        'application/x-tar',
+        'application/x-7z-compressed',
+        'application/x-rar-compressed',
+        'application/pdf',
+        'application/x-sqlite3',
+        'application/vnd.sqlite3',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument',
+        'application/msword',
+        'application/vnd.ms-powerpoint',
+        'image/',
+        'audio/',
+        'video/',
+    )
+
+    TEXTUAL_CONTENT_TYPES = (
+        'text/html',
+        'text/plain',
+        'text/css',
+        'text/javascript',
+        'application/javascript',
+        'application/x-javascript',
+        'application/json',
+        'application/xml',
+        'text/xml',
+        'application/xhtml+xml',
+        'image/svg+xml',
+    )
+
     def __init__(self, void):
         """
-        ResponsePluginProvider constructor
+        ResponsePluginProvider constructor.
         """
 
         ResponsePluginProvider.__init__(self)
 
-    def process(self, response):
+    def _get_header(self, name):
         """
-        Process data
+        Return a header value using case-insensitive lookup.
+
+        :param str name: header name
+        :return: str | None
+        """
+
+        if name in self._headers:
+            return self._headers[name]
+
+        target = str(name).lower()
+        for key, value in self._headers.items():
+            if str(key).lower() == target:
+                return value
+
+        return None
+
+    def _extract_content_length(self):
+        """
+        Extract Content-Length as int if possible.
+
+        :return: int | None
+        """
+
+        raw_length = self._get_header('Content-Length')
+        if raw_length is None:
+            return None
+
+        try:
+            return int(raw_length)
+        except Exception:
+            return None
+
+    def _extract_content_type(self):
+        """
+        Extract normalized Content-Type without parameters.
+
         :return: str
         """
 
-        if response.status in self.DEFAULT_STATUSES:
-            super().process(response)
-            if 'Content-Length' in self._headers:
-                if self.DEFAULT_SOURCE_DETECT_MIN_SIZE <= int(self._headers['Content-Length']):
-                    return self.RESPONSE_INDEX
-                elif self.DEFAULT_SOURCE_DETECT_MIN_SIZE <= len(self._body):
-                    return self.RESPONSE_INDEX
+        value = self._get_header('Content-Type')
+        if value is None:
+            return ''
+
+        return str(value).split(';', 1)[0].strip().lower()
+
+    def _is_binary_content_type(self, content_type):
+        """
+        Determine whether a Content-Type looks like a real file/binary response.
+
+        :param str content_type: normalized content type
+        :return: bool
+        """
+
+        if len(content_type) <= 0:
+            return False
+
+        for item in self.TEXTUAL_CONTENT_TYPES:
+            if content_type == item:
+                return False
+
+        for item in self.BINARY_CONTENT_TYPES:
+            if content_type.startswith(item):
+                return True
+
+        return False
+
+    def process(self, response):
+        """
+        Process data.
+
+        :param response: HTTP response
+        :return: str | None
+        """
+
+        if response.status not in self.DEFAULT_STATUSES:
+            return None
+
+        super().process(response)
+
+        body_length = len(self._body)
+        content_length = self._extract_content_length()
+        content_type = self._extract_content_type()
+        content_disposition = str(self._get_header('Content-Disposition') or '').lower()
+
+        if content_length is not None and self.DEFAULT_SOURCE_DETECT_MIN_SIZE <= content_length:
+            return self.RESPONSE_INDEX
+
+        if self.DEFAULT_SOURCE_DETECT_MIN_SIZE <= body_length:
+            return self.RESPONSE_INDEX
+
+        has_content = (content_length is not None and 0 < content_length) or 0 < body_length
+
+        if 'attachment' in content_disposition and has_content:
+            return self.RESPONSE_INDEX
+
+        if self._is_binary_content_type(content_type) and has_content:
+            return self.RESPONSE_INDEX
+
         return None

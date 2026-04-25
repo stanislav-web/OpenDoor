@@ -22,7 +22,7 @@ from src.core.helper import Helper
 
 
 class SkipSizesResponsePlugin(ResponsePluginProvider):
-    """ SkipSizesResponsePlugin class"""
+    """Skip responses matching exact KB sizes or KB ranges."""
 
     DESCRIPTION = 'SkipSizesStatuses (skip target sizes of page: {} kbs for 200 OK redirects)'
     RESPONSE_INDEX = 'skip'
@@ -31,15 +31,87 @@ class SkipSizesResponsePlugin(ResponsePluginProvider):
 
     def __init__(self, values):
         """
-        ResponsePluginProvider constructor
+        ResponsePluginProvider constructor.
+
+        :param values: exact KB values and/or ranges separated by ":"
+        :type values: str | None
         """
+
+        self.SIZE_VALUES = []
+        self.RANGE_VALUES = []
+
         if values is not None:
-            self.SIZE_VALUES = Helper.to_list(values, ':')
-            size_list = list(map(lambda x: str(x)+'KB', self.SIZE_VALUES))
-            size_string = ','.join(self.SIZE_VALUES)
+            raw_values = Helper.to_list(values, ':')
+
+            for raw_value in raw_values:
+                item = str(raw_value).strip()
+
+                if '-' in item:
+                    bounds = item.split('-', 1)
+                    if len(bounds) == 2 and bounds[0].strip().isdigit() and bounds[1].strip().isdigit():
+                        start_kb = int(bounds[0].strip())
+                        end_kb = int(bounds[1].strip())
+
+                        if end_kb < start_kb:
+                            start_kb, end_kb = end_kb, start_kb
+
+                        self.RANGE_VALUES.append((start_kb * 1024, end_kb * 1024))
+                        continue
+
+                self.SIZE_VALUES.append(str(item) + 'KB')
+
+            size_string = ','.join(raw_values)
             self.DESCRIPTION = self.DESCRIPTION.format(size_string)
-            self.SIZE_VALUES = size_list
+
         ResponsePluginProvider.__init__(self)
+
+    def _extract_content_length(self):
+        """
+        Extract effective response length.
+
+        :return: content length from header or None when unavailable/invalid
+        :rtype: int | None
+        """
+
+        if 'Content-Length' not in self._headers:
+            return None
+
+        try:
+            return int(self._headers['Content-Length'])
+        except Exception:
+            return None
+
+    def _matches_exact_size(self, size_bytes):
+        """
+        Check whether byte size matches any exact configured KB size.
+
+        :param size_bytes: effective response size in bytes
+        :type size_bytes: int
+        :return: True when exact size matches
+        :rtype: bool
+        """
+
+        for size in self.SIZE_VALUES:
+            if size == FileSystem.human_size(size_bytes, 0):
+                return True
+
+        return False
+
+    def _matches_range_size(self, size_bytes):
+        """
+        Check whether byte size matches any configured KB range.
+
+        :param size_bytes: effective response size in bytes
+        :type size_bytes: int
+        :return: True when size is within any configured range
+        :rtype: bool
+        """
+
+        for min_size, max_size in self.RANGE_VALUES:
+            if min_size <= size_bytes <= max_size:
+                return True
+
+        return False
 
     def process(self, response):
         """
@@ -50,14 +122,20 @@ class SkipSizesResponsePlugin(ResponsePluginProvider):
         :return: The response index if the data meets the specified conditions, otherwise None.
         :rtype: str or None
         """
-        if hasattr(response, 'status') and response.status in self.DEFAULT_STATUSES:
-            super().process(response)
-            if 'Content-Length' in self._headers:
-                for size in self.SIZE_VALUES:
-                    if size == FileSystem.human_size(int(self._headers['Content-Length']), 0):
-                        return self.RESPONSE_INDEX
-            else:
-                for size in self.SIZE_VALUES:
-                    if size == FileSystem.human_size(len(self._body), 0):
-                        return self.RESPONSE_INDEX
+
+        if not hasattr(response, 'status') or response.status not in self.DEFAULT_STATUSES:
+            return None
+
+        super().process(response)
+
+        size_bytes = self._extract_content_length()
+        if size_bytes is None:
+            size_bytes = len(self._body)
+
+        if self._matches_exact_size(size_bytes):
+            return self.RESPONSE_INDEX
+
+        if self._matches_range_size(size_bytes):
+            return self.RESPONSE_INDEX
+
         return None

@@ -1,5 +1,12 @@
 CHANGELOG
 =======
+v5.8.2 (25.04.2026)
+---------------------------
+- (enhancement) heuristic fingerprinting ( `--fingerprint` stabilizes and expands)
+- (enhancement) improved infrastructure detection
+- (enhancement) collision hardening for generic admin/backend/assets patterns
+- (tests) negative regression coverage to reduce false positives
+
 v5.8.1 (23.04.2026)
 ---------------------------
 - (feature) Extend fingerprinting (`--fingerpring`). Better defined Node/API backend stack
@@ -7,7 +14,6 @@ v5.8.1 (23.04.2026)
 - (feature) Extend fingerprinting (`--fingerpring`). Better defined docs/static tooling
 - (feature) Extend reporting (`--reports`) by adding `sqlite` report format
 - (bugfix) ResponseError: Unknown response status : `511`
-
 
 v5.8.0 (23.04.2026)
 ---------------------------

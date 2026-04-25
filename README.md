@@ -26,21 +26,16 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
 [![Dependency Review](https://github.com/stanislav-web/OpenDoor/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/dependency-review.yml)
 [![CodeQL](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql)
 
-[Read The Docs](https://opendoor.readthedocs.io/)
-
-* *Current 5.8.1 (24.04.2026)*
+##### 5.8.2 (25.04.2026)
+* *Built-in dictionaries*
     - Directories: 110861
     - Subdomains: 255359
+- (enhancement) heuristic fingerprinting ( `--fingerprint` stabilizes and expands)
+- (enhancement) improved infrastructure detection
+- (enhancement) collision hardening for generic admin/backend/assets patterns
+- (tests) negative regression coverage to reduce false positives
 
 #### [Changelog](CHANGELOG.md) (last changes)
-
-v5.8.1 (23.04.2026)
----------------------------
-- (feature) Extend fingerprinting (`--fingerpring`). Better defined Node/API backend stack
-- (feature) Extend fingerprinting (`--fingerpring`). Better defined e-commerce/CMS
-- (feature) Extend fingerprinting (`--fingerpring`). Better defined docs/static tooling
-- (feature) Extend reporting (`--reports`) by adding `sqlite` report format
-- (bugfix) ResponseError: Unknown response status : `511`
 
 #### Main features
 
@@ -284,6 +279,114 @@ Windows:
 git pull
 py -m pip install -e .
 ```
+
+#### Recognized systems
+This is summarizing the platform families currently recognized by the heuristic fingerprint engine.
+
+##### CMS (26)
+
+- Bitrix
+- Bludit
+- Bolt CMS
+- Concrete CMS
+- Contao
+- Craft CMS
+- Directus
+- Discourse
+- Drupal
+- Ghost
+- GravCMS
+- Joomla
+- Matomo
+- MediaWiki
+- MODX
+- Moodle
+- Neos
+- Nextcloud
+- OctoberCMS
+- ownCloud
+- phpBB
+- phpMyAdmin
+- Pimcore
+- TYPO3
+- Umbraco
+- WordPress
+
+##### E-commerce (7)
+
+- Magento
+- nopCommerce
+- OpenCart
+- PrestaShop
+- Shopify
+- Shopware
+- WooCommerce
+
+##### Frameworks / app platforms (24)
+
+- Angular
+- ASP.NET
+- Astro
+- Django
+- Express
+- FastAPI
+- Fastify
+- Flask
+- Gatsby
+- Hapi
+- Koa
+- Laravel
+- NestJS
+- Next.js
+- Nuxt
+- Phoenix
+- React
+- Remix
+- Ruby on Rails
+- Spring
+- Strapi
+- SvelteKit
+- Symfony
+- Vue
+
+##### Site builders (4)
+
+- Squarespace
+- Tilda
+- Webflow
+- Wix
+
+##### Static / docs generators (5)
+
+- Docusaurus
+- Hugo
+- Jekyll
+- MkDocs
+- VitePress
+
+##### Infrastructure providers / hosting edge signals (21)
+
+- AWS
+- AWS API Gateway
+- AWS Amplify
+- AWS CloudFront
+- AWS ELB / ALB
+- AWS S3
+- Akamai
+- Cloudflare
+- Fastly
+- GitHub Pages
+- GitLab Pages
+- Google App Engine
+- Google Cloud
+- Google Cloud / Google Frontend
+- Google Cloud Run
+- Heroku
+- Microsoft Azure
+- Microsoft Azure App Service
+- Netlify
+- OpenResty
+- Vercel
 
 #### Help
 ```bash
