@@ -768,6 +768,217 @@ class TestFingerprintFullCoverage(unittest.TestCase):
                 'body': '<input type="hidden" name="_csrf_token" value="x">phoenix _buildinfo',
                 'cookies': ['_app_key'],
             },
+
+            {
+                'name': 'Nextcloud',
+                'category': 'cms',
+                'generator': 'Nextcloud',
+                'body': '<div class="nextcloud"><img src="/apps/files/img/app.svg"><link href="/ocs-provider/"></div>',
+                'probes': {'/status.php': 200, '/remote.php/dav/': 401},
+            },
+            {
+                'name': 'ownCloud',
+                'category': 'cms',
+                'generator': 'ownCloud',
+                'body': '<script src="/core/js/oc.js"></script><img src="/core/img/actions/share.svg"><div>ownCloud</div>',
+                'probes': {'/status.php': 200, '/ocs/v1.php/cloud/capabilities?format=json': 401},
+            },
+            {
+                'name': 'phpMyAdmin',
+                'category': 'cms',
+                'body': '<html><body>phpMyAdmin<form><input name="pma_username"></form><link href="/themes/pmahomme/css/theme.css"><div id="pma_navigation"></div></body></html>',
+                'cookies': ['pma_lang', 'pma_collation_connection'],
+            },
+            {
+                'name': 'phpBB',
+                'category': 'cms',
+                'body': '<link href="/styles/prosilver/theme/stylesheet.css"><a href="viewtopic.php?t=1">Topic</a><a href="viewforum.php?f=2">Forum</a><div>phpBB prosilver</div>',
+                'cookies': ['phpbb3_abcd_u', 'phpbb3_abcd_k'],
+            },
+            {
+                'name': 'Umbraco',
+                'category': 'cms',
+                'body': '<script>Umbraco.Sys.ServerVariables = {};</script><script src="/umbraco/assets/app.js"></script><umb-app></umb-app>',
+                'probes': {'/umbraco/': 302},
+            },
+            {
+                'name': 'Concrete CMS',
+                'category': 'cms',
+                'generator': 'Concrete CMS',
+                'body': '<html><body>'
+                        '<link href="/concrete/css/app.css">'
+                        '<script src="/concrete/js/jquery.js"></script>'
+                        '<div class="ccm-page"><div class="ccm-block-page-title-byline"></div></div>'
+                        '</body></html>',
+            },
+            {
+                'name': 'Contao',
+                'category': 'cms',
+                'generator': 'Contao Open Source CMS',
+                'body': '<html><body>'
+                        '<link href="/bundles/contaocore/theme.css">'
+                        '<img src="/files/contao/logo.svg">'
+                        '<div>contao</div>'
+                        '</body></html>',
+                'probes': {'/contao/': 302},
+            },
+            {
+                'name': 'GravCMS',
+                'category': 'cms',
+                'generator': 'GravCMS',
+                'body': '<html><body>'
+                        '<link href="/user/themes/quark/css/custom.css">'
+                        '<script src="/system/assets/jquery/jquery-2.x.min.js"></script>'
+                        '<div class="grav-language-select">en</div>'
+                        '</body></html>',
+            },
+            {
+                'name': 'MediaWiki',
+                'category': 'cms',
+                'generator': 'MediaWiki 1.41',
+                'body': '<html><body>'
+                        '<link href="/w/resources/assets/wiki.png">'
+                        '<div class="mw-body"><h1 class="mw-page-title-main">Main Page</h1></div>'
+                        '</body></html>',
+                'probes': {'/api.php': 200},
+            },
+            {
+                'name': 'Moodle',
+                'category': 'cms',
+                'generator': 'Moodle',
+                'body': '<html><body>'
+                        '<script src="/lib/javascript.php/123/lib/javascript-static.js"></script>'
+                        '<img src="/theme/image.php/boost/core/123/u/f1">'
+                        '<div class="moodle-dialogue-base">moodle</div>'
+                        '</body></html>',
+                'cookies': ['moodlesession'],
+                'probes': {'/login/index.php': 200},
+            },
+            {
+                'name': 'Craft CMS',
+                'category': 'cms',
+                'generator': 'Craft CMS',
+                'body': '<html><body>'
+                        '<link href="/cpresources/abc123/app.css">'
+                        '<script src="/cpresources/abc123/app.js"></script>'
+                        '<div>craftcms</div>'
+                        '</body></html>',
+                'cookies': ['craftsessionid', 'craft_csrf_token'],
+                'probes': {'/admin': 302},
+            },
+            {
+                'name': 'Pimcore',
+                'category': 'cms',
+                'generator': 'Pimcore',
+                'body': '<html><body>'
+                        '<link href="/bundles/pimcoreadmin/css/admin.css">'
+                        '<script src="/bundles/pimcorestatic6/js/pimcore.js"></script>'
+                        '<a href="/admin/login">Admin</a><div>pimcore</div>'
+                        '</body></html>',
+                'probes': {'/admin': 302},
+            },
+            {
+                'name': 'Discourse',
+                'category': 'cms',
+                'generator': 'Discourse',
+                'body': '<html><body>'
+                        '<div class="discourse-topic"></div>'
+                        '<div class="discourse-post"></div>'
+                        '<script data-discourse-setup="true"></script>'
+                        '<img src="/uploads/default/original/1X/test.png">'
+                        '</body></html>',
+                'cookies': ['_forum_session'],
+            },
+            {
+                'name': 'Matomo',
+                'category': 'cms',
+                'generator': 'Matomo',
+                'body': '<html><body>'
+                        '<script>var _paq = window._paq || []; _paq.push(["trackPageView"]);</script>'
+                        '<script src="/matomo.js"></script>'
+                        '<img src="/matomo.php?idsite=1&amp;rec=1">'
+                        '</body></html>',
+                'cookies': ['_pk_id', '_pk_ses'],
+            },
+            {
+                'name': 'Bludit',
+                'category': 'cms',
+                'generator': 'Bludit',
+                'body': '<html><body>'
+                        '<link href="/bl-themes/blog/style.css">'
+                        '<img src="/bl-content/uploads/logo.png">'
+                        '<div>bludit</div>'
+                        '</body></html>',
+                'probes': {'/admin': 302},
+            },
+            {
+                'name': 'MODX',
+                'category': 'cms',
+                'generator': 'MODX Revolution',
+                'body': '<html><body>'
+                        '<link href="/assets/components/example/css/web.css">'
+                        '<script src="/assets/components/example/js/web.js"></script>'
+                        '<a href="/manager/">manager</a><div>modx revolution</div>'
+                        '</body></html>',
+                'probes': {'/manager/': 302},
+            },
+            {
+                'name': 'Neos',
+                'category': 'cms',
+                'generator': 'Neos',
+                'body': '<html><body>'
+                        '<link href="/_Resources/Static/Packages/Vendor.Site/app.css">'
+                        '<script src="/_Resources/Static/Packages/Vendor.Site/app.js"></script>'
+                        '<div class="neos-contentcollection">neos</div>'
+                        '</body></html>',
+            },
+            {
+                'name': 'Bolt CMS',
+                'category': 'cms',
+                'generator': 'Bolt',
+                'headers': {'x-powered-by': 'Bolt'},
+                'body': '<html><body><a href="/bolt">Backend</a><div>bolt cms</div></body></html>',
+                'probes': {'/bolt': 302},
+            },
+            {
+                'name': 'Directus',
+                'category': 'cms',
+                'body': '<html><body>'
+                        '<title>Directus</title>'
+                        '<script src="/admin/assets/index.abc123.js"></script>'
+                        '<link href="/admin/assets/index.abc123.css" rel="stylesheet">'
+                        '<div>directus</div>'
+                        '</body></html>',
+                'probes': {'/admin': 302},
+            },
+            {
+                'name': 'nopCommerce',
+                'category': 'ecommerce',
+                'body': '<footer>Powered by nopCommerce</footer><div class="nopcommerce-store"></div>',
+                'probes': {'/admin': 302},
+            },
+            {
+                'name': 'Shopware',
+                'category': 'ecommerce',
+                'generator': 'Shopware',
+                'body': '<html><body><script>var shopware = {};</script>'
+                        '<link href="/theme/frontend/default/css/all.css">'
+                        '<div data-url="/widgets/index/menu"></div>'
+                        '<meta name="csrf-token" content="x"></body></html>',
+                'probes': {'/backend': 302},
+            },
+            {
+                'name': 'OctoberCMS',
+                'category': 'cms',
+                'generator': 'OctoberCMS',
+                'body': '<html><body>'
+                        '<link href="/themes/demo/assets/css/theme.css">'
+                        '<script src="/modules/system/assets/js/framework.js"></script>'
+                        '<div>October CMS</div>'
+                        '</body></html>',
+                'cookies': ['october_session'],
+                'probes': {'/backend': 302},
+            },
         ]
 
         for case in cases:
@@ -938,3 +1149,116 @@ class TestFingerprintFullCoverage(unittest.TestCase):
 
                 self.assertGreater(len(infra_candidates), 0)
                 self.assertEqual(infra_candidates[0]['provider'], case['provider'])
+
+    def test_collision_regressions_do_not_false_positive_on_generic_admin_routes(self):
+        """
+        Generic admin-like routes should not trigger CMS false positives without family hints.
+
+        :return: None
+        """
+
+        cases = [
+            {
+                'forbidden': 'Bolt CMS',
+                'body': '<html><body><a href="/bolt">Backend</a></body></html>',
+                'probes': {'/bolt': 302},
+            },
+            {
+                'forbidden': 'Directus',
+                'body': '<html><body>'
+                        '<script src="/admin/assets/index.js"></script>'
+                        '<link href="/admin/assets/index.css" rel="stylesheet">'
+                        '</body></html>',
+                'probes': {'/admin': 302},
+            },
+            {
+                'forbidden': 'Discourse',
+                'body': '<html><body>'
+                        '<h1>Discourse migration guide</h1>'
+                        '<img src="/uploads/default/original/1X/test.png">'
+                        '</body></html>',
+            },
+            {
+                'forbidden': 'Matomo',
+                'body': '<html><body>'
+                        '<h1>How to migrate from matomo</h1>'
+                        '<code>/matomo.js</code>'
+                        '<code>/matomo.php</code>'
+                        '</body></html>',
+            },
+            {
+                'forbidden': 'Neos',
+                'body': '<html><body>'
+                        '<h1>Neos deployment notes</h1>'
+                        '<link href="/_Resources/Static/Packages/Vendor.Site/app.css">'
+                        '</body></html>',
+            },
+            {
+                'forbidden': 'MODX',
+                'body': '<html><body>'
+                        '<a href="/manager/">manager</a>'
+                        '<script src="/assets/components/example.js"></script>'
+                        '</body></html>',
+                'probes': {'/manager/': 302},
+            },
+            {
+                'forbidden': 'Craft CMS',
+                'body': '<html><body>'
+                        '<script src="/cpresources/abc/app.js"></script>'
+                        '<link href="/cpresources/abc/app.css" rel="stylesheet">'
+                        '</body></html>',
+                'probes': {'/admin': 302},
+            },
+            {
+                'forbidden': 'Shopware',
+                'body': '<html><body>'
+                        '<link href="/theme/frontend/default/css/all.css">'
+                        '<div data-url="/widgets/index/menu"></div>'
+                        '<meta name="csrf-token" content="x">'
+                        '</body></html>',
+                'probes': {'/backend': 302},
+            },
+            {
+                'forbidden': 'OctoberCMS',
+                'body': '<html><body>'
+                        '<link href="/themes/demo/assets/css/theme.css">'
+                        '<script src="/modules/system/assets/js/framework.js"></script>'
+                        '</body></html>',
+                'probes': {'/backend': 302},
+            },
+            {
+                'forbidden': 'Pimcore',
+                'body': '<html><body>'
+                        '<link href="/bundles/pimcoreadmin/css/admin.css">'
+                        '<script src="/bundles/pimcorestatic6/js/app.js"></script>'
+                        '<a href="/admin/login">Admin</a>'
+                        '</body></html>',
+                'probes': {'/admin': 302},
+            },
+            {
+                'forbidden': 'Directus',
+                'body': '<html><body>'
+                        '<h1>How to migrate from directus to another CMS</h1>'
+                        '<script src="/admin/assets/index.js"></script>'
+                        '<link href="/admin/assets/index.css" rel="stylesheet">'
+                        '</body></html>',
+                'probes': {'/admin': 302},
+            },
+            {
+                'forbidden': 'Craft CMS',
+                'body': '<html><body><div id="root"></div></body></html>',
+                'cookies': ['craftsessionid'],
+            },
+        ]
+
+        for case in cases:
+            with self.subTest(case=case['forbidden']):
+                candidates, _ = self.apply_case(
+                    body=case.get('body', ''),
+                    cookies=case.get('cookies', []),
+                    probes=case.get('probes', {}),
+                )
+
+                top_names = [candidate['name'] for candidate in candidates[:3]]
+                self.assertNotIn(case['forbidden'], top_names)
+

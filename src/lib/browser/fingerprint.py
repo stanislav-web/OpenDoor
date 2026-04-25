@@ -68,6 +68,16 @@ class Fingerprint(object):
         '/typo3/',
         '/typo3conf/',
         '/typo3temp/',
+        '/status.php',
+        '/remote.php/dav/',
+        '/ocs/v1.php/cloud/capabilities?format=json',
+        '/umbraco/',
+        '/backend',
+        '/contao/',
+        '/api.php',
+        '/login/index.php',
+        '/manager/',
+        '/bolt',
     )
 
     NOT_FOUND_PROBE_PATH = '/.opendoor-fingerprint-not-found-probe'
@@ -586,7 +596,6 @@ class Fingerprint(object):
         if 'ghost-content' in body_lower or 'casper' in body_lower:
             self._add_signal('Ghost', self.CMS_CATEGORY, 'markup', 'ghost-content|casper', 4)
 
-
         # WooCommerce
         if '/wp-content/plugins/woocommerce/' in body_lower:
             self._add_signal('WooCommerce', self.ECOMMERCE_CATEGORY, 'asset', '/wp-content/plugins/woocommerce/', 7)
@@ -622,6 +631,296 @@ class Fingerprint(object):
             self._add_signal('TYPO3', self.CMS_CATEGORY, 'asset', '/typo3/|/typo3conf/|/typo3temp/', 6)
         if any(probe_statuses.get(path) in [200, 301, 302, 401, 403] for path in ['/typo3/', '/typo3conf/', '/typo3temp/']):
             self._add_signal('TYPO3', self.CMS_CATEGORY, 'endpoint', '/typo3/*', 4)
+
+        # Nextcloud
+        if 'nextcloud' in generator_lower:
+            self._add_signal('Nextcloud', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'nextcloud' in body_lower:
+            self._add_signal('Nextcloud', self.CMS_CATEGORY, 'markup', 'nextcloud', 6)
+        if '/apps/files/' in body_lower or '/ocs-provider/' in body_lower:
+            self._add_signal('Nextcloud', self.CMS_CATEGORY, 'asset', '/apps/files/|/ocs-provider/', 5)
+        if probe_statuses.get('/status.php') in [200, 401, 403]:
+            self._add_signal('Nextcloud', self.CMS_CATEGORY, 'endpoint', '/status.php', 2)
+        if probe_statuses.get('/remote.php/dav/') in [200, 401, 403, 405]:
+            self._add_signal('Nextcloud', self.CMS_CATEGORY, 'endpoint', '/remote.php/dav/', 2)
+
+        # ownCloud
+        if 'owncloud' in generator_lower:
+            self._add_signal('ownCloud', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'owncloud' in body_lower:
+            self._add_signal('ownCloud', self.CMS_CATEGORY, 'markup', 'owncloud', 6)
+        if '/core/js/oc.js' in body_lower or '/core/img/actions/' in body_lower:
+            self._add_signal('ownCloud', self.CMS_CATEGORY, 'asset', '/core/js/oc.js|/core/img/actions/', 5)
+        if probe_statuses.get('/ocs/v1.php/cloud/capabilities?format=json') in [200, 401, 403]:
+            self._add_signal('ownCloud', self.CMS_CATEGORY, 'endpoint', '/ocs/v1.php/cloud/capabilities?format=json', 4)
+        if probe_statuses.get('/status.php') in [200, 401, 403] and 'owncloud' in body_lower:
+            self._add_signal('ownCloud', self.CMS_CATEGORY, 'endpoint', '/status.php + owncloud', 2)
+
+        # phpMyAdmin
+        if 'phpmyadmin' in generator_lower:
+            self._add_signal('phpMyAdmin', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'phpmyadmin' in body_lower:
+            self._add_signal('phpMyAdmin', self.CMS_CATEGORY, 'markup', 'phpmyadmin', 7)
+        if '/themes/pmahomme/' in body_lower or 'pma_navigation' in body_lower or 'name="pma_username"' in body_lower:
+            self._add_signal('phpMyAdmin', self.CMS_CATEGORY, 'markup', '/themes/pmahomme/|pma_navigation|pma_username', 5)
+        if any(cookie in ['pma_lang', 'pma_collation_connection', 'pma_charset'] for cookie in cookies):
+            self._add_signal('phpMyAdmin', self.CMS_CATEGORY, 'cookie', 'pma_lang|pma_collation_connection|pma_charset', 6)
+
+        # phpBB
+        if 'phpbb' in generator_lower:
+            self._add_signal('phpBB', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'phpbb' in body_lower:
+            self._add_signal('phpBB', self.CMS_CATEGORY, 'markup', 'phpbb', 6)
+        if '/styles/prosilver/' in body_lower or 'prosilver' in body_lower:
+            self._add_signal('phpBB', self.CMS_CATEGORY, 'asset', '/styles/prosilver/|prosilver', 6)
+        if 'viewtopic.php' in body_lower or 'viewforum.php' in body_lower:
+            self._add_signal('phpBB', self.CMS_CATEGORY, 'markup', 'viewtopic.php|viewforum.php', 3)
+        if any(cookie.startswith('phpbb3_') or cookie.startswith('phpbb_') for cookie in cookies):
+            self._add_signal('phpBB', self.CMS_CATEGORY, 'cookie', 'phpbb3_*|phpbb_*', 7)
+
+        # Umbraco
+        if 'umbraco' in generator_lower:
+            self._add_signal('Umbraco', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'umbraco.sys.servervariables' in body_lower or '/umbraco/assets/' in body_lower or 'umb-app' in body_lower:
+            self._add_signal('Umbraco', self.CMS_CATEGORY, 'markup', 'Umbraco.Sys.ServerVariables|/umbraco/assets/|umb-app', 7)
+        if probe_statuses.get('/umbraco/') in [200, 301, 302, 401, 403]:
+            self._add_signal('Umbraco', self.CMS_CATEGORY, 'endpoint', '/umbraco/', 4)
+
+        # nopCommerce
+        if 'nopcommerce' in generator_lower:
+            self._add_signal('nopCommerce', self.ECOMMERCE_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'nopcommerce' in body_lower or 'powered by nopcommerce' in body_lower:
+            self._add_signal('nopCommerce', self.ECOMMERCE_CATEGORY, 'markup', 'nopcommerce|Powered by nopCommerce', 7)
+        if probe_statuses.get('/admin') in [200, 301, 302, 401, 403] and 'nopcommerce' in body_lower:
+            self._add_signal('nopCommerce', self.ECOMMERCE_CATEGORY, 'endpoint', '/admin + nopcommerce', 4)
+
+        # Shopware
+        shopware_hint = 'shopware' in generator_lower or 'shopware' in body_lower
+
+        if 'shopware' in generator_lower:
+            self._add_signal('Shopware', self.ECOMMERCE_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'shopware' in body_lower:
+            self._add_signal('Shopware', self.ECOMMERCE_CATEGORY, 'markup', 'shopware', 6)
+        if '/theme/' in body_lower and '/widgets/' in body_lower and shopware_hint:
+            self._add_signal('Shopware', self.ECOMMERCE_CATEGORY, 'asset', '/theme/ + /widgets/', 5)
+        if 'csrf-token' in body_lower and 'shopware' in body_lower:
+            self._add_signal('Shopware', self.ECOMMERCE_CATEGORY, 'markup', 'csrf-token + shopware', 3)
+        if probe_statuses.get('/backend') in [200, 301, 302, 401, 403] and shopware_hint:
+            self._add_signal('Shopware', self.ECOMMERCE_CATEGORY, 'endpoint', '/backend', 4)
+
+        # OctoberCMS
+        october_cookie_hint = any(cookie in ['october_session', 'october_session_cookie'] for cookie in cookies)
+        october_hint = (
+            'octobercms' in generator_lower
+            or 'october cms' in generator_lower
+            or 'octobercms' in body_lower
+            or 'october cms' in body_lower
+            or october_cookie_hint
+        )
+
+        if 'octobercms' in generator_lower or 'october cms' in generator_lower:
+            self._add_signal('OctoberCMS', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'octobercms' in body_lower or 'october cms' in body_lower:
+            self._add_signal('OctoberCMS', self.CMS_CATEGORY, 'markup', 'OctoberCMS|October CMS', 6)
+        if '/themes/' in body_lower and '/modules/system/' in body_lower and october_hint:
+            self._add_signal('OctoberCMS', self.CMS_CATEGORY, 'asset', '/themes/ + /modules/system/', 5)
+        if october_cookie_hint:
+            self._add_signal('OctoberCMS', self.CMS_CATEGORY, 'cookie', 'october_session*', 6)
+        if probe_statuses.get('/backend') in [200, 301, 302, 401, 403] and october_hint:
+            self._add_signal('OctoberCMS', self.CMS_CATEGORY, 'endpoint', '/backend', 3)
+
+        # Concrete CMS
+        if 'concrete cms' in generator_lower or 'concrete5' in generator_lower:
+            self._add_signal('Concrete CMS', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'concrete cms' in body_lower or 'concrete5' in body_lower:
+            self._add_signal('Concrete CMS', self.CMS_CATEGORY, 'markup', 'Concrete CMS|concrete5', 6)
+        if '/concrete/css/' in body_lower or '/concrete/js/' in body_lower:
+            self._add_signal('Concrete CMS', self.CMS_CATEGORY, 'asset', '/concrete/css/|/concrete/js/', 6)
+        if 'ccm-page' in body_lower or 'ccm-block-' in body_lower:
+            self._add_signal('Concrete CMS', self.CMS_CATEGORY, 'markup', 'ccm-page|ccm-block-*', 4)
+
+        # Contao
+        if 'contao' in generator_lower:
+            self._add_signal('Contao', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if '/bundles/contaocore/' in body_lower or '/files/contao' in body_lower:
+            self._add_signal('Contao', self.CMS_CATEGORY, 'asset', '/bundles/contaocore/|/files/contao', 6)
+        if 'contao' in body_lower:
+            self._add_signal('Contao', self.CMS_CATEGORY, 'markup', 'contao', 4)
+        if probe_statuses.get('/contao/') in [200, 301, 302, 401, 403]:
+            self._add_signal('Contao', self.CMS_CATEGORY, 'endpoint', '/contao/', 4)
+
+        # GravCMS
+        if 'gravcms' in generator_lower or 'grav cms' in generator_lower or 'grav' in generator_lower:
+            self._add_signal('GravCMS', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if '/user/themes/' in body_lower and '/system/assets/' in body_lower:
+            self._add_signal('GravCMS', self.CMS_CATEGORY, 'asset', '/user/themes/ + /system/assets/', 6)
+        if 'grav-' in body_lower or 'grav-language-select' in body_lower:
+            self._add_signal('GravCMS', self.CMS_CATEGORY, 'markup', 'grav-*', 4)
+        if 'gravcms' in body_lower or 'grav cms' in body_lower:
+            self._add_signal('GravCMS', self.CMS_CATEGORY, 'markup', 'GravCMS|Grav CMS', 5)
+
+        # MediaWiki
+        if 'mediawiki' in generator_lower:
+            self._add_signal('MediaWiki', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'mediawiki' in body_lower:
+            self._add_signal('MediaWiki', self.CMS_CATEGORY, 'markup', 'mediawiki', 5)
+        if '/w/resources/' in body_lower or 'mw-body' in body_lower or 'mw-page-title-main' in body_lower:
+            self._add_signal('MediaWiki', self.CMS_CATEGORY, 'asset', '/w/resources/|mw-body|mw-page-title-main', 6)
+        if probe_statuses.get('/api.php') in [200, 301, 302, 401, 403]:
+            self._add_signal('MediaWiki', self.CMS_CATEGORY, 'endpoint', '/api.php', 2)
+
+        # Moodle
+        if 'moodle' in generator_lower:
+            self._add_signal('Moodle', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'moodle' in body_lower:
+            self._add_signal('Moodle', self.CMS_CATEGORY, 'markup', 'moodle', 4)
+        if '/theme/image.php/' in body_lower or '/lib/javascript.php/' in body_lower:
+            self._add_signal('Moodle', self.CMS_CATEGORY, 'asset', '/theme/image.php/|/lib/javascript.php/', 6)
+        if any(cookie.startswith('moodlesession') for cookie in cookies):
+            self._add_signal('Moodle', self.CMS_CATEGORY, 'cookie', 'MoodleSession*', 7)
+        if probe_statuses.get('/login/index.php') in [200, 301, 302, 401, 403] and ('moodle' in body_lower or any(cookie.startswith('moodlesession') for cookie in cookies)):
+            self._add_signal('Moodle', self.CMS_CATEGORY, 'endpoint', '/login/index.php', 3)
+
+        # Pimcore
+        pimcore_text_hint = (
+            'pimcore' in generator_lower
+            or '>pimcore<' in body_lower
+            or ' content="pimcore' in body_lower
+            or " content='pimcore" in body_lower
+        )
+
+        if 'pimcore' in generator_lower:
+            self._add_signal('Pimcore', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if '>pimcore<' in body_lower:
+            self._add_signal('Pimcore', self.CMS_CATEGORY, 'markup', 'pimcore', 5)
+        if ('/bundles/pimcoreadmin/' in body_lower or '/bundles/pimcorestatic6/' in body_lower) and pimcore_text_hint:
+            self._add_signal('Pimcore', self.CMS_CATEGORY, 'asset', '/bundles/pimcoreadmin/|/bundles/pimcorestatic6/', 7)
+        if '/admin/login' in body_lower and pimcore_text_hint:
+            self._add_signal('Pimcore', self.CMS_CATEGORY, 'markup', '/admin/login', 3)
+        if probe_statuses.get('/admin') in [200, 301, 302, 401, 403] and pimcore_text_hint:
+            self._add_signal('Pimcore', self.CMS_CATEGORY, 'endpoint', '/admin + pimcore', 3)
+
+        # Discourse
+        discourse_marker_hint = (
+            'discourse' in generator_lower
+            or 'discourse-topic' in body_lower
+            or 'discourse-post' in body_lower
+            or 'data-discourse-setup' in body_lower
+        )
+        discourse_cookie_hint = any(cookie in ['_forum_session', 'discourse_sid'] for cookie in cookies)
+
+        if 'discourse' in generator_lower:
+            self._add_signal('Discourse', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'discourse-topic' in body_lower or 'discourse-post' in body_lower or 'data-discourse-setup' in body_lower:
+            self._add_signal('Discourse', self.CMS_CATEGORY, 'markup', 'discourse-topic|discourse-post|data-discourse-setup', 7)
+        if discourse_cookie_hint and discourse_marker_hint:
+            self._add_signal('Discourse', self.CMS_CATEGORY, 'cookie', '_forum_session|discourse_sid', 7)
+        if '/uploads/default/' in body_lower and (discourse_marker_hint or discourse_cookie_hint):
+            self._add_signal('Discourse', self.CMS_CATEGORY, 'asset', '/uploads/default/', 4)
+
+        # Matomo
+        matomo_cookie_hint = any(cookie in ['pk_id', 'pk_ses'] or cookie.startswith('_pk_') for cookie in cookies)
+        matomo_tracker_hint = (
+            'matomo' in generator_lower
+            or '_paq.push' in body_lower
+            or 'var _paq =' in body_lower
+        )
+
+        if 'matomo' in generator_lower:
+            self._add_signal('Matomo', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if '_paq.push' in body_lower or 'var _paq =' in body_lower:
+            self._add_signal('Matomo', self.CMS_CATEGORY, 'script', '_paq.push|var _paq', 7)
+        if ('matomo.js' in body_lower or 'matomo.php' in body_lower) and (matomo_tracker_hint or matomo_cookie_hint):
+            self._add_signal('Matomo', self.CMS_CATEGORY, 'asset', 'matomo.js|matomo.php', 7)
+        if matomo_cookie_hint and (matomo_tracker_hint or 'matomo.js' in body_lower or 'matomo.php' in body_lower):
+            self._add_signal('Matomo', self.CMS_CATEGORY, 'cookie', 'pk_id|pk_ses|_pk_*', 6)
+
+        # Bludit
+        if 'bludit' in generator_lower:
+            self._add_signal('Bludit', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if '/bl-themes/' in body_lower or '/bl-content/' in body_lower:
+            self._add_signal('Bludit', self.CMS_CATEGORY, 'asset', '/bl-themes/|/bl-content/', 7)
+        if 'bludit' in body_lower:
+            self._add_signal('Bludit', self.CMS_CATEGORY, 'markup', 'bludit', 4)
+        if probe_statuses.get('/admin') in [200, 301, 302, 401, 403] and '/bl-themes/' in body_lower:
+            self._add_signal('Bludit', self.CMS_CATEGORY, 'endpoint', '/admin + /bl-themes/', 3)
+
+        # MODX
+        modx_hint = (
+            'modx' in generator_lower
+            or 'modx revolution' in body_lower
+            or '>modx<' in body_lower
+        )
+
+        if 'modx' in generator_lower:
+            self._add_signal('MODX', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if '/assets/components/' in body_lower and modx_hint:
+            self._add_signal('MODX', self.CMS_CATEGORY, 'asset', '/assets/components/', 7)
+        if ('/manager/' in body_lower or 'modx revolution' in body_lower or '>modx<' in body_lower) and modx_hint:
+            self._add_signal('MODX', self.CMS_CATEGORY, 'markup', '/manager/|MODX Revolution|modx', 4)
+        if probe_statuses.get('/manager/') in [200, 301, 302, 401, 403] and modx_hint:
+            self._add_signal('MODX', self.CMS_CATEGORY, 'endpoint', '/manager/', 4)
+
+        # Neos
+        neos_text_hint = (
+            'neos' in generator_lower
+            or 'typo3 neos' in generator_lower
+            or 'neos-contentcollection' in body_lower
+            or 'typo3 neos' in body_lower
+        )
+
+        if 'neos' in generator_lower or 'typo3 neos' in generator_lower:
+            self._add_signal('Neos', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if '/_resources/static/packages/' in body_lower and neos_text_hint:
+            self._add_signal('Neos', self.CMS_CATEGORY, 'asset', '/_Resources/Static/Packages/', 7)
+        if 'neos-contentcollection' in body_lower or 'typo3 neos' in body_lower:
+            self._add_signal('Neos', self.CMS_CATEGORY, 'markup', 'neos-contentcollection|TYPO3 Neos', 4)
+
+        # Craft CMS
+        craft_cookie_hint = any(cookie in ['craftsessionid', 'craft_csrf_token'] for cookie in cookies)
+        craft_text_hint = (
+            'craft cms' in generator_lower
+            or 'craftcms' in generator_lower
+            or 'craft cms' in body_lower
+            or 'craftcms' in body_lower
+        )
+        craft_asset_hint = '/cpresources/' in body_lower
+
+        if 'craft cms' in generator_lower or 'craftcms' in generator_lower:
+            self._add_signal('Craft CMS', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'craft cms' in body_lower or 'craftcms' in body_lower:
+            self._add_signal('Craft CMS', self.CMS_CATEGORY, 'markup', 'Craft CMS|craftcms', 4)
+        if craft_asset_hint and (craft_text_hint or craft_cookie_hint):
+            self._add_signal('Craft CMS', self.CMS_CATEGORY, 'asset', '/cpresources/', 7)
+        if craft_cookie_hint and (craft_text_hint or craft_asset_hint):
+            self._add_signal('Craft CMS', self.CMS_CATEGORY, 'cookie', 'CraftSessionId|CRAFT_CSRF_TOKEN', 6)
+        if probe_statuses.get('/admin') in [200, 301, 302, 401, 403] and craft_asset_hint and (craft_text_hint or craft_cookie_hint):
+            self._add_signal('Craft CMS', self.CMS_CATEGORY, 'endpoint', '/admin + /cpresources/', 3)
+
+        # Bolt CMS
+        bolt_hint = 'bolt' in generator_lower or 'bolt' in x_powered_by
+
+        if 'bolt' in generator_lower or 'bolt cms' in generator_lower:
+            self._add_signal('Bolt CMS', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if 'bolt' in x_powered_by:
+            self._add_signal('Bolt CMS', self.CMS_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 6)
+        if ('/bolt/' in body_lower or 'href="/bolt"' in body_lower or "href='/bolt'" in body_lower) and bolt_hint:
+            self._add_signal('Bolt CMS', self.CMS_CATEGORY, 'markup', '/bolt', 2)
+        if probe_statuses.get('/bolt') in [200, 301, 302, 401, 403] and bolt_hint:
+            self._add_signal('Bolt CMS', self.CMS_CATEGORY, 'endpoint', '/bolt', 4)
+
+        # Directus
+        directus_title_hint = '<title>directus' in body_lower
+        directus_hint = 'directus' in generator_lower or directus_title_hint
+
+        if 'directus' in generator_lower:
+            self._add_signal('Directus', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if directus_title_hint:
+            self._add_signal('Directus', self.CMS_CATEGORY, 'markup', '<title>Directus', 4)
+        if '/admin/assets/' in body_lower and directus_hint:
+            self._add_signal('Directus', self.CMS_CATEGORY, 'asset', '/admin/assets/', 6)
+        if probe_statuses.get('/admin') in [200, 301, 302, 401, 403] and '/admin/assets/' in body_lower and directus_hint:
+            self._add_signal('Directus', self.CMS_CATEGORY, 'endpoint', '/admin + /admin/assets/', 4)
 
         # Strapi
         if 'strapi' in x_powered_by:
