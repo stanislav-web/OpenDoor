@@ -18,6 +18,7 @@
 
 import copy
 import threading
+import time
 from .session import SessionManager, SessionError
 from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError
 from src.core import SocketError
@@ -59,6 +60,12 @@ class Browser(Filter):
             self.__pending_requests = {}
             self.__processed_offset = 0
             self.__session_snapshot = params.get('session_snapshot')
+            self.__waf_safe_lock = threading.RLock()
+            self.__waf_safe_active = False
+            self.__waf_safe_next_at = 0.0
+            self.__waf_safe_delay = 0.75
+            self.__waf_safe_vendor = None
+            self.__waf_safe_confidence = None
             requested_method = str(getattr(self.__config, '_method', '') or '').upper()
             effective_method = str(getattr(self.__config, 'method', '') or '').upper()
 
@@ -251,6 +258,79 @@ class Browser(Filter):
                 self.__client = request_http(self.__config, agent_list=self.__reader.get_user_agents(),
                                              debug=self.__debug, tpl=tpl)
 
+    def __request_with_waf_safe_mode(self, url):
+        """
+        Serialize outbound requests when WAF safe mode is active.
+
+        :param str url:
+        :return:
+        """
+
+        self.__ensure_session_runtime_state()
+
+        if True is not getattr(self.__config, 'is_waf_safe_mode', False):
+            return self.__client.request(url)
+
+        if True is not self.__waf_safe_active:
+            return self.__client.request(url)
+
+        with self.__waf_safe_lock:
+            now = time.monotonic()
+            if now < self.__waf_safe_next_at:
+                time.sleep(self.__waf_safe_next_at - now)
+
+            response = self.__client.request(url)
+            self.__waf_safe_next_at = time.monotonic() + self.__waf_safe_delay
+            return response
+
+    def __activate_waf_safe_mode(self, detection):
+        """
+        Activate cautious scan profile after the first WAF detection.
+
+        :param dict|None detection:
+        :return: None
+        """
+
+        self.__ensure_session_runtime_state()
+
+        if True is not getattr(self.__config, 'is_waf_safe_mode', False):
+            return
+
+        if False is isinstance(detection, dict):
+            return
+
+        with self.__waf_safe_lock:
+            if True is self.__waf_safe_active:
+                return
+
+            self.__waf_safe_active = True
+            self.__waf_safe_vendor = detection.get('name')
+            self.__waf_safe_confidence = detection.get('confidence')
+            self.__waf_safe_next_at = time.monotonic() + self.__waf_safe_delay
+
+        tpl.warning(
+            key='waf_safe_mode_activated',
+            vendor=self.__waf_safe_vendor or 'Generic WAF',
+            confidence=self.__waf_safe_confidence if self.__waf_safe_confidence is not None else '-',
+            delay=self.__waf_safe_delay
+        )
+
+    def __should_suspend_recursive_expansion(self, response_status):
+        """
+        Do not let blocked responses amplify recursive scans in WAF safe mode.
+
+        :param str response_status:
+        :return: bool
+        """
+
+        self.__ensure_session_runtime_state()
+
+        return (
+            getattr(self.__config, 'is_waf_safe_mode', False) is True
+            and self.__waf_safe_active is True
+            and response_status == 'blocked'
+        )
+
     def __http_request(self, url, depth=0):
         """
         Make HTTP request
@@ -262,7 +342,7 @@ class Browser(Filter):
         self.__ensure_session_runtime_state()
 
         try:
-            resp = self.__client.request(url)
+            resp = self.__request_with_waf_safe_mode(url)
 
             response_data = self.__response.handle(
                 resp,
@@ -280,6 +360,7 @@ class Browser(Filter):
                 waf_detection = None
                 if response_data[0] == 'blocked':
                     waf_detection = getattr(self.__response, 'waf_detection', None)
+                    self.__activate_waf_safe_mode(waf_detection)
 
                 self.__catch_report_data(
                     response_data[0],
@@ -289,10 +370,11 @@ class Browser(Filter):
                     metadata=waf_detection,
                 )
 
-                if self.__should_expand_recursively(response_data[3], response_data[1], depth):
-                    if response_data[1] not in self.__visited_recursive:
-                        self.__visited_recursive.add(response_data[1])
-                        self.__enqueue_recursive_children(response_data[1], depth)
+                if False is self.__should_suspend_recursive_expansion(response_data[0]):
+                    if self.__should_expand_recursively(response_data[3], response_data[1], depth):
+                        if response_data[1] not in self.__visited_recursive:
+                            self.__visited_recursive.add(response_data[1])
+                            self.__enqueue_recursive_children(response_data[1], depth)
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) as error:
             raise BrowserError(error)
@@ -642,6 +724,12 @@ class Browser(Filter):
                 'total_items': self.__pool.total_items_size,
             },
             'checkpointReason': reason,
+            'wafSafeMode': {
+                'active': self.__waf_safe_active,
+                'vendor': self.__waf_safe_vendor,
+                'confidence': self.__waf_safe_confidence,
+                'delay': self.__waf_safe_delay,
+            },
         }
 
     def __export_session_params(self):
@@ -662,6 +750,7 @@ class Browser(Filter):
             'keep_alive': self.__config.keep_alive,
             'fingerprint': getattr(self.__config, 'is_fingerprint', False),
             'waf_detect': getattr(self.__config, 'is_waf_detect', False),
+            'waf_safe_mode': getattr(self.__config, 'is_waf_safe_mode', False),
             'wordlist': getattr(self.__config, 'wordlist', None),
             'reports': ','.join(self.__config.reports),
             'reports_dir': getattr(self.__config, 'reports_dir', None),
@@ -739,6 +828,12 @@ class Browser(Filter):
         if saved_total > self.__pool.total_items_size:
             self.__pool.total_items_size = saved_total
 
+        waf_safe = snapshot.get('wafSafeMode') or {}
+        self.__waf_safe_active = bool(waf_safe.get('active', False))
+        self.__waf_safe_vendor = waf_safe.get('vendor')
+        self.__waf_safe_confidence = waf_safe.get('confidence')
+        self.__waf_safe_delay = float(waf_safe.get('delay', 0.75))
+        self.__waf_safe_next_at = 0.0
         self.__session_dirty = False
 
     def __save_session(self, reason='periodic', force=False):
@@ -833,3 +928,20 @@ class Browser(Filter):
                 'items': helper.list(),
                 'report_items': helper.list()
             }
+        if not hasattr(self, '_Browser__waf_safe_lock'):
+            self.__waf_safe_lock = threading.RLock()
+
+        if not hasattr(self, '_Browser__waf_safe_active'):
+            self.__waf_safe_active = False
+
+        if not hasattr(self, '_Browser__waf_safe_next_at'):
+            self.__waf_safe_next_at = 0.0
+
+        if not hasattr(self, '_Browser__waf_safe_delay'):
+            self.__waf_safe_delay = 0.75
+
+        if not hasattr(self, '_Browser__waf_safe_vendor'):
+            self.__waf_safe_vendor = None
+
+        if not hasattr(self, '_Browser__waf_safe_confidence'):
+            self.__waf_safe_confidence = None

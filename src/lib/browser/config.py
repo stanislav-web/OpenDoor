@@ -63,7 +63,8 @@ class Config(object):
         self._prefix = '' if params.get('prefix') is None else params.get('prefix')
         self._reports = self._normalize_csv(params.get('reports'))
         self._is_fingerprint = params.get('fingerprint') is True
-        self._is_waf_detect = params.get('waf_detect') is True
+        self._is_waf_safe_mode = params.get('waf_safe_mode') is True
+        self._is_waf_detect = params.get('waf_detect') is True or self._is_waf_safe_mode is True
         self._extensions = self._normalize_csv(params.get('extensions'))
         self._ignore_extensions = self._normalize_csv(params.get('ignore_extensions'))
         self._is_recursive = params.get('recursive') is True
@@ -362,6 +363,12 @@ class Config(object):
         """If passive WAF / anti-bot detection is enabled."""
 
         return self._is_waf_detect
+
+    @property
+    def is_waf_safe_mode(self):
+        """If WAF-aware safe mode is enabled."""
+
+        return self._is_waf_safe_mode
 
     @property
     def is_random_user_agent(self):

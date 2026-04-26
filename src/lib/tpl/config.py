@@ -73,5 +73,6 @@ class Config(object):
         'forbidden': 'Denied {url}',
         'auth': 'Auth {url}',
         'blocked': 'WAF {url}',
+        'waf_safe_mode_activated': 'WAF safe mode activated: {vendor} ({confidence}%), serialized requests, cooldown={delay}s, recursive expansion suspended for blocked responses',
         'redirect': 'R {url} -> {rurl}'
     }

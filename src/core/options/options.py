@@ -203,6 +203,15 @@ class Options(object):
                 "type": bool
             },
             {
+                "group": "request",
+                "args": None,
+                "argl": "--waf-safe-mode",
+                "default": False,
+                "action": "store_true",
+                "help": "Automatically switch to a cautious scan profile after WAF detection",
+                "type": bool
+            },
+            {
                 "group": "debug",
                 "args": None,
                 "argl": "--debug",
@@ -622,6 +631,9 @@ class Options(object):
                     if value:
                         args[arg] = value
                 args = Filter.filter(args)
+
+                if args.get('waf_safe_mode') is True:
+                    args['waf_detect'] = True
 
             return args
 
