@@ -30,13 +30,16 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
     - Directories: 122420
     - Subdomains: 255359
 
-##### 5.9.0 (26.04.2026)
-- (feature) added passive WAF / anti-bot recognition behind the opt-in `--waf-detect` flag
-- (feature) added vendor-aware WAF identification with confidence scoring in debug and reports
-- (feature) added support for Anubis, Cloudflare, Sucuri, Akamai, Imperva, Distil, F5 BIG-IP ASM, AWS WAF, Azure Front Door, Fastly, ModSecurity, DataDome, PerimeterX / HUMAN, Kasada, Barracuda, Radware, FortiWeb, Reblaze, NetScaler / Citrix WAF, AppTrana, and Huawei Cloud WAF
-- (enhancement) WAF detection remains strict opt-in and does not affect default scan behavior or performance without `--waf-detect`
-- (enhancement) WAF metadata is preserved in standard debug output and detailed reports while keeping the response status as `blocked`
-- (tests) expanded WAF coverage and stabilized passive recognition paths
+##### v5.9.1 (27.04.2026)
+
+- (enhancement) added `--waf-safe-mode` for cautious scanning after WAF detection
+- (enhancement) `--waf-safe-mode` automatically enables passive `--waf-detect`
+- (enhancement) safe mode serializes follow-up requests after WAF detection and applies cooldown between requests
+- (enhancement) blocked WAF responses no longer trigger recursive expansion while safe mode is active
+- (enhancement) WAF safe mode state is persisted in session checkpoints and restored on resume
+- (enhancement) added template warning for safe mode activation
+- (tests) expanded regression coverage for WAF safe mode runtime, session restore and Browser branches
+- (tests) full unittest suite passes after integration (`883` tests)
 
 #### [Changelog](CHANGELOG.md) (last changes)
 
@@ -54,10 +57,14 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
     * identify probable CMS, ecommerce platforms, frameworks, site builders, and static-site tooling
     * detect infrastructure providers such as AWS, Cloudflare, Vercel, Netlify, GitHub Pages, GitLab Pages, Heroku, Azure, Google Cloud, Fastly, Akamai, and OpenResty
     * print application and infrastructure confidence in the standard report
-- ✅ WAF / anti-bot recognition
-    * passive detection via `--waf-detect`
-    * keep `blocked` as the response status while exposing vendor and confidence in debug / reports
-    * identify probable protections such as Anubis, Cloudflare, Sucuri, Akamai, Imperva, AWS WAF, Azure Front Door, Fastly, ModSecurity, DataDome, FortiWeb, Reblaze, NetScaler / Citrix WAF, AppTrana, and Huawei Cloud WAF
+- ✅ WAF detection and safe mode
+    * passive WAF / anti-bot recognition via `--waf-detect`
+    * detect probable vendors such as Anubis, Cloudflare, Sucuri, Akamai, Imperva, Distil, F5 BIG-IP ASM, AWS WAF, Azure Front Door, Fastly, ModSecurity, DataDome, PerimeterX / HUMAN, Kasada, Barracuda, Radware, FortiWeb, Reblaze, NetScaler / Citrix WAF, AppTrana, and Huawei Cloud WAF
+    * cautious runtime profile via `--waf-safe-mode`
+    * safe mode automatically enables `--waf-detect`
+    * serialize requests and apply cooldown after first WAF detection
+    * suspend recursive expansion for blocked responses while safe mode is active
+    * persist WAF safe mode state in session checkpoints
 - ✅ session control
     * runtime pause / resume session
     * persistent scan sessions
@@ -473,6 +480,7 @@ usage: opendoor.py [-h] [--host HOST | --hostlist HOSTLIST | --stdin | --session
 | Request tools | `--accept-cookies` | Accept and route cookies from responses |
 | Request tools | `--fingerprint` | Detect probable CMS, framework or custom stack before the scan |
 | Request tools | `--waf-detect` | Passively detect probable WAF or anti-bot protections before classifying a response |
+| Request tools | `--waf-safe-mode` | Automatically switch to a cautious scan profile after WAF detection |
 | Request tools | `--tor` | Use built-in proxy list |
 | Request tools | `--torlist TORLIST` | Path to custom proxy list |
 | Request tools | `--proxy PROXY` | Custom permanent proxy server |

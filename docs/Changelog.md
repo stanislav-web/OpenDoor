@@ -1,6 +1,17 @@
 Changelog
 =========
 
+v5.9.1 (27.04.2026)
+---------------------------
+- (enhancement) added `--waf-safe-mode` for cautious scanning after WAF detection
+- (enhancement) `--waf-safe-mode` automatically enables passive `--waf-detect`
+- (enhancement) safe mode serializes follow-up requests after WAF detection and applies cooldown between requests
+- (enhancement) blocked WAF responses no longer trigger recursive expansion while safe mode is active
+- (enhancement) WAF safe mode state is persisted in session checkpoints and restored on resume
+- (enhancement) added template warning for safe mode activation
+- (tests) expanded regression coverage for WAF safe mode runtime, session restore and Browser branches
+- (tests) full unittest suite passes after integration (`883` tests)
+
 v5.9.0 (26.04.2026)
 ---------------------------
 - (feature) added passive WAF / anti-bot recognition behind the opt-in `--waf-detect` flag
