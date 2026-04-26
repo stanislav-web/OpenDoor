@@ -730,5 +730,36 @@ class TestOptions(unittest.TestCase):
 
         self.assertEqual(actual, {'docs': True})
 
+    def test_get_arg_values_keeps_waf_detect_flag(self):
+        """Options.get_arg_values() should keep the --waf-detect flag."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            waf_detect=True,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'targets': [{'host': 'example.com', 'scheme': 'http://', 'ssl': False, 'source': 'example.com'}],
+            'waf_detect': True,
+        }
+
+        with patch('src.core.options.options.Filter.filter', return_value=filtered):
+            actual = option.get_arg_values()
+
+        self.assertTrue(actual['waf_detect'])
+
 if __name__ == '__main__':
     unittest.main()

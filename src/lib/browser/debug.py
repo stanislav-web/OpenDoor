@@ -133,10 +133,21 @@ class Debug(DebugProvider):
             request_uri = tpl.line(key='forbidden', color='yellow', url=urlpath)
         elif status in ['redirect']:
             request_uri = tpl.line(key='redirect', color='blue', url=urlpath, rurl=kwargs.get('redirect_uri'))
+        elif status in ['blocked']:
+            waf_name = kwargs.get('waf_name')
+            waf_confidence = kwargs.get('waf_confidence')
+
+            if waf_name:
+                request_uri = tpl.line(
+                    msg='WAF: {0} ({1}%) {2}'.format(waf_name, waf_confidence, urlpath),
+                    color='yellow'
+                )
+            else:
+                request_uri = tpl.line(key=status, color='yellow', url=urlpath)
 
         self.__clear = True if self.__catched else False
 
-        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'indexof', 'certificate', 'auth']:
+        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'blocked', 'indexof', 'certificate', 'auth']:
             sys.writels('', flush=True)
             tpl.info(
                 key='get_item',

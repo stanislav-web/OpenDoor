@@ -31,6 +31,7 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
             'accept_cookies': False,
             'keep_alive': False,
             'is_fingerprint': True,
+            'is_waf_detect': True,
             'wordlist': '/tmp/wordlist.txt',
             'reports': ['std', 'json'],
             'reports_dir': '/tmp/reports',
@@ -159,6 +160,7 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
         self.assertEqual(params['sniff'], 'indexof,file')
         self.assertEqual(params['session_save'], '/tmp/opendoor-session.json')
         self.assertTrue(params['fingerprint'])
+        self.assertTrue(params['waf_detect'])
 
     def test_restore_session_state_rehydrates_pending_sets_and_total_size(self):
         """Browser should restore logical checkpoint state into runtime structures."""

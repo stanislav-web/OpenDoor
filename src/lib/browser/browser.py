@@ -277,11 +277,16 @@ class Browser(Filter):
             elif False is self.__is_response_allowed(resp, response_data):
                 self.__catch_report_data('ignored', response_data[1], response_data[2], response_data[3])
             else:
+                waf_detection = None
+                if response_data[0] == 'blocked':
+                    waf_detection = getattr(self.__response, 'waf_detection', None)
+
                 self.__catch_report_data(
                     response_data[0],
                     response_data[1],
                     response_data[2],
-                    response_data[3]
+                    response_data[3],
+                    metadata=waf_detection,
                 )
 
                 if self.__should_expand_recursively(response_data[3], response_data[1], depth):
@@ -529,22 +534,33 @@ class Browser(Filter):
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt
 
-    def __catch_report_data(self, status, url, size='0B', code='-'):
+    def __catch_report_data(self, status, url, size='0B', code='-', metadata=None):
         """
-        Add to basket report pool
+        Add to basket report pool.
         :param str status: response status
-        :param url: request url
+        :param str url: request url
         :param str size: response content size
         :param str code: actual response code
+        :param dict|None metadata: extra report metadata
         :return: None
         """
 
         if 'report_items' not in self.__result:
             self.__result['report_items'] = helper.list()
 
+        item = {'url': url, 'size': size, 'code': str(code)}
+
+        if isinstance(metadata, dict):
+            if metadata.get('name'):
+                item['waf'] = metadata.get('name')
+            if metadata.get('confidence') is not None:
+                item['waf_confidence'] = int(metadata.get('confidence'))
+            if metadata.get('signals'):
+                item['waf_signals'] = list(metadata.get('signals'))
+
         self.__result['total'].update((status,))
         self.__result['items'][status] += [url]
-        self.__result['report_items'][status] += [{'url': url, 'size': size, 'code': str(code)}]
+        self.__result['report_items'][status] += [item]
 
     def done(self):
         """
@@ -645,6 +661,7 @@ class Browser(Filter):
             'accept_cookies': self.__config.accept_cookies,
             'keep_alive': self.__config.keep_alive,
             'fingerprint': getattr(self.__config, 'is_fingerprint', False),
+            'waf_detect': getattr(self.__config, 'is_waf_detect', False),
             'wordlist': getattr(self.__config, 'wordlist', None),
             'reports': ','.join(self.__config.reports),
             'reports_dir': getattr(self.__config, 'reports_dir', None),

@@ -267,5 +267,20 @@ class TestReporter(unittest.TestCase):
         self.assertIn('fingerprint_infra', rendered)
         self.assertIn('AWS CloudFront', rendered)
 
+    def test_plugin_provider_formats_waf_metadata(self):
+        """PluginProvider should append WAF metadata for text-based sinks."""
+
+        provider = PluginProvider('test.local', {'items': {}, 'report_items': {}})
+
+        actual = provider.format_report_item({
+            'url': 'https://example.com/login',
+            'code': '403',
+            'size': '25B',
+            'waf': 'Cloudflare',
+            'waf_confidence': 92,
+        })
+
+        self.assertEqual(actual, 'https://example.com/login - 403 - 25B - WAF: Cloudflare (92%)')
+
 if __name__ == '__main__':
     unittest.main()

@@ -699,6 +699,38 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(result['items']['success'], ['http://example.com/admin'])
         self.assertEqual(result['report_items']['success'], [{'url': 'http://example.com/admin', 'size': '5B', 'code': '200'}])
 
+    def test_catch_report_data_keeps_waf_metadata_for_blocked_items(self):
+        """Browser.__catch_report_data() should persist WAF metadata into detailed report items."""
+
+        br = browser.__new__(browser)
+        setattr(br, '_Browser__result', {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()})
+
+        br._Browser__catch_report_data(
+            'blocked',
+            'https://example.com/login',
+            '25B',
+            '200',
+            metadata={
+                'name': 'Cloudflare',
+                'confidence': 92,
+                'signals': ['header:cf-ray', 'header:server: cloudflare'],
+            }
+        )
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['items']['blocked'], ['https://example.com/login'])
+        self.assertEqual(
+            result['report_items']['blocked'],
+            [{
+                'url': 'https://example.com/login',
+                'size': '25B',
+                'code': '200',
+                'waf': 'Cloudflare',
+                'waf_confidence': 92,
+                'waf_signals': ['header:cf-ray', 'header:server: cloudflare'],
+            }]
+        )
+
     def test_done_processes_reports_when_queue_is_empty(self):
         """Browser.done() should load and process all configured reports when the queue is the queue is empty."""
 

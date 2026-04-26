@@ -4749,8 +4749,6 @@
 !setup.asp
 !textove_diskuse
 !ut
-"the
-#1bitch
 %00.cfm
 %2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd
 %2e%2e//google.com
@@ -4816,7 +4814,6 @@
 ../../../../../../etc/passwd
 ../../../../../../home/ubuntu/.env
 ../../data/config/microsrv.cfg
-..;
 ..;/examples/jsp/index.html
 ..;/examples/servlets/index.html
 ..;/examples/websocket/index.xhtml
@@ -87757,6 +87754,8 @@ predator.php
 Predator.php
 Predicate.php
 predict
+predictions
+predictions.php
 predl_ok.htm
 prednosti.php
 preeti
@@ -94187,17 +94186,6 @@ robots-old.txt
 robots.php
 robots.phtml
 robots.txt
-robots.txt%2e%2e%3B
-robots.txt.20090320
-robots.txt.20120205
-robots.txt..%3B
-robots.txt../admin
-robots.txt..;
-robots.txt.dist
-robots.txt/%2e%2e%3B
-robots.txt/..%3B
-robots.txt/../admin
-robots.txt/..;
 robots/.env
 robots_ssl.txt
 robotstats
@@ -102503,7 +102491,6 @@ static/..%5c..%5cetc/passwd
 static/..%5cetc/passwd
 static/../../../a/../../../../etc/passwd
 static/../admin
-static/..;
 static/.env
 static/.svnentries
 static/api/swagger.json

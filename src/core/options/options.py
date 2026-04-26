@@ -194,6 +194,15 @@ class Options(object):
                 "type": bool
             },
             {
+                "group": "request",
+                "args": None,
+                "argl": "--waf-detect",
+                "default": False,
+                "action": "store_true",
+                "help": "Passively detect probable WAF or anti-bot protections before classifying a response",
+                "type": bool
+            },
+            {
                 "group": "debug",
                 "args": None,
                 "argl": "--debug",

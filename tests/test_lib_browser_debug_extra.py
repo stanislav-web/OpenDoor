@@ -97,6 +97,45 @@ class TestBrowserDebugExtra(unittest.TestCase):
         line_log_mock.assert_not_called()
         writels_mock.assert_called_once_with('', flush=True)
 
+    def test_debug_request_uri_handles_blocked_status(self):
+        """Debug.debug_request_uri() should render blocked responses as visible scan items."""
+
+        dbg = self.make_debug({'debug': 1, 'reports': 'std'})
+        with patch('src.lib.browser.debug.tpl.info') as info_mock, \
+                patch('src.lib.browser.debug.tpl.line', side_effect=lambda *args, **kwargs: kwargs.get('url') or kwargs.get('msg') or 'line'), \
+                patch('src.lib.browser.debug.sys.writels') as writels_mock:
+            dbg.debug_request_uri(
+                'blocked',
+                'http://test.local/path',
+                items_size=1,
+                total_size=1,
+                content_size='5KB',
+                response_code='200'
+            )
+
+        info_mock.assert_called_once()
+        writels_mock.assert_called_once_with('', flush=True)
+
+    def test_debug_request_uri_renders_named_blocked_waf(self):
+        """Debug.debug_request_uri() should show WAF vendor name and confidence for blocked responses."""
+
+        dbg = self.make_debug({'debug': 1, 'reports': 'std'})
+        with patch('src.lib.browser.debug.tpl.info') as info_mock, \
+                patch('src.lib.browser.debug.tpl.line', side_effect=lambda *args, **kwargs: kwargs.get('msg') or kwargs.get('url') or 'line'), \
+                patch('src.lib.browser.debug.sys.writels'):
+            dbg.debug_request_uri(
+                'blocked',
+                'http://test.local/path',
+                items_size=1,
+                total_size=1,
+                content_size='5KB',
+                response_code='200',
+                waf_name='Anubis',
+                waf_confidence=95,
+            )
+
+        rendered_item = info_mock.call_args.kwargs.get('item')
+        self.assertIn('WAF: Anubis (95%)', rendered_item)
 
 if __name__ == '__main__':
     unittest.main()

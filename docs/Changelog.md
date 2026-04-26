@@ -1,5 +1,15 @@
 Changelog
 =========
+
+v5.9.0 (26.04.2026)
+---------------------------
+- (feature) added passive WAF / anti-bot recognition behind the opt-in `--waf-detect` flag
+- (feature) added vendor-aware WAF identification with confidence scoring in debug and reports
+- (feature) added support for Anubis, Cloudflare, Sucuri, Akamai, Imperva, Distil, F5 BIG-IP ASM, AWS WAF, Azure Front Door, Fastly, ModSecurity, DataDome, PerimeterX / HUMAN, Kasada, Barracuda, Radware, FortiWeb, Reblaze, NetScaler / Citrix WAF, AppTrana, and Huawei Cloud WAF
+- (enhancement) WAF detection remains strict opt-in and does not affect default scan behavior or performance without `--waf-detect`
+- (enhancement) WAF metadata is preserved in standard debug output and detailed reports while keeping the response status as `blocked`
+- (tests) expanded WAF coverage and stabilized passive recognition paths
+
 v5.8.2 (26.04.2026)
 ---------------------------
 - (dictionary) added `+11572` new potencial directries to wordlist

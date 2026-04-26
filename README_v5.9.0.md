@@ -27,7 +27,7 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
 [![CodeQL](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql)
 
 * *Built-in dictionaries*
-    - Directories: 122420
+    - Directories: 122433
     - Subdomains: 255359
 
 ##### 5.9.0 (26.04.2026)
@@ -88,7 +88,7 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
     * TXT reports
     * HTML reports
     * SQLITE reports
-- ✅ analyze techniques:
+- ✅ analyze techniques
     * detect redirects
     * detect index of/ Apache
     * detect large files
@@ -98,7 +98,7 @@ The project is part of [BlackArch Linux](https://blackarch.org/webapp.html) and 
     * heuristic detect invalid pages (false 404)
     * blank success page filter
     * certificate required pages
-- ✅ randomization techniques:
+- ✅ randomization techniques
     * random user-agent per request
     * random proxy per request
     * wordlists shuffling
@@ -492,6 +492,9 @@ usage: opendoor.py [-h] [--host HOST | --hostlist HOSTLIST | --stdin | --session
 | Wordlist tools | `--recursive-depth RECURSIVE_DEPTH` | Maximum recursive scan depth |
 | Wordlist tools | `--recursive-status RECURSIVE_STATUS` | HTTP status codes allowed for recursive expansion |
 | Wordlist tools | `--recursive-exclude RECURSIVE_EXCLUDE` | File extensions excluded from recursive expansion |
+
+#### Maintainers
+- @stanislav-web <https://github.com/stanislav-web> (Developer)
 
 ### Tests
 ```bash

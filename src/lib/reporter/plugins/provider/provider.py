@@ -74,11 +74,19 @@ class PluginProvider(object):
         """
 
         if isinstance(item, dict):
-            return '{0} - {1} - {2}'.format(
+            result = '{0} - {1} - {2}'.format(
                 item.get('url', ''),
                 item.get('code', '-'),
                 item.get('size', '0B')
             )
+
+            if item.get('waf'):
+                result += ' - WAF: {0} ({1}%)'.format(
+                    item.get('waf'),
+                    item.get('waf_confidence', '-')
+                )
+
+            return result
         return str(item)
 
     def process(self):

@@ -87,6 +87,7 @@ class Response(ResponseProvider):
                 redirect_uri = None
                 content_size = ResponseProvider._get_content_size(response)
                 response_code = str(response.status)
+                waf_detection = self.waf_detection if status == self.DEFAULT_WAF_STATUS else None
 
                 if status in ['redirect']:
                     redirect_uri = self._get_redirect_url(request_url, response)
@@ -113,6 +114,8 @@ class Response(ResponseProvider):
                     total_size=total_size,
                     content_size=content_size,
                     response_code=response_code,
+                    waf_name=waf_detection.get('name') if waf_detection else None,
+                    waf_confidence=waf_detection.get('confidence') if waf_detection else None,
                 )
 
                 return status, url, content_size, response_code

@@ -72,5 +72,6 @@ class Config(object):
         'indexof': 'Index {url}',
         'forbidden': 'Denied {url}',
         'auth': 'Auth {url}',
+        'blocked': 'WAF {url}',
         'redirect': 'R {url} -> {rurl}'
     }

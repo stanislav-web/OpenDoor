@@ -340,5 +340,14 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(cfg.session_autosave_items, 13)
         self.assertTrue(cfg.is_session_enabled)
 
+    def test_waf_detect_flag_is_disabled_by_default_and_enabled_explicitly(self):
+        """Config should expose passive WAF detection as an opt-in flag."""
+
+        cfg = Config({'reports': 'std'})
+        self.assertFalse(cfg.is_waf_detect)
+
+        cfg = Config({'reports': 'std', 'waf_detect': True})
+        self.assertTrue(cfg.is_waf_detect)
+
 if __name__ == '__main__':
     unittest.main()

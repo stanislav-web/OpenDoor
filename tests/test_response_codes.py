@@ -198,6 +198,20 @@ class TestReporterPlugins(unittest.TestCase):
                 [{'url': 'http://example.com/legacy', 'size': '0B', 'code': '-'}],
             )
 
+    def test_plugin_provider_formats_waf_metadata_for_text_sinks(self):
+        """PluginProvider.format_report_item() should append WAF vendor details when present."""
+
+        provider = PluginProvider(self.target, self.data)
+
+        actual = provider.format_report_item({
+            'url': 'https://example.com/login',
+            'size': '25B',
+            'code': '200',
+            'waf': 'Cloudflare',
+            'waf_confidence': 92,
+        })
+
+        self.assertEqual(actual, 'https://example.com/login - 200 - 25B - WAF: Cloudflare (92%)')
 
 if __name__ == '__main__':
     unittest.main()
