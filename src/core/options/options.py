@@ -418,7 +418,7 @@ class Options(object):
                 "argl": "--reports",
                 "default": "std",
                 "action": "store",
-                "help": "Scan reports (json,std,txt,csv,html,sqlite)",
+                "help": "Scan reports (json,std,txt,csv,html,sqlite,sarif)",
                 "type": str
             },
             {

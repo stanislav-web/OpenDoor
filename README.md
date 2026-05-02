@@ -246,7 +246,7 @@ opendoor \
   --exclude-status 404,429,500-599 \
   --exclude-size-range 0-256 \
   --sniff skipempty,collation,indexof,file \
-  --reports std,json,csv
+  --reports std,json,csv,sarif
 ```
 
 ### Authenticated scan from raw request
@@ -257,7 +257,7 @@ opendoor \
   --scheme https \
   --method GET \
   --auto-calibrate \
-  --reports json,html,sqlite
+  --reports json,html,sqlite,sarif
 ```
 
 ### WAF-safe scan
@@ -281,7 +281,7 @@ opendoor \
   --waf-detect \
   --header-bypass \
   --header-bypass-limit 32 \
-  --reports std,json,csv,sqlite
+  --reports std,json,csv,sarif,sqlite
 ```
 When --header-bypass is enabled, OpenDoor first tries configured header-injection variants and then safe path-manipulation variants such as trailing slash, dot segment, semicolon suffix, case variation, and URL-encoded segment.
 Customize trigger statuses, trusted IP values, and headers:
@@ -294,7 +294,7 @@ opendoor \
   --header-bypass-status 401,403 \
   --header-bypass-ips 127.0.0.1,10.0.0.1 \
   --header-bypass-headers X-Original-URL,X-Rewrite-URL,X-Forwarded-For,X-Real-IP \
-  --reports json,html,sqlite,csv
+  --reports json,html,sqlite,sarif,csv
 ```
 
 ### Proxy routing
@@ -476,3 +476,26 @@ If OpenDoor helps your authorized security work, you can support ongoing mainten
 
 ---
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/stanislav-web/OpenDoor)
+
+
+
+### SARIF reports for CI/CD
+
+OpenDoor can export findings as SARIF 2.1.0 for GitHub Code Scanning and SARIF-compatible security pipelines.
+
+```bash
+opendoor \
+  --host https://example.com \
+  --reports sarif,json \
+  --reports-dir ./reports
+```
+
+GitHub Actions upload example:
+
+```yaml
+- name: Upload OpenDoor SARIF
+  uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: reports/example.com/example.com.sarif
+    category: opendoor
+```

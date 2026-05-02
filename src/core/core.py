@@ -29,20 +29,20 @@ def read_version() -> str:
     Resolve the application version.
 
     Priority:
-    1. Installed package metadata.
-    2. VERSION file from the source checkout.
+    1. VERSION file from the source checkout.
+    2. Installed package metadata.
 
     :return: Current package version.
     """
 
+    version_file = PROJECT_ROOT / 'VERSION'
+    if version_file.exists():
+        return version_file.read_text(encoding='utf-8').splitlines()[0].strip()
+
     try:
         return package_version('opendoor')
     except PackageNotFoundError:
-        version_file = PROJECT_ROOT / 'VERSION'
-        if version_file.exists():
-            return version_file.read_text(encoding='utf-8').splitlines()[0].strip()
-
-    return '0.0.0'
+        return '0.0.0'
 
 
 def resolve_data_root() -> Path:

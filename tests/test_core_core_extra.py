@@ -11,22 +11,26 @@ import src.core.core as core_module
 class TestCoreExtra(unittest.TestCase):
     """TestCoreExtra class."""
 
-    def test_read_version_prefers_installed_package_metadata(self):
-        """read_version() should return the installed package version when available."""
-
-        with patch('src.core.core.package_version', return_value='9.9.9'):
-            self.assertEqual(core_module.read_version(), '9.9.9')
-
-    def test_read_version_falls_back_to_version_file(self):
-        """read_version() should fall back to VERSION file in source checkout."""
+    def test_read_version_prefers_version_file_in_source_checkout(self):
+        """read_version() should prefer local VERSION over stale installed package metadata."""
 
         with tempfile.TemporaryDirectory() as temp_dir:
             project_root = Path(temp_dir)
-            (project_root / 'VERSION').write_text('5.0.2\n', encoding='utf-8')
+            (project_root / 'VERSION').write_text('5.15.0\n', encoding='utf-8')
 
-            with patch('src.core.core.package_version', side_effect=core_module.PackageNotFoundError), \
+            with patch('src.core.core.package_version', return_value='5.6.0'), \
                     patch.object(core_module, 'PROJECT_ROOT', project_root):
-                self.assertEqual(core_module.read_version(), '5.0.2')
+                self.assertEqual(core_module.read_version(), '5.15.0')
+
+    def test_read_version_falls_back_to_installed_package_metadata(self):
+        """read_version() should use installed package metadata when VERSION is absent."""
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir)
+
+            with patch('src.core.core.package_version', return_value='9.9.9'), \
+                    patch.object(core_module, 'PROJECT_ROOT', project_root):
+                self.assertEqual(core_module.read_version(), '9.9.9')
 
     def test_read_version_returns_default_when_nothing_found(self):
         """read_version() should return 0.0.0 when metadata and VERSION are missing."""

@@ -28,3 +28,5 @@ from .html import HtmlReportPlugin as html
 from .sqlite import SqliteReportPlugin as sqlite
 # noinspection PyPep8Naming
 from .csv import CsvReportPlugin as csv
+# noinspection PyPep8Naming
+from .sarif import SarifReportPlugin as sarif

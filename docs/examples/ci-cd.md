@@ -9,7 +9,7 @@ OpenDoor can be used in CI/CD pipelines as an exposure check or regression gate.
 ```shell
 opendoor \
   --host https://example.com \
-  --reports json,sqlite
+  --reports json,sqlite,sarif
 ```
 
 ---
@@ -37,7 +37,7 @@ opendoor \
   --auto-calibrate \
   --include-status 200-299,301,302,403 \
   --exclude-status 404,429,500-599 \
-  --reports json,sqlite,csv \
+  --reports json,sqlite,csv,sarif \
   --fail-on-bucket success,auth,forbidden,bypass
 ```
 
@@ -52,7 +52,7 @@ opendoor \
   --waf-detect \
   --header-bypass \
   --header-bypass-limit 32 \
-  --reports json,sqlite,csv \
+  --reports json,sqlite,csv,sarif \
   --fail-on-bucket success,auth,forbidden,bypass
 ```
 
@@ -66,7 +66,7 @@ Use this only for authorized exposure regression checks.
 opendoor \
   --hostlist targets.txt \
   --auto-calibrate \
-  --reports json,sqlite,csv \
+  --reports json,sqlite,csv,sarif \
   --fail-on-bucket success,auth,forbidden,bypass
 ```
 
@@ -103,7 +103,7 @@ jobs:
             --auto-calibrate \
             --header-bypass \
             --header-bypass-limit 32 \
-            --reports json,sqlite,csv \
+            --reports json,sqlite,csv,sarif \
             --reports-dir ./reports \
             --fail-on-bucket success,auth,forbidden,bypass
 
@@ -116,6 +116,52 @@ jobs:
 ```
 
 ---
+
+## GitHub Code Scanning with SARIF
+
+```yaml
+name: OpenDoor SARIF scan
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  opendoor-sarif:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install OpenDoor
+        run: |
+          python3 -m pip install --user pipx
+          python3 -m pipx ensurepath
+          pipx install opendoor
+
+      - name: Run OpenDoor
+        run: |
+          opendoor \
+            --host https://example.com \
+            --method GET \
+            --auto-calibrate \
+            --reports sarif,json \
+            --reports-dir ./reports \
+            --fail-on-bucket success,auth,forbidden,bypass
+
+      - name: Upload OpenDoor SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/example.com/example.com.sarif
+          category: opendoor
+```
+
+Use `security-events: write` so GitHub Actions can upload SARIF into Code Scanning.
+
 
 ## GitLab CI example
 
@@ -133,7 +179,7 @@ opendoor:
         --auto-calibrate \
         --header-bypass \
         --header-bypass-limit 32 \
-        --reports json,sqlite,csv \
+        --reports json,sqlite,csv,sarif \
         --reports-dir ./reports \
         --fail-on-bucket success,auth,forbidden,bypass
   artifacts:

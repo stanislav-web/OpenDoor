@@ -26,6 +26,7 @@ opendoor --host https://example.com --reports json,sqlite --reports-dir ./report
 | `csv` | Spreadsheet-friendly output |
 | `html` | Human-readable report |
 | `sqlite` | Structured local database for post-processing |
+| `sarif` | SARIF 2.1.0 output for CI/CD code scanning |
 
 Use the exact formats shown by:
 
@@ -97,6 +98,53 @@ CSV includes dedicated Header Injection Bypass columns:
 
 ---
 
+## SARIF
+
+```shell
+opendoor --host https://example.com --reports sarif
+```
+
+Use SARIF when OpenDoor findings should be consumed by CI/CD security tooling such as GitHub Code Scanning.
+
+OpenDoor writes SARIF 2.1.0 files with one run per generated report. Result buckets are mapped to stable rule ids such as:
+
+| Bucket | SARIF rule id | Level |
+|---|---|---|
+| `success` | `opendoor.finding.success` | `warning` |
+| `indexof` | `opendoor.finding.indexof` | `warning` |
+| `auth` | `opendoor.finding.auth` | `warning` |
+| `forbidden` | `opendoor.finding.forbidden` | `note` |
+| `blocked` | `opendoor.finding.blocked` | `warning` |
+| `bypass` | `opendoor.finding.bypass` | `warning` |
+| fingerprint metadata | `opendoor.fingerprint.detected` | `note` |
+
+SARIF result `properties` preserve OpenDoor-specific evidence: target, URL, bucket, status code, response size, WAF metadata, bypass metadata and fingerprint metadata.
+
+Example GitHub Code Scanning upload:
+
+```yaml
+permissions:
+  contents: read
+  security-events: write
+
+steps:
+  - uses: actions/checkout@v6
+
+  - name: Run OpenDoor
+    run: |
+      opendoor \
+        --host https://example.com \
+        --reports sarif,json \
+        --reports-dir ./reports
+
+  - name: Upload OpenDoor SARIF
+    uses: github/codeql-action/upload-sarif@v3
+    with:
+      sarif_file: reports/example.com/example.com.sarif
+      category: opendoor
+```
+
+
 ## HTML
 
 ```shell
@@ -142,7 +190,7 @@ SQLite persists Header Injection Bypass metadata in nullable item columns:
 ```shell
 opendoor \
   --host https://example.com \
-  --reports std,json,html,sqlite,csv \
+  --reports std,json,html,sqlite,csv,sarif \
   --reports-dir ./reports
 ```
 
@@ -174,6 +222,7 @@ Report support:
 | `csv` | Adds dedicated bypass columns |
 | `html` | Preserves detailed `report_items` metadata |
 | `sqlite` | Stores bypass metadata in nullable item columns |
+| `sarif` | Preserves bypass evidence in SARIF result properties |
 
 ---
 
@@ -182,11 +231,11 @@ Report support:
 ```shell
 opendoor \
   --host https://example.com \
-  --reports json,sqlite,csv \
+  --reports json,sqlite,csv,sarif \
   --fail-on-bucket success,auth,forbidden,bypass
 ```
 
-In CI/CD, prefer machine-readable formats such as `json`, `sqlite`, and `csv`.
+In CI/CD, prefer machine-readable formats such as `json`, `sqlite`, `csv`, and `sarif`.
 
 Use the `bypass` bucket when Header Injection Bypass candidates should fail the pipeline.
 

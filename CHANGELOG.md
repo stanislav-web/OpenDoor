@@ -1,6 +1,17 @@
 CHANGELOG
 =======
 
+v5.15.0 (02.05.2026)
+---------------------------
+- (feature) added SARIF 2.1.0 report output via `--reports sarif` for CI/CD security workflows
+- (feature) SARIF reports are compatible with GitHub Code Scanning ingestion through `github/codeql-action/upload-sarif`
+- (enhancement) mapped OpenDoor result buckets to stable SARIF rule identifiers and levels
+- (enhancement) preserved URL, status code, response size, WAF, bypass and fingerprint metadata in SARIF result properties
+- (enhancement) emitted target-level passive fingerprint metadata as a SARIF note result when `--fingerprint` data is available
+- (docs) documented SARIF reports, GitHub Actions upload and CI/CD usage
+- (tests) added SARIF reporter regression coverage
+- (tests) coverage gate remains configured at `99%`
+
 v5.14.6 (02.05.2026)
 ---------------------------
 - (fix) avoided classifying passive Cloudflare CDN headers as blocked WAF responses

@@ -783,7 +783,7 @@ OpenDoor can write scan results in multiple formats.
 
 ```shell
 opendoor --host https://example.com --reports std,json,html
-opendoor --host https://example.com --reports json,sqlite --reports-dir ./reports
+opendoor --host https://example.com --reports json,sqlite,sarif --reports-dir ./reports
 ```
 
 Available report formats:
@@ -796,6 +796,7 @@ Available report formats:
 | `csv`    | Column-separated output                       |
 | `html`   | Human-readable report                         |
 | `sqlite` | Structured local database for post-processing |
+| `sarif`  | SARIF 2.1.0 output for CI/CD code scanning     |
 
 When `--header-bypass` is enabled and a header or path candidate is found, report formats preserve bypass evidence:
 
@@ -807,6 +808,24 @@ When `--header-bypass` is enabled and a header or path candidate is found, repor
 | `csv` | Adds dedicated bypass columns |
 | `html` | Preserves detailed `report_items` metadata |
 | `sqlite` | Stores bypass metadata in nullable item columns |
+| `sarif` | Preserves bypass evidence in SARIF result properties |
+
+### SARIF reports
+
+```shell
+opendoor --host https://example.com --reports sarif,json --reports-dir ./reports
+```
+
+Use SARIF when OpenDoor findings should be uploaded to GitHub Code Scanning or other SARIF-compatible CI/CD security tooling. OpenDoor emits SARIF 2.1.0 and preserves URL, status code, response size, WAF, bypass and fingerprint evidence in result properties.
+
+```yaml
+- name: Upload OpenDoor SARIF
+  uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: reports/example.com/example.com.sarif
+    category: opendoor
+```
+
 
 ### Custom reports directory
 
