@@ -45,6 +45,22 @@ opendoor \
 
 ---
 
+## Compact pre-scan summary
+
+When fingerprinting is enabled, OpenDoor prints a compact summary immediately after the fingerprint pass and before dictionary enumeration starts. This gives operators an early target profile without waiting for report generation.
+
+Example:
+
+```text
+Fingerprint result: cms/WordPress (95%)
+Web stack: WordPress | PHP | Cloudflare
+Security posture: HSTS preload-ready
+```
+
+The compact summary intentionally stays short. Full evidence, candidates, HSTS fields and report-specific metadata remain in JSON, HTML, CSV, SQLite, TXT, STD and SARIF outputs.
+
+---
+
 ## Fingerprinting with reports
 
 ```shell

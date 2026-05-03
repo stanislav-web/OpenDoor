@@ -27038,6 +27038,7 @@ cache_icons.php
 cache_index.php
 cache_ipbanned.php
 cache_magics.php
+cache_manager
 cache_medals.php
 cache_null.php
 cache_page
@@ -31453,6 +31454,7 @@ cnf
 cngemail.html
 cngenick.html
 cni-conf.json
+cnjadmin
 cnn
 cnn.php
 cno
@@ -100675,6 +100677,7 @@ test/tmp
 test/version_tmp
 test_
 test_.php
+test_ability
 test_adodb_lite.php
 test_area
 test_banner
@@ -114513,6 +114516,7 @@ zzb
 zzz
 zzz.html
 zzz.php
+zzz_test_ability
 zzzzz.php
 zzzzzz
 ~
@@ -114595,16 +114599,6 @@ zzzzzz
 ~test
 ~testuser
 ~tmp
-cnjadmin
-security
-cache_manager
-vendor
-oauth
-backup.php
-test_ability
-zzz_test_ability
-composer.json
-composer.lock
 ~toor
 ~update.php
 ~use.php

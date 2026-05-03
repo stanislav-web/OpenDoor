@@ -118,6 +118,14 @@ Run fingerprint detection:
 opendoor --host https://example.com --fingerprint
 ```
 
+After the fingerprint pass finishes, OpenDoor prints a compact pre-scan summary before dictionary enumeration starts:
+
+```text
+Fingerprint result: cms/WordPress (95%)
+Web stack: WordPress | PHP | Cloudflare
+Security posture: HSTS preload-ready
+```
+
 Read more:
 
 - [Fingerprinting guide](https://opendoor.readthedocs.io/detection/fingerprinting/)
