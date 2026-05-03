@@ -17,6 +17,7 @@
 """
 
 import re
+import uuid
 from collections import defaultdict
 from urllib.parse import urljoin
 
@@ -34,6 +35,7 @@ class Fingerprint(object):
         'score': 0,
         'signals': [],
         'candidates': [],
+        'runtime': {'name': 'unknown', 'category': 'runtime', 'confidence': 0, 'signals': [], 'candidates': []},
         'infrastructure': {
             'provider': 'unknown',
             'confidence': 0,
@@ -83,7 +85,7 @@ class Fingerprint(object):
         '/bolt',
     )
 
-    NOT_FOUND_PROBE_PATH = '/.opendoor-fingerprint-not-found-probe'
+    NOT_FOUND_PROBE_PATH = '/.well-known/{0}.txt'.format(uuid.uuid4().hex[:12])
 
     CMS_CATEGORY = 'cms'
     FRAMEWORK_CATEGORY = 'framework'
@@ -91,6 +93,12 @@ class Fingerprint(object):
     ECOMMERCE_CATEGORY = 'ecommerce'
     SITE_BUILDER_CATEGORY = 'sitebuilder'
     STATIC_CATEGORY = 'static'
+    RUNTIME_CATEGORY = 'runtime'
+    TECHNOLOGY_RUNTIME_MAP = {
+        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'InstantCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
+        'Express': 'Node.js', 'NestJS': 'Node.js', 'Fastify': 'Node.js', 'Koa': 'Node.js', 'Hapi': 'Node.js', 'Strapi': 'Node.js', 'Directus': 'Node.js', 'Ghost': 'Node.js', 'Next.js': 'Node.js', 'Nuxt': 'Node.js', 'Gatsby': 'Node.js', 'Astro': 'Node.js', 'Remix': 'Node.js', 'SvelteKit': 'Node.js', 'Docusaurus': 'Node.js', 'VitePress': 'Node.js', 'PencilBlue': 'Node.js',
+        'React': 'JavaScript', 'Vue': 'JavaScript', 'Angular': 'JavaScript', 'Django': 'Python', 'Flask': 'Python', 'FastAPI': 'Python', 'Ruby on Rails': 'Ruby', 'Spree': 'Ruby', 'Spring': 'Java/JVM', 'Liferay': 'Java/JVM', 'OpenCms': 'Java/JVM', 'Hippo CMS': 'Java/JVM', 'ASP.NET': '.NET', 'Microsoft SharePoint': '.NET', 'DNN Platform': '.NET', 'Orchard CMS': '.NET', 'Sitecore': '.NET', 'Sitefinity': '.NET', 'Umbraco': '.NET', 'Phoenix': 'Elixir', 'MkDocs': 'Static site', 'Jekyll': 'Static site', 'Hugo': 'Static site', 'AsciiDoc': 'Static site',
+    }
 
     EXTENDED_CMS_GENERATOR_SIGNATURES = (
         ('3dCart', ECOMMERCE_CATEGORY, ('3dcart', '3d cart', 'shift4shop')),
@@ -267,6 +275,8 @@ class Fingerprint(object):
         self.__scores = defaultdict(float)
         self.__signals = defaultdict(list)
         self.__categories = {}
+        self.__runtime_scores = defaultdict(float)
+        self.__runtime_signals = defaultdict(list)
         self.__infra_scores = defaultdict(float)
         self.__infra_signals = defaultdict(list)
 
@@ -280,6 +290,8 @@ class Fingerprint(object):
         self.__scores = defaultdict(float)
         self.__signals = defaultdict(list)
         self.__categories = {}
+        self.__runtime_scores = defaultdict(float)
+        self.__runtime_signals = defaultdict(list)
         self.__infra_scores = defaultdict(float)
         self.__infra_signals = defaultdict(list)
 
@@ -332,10 +344,12 @@ class Fingerprint(object):
         self._emit_progress(progress_current, progress_total, 'analyze')
 
         app_candidates = self._build_candidates()
+        runtime_candidates = self._build_runtime_candidates()
         infra_candidates = self._build_infrastructure_candidates()
 
         if len(app_candidates) <= 0:
             result = dict(self.DEFAULT_RESULT)
+            result['runtime'] = self._build_runtime_result(runtime_candidates)
             result['infrastructure'] = self._build_infrastructure_result(infra_candidates)
             self._emit_progress(progress_total, progress_total, 'done')
             return result
@@ -354,6 +368,7 @@ class Fingerprint(object):
                 'score': round(top_score, 2),
                 'signals': [],
                 'candidates': app_candidates[:5],
+                'runtime': self._build_runtime_result(runtime_candidates),
                 'infrastructure': self._build_infrastructure_result(infra_candidates),
             }
             self._emit_progress(progress_total, progress_total, 'done')
@@ -367,6 +382,7 @@ class Fingerprint(object):
             'score': top_candidate['score'],
             'signals': self.__signals.get(top_candidate['name'], [])[:10],
             'candidates': app_candidates[:5],
+            'runtime': self._build_runtime_result(runtime_candidates),
             'infrastructure': self._build_infrastructure_result(infra_candidates),
         }
         self._emit_progress(progress_total, progress_total, 'done')
@@ -619,6 +635,10 @@ class Fingerprint(object):
             'value': str(value),
             'weight': round(float(weight), 2),
         })
+
+        runtime = self.TECHNOLOGY_RUNTIME_MAP.get(technology)
+        if runtime:
+            self._add_runtime_signal(runtime, 'technology', technology, min(float(weight), 4))
 
     def _add_infrastructure_signal(self, provider, signal_type, value, weight):
         """
@@ -1341,6 +1361,34 @@ class Fingerprint(object):
         if probe_statuses.get('/openapi.json') in [200, 301, 302, 401, 403] or docs_probe_up:
             self._add_signal('FastAPI', self.FRAMEWORK_CATEGORY, 'endpoint', '/openapi.json|/docs|/redoc', 5)
 
+        if 'php' in x_powered_by:
+            self._add_runtime_signal('PHP', 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 8)
+        if 'phpsessid' in cookies:
+            self._add_runtime_signal('PHP', 'cookie', 'PHPSESSID', 7)
+        if 'asp.net' in x_powered_by or 'x-aspnet-version' in headers:
+            self._add_runtime_signal('.NET', 'header', 'x-powered-by|x-aspnet-version', 8)
+        if 'asp.net_sessionid' in cookies:
+            self._add_runtime_signal('.NET', 'cookie', 'ASP.NET_SessionId', 7)
+        if '__viewstate' in body_lower or '__eventvalidation' in body_lower:
+            self._add_runtime_signal('.NET', 'markup', '__VIEWSTATE|__EVENTVALIDATION', 7)
+        if 'jsessionid' in cookies:
+            self._add_runtime_signal('Java/JVM', 'cookie', 'JSESSIONID', 5)
+        if 'werkzeug' in server or 'gunicorn' in server or 'uwsgi' in server:
+            self._add_runtime_signal('Python', 'header', 'server=Werkzeug|gunicorn|uWSGI', 6)
+        if 'uvicorn' in server or 'hypercorn' in server or 'uvicorn' in not_found_server or 'hypercorn' in not_found_server:
+            self._add_runtime_signal('Python', 'header', 'server=uvicorn|hypercorn', 6)
+        if 'csrftoken' in cookies or 'csrfmiddlewaretoken' in body_lower:
+            self._add_runtime_signal('Python', 'csrf', 'csrftoken|csrfmiddlewaretoken', 4)
+        if '_rails_session' in cookies:
+            self._add_runtime_signal('Ruby', 'cookie', '_rails_session', 7)
+        node_powered_by = any(['express' in x_powered_by, 'nest' in x_powered_by, 'fastify' in x_powered_by, 'koa' in x_powered_by, 'hapi' in x_powered_by])
+        if node_powered_by:
+            self._add_runtime_signal('Node.js', 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 7)
+        if 'connect.sid' in cookies or 'koa:sess' in cookies or 'koa.sess' in cookies:
+            self._add_runtime_signal('Node.js', 'cookie', 'connect.sid|koa:sess', 6)
+        if not_found_status == 404 and ('cannot get /' in not_found_body_lower or 'cannot post /' in not_found_body_lower):
+            self._add_runtime_signal('Node.js', '404', 'Cannot GET/POST', 6)
+
         if 'koa' in x_powered_by or 'koa' in not_found_powered_by:
             self._add_signal('Koa', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by') or not_found_headers.get('x-powered-by')), 8)
         if 'koa:sess' in cookies or 'koa.sess' in cookies:
@@ -1479,6 +1527,23 @@ class Fingerprint(object):
 
         candidates.sort(key=lambda item: (-item['score'], item['name']))
         return candidates
+
+    def _add_runtime_signal(self, runtime, signal_type, value, weight):
+        self.__runtime_scores[runtime] += weight
+        self.__runtime_signals[runtime].append({'type': signal_type, 'value': value})
+
+    def _build_runtime_candidates(self):
+        candidates = []
+        for runtime, score in self.__runtime_scores.items():
+            candidates.append({'category': self.RUNTIME_CATEGORY, 'name': runtime, 'score': score})
+        return sorted(candidates, key=lambda item: item['score'], reverse=True)
+
+    def _build_runtime_result(self, runtime_candidates):
+        if len(runtime_candidates) == 0:
+            return {'name': 'unknown', 'category': self.RUNTIME_CATEGORY, 'confidence': 0, 'signals': [], 'candidates': []}
+        top = runtime_candidates[0]
+        second_score = runtime_candidates[1]['score'] if len(runtime_candidates) > 1 else 0
+        return {'name': top['name'], 'category': self.RUNTIME_CATEGORY, 'confidence': self._calculate_confidence(top['score'], second_score), 'signals': self.__runtime_signals[top['name']], 'candidates': runtime_candidates}
 
     def _build_infrastructure_candidates(self):
         """

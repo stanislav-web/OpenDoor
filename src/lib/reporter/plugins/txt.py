@@ -36,9 +36,7 @@ class TextReportPlugin(PluginProvider):
         :param dict data: result set
         :param str directory: custom directory
         """
-
         PluginProvider.__init__(self, target, data)
-
         try:
             if None is directory:
                 directory = CoreConfig.get('data').get('reports')
@@ -46,20 +44,37 @@ class TextReportPlugin(PluginProvider):
         except FileSystemError as error:
             raise Exception(error)
 
+    def format_fingerprint_summary(self):
+        fingerprint = self._data.get('fingerprint')
+        if not isinstance(fingerprint, dict) or len(fingerprint) == 0:
+            return []
+        rows = [
+            'category: {0}'.format(fingerprint.get('category', 'custom')),
+            'name: {0}'.format(fingerprint.get('name', 'Unknown custom stack')),
+            'confidence: {0}%'.format(fingerprint.get('confidence', 0)),
+        ]
+        runtime = fingerprint.get('runtime')
+        if isinstance(runtime, dict) and len(runtime) > 0:
+            rows.extend(['runtime: {0}'.format(runtime.get('name', 'unknown')), 'runtime_confidence: {0}%'.format(runtime.get('confidence', 0))])
+        infrastructure = fingerprint.get('infrastructure')
+        if isinstance(infrastructure, dict) and len(infrastructure) > 0:
+            rows.extend(['infrastructure: {0}'.format(infrastructure.get('provider', 'unknown')), 'infrastructure_confidence: {0}%'.format(infrastructure.get('confidence', 0))])
+        return rows
+
     def process(self):
         """
         Process data
         :return: str
         """
-
         resultset = self._data.get('items').items()
-
         try:
             filesystem.clear(self.__target_dir, extension=self.EXTENSION_SET)
-
             for status, _ in resultset:
                 if status not in ['failed']:
                     data = [self.format_report_item(item) for item in self.get_report_items(status)]
                     self.record(self.__target_dir, status, data, '\n')
+            fingerprint_data = self.format_fingerprint_summary()
+            if len(fingerprint_data) > 0:
+                self.record(self.__target_dir, 'fingerprint', fingerprint_data, '\n')
         except (Exception, FileSystemError) as error:
             raise Exception(error)

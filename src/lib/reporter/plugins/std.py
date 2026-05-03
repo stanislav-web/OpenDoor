@@ -51,6 +51,10 @@ class StdReportPlugin(PluginProvider):
                 ('fingerprint_confidence', '{0}%'.format(fingerprint.get('confidence', 0))),
             ]
 
+            runtime = fingerprint.get('runtime')
+            if isinstance(runtime, dict) and len(runtime) > 0:
+                data += [('fingerprint_runtime', runtime.get('name', 'unknown')), ('fingerprint_runtime_confidence', '{0}%'.format(runtime.get('confidence', 0)))]
+
             infrastructure = fingerprint.get('infrastructure')
             if isinstance(infrastructure, dict) and len(infrastructure) > 0:
                 data += [

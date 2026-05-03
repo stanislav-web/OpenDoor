@@ -104,7 +104,7 @@ class TestSarifReportPlugin(unittest.TestCase):
         self.assertEqual(sarif['version'], '2.1.0')
         self.assertEqual(sarif['$schema'], 'https://json.schemastore.org/sarif-2.1.0.json')
         self.assertEqual(run['tool']['driver']['name'], 'OpenDoor')
-        self.assertEqual(run['tool']['driver']['version'], '5.15.0')
+        self.assertEqual(run['tool']['driver']['version'], '5.15.1')
         self.assertEqual(run['properties']['target'], self.target)
         self.assertEqual(len(results), 4)
         self.assertNotIn('https://example.com/missing', json.dumps(results))

@@ -68,6 +68,7 @@ class TestCsvReportPlugin(unittest.TestCase):
                 'category': 'cms',
                 'name': 'Open Journal Systems',
                 'confidence': 95,
+                'runtime': {'name': 'PHP', 'category': 'runtime', 'confidence': 88, 'signals': [{'type': 'technology', 'value': 'Open Journal Systems'}]},
                 'infrastructure': {
                     'provider': 'Cloudflare',
                     'confidence': 90,
@@ -232,6 +233,7 @@ class TestCsvReportPlugin(unittest.TestCase):
                 'category': 'cms',
                 'name': 'Open Journal Systems',
                 'confidence': 95,
+                'runtime': {'name': 'PHP', 'category': 'runtime', 'confidence': 88, 'signals': [{'type': 'technology', 'value': 'Open Journal Systems'}]},
                 'infrastructure': 'Cloudflare',
             },
         }

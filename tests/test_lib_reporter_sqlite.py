@@ -55,6 +55,7 @@ class TestSqliteReportPlugin(unittest.TestCase):
                 'category': 'framework',
                 'name': 'Next.js',
                 'confidence': 96,
+                'runtime': {'name': 'Node.js', 'confidence': 92, 'signals': [{'type': 'technology', 'value': 'Next.js'}]},
                 'signals': [
                     {'type': 'header', 'value': 'x-powered-by: Next.js'},
                     {'type': 'body', 'value': '/_next/static/'},
@@ -123,9 +124,9 @@ class TestSqliteReportPlugin(unittest.TestCase):
         )
 
         fingerprint = cursor.execute(
-            'SELECT category, name, confidence, infrastructure_provider, infrastructure_confidence FROM fingerprint'
+            'SELECT category, name, confidence, runtime_name, runtime_confidence, infrastructure_provider, infrastructure_confidence FROM fingerprint'
         ).fetchone()
-        self.assertEqual(fingerprint, ('framework', 'Next.js', 96, 'AWS CloudFront', 98))
+        self.assertEqual(fingerprint, ('framework', 'Next.js', 96, 'Node.js', 92, 'AWS CloudFront', 98))
 
         signals = cursor.execute(
             'SELECT type, value FROM fingerprint_signals ORDER BY id ASC'

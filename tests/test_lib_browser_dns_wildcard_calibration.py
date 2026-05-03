@@ -64,7 +64,7 @@ class TestBrowserDnsWildcardCalibration(unittest.TestCase):
         self.assertEqual(getaddrinfo_mock.call_count, 3)
         self.assertEqual(
             getaddrinfo_mock.call_args_list[0].args[0],
-            '__opendoor_dns_calibrate_abcdef123456_0.example.com'
+            'cdn-abcdef123456-0.example.com'
         )
 
     def test_dns_wildcard_addresses_ignore_single_random_resolution(self):
@@ -73,7 +73,7 @@ class TestBrowserDnsWildcardCalibration(unittest.TestCase):
         br = self.make_browser()
 
         def resolver(hostname, _port):
-            if hostname.endswith('_0.example.com'):
+            if hostname.endswith('-0.example.com'):
                 return self.addrinfo('203.0.113.10')
             raise OSError('not found')
 

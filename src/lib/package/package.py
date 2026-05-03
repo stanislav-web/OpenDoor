@@ -18,6 +18,7 @@
 
 from urllib.error import URLError
 from urllib.request import urlopen
+import os
 import sys as py_sys
 
 from src.core import CoreConfig
@@ -35,6 +36,13 @@ class Package(object):
     """Package class."""
 
     remote_version = None
+    __ANSI_RESET = "\033[0m"
+    __ANSI_BOLD = "\033[1m"
+    __ANSI_DIM = "\033[2m"
+    __ANSI_CYAN = "\033[36m"
+    __ANSI_BRIGHT_CYAN = "\033[96m"
+    __ANSI_WHITE = "\033[97m"
+    __ANSI_GRAY = "\033[90m"
 
     @staticmethod
     def check_interpreter():
@@ -246,6 +254,10 @@ class Package(object):
         """
         Get current version with colorized state.
 
+        The remote version is shown only when the local package is older.
+        If the local version is current, newer, or the remote version is
+        unavailable, only the local version is displayed.
+
         :raise PackageError:
         :return: str
         """
@@ -258,7 +270,10 @@ class Package(object):
                 return tpl.line(local, color="green")
 
             if True is helper.is_less(local, remote):
-                return tpl.line(local, color="red")
+                return "{0} -> {1}".format(
+                    tpl.line(local, color="red"),
+                    tpl.line(remote, color="green"),
+                )
 
             return tpl.line(local, color="green")
 
@@ -358,15 +373,159 @@ class Package(object):
             raise PackageError(str(error))
 
     @staticmethod
-    def __render_banner(info_lines):
+    def __stdout_is_tty():
         """
-        Render the console startup banner without an outer frame.
+        Check whether stdout is an interactive terminal.
 
-        :param list[str] info_lines:
+        :return: bool
+        """
+
+        stdout = getattr(py_sys, "stdout", None)
+
+        if stdout is None or not hasattr(stdout, "isatty"):
+            return False
+
+        return bool(stdout.isatty())
+
+    @staticmethod
+    def __supports_banner_unicode():
+        """
+        Check whether Unicode block-art can be safely emitted.
+
+        :return: bool
+        """
+
+        if os.environ.get("OPENDOOR_ASCII_BANNER"):
+            return False
+
+        if not Package.__stdout_is_tty():
+            return False
+
+        stdout = getattr(py_sys, "stdout", None)
+        encoding = getattr(stdout, "encoding", None) or "utf-8"
+
+        try:
+            "█╔═║╚╝".encode(encoding)
+            return True
+        except UnicodeEncodeError:
+            return False
+        except LookupError:
+            return False
+
+    @staticmethod
+    def __supports_banner_color():
+        """
+        Check whether ANSI banner colors can be safely emitted.
+
+        The banner keeps plain ASCII output for pipes, redirected logs,
+        CI-style non-TTY output, dumb terminals, and explicit NO_COLOR mode.
+
+        :return: bool
+        """
+
+        if os.environ.get("NO_COLOR") or os.environ.get("OPENDOOR_NO_COLOR"):
+            return False
+
+        if os.environ.get("OPENDOOR_FORCE_COLOR"):
+            return True
+
+        if os.environ.get("TERM") == "dumb":
+            return False
+
+        if not Package.__stdout_is_tty():
+            return False
+
+        if os.name != "nt":
+            return True
+
+        return bool(
+            os.environ.get("WT_SESSION")
+            or os.environ.get("ANSICON")
+            or os.environ.get("ConEmuANSI") == "ON"
+            or os.environ.get("TERM")
+            or os.environ.get("TERM_PROGRAM")
+            or os.environ.get("PYCHARM_HOSTED")
+        )
+
+    @staticmethod
+    def __paint(value, color, enabled):
+        """
+        Apply ANSI color to a value when banner colors are enabled.
+
+        :param str value:
+        :param str color:
+        :param bool enabled:
         :return: str
         """
 
-        art_lines = [
+        if not enabled:
+            return value
+
+        return "{0}{1}{2}".format(color, value, Package.__ANSI_RESET)
+
+    @staticmethod
+    def __render_colored_block_art(colors_enabled):
+        """
+        Render colored OpenDoor block-art without fixed-width slicing.
+
+        OPEN and DOOR are stored as separate parts so color boundaries cannot
+        bleed into the second word.
+
+        :param bool colors_enabled:
+        :return: list[str]
+        """
+
+        open_lines = [
+            "",
+            "██████╗ ██████╗ ███████╗███╗   ██╗",
+            "██╔═══██╗██╔══██╗██╔════╝████╗  ██║",
+            "██║   ██║██████╔╝█████╗  ██╔██╗ ██║",
+            "██║   ██║██╔═══╝ ██╔══╝  ██║╚██╗██║",
+            "╚██████╔╝██║     ███████╗██║ ╚████║",
+            " ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═══╝",
+        ]
+
+        door_lines = [
+            "",
+            "██████╗  ██████╗  ██████╗ ██████╗ ",
+            "██╔══██╗██╔═══██╗██╔═══██╗██╔══██╗",
+            "██║  ██║██║   ██║██║   ██║██████╔╝",
+            "██║  ██║██║   ██║██║   ██║██╔══██╗",
+            "██████╔╝╚██████╔╝╚██████╔╝██║  ██║",
+            "╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝",
+        ]
+
+        result = [""]
+
+        for open_line, door_line in zip(open_lines, door_lines):
+            result.append(
+                "    "
+                + Package.__paint(open_line, Package.__ANSI_BRIGHT_CYAN + Package.__ANSI_BOLD, colors_enabled)
+                + "    "
+                + Package.__paint(door_line, Package.__ANSI_WHITE + Package.__ANSI_BOLD, colors_enabled)
+            )
+
+        result.extend([
+            "",
+            Package.__paint(
+                "      fingerprints | waf-awareness | auto-calibration | smart scans",
+                Package.__ANSI_GRAY,
+                colors_enabled,
+            ),
+            "   ",
+        ])
+
+        return result
+
+    @staticmethod
+    def __render_plain_ascii_art():
+        """
+        Render portable plain ASCII banner art.
+
+        :return: list[str]
+        """
+
+        return [
             "   ",
             "      ____  ____  _____ _   _      ____   ___   ___  ____",
             "     / __ \\|  _ \\| ____| \\ | |    |  _ \\ / _ \\ / _ \\|  _ \\",
@@ -378,10 +537,35 @@ class Package(object):
             "   ",
         ]
 
-        result = [*art_lines, ""]
-        result.extend(str(line) for line in info_lines)
+    @staticmethod
+    def __render_banner(info_lines):
+        """
+        Render the console startup banner without an outer frame.
 
-        return "\n".join(result) + "\n======================================================================\n"
+        The Unicode block-art banner is used only for interactive terminals
+        that can encode it. Other outputs keep the portable ASCII banner.
+
+        :param list[str] info_lines:
+        :return: str
+        """
+
+        colors_enabled = Package.__supports_banner_color()
+
+        if Package.__supports_banner_unicode():
+            art_lines = Package.__render_colored_block_art(colors_enabled)
+        else:
+            art_lines = Package.__render_plain_ascii_art()
+
+        result = [*art_lines, ""]
+
+        result.extend(
+            Package.__paint(str(line), Package.__ANSI_CYAN, colors_enabled)
+            for line in info_lines
+        )
+
+        separator = Package.__paint("=" * 70, Package.__ANSI_DIM + Package.__ANSI_GRAY, colors_enabled)
+
+        return "\n".join(result) + "\n{0}\n".format(separator)
 
     @staticmethod
     def __parse_version_boundary(raw_version):

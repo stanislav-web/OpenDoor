@@ -161,6 +161,7 @@ class TestReporter(unittest.TestCase):
                 'category': 'cms',
                 'name': 'WordPress',
                 'confidence': 95,
+                'runtime': {'name': 'PHP', 'confidence': 88},
                 'infrastructure': {
                     'provider': 'Cloudflare',
                     'confidence': 90,
@@ -180,6 +181,8 @@ class TestReporter(unittest.TestCase):
         self.assertIn('WordPress', rendered)
         self.assertIn('fingerprint_confidence', rendered)
         self.assertIn('95%', rendered)
+        self.assertIn('fingerprint_runtime', rendered)
+        self.assertIn('PHP', rendered)
         self.assertIn('fingerprint_infra', rendered)
         self.assertIn('Cloudflare', rendered)
         self.assertIn('fingerprint_infra_confidence', rendered)
