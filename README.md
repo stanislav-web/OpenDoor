@@ -1,6 +1,6 @@
 # OpenDoor — OWASP Web Recon & Directory Discovery Platform
 
-![OpenDoor](/logo1.png)
+![OpenDoor](/logo.png)
 
 **OpenDoor** is an open-source CLI Recon Platform for authorized web reconnaissance, directory discovery, subdomain enumeration, fingerprint detection, WAF detection, controlled header-bypass probing, response filtering, reporting, and transport-based scanning workflows.
 
