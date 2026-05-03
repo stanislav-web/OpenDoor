@@ -59,6 +59,14 @@ class TextReportPlugin(PluginProvider):
         infrastructure = fingerprint.get('infrastructure')
         if isinstance(infrastructure, dict) and len(infrastructure) > 0:
             rows.extend(['infrastructure: {0}'.format(infrastructure.get('provider', 'unknown')), 'infrastructure_confidence: {0}%'.format(infrastructure.get('confidence', 0))])
+        hsts = fingerprint.get('security_headers', {}).get('hsts', {})
+        if isinstance(hsts, dict) and len(hsts) > 0:
+            rows.extend([
+                'hsts: {0}'.format(hsts.get('grade', 'missing')),
+                'hsts_max_age: {0}'.format('-' if hsts.get('max_age') is None else hsts.get('max_age')),
+                'hsts_include_subdomains: {0}'.format(hsts.get('include_subdomains', False)),
+                'hsts_preload_ready: {0}'.format(hsts.get('preload_ready', False)),
+            ])
         return rows
 
     def process(self):

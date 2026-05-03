@@ -1,6 +1,15 @@
 CHANGELOG
 =======
 
+v5.15.2 (04.05.2026)
+---------------------------
+- (enhancement) added offline HSTS and preload-readiness detection to the existing `--fingerprint` pass without adding a new CLI flag
+- (enhancement) stores security-header posture as `fingerprint.security_headers.hsts` with grade, max-age, includeSubDomains, preload, redirect and warning metadata
+- (enhancement) preserves HSTS metadata in standard, text, CSV, HTML, SQLite, JSON and SARIF reports
+- (docs) documented HSTS / preload readiness output and report fields
+- (tests) added regression coverage for preload-ready, weak and HTTP-only HSTS handling plus report propagation
+- (tests) coverage gate remains configured at `99%`
+
 v5.15.1 (03.05.2026)
 ---------------------------
 - (fix) removed literal `opendoor` markers from active fingerprint 404-baseline, HTTP calibration and DNS wildcard calibration probe paths

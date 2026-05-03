@@ -61,7 +61,7 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - custom request headers, cookies, and raw HTTP request templates;
 - response filters by status, size, text, regex, and body length;
 - smart auto-calibration for soft-404, wildcard, catch-all, semantic response-diff, and DNS wildcard cases;
-- technology fingerprint detection for CMS, ecommerce platforms, frameworks, and runtime stacks;
+- technology fingerprint detection for CMS, ecommerce platforms, frameworks, runtime stacks, infrastructure, and HSTS posture;
 - passive WAF detection and WAF-safe scan mode;
 - controlled header and path bypass probes for blocked `401` and `403` resources;
 - resumable scan sessions with checkpoint autosave;
@@ -95,7 +95,7 @@ OpenDoor focuses on **context-aware discovery** instead of blind enumeration.
 
 ## 🧬 Recognized technologies
 
-OpenDoor includes a heuristic fingerprint engine for detecting probable application stacks, CMS platforms, frameworks, site builders, static-site tooling, infrastructure providers, and WAF / anti-bot systems.
+OpenDoor includes a heuristic fingerprint engine for detecting probable application stacks, CMS platforms, frameworks, site builders, static-site tooling, infrastructure providers, HSTS / preload readiness, and WAF / anti-bot systems.
 
 | Category | Examples |
 |---|---|
@@ -107,6 +107,7 @@ OpenDoor includes a heuristic fingerprint engine for detecting probable applicat
 | Static / docs generators | MkDocs, Docusaurus, Hugo, Jekyll, VitePress |
 | Infrastructure / hosting | Cloudflare, AWS, Vercel, Netlify, GitHub Pages, GitLab Pages, Heroku, Azure, Google Cloud, Fastly, Akamai, Hostinger, DDoS-Guard, Tencent Cloud |
 | WAF / anti-bot | Cloudflare, AWS WAF, Azure Front Door, Akamai, Imperva, Sucuri, ModSecurity, DataDome, Kasada, F5 BIG-IP ASM |
+| Security headers | HSTS presence, max-age, includeSubDomains, preload directive, local preload readiness |
 
 Full list of supported technologies:
 [Fingerprinting technologies](https://opendoor.readthedocs.io/detection/fingerprinting)

@@ -41,6 +41,19 @@ class Fingerprint(object):
             'confidence': 0,
             'signals': [],
             'candidates': [],
+        },
+        'security_headers': {
+            'hsts': {
+                'present': False,
+                'header': '',
+                'max_age': None,
+                'include_subdomains': False,
+                'preload': False,
+                'preload_ready': False,
+                'http_to_https_redirect': False,
+                'grade': 'missing',
+                'warnings': ['missing_hsts'],
+            }
         }
     }
 
@@ -311,6 +324,7 @@ class Fingerprint(object):
         body = self._extract_body(root_response)
         body_lower = body.lower()
         headers = self._extract_headers(root_response)
+        security_headers = self._build_security_headers(headers, base_url, final_root_url)
         cookies = self._extract_cookies(root_response)
         generator = self._extract_generator(body)
         progress_current += 1
@@ -351,6 +365,7 @@ class Fingerprint(object):
             result = dict(self.DEFAULT_RESULT)
             result['runtime'] = self._build_runtime_result(runtime_candidates)
             result['infrastructure'] = self._build_infrastructure_result(infra_candidates)
+            result['security_headers'] = security_headers
             self._emit_progress(progress_total, progress_total, 'done')
             return result
 
@@ -370,6 +385,7 @@ class Fingerprint(object):
                 'candidates': app_candidates[:5],
                 'runtime': self._build_runtime_result(runtime_candidates),
                 'infrastructure': self._build_infrastructure_result(infra_candidates),
+                'security_headers': security_headers,
             }
             self._emit_progress(progress_total, progress_total, 'done')
             return result
@@ -384,6 +400,7 @@ class Fingerprint(object):
             'candidates': app_candidates[:5],
             'runtime': self._build_runtime_result(runtime_candidates),
             'infrastructure': self._build_infrastructure_result(infra_candidates),
+            'security_headers': security_headers,
         }
         self._emit_progress(progress_total, progress_total, 'done')
         return result
@@ -509,6 +526,140 @@ class Fingerprint(object):
         if isinstance(body, bytes):
             return helper.decode(body, errors='ignore')
         return str(body)
+
+    @classmethod
+    def _build_security_headers(cls, headers, base_url, final_root_url):
+        """
+        Build offline security-header posture from the observed target response.
+
+        :param dict headers: normalized response headers from the final root response
+        :param str base_url: configured root URL before redirects
+        :param str final_root_url: final root URL after redirects
+        :return: security header metadata
+        :rtype: dict
+        """
+
+        return {
+            'hsts': cls._build_hsts_result(
+                headers=headers,
+                base_url=base_url,
+                final_root_url=final_root_url,
+            )
+        }
+
+    @classmethod
+    def _build_hsts_result(cls, headers, base_url, final_root_url):
+        """
+        Parse and grade the Strict-Transport-Security header from the final HTTPS response.
+
+        :param dict headers: normalized response headers
+        :param str base_url: configured root URL before redirects
+        :param str final_root_url: final root URL after redirects
+        :return: HSTS posture
+        :rtype: dict
+        """
+
+        header = str(headers.get('strict-transport-security', '') or '').strip()
+        directives = cls._parse_hsts_directives(header)
+        max_age = cls._parse_hsts_max_age(directives.get('max-age'))
+        include_subdomains = 'includesubdomains' in directives
+        preload = 'preload' in directives
+        final_is_https = str(final_root_url).lower().startswith('https://')
+        http_to_https_redirect = str(base_url).lower().startswith('http://') and final_is_https
+        warnings = []
+
+        if not final_is_https:
+            warnings.append('not_https')
+
+        if not header or not final_is_https:
+            warnings.append('missing_hsts')
+            grade = 'missing'
+        elif max_age is None:
+            warnings.append('missing_max_age')
+            grade = 'invalid'
+        elif max_age <= 0:
+            warnings.append('disabled')
+            grade = 'disabled'
+        elif max_age < 15552000:
+            warnings.append('max_age_too_low')
+            grade = 'weak'
+        elif max_age < 31536000:
+            warnings.append('max_age_below_preload_minimum')
+            grade = 'moderate'
+        elif not include_subdomains:
+            warnings.append('missing_include_subdomains')
+            grade = 'good'
+        else:
+            grade = 'strong'
+
+        preload_ready = bool(
+            final_is_https
+            and header
+            and max_age is not None
+            and max_age >= 31536000
+            and include_subdomains
+            and preload
+        )
+
+        if preload and not preload_ready:
+            warnings.append('preload_not_ready')
+
+        if preload_ready:
+            grade = 'preload-ready'
+
+        return {
+            'present': bool(header and final_is_https),
+            'header': header,
+            'max_age': max_age,
+            'include_subdomains': include_subdomains,
+            'preload': preload,
+            'preload_ready': preload_ready,
+            'http_to_https_redirect': http_to_https_redirect,
+            'grade': grade,
+            'warnings': warnings,
+        }
+
+    @staticmethod
+    def _parse_hsts_directives(header):
+        """
+        Parse HSTS directives into a case-insensitive dictionary.
+
+        :param str header: Strict-Transport-Security header value
+        :return: directive map
+        :rtype: dict
+        """
+
+        directives = {}
+        for part in str(header or '').split(';'):
+            part = part.strip()
+            if not part:
+                continue
+            if '=' in part:
+                key, value = part.split('=', 1)
+                directives[key.strip().lower()] = value.strip().strip('"')
+            else:
+                directives[part.lower()] = True
+        return directives
+
+    @staticmethod
+    def _parse_hsts_max_age(value):
+        """
+        Parse max-age directive as a non-negative integer.
+
+        :param str|None value: max-age directive value
+        :return: parsed max-age or None
+        :rtype: int|None
+        """
+
+        if value is None:
+            return None
+        try:
+            max_age = int(str(value).strip())
+        except (TypeError, ValueError):
+            return None
+        if max_age < 0:
+            return None
+        return max_age
 
     def _extract_cookies(self, response):
         """

@@ -7,6 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from src.core import FileSystemError
+from src.lib.package import Package
 from src.lib.reporter import Reporter
 from src.lib.reporter.plugins.sarif import SarifReportPlugin
 
@@ -104,7 +105,7 @@ class TestSarifReportPlugin(unittest.TestCase):
         self.assertEqual(sarif['version'], '2.1.0')
         self.assertEqual(sarif['$schema'], 'https://json.schemastore.org/sarif-2.1.0.json')
         self.assertEqual(run['tool']['driver']['name'], 'OpenDoor')
-        self.assertEqual(run['tool']['driver']['version'], '5.15.1')
+        self.assertEqual(run['tool']['driver']['version'], Package.local_version())
         self.assertEqual(run['properties']['target'], self.target)
         self.assertEqual(len(results), 4)
         self.assertNotIn('https://example.com/missing', json.dumps(results))

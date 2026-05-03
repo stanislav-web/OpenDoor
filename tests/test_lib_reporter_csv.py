@@ -73,6 +73,18 @@ class TestCsvReportPlugin(unittest.TestCase):
                     'provider': 'Cloudflare',
                     'confidence': 90,
                 },
+                'security_headers': {
+                    'hsts': {
+                        'present': True,
+                        'grade': 'strong',
+                        'max_age': 31536000,
+                        'include_subdomains': True,
+                        'preload': False,
+                        'preload_ready': False,
+                        'http_to_https_redirect': True,
+                        'warnings': [],
+                    }
+                },
             },
             'total': {
                 'success': 1,
@@ -124,6 +136,8 @@ class TestCsvReportPlugin(unittest.TestCase):
         self.assertEqual(rows[0]['size'], '9B')
         self.assertEqual(rows[0]['fingerprint_name'], 'Open Journal Systems')
         self.assertEqual(rows[0]['infrastructure_provider'], 'Cloudflare')
+        self.assertEqual(rows[0]['hsts_grade'], 'strong')
+        self.assertEqual(rows[0]['hsts_max_age'], '31536000')
         self.assertEqual(rows[1]['status'], 'blocked')
         self.assertEqual(rows[1]['waf'], 'Cloudflare')
         self.assertEqual(rows[1]['waf_confidence'], '92')
