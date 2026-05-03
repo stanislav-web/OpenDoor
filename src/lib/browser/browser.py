@@ -328,7 +328,7 @@ class Browser(Filter):
             if self.__client is None:
                 self.__start_request_provider()
 
-            tpl.info(
+            tpl.debug(
                 msg='Auto-calibration enabled: samples={0}, threshold={1}'.format(
                     self.__config.calibration_samples,
                     self.__config.calibration_threshold
@@ -436,7 +436,7 @@ class Browser(Filter):
         base_host = str(self.__config.host).strip().strip('.')
 
         return [
-            '__opendoor_dns_calibrate_{0}_{1}.{2}'.format(token, index, base_host)
+            'cdn-{0}-{1}.{2}'.format(token, index, base_host)
             for index in range(sample_count)
         ]
 
@@ -476,7 +476,7 @@ class Browser(Filter):
         token = uuid.uuid4().hex[:12]
 
         for index in range(self.__config.calibration_samples):
-            path = '__opendoor_calibrate_{0}_{1}'.format(token, index)
+            path = 'assets/{0}-{1}.map'.format(token, index)
             urls.append(self.__build_calibration_url(path))
 
         return urls

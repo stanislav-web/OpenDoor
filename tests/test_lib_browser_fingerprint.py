@@ -47,6 +47,15 @@ class TestFingerprint(unittest.TestCase):
         client.config_method_getter = lambda: getattr(config, '_method', 'HEAD')
         return client
 
+    def test_should_use_neutral_not_found_probe_path(self):
+        """Fingerprint 404-baseline probe path should not expose a branded scanner marker."""
+
+        probe_path = Fingerprint.NOT_FOUND_PROBE_PATH.lower()
+
+        self.assertNotIn('opendoor', probe_path)
+        self.assertTrue(probe_path.startswith('/.well-known/'))
+        self.assertTrue(probe_path.endswith('.txt'))
+
     def test_detects_wordpress(self):
         """Fingerprint should detect WordPress from markup and probe signals."""
 
@@ -206,7 +215,7 @@ class TestFingerprint(unittest.TestCase):
                 base = 'http://example.com/'
                 responses = {
                     ('GET', base): FakeResponse(200, body, headers),
-                    ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+                    ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
                 }
 
                 detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -251,7 +260,7 @@ class TestFingerprint(unittest.TestCase):
                 base = 'http://example.com/'
                 responses = {
                     ('GET', base): FakeResponse(200, '<html><body>plain app</body></html>', headers),
-                    ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+                    ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
                 }
 
                 detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -342,7 +351,7 @@ class TestFingerprint(unittest.TestCase):
             ),
             ('HEAD', 'http://example.com/status.php'): FakeResponse(200, '', {}),
             ('HEAD', 'http://example.com/remote.php/dav/'): FakeResponse(401, '', {}),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
         result = detector.detect()
@@ -363,7 +372,7 @@ class TestFingerprint(unittest.TestCase):
                 {}
             ),
             ('HEAD', 'http://example.com/admin'): FakeResponse(302, '', {'Location': '/login'}),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
         result = detector.detect()
@@ -389,7 +398,7 @@ class TestFingerprint(unittest.TestCase):
                 }
             ),
             ('HEAD', 'http://example.com/backend'): FakeResponse(302, '', {'Location': '/backend/auth'}),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -413,7 +422,7 @@ class TestFingerprint(unittest.TestCase):
                 {}
             ),
             ('HEAD', 'http://example.com/contao/'): FakeResponse(302, '', {'Location': '/contao/login'}),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -438,7 +447,7 @@ class TestFingerprint(unittest.TestCase):
                 {}
             ),
             ('HEAD', 'http://example.com/api.php'): FakeResponse(200, '', {}),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -464,7 +473,7 @@ class TestFingerprint(unittest.TestCase):
                     'Set-Cookie': '_pk_id=test; Path=/',
                 }
             ),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -488,7 +497,7 @@ class TestFingerprint(unittest.TestCase):
                 {}
             ),
             ('HEAD', 'http://example.com/admin'): FakeResponse(302, '', {'Location': '/admin/login'}),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -513,7 +522,7 @@ class TestFingerprint(unittest.TestCase):
                 }
             ),
             ('HEAD', 'http://example.com/bolt'): FakeResponse(302, '', {'Location': '/bolt/login'}),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -535,7 +544,7 @@ class TestFingerprint(unittest.TestCase):
                 {}
             ),
             ('HEAD', 'http://example.com/bolt'): FakeResponse(302, '', {'Location': '/bolt/login'}),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -560,7 +569,7 @@ class TestFingerprint(unittest.TestCase):
                 {}
             ),
             ('HEAD', 'http://example.com/admin'): FakeResponse(302, '', {'Location': '/login'}),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -586,7 +595,7 @@ class TestFingerprint(unittest.TestCase):
                 {}
             ),
             ('HEAD', 'http://example.com/backend'): FakeResponse(302, '', {'Location': '/login'}),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -611,7 +620,7 @@ class TestFingerprint(unittest.TestCase):
                 {}
             ),
             ('HEAD', 'http://example.com/backend'): FakeResponse(302, '', {'Location': '/login'}),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -637,7 +646,7 @@ class TestFingerprint(unittest.TestCase):
                 {}
             ),
             ('HEAD', 'http://example.com/admin'): FakeResponse(302, '', {'Location': '/login'}),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -663,7 +672,7 @@ class TestFingerprint(unittest.TestCase):
                 {}
             ),
             ('HEAD', 'http://example.com/admin'): FakeResponse(302, '', {'Location': '/login'}),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -686,7 +695,7 @@ class TestFingerprint(unittest.TestCase):
                     'Set-Cookie': 'craftsessionid=test; Path=/',
                 }
             ),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -710,7 +719,7 @@ class TestFingerprint(unittest.TestCase):
                 '</body></html>',
                 {}
             ),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -735,7 +744,7 @@ class TestFingerprint(unittest.TestCase):
                 '</body></html>',
                 {}
             ),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -759,7 +768,7 @@ class TestFingerprint(unittest.TestCase):
                 '</body></html>',
                 {}
             ),
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
         }
 
         detector = Fingerprint(config=config, client=self._make_client(config, responses))
@@ -978,7 +987,7 @@ class TestFingerprint(unittest.TestCase):
         detector = Fingerprint(
             config=config,
             client=self._make_client(config, {
-                ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(
+                ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
                     302,
                     '',
                     {'Location': '/404'}
@@ -1002,7 +1011,7 @@ class TestFingerprint(unittest.TestCase):
         detector = Fingerprint(
             config=config,
             client=self._make_client(config, {
-                ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(
+                ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
                     404,
                     'Cannot GET /.missing',
                     {'X-Powered-By': 'Express', 'Server': 'nginx'}
@@ -1099,6 +1108,26 @@ class TestFingerprint(unittest.TestCase):
         self.assertGreater(actual['confidence'], 35)
         self.assertEqual(actual['signals'][0]['value'], 'cf-ray')
         self.assertEqual(actual['candidates'][:2], candidates[:2])
+
+
+    def test_should_detect_runtime_stack_metadata(self):
+        """Fingerprint.detect() should expose runtime stack metadata."""
+        cases = [
+            ('WordPress', 'PHP', {'X-Powered-By': 'PHP/8.3', 'Set-Cookie': 'PHPSESSID=abc; Path=/'}, '<meta name="generator" content="WordPress"><link href="/wp-content/x.css">'),
+            ('Express', 'Node.js', {'X-Powered-By': 'Express', 'Set-Cookie': 'connect.sid=abc; Path=/'}, '<html>api</html>'),
+            ('ASP.NET', '.NET', {'X-Powered-By': 'ASP.NET', 'X-AspNet-Version': '4.0', 'Set-Cookie': 'ASP.NET_SessionId=abc; Path=/'}, '<input name="__VIEWSTATE" value="x">'),
+        ]
+        for expected_name, expected_runtime, headers, body in cases:
+            config = FakeConfig(); base = 'http://example.com/'
+            responses = {('GET', base): FakeResponse(200, body, headers), ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Cannot GET /.well-known/missing-resource.txt', headers)}
+            result = Fingerprint(config=config, client=self._make_client(config, responses)).detect()
+            self.assertEqual(result['name'], expected_name)
+            self.assertEqual(result['runtime']['name'], expected_runtime)
+
+    def test_should_build_runtime_result_without_candidates(self):
+        """Fingerprint._build_runtime_result() should return unknown runtime without candidates."""
+        detector = Fingerprint(config=FakeConfig(), client=self._make_client(FakeConfig(), {}))
+        self.assertEqual(detector._build_runtime_result([]), {'name': 'unknown', 'category': 'runtime', 'confidence': 0, 'signals': [], 'candidates': []})
 
     def test_should_calculate_confidence_with_lower_and_upper_caps(self):
         """Fingerprint._calculate_confidence() should clamp confidence to 35..98."""

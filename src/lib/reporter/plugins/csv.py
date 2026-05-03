@@ -48,6 +48,8 @@ class CsvReportPlugin(PluginProvider):
         'fingerprint_category',
         'fingerprint_name',
         'fingerprint_confidence',
+        'runtime_name',
+        'runtime_confidence',
         'infrastructure_provider',
         'infrastructure_confidence',
     ]
@@ -98,9 +100,15 @@ class CsvReportPlugin(PluginProvider):
                 'fingerprint_category': '',
                 'fingerprint_name': '',
                 'fingerprint_confidence': '',
+                'runtime_name': '',
+                'runtime_confidence': '',
                 'infrastructure_provider': '',
                 'infrastructure_confidence': '',
             }
+
+        runtime = fingerprint.get('runtime')
+        if not isinstance(runtime, dict):
+            runtime = {}
 
         infrastructure = fingerprint.get('infrastructure')
         if not isinstance(infrastructure, dict):
@@ -110,6 +118,8 @@ class CsvReportPlugin(PluginProvider):
             'fingerprint_category': str(fingerprint.get('category', 'custom')),
             'fingerprint_name': str(fingerprint.get('name', 'Unknown custom stack')),
             'fingerprint_confidence': str(fingerprint.get('confidence', 0)),
+            'runtime_name': str(runtime.get('name', '')),
+            'runtime_confidence': str(runtime.get('confidence', '')),
             'infrastructure_provider': str(infrastructure.get('provider', '')),
             'infrastructure_confidence': str(infrastructure.get('confidence', '')),
         }

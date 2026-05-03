@@ -1727,6 +1727,29 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(result['items']['calibrated'], ['http://example.com/admin'])
         self.assertEqual(result['report_items']['calibrated'][0]['calibration_score'], 0.97)
 
+    def test_calibrate_should_build_neutral_probe_urls(self):
+        """Browser calibration probes should avoid branded scanner markers in request URLs."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'auto_calibrate': True,
+            'calibration_samples': 2,
+        }))
+
+        with patch('src.lib.browser.browser.uuid.uuid4') as uuid4_mock:
+            uuid4_mock.return_value.hex = 'abcdef1234567890'
+            actual = br._Browser__build_calibration_urls()
+
+        self.assertEqual(actual, [
+            'http://example.com/assets/abcdef123456-0.map',
+            'http://example.com/assets/abcdef123456-1.map',
+        ])
+        self.assertNotIn('opendoor', ''.join(actual).lower())
+
     def test_calibrate_should_build_baseline_from_probe_responses(self):
         """Browser.calibrate() should build baseline signatures from calibration probes."""
 
@@ -1752,7 +1775,7 @@ class TestBrowser(unittest.TestCase):
         response_handler = MagicMock()
         response_handler.handle.return_value = (
             'success',
-            'http://example.com/__opendoor_calibrate',
+            'http://example.com/assets/abcdef123456-0.map',
             '67B',
             '200'
         )
@@ -1823,7 +1846,7 @@ class TestBrowser(unittest.TestCase):
         response_handler = MagicMock()
         response_handler.handle.return_value = (
             'success',
-            'http://example.com/__opendoor_calibrate',
+            'http://example.com/assets/abcdef123456-0.map',
             '9B',
             '404'
         )
@@ -1866,7 +1889,7 @@ class TestBrowser(unittest.TestCase):
         response_handler = MagicMock()
         response_handler.handle.side_effect = [
             None,
-            ('blocked', 'http://example.com/__opendoor_calibrate', '7B', '403'),
+            ('blocked', 'http://example.com/assets/abcdef123456-0.map', '7B', '403'),
         ]
         setattr(br, '_Browser__response', response_handler)
 

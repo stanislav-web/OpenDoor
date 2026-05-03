@@ -228,7 +228,7 @@ class TestPackage(unittest.TestCase):
                 patch('src.lib.package.package.Package._Package__remote_version', return_value='5.0.2'), \
                 patch('src.lib.package.package.helper.is_less', return_value=True), \
                 patch('src.lib.package.package.tpl.line', side_effect=lambda msg, color='white': f'{color}:{msg}'):
-            self.assertEqual(Package._Package__current_version(), 'red:5.0.1')
+            self.assertEqual(Package._Package__current_version(), 'red:5.0.1 -> green:5.0.2')
 
     def test_current_version_uses_green_when_local_is_current(self):
         """Package.__current_version() should colorize local version green when it is current."""
@@ -238,6 +238,15 @@ class TestPackage(unittest.TestCase):
                 patch('src.lib.package.package.helper.is_less', return_value=False), \
                 patch('src.lib.package.package.tpl.line', side_effect=lambda msg, color='white': f'{color}:{msg}'):
             self.assertEqual(Package._Package__current_version(), 'green:5.0.2')
+
+    def test_current_version_uses_green_when_local_is_newer(self):
+        """Package.__current_version() should hide remote version when local is newer."""
+
+        with patch('src.lib.package.package.Package.local_version', return_value='5.0.3'), \
+                patch('src.lib.package.package.Package._Package__remote_version', return_value='5.0.2'), \
+                patch('src.lib.package.package.helper.is_less', return_value=False), \
+                patch('src.lib.package.package.tpl.line', side_effect=lambda msg, color='white': f'{color}:{msg}'):
+            self.assertEqual(Package._Package__current_version(), 'green:5.0.3')
 
     def test_current_version_wraps_package_errors(self):
         """Package.__current_version() should wrap package errors into PackageError."""
@@ -323,6 +332,73 @@ class TestPackage(unittest.TestCase):
         self.assertFalse(banner.startswith('#'))
         self.assertIn('Line A', banner)
         self.assertIn('Line B', banner)
+
+    def test_render_banner_uses_block_art_when_tty_supports_unicode(self):
+        """Package.__render_banner() should use block-art for Unicode-capable TTY output."""
+
+        stdout = SimpleNamespace(isatty=lambda: True, encoding='utf-8')
+
+        with patch.dict('src.lib.package.package.os.environ', {}, clear=True), \
+                patch('src.lib.package.package.py_sys.stdout', new=stdout):
+            banner = Package._Package__render_banner(['Directories: 1'])
+
+        self.assertIn('██████', banner)
+        self.assertIn('Directories: 1', banner)
+
+    def test_render_banner_falls_back_to_ascii_when_unicode_is_not_supported(self):
+        """Package.__render_banner() should fall back to ASCII when stdout cannot encode block-art."""
+
+        stdout = SimpleNamespace(isatty=lambda: True, encoding='ascii')
+
+        with patch.dict('src.lib.package.package.os.environ', {}, clear=True), \
+                patch('src.lib.package.package.py_sys.stdout', new=stdout):
+            banner = Package._Package__render_banner(['Directories: 1'])
+
+        self.assertNotIn('██████', banner)
+        self.assertIn('____  ____  _____', banner)
+        self.assertIn('Directories: 1', banner)
+
+    def test_render_banner_keeps_plain_ascii_when_stdout_is_not_tty(self):
+        """Package.__render_banner() should keep plain ASCII for non-TTY output."""
+
+        stdout = SimpleNamespace(isatty=lambda: False, encoding='utf-8')
+
+        with patch.dict('src.lib.package.package.os.environ', {}, clear=True), \
+                patch('src.lib.package.package.py_sys.stdout', new=stdout):
+            banner = Package._Package__render_banner(['Directories: 1'])
+
+        self.assertNotIn('\033[', banner)
+        self.assertNotIn('██████', banner)
+        self.assertIn('____  ____  _____', banner)
+
+    def test_render_banner_respects_no_color(self):
+        """Package.__render_banner() should not emit ANSI colors when NO_COLOR is set."""
+
+        stdout = SimpleNamespace(isatty=lambda: True, encoding='utf-8')
+
+        with patch.dict(
+            'src.lib.package.package.os.environ',
+            {'NO_COLOR': '1', 'OPENDOOR_FORCE_COLOR': '1'},
+            clear=True,
+        ), \
+                patch('src.lib.package.package.py_sys.stdout', new=stdout):
+            banner = Package._Package__render_banner(['Directories: 1'])
+
+        self.assertNotIn('\033[', banner)
+        self.assertIn('██████', banner)
+
+    def test_render_banner_uses_ansi_colors_when_forced(self):
+        """Package.__render_banner() should allow forced ANSI color output."""
+
+        stdout = SimpleNamespace(isatty=lambda: False, encoding='utf-8')
+
+        with patch.dict('src.lib.package.package.os.environ', {'OPENDOOR_FORCE_COLOR': '1'}, clear=True), \
+                patch('src.lib.package.package.py_sys.stdout', new=stdout):
+            banner = Package._Package__render_banner(['Directories: 1'])
+
+        self.assertIn('\033[', banner)
+        self.assertNotIn('██████', banner)
+        self.assertIn('Directories: 1', banner)
 
     def test_parse_version_boundary_supports_major_minor_and_major_only(self):
         """Package.__parse_version_boundary() should parse both dotted and major-only values."""

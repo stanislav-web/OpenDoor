@@ -88,8 +88,17 @@ class SqliteReportPlugin(PluginProvider):
                 'category TEXT NOT NULL, '
                 'name TEXT NOT NULL, '
                 'confidence INTEGER NOT NULL, '
+                'runtime_name TEXT, '
+                'runtime_confidence INTEGER, '
                 'infrastructure_provider TEXT, '
                 'infrastructure_confidence INTEGER'
+                ')'
+            )
+            cursor.execute(
+                'CREATE TABLE runtime_signals ('
+                'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'type TEXT NOT NULL, '
+                'value TEXT NOT NULL'
                 ')'
             )
             cursor.execute(
@@ -144,6 +153,10 @@ class SqliteReportPlugin(PluginProvider):
 
             fingerprint = self._data.get('fingerprint')
             if isinstance(fingerprint, dict) and len(fingerprint) > 0:
+                runtime = fingerprint.get('runtime')
+                runtime_name = runtime.get('name') if isinstance(runtime, dict) else None
+                runtime_confidence = runtime.get('confidence') if isinstance(runtime, dict) else None
+
                 infrastructure = fingerprint.get('infrastructure')
                 infrastructure_provider = None
                 infrastructure_confidence = None
@@ -154,12 +167,14 @@ class SqliteReportPlugin(PluginProvider):
 
                 cursor.execute(
                     'INSERT INTO fingerprint('
-                    'id, category, name, confidence, infrastructure_provider, infrastructure_confidence'
-                    ') VALUES(1, ?, ?, ?, ?, ?)',
+                    'id, category, name, confidence, runtime_name, runtime_confidence, infrastructure_provider, infrastructure_confidence'
+                    ') VALUES(1, ?, ?, ?, ?, ?, ?, ?)',
                     (
                         str(fingerprint.get('category', 'custom')),
                         str(fingerprint.get('name', 'Unknown custom stack')),
                         int(fingerprint.get('confidence', 0)),
+                        None if runtime_name is None else str(runtime_name),
+                        None if runtime_confidence is None else int(runtime_confidence),
                         None if infrastructure_provider is None else str(infrastructure_provider),
                         None if infrastructure_confidence is None else int(infrastructure_confidence),
                     )
@@ -178,6 +193,10 @@ class SqliteReportPlugin(PluginProvider):
                             if isinstance(signal, dict)
                         ]
                     )
+
+                runtime_signals = runtime.get('signals', []) if isinstance(runtime, dict) else []
+                if isinstance(runtime_signals, list) and len(runtime_signals) > 0:
+                    cursor.executemany('INSERT INTO runtime_signals(type, value) VALUES(?, ?)', [(str(s.get('type', 'unknown')), str(s.get('value', ''))) for s in runtime_signals if isinstance(s, dict)])
 
             connection.commit()
             tpl.info(key='report', plugin=self.PLUGIN_NAME, dest=filesystem.getabsname(database_path))

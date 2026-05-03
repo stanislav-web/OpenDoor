@@ -437,7 +437,7 @@ During the scan, candidates that resolve only to the wildcard baseline are class
 
 ## 🧬 Fingerprint detection
 
-Fingerprinting attempts to identify probable CMS, frameworks, application stacks, custom technologies, and infrastructure providers before the scan.
+Fingerprinting attempts to identify probable CMS, frameworks, runtime / language stacks, application stacks, custom technologies, and infrastructure providers before the scan.
 
 ```shell
 opendoor --host https://example.com --fingerprint
@@ -816,7 +816,7 @@ When `--header-bypass` is enabled and a header or path candidate is found, repor
 opendoor --host https://example.com --reports sarif,json --reports-dir ./reports
 ```
 
-Use SARIF when OpenDoor findings should be uploaded to GitHub Code Scanning or other SARIF-compatible CI/CD security tooling. OpenDoor emits SARIF 2.1.0 and preserves URL, status code, response size, WAF, bypass and fingerprint evidence in result properties.
+Use SARIF when OpenDoor findings should be uploaded to GitHub Code Scanning or other SARIF-compatible CI/CD security tooling. OpenDoor emits SARIF 2.1.0 and preserves URL, status code, response size, WAF, bypass, fingerprint and runtime stack evidence in result properties.
 
 ```yaml
 - name: Upload OpenDoor SARIF

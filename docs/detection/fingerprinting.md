@@ -17,6 +17,7 @@ Fingerprinting can help identify probable:
 - CMS platforms;
 - e-commerce platforms;
 - frameworks and application platforms;
+- runtime / language families;
 - site builders;
 - static-site and documentation generators;
 - hosting platforms;
@@ -261,6 +262,18 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 - OpenResty
 - Tencent Cloud
 - Vercel
+
+### Stack technologies
+
+- PHP
+- Node.js
+- JavaScript
+- Python
+- Ruby
+- .NET
+- Java/JVM
+- Elixir
+- Static site
 
 ---
 

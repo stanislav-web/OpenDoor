@@ -46,6 +46,7 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - [AUR package](https://aur.archlinux.org/packages/opendoor)
 - [BlackArch package](https://blackarch.org/webapp.html)
 - [Issues](https://github.com/stanislav-web/OpenDoor/issues)
+- [Contributors](https://github.com/stanislav-web/OpenDoor/graphs/contributors)
 
 ---
 
@@ -60,7 +61,7 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - custom request headers, cookies, and raw HTTP request templates;
 - response filters by status, size, text, regex, and body length;
 - smart auto-calibration for soft-404, wildcard, catch-all, semantic response-diff, and DNS wildcard cases;
-- technology fingerprint detection CMS, ecommerce platforms, frameworks;
+- technology fingerprint detection for CMS, ecommerce platforms, frameworks, and runtime stacks;
 - passive WAF detection and WAF-safe scan mode;
 - controlled header and path bypass probes for blocked `401` and `403` resources;
 - resumable scan sessions with checkpoint autosave;
@@ -101,6 +102,7 @@ OpenDoor includes a heuristic fingerprint engine for detecting probable applicat
 | CMS | WordPress, Drupal, Joomla, TYPO3, Open Journal Systems, InstantCMS, CMS.S3 / Megagroup, Discuz!, NetCat |
 | E-commerce | Magento, WooCommerce, Shopify, PrestaShop, OpenCart, Shopware, Webasyst / Shop-Script |
 | Frameworks / app platforms | Laravel, Symfony, Django, Flask, FastAPI, Express, NestJS, Next.js, Nuxt, Rails, Spring |
+| Runtime / language stack | PHP, Node.js, JavaScript, Python, Ruby, .NET, Java/JVM, Elixir, static-site targets |
 | Site builders | Wix, Webflow, Squarespace, Tilda, Duda, Hostinger Website Builder |
 | Static / docs generators | MkDocs, Docusaurus, Hugo, Jekyll, VitePress |
 | Infrastructure / hosting | Cloudflare, AWS, Vercel, Netlify, GitHub Pages, GitLab Pages, Heroku, Azure, Google Cloud, Fastly, Akamai, Hostinger, DDoS-Guard, Tencent Cloud |
@@ -479,6 +481,10 @@ See [CHANGELOG.md](CHANGELOG.md) and [GitHub Releases](https://github.com/stanis
 Pull requests are welcome.
 
 Before contributing, read the [contribution guide](https://opendoor.readthedocs.io/Contribution/) and run the relevant tests.
+OpenDoor improves through code contributions, documentation updates, testing, issue reports, security feedback, feature ideas, and community validation.
+Thanks to everyone who has helped improve the project.
+
+[![Contributors](https://contrib.rocks/image?repo=stanislav-web/OpenDoor)](https://github.com/stanislav-web/OpenDoor/graphs/contributors)
 
 ---
 

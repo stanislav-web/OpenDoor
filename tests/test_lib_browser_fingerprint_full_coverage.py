@@ -283,9 +283,9 @@ class TestFingerprintFullCoverage(unittest.TestCase):
         """
 
         responses = {
-            ('GET', 'http://example.com/.opendoor-fingerprint-not-found-probe'): FakeResponse(
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
                 404,
-                '{"message":"Cannot GET /.opendoor-fingerprint-not-found-probe","error":"Not Found","statusCode":404}',
+                '{"message":"Cannot GET /.well-known/missing-resource.txt","error":"Not Found","statusCode":404}',
                 {'X-Powered-By': 'NestJS'},
             ),
         }
@@ -711,14 +711,14 @@ class TestFingerprintFullCoverage(unittest.TestCase):
                 'headers': {'x-powered-by': 'Express'},
                 'cookies': ['connect.sid'],
                 'not_found_status': 404,
-                'not_found_body': 'Cannot GET /.opendoor-fingerprint-not-found-probe',
+                'not_found_body': 'Cannot GET /.well-known/missing-resource.txt',
             },
             {
                 'name': 'NestJS',
                 'category': 'framework',
                 'probes': {'/swagger': 200, '/openapi.json': 200},
                 'not_found_status': 404,
-                'not_found_body': '{"message":"Cannot GET /.opendoor-fingerprint-not-found-probe","error":"Not Found","statusCode":404}',
+                'not_found_body': '{"message":"Cannot GET /.well-known/missing-resource.txt","error":"Not Found","statusCode":404}',
                 'not_found_headers': {'x-powered-by': 'NestJS'},
             },
             {
@@ -726,7 +726,7 @@ class TestFingerprintFullCoverage(unittest.TestCase):
                 'category': 'framework',
                 'headers': {'server': 'fastify'},
                 'not_found_status': 404,
-                'not_found_body': 'Route GET:/.opendoor-fingerprint-not-found-probe not found',
+                'not_found_body': 'Route GET:/.well-known/missing-resource.txt not found',
             },
             {
                 'name': 'FastAPI',

@@ -228,6 +228,10 @@ class SarifReportPlugin(PluginProvider):
         if not isinstance(fingerprint, dict) or len(fingerprint) == 0:
             return {}
 
+        runtime = fingerprint.get('runtime')
+        if not isinstance(runtime, dict):
+            runtime = {}
+
         infrastructure = fingerprint.get('infrastructure')
         if not isinstance(infrastructure, dict):
             infrastructure = {}
@@ -237,6 +241,9 @@ class SarifReportPlugin(PluginProvider):
             'fingerprintName': fingerprint.get('name', 'Unknown custom stack'),
             'fingerprintConfidence': self.maybe_int(fingerprint.get('confidence')),
             'fingerprintSignals': fingerprint.get('signals', []),
+            'runtimeName': runtime.get('name'),
+            'runtimeConfidence': self.maybe_int(runtime.get('confidence')),
+            'runtimeSignals': runtime.get('signals', []),
             'infrastructureProvider': infrastructure.get('provider'),
             'infrastructureConfidence': self.maybe_int(infrastructure.get('confidence')),
         })
@@ -348,8 +355,9 @@ class SarifReportPlugin(PluginProvider):
             'ruleId': self.FINGERPRINT_RULE_ID,
             'level': 'note',
             'message': {
-                'text': 'OpenDoor detected target fingerprint: {0}'.format(
-                    fingerprint.get('name', 'Unknown custom stack')
+                'text': 'OpenDoor detected target fingerprint: {0}{1}'.format(
+                    fingerprint.get('name', 'Unknown custom stack'),
+                    self._format_runtime_suffix(fingerprint),
                 ),
             },
             'locations': [
@@ -361,6 +369,16 @@ class SarifReportPlugin(PluginProvider):
             ],
             'properties': self.clean_properties({'target': self._target, **self.fingerprint_properties()}),
         }
+
+    @staticmethod
+    def _format_runtime_suffix(fingerprint):
+        runtime = fingerprint.get('runtime')
+        if not isinstance(runtime, dict):
+            return ''
+        name = runtime.get('name')
+        if not name or name == 'unknown':
+            return ''
+        return ' ({0} runtime)'.format(name)
 
     def build_sarif_log(self):
         """

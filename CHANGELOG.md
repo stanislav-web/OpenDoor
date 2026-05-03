@@ -1,6 +1,20 @@
 CHANGELOG
 =======
 
+v5.15.1 (03.05.2026)
+---------------------------
+- (fix) removed literal `opendoor` markers from active fingerprint 404-baseline, HTTP calibration and DNS wildcard calibration probe paths
+- (fix) fingerprint 404-baseline now uses a neutral randomized `.well-known` missing-resource path instead of `/.opendoor-fingerprint-not-found-probe`
+- (tests) updated fingerprint, HTTP calibration and DNS wildcard calibration coverage for neutral probe paths
+- (enhancement) added runtime-aware technology stack fingerprinting for PHP, Node.js, JavaScript, Python, Ruby, .NET, Java/JVM, Elixir and static-site targets
+- (enhancement) preserved runtime stack metadata in fingerprint results as `fingerprint.runtime`
+- (enhancement) included runtime stack fields in standard, text, CSV, HTML, SQLite, JSON and SARIF reports
+- (enhancement) added `runtime_signals` storage to SQLite reports and runtime properties to SARIF results
+- (enhancement) logo update
+- (docs) documented runtime-aware fingerprinting and report fields
+- (tests) added regression coverage for runtime detection and report propagation
+- (tests) coverage gate remains configured at `99%`
+
 v5.15.0 (02.05.2026)
 ---------------------------
 - (feature) added SARIF 2.1.0 report output via `--reports sarif` for CI/CD security workflows
