@@ -1,8 +1,8 @@
-# OpenDoor — OWASP Web Directory Scanner
+# OpenDoor — OWASP Web Recon & Directory Discovery Platform
 
-![OpenDoor](https://raw.githubusercontent.com/stanislav-web/OpenDoor/master/logo.png)
+![OpenDoor](/logo1.png)
 
-**OpenDoor** is an open-source CLI scanner for authorized web reconnaissance, directory discovery, subdomain enumeration, fingerprint detection, WAF detection, controlled header-bypass probing, response filtering, reporting, and transport-based scanning workflows.
+**OpenDoor** is an open-source CLI Recon Platform for authorized web reconnaissance, directory discovery, subdomain enumeration, fingerprint detection, WAF detection, controlled header-bypass probing, response filtering, reporting, and transport-based scanning workflows.
 
 It helps security researchers, penetration testers, bug bounty hunters, DevSecOps engineers, and developers identify exposed paths, login panels, directory listings, restricted resources, backup files, web shells, subdomains, and other potentially sensitive web assets.
 
@@ -67,7 +67,7 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - resumable scan sessions with checkpoint autosave;
 - CI/CD fail-on result bucket rules;
 - official Docker image distribution via GitHub Container Registry;
-- reports in terminal, text, JSON, CSV, HTML, and SQLite formats;
+- reports in terminal, text, JSON, CSV, HTML, SARIF and SQLite formats;
 - proxy, OpenVPN, and WireGuard transport profiles;
 - sequential per-target transport rotation for batch workflows;
 - configuration wizard for repeatable scan profiles.

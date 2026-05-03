@@ -138,7 +138,7 @@ class TestBrowserExtra(unittest.TestCase):
 
         line_log_mock.assert_called_once_with(
             key='fingerprint_progress',
-            status='info',
+            status='debug',
             bar='[######------------------] 25.0%',
             stage='root',
         )
@@ -156,7 +156,7 @@ class TestBrowserExtra(unittest.TestCase):
 
         line_log_mock.assert_called_once_with(
             key='fingerprint_progress',
-            status='info',
+            status='debug',
             bar='[########################] 100.0%',
             stage='done',
         )

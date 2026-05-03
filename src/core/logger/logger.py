@@ -90,3 +90,4 @@ class Logger(object):
             logger.addHandler(handler)
 
         return logger
+

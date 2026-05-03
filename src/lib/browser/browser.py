@@ -255,7 +255,7 @@ class Browser(Filter):
         """
 
         bar = self.__render_fingerprint_bar(current, total)
-        tpl.line_log(key='fingerprint_progress', status='info', bar=bar, stage=label)
+        tpl.line_log(key='fingerprint_progress', status='debug', bar=bar, stage=label)
 
         if int(current or 0) >= int(total or 1):
             output.writeln('')
@@ -288,7 +288,7 @@ class Browser(Filter):
             ).detect()
             self.__result['fingerprint'] = result
 
-            tpl.debug(
+            tpl.info(
                 msg='Fingerprint result: {category}/{name} ({confidence}%)'.format(
                     category=result.get('category', 'custom'),
                     name=result.get('name', 'Unknown custom stack'),
@@ -298,7 +298,7 @@ class Browser(Filter):
 
             if result.get('signals'):
                 evidence = ', '.join([signal.get('value', '') for signal in result.get('signals', [])[:4]])
-                tpl.debug(msg='Fingerprint evidence: {0}'.format(evidence))
+                tpl.info(msg='Fingerprint evidence: {0}'.format(evidence))
 
             return result
 

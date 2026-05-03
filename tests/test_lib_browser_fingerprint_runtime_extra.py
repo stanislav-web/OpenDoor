@@ -97,12 +97,12 @@ class TestBrowserFingerprintRuntimeExtra(unittest.TestCase):
         fingerprint_instance.detect.return_value = fingerprint_result
 
         with patch('src.lib.browser.browser.Fingerprint', return_value=fingerprint_instance), \
-                patch('src.lib.browser.browser.tpl.debug') as debug_mock:
+                patch('src.lib.browser.browser.tpl.info') as info_mock:
             result = browser.fingerprint()
 
         self.assertEqual(result, fingerprint_result)
         self.assertEqual(getattr(browser, '_Browser__result')['fingerprint'], fingerprint_result)
-        self.assertGreaterEqual(debug_mock.call_count, 2)
+        self.assertGreaterEqual(info_mock.call_count, 2)
 
     def test_fingerprint_starts_request_provider_when_client_is_missing(self):
         """

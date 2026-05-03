@@ -406,6 +406,63 @@ class TestPackage(unittest.TestCase):
         self.assertEqual(Package._Package__parse_version_boundary('3.14'), (3, 14))
         self.assertEqual(Package._Package__parse_version_boundary('4'), (4, 0))
 
+    def test_stdout_is_tty_returns_false_when_stdout_is_missing_or_not_tty_capable(self):
+        """Package.__stdout_is_tty() should be defensive for missing or non-TTY-capable stdout."""
+
+        with patch('src.lib.package.package.py_sys.stdout', new=None):
+            self.assertFalse(Package._Package__stdout_is_tty())
+
+        stdout = SimpleNamespace(encoding='utf-8')
+        with patch('src.lib.package.package.py_sys.stdout', new=stdout):
+            self.assertFalse(Package._Package__stdout_is_tty())
+
+    def test_supports_banner_unicode_respects_ascii_banner_override(self):
+        """Package.__supports_banner_unicode() should honor explicit ASCII banner mode."""
+
+        stdout = SimpleNamespace(isatty=lambda: True, encoding='utf-8')
+
+        with patch.dict('src.lib.package.package.os.environ', {'OPENDOOR_ASCII_BANNER': '1'}, clear=True), \
+                patch('src.lib.package.package.py_sys.stdout', new=stdout):
+            self.assertFalse(Package._Package__supports_banner_unicode())
+
+    def test_supports_banner_unicode_returns_false_for_unknown_stdout_encoding(self):
+        """Package.__supports_banner_unicode() should reject unknown stdout encodings safely."""
+
+        stdout = SimpleNamespace(isatty=lambda: True, encoding='missing-opendoor-codec')
+
+        with patch.dict('src.lib.package.package.os.environ', {}, clear=True), \
+                patch('src.lib.package.package.py_sys.stdout', new=stdout):
+            self.assertFalse(Package._Package__supports_banner_unicode())
+
+    def test_supports_banner_color_returns_false_for_dumb_terminal(self):
+        """Package.__supports_banner_color() should disable ANSI colors for dumb terminals."""
+
+        stdout = SimpleNamespace(isatty=lambda: True, encoding='utf-8')
+
+        with patch.dict('src.lib.package.package.os.environ', {'TERM': 'dumb'}, clear=True), \
+                patch('src.lib.package.package.py_sys.stdout', new=stdout):
+            self.assertFalse(Package._Package__supports_banner_color())
+
+    def test_supports_banner_color_uses_windows_terminal_markers(self):
+        """Package.__supports_banner_color() should allow ANSI colors on capable Windows terminals."""
+
+        stdout = SimpleNamespace(isatty=lambda: True, encoding='utf-8')
+
+        with patch.dict('src.lib.package.package.os.environ', {'WT_SESSION': 'session-id'}, clear=True), \
+                patch('src.lib.package.package.py_sys.stdout', new=stdout), \
+                patch('src.lib.package.package.os.name', new='nt'):
+            self.assertTrue(Package._Package__supports_banner_color())
+
+    def test_supports_banner_color_returns_false_on_windows_without_terminal_markers(self):
+        """Package.__supports_banner_color() should disable ANSI colors on plain Windows consoles."""
+
+        stdout = SimpleNamespace(isatty=lambda: True, encoding='utf-8')
+
+        with patch.dict('src.lib.package.package.os.environ', {}, clear=True), \
+                patch('src.lib.package.package.py_sys.stdout', new=stdout), \
+                patch('src.lib.package.package.os.name', new='nt'):
+            self.assertFalse(Package._Package__supports_banner_color())
+
 
 if __name__ == '__main__':
     unittest.main()
