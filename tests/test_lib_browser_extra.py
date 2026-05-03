@@ -162,6 +162,35 @@ class TestBrowserExtra(unittest.TestCase):
         )
         writeln_mock.assert_called_once_with('')
 
+    def test_render_fingerprint_summary_lines_includes_stack_and_security_posture(self):
+        """Browser should build compact post-fingerprint summary lines."""
+
+        fingerprint = {
+            'name': 'WordPress',
+            'runtime': {'name': 'PHP'},
+            'infrastructure': {'provider': 'Cloudflare'},
+            'security_headers': {
+                'hsts': {'grade': 'preload-ready'},
+            },
+        }
+
+        lines = Browser._Browser__render_fingerprint_summary_lines(fingerprint)
+
+        self.assertEqual(lines, [
+            'Web stack: WordPress | PHP | Cloudflare',
+            'Security posture: HSTS preload-ready',
+        ])
+
+    def test_render_fingerprint_summary_lines_handles_missing_metadata(self):
+        """Browser should keep compact summary safe when optional metadata is absent."""
+
+        lines = Browser._Browser__render_fingerprint_summary_lines({'name': 'Unknown custom stack'})
+
+        self.assertEqual(lines, [
+            'Web stack: Unknown custom stack | unknown',
+            'Security posture: unknown',
+        ])
+
     def test_request_with_waf_safe_mode_active_without_sleep(self):
         """Browser should serialize through safe mode without sleeping when slot is already available."""
 

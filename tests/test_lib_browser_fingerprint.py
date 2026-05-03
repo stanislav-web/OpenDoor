@@ -1134,3 +1134,65 @@ class TestFingerprint(unittest.TestCase):
 
         self.assertEqual(Fingerprint._calculate_confidence(0, 0), 35)
         self.assertEqual(Fingerprint._calculate_confidence(100, 100), 98)
+class TestFingerprintHstsSecurityHeaders(unittest.TestCase):
+    """HSTS security-header fingerprint coverage."""
+
+    def _make_client(self, config, responses):
+        client = FakeClient(responses)
+        client.config_method_getter = lambda: getattr(config, '_method', 'HEAD')
+        return client
+
+    def test_detects_hsts_preload_ready_after_https_redirect(self):
+        """Fingerprint should preserve preload-ready HSTS posture from final HTTPS root response."""
+
+        config = FakeConfig()
+        responses = {
+            ('GET', 'http://example.com/'): FakeResponse(301, '', {'Location': 'https://example.com/'}),
+            ('GET', 'https://example.com/'): FakeResponse(
+                200,
+                '<html><body>custom</body></html>',
+                {'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload'},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+        hsts = result['security_headers']['hsts']
+
+        self.assertTrue(hsts['present'])
+        self.assertEqual(hsts['max_age'], 31536000)
+        self.assertTrue(hsts['include_subdomains'])
+        self.assertTrue(hsts['preload'])
+        self.assertTrue(hsts['preload_ready'])
+        self.assertTrue(hsts['http_to_https_redirect'])
+        self.assertEqual(hsts['grade'], 'preload-ready')
+        self.assertEqual(hsts['warnings'], [])
+
+    def test_marks_preload_directive_as_not_ready_when_max_age_is_too_low(self):
+        """Fingerprint should warn when preload is present but preload requirements are not met."""
+
+        result = Fingerprint._build_hsts_result(
+            headers={'strict-transport-security': 'max-age=300; preload'},
+            base_url='https://example.com/',
+            final_root_url='https://example.com/',
+        )
+
+        self.assertTrue(result['present'])
+        self.assertEqual(result['grade'], 'weak')
+        self.assertFalse(result['preload_ready'])
+        self.assertIn('max_age_too_low', result['warnings'])
+        self.assertIn('preload_not_ready', result['warnings'])
+
+    def test_ignores_hsts_header_observed_on_plain_http(self):
+        """Fingerprint should not mark HSTS as present when the final root response is plain HTTP."""
+
+        result = Fingerprint._build_hsts_result(
+            headers={'strict-transport-security': 'max-age=31536000; includeSubDomains; preload'},
+            base_url='http://example.com/',
+            final_root_url='http://example.com/',
+        )
+
+        self.assertFalse(result['present'])
+        self.assertEqual(result['grade'], 'missing')
+        self.assertIn('not_https', result['warnings'])
+        self.assertIn('missing_hsts', result['warnings'])

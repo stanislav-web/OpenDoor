@@ -55,6 +55,19 @@ class TestSqliteAndStdReporterExtra(unittest.TestCase):
                     'confidence': 92,
                 }
 
+            fingerprint['security_headers'] = {
+                'hsts': {
+                    'present': True,
+                    'grade': 'preload-ready',
+                    'max_age': 31536000,
+                    'include_subdomains': True,
+                    'preload': True,
+                    'preload_ready': True,
+                    'http_to_https_redirect': True,
+                    'warnings': [],
+                }
+            }
+
             if with_signals:
                 fingerprint['signals'] = [
                     {'type': 'body', 'value': 'wp-content'},
@@ -96,12 +109,12 @@ class TestSqliteAndStdReporterExtra(unittest.TestCase):
                 self.assertEqual(items[2], ('blocked', 'https://example.com/predictions', '403', '32B'))
 
                 fingerprint = cursor.execute(
-                    'SELECT category, name, confidence, infrastructure_provider, infrastructure_confidence '
-                    'FROM fingerprint'
+                    'SELECT category, name, confidence, infrastructure_provider, infrastructure_confidence, '
+                    'hsts_grade, hsts_max_age, hsts_preload_ready FROM fingerprint'
                 ).fetchone()
                 self.assertEqual(
                     fingerprint,
-                    ('cms', 'WordPress', 95, 'cloudflare', 92)
+                    ('cms', 'WordPress', 95, 'cloudflare', 92, 'preload-ready', 31536000, 1)
                 )
 
                 signals = cursor.execute(
@@ -217,6 +230,8 @@ class TestSqliteAndStdReporterExtra(unittest.TestCase):
         self.assertIn(('fingerprint_confidence', '95%'), rows)
         self.assertIn(('fingerprint_infra', 'cloudflare'), rows)
         self.assertIn(('fingerprint_infra_confidence', '92%'), rows)
+        self.assertIn(('hsts', 'preload-ready'), rows)
+        self.assertIn(('hsts_preload_ready', True), rows)
 
 
 if __name__ == '__main__':

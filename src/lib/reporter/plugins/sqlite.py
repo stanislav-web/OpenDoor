@@ -91,7 +91,15 @@ class SqliteReportPlugin(PluginProvider):
                 'runtime_name TEXT, '
                 'runtime_confidence INTEGER, '
                 'infrastructure_provider TEXT, '
-                'infrastructure_confidence INTEGER'
+                'infrastructure_confidence INTEGER, '
+                'hsts_present INTEGER, '
+                'hsts_grade TEXT, '
+                'hsts_max_age INTEGER, '
+                'hsts_include_subdomains INTEGER, '
+                'hsts_preload INTEGER, '
+                'hsts_preload_ready INTEGER, '
+                'hsts_http_to_https_redirect INTEGER, '
+                'hsts_warnings TEXT'
                 ')'
             )
             cursor.execute(
@@ -165,10 +173,20 @@ class SqliteReportPlugin(PluginProvider):
                     infrastructure_provider = infrastructure.get('provider')
                     infrastructure_confidence = infrastructure.get('confidence')
 
+                security_headers = fingerprint.get('security_headers')
+                if not isinstance(security_headers, dict):
+                    security_headers = {}
+                hsts = security_headers.get('hsts')
+                if not isinstance(hsts, dict):
+                    hsts = {}
+
                 cursor.execute(
                     'INSERT INTO fingerprint('
-                    'id, category, name, confidence, runtime_name, runtime_confidence, infrastructure_provider, infrastructure_confidence'
-                    ') VALUES(1, ?, ?, ?, ?, ?, ?, ?)',
+                    'id, category, name, confidence, runtime_name, runtime_confidence, '
+                    'infrastructure_provider, infrastructure_confidence, hsts_present, hsts_grade, '
+                    'hsts_max_age, hsts_include_subdomains, hsts_preload, hsts_preload_ready, '
+                    'hsts_http_to_https_redirect, hsts_warnings'
+                    ') VALUES(1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     (
                         str(fingerprint.get('category', 'custom')),
                         str(fingerprint.get('name', 'Unknown custom stack')),
@@ -177,6 +195,14 @@ class SqliteReportPlugin(PluginProvider):
                         None if runtime_confidence is None else int(runtime_confidence),
                         None if infrastructure_provider is None else str(infrastructure_provider),
                         None if infrastructure_confidence is None else int(infrastructure_confidence),
+                        None if hsts.get('present') is None else int(bool(hsts.get('present'))),
+                        None if hsts.get('grade') is None else str(hsts.get('grade')),
+                        None if hsts.get('max_age') is None else int(hsts.get('max_age')),
+                        None if hsts.get('include_subdomains') is None else int(bool(hsts.get('include_subdomains'))),
+                        None if hsts.get('preload') is None else int(bool(hsts.get('preload'))),
+                        None if hsts.get('preload_ready') is None else int(bool(hsts.get('preload_ready'))),
+                        None if hsts.get('http_to_https_redirect') is None else int(bool(hsts.get('http_to_https_redirect'))),
+                        ';'.join([str(item) for item in hsts.get('warnings', [])]) if isinstance(hsts.get('warnings'), list) else None,
                     )
                 )
 

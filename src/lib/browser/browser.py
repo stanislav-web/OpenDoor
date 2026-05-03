@@ -260,6 +260,100 @@ class Browser(Filter):
         if int(current or 0) >= int(total or 1):
             output.writeln('')
 
+    @staticmethod
+    def __normalize_fingerprint_summary_value(value, default='unknown'):
+        """
+        Normalize optional fingerprint metadata for compact console output.
+
+        :param mixed value: raw fingerprint value
+        :param str default: fallback value
+        :return: str
+        """
+
+        normalized = str(value or '').strip()
+        if not normalized:
+            return default
+        return normalized
+
+    @classmethod
+    def __build_fingerprint_stack_summary(cls, fingerprint):
+        """
+        Build a short application/runtime/infrastructure summary.
+
+        :param dict fingerprint: fingerprint result
+        :return: str
+        """
+
+        if not isinstance(fingerprint, dict):
+            return 'unknown'
+
+        app_name = cls.__normalize_fingerprint_summary_value(fingerprint.get('name'))
+        runtime = cls.__normalize_fingerprint_summary_value(
+            fingerprint.get('runtime', {}).get('name') if isinstance(fingerprint.get('runtime'), dict) else None
+        )
+        infrastructure = cls.__normalize_fingerprint_summary_value(
+            fingerprint.get('infrastructure', {}).get('provider')
+            if isinstance(fingerprint.get('infrastructure'), dict) else None
+        )
+
+        values = []
+        for value in (app_name, runtime, infrastructure):
+            if value not in values:
+                values.append(value)
+
+        return ' | '.join(values) if values else 'unknown'
+
+    @classmethod
+    def __build_fingerprint_security_summary(cls, fingerprint):
+        """
+        Build a short security posture summary from fingerprint metadata.
+
+        :param dict fingerprint: fingerprint result
+        :return: str
+        """
+
+        if not isinstance(fingerprint, dict):
+            return 'unknown'
+
+        security_headers = fingerprint.get('security_headers')
+        if not isinstance(security_headers, dict):
+            return 'unknown'
+
+        hsts = security_headers.get('hsts')
+        if not isinstance(hsts, dict):
+            return 'unknown'
+
+        grade = cls.__normalize_fingerprint_summary_value(hsts.get('grade'))
+        if grade == 'preload-ready':
+            return 'HSTS preload-ready'
+        return 'HSTS {0}'.format(grade)
+
+    @classmethod
+    def __render_fingerprint_summary_lines(cls, fingerprint):
+        """
+        Build compact post-fingerprint lines for early scan visibility.
+
+        :param dict fingerprint: fingerprint result
+        :return: list[str]
+        """
+
+        return [
+            'Web stack: {0}'.format(cls.__build_fingerprint_stack_summary(fingerprint)),
+            'Security posture: {0}'.format(cls.__build_fingerprint_security_summary(fingerprint)),
+        ]
+
+    @classmethod
+    def __print_fingerprint_summary(cls, fingerprint):
+        """
+        Print compact fingerprint summary lines before dictionary enumeration starts.
+
+        :param dict fingerprint: fingerprint result
+        :return: None
+        """
+
+        for line in cls.__render_fingerprint_summary_lines(fingerprint):
+            tpl.info(msg=line)
+
     def fingerprint(self):
         """
         Run heuristic technology fingerprinting before the main scan.
@@ -295,6 +389,8 @@ class Browser(Filter):
                     confidence=result.get('confidence', 0),
                 )
             )
+
+            self.__print_fingerprint_summary(result)
 
             if result.get('signals'):
                 evidence = ', '.join([signal.get('value', '') for signal in result.get('signals', [])[:4]])

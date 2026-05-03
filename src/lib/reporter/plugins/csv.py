@@ -52,6 +52,14 @@ class CsvReportPlugin(PluginProvider):
         'runtime_confidence',
         'infrastructure_provider',
         'infrastructure_confidence',
+        'hsts_present',
+        'hsts_grade',
+        'hsts_max_age',
+        'hsts_include_subdomains',
+        'hsts_preload',
+        'hsts_preload_ready',
+        'hsts_http_to_https_redirect',
+        'hsts_warnings',
     ]
 
     def __init__(self, target, data, directory=None):
@@ -104,6 +112,14 @@ class CsvReportPlugin(PluginProvider):
                 'runtime_confidence': '',
                 'infrastructure_provider': '',
                 'infrastructure_confidence': '',
+                'hsts_present': '',
+                'hsts_grade': '',
+                'hsts_max_age': '',
+                'hsts_include_subdomains': '',
+                'hsts_preload': '',
+                'hsts_preload_ready': '',
+                'hsts_http_to_https_redirect': '',
+                'hsts_warnings': '',
             }
 
         runtime = fingerprint.get('runtime')
@@ -114,6 +130,13 @@ class CsvReportPlugin(PluginProvider):
         if not isinstance(infrastructure, dict):
             infrastructure = {}
 
+        security_headers = fingerprint.get('security_headers')
+        if not isinstance(security_headers, dict):
+            security_headers = {}
+        hsts = security_headers.get('hsts')
+        if not isinstance(hsts, dict):
+            hsts = {}
+
         return {
             'fingerprint_category': str(fingerprint.get('category', 'custom')),
             'fingerprint_name': str(fingerprint.get('name', 'Unknown custom stack')),
@@ -122,6 +145,14 @@ class CsvReportPlugin(PluginProvider):
             'runtime_confidence': str(runtime.get('confidence', '')),
             'infrastructure_provider': str(infrastructure.get('provider', '')),
             'infrastructure_confidence': str(infrastructure.get('confidence', '')),
+            'hsts_present': str(hsts.get('present', '')),
+            'hsts_grade': str(hsts.get('grade', '')),
+            'hsts_max_age': '' if hsts.get('max_age') is None else str(hsts.get('max_age')),
+            'hsts_include_subdomains': str(hsts.get('include_subdomains', '')),
+            'hsts_preload': str(hsts.get('preload', '')),
+            'hsts_preload_ready': str(hsts.get('preload_ready', '')),
+            'hsts_http_to_https_redirect': str(hsts.get('http_to_https_redirect', '')),
+            'hsts_warnings': self.__format_list(hsts.get('warnings', [])),
         }
 
     def __build_rows(self):

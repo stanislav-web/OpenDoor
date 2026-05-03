@@ -236,6 +236,13 @@ class SarifReportPlugin(PluginProvider):
         if not isinstance(infrastructure, dict):
             infrastructure = {}
 
+        security_headers = fingerprint.get('security_headers')
+        if not isinstance(security_headers, dict):
+            security_headers = {}
+        hsts = security_headers.get('hsts')
+        if not isinstance(hsts, dict):
+            hsts = {}
+
         return self.clean_properties({
             'fingerprintCategory': fingerprint.get('category', 'custom'),
             'fingerprintName': fingerprint.get('name', 'Unknown custom stack'),
@@ -246,6 +253,14 @@ class SarifReportPlugin(PluginProvider):
             'runtimeSignals': runtime.get('signals', []),
             'infrastructureProvider': infrastructure.get('provider'),
             'infrastructureConfidence': self.maybe_int(infrastructure.get('confidence')),
+            'hstsPresent': hsts.get('present'),
+            'hstsGrade': hsts.get('grade'),
+            'hstsMaxAge': self.maybe_int(hsts.get('max_age')),
+            'hstsIncludeSubdomains': hsts.get('include_subdomains'),
+            'hstsPreload': hsts.get('preload'),
+            'hstsPreloadReady': hsts.get('preload_ready'),
+            'hstsHttpToHttpsRedirect': hsts.get('http_to_https_redirect'),
+            'hstsWarnings': hsts.get('warnings', []),
         })
 
     def item_properties(self, status, item):

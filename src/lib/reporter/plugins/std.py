@@ -62,5 +62,14 @@ class StdReportPlugin(PluginProvider):
                     ('fingerprint_infra_confidence', '{0}%'.format(infrastructure.get('confidence', 0))),
                 ]
 
+            hsts = fingerprint.get('security_headers', {}).get('hsts', {})
+            if isinstance(hsts, dict) and len(hsts) > 0:
+                data += [
+                    ('hsts', hsts.get('grade', 'missing')),
+                    ('hsts_max_age', '-' if hsts.get('max_age') is None else hsts.get('max_age')),
+                    ('hsts_include_subdomains', hsts.get('include_subdomains', False)),
+                    ('hsts_preload_ready', hsts.get('preload_ready', False)),
+                ]
+
         title = 'Statistics ({0})'.format(self._target)
         sys.writeln(tabulate(data, headers=[title, 'Summary'], tablefmt="psql"))

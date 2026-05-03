@@ -90,7 +90,11 @@ class TestBrowserFingerprintRuntimeExtra(unittest.TestCase):
                 {'type': 'asset', 'value': '/_next/static/', 'weight': 7},
                 {'type': 'script', 'value': '__NEXT_DATA__', 'weight': 7},
             ],
+            'runtime': {'name': 'Node.js', 'confidence': 95},
             'infrastructure': {'provider': 'Vercel', 'confidence': 98},
+            'security_headers': {
+                'hsts': {'grade': 'strong'},
+            },
         }
 
         fingerprint_instance = MagicMock()
@@ -102,7 +106,10 @@ class TestBrowserFingerprintRuntimeExtra(unittest.TestCase):
 
         self.assertEqual(result, fingerprint_result)
         self.assertEqual(getattr(browser, '_Browser__result')['fingerprint'], fingerprint_result)
-        self.assertGreaterEqual(info_mock.call_count, 2)
+        messages = [call.kwargs.get('msg') for call in info_mock.call_args_list]
+        self.assertIn('Web stack: Next.js | Node.js | Vercel', messages)
+        self.assertIn('Security posture: HSTS strong', messages)
+        self.assertGreaterEqual(info_mock.call_count, 4)
 
     def test_fingerprint_starts_request_provider_when_client_is_missing(self):
         """

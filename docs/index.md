@@ -8,7 +8,7 @@ OpenDoor supports single-target and batch scanning, custom wordlists, response f
 
 > Use OpenDoor only on systems you own or have explicit permission to test.
 
-![OpenDoor](img/open-door.png)
+![OpenDoor](img/logo.png)
 
 ---
 

@@ -450,8 +450,35 @@ Fingerprinting is useful for:
 - identifying static hosting or CDN providers;
 - adjusting filters and scan strategy.
 
+After fingerprinting finishes, OpenDoor prints a short pre-scan summary and then continues with the requested scan:
+
+```text
+Fingerprint result: cms/WordPress (95%)
+Web stack: WordPress | PHP | Cloudflare
+Security posture: HSTS preload-ready
+```
+
+Detailed fingerprint metadata remains available in reports and in the final standard summary.
+
 
 OpenDoor 5.14.5 expands the passive fingerprint catalog with selected regional CMS, site-builder and strong HTTP-visible infrastructure signatures, including InstantCMS, Duda, Hostinger Website Builder, CMS.S3 / Megagroup, Webasyst / Shop-Script, Discuz!, NetCat, Hostinger, DDoS-Guard and Tencent Cloud.
+
+
+OpenDoor 5.15.2 also adds offline HSTS / preload-readiness detection to the same `--fingerprint` pass. It checks only the target host response and does not call external preload-status services. Report metadata is stored as `fingerprint.security_headers.hsts`.
+
+Example output in machine-readable reports:
+
+```json
+{
+  "grade": "preload-ready",
+  "max_age": 31536000,
+  "include_subdomains": true,
+  "preload": true,
+  "preload_ready": true,
+  "http_to_https_redirect": true,
+  "warnings": []
+}
+```
 
 
 ---

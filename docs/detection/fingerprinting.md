@@ -45,6 +45,22 @@ opendoor \
 
 ---
 
+## Compact pre-scan summary
+
+When fingerprinting is enabled, OpenDoor prints a compact summary immediately after the fingerprint pass and before dictionary enumeration starts. This gives operators an early target profile without waiting for report generation.
+
+Example:
+
+```text
+Fingerprint result: cms/WordPress (95%)
+Web stack: WordPress | PHP | Cloudflare
+Security posture: HSTS preload-ready
+```
+
+The compact summary intentionally stays short. Full evidence, candidates, HSTS fields and report-specific metadata remain in JSON, HTML, CSV, SQLite, TXT, STD and SARIF outputs.
+
+---
+
 ## Fingerprinting with reports
 
 ```shell
@@ -274,6 +290,51 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 - Java/JVM
 - Elixir
 - Static site
+
+---
+
+## Security headers posture
+
+When `--fingerprint` is enabled, OpenDoor also performs an offline HSTS posture check against the observed target root response. It does not query external preload services. The check uses only headers returned by the target host.
+
+The HSTS result is stored under `fingerprint.security_headers.hsts` in machine-readable reports.
+
+Example JSON fragment:
+
+```json
+{
+  "fingerprint": {
+    "security_headers": {
+      "hsts": {
+        "present": true,
+        "header": "max-age=31536000; includeSubDomains; preload",
+        "max_age": 31536000,
+        "include_subdomains": true,
+        "preload": true,
+        "preload_ready": true,
+        "http_to_https_redirect": true,
+        "grade": "preload-ready",
+        "warnings": []
+      }
+    }
+  }
+}
+```
+
+OpenDoor grades HSTS as:
+
+| Grade | Meaning |
+|---|---|
+| `missing` | No effective HSTS was observed on the final HTTPS response, or the final response was plain HTTP. |
+| `invalid` | HSTS exists, but `max-age` is missing or invalid. |
+| `disabled` | HSTS is explicitly disabled with `max-age=0`. |
+| `weak` | HSTS exists, but `max-age` is below 180 days. |
+| `moderate` | HSTS is usable, but below the common preload minimum of one year. |
+| `good` | HSTS has at least one year `max-age`, but lacks `includeSubDomains`. |
+| `strong` | HSTS has at least one year `max-age` and `includeSubDomains`. |
+| `preload-ready` | Local preload-readiness checks passed: HTTPS final response, `max-age >= 31536000`, `includeSubDomains`, and `preload`. |
+
+Warnings are intentionally explicit, for example `missing_hsts`, `max_age_too_low`, `missing_include_subdomains`, `preload_not_ready`, or `not_https`.
 
 ---
 
