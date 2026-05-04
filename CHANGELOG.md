@@ -2,13 +2,18 @@ CHANGELOG
 =======
 
 v5.15.3 (04.05.2026)
----------------------------
-- (enhancement) expanded passive WAF recognition with additional vendor signatures sourced from public WAF fingerprint catalogs
+- (fix) made reporter item access defensive so report plugins cannot mutate shared scan payloads
+- (fix) hardened plain-text report processing for missing or malformed `items` payloads
+- (debug) added compact fingerprint evidence signals to `fingerprint.txt` for easier QA of runtime/infrastructure detection
+ - (enhancement) expanded passive WAF recognition with additional vendor signatures sourced from public WAF fingerprint catalogs
 - (enhancement) added 360 WAF, Airlock, Aliyun WAF, Anquanbao, BinarySec, BitNinja, Bluedon WAF, ChinaCache, Comodo WAF, DoSArrest, DotDefender, GoDaddy Website Firewall, GreyWizard, IBM DataPower, Imunify360, Instart DX, NAXSI, NinjaFirewall, Profense and WebKnight detection
 - (fix) gated passive WAF/gateway headers in both vendor-specific matching and generic fallback so normal 200 responses are not promoted to blocked
 - (fix) isolated default fingerprint fallback results with deep copies to prevent nested metadata leakage between failed or empty detection runs
 - (enhancement) added vendor-specific and generic-fallback gating for passive gateway/server markers to avoid classifying normal 200 responses as blocked WAF pages
 - (enhancement) deduplicated WAF evidence signals before report propagation
+- (fix) tuned runtime fingerprint scoring so endpoint-only framework probes no longer imply Node.js/Python runtime
+- (fix) added conservative PHP route-marker runtime evidence for legacy PHP sites without exposed `X-Powered-By` headers
+- (tests) added runtime regression coverage for weak endpoint hints, canonical Node.js 404s and PHP route markers
 - (docs) updated WAF detection documentation with the expanded recognized vendor list and passive-only detection note
 - (tests) added regression coverage for new WAF signatures, passive-header false-positive protection and fingerprint fallback isolation
 - (tests) coverage gate remains configured at `99%`

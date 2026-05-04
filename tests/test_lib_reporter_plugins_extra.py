@@ -8,6 +8,7 @@ from src.core.filesystem.exceptions import FileSystemError
 from src.lib.reporter.plugins.html import HtmlReportPlugin
 from src.lib.reporter.plugins.json import JsonReportPlugin
 from src.lib.reporter.plugins.txt import TextReportPlugin
+from src.lib.reporter.plugins.provider import PluginProvider
 
 
 class TestReporterPluginsExtra(unittest.TestCase):
@@ -149,6 +150,34 @@ class TestReporterPluginsExtra(unittest.TestCase):
         with patch('src.lib.reporter.plugins.html.filesystem.makedir', return_value='/tmp/html') as html_makedir:
             HtmlReportPlugin(self.target, self.data, directory='/custom/reports')
         html_makedir.assert_called_once_with(os.path.join('/custom/reports', self.target))
+
+    def test_provider_get_report_items_returns_defensive_copy(self):
+        """PluginProvider.get_report_items() should not expose mutable report internals."""
+
+        provider = PluginProvider(
+            'test.local',
+            {
+                'items': {'success': ['http://example.com/admin']},
+                'report_items': {
+                    'success': [
+                        {
+                            'url': 'http://example.com/admin',
+                            'code': '200',
+                            'size': '12B',
+                        }
+                    ],
+                },
+            },
+        )
+
+        items = provider.get_report_items('success')
+        items[0]['url'] = 'http://mutated.local/'
+
+        self.assertEqual(
+            provider.get_report_items('success')[0]['url'],
+            'http://example.com/admin',
+        )
+
 
 
 if __name__ == '__main__':

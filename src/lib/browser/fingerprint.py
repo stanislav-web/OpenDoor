@@ -802,7 +802,7 @@ class Fingerprint(object):
         })
 
         runtime = self.TECHNOLOGY_RUNTIME_MAP.get(technology)
-        if runtime:
+        if runtime and self._should_propagate_runtime_from_signal(signal_type):
             self._add_runtime_signal(runtime, 'technology', technology, min(float(weight), 4))
 
     def _add_infrastructure_signal(self, provider, signal_type, value, weight):
@@ -874,6 +874,112 @@ class Fingerprint(object):
 
         return needle in str(headers.get(name, '')).lower()
 
+    @staticmethod
+    def _has_php_route_marker(body_lower, final_root_url):
+        """
+        Return True when the page exposes first-party PHP route/file markers.
+
+        :param str body_lower:
+        :param str final_root_url:
+        :return: bool
+        """
+
+        final_root_lower = str(final_root_url or '').lower()
+        if re.search(r'\.php(?:[?#/&]|$)', final_root_lower):
+            return True
+
+        body_text = str(body_lower or '')
+        if re.search(r"(?:href|src|action)=['\"](?:/|\.\.?/)?[^'\"]{0,160}\.php(?:[?#/&'\"]|$)", body_text):
+            return True
+
+        return re.search(
+            r"\b(?:index|read|show|article|news|print|login|search|catalog|page|view|download|profile|forum|topic|item|anons|articles)\.php(?:[?#/&\"']|$)",
+            body_text,
+        ) is not None
+
+    @staticmethod
+    def _looks_like_express_not_found(not_found_status, not_found_body_lower):
+        """
+        Return True for canonical Express finalhandler 404 responses.
+
+        :param int not_found_status:
+        :param str not_found_body_lower:
+        :return: bool
+        """
+
+        if int(not_found_status or 0) != 404:
+            return False
+
+        body_text = str(not_found_body_lower or '').strip()
+        if len(body_text) > 1200:
+            return False
+
+        return (
+            body_text.startswith('cannot get /')
+            or body_text.startswith('cannot post /')
+            or '<pre>cannot get /' in body_text
+            or '<pre>cannot post /' in body_text
+        )
+
+    @staticmethod
+    def _looks_like_nest_not_found(not_found_status, not_found_body_lower):
+        """
+        Return True for canonical NestJS JSON 404 responses.
+
+        :param int not_found_status:
+        :param str not_found_body_lower:
+        :return: bool
+        """
+
+        if int(not_found_status or 0) != 404:
+            return False
+
+        body_text = str(not_found_body_lower or '').strip()
+        if len(body_text) > 1600:
+            return False
+
+        return (
+            '"statuscode"' in body_text
+            and '"message"' in body_text
+            and 'cannot get /' in body_text
+            and '"error"' in body_text
+            and 'not found' in body_text
+        )
+
+    @staticmethod
+    def _looks_like_fastify_not_found(not_found_status, not_found_body_lower):
+        """
+        Return True for canonical Fastify route-not-found responses.
+
+        :param int not_found_status:
+        :param str not_found_body_lower:
+        :return: bool
+        """
+
+        if int(not_found_status or 0) != 404:
+            return False
+
+        body_text = str(not_found_body_lower or '').strip()
+        if len(body_text) > 1600:
+            return False
+
+        return 'route get:' in body_text and 'not found' in body_text
+
+    @staticmethod
+    def _should_propagate_runtime_from_signal(signal_type):
+        """
+        Return True when an application signal is strong enough to infer runtime.
+
+        Pure endpoint reachability is intentionally excluded: many legacy PHP
+        sites expose /docs, /swagger or redirected admin paths without running
+        the framework that owns the endpoint name.
+
+        :param str signal_type:
+        :return: bool
+        """
+
+        return str(signal_type or '').lower() != 'endpoint'
+
     def _apply_detection_rules(
         self,
         body,
@@ -919,6 +1025,10 @@ class Fingerprint(object):
         not_found_body_lower = str(not_found_body).lower()
         not_found_powered_by = str(not_found_headers.get('x-powered-by', '')).lower()
         not_found_server = str(not_found_headers.get('server', '')).lower()
+        php_route_marker = self._has_php_route_marker(body_lower, final_root_lower)
+        express_not_found = self._looks_like_express_not_found(not_found_status, not_found_body_lower)
+        nest_not_found = self._looks_like_nest_not_found(not_found_status, not_found_body_lower)
+        fastify_not_found = self._looks_like_fastify_not_found(not_found_status, not_found_body_lower)
         swagger_probe_up = any(probe_statuses.get(path) in [200, 301, 302, 401, 403] for path in [
             '/swagger',
             '/swagger/',
@@ -1504,19 +1614,19 @@ class Fingerprint(object):
             self._add_signal('Express', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by') or not_found_headers.get('x-powered-by')), 8)
         if 'connect.sid' in cookies:
             self._add_signal('Express', self.FRAMEWORK_CATEGORY, 'cookie', 'connect.sid', 6)
-        if not_found_status == 404 and ('cannot get /' in not_found_body_lower or 'cannot post /' in not_found_body_lower):
+        if express_not_found:
             self._add_signal('Express', self.FRAMEWORK_CATEGORY, '404', 'Cannot GET/POST', 7)
 
         if 'nest' in x_powered_by or 'nest' in not_found_powered_by:
             self._add_signal('NestJS', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by') or not_found_headers.get('x-powered-by')), 8)
-        if not_found_status == 404 and 'statuscode' in not_found_body_lower and 'cannot get /' in not_found_body_lower and 'not found' in not_found_body_lower:
+        if nest_not_found:
             self._add_signal('NestJS', self.FRAMEWORK_CATEGORY, '404', 'statusCode + Cannot GET + Not Found', 9)
         if swagger_probe_up:
             self._add_signal('NestJS', self.FRAMEWORK_CATEGORY, 'endpoint', 'swagger/openapi', 4)
 
         if 'fastify' in x_powered_by or 'fastify' in server or 'fastify' in not_found_powered_by or 'fastify' in not_found_server:
             self._add_signal('Fastify', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by|server=fastify', 8)
-        if not_found_status == 404 and 'route get:' in not_found_body_lower and 'not found' in not_found_body_lower:
+        if fastify_not_found:
             self._add_signal('Fastify', self.FRAMEWORK_CATEGORY, '404', 'Route GET:* not found', 9)
 
         if 'uvicorn' in server or 'hypercorn' in server or 'uvicorn' in not_found_server or 'hypercorn' in not_found_server:
@@ -1530,6 +1640,8 @@ class Fingerprint(object):
             self._add_runtime_signal('PHP', 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 8)
         if 'phpsessid' in cookies:
             self._add_runtime_signal('PHP', 'cookie', 'PHPSESSID', 7)
+        if php_route_marker:
+            self._add_runtime_signal('PHP', 'route', '.php route marker', 4.5)
         if 'asp.net' in x_powered_by or 'x-aspnet-version' in headers:
             self._add_runtime_signal('.NET', 'header', 'x-powered-by|x-aspnet-version', 8)
         if 'asp.net_sessionid' in cookies:
@@ -1551,8 +1663,8 @@ class Fingerprint(object):
             self._add_runtime_signal('Node.js', 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 7)
         if 'connect.sid' in cookies or 'koa:sess' in cookies or 'koa.sess' in cookies:
             self._add_runtime_signal('Node.js', 'cookie', 'connect.sid|koa:sess', 6)
-        if not_found_status == 404 and ('cannot get /' in not_found_body_lower or 'cannot post /' in not_found_body_lower):
-            self._add_runtime_signal('Node.js', '404', 'Cannot GET/POST', 6)
+        if express_not_found or nest_not_found or fastify_not_found:
+            self._add_runtime_signal('Node.js', '404', 'canonical Node.js 404', 6)
 
         if 'koa' in x_powered_by or 'koa' in not_found_powered_by:
             self._add_signal('Koa', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by') or not_found_headers.get('x-powered-by')), 8)

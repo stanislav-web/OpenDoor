@@ -44,6 +44,54 @@ class TextReportPlugin(PluginProvider):
         except FileSystemError as error:
             raise Exception(error)
 
+    @staticmethod
+    def __format_signal_item(signal):
+        """
+        Format one fingerprint signal into a compact txt-report value.
+
+        :param dict|mixed signal: signal payload
+        :return: formatted signal
+        :rtype: str
+        """
+
+        if isinstance(signal, dict):
+            signal_type = signal.get('type') or signal.get('source') or signal.get('kind') or 'signal'
+            signal_value = signal.get('value') or signal.get('name') or signal.get('marker') or signal.get('header') or ''
+            signal_weight = signal.get('weight') or signal.get('score')
+
+            value = '{0}:{1}'.format(signal_type, signal_value) if signal_value else str(signal_type)
+
+            if signal_weight is not None:
+                value = '{0}({1})'.format(value, signal_weight)
+
+            return value
+
+        return str(signal)
+
+    @classmethod
+    def __format_signal_list(cls, value):
+        """
+        Format fingerprint evidence lists for plain txt reports.
+
+        :param list|tuple|mixed value: signal list or scalar value
+        :return: formatted signal list
+        :rtype: str
+        """
+
+        if value is None:
+            return ''
+
+        if isinstance(value, (list, tuple)):
+            items = [
+                cls.__format_signal_item(item)
+                for item in value
+                if item is not None and str(item) != ''
+            ]
+
+            return '; '.join(items)
+
+        return str(value)
+
     def format_fingerprint_summary(self):
         fingerprint = self._data.get('fingerprint')
         if not isinstance(fingerprint, dict) or len(fingerprint) == 0:
@@ -53,12 +101,21 @@ class TextReportPlugin(PluginProvider):
             'name: {0}'.format(fingerprint.get('name', 'Unknown custom stack')),
             'confidence: {0}%'.format(fingerprint.get('confidence', 0)),
         ]
+        fingerprint_signals = self.__format_signal_list(fingerprint.get('signals'))
+        if fingerprint_signals:
+            rows.append('signals: {0}'.format(fingerprint_signals))
         runtime = fingerprint.get('runtime')
         if isinstance(runtime, dict) and len(runtime) > 0:
             rows.extend(['runtime: {0}'.format(runtime.get('name', 'unknown')), 'runtime_confidence: {0}%'.format(runtime.get('confidence', 0))])
+            runtime_signals = self.__format_signal_list(runtime.get('signals'))
+            if runtime_signals:
+                rows.append('runtime_signals: {0}'.format(runtime_signals))
         infrastructure = fingerprint.get('infrastructure')
         if isinstance(infrastructure, dict) and len(infrastructure) > 0:
             rows.extend(['infrastructure: {0}'.format(infrastructure.get('provider', 'unknown')), 'infrastructure_confidence: {0}%'.format(infrastructure.get('confidence', 0))])
+            infrastructure_signals = self.__format_signal_list(infrastructure.get('signals'))
+            if infrastructure_signals:
+                rows.append('infrastructure_signals: {0}'.format(infrastructure_signals))
         hsts = fingerprint.get('security_headers', {}).get('hsts', {})
         if isinstance(hsts, dict) and len(hsts) > 0:
             rows.extend([
@@ -67,6 +124,9 @@ class TextReportPlugin(PluginProvider):
                 'hsts_include_subdomains: {0}'.format(hsts.get('include_subdomains', False)),
                 'hsts_preload_ready: {0}'.format(hsts.get('preload_ready', False)),
             ])
+        hsts_warnings = self.__format_signal_list(hsts.get('warnings'))
+        if hsts_warnings:
+            rows.append('hsts_warnings: {0}'.format(hsts_warnings))
         return rows
 
     def process(self):
@@ -74,7 +134,10 @@ class TextReportPlugin(PluginProvider):
         Process data
         :return: str
         """
-        resultset = self._data.get('items').items()
+        items = self._data.get('items')
+        if not isinstance(items, dict):
+            items = {}
+        resultset = items.items()
         try:
             filesystem.clear(self.__target_dir, extension=self.EXTENSION_SET)
             for status, _ in resultset:

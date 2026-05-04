@@ -1150,6 +1150,73 @@ class TestFingerprint(unittest.TestCase):
             self.assertEqual(result['name'], expected_name)
             self.assertEqual(result['runtime']['name'], expected_runtime)
 
+    def test_should_prefer_php_route_marker_over_endpoint_only_node_hint(self):
+        """Fingerprint should not infer Node.js runtime from weak endpoint-only hints."""
+
+        config = FakeConfig(host='soldatru.ru')
+        base = 'http://soldatru.ru/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><a href="/read.php?tid=945">article</a></body></html>',
+                {},
+            ),
+            ('HEAD', 'http://soldatru.ru/swagger'): FakeResponse(403, '', {}),
+            ('GET', 'http://soldatru.ru{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                '<html><body>regular missing page</body></html>',
+                {},
+            ),
+        }
+
+        result = Fingerprint(config=config, client=self._make_client(config, responses)).detect()
+
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertEqual(result['runtime']['signals'][0]['type'], 'route')
+
+    def test_should_keep_node_runtime_when_strong_node_signals_exist(self):
+        """Fingerprint should keep Node.js runtime when explicit Node markers are present."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><a href="/legacy.php">legacy</a></body></html>',
+                {'X-Powered-By': 'Express', 'Set-Cookie': 'connect.sid=abc; Path=/'},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                '<pre>Cannot GET /.well-known/missing-resource.txt</pre>',
+                {'X-Powered-By': 'Express'},
+            ),
+        }
+
+        result = Fingerprint(config=config, client=self._make_client(config, responses)).detect()
+
+        self.assertEqual(result['name'], 'Express')
+        self.assertEqual(result['runtime']['name'], 'Node.js')
+
+    def test_should_not_infer_node_runtime_from_generic_cannot_get_text(self):
+        """Fingerprint should ignore non-canonical long pages mentioning Cannot GET."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        generic_body = '<html><body>' + ('content ' * 220) + 'Cannot GET /example' + '</body></html>'
+        responses = {
+            ('GET', base): FakeResponse(200, '<html><body>plain site</body></html>', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                generic_body,
+                {},
+            ),
+        }
+
+        result = Fingerprint(config=config, client=self._make_client(config, responses)).detect()
+
+        self.assertEqual(result['runtime']['name'], 'unknown')
+
     def test_should_build_runtime_result_without_candidates(self):
         """Fingerprint._build_runtime_result() should return unknown runtime without candidates."""
         detector = Fingerprint(config=FakeConfig(), client=self._make_client(FakeConfig(), {}))

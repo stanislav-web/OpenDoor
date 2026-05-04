@@ -16,6 +16,8 @@
     Development Team: Stanislav WEB
 """
 
+import copy
+
 from src.core import filesystem, FileSystemError
 from src.lib import tpl
 
@@ -63,7 +65,7 @@ class PluginProvider(object):
                 {'url': url, 'size': '0B', 'code': '-'}
                 for url in self._data.get('items', {}).get(status, [])
             ]
-        return items
+        return copy.deepcopy(items)
 
     @staticmethod
     def format_report_item(item):
