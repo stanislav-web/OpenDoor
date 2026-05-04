@@ -9,7 +9,7 @@ v5.15.3 (04.05.2026)
 - (fix) made reporter item access defensive so report plugins cannot mutate shared scan payloads
 - (fix) hardened plain-text report processing for missing or malformed `items` payloads
 - (debug) added compact fingerprint evidence signals to `fingerprint.txt` for easier QA of runtime/infrastructure detection
- - (enhancement) expanded passive WAF recognition with additional vendor signatures sourced from public WAF fingerprint catalogs
+- (enhancement) expanded passive WAF recognition with additional vendor signatures sourced from public WAF fingerprint catalogs
 - (enhancement) added 360 WAF, Airlock, Aliyun WAF, Anquanbao, BinarySec, BitNinja, Bluedon WAF, ChinaCache, Comodo WAF, DoSArrest, DotDefender, GoDaddy Website Firewall, GreyWizard, IBM DataPower, Imunify360, Instart DX, NAXSI, NinjaFirewall, Profense and WebKnight detection
 - (fix) gated passive WAF/gateway headers in both vendor-specific matching and generic fallback so normal 200 responses are not promoted to blocked
 - (fix) isolated default fingerprint fallback results with deep copies to prevent nested metadata leakage between failed or empty detection runs

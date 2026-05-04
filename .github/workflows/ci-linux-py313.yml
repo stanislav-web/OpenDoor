@@ -16,3 +16,4 @@ jobs:
     with:
       runner: ubuntu-latest
       python-version: "3.13"
+    secrets: inherit
