@@ -24,6 +24,21 @@ from src.lib.tpl import Tpl as tpl
 class Debug(DebugProvider):
     """Debug class"""
 
+    SENSITIVE_HEADER_NAMES = (
+        'authorization',
+        'proxy-authorization',
+        'cookie',
+        'set-cookie',
+        'x-api-key',
+        'api-key',
+        'x-auth-token',
+        'x-access-token',
+        'x-csrf-token',
+        'x-xsrf-token',
+        'x-amz-security-token',
+        'cf-authorization',
+    )
+
     def __init__(self, Config):
         """
         Debug constructor.
@@ -38,6 +53,31 @@ class Debug(DebugProvider):
 
         if self.__level > 0:
             tpl.debug(key='debug', level=self.__cfg.debug, method=self.__cfg.method)
+
+    @classmethod
+    def __redact_debug_headers(cls, headers):
+        """Return a debug-safe copy of request/response headers.
+
+        :param dict|object headers: header mapping or header-like object
+        :return: redacted header mapping
+        :rtype: dict
+        """
+
+        if not isinstance(headers, dict):
+            try:
+                headers = dict(headers)
+            except (TypeError, ValueError):
+                headers = getattr(headers, '__dict__', {})
+
+        safe_headers = {}
+        for name, value in dict(headers or {}).items():
+            normalized = str(name or '').strip().lower()
+            if normalized in cls.SENSITIVE_HEADER_NAMES:
+                safe_headers[name] = '<redacted>'
+            else:
+                safe_headers[name] = value
+
+        return safe_headers
 
     @property
     def level(self):
@@ -115,7 +155,7 @@ class Debug(DebugProvider):
         if not isinstance(request_header, dict):
             request_header = request_header.__dict__
 
-        request_data = dict(request_header)
+        request_data = self.__redact_debug_headers(request_header)
         request_data.update({'Request URI': url, 'Request Method': method})
 
         tpl.debug(key='request_header_dbg', dbg=helper.to_json(request_data))
@@ -125,7 +165,8 @@ class Debug(DebugProvider):
     def debug_response(self, response_header):
         """Debug response."""
 
-        tpl.debug(key='response_header_dbg', dbg=helper.to_json(response_header))
+        response_data = self.__redact_debug_headers(response_header)
+        tpl.debug(key='response_header_dbg', dbg=helper.to_json(response_data))
 
         return True
 

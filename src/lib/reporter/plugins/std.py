@@ -41,7 +41,10 @@ class StdReportPlugin(PluginProvider):
         :return: str
         """
 
-        data = list(self._data.get('total').items())
+        total = self._data.get('total')
+        if not isinstance(total, dict):
+            total = {}
+        data = list(total.items())
         fingerprint = self._data.get('fingerprint')
 
         if isinstance(fingerprint, dict) and len(fingerprint) > 0:
@@ -51,9 +54,16 @@ class StdReportPlugin(PluginProvider):
                 ('fingerprint_confidence', '{0}%'.format(fingerprint.get('confidence', 0))),
             ]
 
+
+            fingerprint_signals = fingerprint.get('signals')
+            if isinstance(fingerprint_signals, (list, tuple)) and len(fingerprint_signals) > 0:
+                data += [('fingerprint_signals', len(fingerprint_signals))]
             runtime = fingerprint.get('runtime')
             if isinstance(runtime, dict) and len(runtime) > 0:
                 data += [('fingerprint_runtime', runtime.get('name', 'unknown')), ('fingerprint_runtime_confidence', '{0}%'.format(runtime.get('confidence', 0)))]
+                runtime_signals = runtime.get('signals')
+                if isinstance(runtime_signals, (list, tuple)) and len(runtime_signals) > 0:
+                    data += [('fingerprint_runtime_signals', len(runtime_signals))]
 
             infrastructure = fingerprint.get('infrastructure')
             if isinstance(infrastructure, dict) and len(infrastructure) > 0:
@@ -61,6 +71,10 @@ class StdReportPlugin(PluginProvider):
                     ('fingerprint_infra', infrastructure.get('provider', 'unknown')),
                     ('fingerprint_infra_confidence', '{0}%'.format(infrastructure.get('confidence', 0))),
                 ]
+
+                infrastructure_signals = infrastructure.get('signals')
+                if isinstance(infrastructure_signals, (list, tuple)) and len(infrastructure_signals) > 0:
+                    data += [('fingerprint_infra_signals', len(infrastructure_signals))]
 
             hsts = fingerprint.get('security_headers', {}).get('hsts', {})
             if isinstance(hsts, dict) and len(hsts) > 0:

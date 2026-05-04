@@ -431,5 +431,45 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertIsNone(config.transport_healthcheck_url)
         self.assertIsNone(config.openvpn_auth)
 
+class TestBrowserConfigDefensiveCopies(unittest.TestCase):
+    """Config defensive-copy regression tests."""
+
+    def test_config_list_getters_return_fresh_lists(self):
+        """Config list getters should not expose mutable internal lists."""
+
+        cfg = Config({
+            'reports': ['json'],
+            'sniff': ['indexof'],
+            'extensions': ['php'],
+            'ignore_extensions': ['jpg'],
+        })
+
+        reports = cfg.reports
+        sniffers = cfg.sniffers
+        extensions = cfg.extensions
+        ignore_extensions = cfg.ignore_extensions
+
+        reports.append('xml')
+        sniffers.append('file')
+        extensions.append('html')
+        ignore_extensions.append('png')
+
+        self.assertEqual(cfg.reports, ['json', 'std'])
+        self.assertEqual(cfg.sniffers, ['indexof'])
+        self.assertEqual(cfg.extensions, ['php'])
+        self.assertEqual(cfg.ignore_extensions, ['jpg'])
+
+    def test_normalize_csv_copies_input_lists(self):
+        """Config._normalize_csv() should copy list inputs."""
+
+        source = ['200', '403']
+        normalized = Config._normalize_csv(source)
+
+        normalized.append('404')
+
+        self.assertEqual(source, ['200', '403'])
+        self.assertEqual(normalized, ['200', '403', '404'])
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -127,7 +127,7 @@ class Config(object):
         if value is None:
             return None
         if isinstance(value, list):
-            return value
+            return list(value)
         return [item.strip() for item in str(value).split(',') if item.strip()]
 
     @staticmethod
@@ -472,7 +472,7 @@ class Config(object):
     def sniffers(self):
         """Get sniffers."""
 
-        return self._sniff
+        return None if self._sniff is None else list(self._sniff)
 
     @property
     def is_response_filtering(self):
@@ -564,13 +564,13 @@ class Config(object):
     def extensions(self):
         """Extensions resolver."""
 
-        return [] if self._extensions is None else self._extensions
+        return [] if self._extensions is None else list(self._extensions)
 
     @property
     def ignore_extensions(self):
         """Ignore extensions resolver."""
 
-        return [] if self._ignore_extensions is None else self._ignore_extensions
+        return [] if self._ignore_extensions is None else list(self._ignore_extensions)
 
     @property
     def is_recursive(self):

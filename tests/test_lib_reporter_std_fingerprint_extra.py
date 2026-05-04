@@ -61,3 +61,52 @@ class TestStdReportPluginFingerprintExtra(unittest.TestCase):
         rendered = writeln_mock.call_args[0][0]
         self.assertIn('Statistics (test.local)', rendered)
         self.assertNotIn('fingerprint_category', rendered)
+
+class TestStdReportPluginHardening(unittest.TestCase):
+    """STD reporter hardening regression tests."""
+
+    def test_process_tolerates_missing_total_and_renders_evidence_counts(self):
+        """StdReportPlugin.process() should tolerate missing totals and show evidence counts."""
+
+        plugin = StdReportPlugin(
+            'test.local',
+            {
+                'fingerprint': {
+                    'category': 'custom',
+                    'name': 'Unknown custom stack',
+                    'confidence': 45,
+                    'signals': [{'type': 'route', 'value': '.php route marker'}],
+                    'runtime': {
+                        'name': 'PHP',
+                        'confidence': 61,
+                        'signals': [{'type': 'route', 'value': '.php route marker'}],
+                    },
+                    'infrastructure': {
+                        'provider': 'Cloudflare',
+                        'confidence': 80,
+                        'signals': [{'type': 'header', 'value': 'cf-ray'}],
+                    },
+                },
+            },
+        )
+
+        with patch('src.lib.reporter.plugins.std.sys.writeln') as writeln_mock:
+            plugin.process()
+
+        rendered = writeln_mock.call_args[0][0]
+
+        self.assertIn('fingerprint_signals', rendered)
+        self.assertIn('fingerprint_runtime_signals', rendered)
+        self.assertIn('fingerprint_infra_signals', rendered)
+
+    def test_process_tolerates_malformed_total(self):
+        """StdReportPlugin.process() should tolerate malformed total payloads."""
+
+        plugin = StdReportPlugin('test.local', {'total': ['invalid']})
+
+        with patch('src.lib.reporter.plugins.std.sys.writeln') as writeln_mock:
+            plugin.process()
+
+        rendered = writeln_mock.call_args[0][0]
+        self.assertIn('Statistics (test.local)', rendered)
+

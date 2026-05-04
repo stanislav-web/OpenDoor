@@ -2,6 +2,10 @@ CHANGELOG
 =======
 
 v5.15.3 (04.05.2026)
+- (debug) redacted sensitive request/response headers from verbose debug output
+- (fix) returned defensive copies from browser config list accessors to avoid accidental runtime mutation
+- (fix) hardened STD reporter summary generation for partial or malformed report payloads
+- (debug) added compact STD fingerprint evidence counters for report-level QA
 - (fix) made reporter item access defensive so report plugins cannot mutate shared scan payloads
 - (fix) hardened plain-text report processing for missing or malformed `items` payloads
 - (debug) added compact fingerprint evidence signals to `fingerprint.txt` for easier QA of runtime/infrastructure detection
