@@ -1,6 +1,18 @@
 CHANGELOG
 =======
 
+v5.15.3 (04.05.2026)
+---------------------------
+- (enhancement) expanded passive WAF recognition with additional vendor signatures sourced from public WAF fingerprint catalogs
+- (enhancement) added 360 WAF, Airlock, Aliyun WAF, Anquanbao, BinarySec, BitNinja, Bluedon WAF, ChinaCache, Comodo WAF, DoSArrest, DotDefender, GoDaddy Website Firewall, GreyWizard, IBM DataPower, Imunify360, Instart DX, NAXSI, NinjaFirewall, Profense and WebKnight detection
+- (fix) gated passive WAF/gateway headers in both vendor-specific matching and generic fallback so normal 200 responses are not promoted to blocked
+- (fix) isolated default fingerprint fallback results with deep copies to prevent nested metadata leakage between failed or empty detection runs
+- (enhancement) added vendor-specific and generic-fallback gating for passive gateway/server markers to avoid classifying normal 200 responses as blocked WAF pages
+- (enhancement) deduplicated WAF evidence signals before report propagation
+- (docs) updated WAF detection documentation with the expanded recognized vendor list and passive-only detection note
+- (tests) added regression coverage for new WAF signatures, passive-header false-positive protection and fingerprint fallback isolation
+- (tests) coverage gate remains configured at `99%`
+
 v5.15.2 (04.05.2026)
 ---------------------------
 - (enhancement) added compact pre-scan fingerprint summary with detected web stack and security posture
@@ -624,3 +636,7 @@ v2.7.96 - v1.0.0 (05.01.2017)
 - (dictionary) v2.7.82: added `683` directories
 - (ux) v2.7.72: added small UI changes
 - (optimization) v2.7.96: optimized debug levels (`0`, `1`, `2`) via `--debug` and optimized imports
+
+## [5.15.3]
+- Fixed Cloudflare WAF helper binding after passive-header hardening.
+- Hardened passive WAF header filtering for NAXSI/WebKnight to avoid successful-response false positives.

@@ -1,6 +1,6 @@
 # OpenDoor — OWASP Web Recon & Directory Discovery Platform
 
-![OpenDoor](/logo.png)
+![OpenDoor](https://github.com/stanislav-web/OpenDoor/raw/master/logo.png)
 
 **OpenDoor** is an open-source CLI Recon Platform for authorized web reconnaissance, directory discovery, subdomain enumeration, fingerprint detection, WAF detection, controlled header-bypass probing, response filtering, reporting, and transport-based scanning workflows.
 
@@ -55,29 +55,30 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - directory discovery;
 - recursive directory discovery;
 - subdomain enumeration;
-- multi-threading scans;
+- multi-threading scans for faster lookups;
 - single target, target file, stdin, IPv4 CIDR, and IPv4 range input modes;
-- custom wordlists, prefixes, and extension filters;
+- custom wordlists, prefixes, shuffling to break scan patterns and extension filters;
 - custom request headers, cookies, and raw HTTP request templates;
 - response filters by status, size, text, regex, and body length;
 - smart auto-calibration for soft-404, wildcard, catch-all, semantic response-diff, and DNS wildcard cases;
 - technology fingerprint detection for CMS, ecommerce platforms, frameworks, runtime stacks, infrastructure, and HSTS posture;
-- passive WAF detection and WAF-safe scan mode;
+- passive WAF detection and bypass in secure scanning mode;
 - controlled header and path bypass probes for blocked `401` and `403` resources;
-- resumable scan sessions with checkpoint autosave;
+- resumable scan sessions with checkpoint autosave for long term scans;
 - CI/CD fail-on result bucket rules;
 - official Docker image distribution via GitHub Container Registry;
 - reports in terminal, text, JSON, CSV, HTML, SARIF and SQLite formats;
 - proxy, OpenVPN, and WireGuard transport profiles;
 - sequential per-target transport rotation for batch workflows;
 - configuration wizard for repeatable scan profiles.
-- built-in wordlists
+- built-in wordlists (upd. 2026-05);
 
 ---
 
 ## 🧭 Where does OpenDoor make sense?
 
 It is designed for real targets where speed alone is not enough: WAFs, CDNs, soft-404 pages, wildcard routes, restricted resources, authenticated areas, unstable networks, multi-target batches, and transport-controlled scans.
+Since it first launch in 2016 to the present day, the OpenDoor has changed dramatically, growing from a primitive brute forcer into a new adaptive discovery framework. Became DevOps and QA friendly.
 OpenDoor focuses on **context-aware discovery** instead of blind enumeration.
 
 ### What makes OpenDoor different

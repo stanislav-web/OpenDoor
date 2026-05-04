@@ -16,6 +16,7 @@
     Development: Stanislav WEB
 """
 
+import copy
 import re
 import uuid
 from collections import defaultdict
@@ -56,6 +57,19 @@ class Fingerprint(object):
             }
         }
     }
+
+    @classmethod
+    def _default_result(cls):
+        """
+        Return an isolated default fingerprint result.
+
+        DEFAULT_RESULT contains nested lists/dicts, so shallow copies can leak
+        runtime mutations between failed or empty fingerprint attempts.
+
+        :return: dict
+        """
+
+        return copy.deepcopy(cls.DEFAULT_RESULT)
 
     PROBES = (
         '/wp-json/',
@@ -318,7 +332,7 @@ class Fingerprint(object):
         self._emit_progress(progress_current, progress_total, 'root')
         if root_response is None:
             self._emit_progress(progress_total, progress_total, 'done')
-            return dict(self.DEFAULT_RESULT)
+            return self._default_result()
 
         root_response, final_root_url = self._follow_redirects(root_response, base_url, method='GET')
         body = self._extract_body(root_response)
@@ -362,7 +376,7 @@ class Fingerprint(object):
         infra_candidates = self._build_infrastructure_candidates()
 
         if len(app_candidates) <= 0:
-            result = dict(self.DEFAULT_RESULT)
+            result = self._default_result()
             result['runtime'] = self._build_runtime_result(runtime_candidates)
             result['infrastructure'] = self._build_infrastructure_result(infra_candidates)
             result['security_headers'] = security_headers

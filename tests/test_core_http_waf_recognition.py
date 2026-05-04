@@ -368,5 +368,165 @@ class TestWafRecognition(unittest.TestCase):
         self.assertEqual(provider.detect('https://example.com', response), 'blocked')
         self.assertEqual(provider.waf_detection['name'], 'Huawei Cloud WAF')
 
+
+    def test_should_detect_360_waf_from_ray_header(self):
+        """ResponseProvider should detect 360 WAF explicit block headers."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=493,
+            headers={
+                'WZWS-Ray': 'abc123',
+                'Content-Length': '0',
+            },
+            body=b'',
+        )
+
+        self.assertEqual(provider.detect('https://example.com', response), 'blocked')
+        self.assertEqual(provider.waf_detection['name'], '360 WAF')
+
+    def test_should_detect_airlock_from_cookie_and_body(self):
+        """ResponseProvider should detect Airlock syntax-block responses."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=403,
+            headers={
+                'Set-Cookie': 'AL-SESS=abc; AL-LB=node1',
+                'Content-Length': '128',
+            },
+            body=b'Server detected a syntax error in your request. Check your request and all parameters.',
+        )
+
+        self.assertEqual(provider.detect('https://example.com', response), 'blocked')
+        self.assertEqual(provider.waf_detection['name'], 'Airlock')
+
+    def test_should_detect_binarysec_from_vendor_header(self):
+        """ResponseProvider should detect BinarySec from dedicated headers."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=403,
+            headers={
+                'X-BinarySec-Via': 'edge',
+                'Content-Length': '0',
+            },
+            body=b'',
+        )
+
+        self.assertEqual(provider.detect('https://example.com', response), 'blocked')
+        self.assertEqual(provider.waf_detection['name'], 'BinarySec')
+
+    def test_should_detect_dotdefender_from_denied_header(self):
+        """ResponseProvider should detect DotDefender block evidence."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=403,
+            headers={
+                'X-dotDefender-denied': '1',
+                'Content-Length': '32',
+            },
+            body=b'dotDefender Blocked Your Request',
+        )
+
+        self.assertEqual(provider.detect('https://example.com', response), 'blocked')
+        self.assertEqual(provider.waf_detection['name'], 'DotDefender')
+
+    def test_should_detect_naxsi_from_header_and_body(self):
+        """ResponseProvider should detect NAXSI block markers."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=403,
+            headers={
+                'X-Data-Origin': 'naxsi/waf',
+                'Content-Length': '64',
+            },
+            body=b'This Request Has Been Blocked By NAXSI',
+        )
+
+        self.assertEqual(provider.detect('https://example.com', response), 'blocked')
+        self.assertEqual(provider.waf_detection['name'], 'NAXSI')
+
+    def test_should_detect_webknight_from_server_header(self):
+        """ResponseProvider should detect WebKnight server signature."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=403,
+            headers={
+                'Server': 'WebKnight/4.6',
+                'Content-Length': '0',
+            },
+            body=b'',
+        )
+
+        self.assertEqual(provider.detect('https://example.com', response), 'blocked')
+        self.assertEqual(provider.waf_detection['name'], 'WebKnight')
+
+    def test_should_ignore_passive_header_gated_vendor_on_success_response(self):
+        """ResponseProvider should not classify passive gateway headers on normal success."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=200,
+            headers={
+                'X-Backside-Transport': 'OK OK',
+                'Content-Length': '13',
+            },
+            body=b'normal page',
+        )
+
+        self.assertEqual(provider.detect('https://example.com', response), 'success')
+        self.assertIsNone(provider.waf_detection)
+
+    def test_should_ignore_new_passive_vendor_headers_on_success_response(self):
+        """ResponseProvider should not classify passive vendor-presence headers on normal success."""
+
+        cases = [
+            ({'WZWS-Ray': 'abc123'}, '360 WAF'),
+            ({'Set-Cookie': 'AL-SESS=abc; AL-LB=node1'}, 'Airlock'),
+            ({'X-Powered-By-Anquanbao': '1'}, 'Anquanbao'),
+            ({'X-BinarySec-Via': 'edge'}, 'BinarySec'),
+            ({'X-DIS-Request-ID': 'req-1'}, 'DoSArrest'),
+            ({'X-Instart-Request-ID': 'req-1'}, 'Instart DX'),
+            ({'X-Data-Origin': 'naxsi/waf'}, 'NAXSI'),
+            ({'Set-Cookie': 'PLBSID=node1'}, 'Profense'),
+            ({'Server': 'WebKnight/4.6'}, 'WebKnight'),
+        ]
+
+        for headers, vendor in cases:
+            with self.subTest(vendor=vendor):
+                provider = ResponseProvider(self.make_config())
+                response_headers = {
+                    'Content-Length': '11',
+                }
+                response_headers.update(headers)
+                response = DummyResponse(
+                    status=200,
+                    headers=response_headers,
+                    body=b'normal page',
+                )
+
+                self.assertEqual(provider.detect('https://example.com', response), 'success')
+                self.assertIsNone(provider.waf_detection)
+
+    def test_should_detect_passive_header_gated_vendor_on_blocked_response(self):
+        """ResponseProvider should classify passive gateway headers when status is block-like."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=403,
+            headers={
+                'X-Backside-Transport': 'FAIL FAIL',
+                'Content-Length': '0',
+            },
+            body=b'',
+        )
+
+        self.assertEqual(provider.detect('https://example.com', response), 'blocked')
+        self.assertEqual(provider.waf_detection['name'], 'IBM DataPower')
+
 if __name__ == '__main__':
     unittest.main()

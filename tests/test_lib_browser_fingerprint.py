@@ -56,6 +56,32 @@ class TestFingerprint(unittest.TestCase):
         self.assertTrue(probe_path.startswith('/.well-known/'))
         self.assertTrue(probe_path.endswith('.txt'))
 
+
+    def test_default_result_returns_isolated_nested_state(self):
+        """Fingerprint default fallback should not share nested mutable state."""
+
+        first = Fingerprint._default_result()
+        second = Fingerprint._default_result()
+
+        first['security_headers']['hsts']['warnings'].append('mutated')
+        first['runtime']['signals'].append('runtime-mutated')
+        first['infrastructure']['candidates'].append({'name': 'infra-mutated'})
+
+        self.assertNotIn('mutated', second['security_headers']['hsts']['warnings'])
+        self.assertNotIn('runtime-mutated', second['runtime']['signals'])
+        self.assertEqual(second['infrastructure']['candidates'], [])
+
+    def test_detect_returns_isolated_default_when_root_response_is_missing(self):
+        """Fingerprint root-miss fallback should not mutate DEFAULT_RESULT."""
+
+        config = FakeConfig()
+        detector = Fingerprint(config=config, client=self._make_client(config, {}))
+        result = detector.detect()
+
+        result['security_headers']['hsts']['warnings'].append('mutated')
+
+        self.assertNotIn('mutated', Fingerprint.DEFAULT_RESULT['security_headers']['hsts']['warnings'])
+
     def test_detects_wordpress(self):
         """Fingerprint should detect WordPress from markup and probe signals."""
 
