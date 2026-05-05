@@ -14,6 +14,7 @@ v5.15.3 (04.05.2026)
 - (fix)  `--accept-cookies` routing so accepted cookies are preserved across scan requests and header-bypass variants, not only fingerprint/probe flows.
 - (fix) gated passive WAF/gateway headers in both vendor-specific matching and generic fallback so normal 200 responses are not promoted to blocked
 - (fix) isolated default fingerprint fallback results with deep copies to prevent nested metadata leakage between failed or empty detection runs
+- (enhancement) prettify HTML reports make it more intelligible for humans
 - (enhancement) expanded passive WAF recognition with additional vendor signatures sourced from public WAF fingerprint catalogs
 - (enhancement) added 360 WAF, Airlock, Aliyun WAF, Anquanbao, BinarySec, CityHost, BitNinja, Bluedon WAF, ChinaCache, Comodo WAF, DoSArrest, DotDefender, GoDaddy Website Firewall, GreyWizard, IBM DataPower, Imunify360, Instart DX, NAXSI, NinjaFirewall, Profense and WebKnight detection
 - (enhancement) added vendor-specific and generic-fallback gating for passive gateway/server markers to avoid classifying normal 200 responses as blocked WAF pages

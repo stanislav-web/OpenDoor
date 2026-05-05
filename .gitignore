@@ -39,6 +39,7 @@ reports/
 scripts/
 syslog/
 site/
+data/test.dat
 release.sh
 
 # Local binaries / keys

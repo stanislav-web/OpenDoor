@@ -231,6 +231,8 @@ class TestReporterPluginsFullCoverage(unittest.TestCase):
         self.assertTrue(html_report._is_http_url('https://example.com'))
         self.assertFalse(html_report._is_http_url('ftp://example.com'))
         self.assertFalse(html_report._is_http_url(None))
+        self.assertEqual(html_report._get_total_finding_count(None), 0)
+        self.assertEqual(html_report._get_nested_summary('plain'), 'details')
 
         self.assertEqual(html_report._escape(None), '')
         self.assertEqual(html_report._escape('<x "y">'), '&lt;x &quot;y&quot;&gt;')
@@ -553,6 +555,68 @@ class TestReporterPluginsFullCoverage(unittest.TestCase):
         self.assertIn('https://example.com/&lt;admin&gt;', html)
         self.assertIn('Cloudflare', html)
         self.assertNotIn('json2html', html)
+
+    def test_html_renderer_should_include_interactive_controls_and_single_file_assets(self):
+        """HTML renderer should keep reports standalone while adding interactive controls."""
+
+        html = html_report.render_html_report('example.com', {
+            'total': {
+                'items': 2,
+                'blocked': 1,
+                'success': 1,
+            },
+            'report_items': {
+                'blocked': [{
+                    'url': 'https://example.com/private',
+                    'code': '403',
+                    'waf': 'Cloudflare',
+                }],
+                'success': [{
+                    'url': 'https://example.com/admin',
+                    'code': '200',
+                    'title': 'Admin',
+                }],
+            },
+            'fingerprint': {'name': 'WordPress'},
+        })
+
+        self.assertIn('id="summary"', html)
+        self.assertIn('id="findings" data-report-findings', html)
+        self.assertIn('id="metadata"', html)
+        self.assertIn('data-report-search', html)
+        self.assertIn('data-status-filter="all"', html)
+        self.assertIn('data-status-filter="blocked"', html)
+        self.assertIn('data-report-status="success"', html)
+        self.assertIn('data-report-row', html)
+        self.assertIn('Copy visible URLs', html)
+        self.assertIn('<script>', html)
+        self.assertIn('<style>', html)
+        self.assertNotIn('<script src=', html)
+        self.assertNotIn('<link rel="stylesheet"', html)
+
+    def test_html_renderer_should_render_nested_metadata_as_collapsible_json(self):
+        """HTML renderer should avoid recursive metadata tables for nested values."""
+
+        html = html_report.render_html_report('example.com', {
+            'report_items': {
+                'success': [{
+                    'url': 'https://example.com/admin',
+                    'code': '200',
+                    'signals': [{'type': 'endpoint', 'value': '/admin'}],
+                }],
+            },
+            'fingerprint': {
+                'name': 'Bitrix',
+                'signals': [{'type': 'header', 'value': 'x-powered-cms'}],
+            },
+        })
+
+        self.assertIn('details-block', html)
+        self.assertIn('nested-json', html)
+        self.assertIn('2 fields', html)
+        self.assertIn('&quot;name&quot;: &quot;Bitrix&quot;', html)
+        self.assertIn('&quot;value&quot;: &quot;x-powered-cms&quot;', html)
+
 
 if __name__ == '__main__':
     unittest.main()

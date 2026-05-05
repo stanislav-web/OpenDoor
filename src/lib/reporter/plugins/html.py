@@ -16,6 +16,7 @@
     Development: Stanislav WEB
 """
 
+import json
 import os
 from xml.sax.saxutils import escape as xml_escape
 
@@ -103,10 +104,12 @@ def render_html_report(target, report_data):
         '</div>',
         '<div class="hero-badge">HTML</div>',
         '</section>',
+        _render_report_nav(report_items, metadata),
         _render_totals(totals),
         _render_report_items(report_items),
         _render_metadata(metadata),
         '</main>',
+        _get_report_js(),
         '</body>',
         '</html>',
     ])
@@ -123,13 +126,13 @@ def _get_report_css():
     return """
 :root {
   color-scheme: light;
-  --bg: #f6f8fb;
+  --bg: #f4f7fb;
   --panel: #ffffff;
-  --panel-soft: #f9fafb;
+  --panel-soft: #f8fafc;
   --text: #111827;
   --muted: #6b7280;
   --border: #e5e7eb;
-  --border-strong: #d1d5db;
+  --border-strong: #cbd5e1;
   --accent: #2563eb;
   --accent-soft: #eff6ff;
   --success: #047857;
@@ -145,6 +148,10 @@ def _get_report_css():
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -152,13 +159,19 @@ body {
   font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
+button,
+input {
+  font: inherit;
+}
+
 .page {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1240px, calc(100% - 32px));
   margin: 32px auto;
 }
 
 .hero,
-.section {
+.section,
+.report-nav {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -213,9 +226,68 @@ h3 {
   font-weight: 700;
 }
 
+.report-nav {
+  position: sticky;
+  top: 12px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  margin-bottom: 18px;
+}
+
+.report-nav-links,
+.report-actions,
+.status-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.report-nav a,
+.status-tab,
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.report-nav a:hover,
+.status-tab:hover,
+.action-button:hover {
+  border-color: var(--border-strong);
+  background: var(--panel-soft);
+  text-decoration: none;
+}
+
+.action-button,
+.status-tab {
+  appearance: none;
+}
+
+.status-tab.is-active,
+.status-tab[aria-selected="true"] {
+  border-color: #bfdbfe;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
 .section {
   margin-top: 18px;
   overflow: hidden;
+  scroll-margin-top: 86px;
 }
 
 .section-header {
@@ -261,12 +333,46 @@ h3 {
   font-weight: 750;
 }
 
+.finding-controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.search-box input {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+}
+
+.search-box input:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
 .status-block {
   padding: 18px 20px 20px;
   border-top: 1px solid var(--border);
 }
 
-.status-block:first-child {
+.status-block:first-of-type {
   border-top: 0;
 }
 
@@ -287,10 +393,14 @@ h3 {
 
 table {
   width: 100%;
-  min-width: 720px;
+  min-width: 760px;
   border-collapse: separate;
   border-spacing: 0;
   background: #fff;
+}
+
+.report-table {
+  table-layout: fixed;
 }
 
 th,
@@ -311,6 +421,11 @@ th {
   font-weight: 750;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 tr:last-child td {
@@ -391,6 +506,63 @@ a:hover {
   white-space: pre-wrap;
 }
 
+.details-block {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.details-block summary {
+  padding: 9px 11px;
+  background: var(--panel-soft);
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.details-block .nested {
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.is-hidden,
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .page {
+    width: min(100% - 20px, 1240px);
+    margin: 16px auto;
+  }
+
+  .hero,
+  .section-header,
+  .report-nav,
+  .finding-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .finding-controls {
+    display: flex;
+  }
+
+  .status-tabs,
+  .report-actions,
+  .report-nav-links {
+    width: 100%;
+  }
+
+  .status-tab,
+  .action-button,
+  .report-nav a {
+    justify-content: center;
+  }
+}
+
 @media print {
   body {
     background: #fff;
@@ -402,8 +574,15 @@ a:hover {
   }
 
   .hero,
-  .section {
+  .section,
+  .report-nav {
     box-shadow: none;
+  }
+
+  .report-nav,
+  .finding-controls,
+  .action-button {
+    display: none;
   }
 
   th {
@@ -411,6 +590,228 @@ a:hover {
   }
 }
 """
+
+
+def _get_report_js():
+    """
+    Return embedded report script.
+
+    The script is intentionally dependency-free so HTML reports remain fully standalone.
+
+    :return: JavaScript source
+    :rtype: str
+    """
+
+    return """
+<script>
+(function () {
+  var findings = document.querySelector('[data-report-findings]');
+
+  if (!findings) {
+    return;
+  }
+
+  var searchInput = findings.querySelector('[data-report-search]');
+  var statusButtons = Array.prototype.slice.call(findings.querySelectorAll('[data-status-filter]'));
+  var copyButton = document.querySelector('[data-copy-visible-urls]');
+  var activeStatus = 'all';
+
+  function normalize(value) {
+    return String(value || '').toLowerCase();
+  }
+
+  function getVisibleAnchors() {
+    return Array.prototype.slice.call(findings.querySelectorAll('[data-report-row] a[href^="http"]')).filter(function (anchor) {
+      var row = anchor.closest('[data-report-row]');
+      var group = anchor.closest('[data-report-status]');
+
+      return row && group && !row.hidden && !group.hidden;
+    });
+  }
+
+  function updateCopyButton() {
+    if (!copyButton) {
+      return;
+    }
+
+    var count = getVisibleAnchors().length;
+    copyButton.disabled = count === 0;
+    copyButton.textContent = count ? 'Copy visible URLs (' + count + ')' : 'No visible URLs';
+  }
+
+  function applyFilters() {
+    var query = normalize(searchInput ? searchInput.value : '');
+    var groups = Array.prototype.slice.call(findings.querySelectorAll('[data-report-status]'));
+
+    groups.forEach(function (group) {
+      var status = group.getAttribute('data-report-status');
+      var statusMatches = activeStatus === 'all' || status === activeStatus;
+      var rows = Array.prototype.slice.call(group.querySelectorAll('[data-report-row]'));
+      var visibleRows = 0;
+
+      if (!statusMatches) {
+        group.hidden = true;
+        return;
+      }
+
+      rows.forEach(function (row) {
+        var rowMatches = !query || normalize(row.innerText || row.textContent).indexOf(query) !== -1;
+        row.hidden = !rowMatches;
+
+        if (rowMatches) {
+          visibleRows += 1;
+        }
+      });
+
+      group.hidden = rows.length > 0 && visibleRows === 0;
+    });
+
+    updateCopyButton();
+  }
+
+  statusButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      activeStatus = button.getAttribute('data-status-filter') || 'all';
+
+      statusButtons.forEach(function (item) {
+        var selected = item === button;
+        item.classList.toggle('is-active', selected);
+        item.setAttribute('aria-selected', selected ? 'true' : 'false');
+      });
+
+      applyFilters();
+    });
+  });
+
+  if (searchInput) {
+    searchInput.addEventListener('input', applyFilters);
+  }
+
+  if (copyButton) {
+    copyButton.addEventListener('click', function () {
+      var urls = getVisibleAnchors().map(function (anchor) {
+        return anchor.getAttribute('href');
+      });
+      var previousText = copyButton.textContent;
+
+      if (!urls.length) {
+        return;
+      }
+
+      function markCopied() {
+        copyButton.textContent = 'Copied ' + urls.length + ' URLs';
+        window.setTimeout(function () {
+          copyButton.textContent = previousText;
+          updateCopyButton();
+        }, 1400);
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(urls.join('\n')).then(markCopied, updateCopyButton);
+        return;
+      }
+
+      var buffer = document.createElement('textarea');
+      buffer.value = urls.join('\n');
+      buffer.setAttribute('readonly', 'readonly');
+      buffer.style.position = 'fixed';
+      buffer.style.left = '-9999px';
+      document.body.appendChild(buffer);
+      buffer.select();
+      document.execCommand('copy');
+      document.body.removeChild(buffer);
+      markCopied();
+    });
+  }
+
+  applyFilters();
+}());
+</script>
+"""
+
+
+def _render_report_nav(report_items, metadata):
+    """
+    Render sticky in-page report navigation.
+
+    :param dict report_items: status-to-items map
+    :param dict metadata: metadata map
+    :return: HTML fragment
+    :rtype: str
+    """
+
+    links = [
+        '<a href="#summary">Summary</a>',
+        '<a href="#findings">Findings <span class="badge">{0}</span></a>'.format(
+            _escape(_get_total_finding_count(report_items)),
+        ),
+    ]
+
+    if metadata:
+        links.append('<a href="#metadata">Metadata</a>')
+
+    return (
+        '<nav class="report-nav" aria-label="Report navigation">'
+        '<div class="report-nav-links">{0}</div>'
+        '<div class="report-actions">'
+        '<button class="action-button" type="button" data-copy-visible-urls>Copy visible URLs</button>'
+        '</div>'
+        '</nav>'
+    ).format(''.join(links))
+
+
+def _get_total_finding_count(report_items):
+    """
+    Return total number of rendered findings.
+
+    :param dict report_items: status-to-items map
+    :return: total item count
+    :rtype: int
+    """
+
+    if not isinstance(report_items, dict):
+        return 0
+
+    count = 0
+
+    for items in report_items.values():
+        if isinstance(items, list):
+            count += len(items)
+
+    return count
+
+
+def _render_status_filter_buttons(report_items):
+    """
+    Render finding status filter buttons.
+
+    :param dict report_items: status-to-items map
+    :return: HTML fragment
+    :rtype: str
+    """
+
+    total_count = _get_total_finding_count(report_items)
+    buttons = [
+        '<button class="status-tab is-active" type="button" data-status-filter="all" '
+        'role="tab" aria-selected="true">All <span class="badge">{0}</span></button>'.format(
+            _escape(total_count),
+        )
+    ]
+
+    for status in sorted(report_items.keys()):
+        items = report_items.get(status) or []
+        count = len(items) if isinstance(items, list) else 0
+        buttons.append(
+            '<button class="status-tab" type="button" data-status-filter="{0}" '
+            'role="tab" aria-selected="false">{1} <span class="{2}">{3}</span></button>'.format(
+                _escape(status),
+                _escape(status),
+                _get_status_badge_class(status),
+                _escape(count),
+            )
+        )
+
+    return ''.join(buttons)
 
 
 def _render_totals(totals):
@@ -427,7 +828,7 @@ def _render_totals(totals):
 
     cards = []
 
-    for key in sorted(totals.keys()):
+    for key in _get_ordered_total_keys(totals):
         cards.append(
             '<article class="card">'
             '<p class="card-label">{0}</p>'
@@ -439,7 +840,7 @@ def _render_totals(totals):
         )
 
     return (
-        '<section class="section">'
+        '<section class="section" id="summary">'
         '<div class="section-header">'
         '<div>'
         '<h2>Summary</h2>'
@@ -449,6 +850,33 @@ def _render_totals(totals):
         '<div class="cards">{0}</div>'
         '</section>'
     ).format(''.join(cards))
+
+
+def _get_ordered_total_keys(totals):
+    """
+    Return stable total-card order with known scan counters first.
+
+    :param dict totals: total counters
+    :return: ordered total keys
+    :rtype: list
+    """
+
+    preferred = [
+        'items',
+        'success',
+        'auth',
+        'forbidden',
+        'blocked',
+        'bypass',
+        'redirect',
+        'failed',
+        'workers',
+    ]
+    existing = list(totals.keys())
+    ordered = [key for key in preferred if key in totals]
+    ordered.extend(sorted(key for key in existing if key not in ordered))
+
+    return ordered
 
 
 def _render_report_items(report_items):
@@ -462,7 +890,7 @@ def _render_report_items(report_items):
 
     if not isinstance(report_items, dict) or not report_items:
         return (
-            '<section class="section">'
+            '<section class="section" id="findings">'
             '<div class="section-header">'
             '<div>'
             '<h2>Findings</h2>'
@@ -480,16 +908,25 @@ def _render_report_items(report_items):
         sections.append(_render_status_items(status, items))
 
     return (
-        '<section class="section">'
+        '<section class="section" id="findings" data-report-findings>'
         '<div class="section-header">'
         '<div>'
         '<h2>Findings</h2>'
         '<p class="section-description">Discovered resources grouped by OpenDoor status.</p>'
         '</div>'
         '</div>'
-        '{0}'
+        '<div class="finding-controls">'
+        '<label class="search-box">Search '
+        '<input type="search" data-report-search placeholder="Filter by URL, code, WAF, title, header...">'
+        '</label>'
+        '<div class="status-tabs" role="tablist" aria-label="Finding status filters">{0}</div>'
+        '</div>'
+        '{1}'
         '</section>'
-    ).format(''.join(sections))
+    ).format(
+        _render_status_filter_buttons(report_items),
+        ''.join(sections),
+    )
 
 
 def _render_status_items(status, items):
@@ -512,7 +949,7 @@ def _render_status_items(status, items):
         table = _render_plain_list(items)
 
     return (
-        '<div class="status-block">'
+        '<div class="status-block" data-report-status="{4}">'
         '<div class="status-title">'
         '<h3>{0}</h3>'
         '<span class="{1}">{2}</span>'
@@ -524,6 +961,7 @@ def _render_status_items(status, items):
         _get_status_badge_class(status),
         _escape(count),
         table,
+        _escape(status),
     )
 
 
@@ -550,7 +988,7 @@ def _render_list_of_dicts(items):
             '<td>{0}</td>'.format(_render_cell(column, item.get(column)))
             for column in columns
         )
-        rows.append('<tr>{0}</tr>'.format(cells))
+        rows.append('<tr data-report-row>{0}</tr>'.format(cells))
 
     return (
         '<div class="table-wrap">'
@@ -575,7 +1013,7 @@ def _render_plain_list(items):
 
     for index, item in enumerate(items, start=1):
         rows.append(
-            '<tr>'
+            '<tr data-report-row>'
             '<td><span class="badge">{0}</span></td>'
             '<td>{1}</td>'
             '</tr>'.format(index, _render_value(item))
@@ -617,7 +1055,7 @@ def _render_metadata(metadata):
         )
 
     return (
-        '<section class="section">'
+        '<section class="section" id="metadata">'
         '<div class="section-header">'
         '<div>'
         '<h2>Metadata</h2>'
@@ -662,7 +1100,7 @@ def _render_cell(column, value):
         return '<span class="badge">-</span>'
 
     if isinstance(value, (dict, list, tuple)):
-        return '<pre class="nested">{0}</pre>'.format(_escape(value))
+        return _render_nested_value(value)
 
     return '<span class="{0}">{1}</span>'.format(
         _get_value_class(column),
@@ -696,7 +1134,7 @@ def _render_value(value):
 
 def _render_dict_value(value):
     """
-    Render dictionary value as a compact nested table.
+    Render dictionary value as a collapsible JSON block.
 
     :param dict value: dictionary value
     :return: HTML fragment
@@ -706,31 +1144,12 @@ def _render_dict_value(value):
     if not value:
         return '<span class="badge">empty</span>'
 
-    rows = []
-
-    for key in sorted(value.keys()):
-        rows.append(
-            '<tr>'
-            '<th>{0}</th>'
-            '<td>{1}</td>'
-            '</tr>'.format(
-                _escape(key),
-                _render_value(value.get(key)),
-            )
-        )
-
-    return (
-        '<div class="table-wrap">'
-        '<table class="report-table">'
-        '<tbody>{0}</tbody>'
-        '</table>'
-        '</div>'
-    ).format(''.join(rows))
+    return _render_nested_value(value, open_by_default=True)
 
 
 def _render_list_value(value):
     """
-    Render list-like value.
+    Render list-like value as a collapsible JSON block.
 
     :param list|tuple value: list-like value
     :return: HTML fragment
@@ -740,12 +1159,61 @@ def _render_list_value(value):
     if not value:
         return '<span class="badge">empty</span>'
 
-    items = [
-        '<li>{0}</li>'.format(_render_value(item))
-        for item in value
-    ]
+    return _render_nested_value(value, open_by_default=True)
 
-    return '<ul class="value-list">{0}</ul>'.format(''.join(items))
+
+def _render_nested_value(value, open_by_default=False):
+    """
+    Render nested values without recursive tables.
+
+    :param value: nested value
+    :param bool open_by_default: whether the details block should be expanded
+    :return: HTML fragment
+    :rtype: str
+    """
+
+    open_attr = ' open' if open_by_default else ''
+
+    return (
+        '<details class="details-block"{0}>'
+        '<summary>{1}</summary>'
+        '<pre class="nested nested-json">{2}</pre>'
+        '</details>'
+    ).format(
+        open_attr,
+        _escape(_get_nested_summary(value)),
+        _escape(_to_pretty_json(value)),
+    )
+
+
+def _get_nested_summary(value):
+    """
+    Return short summary for nested values.
+
+    :param value: nested value
+    :return: summary text
+    :rtype: str
+    """
+
+    if isinstance(value, dict):
+        return '{0} fields'.format(len(value))
+
+    if isinstance(value, (list, tuple)):
+        return '{0} items'.format(len(value))
+
+    return 'details'
+
+
+def _to_pretty_json(value):
+    """
+    Convert value to stable pretty JSON.
+
+    :param value: value to convert
+    :return: pretty JSON string
+    :rtype: str
+    """
+
+    return json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True, default=str)
 
 
 def _render_status_code(value):

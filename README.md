@@ -57,7 +57,7 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - multi-threading scans for faster lookups;
 - single target, target file, stdin, IPv4 CIDR, and IPv4 range input modes;
 - custom wordlists, prefixes, shuffling to break scan patterns and extension filters;
-- custom request headers, cookies, and raw HTTP request templates;
+- custom request headers, cookies forwarding, and raw HTTP request templates;
 - response filters by status, size, text, regex, and body length;
 - smart auto-calibration for soft-404, wildcard, catch-all, semantic response-diff, and DNS wildcard cases;
 - technology fingerprint detection for CMS, ecommerce platforms, frameworks, runtime stacks, infrastructure, and HSTS posture;

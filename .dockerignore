@@ -66,6 +66,7 @@ benchmarks
 docs
 tests
 e2e-server.log
+data/test.dat
 
 # Local helper scripts are not needed in runtime image
 scripts
