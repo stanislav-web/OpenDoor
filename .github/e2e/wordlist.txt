@@ -1,0 +1,12 @@
+admin
+backup
+health
+uploads
+login
+forbidden
+auth-required
+redirect
+nonexistent
+ghost
+random-miss
+doesnotexist

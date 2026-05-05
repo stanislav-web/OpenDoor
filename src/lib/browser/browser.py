@@ -472,7 +472,7 @@ class Browser(Filter):
 
             if self.__calibration.is_enabled is True:
                 tpl.info(
-                    msg='Auto-calibration baseline ready: signatures={0}, dns_wildcard_addresses={1}'.format(
+                    msg='Auto-calibration baseline ready: signatures={0}, DNS wildcard addresses={1}'.format(
                         len(signatures),
                         len(self.__calibration.dns_wildcard_addresses)
                     )

@@ -24,6 +24,7 @@ __pycache__/
 coverage.json
 coverage.xml
 htmlcov/
+e2e-server.log
 
 # Build artifacts
 build/

@@ -65,6 +65,7 @@ data/openvpn-profiles/*.conf
 benchmarks
 docs
 tests
+e2e-server.log
 
 # Local helper scripts are not needed in runtime image
 scripts

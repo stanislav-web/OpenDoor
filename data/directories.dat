@@ -8619,6 +8619,7 @@ account
 Account
 account-br.html
 account-ca.html
+account-confirmation
 account-create.php
 account-de.html
 account-details.php
@@ -19388,6 +19389,8 @@ api/v1/common/notifications
 api/v1/common/preferences
 api/v1/common/users/password
 api/v1/complicance_store
+api/v1/config/keys.yaml
+api/v1/config/secrets.yaml
 api/v1/configmaps
 api/v1/configs
 api/v1/cron-workflows
@@ -20504,6 +20507,7 @@ archive.tgz
 archive.zip
 Archive.zip
 archive/.env
+archive/db_config.bak
 archive/get.asp?message_id=
 archive_tar
 Archive_Tar.php
@@ -21838,6 +21842,7 @@ autori.asp
 autori.php
 autoriz
 autoriz.php
+autorization
 autorization/autoriz.php
 autorizationautoriz.php
 autorize.php
@@ -23107,6 +23112,7 @@ backups.zip
 backups/.env
 backups/auth.php
 backups/back.dat
+backups/config.bak
 backups/data.sql
 backups/data.tar.gz
 backups/data.txt
@@ -24049,7 +24055,7 @@ behaviors
 beheer
 beheer.php
 beheer/login
-behold!
+behold
 beian.html
 beifen
 beifen.zip
@@ -37937,6 +37943,7 @@ db/item.html?item=
 db/login.php
 db/main.mdb
 db/manage
+db/mongodb.bson
 db/myadmin
 db/phpMyAdmin
 db/phpmyadmin
@@ -37946,10 +37953,13 @@ db/phpMyAdmin3
 db/phpmyadmin3
 db/phpMyAdmin-2
 db/phpMyAdmin-3
+db/postgres.dump
+db/postgres.sql
 db/robomongo.json
 db/schema.rb
 db/sql
 db/sql.sql
+db/sqlite.sql
 db/webadmin
 db/webdb
 db/websql
@@ -39337,6 +39347,7 @@ developer_login.jsp
 developers
 developers.html
 developers.php
+developers/upload.php
 developerslv/.env
 development
 development-parts
@@ -39660,6 +39671,7 @@ direct.htm
 direct.jsp
 direct.php
 direct_apply.cgi
+direct_edit
 directadmin
 directadmin.php
 directbuy.php
@@ -40756,6 +40768,7 @@ download_free.php
 download_logo.php
 download_private
 download_script.php
+download_start.php
 download_thread.php
 download_track.php
 download_trial.jsp
@@ -48459,6 +48472,7 @@ forum.tar.bz2
 forum.tar.gz
 forum.tpl
 forum.zip
+forum/adm
 forum/admin
 forum/backup
 forum/backups
@@ -66648,6 +66662,7 @@ market/.env.production
 market/.env.staging
 market/admin
 market/login
+market/user
 market_andreoli.php
 market_move.php
 market_trade.php
@@ -75743,6 +75758,7 @@ oto2.html
 oto.html
 oto.php
 otp
+otp.php
 otrasl.php
 otros
 otros.php
@@ -78223,11 +78239,13 @@ pdfmagazine
 pdfpage.html
 pdfpageview.aspx
 pdfprogress.php
+pdfread.php
 pdfs
 pdfs.html
 pdfs_docs
 pdfthread.php
 pdftohtml
+pdfview.php
 pdfviewer.aspx
 pdfviewer.aspx.cs
 pdg_cart
@@ -89605,6 +89623,7 @@ schema.sql
 Schema.sql
 schema.yml
 schemas
+schematic_rate.php
 schematics
 scheme
 scheme.php
@@ -90092,9 +90111,9 @@ search.zhtml
 search.ztml
 search/.env
 search/display.asp?BookID=
-search/members/?id`%3D520)%2f**%2funion%2f**%2fselect%2f**%2f1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2Cunhex%28%2770726f6a656374646973636f766572792e696f%27%29%2C13%2C14%2C15%2C16%2C17%2C18%2C19%2C20%2C21%2C22%2C23%2C24%2C25%2C26%2C27%2C28%2C29%2C30%2C31%2C32%23sqli=1
+search/members
 search/token.json
-search?search_key={{1337*1338}}
+search
 search_
 search_a9.cgi
 search_ad.php
@@ -98464,6 +98483,7 @@ sys_log
 sys_login_eos.asp
 sys_login_eos.html
 sys_manage
+sys_pic
 sysad
 sysadm
 sysadm.php
@@ -110406,6 +110426,7 @@ webtv.php
 webtv.swf
 webtv_c5n.swf
 webui/.env
+webupload
 webusage
 webuser
 webusercontrols
@@ -114256,6 +114277,7 @@ zend/vendor/phpunit/phpunit/phpunit
 zend/vendor/phpunit/phpunitphpunit
 zendesk
 zendplatform
+zenitcard
 zenith
 zenphoto
 zenphoto/zp
