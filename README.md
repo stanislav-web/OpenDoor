@@ -7,16 +7,15 @@
 It helps security researchers, penetration testers, bug bounty hunters, DevSecOps engineers, and developers identify exposed paths, login panels, directory listings, restricted resources, backup files, web shells, subdomains, and other potentially sensitive web assets.
 
 > Use OpenDoor only on systems you own or have explicit permission to test.
-
 ---
 
 ## ✅ Project status
 
 [![PyPI version](https://img.shields.io/pypi/v/opendoor)](https://pypi.org/project/opendoor/)
+[![Homebrew](https://img.shields.io/homebrew/v/opendoor?label=homebrew)](https://formulae.brew.sh/formula/opendoor)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-green.svg)](https://www.python.org/)
 [![Documentation Status](https://app.readthedocs.org/projects/opendoor/badge/?version=latest)](https://opendoor.readthedocs.io/)
 [![Docker Image](https://github.com/stanislav-web/OpenDoor/actions/workflows/docker-image.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/docker-image.yml)
-[![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 [![Coverage](https://codecov.io/github/stanislav-web/OpenDoor/graph/badge.svg?token=dyBxutYBso)](https://codecov.io/github/stanislav-web/OpenDoor)
 [![CodeQL](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql)
@@ -66,7 +65,6 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - controlled header and path bypass probes for blocked `401` and `403` resources;
 - resumable scan sessions with checkpoint autosave for long term scans;
 - CI/CD fail-on result bucket rules;
-- official Docker image distribution via GitHub Container Registry;
 - reports in terminal, text, JSON, CSV, HTML, SARIF and SQLite formats;
 - proxy, OpenVPN, and WireGuard transport profiles;
 - sequential per-target transport rotation for batch workflows;
@@ -157,8 +155,6 @@ yay -S opendoor
 ```
 
 ### Homebrew
-
-When the Homebrew formula is available:
 
 ```bash
 brew install opendoor
@@ -513,4 +509,4 @@ If OpenDoor helps your authorized security work, you can support ongoing mainten
 [Support OpenDoor on Giveth](https://giveth.io/project/opendoor)
 
 ---
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/stanislav-web/OpenDoor)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/stanislav-web/OpenDoor) [![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)

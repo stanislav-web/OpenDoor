@@ -141,7 +141,6 @@ class HttpsRequest(RequestProvider, DebugProvider):
                                                retries=self.__cfg.retries,
                                                assert_same_host=False,
                                                redirect=False)
-                self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             else:  # subdomains
                 response = self.__manager.request(self.__cfg.method, url,
                                                   headers=request_headers,
@@ -149,6 +148,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
                                                   retries=self.__cfg.retries,
                                                   assert_same_host=False,
                                                   redirect=False)
+            self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             return response
 
         except MaxRetryError:

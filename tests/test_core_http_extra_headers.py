@@ -229,5 +229,180 @@ class TestHttpExtraHeaders(unittest.TestCase):
         self.assertEqual(pool_request.call_count, 2)
 
 
+    def test_http_request_routes_accepted_cookies_to_next_request(self):
+        """HttpRequest should route accepted Set-Cookie values to the next request."""
+
+        cfg = self.make_cfg(accept_cookies=True)
+        req = HttpRequest(cfg, SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+
+        captured_headers = []
+
+        def fake_request(*args, **kwargs):
+            captured_headers.append(dict(kwargs['headers']))
+            if len(captured_headers) == 1:
+                return HTTPResponse(
+                    status=200,
+                    body=b'ok',
+                    headers={'Set-Cookie': '__js_p_=101,1800,0,0,0; Path=/'},
+                )
+            return HTTPResponse(status=200, body=b'ok', headers={})
+
+        pool = MagicMock()
+        pool.request.side_effect = fake_request
+        req._HttpRequest__pool = pool
+
+        req.request('http://example.com/fail001')
+        req.request('http://example.com/currency')
+
+        self.assertNotIn('Cookie', captured_headers[0])
+        self.assertEqual(captured_headers[1]['Cookie'], '__js_p_=101,1800,0,0,0')
+
+    def test_http_request_routes_accepted_cookies_with_extra_headers(self):
+        """HttpRequest should preserve routed cookies when temporary headers are used."""
+
+        cfg = self.make_cfg(accept_cookies=True)
+        req = HttpRequest(cfg, SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+
+        captured_headers = []
+
+        def fake_request(*args, **kwargs):
+            captured_headers.append(dict(kwargs['headers']))
+            if len(captured_headers) == 1:
+                return HTTPResponse(
+                    status=200,
+                    body=b'ok',
+                    headers={'Set-Cookie': 'session_id=abc123; Path=/; HttpOnly'},
+                )
+            return HTTPResponse(status=200, body=b'ok', headers={})
+
+        pool = MagicMock()
+        pool.request.side_effect = fake_request
+        req._HttpRequest__pool = pool
+
+        req.request('http://example.com/fail001')
+        req.request(
+            'http://example.com/fail001',
+            extra_headers={'X-Original-URL': '/fail001'},
+        )
+
+        self.assertEqual(captured_headers[1]['Cookie'], 'session_id=abc123')
+        self.assertEqual(captured_headers[1]['X-Original-URL'], '/fail001')
+
+    def test_https_request_routes_accepted_cookies_to_next_request(self):
+        """HttpsRequest should route accepted Set-Cookie values to the next request."""
+
+        cfg = self.make_cfg(port=443, scheme='https://', accept_cookies=True)
+        req = HttpsRequest(cfg, SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+
+        captured_headers = []
+
+        def fake_request(*args, **kwargs):
+            captured_headers.append(dict(kwargs['headers']))
+            if len(captured_headers) == 1:
+                return HTTPResponse(
+                    status=200,
+                    body=b'ok',
+                    headers={'Set-Cookie': '__js_p_=101,1800,0,0,0; Path=/'},
+                )
+            return HTTPResponse(status=200, body=b'ok', headers={})
+
+        pool = MagicMock()
+        pool.request.side_effect = fake_request
+        req._HttpsRequest__pool = pool
+
+        req.request('https://example.com/fail001')
+        req.request('https://example.com/currency')
+
+        self.assertNotIn('Cookie', captured_headers[0])
+        self.assertEqual(captured_headers[1]['Cookie'], '__js_p_=101,1800,0,0,0')
+
+    def test_https_request_routes_accepted_cookies_with_extra_headers(self):
+        """HttpsRequest should preserve routed cookies when temporary headers are used."""
+
+        cfg = self.make_cfg(port=443, scheme='https://', accept_cookies=True)
+        req = HttpsRequest(cfg, SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+
+        captured_headers = []
+
+        def fake_request(*args, **kwargs):
+            captured_headers.append(dict(kwargs['headers']))
+            if len(captured_headers) == 1:
+                return HTTPResponse(
+                    status=200,
+                    body=b'ok',
+                    headers={'Set-Cookie': 'session_id=abc123; Path=/; HttpOnly'},
+                )
+            return HTTPResponse(status=200, body=b'ok', headers={})
+
+        pool = MagicMock()
+        pool.request.side_effect = fake_request
+        req._HttpsRequest__pool = pool
+
+        req.request('https://example.com/fail001')
+        req.request(
+            'https://example.com/fail001',
+            extra_headers={'X-Rewrite-URL': '/fail001'},
+        )
+
+        self.assertEqual(captured_headers[1]['Cookie'], 'session_id=abc123')
+        self.assertEqual(captured_headers[1]['X-Rewrite-URL'], '/fail001')
+
+    def test_http_manager_request_routes_accepted_cookies_to_next_request(self):
+        """HttpRequest should route cookies in non-default scan mode too."""
+
+        cfg = self.make_cfg(accept_cookies=True, scan='subdomains')
+        req = HttpRequest(cfg, SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+
+        captured_headers = []
+
+        def fake_request(*args, **kwargs):
+            captured_headers.append(dict(kwargs['headers']))
+            if len(captured_headers) == 1:
+                return HTTPResponse(
+                    status=200,
+                    body=b'ok',
+                    headers={'Set-Cookie': 'manager_cookie=value; Path=/'},
+                )
+            return HTTPResponse(status=200, body=b'ok', headers={})
+
+        manager = MagicMock()
+        manager.request.side_effect = fake_request
+        req._HttpRequest__manager = manager
+
+        req.request('http://sub.example.com/')
+        req.request('http://next.example.com/')
+
+        self.assertNotIn('Cookie', captured_headers[0])
+        self.assertEqual(captured_headers[1]['Cookie'], 'manager_cookie=value')
+
+    def test_https_manager_request_routes_accepted_cookies_to_next_request(self):
+        """HttpsRequest should route cookies in non-default scan mode too."""
+
+        cfg = self.make_cfg(port=443, scheme='https://', accept_cookies=True, scan='subdomains')
+        req = HttpsRequest(cfg, SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+
+        captured_headers = []
+
+        def fake_request(*args, **kwargs):
+            captured_headers.append(dict(kwargs['headers']))
+            if len(captured_headers) == 1:
+                return HTTPResponse(
+                    status=200,
+                    body=b'ok',
+                    headers={'Set-Cookie': 'manager_cookie=value; Path=/'},
+                )
+            return HTTPResponse(status=200, body=b'ok', headers={})
+
+        manager = MagicMock()
+        manager.request.side_effect = fake_request
+        req._HttpsRequest__manager = manager
+
+        req.request('https://sub.example.com/')
+        req.request('https://next.example.com/')
+
+        self.assertNotIn('Cookie', captured_headers[0])
+        self.assertEqual(captured_headers[1]['Cookie'], 'manager_cookie=value')
+
+
 if __name__ == '__main__':
     unittest.main()

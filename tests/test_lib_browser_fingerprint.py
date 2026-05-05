@@ -580,6 +580,52 @@ class TestFingerprint(unittest.TestCase):
         self.assertEqual(result['name'], 'Unknown custom stack')
         self.assertNotIn('Bolt CMS', [candidate['name'] for candidate in result['candidates']])
 
+    def test_detects_bitrix_from_x_powered_cms_header(self):
+        """Fingerprint should detect Bitrix from X-Powered-CMS header."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body>ok</body></html>',
+                {'X-Powered-CMS': 'Bitrix Site Manager (084338cf6147abbfca438bf6bb2b3337)'}
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Bitrix')
+        self.assertGreaterEqual(result['confidence'], 70)
+        self.assertIn('PHP', result['runtime']['name'])
+
+    def test_does_not_false_positive_strapi_from_generic_admin_and_uploads_routes(self):
+        """Fingerprint should not classify generic /admin and /uploads routes as Strapi."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><a href="/admin">Admin</a><img src="/uploads/logo.png"></body></html>',
+                {}
+            ),
+            ('HEAD', 'http://example.com/admin/init'): FakeResponse(404, 'Not Found', {}),
+            ('HEAD', 'http://example.com/admin'): FakeResponse(302, '', {'Location': '/login'}),
+            ('HEAD', 'http://example.com/uploads/'): FakeResponse(200, '', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertNotIn('Strapi', [candidate['name'] for candidate in result['candidates']])
+
     def test_does_not_false_positive_directus_from_generic_admin_assets(self):
         """Fingerprint should not misclassify generic admin assets as Directus."""
 

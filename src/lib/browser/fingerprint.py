@@ -1014,6 +1014,7 @@ class Fingerprint(object):
         not_found_headers = not_found_headers or {}
         generator_lower = str(generator).lower()
         x_powered_by = str(headers.get('x-powered-by', '')).lower()
+        x_powered_cms = str(headers.get('x-powered-cms', '')).lower()
         server = str(headers.get('server', '')).lower()
         via = str(headers.get('via', '')).lower()
         x_cache = str(headers.get('x-cache', '')).lower()
@@ -1095,6 +1096,8 @@ class Fingerprint(object):
             self._add_signal('Shopify', self.ECOMMERCE_CATEGORY, 'header', 'x-shopid|server', 6)
 
         # Bitrix
+        if 'bitrix' in x_powered_cms:
+            self._add_signal('Bitrix', self.CMS_CATEGORY, 'header', 'x-powered-cms={0}'.format(headers.get('x-powered-cms')), 9)
         if '/bitrix/' in body_lower:
             self._add_signal('Bitrix', self.CMS_CATEGORY, 'markup', '/bitrix/', 6)
         if 'window.bx' in body_lower or 'bx.message' in body_lower or 'bx.setcsslist' in body_lower:
@@ -1494,15 +1497,20 @@ class Fingerprint(object):
             self._add_signal('Directus', self.CMS_CATEGORY, 'endpoint', '/admin + /admin/assets/', 4)
 
         # Strapi
-        if 'strapi' in x_powered_by:
+        strapi_header_hint = 'strapi' in x_powered_by
+        strapi_markup_hint = '/admin/init' in body_lower or ('strapi' in body_lower and '/uploads/' in body_lower)
+        strapi_init_up = probe_statuses.get('/admin/init') in [200, 301, 302, 401, 403]
+        strapi_hint = strapi_header_hint or strapi_markup_hint or strapi_init_up
+
+        if strapi_header_hint:
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 8)
-        if '/admin/init' in body_lower or ('strapi' in body_lower and '/uploads/' in body_lower):
+        if strapi_markup_hint:
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'markup', '/admin/init|strapi + /uploads/', 7)
-        if probe_statuses.get('/admin/init') in [200, 301, 302, 401, 403]:
+        if strapi_init_up:
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'endpoint', '/admin/init', 7)
-        if probe_statuses.get('/admin') in [200, 301, 302, 401, 403]:
+        if strapi_hint and probe_statuses.get('/admin') in [200, 301, 302, 401, 403]:
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'endpoint', '/admin', 4)
-        if probe_statuses.get('/uploads/') in [200, 301, 302, 401, 403]:
+        if strapi_hint and probe_statuses.get('/uploads/') in [200, 301, 302, 401, 403]:
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'endpoint', '/uploads/', 4)
 
         # Extended CMS catalog extension

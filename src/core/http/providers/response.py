@@ -437,6 +437,43 @@ class ResponseProvider(object):
             ],
         },
         {
+            'name': 'SW JS Challenge',
+            'confidence': 90,
+            'strong_header_markers': [],
+            'header_markers': [
+                'server: sw',
+                'set-cookie: __js_p_=',
+                        'content-type: text/html; charset=utf-8',
+                'cache-control: no-cache',
+            ],
+            'strong_body_markers': [
+                'meta name="robots" content="noindex, noarchive"',
+                        'document.cookie = "__jua_="',
+                'get_jhash(',
+            ],
+            'body_markers': [
+                'gorizontal-vertikal',
+                'ajaxload.info',
+                'data:image/gif;base64',
+                'construct_utm_uri',
+            ],
+        },
+        {
+            'name': 'CityHost Secure Page',
+            'confidence': 88,
+            'strong_header_markers': [
+                'cityhost_secure_page=security_page_have_not_pass',
+            ],
+            'header_markers': [],
+            'strong_body_markers': [
+                'security_page_have_not_pass',
+            ],
+            'body_markers': [
+                'cityhost secure page',
+                'security page have not pass',
+            ],
+        },
+        {
             'name': 'Huawei Cloud WAF',
             'confidence': 83,
             'strong_header_markers': [
@@ -1256,6 +1293,47 @@ class ResponseProvider(object):
         except (AttributeError, TypeError, ValueError):
             return False
 
+    @staticmethod
+    def __sw_js_challenge_has_active_signal(header_blob, body_blob):
+        """
+        Return True only for the active SW __js_p_ JavaScript challenge page.
+
+        Passive `server: sw` or a leftover `__js_p_` cookie must not be enough
+        to mark a normal 200 response as blocked.
+
+        :param str header_blob:
+        :param str body_blob:
+        :return: bool
+        """
+
+        header_blob = str(header_blob or '')
+        body_blob = str(body_blob or '')
+
+        if '__js_p_=' not in header_blob:
+            return False
+
+        if 'server: sw' not in header_blob:
+            return False
+
+        strong_body_markers = [
+            'meta name="robots" content="noindex, noarchive"',
+            'document.cookie = "__jhash_="',
+            'document.cookie = "__jua_="',
+            'get_jhash(',
+        ]
+        body_markers = [
+            'gorizontal-vertikal',
+            'ajaxload.info',
+            'data:image/gif;base64',
+            'construct_utm_uri',
+            'window.location.href',
+        ]
+
+        strong_hits = sum(1 for marker in strong_body_markers if marker in body_blob)
+        body_hits = sum(1 for marker in body_markers if marker in body_blob)
+
+        return strong_hits >= 2 and body_hits >= 2
+
     def __detect_waf(self, response):
         """
         Detect known WAF or anti-bot vendors.
@@ -1305,6 +1383,12 @@ class ResponseProvider(object):
             if blocked_like_status is False and signature.get('header_requires_blocked_status') is True:
                 strong_header_signals = []
                 header_signals = []
+
+            if signature.get('name') == 'SW JS Challenge' and not self.__sw_js_challenge_has_active_signal(
+                    header_blob,
+                    body_blob
+            ):
+                continue
 
             if signature.get('name') == 'Cloudflare' and not self.__cloudflare_has_active_block_signal(
                     response,

@@ -127,7 +127,6 @@ class HttpRequest(RequestProvider, DebugProvider):
                     assert_same_host=True,
                     redirect=False,
                 )
-                self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             else:
                 response = self.__manager.request(
                     self.__cfg.method,
@@ -138,6 +137,7 @@ class HttpRequest(RequestProvider, DebugProvider):
                     assert_same_host=False,
                     redirect=False,
                 )
+            self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             return response
 
         except MaxRetryError:

@@ -77,6 +77,7 @@ class Browser(Filter):
 
         try:
             self.__client = None
+            self.__shared_cookie_header = None
             self.__config = Config(params)
             self.__debug = Debug(self.__config)
             self.__session_lock = threading.RLock()
@@ -607,12 +608,67 @@ class Browser(Filter):
             clean_path
         )
 
+    def __sync_shared_cookies_from_client(self):
+        """
+        Capture accepted cookies from the current request provider.
+
+        Request providers own the low-level cookie extraction, while Browser owns
+        the scan lifecycle. Keeping this small shared snapshot lets cookies
+        survive provider recreation between fingerprint, calibration and the
+        main dictionary scan.
+
+        :return: None
+        """
+
+        if True is not getattr(self.__config, 'accept_cookies', False):
+            return
+
+        if self.__client is None:
+            return
+
+        try:
+            cookies = self.__client._push_cookies()
+        except AttributeError:
+            return
+
+        cookies = str(cookies or '').strip()
+        if cookies:
+            self.__shared_cookie_header = cookies
+
+    def __apply_shared_cookies_to_client(self):
+        """
+        Apply captured cookies to a freshly created request provider.
+
+        :return: None
+        """
+
+        if True is not getattr(self.__config, 'accept_cookies', False):
+            return
+
+        if self.__client is None:
+            return
+
+        cookies = str(self.__shared_cookie_header or '').strip()
+        if not cookies:
+            return
+
+        if '\r' in cookies or '\n' in cookies:
+            return
+
+        try:
+            self.__client.add_header('Cookie', cookies)
+            setattr(self.__client, '_cookies', cookies)
+        except AttributeError:
+            pass
+
     def __start_request_provider(self):
         """
         Start selected request provider
 
         :return: None
         """
+
+        self.__sync_shared_cookies_from_client()
 
         if True is self.__config.is_proxy:
             self.__client = request_proxy(self.__config, proxy_list=self.__reader.get_proxies(),
@@ -625,6 +681,8 @@ class Browser(Filter):
             else:
                 self.__client = request_http(self.__config, agent_list=self.__reader.get_user_agents(),
                                              debug=self.__debug, tpl=tpl)
+
+        self.__apply_shared_cookies_to_client()
 
     def __request_with_waf_safe_mode(self, url, extra_headers=None):
         """
@@ -645,9 +703,12 @@ class Browser(Filter):
             """
 
             if extra_headers is None:
-                return self.__client.request(url)
+                response = self.__client.request(url)
+            else:
+                response = self.__client.request(url, extra_headers=extra_headers)
 
-            return self.__client.request(url, extra_headers=extra_headers)
+            self.__sync_shared_cookies_from_client()
+            return response
 
         if True is not getattr(self.__config, 'is_waf_safe_mode', False):
             return request_once()
@@ -1825,6 +1886,9 @@ class Browser(Filter):
 
         if not hasattr(self, '_Browser__calibration'):
             self.__calibration = None
+
+        if not hasattr(self, '_Browser__shared_cookie_header'):
+            self.__shared_cookie_header = None
 
         if not hasattr(self, '_Browser__header_bypass') or self.__header_bypass is None:
             if hasattr(self, '_Browser__config'):

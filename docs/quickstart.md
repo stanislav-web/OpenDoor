@@ -18,7 +18,7 @@ Alternative installation with pip:
 python3 -m pip install --upgrade opendoor
 ```
 
-On macOS, OpenDoor can also be installed with Homebrew when the formula is available:
+On macOS, OpenDoor can also be installed with Homebrew:
 
 ```shell
 brew install opendoor

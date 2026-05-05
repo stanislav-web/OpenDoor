@@ -48,6 +48,7 @@ The heuristic WAF detection engine currently recognizes probable signals for:
 - BitNinja
 - Bluedon WAF
 - ChinaCache
+- CityHost
 - Cloudflare
 - Comodo WAF
 - DataDome

@@ -90,9 +90,9 @@ sudo pacman -Syu opendoor
 
 ---
 
-## 🍺 Homebrew
+## 🍺 Homebrew 
 
-Homebrew is the recommended installation method for macOS users when the formula is available.
+Homebrew is the recommended installation method for macOS users.
 
 ```shell
 brew install opendoor
@@ -117,6 +117,8 @@ If you maintain or use a custom tap, installation may look like this:
 ```shell
 brew install stanislav-web/opendoor/opendoor
 ```
+
+![Homebrew Formula Downloads](https://img.shields.io/homebrew/installs/dy/opendoor)
 ---
 
 ## 🐳 Docker / GitHub Container Registry

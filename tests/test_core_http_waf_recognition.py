@@ -528,5 +528,128 @@ class TestWafRecognition(unittest.TestCase):
         self.assertEqual(provider.detect('https://example.com', response), 'blocked')
         self.assertEqual(provider.waf_detection['name'], 'IBM DataPower')
 
+    def test_detect_cityhost_secure_page_lock(self):
+        """ResponseProvider should detect CityHost secure page lock from exact cookie marker."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=423,
+            headers={
+                'Server': 'nginx',
+                'Set-Cookie': 'cityhost_secure_page=security_page_have_not_pass; Max-Age=43200',
+                'X-Powered-By': 'PHP/7.4.33',
+                'Content-Type': 'text/html; charset=UTF-8',
+            },
+            body=b'',
+        )
+
+        self.assertEqual(provider.detect('https://example.com/manager/index.php', response), 'blocked')
+        self.assertEqual(provider.waf_detection['name'], 'CityHost Secure Page')
+        self.assertEqual(provider.waf_detection['confidence'], 88)
+        self.assertIn(
+            'header:cityhost_secure_page=security_page_have_not_pass',
+            provider.waf_detection['signals'],
+        )
+
+    def test_plain_423_without_waf_marker_stays_certificate(self):
+        """ResponseProvider should keep plain 423 responses in certificate bucket."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=423,
+            headers={
+                'Server': 'nginx',
+                'X-Powered-By': 'PHP/7.4.33',
+                'Content-Length': '0',
+            },
+            body=b'',
+        )
+
+        self.assertEqual(provider.detect('https://example.com/locked', response), 'certificate')
+        self.assertIsNone(provider.waf_detection)
+
+    def test_cityhost_passed_cookie_does_not_trigger_waf(self):
+        """ResponseProvider should avoid broad CityHost cookie false positives."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=200,
+            headers={
+                'Set-Cookie': 'cityhost_secure_page=security_page_have_pass; Max-Age=43200',
+                'Content-Length': '2',
+            },
+            body=b'ok',
+        )
+
+        self.assertEqual(provider.detect('https://example.com/', response), 'success')
+        self.assertIsNone(provider.waf_detection)
+
+
+    def test_detect_sw_js_challenge_page(self):
+        """ResponseProvider should classify SW __js_p_ JavaScript challenge as blocked."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=200,
+            headers={
+                'Server': 'sw',
+                'Content-Length': '13602',
+                'Cache-Control': 'no-cache',
+                'Content-Type': 'text/html; charset=utf-8',
+                'Set-Cookie': '__js_p_=30,1800,0,0,0; Path=/',
+            },
+            body=(
+                b'<html><head><meta name="robots" content="noindex, noarchive" />'
+                b'<style>.gorizontal-vertikal {position:absolute}</style></head>'
+                b'<body><img src="data:image/gif;base64,R0lGODlhQgBCA" />'
+                b'<script>function get_jhash(b){return b;}'
+                b'document.cookie = "__jhash_=" + get_jhash(30);'
+                b'document.cookie = "__jua_=" + encodeURIComponent(navigator.userAgent);'
+                b'window.location.href = construct_utm_uri(0);</script></body></html>'
+            ),
+        )
+
+        self.assertEqual(provider.detect('https://example.com/fail001', response), 'blocked')
+        self.assertEqual(provider.waf_detection['name'], 'SW JS Challenge')
+        self.assertIn('header:set-cookie: __js_p_=', provider.waf_detection['signals'])
+        self.assertIn('body:get_jhash(', provider.waf_detection['signals'])
+        self.assertIn('body:document.cookie = "__jua_="', provider.waf_detection['signals'])
+
+    def test_sw_server_without_js_challenge_stays_success(self):
+        """ResponseProvider should not classify ordinary server: sw pages as blocked."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=200,
+            headers={
+                'Server': 'sw',
+                'Content-Type': 'text/html; charset=UTF-8',
+                'Content-Length': '211297',
+            },
+            body=b'<html><body>ordinary Bitrix page</body></html>',
+        )
+
+        self.assertEqual(provider.detect('https://example.com/currency/', response), 'success')
+        self.assertIsNone(provider.waf_detection)
+
+    def test_sw_js_cookie_without_challenge_body_stays_success(self):
+        """ResponseProvider should avoid broad __js_p_ cookie false positives."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=200,
+            headers={
+                'Server': 'sw',
+                'Set-Cookie': '__js_p_=30,1800,0,0,0; Path=/',
+                'Content-Type': 'text/html; charset=utf-8',
+                'Content-Length': '128',
+            },
+            body=b'<html><body>regular page after security cookie was already set</body></html>',
+        )
+
+        self.assertEqual(provider.detect('https://example.com/', response), 'success')
+        self.assertIsNone(provider.waf_detection)
+
+
 if __name__ == '__main__':
     unittest.main()

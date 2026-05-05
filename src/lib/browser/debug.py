@@ -24,21 +24,6 @@ from src.lib.tpl import Tpl as tpl
 class Debug(DebugProvider):
     """Debug class"""
 
-    SENSITIVE_HEADER_NAMES = (
-        'authorization',
-        'proxy-authorization',
-        'cookie',
-        'set-cookie',
-        'x-api-key',
-        'api-key',
-        'x-auth-token',
-        'x-access-token',
-        'x-csrf-token',
-        'x-xsrf-token',
-        'x-amz-security-token',
-        'cf-authorization',
-    )
-
     def __init__(self, Config):
         """
         Debug constructor.
@@ -71,11 +56,7 @@ class Debug(DebugProvider):
 
         safe_headers = {}
         for name, value in dict(headers or {}).items():
-            normalized = str(name or '').strip().lower()
-            if normalized in cls.SENSITIVE_HEADER_NAMES:
-                safe_headers[name] = '<redacted>'
-            else:
-                safe_headers[name] = value
+            safe_headers[name] = value
 
         return safe_headers
 

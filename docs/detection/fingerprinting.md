@@ -262,6 +262,7 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 - AWS ELB / ALB
 - AWS S3
 - Akamai
+- CityHost
 - Cloudflare
 - DDoS-Guard
 - Fastly

@@ -275,40 +275,56 @@ class FileSystem(object):
     @staticmethod
     def shuffle(target, output, total):
         """
-        Shuffle data in file.
+        Shuffle data in file while preserving word boundaries.
+
+        The implementation normalizes CR/LF only at line boundaries and always
+        writes exactly one newline between shuffled entries. This prevents the
+        last source line without a trailing newline from being concatenated with
+        the next shuffled item.
 
         :param str target:
         :param str output:
         :param int total:
-        :return: bool
+        :raise FileSystemError:
+        :return: None
         """
 
         try:
-            with open(target, 'r', encoding=FileSystem.text_encoding) as i_f, open(output, 'wb') as o_f:
-                counter = sum(1 for _ in i_f)
-                order = list(range(counter))
-                random.shuffle(order)
+            chunk_size = max(1, int(total or 1))
+        except (TypeError, ValueError):
+            chunk_size = 1
 
+        try:
+            with open(target, 'r', encoding=FileSystem.text_encoding) as i_f:
+                counter = sum(1 for _line in i_f)
+
+            order = list(range(counter))
+            random.shuffle(order)
+
+            with open(target, 'r', encoding=FileSystem.text_encoding) as i_f, open(output, 'wb') as o_f:
                 while order:
                     current_lines = {}
                     current_lines_count = 0
-                    current_chunk = order[:total]
-                    current_chunk_dict = dict((x, 1) for x in current_chunk)
+                    current_chunk = order[:chunk_size]
+                    current_chunk_dict = dict((line_number, True) for line_number in current_chunk)
                     current_chunk_length = len(current_chunk)
-                    order = order[total:]
+                    order = order[chunk_size:]
+
                     i_f.seek(0)
                     count = 0
 
                     for line in i_f:
                         if count in current_chunk_dict:
-                            current_lines[count] = line
+                            current_lines[count] = line.rstrip('\r\n')
                             current_lines_count += 1
+
                             if current_lines_count == current_chunk_length:
                                 break
+
                         count += 1
 
-                    for node in current_chunk:
-                        o_f.write(current_lines[node].encode(FileSystem.text_encoding))
+                    for line_number in current_chunk:
+                        o_f.write((current_lines[line_number] + '\n').encode(FileSystem.text_encoding))
 
         except IOError as error:
             raise FileSystemError(error.strerror)

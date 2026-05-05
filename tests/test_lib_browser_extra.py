@@ -74,11 +74,14 @@ class TestBrowserExtra(unittest.TestCase):
         config.update(config_overrides)
 
         setattr(br, '_Browser__config', SimpleNamespace(**config))
+        setattr(br, '_Browser__debug', MagicMock())
         setattr(br, '_Browser__client', MagicMock())
         setattr(br, '_Browser__reader', SimpleNamespace(
             total_lines=3,
             get_ignored_list=MagicMock(return_value=[]),
             get_lines=MagicMock(),
+            get_user_agents=MagicMock(return_value=['UA']),
+            get_proxies=MagicMock(return_value=[]),
         ))
         setattr(br, '_Browser__response', SimpleNamespace(
             handle=MagicMock(),
@@ -388,6 +391,62 @@ class TestBrowserExtra(unittest.TestCase):
             confidence=92,
             delay=0.75
         )
+
+
+    def test_start_request_provider_reuses_shared_cookies_for_new_scan_client(self):
+        """Browser should apply accepted cookies to a recreated scan request provider."""
+
+        br = self.make_browser(accept_cookies=True, is_proxy=False)
+        old_client = MagicMock()
+        old_client._push_cookies.return_value = 'session_id=abc123'
+        setattr(br, '_Browser__client', old_client)
+        setattr(br, '_Browser__shared_cookie_header', None)
+
+        new_client = MagicMock()
+        with patch('src.lib.browser.browser.request_http', return_value=new_client):
+            br._Browser__start_request_provider()
+
+        old_client._push_cookies.assert_called_once()
+        new_client.add_header.assert_called_once_with('Cookie', 'session_id=abc123')
+        self.assertEqual(getattr(new_client, '_cookies'), 'session_id=abc123')
+        self.assertEqual(getattr(br, '_Browser__shared_cookie_header'), 'session_id=abc123')
+
+    def test_start_request_provider_does_not_apply_shared_cookies_when_disabled(self):
+        """Browser should not carry cookies across providers when --accept-cookies is disabled."""
+
+        br = self.make_browser(accept_cookies=False, is_proxy=False)
+        old_client = MagicMock()
+        old_client._push_cookies.return_value = 'session_id=abc123'
+        setattr(br, '_Browser__client', old_client)
+        setattr(br, '_Browser__shared_cookie_header', None)
+
+        new_client = MagicMock()
+        with patch('src.lib.browser.browser.request_http', return_value=new_client):
+            br._Browser__start_request_provider()
+
+        old_client._push_cookies.assert_not_called()
+        new_client.add_header.assert_not_called()
+        self.assertIsNone(getattr(br, '_Browser__shared_cookie_header'))
+
+    def test_request_with_waf_safe_mode_updates_shared_cookie_snapshot(self):
+        """Browser should refresh the shared cookie snapshot after each request."""
+
+        br = self.make_browser(accept_cookies=True)
+        client = MagicMock()
+        client.request.return_value = object()
+        client._push_cookies.return_value = '__js_p_=153,1800,0,0,0'
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__shared_cookie_header', None)
+
+        br._Browser__request_with_waf_safe_mode('http://example.com/currency')
+
+        client.request.assert_called_once_with('http://example.com/currency')
+        client._push_cookies.assert_called_once()
+        self.assertEqual(
+            getattr(br, '_Browser__shared_cookie_header'),
+            '__js_p_=153,1800,0,0,0'
+        )
+
 
 class TestBrowserInitExtra(unittest.TestCase):
     """Extra init-branch coverage for Browser."""
