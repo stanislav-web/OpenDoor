@@ -157,6 +157,56 @@ class TestFileSystemExtra(unittest.TestCase):
 
             self.assertEqual(target.read_text(encoding='utf-8'), 'a|b|c')
 
+    def test_clear_wraps_io_errors(self):
+        """clear() should wrap os.listdir I/O failures."""
+
+        error = IOError('boom')
+        error.strerror = 'boom'
+
+        with patch('src.core.filesystem.filesystem.os.path.exists', return_value=True), \
+                patch('src.core.filesystem.filesystem.os.listdir', side_effect=error):
+            with self.assertRaises(FileSystemError):
+                FileSystem.clear('/tmp/reports', '.txt')
+
+    def test_makefile_creates_file_without_parent_directory(self):
+        """makefile() should support filenames in the current working directory."""
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            current = os.getcwd()
+            try:
+                os.chdir(temp_dir)
+                actual = FileSystem.makefile('local.txt')
+            finally:
+                os.chdir(current)
+
+            self.assertEqual(actual, 'local.txt')
+            self.assertTrue((Path(temp_dir) / 'local.txt').is_file())
+
+    def test_shuffle_uses_default_chunk_size_for_invalid_total(self):
+        """shuffle() should fall back to a chunk size of one when total is invalid."""
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / 'source.txt'
+            output = Path(temp_dir) / 'output.txt'
+            source.write_text('a\nb\n', encoding=FileSystem.text_encoding)
+
+            with patch('src.core.filesystem.filesystem.random.shuffle', side_effect=lambda items: None):
+                FileSystem.shuffle(str(source), str(output), total='invalid')
+
+            self.assertEqual(output.read_text(encoding=FileSystem.text_encoding), 'a\nb\n')
+
+    def test_shuffle_handles_empty_source_file(self):
+        """shuffle() should create an empty output file for an empty source file."""
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / 'empty.txt'
+            output = Path(temp_dir) / 'out.txt'
+            source.write_text('', encoding=FileSystem.text_encoding)
+
+            FileSystem.shuffle(str(source), str(output), total=10)
+
+            self.assertEqual(output.read_text(encoding=FileSystem.text_encoding), '')
+
 
 if __name__ == '__main__':
     unittest.main()

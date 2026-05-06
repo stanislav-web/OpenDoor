@@ -425,12 +425,7 @@ class Browser(Filter):
             if self.__client is None:
                 self.__start_request_provider()
 
-            tpl.debug(
-                msg='Auto-calibration enabled: samples={0}, threshold={1}'.format(
-                    self.__config.calibration_samples,
-                    self.__config.calibration_threshold
-                )
-            )
+            getattr(getattr(self, '_Browser__debug', None), 'debug_auto_calibration_enabled', lambda *args, **kwargs: True)()
 
             dns_wildcard_addresses = self.__build_dns_wildcard_addresses()
             signatures = []
@@ -1123,18 +1118,15 @@ class Browser(Filter):
                 getattr(self.__config, 'is_header_bypass', False) is True
                 and HeaderBypassProbe.response_status(base_response_data) == 'blocked'
             ):
-                tpl.debug(
-                    key='header_bypass_skipped',
-                    status=HeaderBypassProbe.response_code(base_response_data) or '-',
-                    statuses=','.join([str(status) for status in self.__config.header_bypass_status])
+                getattr(getattr(self, '_Browser__debug', None), 'debug_header_bypass_skipped', lambda *args, **kwargs: True)(
+                    HeaderBypassProbe.response_code(base_response_data) or '-'
                 )
             return
 
         variants = self.__header_bypass.build_variants(url)
-        tpl.debug(
-            key='header_bypass_probing',
-            status=HeaderBypassProbe.response_code(base_response_data) or '-',
-            variants=len(variants)
+        getattr(getattr(self, '_Browser__debug', None), 'debug_header_bypass_probing', lambda *args, **kwargs: True)(
+            HeaderBypassProbe.response_code(base_response_data) or '-',
+            len(variants)
         )
 
         for variant in variants:
@@ -1162,12 +1154,7 @@ class Browser(Filter):
 
             if HeaderBypassProbe.is_promising(base_response_data, probe_response_data):
                 metadata = HeaderBypassProbe.metadata(variant, base_response_data, probe_response_data)
-                tpl.debug(
-                    key='header_bypass_candidate',
-                    header=metadata.get('bypass_header') or metadata.get('bypass_variant'),
-                    from_code=metadata.get('bypass_from_code') or '-',
-                    to_code=metadata.get('bypass_to_code') or '-'
-                )
+                getattr(getattr(self, '_Browser__debug', None), 'debug_header_bypass_candidate', lambda *args, **kwargs: True)(metadata)
                 self.__catch_report_data(
                     'bypass',
                     probe_response_data[1],
@@ -1177,7 +1164,7 @@ class Browser(Filter):
                 )
                 return
 
-        tpl.debug(key='header_bypass_finished')
+        getattr(getattr(self, '_Browser__debug', None), 'debug_header_bypass_finished', lambda *args, **kwargs: True)()
 
     def __http_request(self, url, depth=0):
         """
@@ -1450,13 +1437,7 @@ class Browser(Filter):
         )
 
         if child_urls:
-            tpl.debug(
-                msg='Recursive expansion [{0}] -> +{1} urls (next depth: {2})'.format(
-                    parent_url,
-                    len(child_urls),
-                    depth + 1
-                )
-            )
+            getattr(getattr(self, '_Browser__debug', None), 'debug_recursive_expansion', lambda *args, **kwargs: True)(parent_url, len(child_urls), depth + 1)
             self.__pool.extend_total_items(len(child_urls))
             for child_url, child_depth in child_urls:
                 if self.__register_pending_request(child_url, child_depth):

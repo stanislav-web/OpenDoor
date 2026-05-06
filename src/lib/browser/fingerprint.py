@@ -823,6 +823,50 @@ class Fingerprint(object):
             'weight': round(float(weight), 2),
         })
 
+    def _apply_server_infrastructure_rules(self, headers):
+        """
+        Add infrastructure signals from the HTTP Server header.
+
+        Server software is treated as infrastructure only. It must not mutate
+        application, framework or runtime candidates.
+
+        :param dict headers:
+        :return: None
+        """
+
+        server_header = str(headers.get('server', '')).strip()
+        server = server_header.lower()
+
+        if not server:
+            return
+
+        server_signal = 'server={0}'.format(server_header)
+        server_rules = (
+            ('Apache Tomcat', ('apache-coyote', 'apache tomcat', 'tomcat')),
+            ('Eclipse Jetty', ('jetty',)),
+            ('Microsoft IIS', ('microsoft-iis', 'iis/')),
+            ('OpenResty', ('openresty',)),
+            ('LiteSpeed', ('litespeed',)),
+            ('lighttpd', ('lighttpd',)),
+            ('Tornado', ('tornadoserver', 'tornado server')),
+            ('Gunicorn', ('gunicorn',)),
+            ('Uvicorn', ('uvicorn',)),
+            ('Hypercorn', ('hypercorn',)),
+            ('Waitress', ('waitress',)),
+            ('Caddy', ('caddy',)),
+            ('Envoy', ('envoy',)),
+            ('Traefik', ('traefik',)),
+            ('Nginx', ('nginx',)),
+        )
+
+        for provider, aliases in server_rules:
+            if any(alias in server for alias in aliases):
+                self._add_infrastructure_signal(provider, 'header', server_signal, 8)
+                return
+
+        if re.search(r'(^|[^a-z0-9])apache(/|\s|$)', server):
+            self._add_infrastructure_signal('Apache HTTP Server', 'header', server_signal, 8)
+
     def _apply_extended_cms_catalog_rules(self, body_lower, headers, cookies, generator):
         """
         Apply extended catalog signals for CMSs not covered by dedicated rules.
@@ -1776,13 +1820,13 @@ class Fingerprint(object):
         if '.appspot.com' in final_root_lower:
             self._add_infrastructure_signal('Google App Engine', 'url', 'appspot.com', 8)
 
-        # Fastly / Akamai / OpenResty
+        # Fastly / Akamai / server engines
         if 'fastly' in x_served_by or 'x-fastly-request-id' in headers:
             self._add_infrastructure_signal('Fastly', 'header', 'x-served-by|x-fastly-request-id', 9)
         if 'akamai' in server or 'akamai-grn' in headers:
             self._add_infrastructure_signal('Akamai', 'header', 'server=akamai|akamai-grn', 9)
-        if 'openresty' in server:
-            self._add_infrastructure_signal('OpenResty', 'header', 'server=openresty', 5)
+
+        self._apply_server_infrastructure_rules(headers)
 
         # Hostinger / DDoS-Guard / Tencent Cloud
         if self._header_contains(headers, 'server', 'hcdn') or 'x-hcdn-cache-status' in headers \

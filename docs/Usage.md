@@ -923,11 +923,15 @@ opendoor --host https://example.com --debug 2
 opendoor --host https://example.com --debug 3
 ```
 
-Silent mode:
+Supported values:
 
-```shell
-opendoor --host https://example.com --debug -1
-```
+| Value | Meaning |
+|---:|---|
+| `-1` | Quiet progress mode: hide regular missed/ignored scan progress, keep important findings and warnings |
+| `0` | Normal output |
+| `1` | Scanner decisions: scan setup, lists, sniffers, proxy mode, WAF/header-bypass/auto-calibration/recursive lifecycle |
+| `2` | Outgoing HTTP request diagnostics, including request headers and cookie routing |
+| `3` | Incoming HTTP response diagnostics, including response headers and classification summaries |
 
 Use debug output when validating filters, transport behavior, request headers, response classification, or report generation.
 

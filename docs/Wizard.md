@@ -509,11 +509,11 @@ Common values:
 
 | Value | Meaning |
 |---:|---|
-| `-1` | Silent mode |
-| `0` | Default output |
-| `1` | Basic debug |
-| `2` | More verbose debug |
-| `3` | Maximum debug |
+| `-1` | Quiet progress mode |
+| `0` | Normal output |
+| `1` | Scanner decisions and enabled features |
+| `2` | Outgoing HTTP request diagnostics |
+| `3` | Incoming HTTP response and classification diagnostics |
 
 Use debug output when validating request behavior, filters, reports, sessions, or transport startup.
 

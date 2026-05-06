@@ -77,10 +77,14 @@ class TestBrowserDebug(unittest.TestCase):
         self.assertIn('create_queue', called_keys)
 
     def test_debug_connection_pool_logs_pool_string_when_present(self):
-        """Debug.debug_connection_pool() should log pool details when provided."""
+        """Debug.debug_connection_pool() should log pool details at request-debug level."""
+
+        cfg = Config({'debug': 2, 'method': 'HEAD', 'reports': 'std'})
+        with patch('sys.stdout', new=StringIO()):
+            debug = Debug(cfg)
 
         with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
-            self.assertTrue(self.debug.debug_connection_pool('http_pool_start', 'POOL', 'HTTP'))
+            self.assertTrue(debug.debug_connection_pool('http_pool_start', 'POOL', 'HTTP'))
 
         self.assertEqual(debug_mock.call_count, 2)
 
@@ -137,9 +141,13 @@ class TestBrowserDebug(unittest.TestCase):
     def test_debug_request_does_not_mutate_input_dict(self):
         """Debug.debug_request() should not mutate the original request header mapping."""
 
+        cfg = Config({'debug': 2, 'method': 'HEAD', 'reports': 'std'})
+        with patch('sys.stdout', new=StringIO()):
+            debug = Debug(cfg)
+
         headers = {'Accept': '*/*'}
         with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
-            self.assertTrue(self.debug.debug_request(headers, 'http://test.local/data/', 'HEAD'))
+            self.assertTrue(debug.debug_request(headers, 'http://test.local/data/', 'HEAD'))
 
         self.assertEqual(headers, {'Accept': '*/*'})
         debug_mock.assert_called_once()
@@ -147,16 +155,24 @@ class TestBrowserDebug(unittest.TestCase):
     def test_debug_request_accepts_object_headers(self):
         """Debug.debug_request() should accept header objects exposing __dict__."""
 
+        cfg = Config({'debug': 2, 'method': 'HEAD', 'reports': 'std'})
+        with patch('sys.stdout', new=StringIO()):
+            debug = Debug(cfg)
+
         with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
-            self.assertTrue(self.debug.debug_request(HeaderObject(), 'http://test.local/data/', 'HEAD'))
+            self.assertTrue(debug.debug_request(HeaderObject(), 'http://test.local/data/', 'HEAD'))
 
         debug_mock.assert_called_once()
 
     def test_debug_response_logs_serialized_headers(self):
         """Debug.debug_response() should log serialized response headers."""
 
+        cfg = Config({'debug': 3, 'method': 'HEAD', 'reports': 'std'})
+        with patch('sys.stdout', new=StringIO()):
+            debug = Debug(cfg)
+
         with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
-            self.assertTrue(self.debug.debug_response({'Server': 'test'}))
+            self.assertTrue(debug.debug_response({'Server': 'test'}))
 
         debug_mock.assert_called_once()
 

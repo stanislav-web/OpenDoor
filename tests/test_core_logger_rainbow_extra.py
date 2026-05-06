@@ -95,3 +95,23 @@ class TestRainbowLoggingHandlerExtra(unittest.TestCase):
         actual = handler.format(record)
 
         self.assertEqual(actual, 'plain')
+
+
+class TestRainbowLoggingHandlerPaddingCoverage(unittest.TestCase):
+    """Final branch coverage for RainbowLoggingHandler padding."""
+
+    def test_colorize_does_not_pad_long_function_names(self):
+        """RainbowLoggingHandler.colorize() should avoid extra padding for long function names."""
+
+        handler = RainbowLoggingHandler(_TtyStream())
+        record = TestRainbowLoggingHandlerExtra().make_record(
+            level=logging.INFO,
+            message='hello',
+            func_name='function_name_longer_than_padding',
+        )
+
+        with patch('src.core.logger.rainbow.Term', SimpleNamespace(terminal_size={'width': 120})):
+            actual = handler.colorize(record)
+
+        self.assertIn('function_name_longer_than_padding', actual)
+        self.assertIn('hello', actual)

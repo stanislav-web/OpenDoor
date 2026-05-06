@@ -265,7 +265,7 @@ class Options(object):
                 "argl": "--debug",
                 "default": 0,
                 "action": "store",
-                "help": "Debug level -1 (silent), 1 - 3",
+                "help": "Debug level: -1 quiet, 0 normal, 1 scan decisions, 2 requests, 3 responses/classification",
                 "type": int
             },
             {
@@ -738,7 +738,7 @@ class Options(object):
                         break
             else:
                 for arg, value in vars(self.args).items():
-                    if value or (arg == 'header_bypass_limit' and value == 0):
+                    if value or arg in ['debug'] or (arg == 'header_bypass_limit' and value == 0):
                         args[arg] = value
                 args = Filter.filter(args)
 

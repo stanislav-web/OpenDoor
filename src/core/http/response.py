@@ -75,12 +75,7 @@ class Response(ResponseProvider):
         """
 
         if hasattr(response, 'status'):
-            if self.HTTP_DBG_LEVEL <= self.__debug.level:
-                response.headers.update({'Status': str(response.status)})
-                if helper.is_jsonable(response.headers.items()):
-                    self.__debug.debug_response(response.headers.items())
-                else:
-                    self.__debug.debug_response(dict(response.headers))
+            response.headers.update({'Status': str(response.status)})
 
             try:
                 status = super(Response, self).detect(request_url, response)
@@ -116,6 +111,15 @@ class Response(ResponseProvider):
                     response_code=response_code,
                     waf_name=waf_detection.get('name') if waf_detection else None,
                     waf_confidence=waf_detection.get('confidence') if waf_detection else None,
+                )
+                getattr(self.__debug, 'debug_classification', lambda *args, **kwargs: True)(
+                    status=status,
+                    code=response_code,
+                    size=content_size,
+                    waf_name=waf_detection.get('name') if waf_detection else None,
+                    waf_confidence=waf_detection.get('confidence') if waf_detection else None,
+                    signals=waf_detection.get('signals') if waf_detection else None,
+                    redirect_uri=redirect_uri
                 )
 
                 return status, url, content_size, response_code

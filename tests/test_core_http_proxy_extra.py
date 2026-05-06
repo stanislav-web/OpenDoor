@@ -46,6 +46,7 @@ class TestProxyExtra(unittest.TestCase):
             level=level,
             debug_proxy_pool=MagicMock(),
             debug_request=MagicMock(),
+            debug_response=MagicMock(),
         )
 
     def test_init_rejects_empty_proxy_list_for_non_standalone_mode(self):

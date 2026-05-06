@@ -272,6 +272,8 @@ Update:
 py -m pip install --upgrade opendoor
 ```
 
+![PyPI - Downloads](https://img.shields.io/pypi/dm/opendoor?link=https%3A%2F%2Fpypi.org%2Fproject%2Fopendoor%2F)
+
 ---
 
 ## 🧾 Run from source

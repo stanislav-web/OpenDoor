@@ -45,6 +45,7 @@ class TestHttpRequestLowCoverage(unittest.TestCase):
             level=level,
             debug_connection_pool=MagicMock(),
             debug_request=MagicMock(),
+            debug_response=MagicMock(),
         )
 
     def test_http_pool_wraps_construction_errors(self):
@@ -85,6 +86,7 @@ class TestHttpRequestLowCoverage(unittest.TestCase):
 
         self.assertEqual(actual.status, 200)
         debug.debug_request.assert_called_once()
+        debug.debug_response.assert_called_once_with({'Status': '200'})
 
         kwargs = pool.request.call_args.kwargs
         self.assertEqual(kwargs['headers']['User-Agent'], 'UA')
@@ -109,6 +111,7 @@ class TestHttpRequestLowCoverage(unittest.TestCase):
 
         self.assertEqual(actual.status, 200)
         debug.debug_request.assert_called_once()
+        debug.debug_response.assert_called_once_with({'Status': '200'})
         pool_manager.request.assert_called_once()
 
     def test_http_pool_manager_wraps_construction_errors(self):
@@ -218,6 +221,7 @@ class TestHttpsRequestLowCoverage(unittest.TestCase):
             level=level,
             debug_connection_pool=MagicMock(),
             debug_request=MagicMock(),
+            debug_response=MagicMock(),
         )
 
     def test_https_pool_wraps_construction_errors(self):
@@ -259,6 +263,7 @@ class TestHttpsRequestLowCoverage(unittest.TestCase):
 
         self.assertEqual(actual.status, 200)
         debug.debug_request.assert_called_once()
+        debug.debug_response.assert_called_once_with({'Status': '200'})
         disable_mock.assert_called_once()
 
         kwargs = pool.request.call_args.kwargs
@@ -284,6 +289,7 @@ class TestHttpsRequestLowCoverage(unittest.TestCase):
 
         self.assertEqual(actual.status, 200)
         debug.debug_request.assert_called_once()
+        debug.debug_response.assert_called_once_with({'Status': '200'})
         pool_manager.request.assert_called_once()
 
     def test_https_request_warns_on_host_changed_and_timeouts(self):
@@ -349,6 +355,32 @@ class TestHttpsRequestLowCoverage(unittest.TestCase):
         with patch('src.core.http.https.disable_warnings'):
             self.assertIsNone(requester.request('https://example.com/test'))
         tpl.warning.assert_called_once()
+
+    def test_https_pool_manager_wraps_construction_errors(self):
+        """HttpsRequest should wrap PoolManager construction errors for non-default scans."""
+
+        cfg = self.make_cfg(scan='subdomains')
+
+        with patch('src.core.http.https.PoolManager', side_effect=RuntimeError('boom')):
+            with self.assertRaises(HttpsRequestError):
+                HttpsRequest(cfg, self.make_debug(), tpl=MagicMock(), agent_list=['UA'])
+
+    def test_https_request_max_retry_non_default_scan_does_not_warn(self):
+        """HttpsRequest should silently return None on MaxRetryError for non-default scans."""
+
+        cfg = self.make_cfg(scan='subdomains')
+        tpl = MagicMock()
+
+        with patch('src.core.http.https.PoolManager') as pool_manager_cls:
+            pool_manager = pool_manager_cls.return_value
+            pool_manager.request.side_effect = MaxRetryError(None, '/', None)
+            requester = HttpsRequest(cfg, self.make_debug(), tpl=tpl, agent_list=['UA'])
+
+            with patch('src.core.http.https.disable_warnings'):
+                self.assertIsNone(requester.request('https://api.example.com/test'))
+
+        tpl.warning.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()

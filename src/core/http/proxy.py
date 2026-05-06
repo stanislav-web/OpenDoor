@@ -107,6 +107,17 @@ class Proxy(RequestProvider, DebugProvider):
                 ) from error
             raise ProxyRequestError(error)
 
+    def __debug_cookie_middleware(self, response):
+        """Route response cookies and emit request-level cookie diagnostics."""
+
+        if True is self.__cfg.accept_cookies:
+            getattr(self.__debug, 'debug_cookie_accept_enabled', lambda *args, **kwargs: True)()
+
+        self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
+
+        if True is self.__cfg.accept_cookies and True is self._is_cookie_fetched:
+            getattr(self.__debug, 'debug_cookie_accepted', lambda *args, **kwargs: True)(self._push_cookies())
+
     def request(self, url, extra_headers=None):
         """
         Client request using Proxy
@@ -122,8 +133,8 @@ class Proxy(RequestProvider, DebugProvider):
         if self.__connection_header != 'default' and request_headers.get('Connection') is None:
             request_headers.update({'Connection': self.__connection_header})
 
-        if self._HTTP_DBG_LEVEL <= self.__debug.level:
-            self.__debug.debug_request(request_headers, url, self.__cfg.method)
+        getattr(self.__debug, 'debug_cookie_attached', lambda *args, **kwargs: True)(request_headers)
+        getattr(self.__debug, 'debug_request', lambda *args, **kwargs: True)(request_headers, url, self.__cfg.method)
 
         try:
             response = self.__pool_request(url, headers=request_headers)
@@ -156,7 +167,8 @@ class Proxy(RequestProvider, DebugProvider):
             redirect=False,
         )
 
-        self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
+        self._debug_response_received(self.__debug, response)
+        self.__debug_cookie_middleware(response)
         return response
 
     def __get_random_proxy(self):

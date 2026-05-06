@@ -367,8 +367,8 @@ class TestResponse(unittest.TestCase):
         self.assertEqual(len(response._response_plugins), 1)
         debug.debug_load_sniffer_plugin.assert_not_called()
 
-    def test_handle_debug_response_uses_items_when_headers_are_jsonable(self):
-        """Response.handle() should pass header items directly when they are JSON-serializable."""
+    def test_handle_keeps_header_debug_in_request_layer(self):
+        """Response.handle() should not emit raw response headers itself."""
 
         class JsonableHeaders(dict):
             """Headers mapping whose items() result is JSON-serializable."""
@@ -390,7 +390,8 @@ class TestResponse(unittest.TestCase):
         status, url, size, code = response_handler.handle(response, 'http://example.com/path', 1, 2, [])
 
         self.assertEqual((status, url, size, code), ('success', 'http://example.com/path', '2B', '200'))
-        debug.debug_response.assert_called_once_with(response.headers.items())
+        self.assertEqual(response.headers.get('Status'), '200')
+        debug.debug_response.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()

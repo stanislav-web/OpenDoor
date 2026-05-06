@@ -29,6 +29,22 @@ class DebugProvider(object):
 
         return None
 
+
+    def is_scan_debug(self):
+        """Return True for scanner decision debug output."""
+
+        return False
+
+    def is_request_debug(self):
+        """Return True for outgoing request debug output."""
+
+        return False
+
+    def is_response_debug(self):
+        """Return True for incoming response debug output."""
+
+        return False
+
     def debug_user_agents(self):
         """
         Debug info for user agent
@@ -101,5 +117,54 @@ class DebugProvider(object):
         :param str description: plugin description
         :return: bool
         """
+
+        pass
+    def debug_cookie_accept_enabled(self):
+        """Debug active cookie routing."""
+
+        pass
+
+    def debug_cookie_accepted(self, cookies):
+        """Debug accepted response cookies."""
+
+        pass
+
+    def debug_cookie_attached(self, headers):
+        """Debug attached request cookies."""
+
+        pass
+
+    def debug_auto_calibration_enabled(self):
+        """Debug auto-calibration configuration."""
+
+        pass
+
+    def debug_header_bypass_skipped(self, status):
+        """Debug skipped header-bypass probe."""
+
+        pass
+
+    def debug_header_bypass_probing(self, status, variants):
+        """Debug header-bypass probe start."""
+
+        pass
+
+    def debug_header_bypass_candidate(self, metadata):
+        """Debug promising header-bypass candidate."""
+
+        pass
+
+    def debug_header_bypass_finished(self):
+        """Debug header-bypass probe completion."""
+
+        pass
+
+    def debug_recursive_expansion(self, parent_url, child_count, next_depth):
+        """Debug recursive queue expansion."""
+
+        pass
+
+    def debug_classification(self, status, **kwargs):
+        """Debug response classification summary."""
 
         pass

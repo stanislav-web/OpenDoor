@@ -79,6 +79,28 @@ class TestOptions(unittest.TestCase):
 
         self.assertEqual(option.get_arg_values(), {'version': True})
 
+    def test_get_arg_values_should_preserve_debug_zero(self):
+        """Options.get_arg_values() should keep --debug 0 instead of dropping it as falsy."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            debug=0,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'debug': 0}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'debug': 0})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'debug': 0})
+
     def test_get_arg_values_filters_non_standalone_arguments(self):
         """Options.get_arg_values() should pass non-standalone args through Filter.filter()."""
 

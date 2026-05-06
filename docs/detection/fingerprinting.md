@@ -26,6 +26,8 @@ Fingerprinting can help identify probable:
 
 This helps you choose better wordlists, filters, and scan strategy.
 
+This is not part of the main scanning process, so it is advisable not to use the `fingerprinting technique` in the main session, as there is a risk of being banned by the WAF already during the scanning process.
+
 ---
 
 ## Basic example
@@ -55,6 +57,7 @@ Example:
 Fingerprint result: cms/WordPress (95%)
 Web stack: WordPress | PHP | Cloudflare
 Security posture: HSTS preload-ready
+Fingerprint evidence: /wp-login
 ```
 
 The compact summary intentionally stays short. Full evidence, candidates, HSTS fields and report-specific metadata remain in JSON, HTML, CSV, SQLite, TXT, STD and SARIF outputs.
@@ -279,6 +282,28 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 - OpenResty
 - Tencent Cloud
 - Vercel
+
+### Server header infrastructure signals
+
+When the HTTP `Server` header exposes web or application server software,
+OpenDoor reports it under `fingerprint.infrastructure` without changing the
+runtime stack result. Examples include:
+
+- Nginx
+- Apache HTTP Server
+- Microsoft IIS
+- Caddy
+- LiteSpeed
+- lighttpd
+- Tornado
+- Gunicorn
+- Uvicorn
+- Hypercorn
+- Waitress
+- Apache Tomcat
+- Eclipse Jetty
+- Envoy
+- Traefik
 
 ### Stack technologies
 

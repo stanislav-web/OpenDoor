@@ -281,6 +281,52 @@ class TestSarifReportPlugin(unittest.TestCase):
             {'keep_false': False, 'keep_zero': 0},
         )
 
+    def test_fingerprint_properties_accepts_runtime_and_security_header_dicts(self):
+        """Fingerprint properties should preserve runtime and HSTS metadata when present."""
+
+        data = {
+            'fingerprint': {
+                'category': 'framework',
+                'name': 'FastAPI',
+                'confidence': '88',
+                'runtime': {
+                    'name': 'Python',
+                    'confidence': '75',
+                    'signals': [{'type': 'header', 'value': 'server=uvicorn'}],
+                },
+                'infrastructure': {'provider': 'Uvicorn', 'confidence': '65'},
+                'security_headers': {
+                    'hsts': {
+                        'present': True,
+                        'grade': 'good',
+                        'max_age': '31536000',
+                        'include_subdomains': True,
+                        'preload': False,
+                        'preload_ready': True,
+                        'http_to_https_redirect': True,
+                        'warnings': ['missing_preload'],
+                    }
+                },
+            }
+        }
+        plugin = SarifReportPlugin(self.target, data, directory=self.base_dir + os.path.sep)
+
+        properties = plugin.fingerprint_properties()
+        result = plugin.fingerprint_result()
+
+        self.assertEqual(properties['runtimeName'], 'Python')
+        self.assertEqual(properties['runtimeConfidence'], 75)
+        self.assertEqual(properties['infrastructureProvider'], 'Uvicorn')
+        self.assertEqual(properties['hstsMaxAge'], 31536000)
+        self.assertTrue(properties['hstsPresent'])
+        self.assertIn('(Python runtime)', result['message']['text'])
+
+    def test_format_runtime_suffix_handles_unknown_runtime_name(self):
+        """Runtime suffix helper should omit unknown or missing runtime names."""
+
+        self.assertEqual(SarifReportPlugin._format_runtime_suffix({'runtime': {'name': 'unknown'}}), '')
+        self.assertEqual(SarifReportPlugin._format_runtime_suffix({'runtime': {'name': ''}}), '')
+
 
 if __name__ == '__main__':
     unittest.main()

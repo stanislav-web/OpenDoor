@@ -304,3 +304,58 @@ class TestResponseProviderCoverageExtra(unittest.TestCase):
 
         self.assertEqual(actual['name'], 'Generic WAF')
         self.assertEqual(actual['confidence'], 80)
+
+
+class TestResponseProviderFinalCoverage(unittest.TestCase):
+    """Final edge coverage for WAF helper branches."""
+
+    def test_filter_passive_header_signals_keeps_non_header_and_skips_empty_markers(self):
+        """Passive filter should keep ordinary signals and ignore empty marker config values."""
+
+        markers = ['', 'cf-ray']
+        signals = ['body:challenge', 'header:cf-ray']
+
+        with patch.object(ResponseProvider, 'DEFAULT_WAF_PASSIVE_HEADER_MARKERS_REQUIRE_BLOCKED_STATUS', markers):
+            actual = ResponseProvider._ResponseProvider__filter_passive_header_signals(signals)
+
+        self.assertEqual(actual, ['body:challenge'])
+
+    def test_cloudflare_active_block_accepts_cf_challenge_header_signal(self):
+        """Cloudflare helper should treat cf-chl headers as active challenge signals."""
+
+        response = DummyResponse(status=200, headers={}, body=b'')
+
+        actual = ResponseProvider._ResponseProvider__cloudflare_has_active_block_signal(
+            response,
+            [],
+            ['header:cf-chl-'],
+            [],
+            [],
+        )
+
+        self.assertTrue(actual)
+
+    def test_cloudflare_active_block_returns_false_for_invalid_status(self):
+        """Cloudflare helper should tolerate responses with non-numeric statuses."""
+
+        response = DummyResponse(status='bad-status', headers={}, body=b'')
+
+        actual = ResponseProvider._ResponseProvider__cloudflare_has_active_block_signal(
+            response,
+            [],
+            ['header:cf-ray'],
+            [],
+            [],
+        )
+
+        self.assertFalse(actual)
+
+    def test_sw_js_challenge_requires_sw_server_header(self):
+        """SW helper should reject __js_p_ cookies without the SW server header."""
+
+        actual = ResponseProvider._ResponseProvider__sw_js_challenge_has_active_signal(
+            'set-cookie: __js_p_=abc',
+            'document.cookie = "__jhash_="',
+        )
+
+        self.assertFalse(actual)

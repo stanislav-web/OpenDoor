@@ -109,6 +109,9 @@ class Filter(object):
                     key='--fail-on-bucket'
                 )
 
+            if args.get('debug') is not None:
+                filtered['debug'] = Filter.debug_level(args.get('debug'), key='--debug')
+
             if args.get('auto_calibrate') is True:
                 filtered['auto_calibrate'] = True
 
@@ -197,6 +200,8 @@ class Filter(object):
                 filtered[key] = Filter.non_negative_int(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['fail_on_bucket']:
                 filtered[key] = Filter.bucket_values(value, key='--{0}'.format(key.replace('_', '-')))
+            elif key in ['debug']:
+                filtered[key] = Filter.debug_level(value, key='--debug')
             elif key in ['header_bypass_headers']:
                 filtered[key] = Filter.header_names(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['header_bypass_ips']:
@@ -909,6 +914,20 @@ class Filter(object):
         if not text:
             return []
         return [text]
+
+    @staticmethod
+    def debug_level(value, key='--debug'):
+        """Validate OpenDoor debug level."""
+
+        try:
+            value = int(value)
+        except (TypeError, ValueError):
+            raise FilterError('{0} must be one of: -1, 0, 1, 2, 3'.format(key))
+
+        if value not in [-1, 0, 1, 2, 3]:
+            raise FilterError('{0} must be one of: -1, 0, 1, 2, 3'.format(key))
+
+        return value
 
     @staticmethod
     def non_negative_int(value, key='--value'):

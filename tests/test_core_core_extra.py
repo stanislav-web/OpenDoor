@@ -2,8 +2,12 @@
 
 import tempfile
 import unittest
+from types import SimpleNamespace
+from unittest.mock import MagicMock
 from pathlib import Path
 from unittest.mock import patch
+
+from src.core.decorators import execution_time
 
 import src.core.core as core_module
 
@@ -97,6 +101,34 @@ class TestCoreExtra(unittest.TestCase):
                     patch.object(core_module.py_sys, 'prefix', str(prefix_root)), \
                     patch.object(core_module.py_sys, 'base_prefix', str(base_prefix_root)):
                 self.assertEqual(core_module.resolve_data_root(), project_root / 'data')
+
+    def test_execution_time_logs_total_time_when_debug_enabled(self):
+        """execution_time() should log elapsed time when self.ioargs.debug is enabled."""
+
+        log = MagicMock()
+        owner = SimpleNamespace(ioargs={'debug': 1})
+
+        @execution_time(log=log)
+        def decorated(self, value):
+            return value.upper()
+
+        with patch('src.core.decorators.timer.time.time', side_effect=[10.0, 12.5]):
+            self.assertEqual(decorated(owner, 'ok'), 'OK')
+
+        log.debug.assert_called_once_with(key='total_time_lvl3', time='0:00:02.500000')
+
+    def test_execution_time_skips_logging_without_dict_ioargs(self):
+        """execution_time() should ignore non-dict ioargs and keep the wrapped return value."""
+
+        log = MagicMock()
+        owner = SimpleNamespace(ioargs='debug=1')
+
+        @execution_time(log=log)
+        def decorated(self):
+            return 'done'
+
+        self.assertEqual(decorated(owner), 'done')
+        log.debug.assert_not_called()
 
 
 if __name__ == '__main__':

@@ -1,25 +1,25 @@
 CHANGELOG
 =======
 
-v5.15.3 (04.05.2026)
+v5.15.3 (xx.05.2026)
 ---------------------------
-- (fix) returned defensive copies from browser config list accessors to avoid accidental runtime mutation
 - (fix) hardened STD reporter summary generation for partial or malformed report payloads
 - (fix) detect Bitrix from CMS header and harden Strapi fingerprinting
-- (fix) made reporter item access defensive so report plugins cannot mutate shared scan payloads
-- (fix) hardened plain-text report processing for missing or malformed `items` payloads
 - (fix) tuned runtime fingerprint scoring so endpoint-only framework probes no longer imply Node.js/Python runtime
 - (fix) added conservative PHP route-marker runtime evidence for legacy PHP sites without exposed `X-Powered-By` headers
 - (fix) random-list shuffle and JS challenge detection
-- (fix)  `--accept-cookies` routing so accepted cookies are preserved across scan requests and header-bypass variants, not only fingerprint/probe flows.
+- (fix) `--accept-cookies` routing so accepted cookies are preserved across scan requests and header-bypass variants.
 - (fix) gated passive WAF/gateway headers in both vendor-specific matching and generic fallback so normal 200 responses are not promoted to blocked
 - (fix) isolated default fingerprint fallback results with deep copies to prevent nested metadata leakage between failed or empty detection runs
-- (enhancement) prettify HTML reports make it more intelligible for humans
+- (fix) added vendor-specific and generic-fallback gating for passive gateway/server markers to avoid classifying normal 200 responses as blocked WAF pages
+- (fix) `--debug 0` being incorrectly treated as debug level 1.
+- (enhancement) detect common HTTP `Server` header engines as fingerprint infrastructure, including Nginx, Apache HTTP Server, Microsoft IIS, Caddy, LiteSpeed, lighttpd, Tornado, Gunicorn, Uvicorn, Hypercorn, Waitress, Apache Tomcat, Eclipse Jetty, Envoy and Traefik
+- (enhancement) Added clear response-level diagnostics for `--debug 3`.
+- (enhancement) prettify HTML reports make it more intelligible for UX
 - (enhancement) expanded passive WAF recognition with additional vendor signatures sourced from public WAF fingerprint catalogs
 - (enhancement) added 360 WAF, Airlock, Aliyun WAF, Anquanbao, BinarySec, CityHost, BitNinja, Bluedon WAF, ChinaCache, Comodo WAF, DoSArrest, DotDefender, GoDaddy Website Firewall, GreyWizard, IBM DataPower, Imunify360, Instart DX, NAXSI, NinjaFirewall, Profense and WebKnight detection
-- (enhancement) added vendor-specific and generic-fallback gating for passive gateway/server markers to avoid classifying normal 200 responses as blocked WAF pages
 - (enhancement) deduplicated WAF evidence signals before report propagation
-- (tests) added runtime regression coverage for weak endpoint hints, canonical Node.js 404s and PHP route markers
+- (enhancement) updated internal wordlists
 - (docs) updated WAF detection documentation with the expanded recognized vendor list and passive-only detection note
 - (debug) added compact STD fingerprint evidence counters for report-level QA
 - (debug) added compact fingerprint evidence signals to `fingerprint.txt` for easier QA of runtime/infrastructure detection

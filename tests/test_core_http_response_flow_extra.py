@@ -83,18 +83,18 @@ class TestResponseFlowExtra(unittest.TestCase):
 
         return HTTPResponse(status=status, body=body, headers=headers or {})
 
-    def test_handle_uses_dict_debug_branch_when_headers_items_are_not_jsonable(self):
-        """Response.handle() should debug-log dict(headers) when headers.items() is not jsonable."""
+    def test_handle_leaves_response_header_debug_to_request_layer(self):
+        """Response.handle() should not duplicate response header debug output."""
 
         debug = self.make_debug(level=99)
         response_handler = Response(self.make_config(scan='directories'), debug, tpl=MagicMock())
         response = self.make_response(status=200, body=b'ok', headers={'Content-Length': '2'})
 
-        with patch('src.core.http.response.helper.is_jsonable', return_value=False):
-            status, url, size, code = response_handler.handle(response, 'http://example.com/path', 1, 2, [])
+        status, url, size, code = response_handler.handle(response, 'http://example.com/path', 1, 2, [])
 
         self.assertEqual((status, url, size, code), ('success', 'http://example.com/path', '2B', '200'))
-        debug.debug_response.assert_called_once()
+        self.assertEqual(response.headers.get('Status'), '200')
+        debug.debug_response.assert_not_called()
 
     def test_handle_redirect_in_subdomain_scan_appends_ips_and_applies_ignore_list(self):
         """Response.handle() should downgrade ignored redirects and append IPs for subdomain scan."""

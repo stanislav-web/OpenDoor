@@ -296,6 +296,71 @@ class TestFingerprint(unittest.TestCase):
                 self.assertEqual(result['infrastructure']['provider'], expected_provider)
                 self.assertGreaterEqual(result['infrastructure']['confidence'], 70)
 
+    def test_detects_server_header_infrastructure_without_overwriting_runtime(self):
+        """Fingerprint should keep server software in infrastructure and PHP in runtime."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><a href="/contacts.php">Contacts</a></body></html>',
+                {
+                    'Server': 'nginx/1.20.2',
+                    'X-Powered-By': 'PHP/5.3.27',
+                },
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertEqual(result['infrastructure']['provider'], 'Nginx')
+        self.assertGreaterEqual(result['infrastructure']['confidence'], 70)
+        self.assertIn('nginx/1.20.2', result['infrastructure']['signals'][0]['value'])
+
+    def test_detects_server_header_infrastructure_catalog(self):
+        """Fingerprint should detect common HTTP Server header infrastructure engines."""
+
+        cases = [
+            ('Apache HTTP Server', 'Apache/2.4.58'),
+            ('Microsoft IIS', 'Microsoft-IIS/10.0'),
+            ('Caddy', 'Caddy'),
+            ('LiteSpeed', 'LiteSpeed'),
+            ('lighttpd', 'lighttpd/1.4.73'),
+            ('Tornado', 'TornadoServer/6.4'),
+            ('Gunicorn', 'gunicorn'),
+            ('Uvicorn', 'uvicorn'),
+            ('Hypercorn', 'hypercorn'),
+            ('Waitress', 'waitress'),
+            ('Apache Tomcat', 'Apache-Coyote/1.1'),
+            ('Eclipse Jetty', 'Jetty'),
+            ('Envoy', 'envoy'),
+            ('Traefik', 'traefik'),
+        ]
+
+        for expected_provider, server_header in cases:
+            with self.subTest(server_header=server_header):
+                config = FakeConfig()
+                base = 'http://example.com/'
+                responses = {
+                    ('GET', base): FakeResponse(
+                        200,
+                        '<html><body>plain app</body></html>',
+                        {'Server': server_header},
+                    ),
+                    ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+                }
+
+                detector = Fingerprint(config=config, client=self._make_client(config, responses))
+                result = detector.detect()
+
+                self.assertEqual(result['category'], 'custom')
+                self.assertEqual(result['infrastructure']['provider'], expected_provider)
+                self.assertGreaterEqual(result['infrastructure']['confidence'], 70)
+
     def test_detects_aws_cloudfront_as_infrastructure(self):
         """Fingerprint should detect AWS CloudFront as infrastructure."""
 

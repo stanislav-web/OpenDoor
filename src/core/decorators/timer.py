@@ -46,7 +46,16 @@ def execution_time(func=None, log=None):
         result = func(*args, **kwargs)
         end = time.time()
         timeless = "{0}".format(datetime.timedelta(seconds=(end - start)))
-        log.debug(key='total_time_lvl3', time=timeless)
+        debug_level = 0
+
+        if args:
+            ioargs = getattr(args[0], 'ioargs', {})
+            if isinstance(ioargs, dict):
+                debug_level = ioargs.get('debug') or 0
+
+        if debug_level > 0:
+            log.debug(key='total_time_lvl3', time=timeless)
+
         return result
 
     return function_timer

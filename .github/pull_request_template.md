@@ -60,23 +60,10 @@
 - [ ] CHANGELOG updated
 - [ ] No documentation change required
 
-## Packaging / runtime assets
-
-<!-- Required for packaging, wheel/sdist, entrypoint, Docker, Homebrew, Debian/Kali, or runtime data changes. -->
-
-- [ ] This PR does not affect packaging or runtime assets
-- [ ] Source distribution was checked
-- [ ] Wheel installation was checked in a clean environment
-- [ ] Runtime assets were verified after installation
-- [ ] Docker image was checked
-- [ ] Linux distribution packaging impact was considered
-
 ## Security and responsible use
 
-- [ ] This PR does not add offensive behavior outside authorized testing workflows
 - [ ] This PR does not commit real tokens, cookies, VPN profiles, credentials, private targets, or scan reports
 - [ ] Security-sensitive details are not exposed in public logs, docs, examples, tests, or screenshots
-- [ ] If this fixes a vulnerability, disclosure details were handled according to `SECURITY.md`
 
 ## Backward compatibility
 
