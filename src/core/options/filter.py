@@ -1125,8 +1125,14 @@ class Filter(object):
         if transport == 'proxy':
             if openvpn_auth is not None:
                 raise FilterError('--openvpn-auth cannot be used with --transport proxy')
+            if profile is not None:
+                raise FilterError('--transport-profile cannot be used with --transport proxy')
+            if profiles is not None:
+                raise FilterError('--transport-profiles cannot be used with --transport proxy')
             if rotate == 'per-target':
                 raise FilterError('--transport-rotate per-target is supported only for VPN transports')
+            if not filtered.get('proxy') and not filtered.get('proxy_list') and filtered.get('proxy_pool') is not True:
+                raise FilterError('--transport proxy requires --proxy, --proxy-list, or --proxy-pool')
             return
 
         if transport not in Filter.VPN_TRANSPORTS:

@@ -13,6 +13,7 @@ v5.15.3 (xx.05.2026)
 - (fix) isolated default fingerprint fallback results with deep copies to prevent nested metadata leakage between failed or empty detection runs
 - (fix) added vendor-specific and generic-fallback gating for passive gateway/server markers to avoid classifying normal 200 responses as blocked WAF pages
 - (fix) `--debug 0` being incorrectly treated as debug level 1.
+- (fix) hardened `--transport` / `--transport-profile` flow with startup validation, proxy-mode safeguards and transport healthcheck execution
 - (enhancement) detect common HTTP `Server` header engines as fingerprint infrastructure, including Nginx, Apache HTTP Server, Microsoft IIS, Caddy, LiteSpeed, lighttpd, Tornado, Gunicorn, Uvicorn, Hypercorn, Waitress, Apache Tomcat, Eclipse Jetty, Envoy and Traefik
 - (enhancement) Added clear response-level diagnostics for `--debug 3`.
 - (enhancement) prettify HTML reports make it more intelligible for UX
@@ -20,7 +21,7 @@ v5.15.3 (xx.05.2026)
 - (enhancement) added 360 WAF, Airlock, Aliyun WAF, Anquanbao, BinarySec, CityHost, BitNinja, Bluedon WAF, ChinaCache, Comodo WAF, DoSArrest, DotDefender, GoDaddy Website Firewall, GreyWizard, IBM DataPower, Imunify360, Instart DX, NAXSI, NinjaFirewall, Profense and WebKnight detection
 - (enhancement) deduplicated WAF evidence signals before report propagation
 - (enhancement) updated internal wordlists
-- (docs) updated WAF detection documentation with the expanded recognized vendor list and passive-only detection note
+- (docs) updated documentation with added more detailed examples and hits
 - (debug) added compact STD fingerprint evidence counters for report-level QA
 - (debug) added compact fingerprint evidence signals to `fingerprint.txt` for easier QA of runtime/infrastructure detection
 - (tests) added regression coverage for new WAF signatures, passive-header false-positive protection and fingerprint fallback isolation

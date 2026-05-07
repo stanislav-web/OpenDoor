@@ -963,6 +963,39 @@ class TestFilter(unittest.TestCase):
                 'openvpn_auth': './vpn/auth.txt',
             })
 
+
+    def test_filter_should_require_proxy_source_for_proxy_transport(self):
+        """Filter.filter() should reject proxy transport without a proxy source."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({
+                'host': 'example.com',
+                'transport': 'proxy',
+            })
+
+    def test_filter_should_reject_transport_profile_for_proxy_transport(self):
+        """Filter.filter() should reject VPN profile options for proxy transport."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({
+                'host': 'example.com',
+                'transport': 'proxy',
+                'proxy': 'http://127.0.0.1:8080',
+                'transport_profile': './vpn/nl.conf',
+            })
+
+    def test_filter_should_accept_proxy_transport_with_proxy_source(self):
+        """Filter.filter() should accept proxy transport with explicit proxy source."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'transport': 'proxy',
+            'proxy': 'http://127.0.0.1:8080',
+        })
+
+        self.assertEqual(actual['transport'], 'proxy')
+        self.assertEqual(actual['proxy'], 'http://127.0.0.1:8080')
+
     def test_filter_should_reject_proxy_transport_with_openvpn_auth(self):
         """Filter.filter() should reject OpenVPN auth for proxy transport."""
 

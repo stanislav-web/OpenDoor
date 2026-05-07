@@ -287,6 +287,84 @@ class TestNetworkTransport(unittest.TestCase):
         with self.assertRaises(NetworkTransportError):
             NetworkTransportManager({'transport': 'bad'})
 
+
+    def test_manager_should_run_healthcheck_after_transport_start(self):
+        """NetworkTransportManager.start() should validate configured healthcheck URL."""
+
+        profile = self.make_file('.conf')
+        runner = MagicMock()
+        runner.healthcheck.return_value = 200
+
+        manager = NetworkTransportManager({
+            'transport': 'wireguard',
+            'transport_profile': profile,
+            'transport_healthcheck_url': 'https://ifconfig.me',
+            'transport_timeout': 9,
+        }, runner=runner)
+
+        manager.start()
+
+        runner.run.assert_called_once_with(['wg-quick', 'up', profile], timeout=9)
+        runner.healthcheck.assert_called_once_with('https://ifconfig.me', timeout=5)
+
+    def test_manager_should_stop_transport_when_healthcheck_fails(self):
+        """NetworkTransportManager.start() should cleanup transport after healthcheck failure."""
+
+        profile = self.make_file('.conf')
+        runner = MagicMock()
+        runner.healthcheck.side_effect = NetworkTransportError('offline')
+
+        manager = NetworkTransportManager({
+            'transport': 'wireguard',
+            'transport_profile': profile,
+            'transport_healthcheck_url': 'https://ifconfig.me',
+            'transport_timeout': 1,
+        }, runner=runner)
+
+        with patch('src.core.network.transport.time.sleep'), self.assertRaises(NetworkTransportError):
+            manager.start()
+
+        runner.run.assert_any_call(['wg-quick', 'up', profile], timeout=1)
+        runner.run.assert_any_call(['wg-quick', 'down', profile], timeout=1)
+
+    def test_openvpn_transport_should_reject_exited_process_before_scan(self):
+        """OpenVpnTransport.assert_running() should catch immediate OpenVPN failures."""
+
+        process = MagicMock()
+        process.poll.return_value = 1
+        process.communicate.return_value = ('AUTH_FAILED\n', '')
+
+        transport = OpenVpnTransport({'transport_profile': self.make_file('.ovpn')})
+        transport.process = process
+
+        with self.assertRaises(NetworkTransportError) as ctx:
+            transport.assert_running()
+
+        self.assertIn('OpenVPN process exited before scan start', str(ctx.exception))
+        self.assertIn('AUTH_FAILED', str(ctx.exception))
+
+    def test_process_runner_should_request_healthcheck_url(self):
+        """ProcessRunner.healthcheck() should return HTTP status for reachable URL."""
+
+        response = MagicMock()
+        response.status = 204
+        manager = MagicMock()
+        manager.request.return_value = response
+
+        with patch('src.core.network.process.PoolManager', return_value=manager):
+            actual = ProcessRunner().healthcheck('https://ifconfig.me', timeout=3)
+
+        self.assertEqual(actual, 204)
+        manager.request.assert_called_once_with(
+            'GET',
+            'https://ifconfig.me',
+            preload_content=False,
+            retries=False,
+            redirect=False,
+        )
+        response.release_conn.assert_called_once_with()
+        manager.clear.assert_called_once_with()
+
     def test_process_runner_should_start_persistent_process(self):
         """ProcessRunner.start_persistent() should start subprocess with safe defaults."""
 

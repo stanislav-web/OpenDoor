@@ -72,6 +72,34 @@ class OpenVpnTransport(BaseTransport):
         self.process = self.runner.start_persistent(command)
         return self.process
 
+    def assert_running(self):
+        """
+        Ensure OpenVPN did not exit immediately after startup.
+
+        :raise NetworkTransportError:
+        :return: None
+        """
+
+        if self.process is None:
+            return
+
+        code = self.process.poll()
+        if code is None:
+            return
+
+        output = ''
+        try:
+            output = self.process.communicate(timeout=1)[0] or ''
+        except Exception:
+            output = ''
+
+        message = 'OpenVPN process exited before scan start with code {0}'.format(code)
+        output = output.strip()
+        if output:
+            message = '{0}: {1}'.format(message, output.splitlines()[-1])
+
+        raise NetworkTransportError(message)
+
     def stop(self):
         """
         Stop OpenVPN process.

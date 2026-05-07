@@ -914,6 +914,75 @@ class TestController(unittest.TestCase):
         self.assertEqual(passed_params['transport_profile'], '/tmp/nl.ovpn')
         self.assertEqual(passed_params['openvpn_auth'], '/tmp/auth.txt')
 
+
+    def test_scan_action_should_emit_transport_debug_when_enabled(self):
+        """Controller.scan_action() should expose transport lifecycle in debug mode."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+
+        transport = MagicMock()
+        transport.transport = 'wireguard'
+        transport.rotate_mode = 'none'
+        transport.current_profile_name = 'nl.conf'
+
+        params = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'reports': 'std',
+            'debug': 1,
+            'transport': 'wireguard',
+            'transport_profile': '/tmp/nl.conf',
+            'transport_healthcheck_url': 'https://ifconfig.me',
+        }
+
+        with patch('src.controller.NetworkTransportManager', return_value=transport), \
+                patch('src.controller.browser', return_value=browser_instance), \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.tpl.debug') as debug_mock, \
+                patch('src.controller.reporter.default', 'std'):
+            actual = Controller.scan_action(params)
+
+        self.assertEqual(actual, 0)
+        messages = [call.kwargs.get('msg') for call in debug_mock.call_args_list]
+        self.assertTrue(any('Network transport starting: mode=wireguard' in msg for msg in messages))
+        self.assertTrue(any('healthcheck=https://ifconfig.me' in msg for msg in messages))
+        self.assertTrue(any('Network transport stopped: mode=wireguard' in msg for msg in messages))
+
+    def test_scan_action_should_not_emit_transport_debug_when_disabled(self):
+        """Controller.scan_action() should keep transport diagnostics behind debug mode."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+
+        transport = MagicMock()
+        transport.transport = 'wireguard'
+        transport.rotate_mode = 'none'
+        transport.current_profile_name = 'nl.conf'
+
+        params = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'reports': 'std',
+            'debug': 0,
+            'transport': 'wireguard',
+            'transport_profile': '/tmp/nl.conf',
+        }
+
+        with patch('src.controller.NetworkTransportManager', return_value=transport), \
+                patch('src.controller.browser', return_value=browser_instance), \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.tpl.debug') as debug_mock, \
+                patch('src.controller.reporter.default', 'std'):
+            actual = Controller.scan_action(params)
+
+        self.assertEqual(actual, 0)
+        debug_mock.assert_not_called()
+
     def test_collect_transport_cli_overrides_should_ignore_default_direct_values(self):
         """Controller._collect_transport_cli_overrides() should ignore default direct/none values."""
 
