@@ -272,6 +272,7 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
         start_mock.assert_called_once()
         resume_mock.assert_called_once()
         getattr(br, '_Browser__reader').get_lines.assert_not_called()
+        getattr(br, '_Browser__reader').count_active_lines.assert_not_called()
 
     def test_scan_interrupt_forces_session_save_and_warns_on_failure(self):
         """Browser.scan() should try a forced checkpoint when interrupted."""
@@ -285,6 +286,7 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
                 br.scan()
 
         warning_mock.assert_called_once()
+        getattr(br, '_Browser__reader').count_active_lines.assert_not_called()
 
     def test_fingerprint_returns_cached_result_without_recomputing(self):
         """Browser.fingerprint() should return cached data without touching detection flow."""

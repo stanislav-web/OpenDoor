@@ -890,7 +890,6 @@ class ResponseProvider(object):
         'server: naxsi/waf',
         'plbsid',
         'server: webknight/',
-
         'naxsi/waf',
         'server: naxsi',
         'webknight',
@@ -950,7 +949,7 @@ class ResponseProvider(object):
 
     DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     DEFAULT_HTTP_REDIRECT_STATUSES = [300, 301, 302, 303, 304, 307, 308]
-    DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 410, 409, 411, 412, 424, 429, 440, 500, 501, 502, 503, 504, 509, 511, 520, 522]
+    DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 410, 409, 411, 412, 424, 425, 429, 440, 500, 501, 502, 503, 504, 509, 511, 520, 522]
     DEFAULT_SSL_CERT_REQUIRED_STATUSES = [423, 496, 525]
     DEFAULT_HTTP_FORBIDDEN_STATUSES = [403, 405]
     DEFAULT_HTTP_AUTH_STATUSES = [401]

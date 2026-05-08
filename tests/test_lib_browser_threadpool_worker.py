@@ -241,5 +241,170 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         sleep_mock.assert_called_once_with(0.5)
         process_mock.assert_called_once_with()
 
+    def test_worker_process_marks_queue_done_when_callback_raises(self):
+        """Worker.__process() should not leave Queue.join() blocked after task errors."""
+
+        queue = Queue(1)
+        worker = Worker(queue, num_threads=1, timeout=0)
+
+        def boom():
+            raise RuntimeError('boom')
+
+        queue.put((boom, (), {}))
+
+        with self.assertRaises(RuntimeError):
+            worker._Worker__process()
+
+        self.assertEqual(queue.unfinished_tasks, 0)
+        self.assertEqual(worker.failed, 1)
+        self.assertIsNone(worker.active_task)
+
+    def test_threadpool_join_warns_when_task_makes_no_progress(self):
+        """ThreadPool.join() should emit a watchdog warning for long-running active tasks."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        queue = getattr(pool, '_ThreadPool__queue')
+        queue.put((lambda: None, ('https://example.test/hang',), {}))
+        setattr(pool, '_ThreadPool__submitted', 1)
+        setattr(pool, '_ThreadPool__workers', [type('ActiveWorker', (), {
+            'completed': 0,
+            'active_task': {
+                'label': 'https://example.test/hang',
+                'started_at': 1.0,
+            },
+        })()])
+
+        def release_after_wait(timeout=None):
+            self.assertEqual(timeout, pool.JOIN_POLL_INTERVAL_SEC)
+            queue.unfinished_tasks = 0
+            return True
+
+        with patch.object(pool, 'JOIN_STALL_WARNING_SEC', 0.0), \
+                patch.object(queue.all_tasks_done, 'wait', side_effect=release_after_wait), \
+                patch('src.lib.browser.threadpool.time.monotonic', side_effect=[1.0, 62.0]), \
+                patch('src.lib.browser.threadpool.tpl.warning') as warning_mock:
+            pool.join()
+
+        warning_mock.assert_called_once()
+        self.assertIn('Scan worker has not completed a request', warning_mock.call_args.kwargs.get('msg'))
+        self.assertIn('https://example.test/hang', warning_mock.call_args.kwargs.get('msg'))
+
+
+    def test_worker_active_task_returns_metadata_when_processing(self):
+        """Worker.active_task should expose current task metadata."""
+
+        worker = Worker(Queue(1), num_threads=1, timeout=0)
+        setattr(worker, '_Worker__task_label', 'https://example.test/active')
+        setattr(worker, '_Worker__task_started_at', 12.5)
+
+        self.assertEqual(worker.active_task, {
+            'label': 'https://example.test/active',
+            'started_at': 12.5,
+        })
+
+    def test_worker_build_task_label_uses_keyword_arguments_and_fallback(self):
+        """Worker.__build_task_label() should describe keyword-only and unknown tasks."""
+
+        build_label = getattr(Worker, '_Worker__build_task_label')
+
+        self.assertEqual(build_label((), {'url': 'https://example.test/kw'}), 'url=https://example.test/kw')
+        self.assertEqual(build_label((), {}), 'unknown task')
+
+    def test_threadpool_completed_and_active_tasks_ignore_missing_or_invalid_worker_metadata(self):
+        """ThreadPool diagnostics should tolerate workers without completed/active task metadata."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        setattr(pool, '_ThreadPool__workers', [
+            type('NoMetaWorker', (), {})(),
+            type('InvalidActiveWorker', (), {'completed': None, 'active_task': 'bad'})(),
+            type('ValidActiveWorker', (), {
+                'completed': 2,
+                'active_task': {'label': 'https://example.test/ok', 'started_at': 4.0},
+            })(),
+        ])
+
+        self.assertEqual(pool.completed_size, 2)
+        self.assertEqual(pool.active_tasks, [{'label': 'https://example.test/ok', 'started_at': 4.0}])
+
+    def test_threadpool_join_does_not_warn_before_stall_threshold(self):
+        """ThreadPool.join() should stay quiet while the stall threshold has not elapsed."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        queue = getattr(pool, '_ThreadPool__queue')
+        queue.put((lambda: None, (), {}))
+        setattr(pool, '_ThreadPool__submitted', 1)
+        setattr(pool, '_ThreadPool__workers', [type('IdleWorker', (), {'completed': 0, 'active_task': None})()])
+
+        def release_after_wait(timeout=None):
+            self.assertEqual(timeout, pool.JOIN_POLL_INTERVAL_SEC)
+            queue.unfinished_tasks = 0
+            return True
+
+        with patch.object(queue.all_tasks_done, 'wait', side_effect=release_after_wait), \
+                patch('src.lib.browser.threadpool.time.monotonic', side_effect=[1.0, 2.0]), \
+                patch('src.lib.browser.threadpool.tpl.warning') as warning_mock:
+            pool.join()
+
+        warning_mock.assert_not_called()
+
+    def test_threadpool_format_active_tasks_handles_empty_and_truncated_lists(self):
+        """ThreadPool.__format_active_tasks() should render empty and truncated active task sets."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        setattr(pool, '_ThreadPool__workers', [])
+        self.assertEqual(getattr(pool, '_ThreadPool__format_active_tasks')(10.0), 'none')
+
+        setattr(pool, '_ThreadPool__workers', [
+            type('ActiveWorker', (), {'active_task': {'label': 'u1', 'started_at': 1.0}})(),
+            type('ActiveWorker', (), {'active_task': {'label': 'u2', 'started_at': 2.0}})(),
+            type('ActiveWorker', (), {'active_task': {'label': None, 'started_at': None}})(),
+            type('ActiveWorker', (), {'active_task': {'label': 'u4', 'started_at': 4.0}})(),
+        ])
+
+        rendered = getattr(pool, '_ThreadPool__format_active_tasks')(11.0)
+
+        self.assertIn('u1 (10s)', rendered)
+        self.assertIn('unknown task (0s)', rendered)
+        self.assertIn('+1 more', rendered)
+
+    def test_threadpool_pause_returns_immediately_when_no_threads_are_active(self):
+        """ThreadPool.pause() should not prompt when there are no active worker threads."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        with patch('src.lib.browser.threadpool.threading.active_count', return_value=0), \
+                patch('src.lib.browser.threadpool.tpl.prompt') as prompt_mock, \
+                patch('src.lib.browser.threadpool.tpl.info'):
+            pool.pause()
+
+        prompt_mock.assert_not_called()
+        self.assertFalse(pool.is_started)
+
+    def test_threadpool_resume_is_noop_when_already_started(self):
+        """ThreadPool.resume() should not notify or resume workers while already started."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        worker = MagicMock()
+        setattr(pool, '_ThreadPool__workers', [worker])
+        pool.is_started = True
+
+        with patch('src.lib.browser.threadpool.tpl.info') as info_mock:
+            pool.resume()
+
+        info_mock.assert_not_called()
+        worker.resume.assert_not_called()
+
+
 if __name__ == '__main__':
     unittest.main()

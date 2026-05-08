@@ -20,7 +20,7 @@ import os
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from src.core.filesystem.exceptions import FileSystemError
 from src.core.logger.logger import Logger
@@ -269,7 +269,7 @@ class TestReader(unittest.TestCase):
         reader = self.create_reader(browser_config={})
 
         with patch('src.lib.reader.reader.filesystem.makefile', return_value=self.config['tmplist']) as makefile_mock, \
-                patch('src.lib.reader.reader.filesystem.count_lines', return_value=15) as count_mock, \
+                patch('src.lib.reader.reader.filesystem.count_lines', side_effect=[15, 15, 15]) as count_mock, \
                 patch('src.lib.reader.reader.shutil.which', return_value='/usr/bin/shuf'), \
                 patch('src.lib.reader.reader.subprocess.run') as run_mock, \
                 patch('src.lib.reader.reader.sys') as sys_mock:
@@ -277,7 +277,8 @@ class TestReader(unittest.TestCase):
             reader.randomize_list('directories', 'tmplist')
 
         makefile_mock.assert_called_once_with(self.config['tmplist'])
-        count_mock.assert_called_once_with(self.config['directories'])
+        self.assertEqual(count_mock.call_args_list[0].args[0], self.config['directories'])
+        self.assertEqual(count_mock.call_args_list[1].args[0], self.config['tmplist'])
         run_mock.assert_called_once_with(
             ['shuf', self.config['directories'], '-o', self.config['tmplist']],
             cwd=None,
@@ -294,6 +295,7 @@ class TestReader(unittest.TestCase):
         setattr(reader, '_Reader__counter', 15)
 
         with patch('src.lib.reader.reader.filesystem.makefile', return_value=self.config['tmplist']), \
+                patch('src.lib.reader.reader.filesystem.count_lines', side_effect=[15, 15]), \
                 patch('src.lib.reader.reader.filesystem.shuffle') as shuffle_mock, \
                 patch('src.lib.reader.reader.sys') as sys_mock:
             sys_mock.return_value.is_windows = True
@@ -311,7 +313,7 @@ class TestReader(unittest.TestCase):
         reader = self.create_reader(browser_config={})
 
         with patch('src.lib.reader.reader.filesystem.makefile', return_value=self.config['tmplist']), \
-                patch('src.lib.reader.reader.filesystem.count_lines', return_value=15), \
+                patch('src.lib.reader.reader.filesystem.count_lines', side_effect=[15, 15]), \
                 patch('src.lib.reader.reader.filesystem.shuffle') as shuffle_mock, \
                 patch('src.lib.reader.reader.shutil.which', return_value=None), \
                 patch('src.lib.reader.reader.subprocess.run') as run_mock, \
@@ -325,6 +327,45 @@ class TestReader(unittest.TestCase):
             total=15,
         )
         run_mock.assert_not_called()
+
+    def test_randomize_list_falls_back_when_system_shuf_output_is_truncated(self):
+        """Reader.randomize_list() should rebuild a truncated GNU shuf output through Python shuffle."""
+
+        reader = self.create_reader(browser_config={})
+
+        with patch('src.lib.reader.reader.filesystem.makefile', return_value=self.config['tmplist']), \
+                patch('src.lib.reader.reader.filesystem.count_lines', side_effect=[15, 4, 15]) as count_mock, \
+                patch('src.lib.reader.reader.filesystem.shuffle') as shuffle_mock, \
+                patch('src.lib.reader.reader.shutil.which', return_value='/usr/bin/shuf'), \
+                patch('src.lib.reader.reader.subprocess.run') as run_mock, \
+                patch('src.lib.reader.reader.sys') as sys_mock:
+            sys_mock.return_value.is_windows = False
+            reader.randomize_list('directories', 'tmplist')
+
+        run_mock.assert_called_once()
+        shuffle_mock.assert_called_once_with(
+            target=self.config['directories'],
+            output=self.config['tmplist'],
+            total=15,
+        )
+        self.assertEqual(count_mock.call_count, 3)
+
+    def test_randomize_list_rejects_incomplete_output_after_fallback(self):
+        """Reader.randomize_list() should fail loudly when the temporary list stays incomplete."""
+
+        reader = self.create_reader(browser_config={})
+
+        with patch('src.lib.reader.reader.filesystem.makefile', return_value=self.config['tmplist']), \
+                patch('src.lib.reader.reader.filesystem.count_lines', side_effect=[15, 4, 4]), \
+                patch('src.lib.reader.reader.filesystem.shuffle'), \
+                patch('src.lib.reader.reader.shutil.which', return_value='/usr/bin/shuf'), \
+                patch('src.lib.reader.reader.subprocess.run'), \
+                patch('src.lib.reader.reader.sys') as sys_mock:
+            sys_mock.return_value.is_windows = False
+            with self.assertRaises(ReaderError) as ctx:
+                reader.randomize_list('directories', 'tmplist')
+
+        self.assertIn('Randomized scan list is incomplete', str(ctx.exception))
 
     def test_randomize_list_raises_reader_error(self):
         """Reader.randomize_list() should wrap filesystem and process errors."""

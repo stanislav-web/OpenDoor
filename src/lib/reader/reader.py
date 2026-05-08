@@ -333,7 +333,13 @@ class Reader(object):
 
     def randomize_list(self, target, output):
         """
-        Randomize scan list
+        Randomize scan list.
+
+        The generated temporary list must contain exactly the same number of
+        entries as the filtered source list. A truncated temporary list would
+        make the scan finish early while the summary still shows the original
+        total, which looks like an unexplained mid-scan stop.
+
         :param str target: target list
         :param str output: output list
         :raise ReaderError
@@ -348,12 +354,53 @@ class Reader(object):
             if 0 == self.__counter:
                 self.__counter = filesystem.count_lines(target_file)
 
+            expected_total = self.total_lines
+
             if False is sys().is_windows and self._has_system_shuf():
                 self._run_system_shuf(target_file, output_file)
+
+                if self._is_randomized_output_complete(output_file, expected_total) is not True:
+                    filesystem.shuffle(target=target_file, output=output_file, total=expected_total)
             else:
-                filesystem.shuffle(target=target_file, output=output_file, total=self.total_lines)
+                filesystem.shuffle(target=target_file, output=output_file, total=expected_total)
+
+            self._verify_randomized_output_complete(output_file, expected_total)
+
         except (CoreSystemError, FileSystemError) as error:
             raise ReaderError(error)
+
+    @staticmethod
+    def _is_randomized_output_complete(output_file, expected_total):
+        """
+        Check whether a randomized temporary wordlist has the expected length.
+
+        :param str output_file: generated temporary list
+        :param int expected_total: expected number of entries
+        :return: bool
+        """
+
+        return filesystem.count_lines(output_file) == int(expected_total)
+
+    @classmethod
+    def _verify_randomized_output_complete(cls, output_file, expected_total):
+        """
+        Reject truncated randomized wordlists before the scan starts.
+
+        :param str output_file: generated temporary list
+        :param int expected_total: expected number of entries
+        :raise FileSystemError:
+        :return: None
+        """
+
+        actual_total = filesystem.count_lines(output_file)
+
+        if actual_total != int(expected_total):
+            raise FileSystemError(
+                'Randomized scan list is incomplete: expected {0} item(s), got {1}.'.format(
+                    expected_total,
+                    actual_total
+                )
+            )
 
     def filter_by_extension(self, target, output, extensions):
         """
@@ -425,6 +472,23 @@ class Reader(object):
 
             return self.__counter
 
+        except (TypeError, FileSystemError) as error:
+            raise ReaderError(error)
+
+    def count_active_lines(self):
+        """
+        Count lines in the actual runtime wordlist that will be streamed.
+
+        This can differ from the initial filtered count when a temporary
+        randomized list is truncated, regenerated, or externally modified
+        between preparation and scan streaming.
+
+        :raise ReaderError:
+        :return: int
+        """
+
+        try:
+            return filesystem.count_lines(self._get_dirlist_path())
         except (TypeError, FileSystemError) as error:
             raise ReaderError(error)
 

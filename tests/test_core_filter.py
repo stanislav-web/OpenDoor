@@ -108,6 +108,18 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(Filter.scan('directories'), 'directories')
         self.assertEqual(Filter.scan('subdomains'), 'subdomains')
 
+    def test_filter_validates_retries_as_non_negative_integer(self):
+        """Filter.filter() should normalize retries and reject unsafe values."""
+
+        self.assertEqual(Filter.filter({'host': 'example.com', 'retries': '0'})['retries'], 0)
+        self.assertEqual(Filter.filter({'host': 'example.com', 'retries': '3'})['retries'], 3)
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'retries': '-1'})
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'retries': 'abc'})
+
 
     def test_filter_builds_single_target_list_for_host(self):
         """Filter.filter() should expose a single normalized target for --host."""

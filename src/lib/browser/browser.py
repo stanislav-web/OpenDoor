@@ -201,6 +201,8 @@ class Browser(Filter):
 
                 self.__reader.randomize_list(target=self.__config.scan, output='tmplist')
 
+            self.__verify_active_scan_list_size()
+
             tpl.info(key='scanning', host=self.__config.host)
 
             self.__start_request_provider()
@@ -227,6 +229,66 @@ class Browser(Filter):
             except SessionError as error:
                 tpl.warning(msg='Session checkpoint failed during interruption: {0}'.format(error))
             raise
+
+    def __verify_active_scan_list_size(self):
+        """
+        Verify the runtime scan list size before streaming requests.
+
+        The thread pool is initialized before runtime transformations such as
+        randomization. If the active temporary wordlist is shorter than the
+        planned total, continuing would silently skip entries while the summary
+        still displays the original item count. That must fail loudly instead of
+        producing a partial scan that looks complete.
+
+        :raise BrowserError:
+        :return: None
+        """
+
+        if True is not self.__config.is_random_list:
+            return
+
+        if self.__session_snapshot is not None and len(self.__pending_requests) > 0:
+            return
+
+        try:
+            active_total = int(self.__reader.count_active_lines())
+            planned_total = int(self.__pool.total_items_size)
+        except (AttributeError, ReaderError, TypeError, ValueError) as error:
+            tpl.warning(msg='Unable to verify active scan list size: {0}'.format(error))
+            return
+
+        if active_total == planned_total:
+            return
+
+        message = (
+            'Active scan list size mismatch: planned {planned} item(s), '
+            'active runtime list has {active}. Aborting to avoid a partial scan.'
+        ).format(planned=planned_total, active=active_total)
+        tpl.warning(msg=message)
+        raise BrowserError(message)
+
+    def __warn_if_scan_finished_early(self):
+        """
+        Warn when the queue is drained before all planned items were submitted.
+
+        :return: None
+        """
+
+        try:
+            submitted = int(self.__pool.submitted_size)
+            planned = int(self.__pool.total_items_size)
+        except (AttributeError, TypeError, ValueError):
+            return
+
+        if submitted >= planned:
+            return
+
+        tpl.warning(
+            msg=(
+                'Scan finished after submitting {submitted}/{planned} planned item(s). '
+                'The active wordlist ended early or was changed during streaming.'
+            ).format(submitted=submitted, planned=planned)
+        )
 
     @staticmethod
     def __render_fingerprint_bar(current, total, width=24):
@@ -1553,6 +1615,7 @@ class Browser(Filter):
         if 0 == self.__pool.size:
 
             try:
+                self.__warn_if_scan_finished_early()
                 self.__save_session(reason='finish', force=True)
 
                 for rtype in self.__config.reports:

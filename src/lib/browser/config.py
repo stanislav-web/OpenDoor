@@ -43,8 +43,8 @@ class Config(object):
         """
 
         self._scan = params.get('scan')
-        self._scheme = self.DEFAULT_SCHEME if params.get('scheme') is None else params.get('scheme')
-        self._ssl = params.get('ssl')
+        self._scheme = self._normalize_scheme(params.get('scheme'), params.get('ssl'))
+        self._ssl = self._scheme == 'https://'
         self._host = params.get('host')
         self._session_save = params.get('session_save')
         self._session_load = params.get('session_load')
@@ -90,7 +90,7 @@ class Config(object):
         self._recursive_depth = 1 if params.get('recursive_depth') is None else int(params.get('recursive_depth'))
         self._recursive_status = self._normalize_csv(params.get('recursive_status'))
         self._recursive_exclude = self._normalize_csv(params.get('recursive_exclude'))
-        self._retries = False if params.get('retries') is None else params.get('retries')
+        self._retries = self._normalize_retries(params.get('retries'))
         self._method = params.get('method')
         self._delay = params.get('delay')
         self._timeout = self.DEFAULT_SOCKET_TIMEOUT if params.get('timeout') is None else float(params.get('timeout'))
@@ -114,6 +114,54 @@ class Config(object):
         self._exclude_regex = self._normalize_csv(params.get('exclude_regex'))
         self._min_response_length = params.get('min_response_length')
         self._max_response_length = params.get('max_response_length')
+
+    @classmethod
+    def _normalize_scheme(cls, scheme, ssl=False):
+        """
+        Normalize the target scheme and keep legacy ssl=True configs compatible.
+
+        The public target protocol is the scheme. The ssl value is kept as a
+        backward-compatible wizard/session input only and must not diverge from
+        the effective request provider.
+
+        :param str | None scheme: Configured URL scheme.
+        :param bool ssl: Legacy SSL toggle from old wizard configs.
+        :return: Normalized URL scheme.
+        """
+
+        normalized = cls.DEFAULT_SCHEME if scheme is None else str(scheme).strip().lower()
+
+        if normalized in ['http', 'https']:
+            normalized = normalized + '://'
+
+        if ssl is True and normalized == cls.DEFAULT_SCHEME:
+            return 'https://'
+
+        return normalized
+
+    @staticmethod
+    def _normalize_retries(value):
+        """Normalize urllib3 retry count.
+
+        ``None`` keeps the historical disabled value used by direct unit-level
+        config construction. CLI and wizard defaults still pass an explicit
+        non-negative integer.
+
+        :param int|str|bool|None value: Retry count value.
+        :return: Non-negative retry count or False when unset.
+        """
+
+        if value is None:
+            return False
+
+        if value is False:
+            return False
+
+        retries = int(value)
+        if retries < 0:
+            raise ValueError('retries must be a non-negative integer')
+
+        return retries
 
     @staticmethod
     def _normalize_csv(value):

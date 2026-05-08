@@ -108,8 +108,41 @@ class TestHttpResponsePluginsBranchCoverage(unittest.TestCase):
 
         response = self.make_response(
             body=(
+                b'<html><head><title>Index of products</title></head>'
+                b'<body><h1>Index of products</h1><p>Marketing content only.</p></body></html>'
+            )
+        )
+        self.assertIsNone(plugin.process(response))
+
+        response = self.make_response(
+            body=(
                 b'<html><head><title>Directory Listing -- /pub</title></head>'
                 b'<body><a href="../">../</a><a href="logs/">logs/</a></body></html>'
+            )
+        )
+        self.assertEqual(plugin.process(response), 'indexof')
+
+        response = self.make_response(
+            body=(
+                b'<html><head><title>Index of backup</title></head>'
+                b'<body><h1>Index of backup</h1><pre><a href="dump.sql">dump.sql</a></pre></body></html>'
+            )
+        )
+        self.assertEqual(plugin.process(response), 'indexof')
+
+        response = self.make_response(
+            body=(
+                b'<html><head><title>Index of backup</title></head>'
+                b'<body><h1>Index of backup</h1><div>Last modified</div><div>Size</div>'
+                b'<a href="dump.sql">dump.sql</a></body></html>'
+            )
+        )
+        self.assertEqual(plugin.process(response), 'indexof')
+
+        response = self.make_response(
+            body=(
+                b'<html><head><title>Index of /private/</title></head>'
+                b'<body><h1>Index of /private/</h1><a href="dump.sql">dump.sql</a></body></html>'
             )
         )
         self.assertEqual(plugin.process(response), 'indexof')

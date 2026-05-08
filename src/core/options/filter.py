@@ -214,6 +214,8 @@ class Filter(object):
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['calibration_threshold']:
                 filtered[key] = Filter.ratio_float(value, key='--{0}'.format(key.replace('_', '-')))
+            elif key in ['retries']:
+                filtered[key] = Filter.non_negative_int(value, key='--retries')
             elif key in ['transport']:
                 filtered[key] = Filter.transport(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['transport_rotate']:

@@ -588,11 +588,35 @@ class TestReporterPluginsFullCoverage(unittest.TestCase):
         self.assertIn('data-status-filter="blocked"', html)
         self.assertIn('data-report-status="success"', html)
         self.assertIn('data-report-row', html)
+        self.assertIn('data-row-search=', html)
+        self.assertIn('data-report-url="https://example.com/admin"', html)
+        self.assertIn('aria-controls="status-success"', html)
+        self.assertIn('data-copy-status', html)
+        self.assertIn('data-search-empty', html)
         self.assertIn('Copy visible URLs', html)
+        self.assertIn('getVisibleUrls()', html)
+        self.assertIn('scrollToActiveGroup()', html)
         self.assertIn('<script>', html)
         self.assertIn('<style>', html)
         self.assertNotIn('<script src=', html)
         self.assertNotIn('<link rel="stylesheet"', html)
+
+    def test_html_renderer_should_make_plain_url_rows_searchable_and_copyable(self):
+        """HTML renderer should expose plain URL rows to search and copy controls."""
+
+        html = html_report.render_html_report('example.com', {
+            'report_items': {
+                'success': [
+                    'https://example.com/gs_login.html',
+                ],
+            },
+        })
+
+        self.assertIn('data-report-url="https://example.com/gs_login.html"', html)
+        self.assertIn('data-row-search="https://example.com/gs_login.html"', html)
+        self.assertIn('getRowUrl(row)', html)
+        self.assertIn('fallbackCopy(payload, markCopied, markFailed)', html)
+
 
     def test_html_renderer_should_render_nested_metadata_as_collapsible_json(self):
         """HTML renderer should avoid recursive metadata tables for nested values."""

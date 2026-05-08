@@ -42,6 +42,24 @@ class TestBrowserConfig(unittest.TestCase):
         cfg = Config({'reports': 'std', 'ssl': True, 'port': 80})
         self.assertEqual(cfg.port, 443)
 
+    def test_scheme_is_source_of_truth_for_ssl_mode(self):
+        """Config should derive SSL mode from HTTPS scheme."""
+
+        cfg = Config({'reports': 'std', 'scheme': 'https://', 'ssl': False, 'port': 80})
+
+        self.assertEqual(cfg.scheme, 'https://')
+        self.assertTrue(cfg.is_ssl)
+        self.assertEqual(cfg.port, 443)
+
+    def test_legacy_ssl_true_promotes_default_http_scheme(self):
+        """Config should keep old wizard configs with ssl=True compatible."""
+
+        cfg = Config({'reports': 'std', 'scheme': 'http://', 'ssl': True, 'port': 80})
+
+        self.assertEqual(cfg.scheme, 'https://')
+        self.assertTrue(cfg.is_ssl)
+        self.assertEqual(cfg.port, 443)
+
     def test_method_uses_get_for_non_file_sniffers(self):
         """Config.method should use GET when multiple sniffers are enabled."""
 
@@ -122,6 +140,16 @@ class TestBrowserConfig(unittest.TestCase):
         cfg = Config({'reports': 'std'})
         cfg.timeout = '4.5'
         self.assertEqual(cfg.timeout, 4.5)
+
+    def test_retries_are_normalized_for_runtime_transport(self):
+        """Config should expose retries as a non-negative integer for urllib3."""
+
+        self.assertEqual(Config({'reports': 'std', 'retries': '0'}).retries, 0)
+        self.assertEqual(Config({'reports': 'std', 'retries': '3'}).retries, 3)
+        self.assertFalse(Config({'reports': 'std', 'retries': None}).retries)
+
+        with self.assertRaises(ValueError):
+            Config({'reports': 'std', 'retries': '-1'})
 
     def test_threads_and_prefix_mutators_work(self):
         """Config should expose configurable threads and normalized prefixes."""

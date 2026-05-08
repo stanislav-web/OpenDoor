@@ -2313,7 +2313,6 @@
 667
 669
 673
-674f50d287a8c48dc19ba404d20fe713.eot
 677
 679
 686
@@ -49293,6 +49292,7 @@ forum/adm
 forum/admin
 forum/backup
 forum/backups
+forum/index.php
 forum/install
 forum/install/install.php
 forum/installinstall.php
@@ -53304,6 +53304,8 @@ gs.php
 gs/admin
 gs/plugins/editors/fckeditor
 gs/plugins/editorsfckeditor
+gs_login.html
+gs_login.php
 gsa
 gsadmin
 gsadmin.php
@@ -54181,7 +54183,7 @@ help.php3
 help.shtml
 help.ticket.submit
 help/com_view.html?code=
-help/index.jsp?view=%3Cscript%3Ealert(document.cookie)%3C/script%3E
+help/index.jsp
 help_0.php
 help_about.php
 help_answer
@@ -55339,7 +55341,6 @@ Http.php
 http.txt
 http/.env
 Http/DataLayCfg.xml
-http://frontline-games.com/forum/index.php
 http_access.log
 http_client.php
 http_error.php
@@ -77176,7 +77177,6 @@ p15
 p90x.html
 p-1.html
 p-news
-p.
 p.asp
 p.aspx
 p.cfg
@@ -78462,6 +78462,7 @@ partnery.html
 partnerzy.html
 Partnerzy.php
 parts
+parts.txt
 parts.aspx
 parts.cfm
 parts.htm
@@ -78498,7 +78499,6 @@ pass2.php
 pass3.php
 pass4.php
 pass5.php
-pass--免杀.php
 pass.asp
 pass.dat
 pass.html
@@ -86838,6 +86838,8 @@ recycle_bin
 recyclebin.inc.php
 Recycled
 recycled
+recycler
+recycler.php
 recyclers list.htm
 recyclin.htm
 red

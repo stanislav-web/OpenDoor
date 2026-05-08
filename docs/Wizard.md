@@ -64,7 +64,6 @@ A minimal directory scan configuration:
 
 host = example.com
 scheme = https://
-ssl = True
 port = 443
 
 scan = directories
@@ -90,10 +89,11 @@ Target-related options define what OpenDoor scans.
 
 host = example.com
 scheme = https://
-ssl = True
 port = 443
 scan = directories
 ```
+
+`scheme` is the source of truth for HTTP vs HTTPS. OpenDoor derives the internal SSL mode from it, so modern configs do not need a separate `ssl` key.
 
 Common scan modes:
 
@@ -526,7 +526,6 @@ Use debug output when validating request behavior, filters, reports, sessions, o
 
 host = example.com
 scheme = https://
-ssl = True
 port = 443
 
 scan = directories
@@ -564,7 +563,6 @@ opendoor --wizard ./configs/example.com.conf
 
 host = example.com
 scheme = https://
-ssl = True
 port = 443
 
 scan = directories
@@ -599,7 +597,6 @@ opendoor --wizard ./configs/waf-safe-example.conf
 
 host = example.com
 scheme = https://
-ssl = True
 port = 443
 
 scan = directories
@@ -637,7 +634,6 @@ opendoor --wizard ./configs/header-bypass-example.conf
 
 host = example.com
 scheme = https://
-ssl = True
 port = 443
 
 scan = directories
@@ -668,7 +664,6 @@ opendoor --wizard ./configs/openvpn-example.conf
 
 host = example.com
 scheme = https://
-ssl = True
 port = 443
 
 scan = directories

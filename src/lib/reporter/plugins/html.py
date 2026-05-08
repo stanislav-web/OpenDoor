@@ -277,6 +277,18 @@ h3 {
   appearance: none;
 }
 
+.action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.copy-feedback {
+  align-self: center;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .status-tab.is-active,
 .status-tab[aria-selected="true"] {
   border-color: #bfdbfe;
@@ -488,6 +500,13 @@ a:hover {
   color: var(--muted);
 }
 
+.search-empty {
+  margin: 0;
+  padding: 0 20px 18px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
 .value-list {
   margin: 0;
   padding-left: 18px;
@@ -614,19 +633,58 @@ def _get_report_js():
   var searchInput = findings.querySelector('[data-report-search]');
   var statusButtons = Array.prototype.slice.call(findings.querySelectorAll('[data-status-filter]'));
   var copyButton = document.querySelector('[data-copy-visible-urls]');
+  var copyStatus = document.querySelector('[data-copy-status]');
+  var emptyMessage = findings.querySelector('[data-search-empty]');
   var activeStatus = 'all';
 
   function normalize(value) {
-    return String(value || '').toLowerCase();
+    return String(value || '').toLowerCase().replace(/\\s+/g, ' ').trim();
   }
 
-  function getVisibleAnchors() {
-    return Array.prototype.slice.call(findings.querySelectorAll('[data-report-row] a[href^="http"]')).filter(function (anchor) {
-      var row = anchor.closest('[data-report-row]');
-      var group = anchor.closest('[data-report-status]');
+  function getGroups() {
+    return Array.prototype.slice.call(findings.querySelectorAll('[data-report-status]'));
+  }
 
-      return row && group && !row.hidden && !group.hidden;
+  function getRows() {
+    return Array.prototype.slice.call(findings.querySelectorAll('[data-report-row]'));
+  }
+
+  function isVisibleRow(row) {
+    var group = row.closest('[data-report-status]');
+    return row && group && !row.hidden && !group.hidden;
+  }
+
+  function getRowUrl(row) {
+    var explicit = row.getAttribute('data-report-url');
+
+    if (explicit) {
+      return explicit;
+    }
+
+    var anchor = row.querySelector('a[href^="http"]');
+    return anchor ? anchor.getAttribute('href') : '';
+  }
+
+  function getVisibleUrls() {
+    var seen = {};
+    var urls = [];
+
+    getRows().forEach(function (row) {
+      var url = isVisibleRow(row) ? getRowUrl(row) : '';
+
+      if (url && !seen[url]) {
+        seen[url] = true;
+        urls.push(url);
+      }
     });
+
+    return urls;
+  }
+
+  function setCopyStatus(message) {
+    if (copyStatus) {
+      copyStatus.textContent = message || '';
+    }
   }
 
   function updateCopyButton() {
@@ -634,16 +692,38 @@ def _get_report_js():
       return;
     }
 
-    var count = getVisibleAnchors().length;
+    var count = getVisibleUrls().length;
     copyButton.disabled = count === 0;
     copyButton.textContent = count ? 'Copy visible URLs (' + count + ')' : 'No visible URLs';
   }
 
+  function updateEmptyMessage(visibleRows) {
+    if (!emptyMessage) {
+      return;
+    }
+
+    emptyMessage.hidden = visibleRows !== 0;
+  }
+
+  function getRowSearchText(row) {
+    return normalize(row.getAttribute('data-row-search') || row.innerText || row.textContent);
+  }
+
+  function scrollToActiveGroup() {
+    var target = activeStatus === 'all'
+      ? findings
+      : findings.querySelector('[data-report-status="' + activeStatus.replace(/"/g, '\\"') + '"]');
+
+    if (target && target.scrollIntoView) {
+      target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+  }
+
   function applyFilters() {
     var query = normalize(searchInput ? searchInput.value : '');
-    var groups = Array.prototype.slice.call(findings.querySelectorAll('[data-report-status]'));
+    var visibleTotal = 0;
 
-    groups.forEach(function (group) {
+    getGroups().forEach(function (group) {
       var status = group.getAttribute('data-report-status');
       var statusMatches = activeStatus === 'all' || status === activeStatus;
       var rows = Array.prototype.slice.call(group.querySelectorAll('[data-report-row]'));
@@ -655,18 +735,21 @@ def _get_report_js():
       }
 
       rows.forEach(function (row) {
-        var rowMatches = !query || normalize(row.innerText || row.textContent).indexOf(query) !== -1;
+        var rowMatches = !query || getRowSearchText(row).indexOf(query) !== -1;
         row.hidden = !rowMatches;
 
         if (rowMatches) {
           visibleRows += 1;
+          visibleTotal += 1;
         }
       });
 
       group.hidden = rows.length > 0 && visibleRows === 0;
     });
 
+    updateEmptyMessage(visibleTotal);
     updateCopyButton();
+    setCopyStatus('');
   }
 
   statusButtons.forEach(function (button) {
@@ -680,6 +763,7 @@ def _get_report_js():
       });
 
       applyFilters();
+      scrollToActiveGroup();
     });
   });
 
@@ -689,39 +773,61 @@ def _get_report_js():
 
   if (copyButton) {
     copyButton.addEventListener('click', function () {
-      var urls = getVisibleAnchors().map(function (anchor) {
-        return anchor.getAttribute('href');
-      });
-      var previousText = copyButton.textContent;
+      var urls = getVisibleUrls();
+      var payload = urls.join('\n');
 
       if (!urls.length) {
+        setCopyStatus('No visible URLs to copy.');
         return;
       }
 
       function markCopied() {
-        copyButton.textContent = 'Copied ' + urls.length + ' URLs';
-        window.setTimeout(function () {
-          copyButton.textContent = previousText;
-          updateCopyButton();
-        }, 1400);
+        updateCopyButton();
+        setCopyStatus('Copied ' + urls.length + ' URL' + (urls.length === 1 ? '' : 's') + '.');
+      }
+
+      function markFailed() {
+        setCopyStatus('Copy failed. Select and copy the visible URLs manually.');
       }
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(urls.join('\n')).then(markCopied, updateCopyButton);
+        navigator.clipboard.writeText(payload).then(markCopied, function () {
+          fallbackCopy(payload, markCopied, markFailed);
+        });
         return;
       }
 
-      var buffer = document.createElement('textarea');
-      buffer.value = urls.join('\n');
-      buffer.setAttribute('readonly', 'readonly');
-      buffer.style.position = 'fixed';
-      buffer.style.left = '-9999px';
-      document.body.appendChild(buffer);
-      buffer.select();
-      document.execCommand('copy');
-      document.body.removeChild(buffer);
-      markCopied();
+      fallbackCopy(payload, markCopied, markFailed);
     });
+  }
+
+  function fallbackCopy(payload, onSuccess, onFailure) {
+    var buffer = document.createElement('textarea');
+    var copied = false;
+
+    buffer.value = payload;
+    buffer.setAttribute('readonly', 'readonly');
+    buffer.style.position = 'fixed';
+    buffer.style.left = '-9999px';
+    buffer.style.top = '0';
+    document.body.appendChild(buffer);
+    buffer.focus();
+    buffer.select();
+
+    try {
+      copied = document.execCommand && document.execCommand('copy');
+    } catch (error) {
+      copied = false;
+    }
+
+    document.body.removeChild(buffer);
+
+    if (copied) {
+      onSuccess();
+      return;
+    }
+
+    onFailure();
   }
 
   applyFilters();
@@ -755,6 +861,7 @@ def _render_report_nav(report_items, metadata):
         '<div class="report-nav-links">{0}</div>'
         '<div class="report-actions">'
         '<button class="action-button" type="button" data-copy-visible-urls>Copy visible URLs</button>'
+        '<span class="copy-feedback" data-copy-status aria-live="polite"></span>'
         '</div>'
         '</nav>'
     ).format(''.join(links))
@@ -793,7 +900,8 @@ def _render_status_filter_buttons(report_items):
     total_count = _get_total_finding_count(report_items)
     buttons = [
         '<button class="status-tab is-active" type="button" data-status-filter="all" '
-        'role="tab" aria-selected="true">All <span class="badge">{0}</span></button>'.format(
+        'role="tab" aria-selected="true" aria-controls="findings">'
+        'All <span class="badge">{0}</span></button>'.format(
             _escape(total_count),
         )
     ]
@@ -803,8 +911,10 @@ def _render_status_filter_buttons(report_items):
         count = len(items) if isinstance(items, list) else 0
         buttons.append(
             '<button class="status-tab" type="button" data-status-filter="{0}" '
-            'role="tab" aria-selected="false">{1} <span class="{2}">{3}</span></button>'.format(
+            'role="tab" aria-selected="false" aria-controls="{1}">'
+            '{2} <span class="{3}">{4}</span></button>'.format(
                 _escape(status),
+                _get_status_dom_id(status),
                 _escape(status),
                 _get_status_badge_class(status),
                 _escape(count),
@@ -921,6 +1031,7 @@ def _render_report_items(report_items):
         '</label>'
         '<div class="status-tabs" role="tablist" aria-label="Finding status filters">{0}</div>'
         '</div>'
+        '<p class="search-empty" data-search-empty hidden>No findings match the current filters.</p>'
         '{1}'
         '</section>'
     ).format(
@@ -949,7 +1060,7 @@ def _render_status_items(status, items):
         table = _render_plain_list(items)
 
     return (
-        '<div class="status-block" data-report-status="{4}">'
+        '<div class="status-block" id="{5}" data-report-status="{4}">'
         '<div class="status-title">'
         '<h3>{0}</h3>'
         '<span class="{1}">{2}</span>'
@@ -962,6 +1073,7 @@ def _render_status_items(status, items):
         _escape(count),
         table,
         _escape(status),
+        _get_status_dom_id(status),
     )
 
 
@@ -988,7 +1100,13 @@ def _render_list_of_dicts(items):
             '<td>{0}</td>'.format(_render_cell(column, item.get(column)))
             for column in columns
         )
-        rows.append('<tr data-report-row>{0}</tr>'.format(cells))
+        rows.append(
+            '<tr data-report-row data-row-search="{0}" data-report-url="{1}">{2}</tr>'.format(
+                _escape(_get_item_search_text(item)),
+                _escape(_get_item_url(item)),
+                cells,
+            )
+        )
 
     return (
         '<div class="table-wrap">'
@@ -1013,10 +1131,15 @@ def _render_plain_list(items):
 
     for index, item in enumerate(items, start=1):
         rows.append(
-            '<tr data-report-row>'
-            '<td><span class="badge">{0}</span></td>'
-            '<td>{1}</td>'
-            '</tr>'.format(index, _render_value(item))
+            '<tr data-report-row data-row-search="{0}" data-report-url="{1}">'
+            '<td><span class="badge">{2}</span></td>'
+            '<td>{3}</td>'
+            '</tr>'.format(
+                _escape(_get_item_search_text(item)),
+                _escape(_get_item_url(item)),
+                index,
+                _render_value(item),
+            )
         )
 
     return (
@@ -1299,6 +1422,88 @@ def _get_columns(items):
     ])
 
     return columns
+
+
+
+def _get_item_url(item):
+    """
+    Return the primary URL from a rendered finding item.
+
+    :param item: report item
+    :return: URL value or empty string
+    :rtype: str
+    """
+
+    if isinstance(item, dict):
+        value = item.get('url')
+    else:
+        value = item
+
+    if _is_http_url(value):
+        return value
+
+    return ''
+
+
+def _get_item_search_text(item):
+    """
+    Return stable searchable text for one report row.
+
+    :param item: report item
+    :return: normalized searchable text source
+    :rtype: str
+    """
+
+    if isinstance(item, dict):
+        values = []
+
+        for key in sorted(item.keys()):
+            values.append(key)
+            values.append(_stringify_search_value(item.get(key)))
+
+        return ' '.join(value for value in values if value)
+
+    return _stringify_search_value(item)
+
+
+def _stringify_search_value(value):
+    """
+    Convert a report value into text suitable for client-side filtering.
+
+    :param value: report value
+    :return: searchable text fragment
+    :rtype: str
+    """
+
+    if value is None:
+        return ''
+
+    if isinstance(value, (dict, list, tuple)):
+        return _to_pretty_json(value)
+
+    return str(value)
+
+
+def _get_status_dom_id(status):
+    """
+    Return a stable DOM id for a status group.
+
+    :param str status: status bucket name
+    :return: DOM id
+    :rtype: str
+    """
+
+    slug = []
+
+    for char in str(status).lower():
+        if char.isalnum():
+            slug.append(char)
+        elif not slug or slug[-1] != '-':
+            slug.append('-')
+
+    value = ''.join(slug).strip('-') or 'unknown'
+
+    return 'status-{0}'.format(value)
 
 
 def _get_metadata(report_data):

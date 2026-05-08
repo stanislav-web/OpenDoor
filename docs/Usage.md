@@ -256,6 +256,8 @@ Short form:
 opendoor --host https://example.com -t 20
 ```
 
+**Caution!** A large number of threads may trigger a WAF. Use `--waf-safe-mode` to avoid WAF-triggered scans.
+
 ### Keep-alive
 
 ```shell
