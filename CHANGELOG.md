@@ -20,10 +20,12 @@ v5.15.3 (xx.05.2026)
 - (fix) validated `--retries` / wizard `retries` as a non-negative integer and normalized runtime retry values before passing them to urllib3
 - (fix) restored interactive HTML report controls by making visible URL copy, text search and status-group navigation use stable row metadata and explicit UI feedback
 - (enhancement) added `--sniff stacktrace` to detect exposed stack traces and debug error details across Python, Node.js, PHP, NestJS, Java, SQL, and Oracle responses.
+- (enhancement) expanded passive WAF recognition with block-response signatures for DDoS-GUARD, Tencent Cloud WAF, Google Cloud Armor, SafeLine, Vercel WAF, Wallarm and Wordfence, complementing existing infrastructure fingerprinting where applicable.
 - (enhancement) detect common HTTP `Server` header engines as fingerprint infrastructure, including Nginx, Apache HTTP Server, Microsoft IIS, Caddy, LiteSpeed, lighttpd, Tornado, Gunicorn, Uvicorn, Hypercorn, Waitress, Apache Tomcat, Eclipse Jetty, Envoy and Traefik
 - (enhancement) Added clear response-level diagnostics for `--debug 3`.
 - (enhancement) prettify HTML reports make it more intelligible for UX
 - (enhancement) expanded passive WAF recognition with additional vendor signatures sourced from public WAF fingerprint catalogs
+- (enhancement) expanded passive WAF recognition with DDoS-GUARD, Google Cloud Armor, SafeLine, Tencent Cloud WAF, Vercel WAF, Wallarm and Wordfence signatures while keeping passive edge headers gated behind block-like statuses
 - (enhancement) added 360 WAF, Airlock, Aliyun WAF, Anquanbao, BinarySec, CityHost, BitNinja, Bluedon WAF, ChinaCache, Comodo WAF, DoSArrest, DotDefender, GoDaddy Website Firewall, GreyWizard, IBM DataPower, Imunify360, Instart DX, NAXSI, NinjaFirewall, Profense and WebKnight detection
 - (enhancement) deduplicated WAF evidence signals before report propagation
 - (enhancement) updated internal wordlists

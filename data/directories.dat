@@ -79904,7 +79904,10 @@ php_error
 php_error.log
 php_error_log
 php_errorlog
+php_errorlog.log
+php_errorlog.txt
 php_errors.log
+php_errors.txt
 php_files
 php_http_proxy.php
 php_inc
@@ -97610,6 +97613,8 @@ storage/.env.production
 storage/.env.staging
 storage/admin
 storage/link
+storage/logs
+storage/logs.txt
 storage/logs/laravel.log
 storage/logslaravel.log
 storage/v1/bucket

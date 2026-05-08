@@ -52,6 +52,7 @@ The heuristic WAF detection engine currently recognizes probable signals for:
 - Cloudflare
 - Comodo WAF
 - DataDome
+- DDoS-GUARD
 - Distil
 - DoSArrest
 - DotDefender
@@ -59,6 +60,7 @@ The heuristic WAF detection engine currently recognizes probable signals for:
 - Fastly
 - FortiWeb
 - GoDaddy Website Firewall
+- Google Cloud Armor
 - GreyWizard
 - Huawei Cloud WAF
 - IBM DataPower
@@ -74,8 +76,13 @@ The heuristic WAF detection engine currently recognizes probable signals for:
 - Profense
 - Radware
 - Reblaze
+- SafeLine
 - Sucuri
+- Tencent Cloud WAF
+- Vercel WAF
+- Wallarm
 - WebKnight
+- Wordfence
 
 Detection is heuristic. Treat results as probable signals and verify important findings manually.
 
