@@ -1159,6 +1159,9 @@ class Browser(Filter):
         if self.__calibration is None:
             return None
 
+        if response_data is not None and len(response_data) > 0 and response_data[0] == 'debug':
+            return None
+
         return self.__calibration.match(response_object, response_data)
 
     def __probe_header_bypass(self, url, base_response_data):
@@ -1265,6 +1268,7 @@ class Browser(Filter):
                 return
 
             waf_detection = None
+            debug_detection = getattr(resp, 'opendoor_debug_detection', None)
 
             if response_data[0] == 'blocked':
                 waf_detection = getattr(self.__response, 'waf_detection', None)
@@ -1295,12 +1299,20 @@ class Browser(Filter):
             if False is self.__is_response_allowed(resp, response_data):
                 self.__catch_report_data('ignored', response_data[1], response_data[2], response_data[3])
             else:
+                metadata = {}
+                if isinstance(waf_detection, dict):
+                    metadata.update(waf_detection)
+                if isinstance(debug_detection, dict):
+                    metadata['debug_detection'] = dict(debug_detection)
+                if len(metadata) == 0:
+                    metadata = None
+
                 self.__catch_report_data(
                     response_data[0],
                     response_data[1],
                     response_data[2],
                     response_data[3],
-                    metadata=waf_detection,
+                    metadata=metadata,
                 )
 
                 if False is self.__should_suspend_recursive_expansion(response_data[0]):
@@ -1588,6 +1600,8 @@ class Browser(Filter):
                 item['bypass_from_code'] = str(metadata.get('bypass_from_code'))
             if metadata.get('bypass_to_code') is not None:
                 item['bypass_to_code'] = str(metadata.get('bypass_to_code'))
+            if isinstance(metadata.get('debug_detection'), dict):
+                item['debug_detection'] = dict(metadata.get('debug_detection'))
 
         self.__result['total'].update((status,))
         self.__result['items'][status] += [url]

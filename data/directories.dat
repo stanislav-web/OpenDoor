@@ -41077,6 +41077,10 @@ docmgr
 docmint
 docnote
 docnotexist_path.py
+docomparing
+docomparing.js
+docomparing.jsp
+docomparing.php
 docpicker/common_proxy/http/www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http://example.com
 docpicker/common_proxy/http/www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http:/example.com
 docpicker/internal_proxy/http/127.0.0.1:9100aa
@@ -41451,6 +41455,8 @@ dor.htm
 dor.php
 doraemon
 dordoka k.e.
+doreview
+doreview.php
 dorian
 doris
 dork.php
@@ -78462,12 +78468,12 @@ partnery.html
 partnerzy.html
 Partnerzy.php
 parts
-parts.txt
 parts.aspx
 parts.cfm
 parts.htm
 parts.html
 parts.php
+parts.txt
 parts_center.htm
 party
 party-1.html

@@ -11,7 +11,7 @@ opendoor --host https://example.com --sniff <plugins>
 Multiple sniffers can be combined with commas:
 
 ```shell
-opendoor --host https://example.com --sniff skipempty,file,collation,indexof
+opendoor --host https://example.com --sniff stacktrace,skipempty,file,collation,indexof
 ```
 
 Some sniffers accept parameters:
@@ -34,6 +34,7 @@ Common cases:
 | Known false-positive response sizes | `skipsizes` |
 | Directory listings | `indexof` |
 | Large downloadable files | `file` |
+| Exposed debug stack traces or verbose error details | `stacktrace` |
 | Redirect-like or duplicated fallback responses | `collation` |
 
 Sniffers are especially useful when combined with response filters and auto-calibration.
@@ -59,7 +60,7 @@ opendoor \
   --auto-calibrate \
   --exclude-status 404,429,500-599 \
   --exclude-size-range 0-256 \
-  --sniff skipempty,file,collation,indexof
+  --sniff stacktrace,skipempty,file,collation,indexof
 ```
 
 ---
@@ -172,6 +173,40 @@ This sniffer is useful when scanning wordlists that include file names or backup
 
 ---
 
+## 🧯 `stacktrace`
+
+Detects exposed debug stack traces and verbose internal error details.
+
+```shell
+opendoor --host https://example.com --sniff stacktrace
+```
+
+The `stacktrace` sniffer classifies matching responses into the `debug` bucket and attaches a `debug_detection` metadata object to detailed reports.
+It is useful for fingerprinting runtime leaks in error responses, including Python, Node.js, NestJS, PHP, Java, SQLSTATE, and Oracle error patterns.
+
+Example:
+
+```shell
+opendoor \
+  --host https://example.com \
+  --method GET \
+  --sniff stacktrace,indexof,file \
+  --reports std,json,csv,html,sqlite,sarif
+```
+
+If the requested method is `HEAD`, OpenDoor overrides it to `GET` when `stacktrace` is selected because this sniffer needs response body analysis.
+
+Place `stacktrace` before cleanup sniffers such as `skipempty` or `collation` when debug exposures are high-priority findings:
+
+```shell
+opendoor \
+  --host https://example.com \
+  --auto-calibrate \
+  --sniff stacktrace,skipempty,collation,indexof,file
+```
+
+---
+
 ## 🔀 `collation`
 
 Detects repeated or redirect-like fallback responses that can create false positives.
@@ -212,7 +247,7 @@ opendoor \
   --host https://example.com \
   --method GET \
   --auto-calibrate \
-  --sniff skipempty,file,collation,indexof
+  --sniff stacktrace,skipempty,file,collation,indexof
 ```
 
 ### Known false-positive sizes
@@ -255,7 +290,7 @@ opendoor \
   --host https://example.com \
   --method GET \
   --auto-calibrate \
-  --sniff skipempty,file,collation,indexof
+  --sniff stacktrace,skipempty,file,collation,indexof
 ```
 
 For fast scans where response body analysis is not required, keep the default request method and use status/size filters instead.
@@ -306,10 +341,11 @@ opendoor --host https://example.com --exclude-size-range 1000-2000
 
 ## ✅ Summary
 
-| Sniffer | Purpose |
-|---|---|
-| `skipempty` | Skip empty or blank responses |
-| `skipsizes=NUM:NUM...` | Skip known false-positive body sizes |
-| `indexof` | Detect directory listing pages |
-| `file` | Detect downloadable or interesting files |
+| Sniffer | Purpose                                            |
+|---|----------------------------------------------------|
+| `skipempty` | Skip empty or blank responses                      |
+| `skipsizes=NUM:NUM...` | Skip known false-positive body sizes               |
+| `indexof` | Detect directory listing pages                     |
+| `file` | Detect downloadable or interesting files           |
 | `collation` | Detect repeated fallback or redirect-like responses |
+| `stacktrace` | Detect possible errors in responses          |

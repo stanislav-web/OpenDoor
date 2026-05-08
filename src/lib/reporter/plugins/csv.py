@@ -45,6 +45,10 @@ class CsvReportPlugin(PluginProvider):
         'bypass_value',
         'bypass_from_code',
         'bypass_to_code',
+        'debug_detection',
+        'debug_runtime',
+        'debug_signal',
+        'debug_confidence',
         'fingerprint_category',
         'fingerprint_name',
         'fingerprint_confidence',
@@ -189,7 +193,21 @@ class CsvReportPlugin(PluginProvider):
                         item.get('bypass_from_code')
                     ),
                     'bypass_to_code': '' if item.get('bypass_to_code') is None else str(item.get('bypass_to_code')),
+                    'debug_detection': '',
+                    'debug_runtime': '',
+                    'debug_signal': '',
+                    'debug_confidence': '',
                 }
+                debug_detection = item.get('debug_detection')
+                if isinstance(debug_detection, dict):
+                    row.update({
+                        'debug_detection': str(debug_detection.get('type', '')),
+                        'debug_runtime': str(debug_detection.get('runtime', '')),
+                        'debug_signal': str(debug_detection.get('signal', '')),
+                        'debug_confidence': '' if debug_detection.get('confidence') is None else str(
+                            debug_detection.get('confidence')
+                        ),
+                    })
                 row.update(fingerprint_fields)
                 rows.append(row)
 

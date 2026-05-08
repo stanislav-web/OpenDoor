@@ -448,6 +448,168 @@ class TestBrowserExtra(unittest.TestCase):
         )
 
 
+    def test_verify_active_scan_list_returns_for_restored_pending_requests(self):
+        """Random-list verification should skip resumed pending-request runs."""
+
+        br = self.make_browser(is_random_list=True)
+        br._Browser__session_snapshot = {'pending_requests': []}
+        br._Browser__pending_requests = {'0::http://example.com/a': {'url': 'http://example.com/a'}}
+        br._Browser__reader.count_active_lines = MagicMock(return_value=0)
+
+        br._Browser__verify_active_scan_list_size()
+
+        br._Browser__reader.count_active_lines.assert_not_called()
+
+    def test_verify_active_scan_list_warns_when_count_fails(self):
+        """Random-list verification should warn and continue when the active list cannot be counted."""
+
+        br = self.make_browser(is_random_list=True)
+        br._Browser__reader.count_active_lines = MagicMock(side_effect=TypeError('bad count'))
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__verify_active_scan_list_size()
+
+        warning_mock.assert_called_once()
+        self.assertIn('Unable to verify active scan list size', warning_mock.call_args.kwargs['msg'])
+
+    def test_warn_if_scan_finished_early_returns_when_all_items_were_submitted(self):
+        """Early-finish guard should stay silent when submitted count reaches the planned count."""
+
+        br = self.make_browser()
+        br._Browser__pool.submitted_size = 3
+        br._Browser__pool.total_items_size = 3
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__warn_if_scan_finished_early()
+
+        warning_mock.assert_not_called()
+
+    def test_fingerprint_summary_private_helpers_handle_invalid_shapes(self):
+        """Fingerprint summary helpers should return unknown for invalid metadata shapes."""
+
+        self.assertEqual(Browser._Browser__build_fingerprint_stack_summary('bad'), 'unknown')
+        self.assertEqual(Browser._Browser__build_fingerprint_security_summary('bad'), 'unknown')
+        self.assertEqual(
+            Browser._Browser__build_fingerprint_security_summary({'security_headers': {'hsts': 'bad'}}),
+            'unknown',
+        )
+
+    def test_cookie_sync_handles_missing_client_or_cookie_provider(self):
+        """Cookie snapshot sync should tolerate absent clients and clients without cookie support."""
+
+        br = self.make_browser(accept_cookies=True)
+        br._Browser__client = None
+        br._Browser__shared_cookie_header = None
+
+        br._Browser__sync_shared_cookies_from_client()
+
+        self.assertIsNone(br._Browser__shared_cookie_header)
+
+        br._Browser__client = object()
+        br._Browser__sync_shared_cookies_from_client()
+
+        self.assertIsNone(br._Browser__shared_cookie_header)
+
+    def test_apply_shared_cookies_handles_empty_unsafe_and_unsupported_clients(self):
+        """Cookie replay should skip unsafe values and tolerate clients without header support."""
+
+        br = self.make_browser(accept_cookies=True)
+        br._Browser__client = None
+        br._Browser__shared_cookie_header = 'sid=1'
+
+        br._Browser__apply_shared_cookies_to_client()
+
+        br._Browser__client = MagicMock()
+        br._Browser__shared_cookie_header = ''
+        br._Browser__apply_shared_cookies_to_client()
+        br._Browser__client.add_header.assert_not_called()
+
+        br._Browser__shared_cookie_header = 'sid=1\r\nInjected: yes'
+        br._Browser__apply_shared_cookies_to_client()
+        br._Browser__client.add_header.assert_not_called()
+
+        br._Browser__client = object()
+        br._Browser__shared_cookie_header = 'sid=1'
+        br._Browser__apply_shared_cookies_to_client()
+
+    def test_waf_safe_activation_signal_scans_all_markers_without_match(self):
+        """Immediate WAF-safe detection should return False when no signal marker matches."""
+
+        br = self.make_browser()
+
+        self.assertFalse(br._Browser__is_explicit_waf_safe_activation_detection({'signals': ['plain block']}))
+
+    def test_get_header_value_falls_back_to_case_insensitive_items_iteration(self):
+        """Header lookup should support mappings where get() misses but items() preserves case."""
+
+        class HeadersWithItemsOnly(object):
+            def get(self, name):
+                return None
+
+            def items(self):
+                return [('Retry-After', '5')]
+
+        response = SimpleNamespace(headers=HeadersWithItemsOnly())
+
+        self.assertEqual(Browser._Browser__get_header_value(response, 'retry-after'), '5')
+
+    def test_dns_wildcard_match_returns_none_for_urls_without_hostname(self):
+        """DNS wildcard calibration should ignore malformed URLs that have no hostname."""
+
+        br = self.make_browser(is_auto_calibrate=True, scan='subdomains', SUBDOMAINS_SCAN='subdomains')
+        br._Browser__calibration = SimpleNamespace(has_dns_wildcard=True, match_dns_wildcard=MagicMock())
+
+        self.assertIsNone(br._Browser__match_dns_wildcard_response('not-a-url'))
+        br._Browser__calibration.match_dns_wildcard.assert_not_called()
+
+    def test_calibration_match_skips_debug_bucket(self):
+        """Auto-calibration should never suppress high-value debug findings."""
+
+        br = self.make_browser(is_auto_calibrate=True)
+        br._Browser__calibration = SimpleNamespace(match=MagicMock(return_value={'score': 1.0}))
+
+        actual = br._Browser__match_calibrated_response(object(), ('debug', 'http://example.com/error', '1KB', '500'))
+
+        self.assertIsNone(actual)
+        br._Browser__calibration.match.assert_not_called()
+
+    def test_header_bypass_skip_logs_blocked_status_when_feature_enabled(self):
+        """Header-bypass skip path should record blocked responses when probing is not applicable."""
+
+        br = self.make_browser(is_header_bypass=True)
+        br._Browser__header_bypass = SimpleNamespace(should_probe=MagicMock(return_value=False))
+
+        br._Browser__probe_header_bypass('http://example.com/admin', ('blocked', 'http://example.com/admin', '1KB', '403'))
+
+        br._Browser__debug.debug_header_bypass_skipped.assert_called_once_with(403)
+
+    def test_http_request_merges_debug_detection_metadata_into_report_item(self):
+        """HTTP request flow should keep stacktrace metadata on accepted debug findings."""
+
+        br = self.make_browser(is_recursive=False)
+        response = SimpleNamespace(
+            data=b'Traceback (most recent call last):',
+            headers={'Content-Type': 'text/plain'},
+            opendoor_debug_detection={
+                'type': 'stacktrace',
+                'runtime': 'python',
+                'signal': 'python-traceback',
+                'confidence': 95,
+            },
+        )
+        br._Browser__client.request.return_value = response
+        br._Browser__response.handle.return_value = ('debug', 'http://example.com/error', '1KB', '500')
+        br._Browser__header_bypass = SimpleNamespace(should_probe=MagicMock(return_value=False))
+        br._Browser__calibration = None
+
+        br._Browser__http_request('http://example.com/error')
+
+        self.assertEqual(
+            br._Browser__result['report_items']['debug'][0]['debug_detection'],
+            response.opendoor_debug_detection,
+        )
+
+
 class TestBrowserInitExtra(unittest.TestCase):
     """Extra init-branch coverage for Browser."""
 

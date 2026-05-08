@@ -79,7 +79,11 @@ class SqliteReportPlugin(PluginProvider):
                 'bypass_header TEXT, '
                 'bypass_value TEXT, '
                 'bypass_from_code TEXT, '
-                'bypass_to_code TEXT'
+                'bypass_to_code TEXT, '
+                'debug_detection TEXT, '
+                'debug_runtime TEXT, '
+                'debug_signal TEXT, '
+                'debug_confidence INTEGER'
                 ')'
             )
             cursor.execute(
@@ -136,6 +140,10 @@ class SqliteReportPlugin(PluginProvider):
             rows = []
             for status in self._data.get('items', {}).keys():
                 for item in self.get_report_items(status):
+                    debug_detection = item.get('debug_detection')
+                    if not isinstance(debug_detection, dict):
+                        debug_detection = {}
+
                     rows.append(
                         (
                             str(status),
@@ -147,6 +155,10 @@ class SqliteReportPlugin(PluginProvider):
                             None if item.get('bypass_value') is None else str(item.get('bypass_value')),
                             None if item.get('bypass_from_code') is None else str(item.get('bypass_from_code')),
                             None if item.get('bypass_to_code') is None else str(item.get('bypass_to_code')),
+                            None if debug_detection.get('type') is None else str(debug_detection.get('type')),
+                            None if debug_detection.get('runtime') is None else str(debug_detection.get('runtime')),
+                            None if debug_detection.get('signal') is None else str(debug_detection.get('signal')),
+                            None if debug_detection.get('confidence') is None else int(debug_detection.get('confidence')),
                         )
                     )
 
@@ -154,8 +166,9 @@ class SqliteReportPlugin(PluginProvider):
                 cursor.executemany(
                     'INSERT INTO items('
                     'status, url, code, size, '
-                    'bypass, bypass_header, bypass_value, bypass_from_code, bypass_to_code'
-                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    'bypass, bypass_header, bypass_value, bypass_from_code, bypass_to_code, '
+                    'debug_detection, debug_runtime, debug_signal, debug_confidence'
+                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     rows
                 )
 

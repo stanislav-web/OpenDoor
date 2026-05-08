@@ -49,6 +49,7 @@ class SarifReportPlugin(PluginProvider):
         'bad': 'note',
         'certificate': 'warning',
         'calibrated': 'note',
+        'debug': 'warning',
     }
     SECURITY_SEVERITY_BY_STATUS = {
         'success': '5.0',
@@ -63,6 +64,7 @@ class SarifReportPlugin(PluginProvider):
         'bad': '1.0',
         'certificate': '4.0',
         'calibrated': '0.1',
+        'debug': '5.0',
     }
     RULE_NAMES = {
         'success': 'Exposed HTTP resource',
@@ -77,6 +79,7 @@ class SarifReportPlugin(PluginProvider):
         'bad': 'Unusual HTTP response',
         'certificate': 'Certificate-related finding',
         'calibrated': 'Auto-calibrated baseline match',
+        'debug': 'Exposed debug stacktrace',
     }
 
     def __init__(self, target, data, directory=None):
@@ -293,6 +296,7 @@ class SarifReportPlugin(PluginProvider):
             'bypassUrl': item.get('bypass_url'),
             'bypassFromCode': self.maybe_int(item.get('bypass_from_code')),
             'bypassToCode': self.maybe_int(item.get('bypass_to_code')),
+            'debugDetection': item.get('debug_detection'),
         }
         properties.update(self.fingerprint_properties())
         return self.clean_properties(properties)
@@ -316,6 +320,8 @@ class SarifReportPlugin(PluginProvider):
             return 'OpenDoor detected an access bypass candidate for {0}'.format(url)
         if normalized_status == 'blocked':
             return 'OpenDoor detected a WAF-like response for {0}'.format(url)
+        if normalized_status == 'debug':
+            return 'OpenDoor detected exposed debug stacktrace details for {0}'.format(url)
         if normalized_status == 'indexof':
             return 'OpenDoor detected a directory listing candidate at {0}'.format(url)
         return 'OpenDoor classified {0} as {1}'.format(url, normalized_status)

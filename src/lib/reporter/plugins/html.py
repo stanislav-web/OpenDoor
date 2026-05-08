@@ -1400,6 +1400,7 @@ def _get_columns(items):
         'bypass_value',
         'bypass_from_code',
         'bypass_to_code',
+        'debug_detection',
     ]
 
     existing = []

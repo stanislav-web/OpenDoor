@@ -21,7 +21,7 @@ class Config(object):
 
     """Config class"""
 
-    BODY_REQUIRED_SNIFFERS = ('indexof', 'collation')
+    BODY_REQUIRED_SNIFFERS = ('indexof', 'collation', 'stacktrace')
     DEFAULT_SOCKET_TIMEOUT = 10
     DEFAULT_MIN_THREADS = 1
     DEFAULT_MAX_THREADS = 25

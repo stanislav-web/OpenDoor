@@ -19,6 +19,7 @@ v5.15.3 (xx.05.2026)
 - (fix) hardened `--sniff indexof` directory-listing detection to avoid title-only false positives while preserving Apache, nginx, IIS and generic autoindex layouts
 - (fix) validated `--retries` / wizard `retries` as a non-negative integer and normalized runtime retry values before passing them to urllib3
 - (fix) restored interactive HTML report controls by making visible URL copy, text search and status-group navigation use stable row metadata and explicit UI feedback
+- (enhancement) added `--sniff stacktrace` to detect exposed stack traces and debug error details across Python, Node.js, PHP, NestJS, Java, SQL, and Oracle responses.
 - (enhancement) detect common HTTP `Server` header engines as fingerprint infrastructure, including Nginx, Apache HTTP Server, Microsoft IIS, Caddy, LiteSpeed, lighttpd, Tornado, Gunicorn, Uvicorn, Hypercorn, Waitress, Apache Tomcat, Eclipse Jetty, Envoy and Traefik
 - (enhancement) Added clear response-level diagnostics for `--debug 3`.
 - (enhancement) prettify HTML reports make it more intelligible for UX

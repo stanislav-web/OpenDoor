@@ -112,6 +112,21 @@ class PluginProvider(object):
 
             value = '{0} | {1}'.format(value, ', '.join(details))
 
+        debug_detection = item.get('debug_detection')
+        if isinstance(debug_detection, dict):
+            details = ['debug={0}'.format(debug_detection.get('type', 'debug'))]
+
+            if debug_detection.get('runtime'):
+                details.append('runtime={0}'.format(debug_detection.get('runtime')))
+
+            if debug_detection.get('signal'):
+                details.append('signal={0}'.format(debug_detection.get('signal')))
+
+            if debug_detection.get('confidence') is not None:
+                details.append('confidence={0}%'.format(debug_detection.get('confidence')))
+
+            value = '{0} | {1}'.format(value, ', '.join(details))
+
         return value
 
     def process(self):

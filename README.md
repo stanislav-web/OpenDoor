@@ -59,6 +59,7 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - custom wordlists, prefixes, shuffling to break scan patterns and extension filters;
 - custom request headers, cookies forwarding, and raw HTTP request templates;
 - response filters by status, size, text, regex, and body length;
+- response sniffers for detecting directory listings, empty responses, known file exposures, collation errors, and exposed debug stack traces;
 - smart auto-calibration for soft-404, wildcard, catch-all, semantic response-diff, and DNS wildcard cases;
 - technology fingerprint detection for CMS, ecommerce platforms, frameworks, runtime stacks, infrastructure, and HSTS posture;
 - passive WAF detection and bypass in secure scanning mode;
@@ -254,9 +255,37 @@ opendoor \
   --include-status 200-299,301,302,403 \
   --exclude-status 404,429,500-599 \
   --exclude-size-range 0-256 \
-  --sniff skipempty,collation,indexof,file \
+  --sniff skipempty,collation,indexof,file,stacktrace \
   --reports std,json,csv,sarif
 ```
+
+### Response sniffers
+
+Response sniffers classify interesting response bodies during discovery. They are useful when status code and size are not enough to understand what was found.
+
+```bash
+opendoor \
+  --host https://example.com \
+  --method GET \
+  --sniff stacktrace,indexof,file,collation \
+  --reports std,json,csv,html,sqlite,sarif
+```
+
+Useful sniffers include:
+
+| Sniffer | Purpose |
+|---|---|
+| `stacktrace` | Detect exposed debug/runtime stack traces and internal error details. Findings are reported under the `debug` bucket with `debug_detection` metadata. |
+| `indexof` | Detect directory listing pages. |
+| `file` | Detect known sensitive file exposure patterns. |
+| `collation` | Detect database collation / SQL error responses. |
+| `skipempty` | Skip empty responses. |
+| `skipsizes=46` | Skip responses with exact known noisy sizes. |
+| `skipsizes=46:1024` | Skip responses inside a noisy size range. |
+
+Body-dependent sniffers automatically force `GET` internally when the configured method is `HEAD`.
+
+Read more: [Sniffers reference](https://opendoor.readthedocs.io/Sniffers/)
 
 ### Authenticated scan from raw request
 
