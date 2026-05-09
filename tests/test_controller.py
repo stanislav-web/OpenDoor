@@ -953,6 +953,38 @@ class TestController(unittest.TestCase):
         self.assertTrue(any('healthcheck=https://ifconfig.me' in msg for msg in messages))
         self.assertTrue(any('Network transport stopped: mode=wireguard' in msg for msg in messages))
 
+    def test_debug_transport_should_emit_path_details_at_debug_level_two(self):
+        """Controller._debug_transport() should include transport paths at debug level two."""
+
+        transport = MagicMock()
+        transport.transport = 'openvpn'
+        transport.current_profile_name = 'nl.ovpn'
+        transport.rotate_mode = 'none'
+
+        params = {
+            'debug': 2,
+            'transport_timeout': 11,
+            'transport_healthcheck_url': 'https://ifconfig.me',
+            'transport_profile': '/tmp/nl.ovpn',
+            'transport_profiles': '/tmp/profiles.txt',
+            'transport_bin': '/usr/sbin/openvpn',
+        }
+
+        with patch('src.controller.tpl.debug') as debug_mock:
+            Controller._debug_transport(params, transport, 'started')
+
+        messages = [call.kwargs.get('msg') for call in debug_mock.call_args_list]
+        self.assertTrue(any('Network transport started: mode=openvpn' in msg for msg in messages))
+        self.assertTrue(any('Network transport paths: profile=/tmp/nl.ovpn' in msg for msg in messages))
+        self.assertTrue(any('profiles=/tmp/profiles.txt' in msg for msg in messages))
+        self.assertTrue(any('bin=/usr/sbin/openvpn' in msg for msg in messages))
+
+    def test_is_debug_enabled_should_reject_invalid_debug_values(self):
+        """Controller._is_debug_enabled() should treat invalid debug values as disabled."""
+
+        self.assertFalse(Controller._is_debug_enabled({'debug': 'bad'}, level=1))
+        self.assertFalse(Controller._is_debug_enabled({'debug': object()}, level=1))
+
     def test_scan_action_should_not_emit_transport_debug_when_disabled(self):
         """Controller.scan_action() should keep transport diagnostics behind debug mode."""
 

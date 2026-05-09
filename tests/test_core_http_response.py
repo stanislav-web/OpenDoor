@@ -327,6 +327,20 @@ class TestResponse(unittest.TestCase):
 
         self.assertEqual((status, url, size, code), ('failed', 'http://example.com/admin', '0B', '301'))
 
+    def test_get_subdomain_ips_should_initialize_missing_cache(self):
+        """Response._get_subdomain_ips() should recreate cache when instance state is missing."""
+
+        cfg = self.make_cfg(scan='subdomains')
+        debug = self.make_debug(level=0)
+        response_handler = Response(cfg, debug, tpl=MagicMock())
+        delattr(response_handler, '_Response__subdomain_ip_cache')
+
+        with patch('src.core.http.response.Socket.get_ips_addresses', return_value='[127.0.0.1]') as ips_mock:
+            actual = response_handler._get_subdomain_ips('http://api.example.com/admin')
+
+        self.assertEqual(actual, '[127.0.0.1]')
+        ips_mock.assert_called_once_with('api.example.com')
+
     def test_handle_subdomain_appends_ips_and_non_status_response(self):
         """Response.handle() should append IPs for subdomain scans and handle None-status responses."""
 

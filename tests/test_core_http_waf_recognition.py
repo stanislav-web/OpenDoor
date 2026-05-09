@@ -98,6 +98,29 @@ class TestWafRecognition(unittest.TestCase):
         self.assertEqual(provider.detect('https://example.com/missing', response), 'failed')
         self.assertIsNone(provider.waf_detection)
 
+    def test_detect_should_not_classify_reflected_fortinet_path_404_as_fortiweb(self):
+        """ResponseProvider should not treat reflected request paths as FortiWeb evidence."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=404,
+            headers={
+                'Server': 'Apache',
+                'Content-Type': 'text/html',
+                'Content-Length': '206',
+            },
+            body=(
+                b'<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">'
+                b'<html><head><title>404 Not Found</title></head><body>'
+                b'<h1>Not Found</h1>'
+                b'<p>The requested URL /fortinet was not found on this server.</p>'
+                b'</body></html>'
+            ),
+        )
+
+        self.assertEqual(provider.detect('https://localhost/fortinet', response), 'failed')
+        self.assertIsNone(provider.waf_detection)
+
     def test_detect_cloudflare_cdn_301_as_redirect(self):
         """ResponseProvider should not classify passive Cloudflare CDN redirects as blocked."""
 

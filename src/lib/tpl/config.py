@@ -87,7 +87,6 @@ class Config(object):
         'redirect': 'R {url} -> {rurl}',
         'filtered_progress_notice': (
             'Progress shows processed requests, not only reported findings. '
-            'Response filters, auto-calibration or sniffers may ignore many responses; '
-            'non-reportable debug lines can be transient.'
+            'Response filters, auto-calibration or sniffers may ignore many responses.'
         ),
     }

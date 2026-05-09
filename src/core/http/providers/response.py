@@ -368,7 +368,6 @@ class ResponseProvider(object):
             ],
             'strong_body_markers': [
                 'fortiweb web application firewall',
-                'fortinet',
             ],
             'body_markers': [
                 'fortiweb',

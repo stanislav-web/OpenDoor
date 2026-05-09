@@ -614,6 +614,70 @@ class TestFilter(unittest.TestCase):
         with self.assertRaises(FilterError):
             Filter.bucket_values('success,bad bucket', key='--fail-on-bucket')
 
+    def test_filter_should_normalize_fail_on_bucket_in_normal_flow(self):
+        """Filter.filter() should normalize fail-on bucket names in normal scan mode."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'fail_on_bucket': 'success, blocked,success',
+        })
+
+        self.assertEqual(actual['fail_on_bucket'], ['success', 'blocked'])
+
+    def test_filter_should_keep_raw_request_without_headers_unmerged(self):
+        """Filter.filter() should skip raw-request header merge when no headers are present."""
+
+        with tempfile.NamedTemporaryFile('w+', delete=False, encoding='utf-8') as handle:
+            handle.write('GET https://secure.example.com/api/v1/users HTTP/1.1\n\n')
+            filepath = handle.name
+
+        try:
+            actual = Filter.filter({'raw_request': filepath})
+        finally:
+            os.unlink(filepath)
+
+        self.assertEqual(actual['host'], 'secure.example.com')
+        self.assertEqual(actual['scheme'], 'https://')
+        self.assertNotIn('header', actual)
+        self.assertNotIn('cookie', actual)
+
+    def test_filter_header_bypass_profile_should_default_empty_values_to_safe(self):
+        """Filter.header_bypass_profile() should normalize blank and null-like values to safe."""
+
+        self.assertEqual(Filter.header_bypass_profile(''), 'safe')
+        self.assertEqual(Filter.header_bypass_profile(' null '), 'safe')
+        self.assertEqual(Filter.header_bypass_profile(None), 'safe')
+
+    def test_bucket_values_should_ignore_empty_items_and_reject_empty_lists(self):
+        """Filter.bucket_values() should skip empty CSV items and reject empty results."""
+
+        self.assertEqual(Filter.bucket_values('success,, blocked,'), ['success', 'blocked'])
+
+        with self.assertRaises(FilterError):
+            Filter.bucket_values(' , , ', key='--fail-on-bucket')
+
+    def test_debug_and_session_helpers_should_cover_remaining_error_paths(self):
+        """Filter helpers should reject invalid debug levels and missing session paths."""
+
+        with self.assertRaises(FilterError):
+            Filter.debug_level(4, key='--debug')
+
+        with self.assertRaises(FilterError):
+            Filter.session_file(None, key='--session-file')
+
+    def test_filter_should_reject_transport_profiles_without_rotation_when_profile_exists(self):
+        """Filter.filter() should reject profiles lists unless per-target rotation is enabled."""
+
+        with self.assertRaises(FilterError) as ctx:
+            Filter.filter({
+                'host': 'example.com',
+                'transport': 'wireguard',
+                'transport_profile': './vpn/nl.conf',
+                'transport_profiles': './vpn/profiles.txt',
+            })
+
+        self.assertIn('--transport-profiles requires --transport-rotate per-target', str(ctx.exception))
+
     def test_filter_should_keep_fail_on_bucket_with_session_load(self):
         """Filter.filter() should preserve invocation-level CI policy for session resume."""
 
