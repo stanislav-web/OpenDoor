@@ -1,0 +1,4 @@
+name: "OpenDoor CodeQL config"
+
+paths-ignore:
+  - "tests/**"
