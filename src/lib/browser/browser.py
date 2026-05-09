@@ -205,7 +205,7 @@ class Browser(Filter):
             self.__verify_active_scan_list_size()
 
             tpl.info(key='scanning', host=self.__config.host)
-
+            self.__warn_filtered_progress_mode()
             self.__start_request_provider()
 
             if self.__session_snapshot is not None and len(self.__pending_requests) > 0:
@@ -1767,6 +1767,20 @@ class Browser(Filter):
         self.__pending_requests.pop(key, None)
         self.__completed_requests.add(key)
         self.__mark_session_dirty()
+
+    def __warn_filtered_progress_mode(self):
+        """
+        Warn when scan progress can look sparse because filtering/reporting is enabled.
+
+        :return: None
+        """
+
+        if True is not getattr(self.__config, 'is_response_filtering', False) \
+                and True is not getattr(self.__config, 'is_auto_calibrate', False) \
+                and True is not getattr(self.__config, 'is_sniff', False):
+            return
+
+        tpl.warning(key='filtered_progress_notice')
 
     def __build_session_snapshot(self, reason='periodic'):
         """Build a serializable checkpoint snapshot."""

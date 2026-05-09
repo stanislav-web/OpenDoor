@@ -84,5 +84,10 @@ class Config(object):
         'header_bypass_probing': 'Header bypass probing: status={status}, variants={variants}',
         'header_bypass_candidate': 'Header bypass candidate: {header} changed {from_code} -> {to_code}',
         'header_bypass_finished': 'Header bypass finished: no promising variants',
-        'redirect': 'R {url} -> {rurl}'
+        'redirect': 'R {url} -> {rurl}',
+        'filtered_progress_notice': (
+            'Progress shows processed requests, not only reported findings. '
+            'Response filters, auto-calibration or sniffers may ignore many responses; '
+            'non-reportable debug lines can be transient.'
+        ),
     }
