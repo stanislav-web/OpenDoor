@@ -923,6 +923,7 @@ class TestOptions(unittest.TestCase):
             transport_rotate='none',
             transport_timeout=20,
             transport_healthcheck_url='https://example.com/ip',
+            transport_bin='openvpn',
             openvpn_auth='./auth.txt',
         )
         option = self.make_options(namespace)
@@ -936,6 +937,7 @@ class TestOptions(unittest.TestCase):
             'transport_rotate': 'none',
             'transport_timeout': 20,
             'transport_healthcheck_url': 'https://example.com/ip',
+            'transport_bin': 'openvpn',
             'openvpn_auth': '/abs/auth.txt',
         }
 
@@ -950,6 +952,7 @@ class TestOptions(unittest.TestCase):
             'transport_rotate': 'none',
             'transport_timeout': 20,
             'transport_healthcheck_url': 'https://example.com/ip',
+            'transport_bin': 'openvpn',
             'openvpn_auth': './auth.txt',
         })
 

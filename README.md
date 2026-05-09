@@ -62,6 +62,7 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - response sniffers for detecting directory listings, empty responses, known file exposures, collation errors, and exposed debug stack traces;
 - smart auto-calibration for soft-404, wildcard, catch-all, semantic response-diff, and DNS wildcard cases;
 - technology fingerprint detection for CMS, ecommerce platforms, frameworks, runtime stacks, infrastructure, and HSTS posture;
+- passive privacy-risk checks in `--fingerprint`, including possible HSTS, ETag/cache, and persistent-cookie supercookie surfaces.
 - passive WAF detection and bypass in secure scanning mode;
 - controlled header and path bypass probes for blocked `401` and `403` resources;
 - resumable scan sessions with checkpoint autosave for long term scans;
@@ -90,6 +91,7 @@ OpenDoor focuses on **context-aware discovery** instead of blind enumeration.
 | **Multi-signal auto-calibration** | OpenDoor does not rely only on status code or response size. It compares multiple response signals such as body hashes, visible text, semantic soft-404 phrases, DOM-token structure, titles, redirects, stable headers, word count, line count, text density, normalized dynamic tokens, and DNS wildcard baselines to reduce soft-404 and wildcard false positives. |
 | **Transport-level workflows** | OpenDoor supports direct, proxy, OpenVPN, and WireGuard transport modes. It can also rotate transport profiles per target in authorized batch scans, which is not the same as manually starting a VPN before running a scanner. |
 | **Resumable long scans** | OpenDoor can save scan checkpoints and resume later. This matters when scans are interrupted by crashes, unstable networks, blocked routes, terminal disconnects, or long multi-target jobs. |
+| **Runtime pause/resume** | Press `Ctrl+C` once during a scan to pause workers, then choose `C` to continue or `E` to abort without involving session files. |
 | **CI/CD-ready results** | OpenDoor can return a failing exit code only when selected result buckets are found, making it usable as a release gate or exposure regression check without custom post-processing scripts. |
 | **Auditable engineering** | OpenDoor is maintained with multi-platform CI, coverage checks, package checks, documentation builds, and a large unittest suite, making it easier to audit, contribute to, and depend on. |
 
@@ -363,6 +365,18 @@ opendoor \
   --transport openvpn \
   --transport-profile ./profile.ovpn
 ```
+
+If OpenVPN is installed outside `PATH`, pass the backend explicitly:
+
+```bash
+opendoor \
+  --host https://example.com \
+  --transport openvpn \
+  --transport-profile ./profile.ovpn \
+  --transport-bin /opt/homebrew/sbin/openvpn
+```
+
+On Windows, `--transport-bin` can point to `C:\Program Files\OpenVPN\bin\openvpn.exe`. If a GUI client or corporate VPN agent already owns the tunnel, start that VPN outside OpenDoor and run OpenDoor in direct mode.
 
 ### WireGuard transport
 

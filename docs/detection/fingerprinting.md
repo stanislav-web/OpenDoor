@@ -23,6 +23,9 @@ Fingerprinting can help identify probable:
 - hosting platforms;
 - infrastructure providers;
 - CDN or edge infrastructure signals.
+- long-lived HSTS policy combined with first-party subdomain fan-out;
+- persistent ETag/cache validators with long cache lifetime;
+- long-lived identifier-like cookies.
 
 This helps you choose better wordlists, filters, and scan strategy.
 

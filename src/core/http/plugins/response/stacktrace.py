@@ -81,6 +81,27 @@ class StacktraceResponsePlugin(ResponsePluginProvider):
             'pattern': re.compile(r'PHP\s+(Fatal\s+error|Warning|Parse\s+error|Notice)', re.IGNORECASE),
         },
         {
+            'runtime': 'mysql',
+            'signal': 'mysql-error',
+            'confidence': 90,
+            'pattern': re.compile(
+                r'mysql_(connect|query|fetch_array|fetch_assoc|fetch_row|fetch_object|'
+                r'close|select_db|real_connect|prepare|execute|'
+                r'num_rows|affected_rows|error|errno|'
+                r'pconnect|real_query|store_result|use_result)\s*\(.*?\)',
+                re.IGNORECASE
+            ),
+        },
+        {
+            'runtime': 'pdo',
+            'signal': 'pdo-exception',
+            'confidence': 90,
+            'pattern': re.compile(
+                r'(?:PDOException|PDO::\w+)\s*[:\\(]?\s*(?:SQLSTATE\[[A-Z0-9]+\])?',
+                re.IGNORECASE
+            ),
+        },
+        {
             'runtime': 'java',
             'signal': 'java-exception',
             'confidence': 90,

@@ -392,6 +392,9 @@ class Controller(object):
         if params.get('transport_healthcheck_url') is not None:
             overrides['transport_healthcheck_url'] = params.get('transport_healthcheck_url')
 
+        if params.get('transport_bin') is not None:
+            overrides['transport_bin'] = params.get('transport_bin')
+
         if params.get('openvpn_auth') is not None:
             overrides['openvpn_auth'] = params.get('openvpn_auth')
 
@@ -549,9 +552,10 @@ class Controller(object):
         ))
 
         if cls._is_debug_enabled(params, level=2) is True:
-            tpl.debug(msg='Network transport paths: profile={0} profiles={1}'.format(
+            tpl.debug(msg='Network transport paths: profile={0} profiles={1} bin={2}'.format(
                 params.get('transport_profile') or '-',
-                params.get('transport_profiles') or '-'
+                params.get('transport_profiles') or '-',
+                params.get('transport_bin') or '-'
             ))
 
     @staticmethod

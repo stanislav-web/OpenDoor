@@ -719,3 +719,12 @@ Do not commit:
 - authenticated cookies;
 - bearer tokens;
 - customer-specific target lists.
+
+
+Optional executable override:
+
+```ini
+transport_bin = /opt/homebrew/sbin/openvpn
+```
+
+On Windows, point it to `openvpn.exe` when the OpenVPN installer did not add it to `PATH`. If the VPN is managed by a GUI app or a corporate agent, keep `transport = direct` and start the VPN outside OpenDoor.

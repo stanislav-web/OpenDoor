@@ -45,10 +45,30 @@ With `--debug 1`, OpenDoor also reports the header-bypass lifecycle: enabled con
 | Option | Purpose |
 |---|---|
 | `--header-bypass` | Enable controlled header-bypass probes |
+| `--header-bypass-profile` | Probe profile: `safe` or `offensive` |
 | `--header-bypass-headers` | Comma-separated header names to test |
 | `--header-bypass-ips` | Comma-separated trusted IP values for trusted-IP style headers |
 | `--header-bypass-status` | Comma-separated status codes or ranges that trigger probes |
 | `--header-bypass-limit` | Maximum probe variants per blocked URL; `0` means unlimited |
+
+---
+
+## Offensive profile
+
+The default `safe` profile keeps the stable header family. The `offensive` profile is still opt-in and controlled, but adds extended proxy/CDN/client-IP headers, method-override headers, scheme/HTTPS forwarding headers, and additional trusted IP values. It also benefits from the same path-normalization probes and variant limit.
+
+```shell
+opendoor \
+  --host https://example.com \
+  --method GET \
+  --waf-detect \
+  --header-bypass \
+  --header-bypass-profile offensive \
+  --header-bypass-limit 96 \
+  --reports std,json,csv,html,sqlite,sarif
+```
+
+Use this only on systems you own or have explicit permission to test. Keep a finite limit for normal use; use `--header-bypass-limit 0` only when you intentionally want all generated variants.
 
 ---
 
@@ -101,7 +121,7 @@ opendoor \
   --header-bypass-headers X-Original-URL,X-Rewrite-URL,X-Forwarded-For,X-Real-IP
 ```
 
-OpenDoor supports path-based, host/origin, trusted-IP, and URL-style header families.
+OpenDoor supports path-based, host/origin, trusted-IP, URL-style, method-override, scheme and HTTPS-forwarding header families. The extended families are available through `--header-bypass-profile offensive` unless you explicitly list them with `--header-bypass-headers`.
 
 ---
 

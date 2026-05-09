@@ -19,7 +19,7 @@
 import threading
 import time
 from queue import Empty as QueueEmptyError
-from threading import BoundedSemaphore, Event
+from threading import Event
 
 from src.core import process
 # noinspection PyPep8Naming
@@ -39,7 +39,6 @@ class Worker(threading.Thread):
         """
 
         super(Worker, self).__init__()
-        self.__semaphore = BoundedSemaphore(num_threads)
         self.__event = Event()
         self.__event.set()
         self.__empty = False
@@ -54,20 +53,24 @@ class Worker(threading.Thread):
 
     def pause(self):
         """
-        Pause current worker
+        Pause current worker before it starts the next queued task.
+
+        A pause must not mark the worker as stopped. The worker may currently be
+        processing a request; after that request finishes it will block on the
+        event until the pool resumes it.
+
         :return: None
         """
 
-        self.__running = False
         self.__event.clear()
 
     def resume(self):
         """
-        Resume current worker
+        Resume current worker.
+
         :return: None
         """
 
-        self.__running = True
         self.__event.set()
 
     def run(self):
@@ -78,9 +81,9 @@ class Worker(threading.Thread):
 
         try:
 
-            self.__event.wait()
-
             while self.__running:
+
+                self.__event.wait()
 
                 if 0 < self.__timeout:
                     time.sleep(self.__timeout)
@@ -90,10 +93,6 @@ class Worker(threading.Thread):
                 except QueueEmptyError:
                     self.__empty = True
 
-                finally:
-                    if not self.__event.is_set():
-                        self.__semaphore.release()
-                        self.__event.wait()
         except Exception as error:
             self.terminate(str(error))
 

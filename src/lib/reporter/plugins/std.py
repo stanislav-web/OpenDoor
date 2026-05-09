@@ -85,5 +85,20 @@ class StdReportPlugin(PluginProvider):
                     ('hsts_preload_ready', hsts.get('preload_ready', False)),
                 ]
 
+            supercookie = fingerprint.get('privacy_risks', {}).get('supercookie', {})
+            if isinstance(supercookie, dict) and len(supercookie) > 0:
+                data += [
+                    ('privacy_supercookie_risk', supercookie.get('risk', 'none')),
+                    ('privacy_supercookie_score', supercookie.get('score', 0)),
+                    ('privacy_supercookie_hsts', supercookie.get('hsts_tracking_surface', False)),
+                    ('privacy_supercookie_etag', supercookie.get('etag_tracking_surface', False)),
+                    ('privacy_supercookie_cache', supercookie.get('cache_tracking_surface', False)),
+                    ('privacy_supercookie_cookie', supercookie.get('persistent_cookie_surface', False)),
+                ]
+
+                warnings = supercookie.get('warnings')
+                if isinstance(warnings, (list, tuple)) and len(warnings) > 0:
+                    data += [('privacy_supercookie_warnings', len(warnings))]
+
         title = 'Statistics ({0})'.format(self._target)
         sys.writeln(tabulate(data, headers=[title, 'Summary'], tablefmt="psql"))

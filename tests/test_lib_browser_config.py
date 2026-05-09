@@ -435,6 +435,7 @@ class TestBrowserConfig(unittest.TestCase):
             'transport_rotate': 'per-target',
             'transport_timeout': 15,
             'transport_healthcheck_url': 'https://example.com/ip',
+            'transport_bin': '/usr/bin/wg-quick',
             'openvpn_auth': '/tmp/auth.txt',
         })
 
@@ -444,6 +445,7 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(config.transport_rotate, 'per-target')
         self.assertEqual(config.transport_timeout, 15)
         self.assertEqual(config.transport_healthcheck_url, 'https://example.com/ip')
+        self.assertEqual(config.transport_bin, '/usr/bin/wg-quick')
         self.assertEqual(config.openvpn_auth, '/tmp/auth.txt')
 
     def test_config_should_default_to_direct_transport(self):
@@ -457,6 +459,7 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(config.transport_rotate, 'none')
         self.assertEqual(config.transport_timeout, 30)
         self.assertIsNone(config.transport_healthcheck_url)
+        self.assertIsNone(config.transport_bin)
         self.assertIsNone(config.openvpn_auth)
 
 class TestBrowserConfigDefensiveCopies(unittest.TestCase):

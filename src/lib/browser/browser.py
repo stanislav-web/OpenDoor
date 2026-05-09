@@ -85,6 +85,7 @@ class Browser(Filter):
             self.__session_dirty = False
             self.__completed_requests = set()
             self.__pending_requests = {}
+            self.__seen_scan_urls = set()
             self.__processed_offset = 0
             self.__session_snapshot = params.get('session_snapshot')
             self.__waf_safe_lock = threading.RLock()
@@ -417,6 +418,38 @@ class Browser(Filter):
         for line in cls.__render_fingerprint_summary_lines(fingerprint):
             tpl.info(msg=line)
 
+    @classmethod
+    def __print_privacy_risk_warnings(cls, fingerprint):
+        """
+        Print medium/high privacy-risk warnings found during fingerprinting.
+
+        :param dict fingerprint: fingerprint result
+        :return: None
+        """
+
+        if not isinstance(fingerprint, dict):
+            return
+
+        privacy_risks = fingerprint.get('privacy_risks')
+        if not isinstance(privacy_risks, dict):
+            return
+
+        supercookie = privacy_risks.get('supercookie')
+        if not isinstance(supercookie, dict):
+            return
+
+        risk = str(supercookie.get('risk', 'none')).lower()
+        if risk not in ('medium', 'high'):
+            return
+
+        warnings = supercookie.get('warnings')
+        if not isinstance(warnings, (list, tuple)):
+            return
+
+        for warning in warnings:
+            if warning:
+                tpl.warning(msg='Possible supercookie tracking surface: {0}'.format(warning))
+
     def fingerprint(self):
         """
         Run heuristic technology fingerprinting before the main scan.
@@ -454,6 +487,7 @@ class Browser(Filter):
             )
 
             self.__print_fingerprint_summary(result)
+            self.__print_privacy_risk_warnings(result)
 
             if result.get('signals'):
                 evidence = ', '.join([signal.get('value', '') for signal in result.get('signals', [])[:4]])
@@ -1527,6 +1561,52 @@ class Browser(Filter):
         path = helper.parse_url(url).path.strip("/")
         return path in self.__reader.get_ignored_list()
 
+    def __is_subdomains_scan(self):
+        """
+        Return True when the active scan mode is subdomain enumeration.
+
+        :return: bool
+        """
+
+        config = getattr(self, '_Browser__config', None)
+        return getattr(config, 'scan', None) == getattr(config, 'SUBDOMAINS_SCAN', 'subdomains')
+
+    def __shrink_planned_total_for_deduplicated_url(self):
+        """
+        Keep planned scan totals aligned when a duplicate subdomain candidate is dropped.
+
+        :return: None
+        """
+
+        try:
+            submitted = int(getattr(self.__pool, 'submitted_size', 0))
+            planned = int(getattr(self.__pool, 'total_items_size', 0))
+        except (TypeError, ValueError):
+            return
+
+        self.__pool.total_items_size = max(submitted, planned - 1)
+
+    def __deduplicate_scan_url(self, url):
+        """
+        Skip duplicate subdomain candidates before they reach the HTTP queue.
+
+        Directory scans intentionally keep their previous behavior.
+
+        :param str url: candidate request URL
+        :return: bool
+        """
+
+        if self.__is_subdomains_scan() is not True:
+            return True
+
+        key = str(url).strip()
+        if key in self.__seen_scan_urls:
+            self.__shrink_planned_total_for_deduplicated_url()
+            return False
+
+        self.__seen_scan_urls.add(key)
+        return True
+
     def _add_urls(self, urllist):
         """
         Add received urllist to threadpool
@@ -1540,6 +1620,9 @@ class Browser(Filter):
         try:
 
             for url in urllist:
+                if self.__deduplicate_scan_url(url) is not True:
+                    continue
+
                 if False is self.__is_ignored(url):
                     if self.__register_pending_request(url, 0):
                         self.__pool.add(self.__http_request, url, 0)
@@ -1588,6 +1671,8 @@ class Browser(Filter):
                 item['dns_wildcard_addresses'] = list(metadata.get('dns_wildcard_addresses'))
             if metadata.get('bypass'):
                 item['bypass'] = metadata.get('bypass')
+            if metadata.get('bypass_profile'):
+                item['bypass_profile'] = metadata.get('bypass_profile')
             if metadata.get('bypass_header'):
                 item['bypass_header'] = metadata.get('bypass_header')
             if metadata.get('bypass_value'):
@@ -1596,10 +1681,18 @@ class Browser(Filter):
                 item['bypass_variant'] = metadata.get('bypass_variant')
             if metadata.get('bypass_url'):
                 item['bypass_url'] = metadata.get('bypass_url')
+            if metadata.get('bypass_from_status'):
+                item['bypass_from_status'] = metadata.get('bypass_from_status')
+            if metadata.get('bypass_to_status'):
+                item['bypass_to_status'] = metadata.get('bypass_to_status')
             if metadata.get('bypass_from_code') is not None:
                 item['bypass_from_code'] = str(metadata.get('bypass_from_code'))
             if metadata.get('bypass_to_code') is not None:
                 item['bypass_to_code'] = str(metadata.get('bypass_to_code'))
+            if metadata.get('bypass_score') is not None:
+                item['bypass_score'] = int(metadata.get('bypass_score'))
+            if metadata.get('bypass_reasons'):
+                item['bypass_reasons'] = list(metadata.get('bypass_reasons'))
             if isinstance(metadata.get('debug_detection'), dict):
                 item['debug_detection'] = dict(metadata.get('debug_detection'))
 
@@ -1760,6 +1853,8 @@ class Browser(Filter):
             'calibration_samples': getattr(self.__config, 'calibration_samples', None),
             'calibration_threshold': getattr(self.__config, 'calibration_threshold', None),
             'header_bypass': getattr(self.__config, 'is_header_bypass', False),
+            'header_bypass_profile': getattr(self.__config, 'header_bypass_profile', None)
+            if getattr(self.__config, 'is_header_bypass', False) is True else None,
             'header_bypass_headers': ','.join(getattr(self.__config, 'header_bypass_headers', []))
             if getattr(self.__config, 'is_header_bypass', False) is True else None,
             'header_bypass_ips': ','.join(getattr(self.__config, 'header_bypass_ips', []))
@@ -1803,12 +1898,19 @@ class Browser(Filter):
         self.__queued_recursive = set(snapshot.get('queuedRecursive', []))
         self.__completed_requests = set(snapshot.get('seen', []))
         self.__pending_requests = {}
+        self.__seen_scan_urls = {
+            str(item).split('::', 1)[1]
+            for item in self.__completed_requests
+            if '::' in str(item)
+        }
 
         for item in snapshot.get('pending', []):
             self.__pending_requests[self.__task_key(item.get('url'), item.get('depth', 0))] = {
                 'url': item.get('url'),
                 'depth': int(item.get('depth', 0))
             }
+            if item.get('url') is not None:
+                self.__seen_scan_urls.add(str(item.get('url')))
 
         self.__processed_offset = int(snapshot.get('stats', {}).get('processed', 0))
         saved_total = int(snapshot.get('stats', {}).get('total_items', self.__pool.total_items_size))
@@ -1899,6 +2001,9 @@ class Browser(Filter):
 
         if not hasattr(self, '_Browser__pending_requests'):
             self.__pending_requests = {}
+
+        if not hasattr(self, '_Browser__seen_scan_urls'):
+            self.__seen_scan_urls = set()
 
         if not hasattr(self, '_Browser__processed_offset'):
             self.__processed_offset = 0

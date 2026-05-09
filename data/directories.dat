@@ -17716,6 +17716,7 @@ ajax/adm
 ajax/adm.php
 ajax/admin
 ajax/admin.php
+ajax/api
 ajax/data
 ajax_
 ajax_action.php
@@ -19544,6 +19545,7 @@ api/job
 api/jolokia/read
 api/js_session_data
 api/jsjishigou.js
+api/json
 api/jsonws
 api/jsonws/invoke
 api/jsonwsinvoke
@@ -19697,6 +19699,7 @@ api/resource/DocType
 api/resource/Error Log
 api/resource/User
 api/responder
+api/rest
 api/RevenueByStar/getRevenueByStar
 api/rgw/bucket
 api/rgw/user
@@ -19930,6 +19933,7 @@ api/silenceclear
 api/silenceget
 api/singleclient
 api/snapshots
+api/soap
 api/spec/swagger.json
 api/spec/swagger.yaml
 api/specswagger.json
@@ -20556,6 +20560,7 @@ api/webservices/list
 api/wechat
 api/wechat/LiveBroad
 api/whoami
+api/xml
 api_console
 api_docs
 api_error.php
@@ -20972,11 +20977,13 @@ appengine-generated
 apperror.aspx
 appfluent
 appform
+appgs
 appideas
 appieshost
 appiesnet
 appindex
 AppInstallStatusServlet
+appio
 appkibana
 appl
 applanguages
@@ -23819,6 +23826,7 @@ backup.bak.csv
 backup.cfg
 backup.conf
 backup.dat
+backup.db
 backup.html
 backup.htpasswd
 backup.inc
@@ -23869,6 +23877,7 @@ backup/.env~
 backup/backup.bak
 backup/backup.mmdb
 backup/bk.db
+backup/database
 backup/mysql/.env
 backup/res/.env
 backup/vendor/phpunit/phpunit
@@ -30169,6 +30178,8 @@ check_referrer.php
 check_reminders.php
 check_reqs.php
 check_same_name.php
+check_scripts
+check_scripts.php
 check_update.php
 check_update_buzz2.php
 check_update_buzz3.php
@@ -33454,6 +33465,7 @@ config.php.inc
 config.php.inc~
 config.php.new
 config.php.old
+config.php.orig
 config.php.sample
 config.php.save
 config.php.swp
@@ -36359,8 +36371,7 @@ cs.asp
 cs.htm
 cs.html
 cs.php
-cs/idcplg?IdcService=GET_SEARCH_RESULTS&ResultTemplate=StandardResults&ResultCount=20&FromPageUrl=/cs/idcplg?IdcService=GET_DYNAMIC_PAGEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\&PageName=indext&SortField=dInDate&SortOrder=Desc&ResultsTitle=AAA&dSecurityGroup=&QueryText=(dInDate+%3E=+%60%3C$dateCurrent(
-cs/idcplg?IdcService=GET_SEARCH_RESULTS&ResultTemplate=StandardResults&ResultCount=20&FromPageUrl=/cs/idcplg?IdcService=GET_DYNAMIC_PAGEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\&PageName=indext&SortField=dInDate&SortOrder=Desc&ResultsTitle=XXXXXXXXXXXX%3Cscript%3Ealert(31337)%3C%2Fscript%3E&dSecurityGroup=&QueryText=(dInDate+%3E=+%60%3C$dateCurrent(
+cs/idcplg
 cs_39964.aspx
 cs_40812.aspx
 cs_41000.aspx
@@ -38199,6 +38210,7 @@ database.yml_original
 database.yml~
 database.zip
 database/.env
+database/backup
 database/database
 database/databasecmd.asp
 database/databasecmd.php
@@ -38738,6 +38750,7 @@ db.yaml
 db.zip
 db/admin.php
 db/auth.php
+db/backup
 db/backup.sql
 db/CART/product_details.asp?product_id=
 db/data
@@ -39304,6 +39317,7 @@ debug/tschema
 debug/vars
 debug/vschema
 debug_error.jsp
+debug_log
 debugpprof
 debut_fileput.php
 dec
@@ -61037,6 +61051,8 @@ json.ini
 json.js
 JSON.php
 json.php
+json/api
+json/data
 json_add_device.php
 json_qrcode.php
 json_repair.php
@@ -64842,7 +64858,7 @@ Login.php
 login.php3
 login.php5
 login.php.bak
-login.php?gotopage=
+login.php
 login.phtml
 login.phyml
 Login.pl
@@ -78632,6 +78648,7 @@ password_14.php
 password_15.php
 password_16.php
 password_forgot.php
+password_forgotten.php
 password_funcs.php
 password_recup.php
 password_reset.php
@@ -80583,6 +80600,7 @@ PhpSpy.php
 PHPSPY.php
 phpsql.php
 phpSQLiteAdmin
+phpsqliteadmin
 phpSQLiteAdmin.php
 phpsso_server
 phpsso_server/caches/configsdatabase.php
@@ -91391,8 +91409,6 @@ secure/clients
 secure/comments
 secure/compliance
 secure/config
-secure/ConfigurePortalPages!default.jspa?view=popular
-secure/ConfigurePortalPages!default.jspa?view=search&searchOwnerUserName=%3Cscript%3Ealert(1)%3C/script%3E&Search=Search
 secure/console
 secure/ContactAdministrators!default.jspa
 secure/content
@@ -96510,6 +96526,7 @@ sql/administrator
 sql/administrator.php
 sql/auth
 sql/auth.php
+sql/backup
 sql/enter
 sql/enter.php
 sql/index.php
@@ -100759,6 +100776,7 @@ temp/.env
 temp/data
 temp/env/.env
 temp/files
+temp/log
 temp_docs
 temp_files
 temp_images
@@ -102823,6 +102841,7 @@ tmp/error_log
 tmp/index.php
 tmp/killer.php
 tmp/L3b.php
+tmp/log
 tmp/mad.php
 tmp/madspotshell.php
 tmp/nanoc

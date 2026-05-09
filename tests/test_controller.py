@@ -906,12 +906,14 @@ class TestController(unittest.TestCase):
                 'transport': 'openvpn',
                 'transport_profile': '/tmp/nl.ovpn',
                 'transport_rotate': 'none',
+                'transport_bin': '/usr/bin/openvpn',
                 'openvpn_auth': '/tmp/auth.txt',
             })
 
         passed_params = transport_mock.call_args[0][0]
         self.assertEqual(passed_params['transport'], 'openvpn')
         self.assertEqual(passed_params['transport_profile'], '/tmp/nl.ovpn')
+        self.assertEqual(passed_params['transport_bin'], '/usr/bin/openvpn')
         self.assertEqual(passed_params['openvpn_auth'], '/tmp/auth.txt')
 
 

@@ -177,3 +177,235 @@ class TestStacktraceDebugReportMetadata(unittest.TestCase):
         self.assertEqual(result['level'], 'warning')
         self.assertIn('exposed debug stacktrace', result['message']['text'])
         self.assertEqual(result['properties']['debugDetection'], self.debug_detection)
+
+
+class TestStacktraceMysqlDetection(unittest.TestCase):
+    """Tests for MySQL (mysql_*) stacktrace detection in reports."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.base_dir = self.temp_dir.name
+        self.target = 'mysql-debug.local'
+        self.mysql_detection = {
+            'type': 'stacktrace',
+            'runtime': 'mysql',
+            'signal': 'mysql-error',
+            'confidence': 90,
+        }
+        self.data = {
+            'items': {
+                'debug': ['https://mysql-debug.local/metrics.php'],
+            },
+            'report_items': {
+                'debug': [
+                    {
+                        'url': 'https://mysql-debug.local/metrics.php',
+                        'code': '200',
+                        'size': '4KB',
+                        'debug_detection': dict(self.mysql_detection),
+                    }
+                ],
+            },
+            'total': {'debug': 1},
+        }
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_txt_format_includes_mysql_error_summary(self):
+        """Plain text should expose mysql_error signal."""
+
+        actual = PluginProvider.format_report_item(self.data['report_items']['debug'][0])
+
+        self.assertEqual(
+            actual,
+            'https://mysql-debug.local/metrics.php - 200 - 4KB | '
+            'debug=stacktrace, runtime=mysql, signal=mysql-error, confidence=90%'
+        )
+
+    def test_csv_report_exposes_mysql_debug_columns(self):
+        """CSV should flatten mysql debug_detection."""
+
+        plugin = CsvReportPlugin(self.target, self.data, directory=self.base_dir + os.path.sep)
+        plugin.process()
+
+        report_file = os.path.join(self.base_dir, self.target, self.target + '.csv')
+        with open(report_file, 'r', newline='', encoding='utf-8') as handler:
+            rows = list(csv.DictReader(handler))
+
+        self.assertEqual(rows[0]['status'], 'debug')
+        self.assertEqual(rows[0]['debug_detection'], 'stacktrace')
+        self.assertEqual(rows[0]['debug_runtime'], 'mysql')
+        self.assertEqual(rows[0]['debug_signal'], 'mysql-error')
+        self.assertEqual(rows[0]['debug_confidence'], '90')
+
+    def test_sqlite_report_exposes_mysql_columns(self):
+        """SQLite should store mysql detection data."""
+
+        plugin = SqliteReportPlugin(self.target, self.data, directory=self.base_dir)
+        plugin.process()
+
+        database_path = os.path.join(self.base_dir, self.target, self.target + '.sqlite')
+        connection = sqlite3.connect(database_path)
+        row = connection.execute(
+            'SELECT status, debug_detection, debug_runtime, debug_signal, debug_confidence FROM items'
+        ).fetchone()
+        connection.close()
+
+        self.assertEqual(row, ('debug', 'stacktrace', 'mysql', 'mysql-error', 90))
+
+    def test_json_report_preserves_mysql_nested_object(self):
+        """JSON should keep nested mysql debug_detection."""
+
+        with patch('src.lib.reporter.plugins.json.filesystem.clear'), \
+                patch('src.lib.reporter.plugins.json.JsonReportPlugin.record') as record_mock:
+            plugin = JsonReportPlugin(self.target, self.data, directory=self.base_dir)
+            plugin.process()
+
+        payload = json.loads(record_mock.call_args.args[2])
+        self.assertEqual(
+            payload['report_items']['debug'][0]['debug_detection'],
+            self.mysql_detection
+        )
+
+    def test_sarif_report_classifies_mysql_as_debug(self):
+        """SARIF should tag mysql findings under debug rule."""
+
+        plugin = SarifReportPlugin(self.target, self.data, directory=self.base_dir)
+        sarif = plugin.build_sarif_log()
+        result = sarif['runs'][0]['results'][0]
+
+        self.assertEqual(result['ruleId'], 'opendoor.finding.debug')
+        self.assertEqual(result['properties']['debugDetection'], self.mysql_detection)
+
+
+class TestStacktracePdoDetection(unittest.TestCase):
+    """Tests for PDO (PDOException / PDO::*) stacktrace detection in reports."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.base_dir = self.temp_dir.name
+        self.target = 'pdo-debug.local'
+        self.pdo_detection = {
+            'type': 'stacktrace',
+            'runtime': 'pdo',
+            'signal': 'pdo-exception',
+            'confidence': 90,
+        }
+        self.data = {
+            'items': {
+                'debug': ['https://pdo-debug.local/api/users'],
+            },
+            'report_items': {
+                'debug': [
+                    {
+                        'url': 'https://pdo-debug.local/api/users',
+                        'code': '500',
+                        'size': '1KB',
+                        'debug_detection': dict(self.pdo_detection),
+                    }
+                ],
+            },
+            'total': {'debug': 1},
+        }
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_txt_format_includes_pdo_exception_summary(self):
+        """Plain text should expose pdo-exception signal."""
+
+        actual = PluginProvider.format_report_item(self.data['report_items']['debug'][0])
+
+        self.assertEqual(
+            actual,
+            'https://pdo-debug.local/api/users - 500 - 1KB | '
+            'debug=stacktrace, runtime=pdo, signal=pdo-exception, confidence=90%'
+        )
+
+    def test_csv_report_exposes_pdo_debug_columns(self):
+        """CSV should flatten PDO debug_detection."""
+
+        plugin = CsvReportPlugin(self.target, self.data, directory=self.base_dir + os.path.sep)
+        plugin.process()
+
+        report_file = os.path.join(self.base_dir, self.target, self.target + '.csv')
+        with open(report_file, 'r', newline='', encoding='utf-8') as handler:
+            rows = list(csv.DictReader(handler))
+
+        self.assertEqual(rows[0]['status'], 'debug')
+        self.assertEqual(rows[0]['debug_detection'], 'stacktrace')
+        self.assertEqual(rows[0]['debug_runtime'], 'pdo')
+        self.assertEqual(rows[0]['debug_signal'], 'pdo-exception')
+        self.assertEqual(rows[0]['debug_confidence'], '90')
+
+    def test_sqlite_report_exposes_pdo_columns(self):
+        """SQLite should store PDO detection data."""
+
+        plugin = SqliteReportPlugin(self.target, self.data, directory=self.base_dir)
+        plugin.process()
+
+        database_path = os.path.join(self.base_dir, self.target, self.target + '.sqlite')
+        connection = sqlite3.connect(database_path)
+        row = connection.execute(
+            'SELECT status, debug_detection, debug_runtime, debug_signal, debug_confidence FROM items'
+        ).fetchone()
+        connection.close()
+
+        self.assertEqual(row, ('debug', 'stacktrace', 'pdo', 'pdo-exception', 90))
+
+    def test_json_report_preserves_pdo_nested_object(self):
+        """JSON should keep nested PDO debug_detection."""
+
+        with patch('src.lib.reporter.plugins.json.filesystem.clear'), \
+                patch('src.lib.reporter.plugins.json.JsonReportPlugin.record') as record_mock:
+            plugin = JsonReportPlugin(self.target, self.data, directory=self.base_dir)
+            plugin.process()
+
+        payload = json.loads(record_mock.call_args.args[2])
+        self.assertEqual(
+            payload['report_items']['debug'][0]['debug_detection'],
+            self.pdo_detection
+        )
+
+    def test_html_report_renders_pdo_detection(self):
+        """HTML should include pdo-exception details."""
+
+        html = render_html_report(self.target, self.data)
+
+        self.assertIn('debug_detection', html)
+        self.assertIn('pdo-exception', html)
+        self.assertIn('pdo', html)
+
+    def test_sarif_report_classifies_pdo_as_debug(self):
+        """SARIF should tag PDO findings under debug rule."""
+
+        plugin = SarifReportPlugin(self.target, self.data, directory=self.base_dir)
+        sarif = plugin.build_sarif_log()
+        result = sarif['runs'][0]['results'][0]
+
+        self.assertEqual(result['ruleId'], 'opendoor.finding.debug')
+        self.assertEqual(result['properties']['debugDetection'], self.pdo_detection)
+
+    def test_txt_report_process_writes_pdo_bucket_file(self):
+        """TXT reporter should write PDO debug bucket lines."""
+
+        with patch('src.lib.reporter.plugins.txt.filesystem.makedir', return_value='/tmp/reports'), \
+                patch('src.lib.reporter.plugins.txt.filesystem.clear'):
+            plugin = TextReportPlugin(self.target, self.data, directory='/custom/')
+            with patch.object(plugin, 'record') as record_mock:
+                plugin.process()
+
+        record_mock.assert_called_once_with(
+            '/tmp/reports',
+            'debug',
+            [
+                'https://pdo-debug.local/api/users - 500 - 1KB | '
+                'debug=stacktrace, runtime=pdo, signal=pdo-exception, confidence=90%'
+            ],
+            '\n'
+        )
+
+
+if __name__ == '__main__':
+    unittest.main()

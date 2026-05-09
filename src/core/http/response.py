@@ -39,6 +39,7 @@ class Response(ResponseProvider):
         self.__debug = debug
         self.__config = config
         self.__tpl = kwargs.get('tpl')
+        self.__subdomain_ip_cache = {}
 
         if True is self.__config.is_sniff:
             try:
@@ -61,6 +62,27 @@ class Response(ResponseProvider):
                     self.__debug.debug_load_sniffer_plugin(plg_object.DESCRIPTION)
             except ResponsePluginError as error:
                 raise ResponsePluginError(str(error))
+
+    def _get_subdomain_ips(self, request_url):
+        """
+        Resolve and cache IP addresses rendered for subdomain scan report items.
+
+        :param str request_url: request URL
+        :return: str
+        """
+
+        hostname = helper.parse_url(request_url).hostname
+        if not hostname:
+            return ''
+
+        if not hasattr(self, '_Response__subdomain_ip_cache'):
+            self.__subdomain_ip_cache = {}
+
+        hostname = str(hostname).strip().lower()
+        if hostname not in self.__subdomain_ip_cache:
+            self.__subdomain_ip_cache[hostname] = Socket.get_ips_addresses(hostname)
+
+        return self.__subdomain_ip_cache.get(hostname, '')
 
     def handle(self, response, request_url, items_size, total_size, ignore_list):
         """
@@ -90,13 +112,13 @@ class Response(ResponseProvider):
                     if check_for_ignored in ignore_list:
                         status = 'failed'
                     if self.__config.SUBDOMAINS_SCAN == self.__config.scan:
-                        ips = Socket.get_ips_addresses(helper.parse_url(request_url).hostname)
+                        ips = self._get_subdomain_ips(request_url)
                         url = request_url = '{0} {1}'.format(request_url, ips)
                     else:
                         url = redirect_uri
                 else:
                     if self.__config.SUBDOMAINS_SCAN == self.__config.scan:
-                        ips = Socket.get_ips_addresses(helper.parse_url(request_url).hostname)
+                        ips = self._get_subdomain_ips(request_url)
                         url = request_url = '{0} {1}'.format(request_url, ips)
                     else:
                         url = request_url

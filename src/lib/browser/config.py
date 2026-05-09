@@ -58,6 +58,7 @@ class Config(object):
         self._transport_timeout = 30 if params.get('transport_timeout') is None else int(
             params.get('transport_timeout'))
         self._transport_healthcheck_url = params.get('transport_healthcheck_url')
+        self._transport_bin = params.get('transport_bin')
         self._openvpn_auth = params.get('openvpn_auth')
         self._headers = params.get('header')
         self._cookies = params.get('cookie')
@@ -74,6 +75,7 @@ class Config(object):
         self._is_waf_safe_mode = params.get('waf_safe_mode') is True
         self._is_waf_detect = params.get('waf_detect') is True or self._is_waf_safe_mode is True
         self._is_header_bypass = params.get('header_bypass') is True
+        self._header_bypass_profile = str(params.get('header_bypass_profile') or 'safe').strip().lower()
         self._header_bypass_headers = self._normalize_csv(params.get('header_bypass_headers'))
         self._header_bypass_ips = self._normalize_csv(params.get('header_bypass_ips'))
         self._header_bypass_status = self._normalize_csv(params.get('header_bypass_status'))
@@ -457,12 +459,31 @@ class Config(object):
         return self._is_header_bypass
 
     @property
+    def header_bypass_profile(self):
+        """Header-bypass probe profile."""
+
+        from .header_bypass import HeaderBypassProbe
+
+        if self._header_bypass_profile not in HeaderBypassProbe.PROFILES:
+            return HeaderBypassProbe.SAFE_PROFILE
+
+        return self._header_bypass_profile
+
+    @property
     def header_bypass_headers(self):
         """Header names used by header-injection bypass probes."""
 
         if self._header_bypass_headers is None:
             from .header_bypass import HeaderBypassProbe
-            return list(HeaderBypassProbe.DEFAULT_HEADERS)
+            headers = list(HeaderBypassProbe.DEFAULT_HEADERS)
+
+            if self.header_bypass_profile == HeaderBypassProbe.OFFENSIVE_PROFILE:
+                headers.extend([
+                    header for header in HeaderBypassProbe.OFFENSIVE_HEADERS
+                    if header.lower() not in {item.lower() for item in headers}
+                ])
+
+            return headers
 
         return [str(item).strip() for item in self._header_bypass_headers if str(item).strip()]
 
@@ -472,6 +493,10 @@ class Config(object):
 
         if self._header_bypass_ips is None:
             from .header_bypass import HeaderBypassProbe
+
+            if self.header_bypass_profile == HeaderBypassProbe.OFFENSIVE_PROFILE:
+                return list(HeaderBypassProbe.OFFENSIVE_IP_VALUES)
+
             return list(HeaderBypassProbe.DEFAULT_IP_VALUES)
 
         return [str(item).strip() for item in self._header_bypass_ips if str(item).strip()]
@@ -686,6 +711,12 @@ class Config(object):
         """Transport healthcheck URL."""
 
         return self._transport_healthcheck_url
+
+    @property
+    def transport_bin(self):
+        """Transport executable path or command name."""
+
+        return self._transport_bin
 
     @property
     def openvpn_auth(self):

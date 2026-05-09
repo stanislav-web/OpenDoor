@@ -641,6 +641,28 @@ CSV reports include dedicated columns for these fields. SQLite reports persist t
 
 ---
 
+## ⏸ Runtime Pause / Resume
+
+During a running scan, press `Ctrl+C` once to open the interactive runtime pause menu.
+
+```text
+Stopping threads (...)...
+Press "[C]ontinue" to resume or "[E]xit" to abort session:
+```
+
+Available actions:
+
+| Input | Action |
+|---|---|
+| `C` or `c` | Resume the current scan without restarting it. |
+| `Enter` | Resume the current scan. |
+| `E`, `e`, `Q`, or `q` | Abort the current scan. |
+
+This is a runtime control and does not require `--session-save` or `--session-load`.
+Sessions are still the correct tool when you need to stop the process and resume later from disk.
+
+---
+
 ## 🔁 Sessions
 
 Sessions allow long-running scans to be saved and resumed.
@@ -782,7 +804,32 @@ Supported rotation modes:
 opendoor --host https://example.com --transport-timeout 60
 ```
 
-### Transport healthcheck
+
+### Transport executable path
+
+OpenDoor is cross-platform, but VPN modes require an OS-level backend executable. OpenDoor searches `PATH` and common OS-specific locations. Use `--transport-bin` when the backend is installed elsewhere.
+
+```shell
+opendoor \
+  --host https://example.com \
+  --transport openvpn \
+  --transport-profile ./profile.ovpn \
+  --transport-bin /opt/homebrew/sbin/openvpn
+```
+
+Windows OpenVPN example:
+
+```powershell
+opendoor `
+  --host https://example.com `
+  --transport openvpn `
+  --transport-profile .\profile.ovpn `
+  --transport-bin "C:\Program Files\OpenVPN\bin\openvpn.exe"
+```
+
+If a VPN is already connected by a GUI client or corporate VPN agent, keep OpenDoor in `direct` mode. The scanner will use the active system route.
+
+### Transport health check
 
 ```shell
 opendoor \

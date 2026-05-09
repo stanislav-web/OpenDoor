@@ -121,7 +121,7 @@ class NetworkTransportManager(object):
 
         url = self.params.get('transport_healthcheck_url')
         if url is None:
-            self.__assert_adapter_running()
+            self.__wait_adapter_ready_without_healthcheck()
             return None
 
         timeout = 30 if self.params.get('transport_timeout') is None else int(self.params.get('transport_timeout'))
@@ -153,6 +153,25 @@ class NetworkTransportManager(object):
         assert_running = getattr(self.adapter, 'assert_running', None)
         if assert_running is not None:
             assert_running()
+
+    def __wait_adapter_ready_without_healthcheck(self):
+        """
+        Wait for adapters that need a short OS-route startup grace period.
+
+        Healthcheck URL remains optional. When it is absent, long-running VPN
+        backends still get a deterministic local readiness window before the
+        scanner performs its first target socket check.
+
+        :raise NetworkTransportError:
+        :return: None
+        """
+
+        wait_ready = getattr(self.adapter, 'wait_ready', None)
+        if wait_ready is None:
+            self.__assert_adapter_running()
+            return
+
+        wait_ready(timeout=30 if self.params.get('transport_timeout') is None else int(self.params.get('transport_timeout')))
 
     def __safe_stop_after_failed_start(self):
         """

@@ -33,18 +33,6 @@ class FakeWorker(object):
         self.resumed = True
 
 
-class MainThreadLike(object):
-    pass
-
-
-class BackgroundLike(object):
-    pass
-
-
-MainThreadLike.__name__ = '_MainThread'
-BackgroundLike.__name__ = 'Background'
-
-
 class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
     """TestBrowserThreadpoolWorkerExtra class."""
 
@@ -78,7 +66,7 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
             put_mock.assert_not_called()
 
     def test_add_calls_pause_on_keyboard_interrupt(self):
-        """ThreadPool.add() should sleep and pause when queue.put() is interrupted."""
+        """ThreadPool.add() should open the pause menu when queue.put() is interrupted."""
 
         with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
             pool = ThreadPool(num_threads=1, total_items=5, timeout=0)
@@ -86,11 +74,9 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         queue_mock = getattr(pool, '_ThreadPool__queue')
 
         with patch.object(queue_mock, 'put', side_effect=KeyboardInterrupt), \
-                patch('src.lib.browser.threadpool.time.sleep') as sleep_mock, \
                 patch.object(pool, 'pause') as pause_mock:
             pool.add(lambda: None)
 
-        sleep_mock.assert_called_once_with(2)
         pause_mock.assert_called_once_with()
 
     def test_threadpool_add_uses_submitted_counter_not_processed_items(self):
@@ -131,11 +117,7 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         setattr(pool, '_ThreadPool__workers', [worker])
 
         with patch('src.lib.browser.threadpool.tpl.info') as info_mock, \
-                patch('src.lib.browser.threadpool.tpl.prompt', side_effect=['x', 'c']), \
-                patch('src.lib.browser.threadpool.time.sleep'), \
-                patch('src.lib.browser.threadpool.threading.active_count', side_effect=[1, 1]), \
-                patch('src.lib.browser.threadpool.threading.enumerate', return_value=[worker]), \
-                patch('src.lib.browser.threadpool.threading.current_thread', return_value=BackgroundLike()):
+                patch('src.lib.browser.threadpool.tpl.prompt', side_effect=['x', 'c']):
             pool.pause()
 
         self.assertTrue(worker.pause.called)
@@ -150,11 +132,7 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
             pool = ThreadPool(num_threads=1, total_items=5, timeout=0)
 
         with patch('src.lib.browser.threadpool.tpl.info'), \
-                patch('src.lib.browser.threadpool.tpl.prompt', return_value='e'), \
-                patch('src.lib.browser.threadpool.time.sleep'), \
-                patch('src.lib.browser.threadpool.threading.active_count', return_value=1), \
-                patch('src.lib.browser.threadpool.threading.enumerate', return_value=[]), \
-                patch('src.lib.browser.threadpool.threading.current_thread', return_value=MainThreadLike()):
+                patch('src.lib.browser.threadpool.tpl.prompt', return_value='e'):
             with self.assertRaises(KeyboardInterrupt):
                 pool.pause()
 
@@ -165,10 +143,14 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         result = []
         worker = Worker(queue, num_threads=1, timeout=0)
 
+        event = getattr(worker, '_Worker__event')
+
         worker.pause()
-        self.assertFalse(getattr(worker, '_Worker__running'))
+        self.assertFalse(event.is_set())
+        self.assertTrue(getattr(worker, '_Worker__running'))
 
         worker.resume()
+        self.assertTrue(event.is_set())
         self.assertTrue(getattr(worker, '_Worker__running'))
 
         queue.put((result.append, ('ok',), {}))
@@ -184,32 +166,25 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         error_mock.assert_called_once_with('boom')
         kill_mock.assert_called_once_with()
 
-    def test_worker_run_sets_empty_and_releases_on_pause(self):
-        """Worker.run() should mark queue empty and release semaphore when paused."""
+    def test_worker_run_sets_empty_without_terminating_after_queue_empty(self):
+        """Worker.run() should mark queue empty without treating pause as a fatal error."""
 
         worker = Worker(Queue(1), num_threads=1, timeout=0)
         event = getattr(worker, '_Worker__event')
-        semaphore = getattr(worker, '_Worker__semaphore')
 
         def fake_process():
+            setattr(worker, '_Worker__running', False)
             raise QueueEmptyError
 
-        released = {'value': False}
-
-        def fake_release():
-            released['value'] = True
-            setattr(worker, '_Worker__running', False)
-            event.set()
-
         with patch.object(worker, '_Worker__process', side_effect=fake_process), \
-                patch.object(semaphore, 'release', side_effect=fake_release), \
                 patch.object(event, 'wait', return_value=True), \
+                patch.object(worker, 'terminate') as terminate_mock, \
                 patch('src.lib.browser.worker.time.sleep'):
             event.clear()
             worker.run()
 
         self.assertTrue(getattr(worker, '_Worker__empty'))
-        self.assertTrue(released['value'])
+        terminate_mock.assert_not_called()
 
     def test_worker_run_terminates_on_unexpected_exception(self):
         """Worker.run() should terminate on unexpected exceptions."""
@@ -353,6 +328,45 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         warning_mock.assert_not_called()
 
+    def test_threadpool_join_does_not_warn_when_recent_activity_reset_stall_timer(self):
+        """ThreadPool.join() should not warn only because the warning interval elapsed."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        queue = getattr(pool, '_ThreadPool__queue')
+        queue.put((lambda: None, ('https://example.test/slow',), {}))
+        setattr(pool, '_ThreadPool__submitted', 1)
+        setattr(pool, '_ThreadPool__workers', [type('ActiveWorker', (), {
+            'completed': 0,
+            'active_task': {
+                'label': 'https://example.test/slow',
+                'started_at': 59.0,
+            },
+        })()])
+
+        wait_calls = {'count': 0}
+
+        def wait_with_recent_activity(timeout=None):
+            self.assertEqual(timeout, pool.JOIN_POLL_INTERVAL_SEC)
+            wait_calls['count'] += 1
+
+            if wait_calls['count'] == 1:
+                worker = getattr(pool, '_ThreadPool__workers')[0]
+                worker.completed = 1
+            else:
+                queue.unfinished_tasks = 0
+
+            return True
+
+        with patch.object(queue.all_tasks_done, 'wait', side_effect=wait_with_recent_activity), \
+                patch('src.lib.browser.threadpool.time.monotonic', side_effect=[1.0, 60.0, 61.0]), \
+                patch('src.lib.browser.threadpool.tpl.warning') as warning_mock:
+            pool.join()
+
+        self.assertEqual(wait_calls['count'], 2)
+        warning_mock.assert_not_called()
+
     def test_threadpool_format_active_tasks_handles_empty_and_truncated_lists(self):
         """ThreadPool.__format_active_tasks() should render empty and truncated active task sets."""
 
@@ -375,19 +389,18 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         self.assertIn('unknown task (0s)', rendered)
         self.assertIn('+1 more', rendered)
 
-    def test_threadpool_pause_returns_immediately_when_no_threads_are_active(self):
-        """ThreadPool.pause() should not prompt when there are no active worker threads."""
+    def test_threadpool_pause_prompts_even_from_main_thread(self):
+        """ThreadPool.pause() should show the runtime menu when Ctrl+C reaches the main thread."""
 
         with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
             pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
 
-        with patch('src.lib.browser.threadpool.threading.active_count', return_value=0), \
-                patch('src.lib.browser.threadpool.tpl.prompt') as prompt_mock, \
+        with patch('src.lib.browser.threadpool.tpl.prompt', return_value='c') as prompt_mock, \
                 patch('src.lib.browser.threadpool.tpl.info'):
             pool.pause()
 
-        prompt_mock.assert_not_called()
-        self.assertFalse(pool.is_started)
+        prompt_mock.assert_called_once_with(key='option_prompt')
+        self.assertTrue(pool.is_started)
 
     def test_threadpool_resume_is_noop_when_already_started(self):
         """ThreadPool.resume() should not notify or resume workers while already started."""
@@ -404,6 +417,35 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         info_mock.assert_not_called()
         worker.resume.assert_not_called()
+
+    def test_threadpool_join_opens_pause_menu_on_keyboard_interrupt_and_continues(self):
+        """ThreadPool.join() should pause/resume instead of bubbling Ctrl+C immediately."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        queue = getattr(pool, '_ThreadPool__queue')
+        queue.put((lambda: None, (), {}))
+
+        wait_calls = {'count': 0}
+
+        def wait_or_interrupt(timeout=None):
+            self.assertEqual(timeout, pool.JOIN_POLL_INTERVAL_SEC)
+            wait_calls['count'] += 1
+
+            if wait_calls['count'] == 1:
+                raise KeyboardInterrupt
+
+            queue.unfinished_tasks = 0
+            return True
+
+        with patch.object(queue.all_tasks_done, 'wait', side_effect=wait_or_interrupt), \
+                patch.object(pool, 'pause') as pause_mock, \
+                patch('src.lib.browser.threadpool.time.monotonic', side_effect=[1.0, 2.0]):
+            pool.join()
+
+        pause_mock.assert_called_once_with()
+        self.assertEqual(wait_calls['count'], 2)
 
 
 if __name__ == '__main__':

@@ -1338,6 +1338,129 @@ class TestFingerprint(unittest.TestCase):
 
         self.assertEqual(Fingerprint._calculate_confidence(0, 0), 35)
         self.assertEqual(Fingerprint._calculate_confidence(100, 100), 98)
+
+
+    def test_should_build_base_url_with_custom_port(self):
+        """Fingerprint._build_base_url() should include non-default ports."""
+
+        config = FakeConfig(scheme='https://', port=8443)
+        detector = Fingerprint(config=config, client=self._make_client(config, {}))
+
+        self.assertEqual(detector._build_base_url(), 'https://example.com:8443/')
+
+    def test_should_extract_cookies_skip_header_without_name_value_pair(self):
+        """Fingerprint._extract_cookies() should skip Set-Cookie headers without name/value separator."""
+
+        config = FakeConfig()
+        detector = Fingerprint(config=config, client=self._make_client(config, {}))
+        response = FakeResponse(200, 'ok', {'Set-Cookie': 'HttpOnly; Path=/'})
+
+        self.assertEqual(detector._extract_cookies(response), [])
+
+    def test_should_apply_extended_header_signature_match_and_mismatch(self):
+        """Fingerprint extended header rules should cover required header value matching."""
+
+        mismatch = Fingerprint(config=FakeConfig(), client=self._make_client(FakeConfig(), {}))
+        mismatch._apply_extended_cms_catalog_rules(
+            body_lower='',
+            headers={'x-generator': 'drupal'},
+            cookies=[],
+            generator='',
+        )
+        self.assertNotIn('Sitecore', [candidate['name'] for candidate in mismatch._build_candidates()])
+
+        matched = Fingerprint(config=FakeConfig(), client=self._make_client(FakeConfig(), {}))
+        matched._apply_extended_cms_catalog_rules(
+            body_lower='',
+            headers={'x-generator': 'sitecore xp'},
+            cookies=[],
+            generator='',
+        )
+        self.assertIn('Sitecore', [candidate['name'] for candidate in matched._build_candidates()])
+
+
+    def test_should_ignore_progress_callback_errors(self):
+        """Fingerprint._emit_progress() should ignore callback type errors."""
+
+        def broken_callback(_current, _total, _label):
+            raise TypeError('bad callback')
+
+        detector = Fingerprint(
+            config=FakeConfig(),
+            client=self._make_client(FakeConfig(), {}),
+            progress_callback=broken_callback,
+        )
+
+        self.assertIsNone(detector._emit_progress(1, 2, 'root'))
+
+    def test_should_return_default_when_root_request_fails_with_progress_callback(self):
+        """Fingerprint.detect() should finish progress and return default on missing root response."""
+
+        events = []
+        class NoneClient(object):
+            def request(self, _url):
+                return None
+
+        config = FakeConfig()
+        detector = Fingerprint(
+            config=config,
+            client=NoneClient(),
+            progress_callback=lambda current, total, label: events.append((current, total, label)),
+        )
+
+        result = detector.detect()
+
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertEqual(result['runtime']['name'], 'unknown')
+        self.assertEqual(events[-1][2], 'done')
+
+    def test_should_cover_remaining_hsts_grades(self):
+        """Fingerprint._build_hsts_result() should cover invalid, disabled, moderate and good HSTS grades."""
+
+        cases = [
+            ({'strict-transport-security': 'includeSubDomains'}, 'invalid', 'missing_max_age'),
+            ({'strict-transport-security': 'max-age=0; includeSubDomains'}, 'disabled', 'disabled'),
+            ({'strict-transport-security': 'max-age=16000000; includeSubDomains'}, 'moderate', 'max_age_below_preload_minimum'),
+            ({'strict-transport-security': 'max-age=31536000'}, 'good', 'missing_include_subdomains'),
+        ]
+
+        for headers, expected_grade, expected_warning in cases:
+            with self.subTest(expected_grade=expected_grade):
+                result = Fingerprint._build_hsts_result(
+                    headers=headers,
+                    base_url='https://example.com/',
+                    final_root_url='https://example.com/',
+                )
+
+                self.assertEqual(result['grade'], expected_grade)
+                self.assertIn(expected_warning, result['warnings'])
+
+    def test_should_parse_hsts_max_age_invalid_values_as_none(self):
+        """Fingerprint._parse_hsts_max_age() should reject invalid and negative max-age values."""
+
+        self.assertIsNone(Fingerprint._parse_hsts_max_age('invalid'))
+        self.assertIsNone(Fingerprint._parse_hsts_max_age('-1'))
+
+    def test_should_skip_extended_header_signature_when_value_mismatches(self):
+        """Fingerprint extended header rules should ignore headers with mismatched required values."""
+
+        detector = Fingerprint(config=FakeConfig(), client=self._make_client(FakeConfig(), {}))
+
+        detector._apply_extended_cms_catalog_rules(
+            body_lower='',
+            headers={'x-powered-cms': 'not-bitrix'},
+            cookies=[],
+            generator='',
+        )
+
+        self.assertNotIn('Bitrix', [candidate['name'] for candidate in detector._build_candidates()])
+
+    def test_should_detect_php_runtime_from_final_url_route_marker(self):
+        """Fingerprint._has_php_route_marker() should detect PHP markers in the final URL."""
+
+        self.assertTrue(Fingerprint._has_php_route_marker('', 'https://example.com/read.php?id=1'))
+
+
 class TestFingerprintHstsSecurityHeaders(unittest.TestCase):
     """HSTS security-header fingerprint coverage."""
 

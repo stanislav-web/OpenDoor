@@ -486,6 +486,96 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(result['total']['ignored'], 1)
         self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
 
+    def test_add_urls_deduplicates_subdomain_candidates_before_queueing(self):
+        """Browser._add_urls() should skip duplicate subdomain URLs before HTTP queueing."""
+
+        br = self.make_browser()
+        config = self.browser_configuration({'host': 'example.com', 'scan': 'subdomains', 'reports': 'std'})
+        pool = SimpleNamespace(
+            total_items_size=3,
+            submitted_size=0,
+            add=MagicMock(),
+            join=MagicMock(),
+        )
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        type(reader).total_lines = property(lambda _self: 3)
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        br._add_urls([
+            'http://api.example.com',
+            'http://api.example.com',
+            'http://admin.example.com',
+        ])
+
+        self.assertEqual(pool.add.call_count, 2)
+        self.assertEqual(pool.total_items_size, 2)
+        self.assertEqual(
+            [call.args[1] for call in pool.add.call_args_list],
+            ['http://api.example.com', 'http://admin.example.com']
+        )
+        pool.join.assert_called_once_with()
+
+    def test_add_urls_does_not_shrink_directory_scan_totals_for_duplicate_urls(self):
+        """Browser._add_urls() should keep directory scan totals compatible with previous behavior."""
+
+        br = self.make_browser()
+        pool = SimpleNamespace(
+            total_items_size=2,
+            submitted_size=0,
+            add=MagicMock(),
+            join=MagicMock(),
+        )
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        type(reader).total_lines = property(lambda _self: 2)
+
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        br._add_urls([
+            'http://example.com/admin',
+            'http://example.com/admin',
+        ])
+
+        self.assertEqual(pool.add.call_count, 1)
+        self.assertEqual(pool.total_items_size, 2)
+        pool.join.assert_called_once_with()
+
+    def test_add_urls_deduplicates_subdomain_ignored_candidate_once(self):
+        """Browser._add_urls() should report a duplicated ignored subdomain candidate only once."""
+
+        br = self.make_browser()
+        config = self.browser_configuration({'host': 'example.com', 'scan': 'subdomains', 'reports': 'std'})
+        pool = SimpleNamespace(
+            total_items_size=2,
+            submitted_size=0,
+            add=MagicMock(),
+            join=MagicMock(),
+        )
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = ['admin']
+        type(reader).total_lines = property(lambda _self: 2)
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._add_urls([
+                'http://admin.example.com/admin',
+                'http://admin.example.com/admin',
+            ])
+
+        pool.add.assert_not_called()
+        self.assertEqual(pool.total_items_size, 1)
+        self.assertEqual(getattr(br, '_Browser__result')['total']['ignored'], 1)
+        warning_mock.assert_called_once()
+        pool.join.assert_called_once_with()
+
     def test_add_urls_propagates_keyboard_interrupt(self):
         """Browser._add_urls() should re-raise KeyboardInterrupt from the pool layer."""
 

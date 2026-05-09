@@ -42,6 +42,7 @@ class Filter(object):
     TRANSPORTS = ('direct', 'proxy', 'openvpn', 'wireguard')
     TRANSPORT_ROTATES = ('none', 'per-target')
     VPN_TRANSPORTS = ('openvpn', 'wireguard')
+    HEADER_BYPASS_PROFILES = ('safe', 'offensive')
 
     @staticmethod
     def filter(args):
@@ -78,6 +79,12 @@ class Filter(object):
 
             if args.get('header_bypass') is True:
                 filtered['header_bypass'] = True
+
+            if args.get('header_bypass_profile') is not None:
+                filtered['header_bypass_profile'] = Filter.header_bypass_profile(
+                    args.get('header_bypass_profile'),
+                    key='--header-bypass-profile'
+                )
 
             if args.get('header_bypass_headers') is not None:
                 filtered['header_bypass_headers'] = Filter.header_names(
@@ -160,6 +167,12 @@ class Filter(object):
                     key='--transport-healthcheck-url'
                 )
 
+            if args.get('transport_bin') is not None:
+                filtered['transport_bin'] = Filter.optional_text(
+                    args.get('transport_bin'),
+                    key='--transport-bin'
+                )
+
             if args.get('openvpn_auth') is not None:
                 filtered['openvpn_auth'] = Filter.optional_path(
                     args.get('openvpn_auth'),
@@ -202,6 +215,8 @@ class Filter(object):
                 filtered[key] = Filter.bucket_values(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['debug']:
                 filtered[key] = Filter.debug_level(value, key='--debug')
+            elif key in ['header_bypass_profile']:
+                filtered[key] = Filter.header_bypass_profile(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['header_bypass_headers']:
                 filtered[key] = Filter.header_names(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['header_bypass_ips']:
@@ -224,7 +239,7 @@ class Filter(object):
                 filtered[key] = Filter.optional_path(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['transport_timeout']:
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
-            elif key in ['transport_healthcheck_url']:
+            elif key in ['transport_healthcheck_url', 'transport_bin']:
                 filtered[key] = Filter.optional_text(value, key='--{0}'.format(key.replace('_', '-')))
             else:
                 filtered[key] = value
@@ -761,6 +776,23 @@ class Filter(object):
         return choose
 
     @staticmethod
+    def header_bypass_profile(value, key='--header-bypass-profile'):
+        """Validate header-bypass profile name."""
+
+        profile = 'safe' if value is None else str(value).strip().lower()
+
+        if profile in ['', 'none', 'null']:
+            profile = 'safe'
+
+        if profile not in Filter.HEADER_BYPASS_PROFILES:
+            raise FilterError('{0} must be one of: {1}'.format(
+                key,
+                ', '.join(Filter.HEADER_BYPASS_PROFILES)
+            ))
+
+        return profile
+
+    @staticmethod
     def header_names(value, key='--headers'):
         """Validate comma-separated HTTP header names."""
 
@@ -1109,6 +1141,7 @@ class Filter(object):
         profile = filtered.get('transport_profile')
         profiles = filtered.get('transport_profiles')
         openvpn_auth = filtered.get('openvpn_auth')
+        transport_bin = filtered.get('transport_bin')
 
         filtered['transport'] = transport
         filtered['transport_rotate'] = rotate
@@ -1122,11 +1155,15 @@ class Filter(object):
                 raise FilterError('--transport-profiles cannot be used with --transport direct')
             if openvpn_auth is not None:
                 raise FilterError('--openvpn-auth cannot be used with --transport direct')
+            if transport_bin is not None:
+                raise FilterError('--transport-bin cannot be used with --transport direct')
             return
 
         if transport == 'proxy':
             if openvpn_auth is not None:
                 raise FilterError('--openvpn-auth cannot be used with --transport proxy')
+            if transport_bin is not None:
+                raise FilterError('--transport-bin cannot be used with --transport proxy')
             if profile is not None:
                 raise FilterError('--transport-profile cannot be used with --transport proxy')
             if profiles is not None:

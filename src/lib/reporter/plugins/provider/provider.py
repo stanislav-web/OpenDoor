@@ -98,8 +98,14 @@ class PluginProvider(object):
                 'bypass={0}'.format(item.get('bypass')),
             ]
 
+            if item.get('bypass_profile'):
+                details.append('profile={0}'.format(item.get('bypass_profile')))
+
             if item.get('bypass_header'):
                 details.append('header={0}'.format(item.get('bypass_header')))
+
+            if item.get('bypass_variant'):
+                details.append('variant={0}'.format(item.get('bypass_variant')))
 
             if item.get('bypass_value'):
                 details.append('value={0}'.format(item.get('bypass_value')))
@@ -109,6 +115,14 @@ class PluginProvider(object):
                     item.get('bypass_from_code'),
                     item.get('bypass_to_code')
                 ))
+
+            if item.get('bypass_score') is not None:
+                details.append('score={0}'.format(item.get('bypass_score')))
+
+            if item.get('bypass_reasons'):
+                details.append('reasons={0}'.format(';'.join([
+                    str(reason) for reason in item.get('bypass_reasons', [])
+                ])))
 
             value = '{0} | {1}'.format(value, ', '.join(details))
 

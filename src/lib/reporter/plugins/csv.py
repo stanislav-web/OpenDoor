@@ -41,10 +41,17 @@ class CsvReportPlugin(PluginProvider):
         'waf_confidence',
         'waf_signals',
         'bypass',
+        'bypass_profile',
         'bypass_header',
         'bypass_value',
+        'bypass_variant',
+        'bypass_url',
+        'bypass_from_status',
+        'bypass_to_status',
         'bypass_from_code',
         'bypass_to_code',
+        'bypass_score',
+        'bypass_reasons',
         'debug_detection',
         'debug_runtime',
         'debug_signal',
@@ -64,6 +71,14 @@ class CsvReportPlugin(PluginProvider):
         'hsts_preload_ready',
         'hsts_http_to_https_redirect',
         'hsts_warnings',
+        'privacy_supercookie_risk',
+        'privacy_supercookie_score',
+        'privacy_supercookie_hsts_tracking_surface',
+        'privacy_supercookie_etag_tracking_surface',
+        'privacy_supercookie_cache_tracking_surface',
+        'privacy_supercookie_persistent_cookie_surface',
+        'privacy_supercookie_warnings',
+        'privacy_supercookie_signals',
     ]
 
     def __init__(self, target, data, directory=None):
@@ -124,6 +139,14 @@ class CsvReportPlugin(PluginProvider):
                 'hsts_preload_ready': '',
                 'hsts_http_to_https_redirect': '',
                 'hsts_warnings': '',
+                'privacy_supercookie_risk': '',
+                'privacy_supercookie_score': '',
+                'privacy_supercookie_hsts_tracking_surface': '',
+                'privacy_supercookie_etag_tracking_surface': '',
+                'privacy_supercookie_cache_tracking_surface': '',
+                'privacy_supercookie_persistent_cookie_surface': '',
+                'privacy_supercookie_warnings': '',
+                'privacy_supercookie_signals': '',
             }
 
         runtime = fingerprint.get('runtime')
@@ -141,6 +164,13 @@ class CsvReportPlugin(PluginProvider):
         if not isinstance(hsts, dict):
             hsts = {}
 
+        privacy_risks = fingerprint.get('privacy_risks')
+        if not isinstance(privacy_risks, dict):
+            privacy_risks = {}
+        supercookie = privacy_risks.get('supercookie')
+        if not isinstance(supercookie, dict):
+            supercookie = {}
+
         return {
             'fingerprint_category': str(fingerprint.get('category', 'custom')),
             'fingerprint_name': str(fingerprint.get('name', 'Unknown custom stack')),
@@ -157,6 +187,14 @@ class CsvReportPlugin(PluginProvider):
             'hsts_preload_ready': str(hsts.get('preload_ready', '')),
             'hsts_http_to_https_redirect': str(hsts.get('http_to_https_redirect', '')),
             'hsts_warnings': self.__format_list(hsts.get('warnings', [])),
+            'privacy_supercookie_risk': str(supercookie.get('risk', '')),
+            'privacy_supercookie_score': '' if supercookie.get('score') is None else str(supercookie.get('score')),
+            'privacy_supercookie_hsts_tracking_surface': str(supercookie.get('hsts_tracking_surface', '')),
+            'privacy_supercookie_etag_tracking_surface': str(supercookie.get('etag_tracking_surface', '')),
+            'privacy_supercookie_cache_tracking_surface': str(supercookie.get('cache_tracking_surface', '')),
+            'privacy_supercookie_persistent_cookie_surface': str(supercookie.get('persistent_cookie_surface', '')),
+            'privacy_supercookie_warnings': self.__format_list(supercookie.get('warnings', [])),
+            'privacy_supercookie_signals': self.__format_list(supercookie.get('signals', [])),
         }
 
     def __build_rows(self):
@@ -187,12 +225,19 @@ class CsvReportPlugin(PluginProvider):
                     'waf_confidence': '' if item.get('waf_confidence') is None else str(item.get('waf_confidence')),
                     'waf_signals': self.__format_list(item.get('waf_signals', [])),
                     'bypass': str(item.get('bypass', '')),
+                    'bypass_profile': str(item.get('bypass_profile', '')),
                     'bypass_header': str(item.get('bypass_header', '')),
                     'bypass_value': str(item.get('bypass_value', '')),
+                    'bypass_variant': str(item.get('bypass_variant', '')),
+                    'bypass_url': str(item.get('bypass_url', '')),
+                    'bypass_from_status': str(item.get('bypass_from_status', '')),
+                    'bypass_to_status': str(item.get('bypass_to_status', '')),
                     'bypass_from_code': '' if item.get('bypass_from_code') is None else str(
                         item.get('bypass_from_code')
                     ),
                     'bypass_to_code': '' if item.get('bypass_to_code') is None else str(item.get('bypass_to_code')),
+                    'bypass_score': '' if item.get('bypass_score') is None else str(item.get('bypass_score')),
+                    'bypass_reasons': self.__format_list(item.get('bypass_reasons', [])),
                     'debug_detection': '',
                     'debug_runtime': '',
                     'debug_signal': '',

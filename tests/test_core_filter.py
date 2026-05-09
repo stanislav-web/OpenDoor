@@ -682,12 +682,14 @@ class TestFilter(unittest.TestCase):
             'transport_rotate': 'none',
             'transport_timeout': 15,
             'transport_healthcheck_url': 'https://example.com/ip',
+            'transport_bin': 'wg-quick',
         })
 
         self.assertEqual(actual['transport'], 'wireguard')
         self.assertTrue(actual['transport_profile'].endswith('profiles/nl.conf'))
         self.assertEqual(actual['transport_rotate'], 'none')
         self.assertEqual(actual['transport_timeout'], 15)
+        self.assertEqual(actual['transport_bin'], 'wg-quick')
         self.assertEqual(actual['transport_healthcheck_url'], 'https://example.com/ip')
 
     def test_filter_should_normalize_transport_none_values(self):
@@ -1067,6 +1069,31 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(Filter.transport_rotate(''), 'none')
         self.assertEqual(Filter.transport_rotate('null'), 'none')
         self.assertEqual(Filter.transport_rotate('NONE'), 'none')
+
+    def test_filter_should_reject_transport_bin_for_direct_transport(self):
+        """Filter.validate_transport_options() should reject transport_bin in direct mode."""
+
+        with self.assertRaises(Exception) as ctx:
+            Filter.filter({
+                'host': 'example.com',
+                'transport': 'direct',
+                'transport_bin': 'openvpn',
+            })
+
+        self.assertIn('--transport-bin cannot be used with --transport direct', str(ctx.exception))
+
+    def test_filter_should_reject_transport_bin_for_proxy_transport(self):
+        """Filter.validate_transport_options() should reject transport_bin in proxy mode."""
+
+        with self.assertRaises(Exception) as ctx:
+            Filter.filter({
+                'host': 'example.com',
+                'transport': 'proxy',
+                'proxy': 'socks5://127.0.0.1:9050',
+                'transport_bin': 'openvpn',
+            })
+
+        self.assertIn('--transport-bin cannot be used with --transport proxy', str(ctx.exception))
 
     def test_filter_should_reject_invalid_transport_options_with_session_load(self):
         """Filter.filter() should validate transport options in session-load flow."""

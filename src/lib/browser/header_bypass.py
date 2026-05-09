@@ -22,11 +22,17 @@ from urllib.parse import quote, urlparse, urlunparse
 class HeaderBypassProbe(object):
     """Build and score controlled header-injection bypass probes."""
 
+    SAFE_PROFILE = 'safe'
+    OFFENSIVE_PROFILE = 'offensive'
+    PROFILES = (SAFE_PROFILE, OFFENSIVE_PROFILE)
+
     KNOWN_HEADERS = (
         'CF-Connecting-IP',
         'CF-Connecting_IP',
         'Client-IP',
+        'Fastly-Client-IP',
         'Forwarded',
+        'Front-End-Https',
         'Host',
         'Origin',
         'Proxy',
@@ -37,20 +43,33 @@ class HeaderBypassProbe(object):
         'Referrer',
         'Request-Uri',
         'True-Client-IP',
+        'X-Appengine-User-IP',
+        'X-Azure-ClientIP',
         'X-Client-IP',
+        'X-Cluster-Client-IP',
         'X-Custom-IP-Authorization',
+        'X-Envoy-External-Address',
         'X-Forwarded',
+        'X-Forwarded-By',
         'X-Forwarded-For',
+        'X-Forwarded-For-Original',
         'X-Forwarded-Host',
         'X-Forwarded-Proto',
+        'X-Forwarded-Scheme',
         'X-Forwarded-Server',
+        'X-Forwarded-SSL',
         'X-Host',
         'X-HTTP-DestinationURL',
         'X-HTTP-Host-Override',
+        'X-HTTP-Method',
+        'X-HTTP-Method-Override',
+        'X-Method-Override',
+        'X-Original-Forwarded-For',
         'X-Original-Remote-Addr',
         'X-Original-URL',
         'X-Originating-IP',
         'X-Proxy-Url',
+        'X-ProxyUser-IP',
         'X-Real-IP',
         'X-Real-Ip',
         'X-Referrer',
@@ -58,6 +77,7 @@ class HeaderBypassProbe(object):
         'X-Remote-IP',
         'X-Rewrite-URL',
         'X-True-IP',
+        'X-Url-Scheme',
         'X-WAP-Profile',
     )
 
@@ -87,6 +107,25 @@ class HeaderBypassProbe(object):
         'Origin',
     )
 
+    OFFENSIVE_HEADERS = (
+        'X-Original-Forwarded-For',
+        'X-Forwarded-For-Original',
+        'X-Forwarded-By',
+        'X-ProxyUser-IP',
+        'X-Cluster-Client-IP',
+        'Fastly-Client-IP',
+        'X-Azure-ClientIP',
+        'X-Appengine-User-IP',
+        'X-Envoy-External-Address',
+        'X-Forwarded-Scheme',
+        'X-Forwarded-SSL',
+        'Front-End-Https',
+        'X-Url-Scheme',
+        'X-HTTP-Method',
+        'X-HTTP-Method-Override',
+        'X-Method-Override',
+    )
+
     PATH_HEADERS = (
         'X-Original-URL',
         'X-Rewrite-URL',
@@ -111,19 +150,44 @@ class HeaderBypassProbe(object):
         'CF-Connecting-IP',
         'CF-Connecting_IP',
         'Client-IP',
+        'Fastly-Client-IP',
         'Real-Ip',
         'True-Client-IP',
+        'X-Appengine-User-IP',
+        'X-Azure-ClientIP',
         'X-Client-IP',
+        'X-Cluster-Client-IP',
         'X-Custom-IP-Authorization',
+        'X-Envoy-External-Address',
         'X-Forwarded',
         'X-Forwarded-For',
+        'X-Forwarded-For-Original',
+        'X-Original-Forwarded-For',
         'X-Original-Remote-Addr',
         'X-Originating-IP',
+        'X-ProxyUser-IP',
         'X-Real-IP',
         'X-Real-Ip',
         'X-Remote-Addr',
         'X-Remote-IP',
         'X-True-IP',
+    )
+
+    METHOD_OVERRIDE_HEADERS = (
+        'X-HTTP-Method',
+        'X-HTTP-Method-Override',
+        'X-Method-Override',
+    )
+
+    SCHEME_HEADERS = (
+        'X-Forwarded-Proto',
+        'X-Forwarded-Scheme',
+        'X-Url-Scheme',
+    )
+
+    HTTPS_HEADERS = (
+        'Front-End-Https',
+        'X-Forwarded-SSL',
     )
 
     URL_HEADERS = (
@@ -142,6 +206,17 @@ class HeaderBypassProbe(object):
         '192.168.1.1',
     )
 
+    OFFENSIVE_IP_VALUES = (
+        '0.0.0.0',
+        '127.0.0.1',
+        'localhost',
+        '::1',
+        '10.0.0.1',
+        '10.0.0.2',
+        '172.16.0.1',
+        '192.168.1.1',
+    )
+
     DEFAULT_STATUS_CODES = (401, 403)
 
     def __init__(self, config):
@@ -152,6 +227,22 @@ class HeaderBypassProbe(object):
         """
 
         self.__config = config
+
+    @property
+    def profile(self):
+        """
+        Return the active header-bypass profile.
+
+        :return: safe or offensive profile name
+        :rtype: str
+        """
+
+        profile = str(getattr(self.__config, 'header_bypass_profile', self.SAFE_PROFILE)).strip().lower()
+
+        if profile not in self.PROFILES:
+            return self.SAFE_PROFILE
+
+        return profile
 
     @staticmethod
     def response_code(response_data):
@@ -297,6 +388,40 @@ class HeaderBypassProbe(object):
 
         return '{0}{1}{2}'.format(head, sep, encoded_tail)
 
+    @staticmethod
+    def __encoded_first_character_variant(path):
+        """
+        Build a URL-encoded first-character variant for the last path segment.
+
+        :param str path: original request path
+        :return: str | None
+        """
+
+        if path in ('', '/'):
+            return None
+
+        head, sep, tail = path.rpartition('/')
+        if not tail:
+            return None
+
+        encoded_tail = '%{0:02x}{1}'.format(ord(tail[:1]), tail[1:])
+
+        return '{0}{1}{2}'.format(head, sep, encoded_tail)
+
+    @staticmethod
+    def __matrix_parameter_variant(path):
+        """
+        Build a matrix-parameter variant for the last path segment.
+
+        :param str path: original request path
+        :return: str | None
+        """
+
+        if path in ('', '/') or path.endswith(';'):
+            return None
+
+        return path.rstrip('/') + ';'
+
     def build_header_variants(self, url):
         """
         Build deterministic header variants for one blocked URL.
@@ -315,6 +440,7 @@ class HeaderBypassProbe(object):
         full_url = parsed.geturl()
         headers = self.__config.header_bypass_headers
         ip_values = self.__config.header_bypass_ips
+        profile = self.profile
 
         def add(name, value):
             """
@@ -326,11 +452,14 @@ class HeaderBypassProbe(object):
             """
 
             key = (str(name).lower(), str(value))
-            if key in seen:
+            if key in seen:  # pragma: no cover - defensive duplicate guard.
                 return
 
             seen.add(key)
-            variants.append({'header': str(name), 'value': str(value)})
+            item = {'header': str(name), 'value': str(value)}
+            if profile != self.SAFE_PROFILE:
+                item['profile'] = profile
+            variants.append(item)
 
         for header in headers:
             if header in self.PATH_HEADERS:
@@ -341,6 +470,21 @@ class HeaderBypassProbe(object):
             if header == 'Forwarded':
                 for ip in ip_values:
                     add(header, 'for={0};host={1};proto={2}'.format(ip, parsed.netloc, parsed.scheme))
+                continue
+
+            if header in self.METHOD_OVERRIDE_HEADERS:
+                add(header, 'GET')
+                add(header, 'HEAD')
+                continue
+
+            if header in self.SCHEME_HEADERS:
+                add(header, parsed.scheme or 'https')
+                add(header, 'https')
+                continue
+
+            if header in self.HTTPS_HEADERS:
+                add(header, 'on')
+                add(header, '1')
                 continue
 
             if header in self.TRUSTED_IP_HEADERS:
@@ -398,16 +542,19 @@ class HeaderBypassProbe(object):
 
             mutated_url = self.__replace_path(parsed, mutated_path)
             key = (name, mutated_url)
-            if key in seen:
+            if key in seen:  # pragma: no cover - defensive duplicate guard.
                 return
 
             seen.add(key)
-            variants.append({
+            item = {
                 'type': 'path',
                 'variant': name,
                 'url': mutated_url,
                 'value': self.__append_query(mutated_path, parsed.query),
-            })
+            }
+            if self.profile != self.SAFE_PROFILE:
+                item['profile'] = self.profile
+            variants.append(item)
 
         if path != '/' and not path.endswith('/'):
             add('trailing-slash', path + '/')
@@ -418,8 +565,24 @@ class HeaderBypassProbe(object):
         if path != '/' and not path.endswith('/.'):
             add('dot-segment', path.rstrip('/') + '/.')
 
+        if path != '/' and not path.endswith('/%2e'):
+            add('encoded-dot-segment', path.rstrip('/') + '/%2e')
+
         if path != '/' and not path.endswith(';/'):
             add('semicolon-suffix', path.rstrip('/') + ';/')
+
+        matrix_variant = self.__matrix_parameter_variant(path)
+        if matrix_variant is not None:
+            add('matrix-parameter', matrix_variant)
+
+        if path != '/' and not path.endswith('//'):
+            add('duplicate-trailing-slash', path.rstrip('/') + '//')
+
+        if path != '/' and not path.lower().endswith('%2f'):
+            add('encoded-trailing-slash', path.rstrip('/') + '%2f')
+
+        if path != '/' and not path.lower().endswith('%252f'):
+            add('double-encoded-trailing-slash', path.rstrip('/') + '%252f')
 
         case_variant = self.__case_variant(path)
         if case_variant is not None:
@@ -428,6 +591,10 @@ class HeaderBypassProbe(object):
         encoded_variant = self.__encoded_segment_variant(path)
         if encoded_variant is not None:
             add('url-encoded-segment', encoded_variant)
+
+        encoded_first_character_variant = self.__encoded_first_character_variant(path)
+        if encoded_first_character_variant is not None:
+            add('url-encoded-first-character', encoded_first_character_variant)
 
         return variants
 
@@ -473,6 +640,49 @@ class HeaderBypassProbe(object):
         return False
 
     @staticmethod
+    def evidence(base_response_data, probe_response_data):
+        """
+        Build a deterministic evidence score and reason list.
+
+        :param tuple base_response_data: original response data
+        :param tuple probe_response_data: probe response data
+        :return: score and reason list
+        :rtype: tuple[int, list[str]]
+        """
+
+        base_status = HeaderBypassProbe.response_status(base_response_data)
+        probe_status = HeaderBypassProbe.response_status(probe_response_data)
+        base_code = HeaderBypassProbe.response_code(base_response_data)
+        probe_code = HeaderBypassProbe.response_code(probe_response_data)
+        reasons = []
+        score = 0
+
+        if base_code is not None and probe_code is not None and base_code != probe_code:
+            reasons.append('status-code-changed')
+            score += 25
+
+        if base_status and probe_status and base_status != probe_status:
+            reasons.append('bucket-changed')
+            score += 20
+
+        if probe_code is not None and 200 <= probe_code <= 399:
+            reasons.append('probe-returned-success-or-redirect')
+            score += 35
+
+        if base_code in HeaderBypassProbe.DEFAULT_STATUS_CODES and probe_code not in HeaderBypassProbe.DEFAULT_STATUS_CODES:
+            reasons.append('blocked-status-cleared')
+            score += 25
+
+        if base_status == 'blocked' and probe_status != 'blocked':
+            reasons.append('waf-block-cleared')
+            score += 25
+
+        if score > 100:
+            score = 100
+
+        return score, reasons
+
+    @staticmethod
     def metadata(variant, base_response_data, probe_response_data):
         """
         Build report metadata for a bypass probe.
@@ -483,10 +693,16 @@ class HeaderBypassProbe(object):
         :return: dict
         """
 
+        score, reasons = HeaderBypassProbe.evidence(base_response_data, probe_response_data)
         metadata = {
             'bypass': variant.get('type') or 'header',
+            'bypass_profile': variant.get('profile') or HeaderBypassProbe.SAFE_PROFILE,
+            'bypass_from_status': HeaderBypassProbe.response_status(base_response_data),
+            'bypass_to_status': HeaderBypassProbe.response_status(probe_response_data),
             'bypass_from_code': HeaderBypassProbe.response_code(base_response_data),
             'bypass_to_code': HeaderBypassProbe.response_code(probe_response_data),
+            'bypass_score': score,
+            'bypass_reasons': reasons,
         }
 
         if metadata['bypass'] == 'path':

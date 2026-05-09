@@ -20,7 +20,7 @@ import copy
 import re
 import uuid
 from collections import defaultdict
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from src.core import helper
 
@@ -54,6 +54,18 @@ class Fingerprint(object):
                 'http_to_https_redirect': False,
                 'grade': 'missing',
                 'warnings': ['missing_hsts'],
+            }
+        },
+        'privacy_risks': {
+            'supercookie': {
+                'risk': 'none',
+                'score': 0,
+                'signals': [],
+                'warnings': [],
+                'hsts_tracking_surface': False,
+                'etag_tracking_surface': False,
+                'cache_tracking_surface': False,
+                'persistent_cookie_surface': False,
             }
         }
     }
@@ -339,6 +351,13 @@ class Fingerprint(object):
         body_lower = body.lower()
         headers = self._extract_headers(root_response)
         security_headers = self._build_security_headers(headers, base_url, final_root_url)
+        privacy_risks = self._build_privacy_risks(
+            headers=headers,
+            body=body,
+            body_size=len(body.encode('utf-8')),
+            final_root_url=final_root_url,
+            security_headers=security_headers,
+        )
         cookies = self._extract_cookies(root_response)
         generator = self._extract_generator(body)
         progress_current += 1
@@ -380,6 +399,7 @@ class Fingerprint(object):
             result['runtime'] = self._build_runtime_result(runtime_candidates)
             result['infrastructure'] = self._build_infrastructure_result(infra_candidates)
             result['security_headers'] = security_headers
+            result['privacy_risks'] = privacy_risks
             self._emit_progress(progress_total, progress_total, 'done')
             return result
 
@@ -400,6 +420,7 @@ class Fingerprint(object):
                 'runtime': self._build_runtime_result(runtime_candidates),
                 'infrastructure': self._build_infrastructure_result(infra_candidates),
                 'security_headers': security_headers,
+                'privacy_risks': privacy_risks,
             }
             self._emit_progress(progress_total, progress_total, 'done')
             return result
@@ -415,6 +436,7 @@ class Fingerprint(object):
             'runtime': self._build_runtime_result(runtime_candidates),
             'infrastructure': self._build_infrastructure_result(infra_candidates),
             'security_headers': security_headers,
+            'privacy_risks': privacy_risks,
         }
         self._emit_progress(progress_total, progress_total, 'done')
         return result
@@ -674,6 +696,288 @@ class Fingerprint(object):
         if max_age < 0:
             return None
         return max_age
+
+    @classmethod
+    def _build_privacy_risks(cls, headers, body, body_size, final_root_url, security_headers):
+        """
+        Build passive privacy-risk metadata from the root fingerprint response.
+
+        This detector reports server-side tracking surfaces only. It does not
+        claim that a browser identifier was actually stored or recovered.
+
+        :param dict headers: normalized response headers from the final root response
+        :param str body: decoded root response body
+        :param int body_size: decoded body size in bytes
+        :param str final_root_url: final root URL after redirects
+        :param dict security_headers: security-header metadata
+        :return: privacy risk metadata
+        :rtype: dict
+        """
+
+        supercookie = cls._build_supercookie_risk(
+            headers=headers,
+            body=body,
+            body_size=body_size,
+            final_root_url=final_root_url,
+            security_headers=security_headers,
+        )
+
+        return {'supercookie': supercookie}
+
+    @classmethod
+    def _build_supercookie_risk(cls, headers, body, body_size, final_root_url, security_headers):
+        """
+        Build passive supercookie/tracking-surface risk metadata.
+
+        :param dict headers: normalized response headers
+        :param str body: decoded response body
+        :param int body_size: response body size in bytes
+        :param str final_root_url: final root URL
+        :param dict security_headers: security-header metadata
+        :return: supercookie risk metadata
+        :rtype: dict
+        """
+
+        signals = []
+        warnings = []
+        score = 0
+        hsts_surface = False
+        etag_surface = False
+        cache_surface = False
+        cookie_surface = False
+
+        hsts = security_headers.get('hsts') if isinstance(security_headers, dict) else {}
+        if not isinstance(hsts, dict):
+            hsts = {}
+
+        hsts_max_age = hsts.get('max_age')
+        subdomains = cls._extract_first_party_subdomains(body, final_root_url)
+        long_hsts = bool(
+            hsts.get('present')
+            and hsts_max_age is not None
+            and int(hsts_max_age) >= 15552000
+        )
+
+        if long_hsts:
+            signals.append('long_lived_hsts:max_age={0}'.format(hsts_max_age))
+
+        if len(subdomains) >= 3:
+            signals.append('first_party_subdomain_fanout:{0}'.format(len(subdomains)))
+
+        if long_hsts and len(subdomains) >= 3:
+            hsts_surface = True
+            score += 40
+            warnings.append('long-lived HSTS combined with first-party subdomain fan-out')
+
+        cache_control = str(headers.get('cache-control', '') or '').lower()
+        etag = str(headers.get('etag', '') or '').strip()
+        body_is_small = int(body_size or 0) <= 4096
+        long_cache = cls._has_long_cache_lifetime(cache_control)
+
+        if long_cache:
+            cache_surface = True
+            score += 10
+            signals.append('long_lived_cache:{0}'.format(cache_control))
+
+        if etag and long_cache and body_is_small:
+            etag_surface = True
+            score += 35
+            signals.append('persistent_etag:{0}'.format(etag))
+            warnings.append('persistent ETag/cache validator with long cache lifetime')
+
+        cookie_warnings = cls._detect_persistent_cookie_surface(headers)
+        if len(cookie_warnings) > 0:
+            cookie_surface = True
+            score += 20
+            signals.extend(cookie_warnings)
+            warnings.append('long-lived client cookie surface')
+
+        risk = cls._privacy_score_to_risk(score)
+        if risk in ('none', 'low'):
+            warnings = []
+
+        return {
+            'risk': risk,
+            'score': min(score, 100),
+            'signals': signals,
+            'warnings': warnings,
+            'hsts_tracking_surface': hsts_surface,
+            'etag_tracking_surface': etag_surface,
+            'cache_tracking_surface': cache_surface,
+            'persistent_cookie_surface': cookie_surface,
+        }
+
+    @staticmethod
+    def _privacy_score_to_risk(score):
+        """
+        Convert a numeric privacy score into a stable risk bucket.
+
+        :param int score: numeric risk score
+        :return: risk bucket
+        :rtype: str
+        """
+
+        score = int(score or 0)
+        if score >= 60:
+            return 'high'
+        if score >= 35:
+            return 'medium'
+        if score > 0:
+            return 'low'
+        return 'none'
+
+    @classmethod
+    def _has_long_cache_lifetime(cls, cache_control):
+        """
+        Return True when Cache-Control allows persistent browser storage.
+
+        :param str cache_control: raw Cache-Control header value
+        :return: check result
+        :rtype: bool
+        """
+
+        cache_control = str(cache_control or '').lower()
+        if 'no-store' in cache_control:
+            return False
+        if 'immutable' in cache_control:
+            return True
+
+        match = re.search(r'(?:^|,|\s)max-age\s*=\s*(\d+)', cache_control)
+        if match is None:
+            return False
+
+        try:
+            return int(match.group(1)) >= 2592000
+        except (TypeError, ValueError):
+            return False
+
+    @classmethod
+    def _detect_persistent_cookie_surface(cls, headers):
+        """
+        Return persistent client-cookie signals from Set-Cookie headers.
+
+        :param dict headers: normalized response headers
+        :return: detected cookie signals
+        :rtype: list[str]
+        """
+
+        raw_cookie = str(headers.get('set-cookie', '') or '')
+        if not raw_cookie:
+            return []
+
+        cookie_parts = [item.strip() for item in raw_cookie.split(',') if item.strip()]
+        signals = []
+
+        for cookie in cookie_parts:
+            cookie_lower = cookie.lower()
+            max_age = cls._extract_cookie_max_age(cookie_lower)
+            if max_age is None or max_age < 2592000:
+                continue
+
+            missing_attrs = []
+            if 'httponly' not in cookie_lower:
+                missing_attrs.append('httponly')
+            if 'samesite=' not in cookie_lower:
+                missing_attrs.append('samesite')
+            if 'secure' not in cookie_lower:
+                missing_attrs.append('secure')
+
+            if len(missing_attrs) > 0:
+                cookie_name = cookie.split('=', 1)[0].strip()
+                signals.append(
+                    'persistent_cookie:{0}:max_age={1}:missing={2}'.format(
+                        cookie_name,
+                        max_age,
+                        '|'.join(missing_attrs),
+                    )
+                )
+
+        return signals
+
+    @staticmethod
+    def _extract_cookie_max_age(cookie):
+        """
+        Extract cookie Max-Age as integer seconds.
+
+        :param str cookie: raw Set-Cookie header value
+        :return: max-age seconds or None
+        :rtype: int|None
+        """
+
+        match = re.search(r'(?:^|;)\s*max-age\s*=\s*(\d+)', str(cookie or ''), re.IGNORECASE)
+        if match is None:
+            return None
+        try:
+            return int(match.group(1))
+        except (TypeError, ValueError):
+            return None
+
+    @classmethod
+    def _extract_first_party_subdomains(cls, body, final_root_url):
+        """
+        Extract first-party subdomains referenced by absolute URLs in the body.
+
+        The detector intentionally avoids matching special names such as bit00,
+        id00 or track00. Only structural first-party subdomain fan-out matters.
+
+        :param str body: decoded response body
+        :param str final_root_url: final root URL
+        :return: sorted first-party subdomains
+        :rtype: list[str]
+        """
+
+        root_host = cls._normalize_host(urlparse(str(final_root_url or '')).hostname)
+        site_domain = cls._site_domain(root_host)
+        if not root_host or not site_domain:
+            return []
+
+        hosts = set()
+        for match in re.finditer(r'https?://([^/\s"\'<>]+)', str(body or ''), re.IGNORECASE):
+            host = cls._normalize_host(match.group(1).split(':', 1)[0])
+            if not host or host == root_host:
+                continue
+            if host.endswith('.{0}'.format(site_domain)):
+                hosts.add(host)
+
+        return sorted(hosts)
+
+    @staticmethod
+    def _normalize_host(host):
+        """
+        Normalize host values for first-party comparisons.
+
+        :param str|None host: host value
+        :return: normalized host
+        :rtype: str
+        """
+
+        return str(host or '').strip().strip('.').lower()
+
+    @staticmethod
+    def _site_domain(host):
+        """
+        Return a lightweight site-domain suffix without external dependencies.
+
+        :param str host: normalized host
+        :return: site-domain suffix
+        :rtype: str
+        """
+
+        labels = [label for label in str(host or '').split('.') if label]
+        if len(labels) < 2:
+            return ''
+
+        two_level_public_suffixes = set([
+            'co.uk', 'org.uk', 'ac.uk', 'gov.uk',
+            'com.ua', 'net.ua', 'org.ua', 'gov.ua',
+            'com.au', 'net.au', 'org.au',
+            'co.jp', 'com.br', 'com.tr',
+        ])
+        suffix = '.'.join(labels[-2:])
+        if suffix in two_level_public_suffixes and len(labels) >= 3:
+            return '.'.join(labels[-3:])
+
+        return suffix
 
     def _extract_cookies(self, response):
         """

@@ -531,6 +531,31 @@ class TestReporterPluginsFullCoverage(unittest.TestCase):
             'bypass=header, header=X-Original-URL, value=/admin'
         )
 
+    def test_format_report_item_formats_full_bypass_evidence(self):
+        """PluginProvider.format_report_item() should include extended bypass evidence fields."""
+
+        actual = PluginProvider.format_report_item({
+            'url': 'https://example.com/admin',
+            'code': '200',
+            'size': '90B',
+            'bypass': 'path',
+            'bypass_profile': 'offensive',
+            'bypass_variant': 'double-encoded-trailing-slash',
+            'bypass_value': '/admin%252f',
+            'bypass_from_code': '403',
+            'bypass_to_code': '200',
+            'bypass_score': 100,
+            'bypass_reasons': ['status-code-changed', 'blocked-status-cleared'],
+        })
+
+        self.assertEqual(
+            actual,
+            'https://example.com/admin - 200 - 90B | '
+            'bypass=path, profile=offensive, variant=double-encoded-trailing-slash, '
+            'value=/admin%252f, 403->200, score=100, '
+            'reasons=status-code-changed;blocked-status-cleared'
+        )
+
     def test_html_renderer_escapes_values_and_renders_pretty_table(self):
         """HTML renderer should escape values and render a standalone styled report."""
 

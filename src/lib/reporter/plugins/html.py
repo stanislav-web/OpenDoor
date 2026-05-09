@@ -1396,10 +1396,17 @@ def _get_columns(items):
         'waf',
         'waf_confidence',
         'bypass',
+        'bypass_profile',
         'bypass_header',
         'bypass_value',
+        'bypass_variant',
+        'bypass_url',
+        'bypass_from_status',
+        'bypass_to_status',
         'bypass_from_code',
         'bypass_to_code',
+        'bypass_score',
+        'bypass_reasons',
         'debug_detection',
     ]
 
@@ -1557,7 +1564,7 @@ def _get_value_class(column):
     :rtype: str
     """
 
-    if column in ('url', 'redirect', 'content_type', 'bypass_header', 'bypass_value'):
+    if column in ('url', 'redirect', 'content_type', 'bypass_header', 'bypass_value', 'bypass_url'):
         return 'mono break'
 
     return 'break'

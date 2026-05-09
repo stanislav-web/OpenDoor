@@ -16,7 +16,6 @@
     Development: Stanislav WEB
 """
 
-import threading
 import time
 from queue import Queue
 
@@ -147,7 +146,6 @@ class ThreadPool(object):
                     self.__queue.put((func, args, kargs))
                     self.__submitted += 1
         except (SystemExit, KeyboardInterrupt):
-            time.sleep(2)
             self.pause()
 
     def join(self):
@@ -164,7 +162,11 @@ class ThreadPool(object):
 
         with self.__queue.all_tasks_done:
             while int(getattr(self.__queue, 'unfinished_tasks', 0) or 0) > 0:
-                self.__queue.all_tasks_done.wait(timeout=self.JOIN_POLL_INTERVAL_SEC)
+                try:
+                    self.__queue.all_tasks_done.wait(timeout=self.JOIN_POLL_INTERVAL_SEC)
+                except (SystemExit, KeyboardInterrupt):
+                    self.pause()
+                    continue
 
                 completed = self.completed_size
                 queue_size = self.__queue._qsize()
@@ -175,7 +177,8 @@ class ThreadPool(object):
                     continue
 
                 now = time.monotonic()
-                if now - last_warning_at >= self.JOIN_STALL_WARNING_SEC:
+                if (now - last_activity_at >= self.JOIN_STALL_WARNING_SEC
+                        and now - last_warning_at >= self.JOIN_STALL_WARNING_SEC):
                     tpl.warning(
                         msg='Scan worker has not completed a request for {0:.0f}s. '
                             'submitted={1}, completed={2}, queue={3}, active={4}'.format(
@@ -214,29 +217,28 @@ class ThreadPool(object):
 
     def pause(self):
         """
-        ThreadPool pause
-        :raise KeyboardInterrupt
+        Pause all pool workers and show the runtime continue/exit prompt.
+
+        :raise KeyboardInterrupt: when the user chooses exit or interrupts the prompt
         :return: None
         """
 
         self.is_started = False
         tpl.info(key='stop_threads', threads=len(self.__workers))
 
-        try:
-            while 0 < threading.active_count():
-                for worker in threading.enumerate():
-                    if threading.current_thread().__class__.__name__ != '_MainThread':
-                        worker.pause()
-                time.sleep(2)
+        for worker in self.__workers:
+            worker.pause()
 
+        try:
+            while True:
                 char = tpl.prompt(key='option_prompt')
-                if char.lower() == 'e':
+                option = str(char or '').strip().lower()
+
+                if option in ('e', 'q'):
                     raise KeyboardInterrupt
-                elif char.lower() == 'c':
+                if option in ('c', ''):
                     self.resume()
-                    break
-                else:
-                    continue
+                    return
 
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt

@@ -246,6 +246,13 @@ class SarifReportPlugin(PluginProvider):
         if not isinstance(hsts, dict):
             hsts = {}
 
+        privacy_risks = fingerprint.get('privacy_risks')
+        if not isinstance(privacy_risks, dict):
+            privacy_risks = {}
+        supercookie = privacy_risks.get('supercookie')
+        if not isinstance(supercookie, dict):
+            supercookie = {}
+
         return self.clean_properties({
             'fingerprintCategory': fingerprint.get('category', 'custom'),
             'fingerprintName': fingerprint.get('name', 'Unknown custom stack'),
@@ -264,6 +271,14 @@ class SarifReportPlugin(PluginProvider):
             'hstsPreloadReady': hsts.get('preload_ready'),
             'hstsHttpToHttpsRedirect': hsts.get('http_to_https_redirect'),
             'hstsWarnings': hsts.get('warnings', []),
+            'privacySupercookieRisk': supercookie.get('risk'),
+            'privacySupercookieScore': self.maybe_int(supercookie.get('score')),
+            'privacySupercookieHstsTrackingSurface': supercookie.get('hsts_tracking_surface'),
+            'privacySupercookieEtagTrackingSurface': supercookie.get('etag_tracking_surface'),
+            'privacySupercookieCacheTrackingSurface': supercookie.get('cache_tracking_surface'),
+            'privacySupercookiePersistentCookieSurface': supercookie.get('persistent_cookie_surface'),
+            'privacySupercookieWarnings': supercookie.get('warnings', []),
+            'privacySupercookieSignals': supercookie.get('signals', []),
         })
 
     def item_properties(self, status, item):
@@ -290,12 +305,17 @@ class SarifReportPlugin(PluginProvider):
             'wafConfidence': self.maybe_int(item.get('waf_confidence')),
             'wafSignals': item.get('waf_signals', []),
             'bypass': item.get('bypass'),
+            'bypassProfile': item.get('bypass_profile'),
             'bypassHeader': item.get('bypass_header'),
             'bypassValue': item.get('bypass_value'),
             'bypassVariant': item.get('bypass_variant'),
             'bypassUrl': item.get('bypass_url'),
+            'bypassFromStatus': item.get('bypass_from_status'),
+            'bypassToStatus': item.get('bypass_to_status'),
             'bypassFromCode': self.maybe_int(item.get('bypass_from_code')),
             'bypassToCode': self.maybe_int(item.get('bypass_to_code')),
+            'bypassScore': self.maybe_int(item.get('bypass_score')),
+            'bypassReasons': item.get('bypass_reasons', []),
             'debugDetection': item.get('debug_detection'),
         }
         properties.update(self.fingerprint_properties())
