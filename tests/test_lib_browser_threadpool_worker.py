@@ -448,5 +448,57 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         self.assertEqual(wait_calls['count'], 2)
 
 
+    def test_runtime_pause_answer_should_accept_continue_variants(self):
+        """Runtime pause answer normalization should accept continue variants."""
+
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('c'), 'C')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('C'), 'C')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('CC'), 'C')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('cCccc'), 'C')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('continue'), 'C')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('Continue'), 'C')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('с'), 'C')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('С'), 'C')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('сссс'), 'C')
+
+    def test_runtime_pause_answer_should_accept_exit_variants(self):
+        """Runtime pause answer normalization should accept exit variants."""
+
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('e'), 'E')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('E'), 'E')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('EE'), 'E')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('exit'), 'E')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('Exit'), 'E')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('q'), 'E')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('quit'), 'E')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('е'), 'E')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('Е'), 'E')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('ееее'), 'E')
+
+    def test_runtime_pause_answer_should_preserve_empty_and_reject_unknown_values(self):
+        """Runtime pause answer normalization should preserve Enter and reject unknown commands."""
+
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer(''), '')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer(None), '')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('x'), 'x')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('  x  '), 'x')
+
+    def test_pause_should_resume_on_repeated_or_cyrillic_continue_input(self):
+        """ThreadPool.pause() should resume on repeated and Cyrillic continue answers."""
+
+        cases = ('CC', 'cCccc', 'сссс')
+
+        for answer in cases:
+            with self.subTest(answer=answer):
+                with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+                    pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+                with patch('src.lib.browser.threadpool.tpl.prompt', return_value=answer), \
+                        patch('src.lib.browser.threadpool.tpl.info'):
+                    pool.pause()
+
+                self.assertTrue(pool.is_started)
+
+
 if __name__ == '__main__':
     unittest.main()

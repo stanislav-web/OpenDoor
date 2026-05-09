@@ -215,6 +215,45 @@ class ThreadPool(object):
 
         return '; '.join(items)
 
+    @staticmethod
+    def normalize_runtime_pause_answer(answer):
+        """
+        Normalize runtime pause prompt answer.
+
+        Runtime pause input must be tolerant to case, repeated key presses
+        and keyboard layout mistakes where Cyrillic letters look like Latin ones.
+
+        :param str answer: raw terminal answer
+        :return: normalized runtime command
+        """
+
+        value = str(answer or '').strip().casefold()
+
+        if len(value) <= 0:
+            return ''
+
+        aliases = {
+            'c': 'C',
+            'continue': 'C',
+            'с': 'C',  # Cyrillic small es, visually similar to latin c.
+            'e': 'E',
+            'exit': 'E',
+            'q': 'E',
+            'quit': 'E',
+            'е': 'E',  # Cyrillic small ie, visually similar to latin e.
+        }
+
+        if value in aliases:
+            return aliases[value]
+
+        for char in value:
+            if char.isspace():
+                continue
+
+            return aliases.get(char, char)
+
+        return ''
+
     def pause(self):
         """
         Pause all pool workers and show the runtime continue/exit prompt.
@@ -231,12 +270,11 @@ class ThreadPool(object):
 
         try:
             while True:
-                char = tpl.prompt(key='option_prompt')
-                option = str(char or '').strip().lower()
+                option = self.normalize_runtime_pause_answer(tpl.prompt(key='option_prompt'))
 
-                if option in ('e', 'q'):
+                if option == 'E':
                     raise KeyboardInterrupt
-                if option in ('c', ''):
+                if option in ('C', ''):
                     self.resume()
                     return
 
