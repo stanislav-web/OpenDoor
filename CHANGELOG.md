@@ -1,7 +1,7 @@
 CHANGELOG
 =======
 
-v5.15.3 (xx.05.2026)
+v5.15.3 (09.05.2026)
 ---------------------------
 - (critical) prevented silent partial scans when randomized runtime wordlists are truncated by validating shuffled list size and warning on early EOF before report generation
 - (critical) restored runtime `Ctrl+C` pause/resume so the first interrupt opens the continue/exit menu during active worker joins instead of immediately canceling the scan.
