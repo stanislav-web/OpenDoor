@@ -16,7 +16,6 @@
     Development: Stanislav WEB
 """
 
-import threading
 import time
 from queue import Queue
 
@@ -28,6 +27,9 @@ from .worker import Worker
 class ThreadPool(object):
 
     """ThreadPool class"""
+
+    JOIN_POLL_INTERVAL_SEC = 1.0
+    JOIN_STALL_WARNING_SEC = 60.0
 
     def __init__(self, num_threads, total_items, timeout):
         """
@@ -90,6 +92,34 @@ class ThreadPool(object):
 
         return self.__submitted
 
+    @property
+    def completed_size(self):
+        """
+        Get completed task count across workers.
+
+        :return: int
+        """
+
+        counter = 0
+        for worker in self.__workers:
+            counter += int(getattr(worker, 'completed', 0) or 0)
+        return counter
+
+    @property
+    def active_tasks(self):
+        """
+        Get active worker task metadata for diagnostics.
+
+        :return: list[dict]
+        """
+
+        tasks = []
+        for worker in self.__workers:
+            task = getattr(worker, 'active_task', None)
+            if isinstance(task, dict):
+                tasks.append(task)
+        return tasks
+
     def extend_total_items(self, amount):
         """
         Extend allowed submitted items size.
@@ -116,42 +146,137 @@ class ThreadPool(object):
                     self.__queue.put((func, args, kargs))
                     self.__submitted += 1
         except (SystemExit, KeyboardInterrupt):
-            time.sleep(2)
             self.pause()
 
     def join(self):
         """
-        Join queue
+        Join queue and periodically warn when workers stop making progress.
+
         :return: None
         """
 
-        self.__queue.join()
+        last_completed = self.completed_size
+        last_queue_size = self.size
+        last_activity_at = time.monotonic()
+        last_warning_at = last_activity_at
+
+        with self.__queue.all_tasks_done:
+            while int(getattr(self.__queue, 'unfinished_tasks', 0) or 0) > 0:
+                try:
+                    self.__queue.all_tasks_done.wait(timeout=self.JOIN_POLL_INTERVAL_SEC)
+                except (SystemExit, KeyboardInterrupt):
+                    self.pause()
+                    continue
+
+                completed = self.completed_size
+                queue_size = self.__queue._qsize()
+                if completed != last_completed or queue_size != last_queue_size:
+                    last_completed = completed
+                    last_queue_size = queue_size
+                    last_activity_at = time.monotonic()
+                    continue
+
+                now = time.monotonic()
+                if (now - last_activity_at >= self.JOIN_STALL_WARNING_SEC
+                        and now - last_warning_at >= self.JOIN_STALL_WARNING_SEC):
+                    tpl.warning(
+                        msg='Scan worker has not completed a request for {0:.0f}s. '
+                            'submitted={1}, completed={2}, queue={3}, active={4}'.format(
+                                now - last_activity_at,
+                                self.submitted_size,
+                                completed,
+                                queue_size,
+                                self.__format_active_tasks(now)
+                            )
+                    )
+                    last_warning_at = now
+
+    def __format_active_tasks(self, now):
+        """
+        Format active worker tasks for join watchdog diagnostics.
+
+        :param float now: current monotonic timestamp
+        :return: str
+        """
+
+        tasks = self.active_tasks
+        if len(tasks) == 0:
+            return 'none'
+
+        items = []
+        for task in tasks[:3]:
+            label = str(task.get('label') or 'unknown task')
+            started_at = float(task.get('started_at') or now)
+            age = max(0.0, now - started_at)
+            items.append('{0} ({1:.0f}s)'.format(label, age))
+
+        if len(tasks) > 3:
+            items.append('+{0} more'.format(len(tasks) - 3))
+
+        return '; '.join(items)
+
+    @staticmethod
+    def normalize_runtime_pause_answer(answer):
+        """
+        Normalize runtime pause prompt answer.
+
+        Runtime pause input must be tolerant to case, repeated key presses
+        and keyboard layout mistakes where Cyrillic letters look like Latin ones.
+
+        :param str answer: raw terminal answer
+        :return: normalized runtime command
+        """
+
+        value = str(answer or '').strip().casefold()
+
+        if len(value) <= 0:
+            return ''
+
+        aliases = {
+            'c': 'C',
+            'continue': 'C',
+            'с': 'C',  # Cyrillic small es, visually similar to latin c.
+            'e': 'E',
+            'exit': 'E',
+            'q': 'E',
+            'quit': 'E',
+            'е': 'E',  # Cyrillic small ie, visually similar to latin e.
+        }
+
+        if value in aliases:
+            return aliases[value]
+
+        for char in value:
+            if char.isspace():
+                continue
+
+            return aliases.get(char, char)
+
+        return ''
 
     def pause(self):
         """
-        ThreadPool pause
-        :raise KeyboardInterrupt
+        Pause all pool workers and show the runtime continue/exit prompt.
+
+        :raise KeyboardInterrupt: when the user chooses exit or interrupts the prompt
         :return: None
         """
 
         self.is_started = False
         tpl.info(key='stop_threads', threads=len(self.__workers))
 
-        try:
-            while 0 < threading.active_count():
-                for worker in threading.enumerate():
-                    if threading.current_thread().__class__.__name__ != '_MainThread':
-                        worker.pause()
-                time.sleep(2)
+        for worker in self.__workers:
+            worker.pause()
 
-                char = tpl.prompt(key='option_prompt')
-                if char.lower() == 'e':
+        try:
+            while True:
+                option = self.normalize_runtime_pause_answer(tpl.prompt(key='option_prompt'))
+
+                if option == 'E':
                     raise KeyboardInterrupt
-                elif char.lower() == 'c':
+                if option in ('C', ''):
                     self.resume()
-                    break
-                else:
-                    continue
+                    return
 
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt

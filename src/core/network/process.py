@@ -6,6 +6,9 @@
 
 import subprocess
 
+from urllib3 import PoolManager, Timeout, disable_warnings
+from urllib3.exceptions import HTTPError, InsecureRequestWarning
+
 from .exceptions import NetworkTransportError
 
 
@@ -55,6 +58,43 @@ class ProcessRunner(object):
             )
         except (OSError, subprocess.SubprocessError) as error:
             raise NetworkTransportError(error)
+
+    def healthcheck(self, url, timeout=5):
+        """
+        Validate network connectivity through the active OS route.
+
+        Any HTTP response means the route is usable; transport-level errors
+        are wrapped and retried by the transport manager.
+
+        :param str url: Healthcheck URL.
+        :param int timeout: Request timeout in seconds.
+        :raise NetworkTransportError:
+        :return: int HTTP status code.
+        """
+
+        manager = None
+        disable_warnings(InsecureRequestWarning)
+
+        try:
+            manager = PoolManager(
+                timeout=Timeout(connect=timeout, read=timeout),
+                cert_reqs='CERT_NONE',
+            )
+            response = manager.request(
+                'GET',
+                url,
+                preload_content=False,
+                retries=False,
+                redirect=False,
+            )
+            status = response.status
+            response.release_conn()
+            return status
+        except (HTTPError, OSError, ValueError) as error:
+            raise NetworkTransportError(error)
+        finally:
+            if manager is not None:
+                manager.clear()
 
     def stop(self, process, timeout=5):
         """

@@ -19,6 +19,16 @@ class TestNetworkTransport(unittest.TestCase):
 
     """TestNetworkTransport class."""
 
+    def setUp(self):
+        """Use deterministic transport executable resolution in unit tests."""
+
+        self.which_patcher = patch(
+            'src.core.network.adapters.base.shutil.which',
+            side_effect=lambda command: command if command in ['openvpn', 'wg-quick'] else None
+        )
+        self.which_patcher.start()
+        self.addCleanup(self.which_patcher.stop)
+
     def make_file(self, suffix, content=''):
         """Create a temporary file."""
 
@@ -287,6 +297,258 @@ class TestNetworkTransport(unittest.TestCase):
         with self.assertRaises(NetworkTransportError):
             NetworkTransportManager({'transport': 'bad'})
 
+    def test_manager_should_assert_openvpn_process_when_healthcheck_is_disabled(self):
+        """NetworkTransportManager.start() should still validate OpenVPN process liveness without healthcheck URL."""
+
+        profile = self.make_file('.ovpn')
+        process = MagicMock()
+        process.poll.return_value = None
+        runner = MagicMock()
+        runner.start_persistent.return_value = process
+
+        manager = NetworkTransportManager({
+            'transport': 'openvpn',
+            'transport_profile': profile,
+        }, runner=runner)
+
+        with patch.object(OpenVpnTransport, 'wait_ready') as wait_ready:
+            self.assertIs(manager.start(), process)
+
+        wait_ready.assert_called_once_with(timeout=30)
+
+    def test_manager_should_run_healthcheck_after_transport_start(self):
+        """NetworkTransportManager.start() should validate configured healthcheck URL."""
+
+        profile = self.make_file('.conf')
+        runner = MagicMock()
+        runner.healthcheck.return_value = 200
+
+        manager = NetworkTransportManager({
+            'transport': 'wireguard',
+            'transport_profile': profile,
+            'transport_healthcheck_url': 'https://ifconfig.me',
+            'transport_timeout': 9,
+        }, runner=runner)
+
+        manager.start()
+
+        runner.run.assert_called_once_with(['wg-quick', 'up', profile], timeout=9)
+        runner.healthcheck.assert_called_once_with('https://ifconfig.me', timeout=5)
+
+    def test_manager_should_stop_transport_when_healthcheck_fails(self):
+        """NetworkTransportManager.start() should cleanup transport after healthcheck failure."""
+
+        profile = self.make_file('.conf')
+        runner = MagicMock()
+        runner.healthcheck.side_effect = NetworkTransportError('offline')
+
+        manager = NetworkTransportManager({
+            'transport': 'wireguard',
+            'transport_profile': profile,
+            'transport_healthcheck_url': 'https://ifconfig.me',
+            'transport_timeout': 1,
+        }, runner=runner)
+
+        with patch('src.core.network.transport.time.sleep'), self.assertRaises(NetworkTransportError):
+            manager.start()
+
+        runner.run.assert_any_call(['wg-quick', 'up', profile], timeout=1)
+        runner.run.assert_any_call(['wg-quick', 'down', profile], timeout=1)
+
+
+    def test_manager_healthcheck_should_retry_until_success(self):
+        """NetworkTransportManager should retry healthcheck before the deadline."""
+
+        profile = self.make_file('.conf')
+        runner = MagicMock()
+        runner.healthcheck.side_effect = [NetworkTransportError('offline'), 200]
+
+        manager = NetworkTransportManager({
+            'transport': 'wireguard',
+            'transport_profile': profile,
+            'transport_healthcheck_url': 'https://ifconfig.me',
+            'transport_timeout': 9,
+        }, runner=runner)
+
+        with patch('src.core.network.transport.time.monotonic', side_effect=[0, 0, 1, 1, 2, 3]), \
+                patch('src.core.network.transport.time.sleep') as sleep_mock:
+            manager.start()
+
+        self.assertEqual(runner.healthcheck.call_count, 2)
+        sleep_mock.assert_called_once_with(1)
+
+    def test_manager_should_assert_adapter_running_when_supported(self):
+        """NetworkTransportManager should delegate liveness checks to capable adapters."""
+
+        manager = NetworkTransportManager({})
+        adapter = MagicMock()
+        adapter.assert_running = MagicMock()
+        manager.adapter = adapter
+
+        manager._NetworkTransportManager__assert_adapter_running()
+
+        adapter.assert_running.assert_called_once_with()
+
+    def test_openvpn_transport_should_reject_exited_process_before_scan(self):
+        """OpenVpnTransport.assert_running() should catch immediate OpenVPN failures."""
+
+        process = MagicMock()
+        process.poll.return_value = 1
+        process.communicate.return_value = ('AUTH_FAILED\n', '')
+
+        transport = OpenVpnTransport({'transport_profile': self.make_file('.ovpn')})
+        transport.process = process
+
+        with self.assertRaises(NetworkTransportError) as ctx:
+            transport.assert_running()
+
+        self.assertIn('OpenVPN process exited before scan start', str(ctx.exception))
+        self.assertIn('AUTH_FAILED', str(ctx.exception))
+
+    def test_openvpn_transport_assert_running_should_ignore_missing_or_live_process(self):
+        """OpenVpnTransport.assert_running() should no-op for missing or still-running process."""
+
+        transport = OpenVpnTransport({'transport_profile': self.make_file('.ovpn')})
+
+        self.assertIsNone(transport.assert_running())
+
+        process = MagicMock()
+        process.poll.return_value = None
+        transport.process = process
+
+        self.assertIsNone(transport.assert_running())
+        process.communicate.assert_not_called()
+
+    def test_openvpn_transport_assert_running_should_show_concise_summary_on_debug_one(self):
+        """OpenVpnTransport.assert_running() should hide verbose output at debug 1."""
+
+        process = MagicMock()
+        process.poll.return_value = 1
+        process.communicate.return_value = (
+            '2026-05-09 TLS Error: TLS key negotiation failed\n'
+            '2026-05-09 Exiting due to fatal error\n',
+            '',
+        )
+
+        transport = OpenVpnTransport({'transport_profile': self.make_file('.ovpn'), 'debug': 1})
+        transport.process = process
+
+        with self.assertRaises(NetworkTransportError) as ctx:
+            transport.assert_running()
+
+        message = str(ctx.exception)
+        self.assertIn('OpenVPN process exited before scan start with code 1', message)
+        self.assertIn('TLS Error: TLS key negotiation failed', message)
+        self.assertIn('Re-run with --debug 2 for OpenVPN output tail', message)
+        self.assertNotIn('Exiting due to fatal error', message)
+
+    def test_openvpn_transport_assert_running_should_show_output_tail_on_debug_two(self):
+        """OpenVpnTransport.assert_running() should expose OpenVPN output tail at debug 2."""
+
+        process = MagicMock()
+        process.poll.return_value = 1
+        process.communicate.return_value = (
+            'line-01\nline-02\nline-03\nline-04\nline-05\nline-06\n'
+            'line-07\nline-08\nline-09\nline-10\nline-11\nline-12\nline-13\n'
+            '2026-05-09 Exiting due to fatal error\n',
+            '',
+        )
+
+        transport = OpenVpnTransport({'transport_profile': self.make_file('.ovpn'), 'debug': 2})
+        transport.process = process
+
+        with self.assertRaises(NetworkTransportError) as ctx:
+            transport.assert_running()
+
+        message = str(ctx.exception)
+        self.assertIn('OpenVPN output tail:', message)
+        self.assertNotIn('line-01', message)
+        self.assertNotIn('line-02', message)
+        self.assertIn('line-03', message)
+        self.assertIn('line-13', message)
+        self.assertIn('Exiting due to fatal error', message)
+
+    def test_openvpn_transport_assert_running_should_handle_invalid_debug_and_empty_output(self):
+        """OpenVpnTransport.assert_running() should tolerate invalid debug value and empty output."""
+
+        process = MagicMock()
+        process.poll.return_value = 1
+        process.communicate.return_value = ('', '')
+
+        transport = OpenVpnTransport({'transport_profile': self.make_file('.ovpn'), 'debug': 'bad'})
+        transport.process = process
+
+        with self.assertRaises(NetworkTransportError) as ctx:
+            transport.assert_running()
+
+        self.assertEqual(str(ctx.exception), 'OpenVPN process exited before scan start with code 1')
+
+    def test_openvpn_transport_assert_running_should_fallback_when_only_generic_output_exists(self):
+        """OpenVpnTransport.assert_running() should still show a generic line when it is the only output."""
+
+        process = MagicMock()
+        process.poll.return_value = 1
+        process.communicate.return_value = ('2026-05-09 Exiting due to fatal error\n', '')
+
+        transport = OpenVpnTransport({'transport_profile': self.make_file('.ovpn'), 'debug': 1})
+        transport.process = process
+
+        with self.assertRaises(NetworkTransportError) as ctx:
+            transport.assert_running()
+
+        message = str(ctx.exception)
+        self.assertIn('Exiting due to fatal error', message)
+        self.assertIn('Re-run with --debug 2 for OpenVPN output tail', message)
+
+    def test_openvpn_transport_assert_running_should_handle_unreadable_output(self):
+        """OpenVpnTransport.assert_running() should still fail when process output cannot be read."""
+
+        process = MagicMock()
+        process.poll.return_value = 1
+        process.communicate.side_effect = RuntimeError('closed pipe')
+
+        transport = OpenVpnTransport({'transport_profile': self.make_file('.ovpn')})
+        transport.process = process
+
+        with self.assertRaises(NetworkTransportError) as ctx:
+            transport.assert_running()
+
+        self.assertIn('OpenVPN process exited before scan start with code 1', str(ctx.exception))
+
+    def test_process_runner_should_request_healthcheck_url(self):
+        """ProcessRunner.healthcheck() should return HTTP status for reachable URL."""
+
+        response = MagicMock()
+        response.status = 204
+        manager = MagicMock()
+        manager.request.return_value = response
+
+        with patch('src.core.network.process.PoolManager', return_value=manager):
+            actual = ProcessRunner().healthcheck('https://ifconfig.me', timeout=3)
+
+        self.assertEqual(actual, 204)
+        manager.request.assert_called_once_with(
+            'GET',
+            'https://ifconfig.me',
+            preload_content=False,
+            retries=False,
+            redirect=False,
+        )
+        response.release_conn.assert_called_once_with()
+        manager.clear.assert_called_once_with()
+
+    def test_process_runner_healthcheck_should_wrap_transport_errors(self):
+        """ProcessRunner.healthcheck() should wrap low-level healthcheck errors."""
+
+        manager = MagicMock()
+        manager.request.side_effect = ValueError('bad healthcheck url')
+
+        with patch('src.core.network.process.PoolManager', return_value=manager):
+            with self.assertRaises(NetworkTransportError):
+                ProcessRunner().healthcheck('not-a-url', timeout=3)
+
+        manager.clear.assert_called_once_with()
+
     def test_process_runner_should_start_persistent_process(self):
         """ProcessRunner.start_persistent() should start subprocess with safe defaults."""
 
@@ -383,6 +645,77 @@ class TestNetworkTransport(unittest.TestCase):
         with self.assertRaises(NetworkTransportError):
             ProcessRunner().stop(process)
 
+    def test_manager_start_should_not_cleanup_when_adapter_start_fails(self):
+        """NetworkTransportManager.start() should not run cleanup when adapter startup fails before activation."""
+
+        manager = NetworkTransportManager({'transport': 'direct'})
+        adapter = MagicMock()
+        adapter.start.side_effect = NetworkTransportError('start failed')
+        adapter.stop = MagicMock()
+        manager.adapter = adapter
+
+        with self.assertRaises(NetworkTransportError):
+            manager.start()
+
+        adapter.stop.assert_not_called()
+
+    def test_manager_healthcheck_should_stop_on_deadline_error_without_sleep(self):
+        """NetworkTransportManager.start() should stop after a healthcheck error at the deadline."""
+
+        profile = self.make_file('.conf')
+        runner = MagicMock()
+        runner.healthcheck.side_effect = NetworkTransportError('offline')
+
+        manager = NetworkTransportManager({
+            'transport': 'wireguard',
+            'transport_profile': profile,
+            'transport_healthcheck_url': 'https://ifconfig.me',
+            'transport_timeout': 1,
+        }, runner=runner)
+
+        with patch('src.core.network.transport.time.monotonic', side_effect=[0, 0, 0, 1]), \
+                patch('src.core.network.transport.time.sleep') as sleep_mock, \
+                self.assertRaises(NetworkTransportError):
+            manager.start()
+
+        sleep_mock.assert_not_called()
+        runner.run.assert_any_call(['wg-quick', 'down', profile], timeout=1)
+
+    def test_manager_should_ignore_cleanup_error_after_failed_post_start_validation(self):
+        """NetworkTransportManager.start() should preserve original validation error when cleanup fails."""
+
+        profile = self.make_file('.conf')
+        runner = MagicMock()
+        runner.healthcheck.side_effect = NetworkTransportError('health failed')
+        runner.run.side_effect = [None, NetworkTransportError('stop failed')]
+
+        manager = NetworkTransportManager({
+            'transport': 'wireguard',
+            'transport_profile': profile,
+            'transport_healthcheck_url': 'https://ifconfig.me',
+            'transport_timeout': 1,
+        }, runner=runner)
+
+        with patch('src.core.network.transport.time.monotonic', side_effect=[0, 0, 0, 1]), \
+                self.assertRaises(NetworkTransportError) as ctx:
+            manager.start()
+
+        self.assertIn('health failed', str(ctx.exception))
+        runner.run.assert_any_call(['wg-quick', 'down', profile], timeout=1)
+
+    def test_manager_should_reject_wrong_openvpn_profile_extension_in_profiles_file(self):
+        """NetworkTransportManager should reject non-ovpn entries for OpenVPN profile lists."""
+
+        profile = self.make_file('.conf')
+        profiles = self.make_file('.txt', '{0}\n'.format(profile))
+
+        with self.assertRaises(NetworkTransportError):
+            NetworkTransportManager({
+                'transport': 'openvpn',
+                'transport_profiles': profiles,
+                'transport_rotate': 'per-target',
+            })
+
     def test_manager_rotate_should_return_current_adapter_when_rotation_is_disabled(self):
         """NetworkTransportManager.rotate() should return current adapter when rotation is disabled."""
 
@@ -445,6 +778,150 @@ class TestNetworkTransport(unittest.TestCase):
 
         with self.assertRaises(NetworkTransportError):
             transport.validate_profile()
+
+    def test_base_transport_resolve_executable_should_use_candidate_file(self):
+        """BaseTransport should resolve executable fallback candidates."""
+
+        executable = self.make_file('.bin')
+        os.chmod(executable, 0o700)
+        transport = DirectTransport({})
+
+        with patch('src.core.network.adapters.base.shutil.which', return_value=None):
+            self.assertEqual(transport.resolve_executable('custom-vpn', [executable]), executable)
+
+    def test_base_transport_resolve_executable_should_use_explicit_command_from_path(self):
+        """BaseTransport should resolve explicit command names through PATH."""
+
+        transport = DirectTransport({'transport_bin': 'openvpn'})
+
+        with patch('src.core.network.adapters.base.shutil.which', return_value='/usr/sbin/openvpn'):
+            self.assertEqual(transport.resolve_executable('ignored'), '/usr/sbin/openvpn')
+
+    def test_base_transport_resolve_executable_should_reject_invalid_explicit_bin(self):
+        """BaseTransport should reject invalid explicit transport binaries."""
+
+        transport = DirectTransport({'transport_bin': '/missing/openvpn'})
+
+        with patch('src.core.network.adapters.base.shutil.which', return_value=None):
+            with self.assertRaises(NetworkTransportError) as ctx:
+                transport.resolve_executable('ignored')
+
+        self.assertIn('Transport executable does not exist or is not executable', str(ctx.exception))
+
+    def test_base_transport_missing_executable_errors_should_be_platform_specific(self):
+        """BaseTransport should return actionable per-platform executable diagnostics."""
+
+        cases = [
+            ('openvpn', 'Darwin', 'brew install openvpn'),
+            ('openvpn', 'Windows', 'OpenVPN Community client'),
+            ('openvpn', 'Linux', 'apt install openvpn'),
+            ('wg-quick', 'Windows', 'wg-quick is not a native Windows backend'),
+            ('wg-quick', 'Linux', 'wireguard-tools'),
+            ('custom-vpn', 'Linux', 'Pass --transport-bin'),
+        ]
+
+        for command, system, expected in cases:
+            transport = DirectTransport({})
+
+            with self.subTest(command=command, system=system):
+                with patch('src.core.network.adapters.base.shutil.which', return_value=None), \
+                        patch('src.core.network.adapters.base.platform.system', return_value=system):
+                    with self.assertRaises(NetworkTransportError) as ctx:
+                        transport.resolve_executable(command, [])
+
+                self.assertIn(expected, str(ctx.exception))
+
+    def test_openvpn_transport_should_use_explicit_transport_bin(self):
+        """OpenVpnTransport should use explicit transport executable when configured."""
+
+        profile = self.make_file('.ovpn')
+        executable = self.make_file('.bin')
+        os.chmod(executable, 0o700)
+        transport = OpenVpnTransport({
+            'transport_profile': profile,
+            'transport_bin': executable,
+        })
+
+        self.assertEqual(transport.build_start_command(), [executable, '--config', profile])
+
+
+    def test_openvpn_transport_should_return_windows_candidates_from_program_files(self):
+        transport = OpenVpnTransport({})
+
+        with patch("src.core.network.adapters.openvpn.os.name", "nt"), \
+                patch.dict("src.core.network.adapters.openvpn.os.environ", {
+                    "ProgramFiles": "C:\\Program Files",
+                    "ProgramFiles(x86)": "C:\\Program Files (x86)",
+                }, clear=True):
+            candidates = transport.executable_candidates()
+
+        self.assertEqual(candidates, [
+            os.path.join("C:\\Program Files", "OpenVPN", "bin", "openvpn.exe"),
+            os.path.join("C:\\Program Files (x86)", "OpenVPN", "bin", "openvpn.exe"),
+        ])
+
+    def test_openvpn_transport_should_report_missing_executable(self):
+        """OpenVpnTransport should return actionable error when executable is missing."""
+
+        profile = self.make_file('.ovpn')
+        transport = OpenVpnTransport({'transport_profile': profile})
+
+        with patch('src.core.network.adapters.base.shutil.which', return_value=None):
+            with patch.object(transport, 'executable_candidates', return_value=[]):
+                with self.assertRaises(NetworkTransportError) as ctx:
+                    transport.build_start_command()
+
+        self.assertIn('openvpn executable not found in PATH', str(ctx.exception))
+        self.assertIn('--transport-bin', str(ctx.exception))
+
+
+    def test_manager_should_wait_openvpn_ready_without_healthcheck(self):
+        """NetworkTransportManager.start() should wait OpenVPN readiness even without healthcheck URL."""
+
+        profile = self.make_file('.ovpn')
+        process = MagicMock()
+        process.poll.return_value = None
+        runner = MagicMock()
+        runner.start_persistent.return_value = process
+
+        with patch.object(OpenVpnTransport, 'wait_ready') as wait_ready:
+            manager = NetworkTransportManager({
+                'transport': 'openvpn',
+                'transport_profile': profile,
+                'transport_timeout': 9,
+            }, runner=runner)
+
+            manager.start()
+
+        wait_ready.assert_called_once_with(timeout=9)
+        runner.healthcheck.assert_not_called()
+
+    def test_openvpn_transport_wait_ready_should_keep_process_alive_during_startup_grace(self):
+        """OpenVpnTransport.wait_ready() should give the OS route a startup grace window."""
+
+        process = MagicMock()
+        process.poll.return_value = None
+        transport = OpenVpnTransport({})
+        transport.process = process
+
+        with patch('src.core.network.adapters.openvpn.time.monotonic', side_effect=[0.0, 0.0, 0.2, 3.0]),                 patch('src.core.network.adapters.openvpn.time.sleep') as sleep_mock:
+            transport.wait_ready(timeout=30)
+
+        process.poll.assert_called()
+        sleep_mock.assert_called_with(transport.STARTUP_POLL_SEC)
+
+    def test_wireguard_transport_should_report_windows_backend_limitation(self):
+        """WireGuard transport should explain Windows wg-quick limitation."""
+
+        profile = self.make_file('.conf')
+        transport = WireGuardTransport({'transport_profile': profile})
+
+        with patch('src.core.network.adapters.base.shutil.which', return_value=None):
+            with patch('src.core.network.adapters.base.platform.system', return_value='Windows'):
+                with self.assertRaises(NetworkTransportError) as ctx:
+                    transport.build_up_command()
+
+        self.assertIn('wg-quick is not a native Windows backend', str(ctx.exception))
 
 if __name__ == '__main__':
     unittest.main()

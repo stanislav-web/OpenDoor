@@ -6,6 +6,47 @@ Use it only for authorized workflows and local profiles you control.
 
 ---
 
+
+## System backend requirement
+
+OpenDoor does not bundle or install a VPN client. The OpenVPN transport starts the system OpenVPN CLI for the duration of the scan.
+
+Cross-platform behavior:
+
+| OS | Requirement | Notes |
+|---|---|---|
+| macOS | OpenVPN CLI installed and reachable from `PATH`, or passed with `--transport-bin` | Common Homebrew paths are checked automatically: `/opt/homebrew/sbin/openvpn`, `/usr/local/sbin/openvpn` |
+| Linux | `openvpn` package installed, or binary passed with `--transport-bin` | The process usually needs privileges to create TUN/TAP routes |
+| Windows | OpenVPN Community client with `openvpn.exe`, or binary passed with `--transport-bin` | Run the terminal as Administrator when the profile needs route/TAP changes |
+
+If you use OpenVPN Connect, OpenVPN GUI, Tunnelblick, a corporate VPN agent, or another OS-level VPN app, start the VPN outside OpenDoor and run OpenDoor with the default `direct` transport. In that mode OpenDoor uses the already active system route.
+
+---
+
+## Explicit executable path
+
+Use `--transport-bin` when the executable is installed but not visible in `PATH`:
+
+```shell
+opendoor \
+  --host https://example.com \
+  --transport openvpn \
+  --transport-profile ./profile.ovpn \
+  --transport-bin /opt/homebrew/sbin/openvpn
+```
+
+Windows example:
+
+```powershell
+opendoor `
+  --host https://example.com `
+  --transport openvpn `
+  --transport-profile .\profile.ovpn `
+  --transport-bin "C:\Program Files\OpenVPN\bin\openvpn.exe"
+```
+
+---
+
 ## Basic usage
 
 ```shell

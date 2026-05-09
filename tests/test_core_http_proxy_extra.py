@@ -46,6 +46,7 @@ class TestProxyExtra(unittest.TestCase):
             level=level,
             debug_proxy_pool=MagicMock(),
             debug_request=MagicMock(),
+            debug_response=MagicMock(),
         )
 
     def test_init_rejects_empty_proxy_list_for_non_standalone_mode(self):
@@ -264,6 +265,22 @@ class TestProxyExtra(unittest.TestCase):
                 getattr(proxy, '_Proxy__proxy_pool')()
 
         self.assertIn('PySocks', str(context.exception))
+
+    def test_debug_cookie_middleware_emits_accept_and_accepted_diagnostics(self):
+        """Proxy.__debug_cookie_middleware() should report accepted cookies when enabled."""
+
+        cfg = self.make_cfg(accept_cookies=True)
+        debug = self.make_debug(level=3)
+        debug.debug_cookie_accept_enabled = MagicMock()
+        debug.debug_cookie_accepted = MagicMock()
+        proxy = Proxy(cfg, debug, tpl=MagicMock(), proxy_list=['http://unused'], agent_list=['UA'])
+        response = HTTPResponse(status=200, body=b'ok', headers={'Set-Cookie': 'sid=abc; Path=/'})
+
+        getattr(proxy, '_Proxy__debug_cookie_middleware')(response)
+
+        debug.debug_cookie_accept_enabled.assert_called_once_with()
+        debug.debug_cookie_accepted.assert_called_once_with('sid=abc')
+
 
 if __name__ == '__main__':
     unittest.main()

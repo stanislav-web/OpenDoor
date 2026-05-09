@@ -26,3 +26,5 @@ from .skipempty import SkipemptyResponsePlugin as skipempty
 from .file import FileResponsePlugin as file
 # noinspection PyPep8Naming
 from .skipsizes import SkipSizesResponsePlugin as skipsizes
+# noinspection PyPep8Naming
+from .stacktrace import StacktraceResponsePlugin as stacktrace

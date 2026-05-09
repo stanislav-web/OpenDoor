@@ -327,6 +327,20 @@ class TestResponse(unittest.TestCase):
 
         self.assertEqual((status, url, size, code), ('failed', 'http://example.com/admin', '0B', '301'))
 
+    def test_get_subdomain_ips_should_initialize_missing_cache(self):
+        """Response._get_subdomain_ips() should recreate cache when instance state is missing."""
+
+        cfg = self.make_cfg(scan='subdomains')
+        debug = self.make_debug(level=0)
+        response_handler = Response(cfg, debug, tpl=MagicMock())
+        delattr(response_handler, '_Response__subdomain_ip_cache')
+
+        with patch('src.core.http.response.Socket.get_ips_addresses', return_value='[127.0.0.1]') as ips_mock:
+            actual = response_handler._get_subdomain_ips('http://api.example.com/admin')
+
+        self.assertEqual(actual, '[127.0.0.1]')
+        ips_mock.assert_called_once_with('api.example.com')
+
     def test_handle_subdomain_appends_ips_and_non_status_response(self):
         """Response.handle() should append IPs for subdomain scans and handle None-status responses."""
 
@@ -367,8 +381,8 @@ class TestResponse(unittest.TestCase):
         self.assertEqual(len(response._response_plugins), 1)
         debug.debug_load_sniffer_plugin.assert_not_called()
 
-    def test_handle_debug_response_uses_items_when_headers_are_jsonable(self):
-        """Response.handle() should pass header items directly when they are JSON-serializable."""
+    def test_handle_keeps_header_debug_in_request_layer(self):
+        """Response.handle() should not emit raw response headers itself."""
 
         class JsonableHeaders(dict):
             """Headers mapping whose items() result is JSON-serializable."""
@@ -390,7 +404,8 @@ class TestResponse(unittest.TestCase):
         status, url, size, code = response_handler.handle(response, 'http://example.com/path', 1, 2, [])
 
         self.assertEqual((status, url, size, code), ('success', 'http://example.com/path', '2B', '200'))
-        debug.debug_response.assert_called_once_with(response.headers.items())
+        self.assertEqual(response.headers.get('Status'), '200')
+        debug.debug_response.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()

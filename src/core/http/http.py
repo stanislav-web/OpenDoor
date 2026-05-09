@@ -70,8 +70,8 @@ class HttpRequest(RequestProvider, DebugProvider):
                 timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
                 block=True,
             )
-            if self._HTTP_DBG_LEVEL <= self.__debug.level:
-                self.__debug.debug_connection_pool('http_pool_start', pool, self.__connection_header)
+            getattr(self.__debug, 'debug_connection_pool', lambda *args, **kwargs: True)(
+                'http_pool_start', pool, self.__connection_header)
             return pool
         except Exception as error:
             raise HttpRequestError(str(error))
@@ -94,6 +94,17 @@ class HttpRequest(RequestProvider, DebugProvider):
         except Exception as error:
             raise HttpRequestError(str(error))
 
+    def __debug_cookie_middleware(self, response):
+        """Route response cookies and emit request-level cookie diagnostics."""
+
+        if True is self.__cfg.accept_cookies:
+            getattr(self.__debug, 'debug_cookie_accept_enabled', lambda *args, **kwargs: True)()
+
+        self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
+
+        if True is self.__cfg.accept_cookies and True is self._is_cookie_fetched:
+            getattr(self.__debug, 'debug_cookie_accepted', lambda *args, **kwargs: True)(self._push_cookies())
+
     def request(self, url, extra_headers=None):
         """
         Client request HTTP
@@ -113,8 +124,8 @@ class HttpRequest(RequestProvider, DebugProvider):
         if self.__connection_header != 'default' and request_headers.get('Connection') is None:
             request_headers.update({'Connection': self.__connection_header})
 
-        if self._HTTP_DBG_LEVEL <= self.__debug.level:
-            self.__debug.debug_request(request_headers, url, self.__cfg.method)
+        getattr(self.__debug, 'debug_cookie_attached', lambda *args, **kwargs: True)(request_headers)
+        getattr(self.__debug, 'debug_request', lambda *args, **kwargs: True)(request_headers, url, self.__cfg.method)
 
         try:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
@@ -127,7 +138,6 @@ class HttpRequest(RequestProvider, DebugProvider):
                     assert_same_host=True,
                     redirect=False,
                 )
-                self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
             else:
                 response = self.__manager.request(
                     self.__cfg.method,
@@ -138,6 +148,8 @@ class HttpRequest(RequestProvider, DebugProvider):
                     assert_same_host=False,
                     redirect=False,
                 )
+            self._debug_response_received(self.__debug, response)
+            self.__debug_cookie_middleware(response)
             return response
 
         except MaxRetryError:

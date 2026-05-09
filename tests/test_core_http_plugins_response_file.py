@@ -68,6 +68,59 @@ class TestFileResponsePlugin(unittest.TestCase):
 
         self.assertIsNone(plugin.process(response))
 
+    def test_returns_none_for_large_html_page_with_content_length(self):
+        """Should not classify large HTML documents as files."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(
+            body=b'<html>' + (b'x' * 1000001) + b'</html>',
+            headers={
+                'Content-Type': 'text/html; charset=utf-8',
+                'Content-Length': '1000014',
+            }
+        )
+
+        self.assertIsNone(plugin.process(response))
+
+    def test_returns_none_for_large_json_response_with_content_length(self):
+        """Should not classify large JSON API responses as files."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(
+            body=b'{"items":[' + (b'1,' * 500001) + b'0]}',
+            headers={
+                'Content-Type': 'application/json',
+                'Content-Length': '1000014',
+            }
+        )
+
+        self.assertIsNone(plugin.process(response))
+
+    def test_detects_large_unknown_content_type_as_file(self):
+        """Should keep fallback detection for large unknown responses."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(
+            body=b'x' * 1000001,
+            headers={'Content-Type': 'application/x-custom-dump'}
+        )
+
+        self.assertEqual(plugin.process(response), 'file')
+
+    def test_text_wildcard_content_type_is_not_file_by_size(self):
+        """Should treat text/* responses as textual even when they are large."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(
+            body=b'x' * 1000001,
+            headers={
+                'Content-Type': 'text/csv',
+                'Content-Length': '1000001',
+            }
+        )
+
+        self.assertIsNone(plugin.process(response))
+
     def test_returns_none_for_empty_binary_response_without_size(self):
         """Should not classify empty binary-like responses without content as file."""
 

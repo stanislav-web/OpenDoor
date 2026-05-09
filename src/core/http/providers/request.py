@@ -149,6 +149,49 @@ class RequestProvider(CookiesProvider, HeaderProvider, UserAgentHeaderProvider, 
 
         return headers
 
+
+    @staticmethod
+    def _build_response_debug_headers(response):
+        """Build response headers for response-level debug output.
+
+        The request layer sees every HTTP response, including fingerprint,
+        calibration and dictionary requests. Keeping response header debug here
+        makes --debug 3 consistently more informative than --debug 2.
+
+        :param urllib3.response.BaseHTTPResponse response: response object
+        :return: serializable response headers with Status when available
+        :rtype: dict
+        """
+
+        if not hasattr(response, 'headers'):
+            return {}
+
+        try:
+            headers = dict(response.headers)
+        except (TypeError, ValueError):
+            headers = getattr(response.headers, '__dict__', {})
+
+        if hasattr(response, 'status'):
+            headers.update({'Status': str(response.status)})
+
+        return headers
+
+    def _debug_response_received(self, debug, response):
+        """Emit response-level diagnostics for a received HTTP response.
+
+        :param DebugProvider debug: debugger
+        :param urllib3.response.BaseHTTPResponse response: response object
+        :return: always True
+        :rtype: bool
+        """
+
+        if hasattr(response, 'headers'):
+            getattr(debug, 'debug_response', lambda *args, **kwargs: True)(
+                self._build_response_debug_headers(response)
+            )
+
+        return True
+
     def request(self, url, extra_headers=None):
         """
         Client request

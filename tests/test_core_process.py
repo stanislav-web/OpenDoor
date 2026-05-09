@@ -93,7 +93,7 @@ class TestProcess(unittest.TestCase):
 
         self.assertEqual(result, b'output')
         run_mock.assert_called_once()
-        self.assertEqual(run_mock.call_args.kwargs['shell'], True)
+        self.assertEqual(run_mock.call_args.kwargs['shell'], False)
         self.assertEqual(run_mock.call_args.kwargs['stdout'], subprocess.PIPE)
         self.assertEqual(run_mock.call_args.kwargs['stderr'], subprocess.PIPE)
         self.assertEqual(run_mock.call_args.kwargs['check'], False)

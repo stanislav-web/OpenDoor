@@ -181,7 +181,9 @@ class TestCsvReportPlugin(unittest.TestCase):
 
         self.assertIn(
             'target,status,url,code,size,waf,waf_confidence,waf_signals,'
-            'bypass,bypass_header,bypass_value,bypass_from_code,bypass_to_code',
+            'bypass,bypass_profile,bypass_header,bypass_value,bypass_variant,bypass_url,'
+            'bypass_from_status,bypass_to_status,bypass_from_code,bypass_to_code,'
+            'bypass_score,bypass_reasons',
             content
         )
 

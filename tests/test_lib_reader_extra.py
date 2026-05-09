@@ -207,6 +207,7 @@ class TestReaderExtra(unittest.TestCase):
         setattr(reader, '_Reader__counter', 7)
 
         with patch('src.lib.reader.reader.filesystem.makefile', return_value='/tmp/out.txt') as makefile_mock, \
+                patch('src.lib.reader.reader.filesystem.count_lines', return_value=7), \
                 patch('src.lib.reader.reader.filesystem.shuffle') as shuffle_mock, \
                 patch('src.lib.reader.reader.sys', return_value=SimpleNamespace(is_windows=True)):
             reader.randomize_list('directories', 'tmplist')
@@ -388,7 +389,7 @@ class TestReaderExtra(unittest.TestCase):
         })
 
         with patch('src.lib.reader.reader.filesystem.makefile', return_value='/tmp/out.txt'), \
-                patch('src.lib.reader.reader.filesystem.count_lines', return_value=3), \
+                patch('src.lib.reader.reader.filesystem.count_lines', side_effect=[3, 3, 3]), \
                 patch.object(reader, '_has_system_shuf', return_value=True), \
                 patch.object(reader, '_run_system_shuf') as shuf_mock, \
                 patch('src.lib.reader.reader.sys', return_value=SimpleNamespace(is_windows=False)):

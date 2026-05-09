@@ -198,6 +198,29 @@ class TestReporterPluginsFullCoverage(unittest.TestCase):
         self.assertIn('true', html)
         self.assertIn('false', html)
 
+
+    def test_html_renderer_helpers_should_cover_duplicate_columns_and_slugs(self):
+        """HTML helper branches should handle duplicate keys and repeated slug separators."""
+
+        self.assertEqual(
+            html_report._get_total_finding_count({
+                'success': ['one'],
+                'metadata': {'not': 'a list'},
+            }),
+            1
+        )
+        self.assertEqual(
+            html_report._get_columns([
+                {'url': 'https://example.com/a', 'custom': 'one'},
+                {'url': 'https://example.com/b', 'custom': 'two', 'extra': 'three'},
+            ]),
+            ['url', 'custom', 'extra']
+        )
+        self.assertEqual(
+            html_report._get_status_dom_id('bad!! status'),
+            'status-bad-status'
+        )
+
     def test_html_renderer_covers_direct_private_render_helpers(self):
         """HTML renderer helpers should handle empty, unknown, and scalar branches."""
 
@@ -231,6 +254,8 @@ class TestReporterPluginsFullCoverage(unittest.TestCase):
         self.assertTrue(html_report._is_http_url('https://example.com'))
         self.assertFalse(html_report._is_http_url('ftp://example.com'))
         self.assertFalse(html_report._is_http_url(None))
+        self.assertEqual(html_report._get_total_finding_count(None), 0)
+        self.assertEqual(html_report._get_nested_summary('plain'), 'details')
 
         self.assertEqual(html_report._escape(None), '')
         self.assertEqual(html_report._escape('<x "y">'), '&lt;x &quot;y&quot;&gt;')
@@ -529,6 +554,31 @@ class TestReporterPluginsFullCoverage(unittest.TestCase):
             'bypass=header, header=X-Original-URL, value=/admin'
         )
 
+    def test_format_report_item_formats_full_bypass_evidence(self):
+        """PluginProvider.format_report_item() should include extended bypass evidence fields."""
+
+        actual = PluginProvider.format_report_item({
+            'url': 'https://example.com/admin',
+            'code': '200',
+            'size': '90B',
+            'bypass': 'path',
+            'bypass_profile': 'offensive',
+            'bypass_variant': 'double-encoded-trailing-slash',
+            'bypass_value': '/admin%252f',
+            'bypass_from_code': '403',
+            'bypass_to_code': '200',
+            'bypass_score': 100,
+            'bypass_reasons': ['status-code-changed', 'blocked-status-cleared'],
+        })
+
+        self.assertEqual(
+            actual,
+            'https://example.com/admin - 200 - 90B | '
+            'bypass=path, profile=offensive, variant=double-encoded-trailing-slash, '
+            'value=/admin%252f, 403->200, score=100, '
+            'reasons=status-code-changed;blocked-status-cleared'
+        )
+
     def test_html_renderer_escapes_values_and_renders_pretty_table(self):
         """HTML renderer should escape values and render a standalone styled report."""
 
@@ -553,6 +603,92 @@ class TestReporterPluginsFullCoverage(unittest.TestCase):
         self.assertIn('https://example.com/&lt;admin&gt;', html)
         self.assertIn('Cloudflare', html)
         self.assertNotIn('json2html', html)
+
+    def test_html_renderer_should_include_interactive_controls_and_single_file_assets(self):
+        """HTML renderer should keep reports standalone while adding interactive controls."""
+
+        html = html_report.render_html_report('example.com', {
+            'total': {
+                'items': 2,
+                'blocked': 1,
+                'success': 1,
+            },
+            'report_items': {
+                'blocked': [{
+                    'url': 'https://example.com/private',
+                    'code': '403',
+                    'waf': 'Cloudflare',
+                }],
+                'success': [{
+                    'url': 'https://example.com/admin',
+                    'code': '200',
+                    'title': 'Admin',
+                }],
+            },
+            'fingerprint': {'name': 'WordPress'},
+        })
+
+        self.assertIn('id="summary"', html)
+        self.assertIn('id="findings" data-report-findings', html)
+        self.assertIn('id="metadata"', html)
+        self.assertIn('data-report-search', html)
+        self.assertIn('data-status-filter="all"', html)
+        self.assertIn('data-status-filter="blocked"', html)
+        self.assertIn('data-report-status="success"', html)
+        self.assertIn('data-report-row', html)
+        self.assertIn('data-row-search=', html)
+        self.assertIn('data-report-url="https://example.com/admin"', html)
+        self.assertIn('aria-controls="status-success"', html)
+        self.assertIn('data-copy-status', html)
+        self.assertIn('data-search-empty', html)
+        self.assertIn('Copy visible URLs', html)
+        self.assertIn('getVisibleUrls()', html)
+        self.assertIn('scrollToActiveGroup()', html)
+        self.assertIn('<script>', html)
+        self.assertIn('<style>', html)
+        self.assertNotIn('<script src=', html)
+        self.assertNotIn('<link rel="stylesheet"', html)
+
+    def test_html_renderer_should_make_plain_url_rows_searchable_and_copyable(self):
+        """HTML renderer should expose plain URL rows to search and copy controls."""
+
+        html = html_report.render_html_report('example.com', {
+            'report_items': {
+                'success': [
+                    'https://example.com/gs_login.html',
+                ],
+            },
+        })
+
+        self.assertIn('data-report-url="https://example.com/gs_login.html"', html)
+        self.assertIn('data-row-search="https://example.com/gs_login.html"', html)
+        self.assertIn('getRowUrl(row)', html)
+        self.assertIn('fallbackCopy(payload, markCopied, markFailed)', html)
+
+
+    def test_html_renderer_should_render_nested_metadata_as_collapsible_json(self):
+        """HTML renderer should avoid recursive metadata tables for nested values."""
+
+        html = html_report.render_html_report('example.com', {
+            'report_items': {
+                'success': [{
+                    'url': 'https://example.com/admin',
+                    'code': '200',
+                    'signals': [{'type': 'endpoint', 'value': '/admin'}],
+                }],
+            },
+            'fingerprint': {
+                'name': 'Bitrix',
+                'signals': [{'type': 'header', 'value': 'x-powered-cms'}],
+            },
+        })
+
+        self.assertIn('details-block', html)
+        self.assertIn('nested-json', html)
+        self.assertIn('2 fields', html)
+        self.assertIn('&quot;name&quot;: &quot;Bitrix&quot;', html)
+        self.assertIn('&quot;value&quot;: &quot;x-powered-cms&quot;', html)
+
 
 if __name__ == '__main__':
     unittest.main()

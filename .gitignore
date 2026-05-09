@@ -22,7 +22,9 @@ __pycache__/
 # Coverage
 .coverage
 coverage.json
+coverage.xml
 htmlcov/
+e2e-server.log
 
 # Build artifacts
 build/
@@ -37,6 +39,7 @@ reports/
 scripts/
 syslog/
 site/
+data/test.dat
 release.sh
 
 # Local binaries / keys

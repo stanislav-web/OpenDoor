@@ -1,0 +1,92 @@
+name: OpenDoor E2E
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: opendoor-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Localhost scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: utf-8
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install OpenDoor from checkout
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Start E2E HTTP server
+        run: |
+          python .github/e2e/server.py > e2e-server.log 2>&1 &
+          echo "SERVER_PID=$!" >> "$GITHUB_ENV"
+
+          for i in $(seq 1 10); do
+            if curl -fsS http://127.0.0.1:8088/admin > /dev/null; then
+              exit 0
+            fi
+
+            echo "Waiting for E2E server... ($i)"
+            sleep 1
+          done
+
+          cat e2e-server.log
+          exit 1
+
+      - name: Run OpenDoor scan
+        run: |
+          opendoor \
+            --host http://127.0.0.1 \
+            --port 8088 \
+            --method GET \
+            --wordlist .github/e2e/wordlist.txt \
+            --threads 5 \
+            --timeout 5 \
+            --include-status 200-299,301,302,401,403 \
+            --exclude-status 404,500-599 \
+            --reports sarif,json \
+            --reports-dir ./reports \
+            --debug -1
+
+      - name: Validate scan reports
+        run: python .github/e2e/validate.py
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opendoor-e2e-${{ github.run_id }}
+          path: |
+            reports/
+            e2e-server.log
+          retention-days: 7
+
+      - name: Stop E2E HTTP server
+        if: always()
+        run: |
+          if [ -n "${SERVER_PID:-}" ]; then
+            kill "$SERVER_PID" 2>/dev/null || true
+          fi

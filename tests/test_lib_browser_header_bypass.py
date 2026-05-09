@@ -235,10 +235,20 @@ class TestHeaderBypassProbe(unittest.TestCase):
 
         self.assertEqual(metadata, {
             'bypass': 'header',
-            'bypass_header': 'X-Original-URL',
-            'bypass_value': '/admin',
+            'bypass_profile': 'safe',
+            'bypass_from_status': 'forbidden',
+            'bypass_to_status': 'success',
             'bypass_from_code': 403,
             'bypass_to_code': 200,
+            'bypass_score': 100,
+            'bypass_reasons': [
+                'status-code-changed',
+                'bucket-changed',
+                'probe-returned-success-or-redirect',
+                'blocked-status-cleared',
+            ],
+            'bypass_header': 'X-Original-URL',
+            'bypass_value': '/admin',
         })
 
     def test_probe_uses_path_value_for_unknown_custom_header(self):
@@ -271,12 +281,81 @@ class TestHeaderBypassProbe(unittest.TestCase):
 
         self.assertEqual(metadata, {
             'bypass': 'path',
+            'bypass_profile': 'safe',
+            'bypass_from_status': 'forbidden',
+            'bypass_to_status': 'success',
             'bypass_from_code': 403,
             'bypass_to_code': 200,
+            'bypass_score': 100,
+            'bypass_reasons': [
+                'status-code-changed',
+                'bucket-changed',
+                'probe-returned-success-or-redirect',
+                'blocked-status-cleared',
+            ],
             'bypass_variant': 'trailing-slash',
             'bypass_value': '/admin/',
             'bypass_url': 'https://example.com/admin/',
         })
+
+
+    def test_probe_builds_extended_path_variants(self):
+        """Path bypass should include controlled normalization and encoding variants."""
+
+        cfg = self.make_config(
+            header_bypass_headers=[],
+            header_bypass_ips=[],
+            header_bypass_limit=0,
+        )
+        probe = HeaderBypassProbe(cfg)
+
+        variants = probe.build_path_variants('https://example.com/admin?tab=1')
+        names = [variant['variant'] for variant in variants]
+
+        self.assertIn('encoded-dot-segment', names)
+        self.assertIn('matrix-parameter', names)
+        self.assertIn('duplicate-trailing-slash', names)
+        self.assertIn('encoded-trailing-slash', names)
+        self.assertIn('double-encoded-trailing-slash', names)
+        self.assertIn('url-encoded-first-character', names)
+
+    def test_probe_builds_offensive_header_family(self):
+        """Offensive profile should add extended proxy, client-IP, method and scheme headers."""
+
+        cfg = self.make_config(
+            header_bypass_profile='offensive',
+            header_bypass_headers=[
+                'X-ProxyUser-IP',
+                'Fastly-Client-IP',
+                'X-HTTP-Method-Override',
+                'X-Forwarded-Scheme',
+                'Front-End-Https',
+            ],
+            header_bypass_ips=['0.0.0.0'],
+            header_bypass_limit=0,
+        )
+        probe = HeaderBypassProbe(cfg)
+
+        variants = probe.build_header_variants('https://example.com/admin')
+
+        self.assertIn({'header': 'X-ProxyUser-IP', 'value': '0.0.0.0', 'profile': 'offensive'}, variants)
+        self.assertIn({'header': 'Fastly-Client-IP', 'value': '0.0.0.0', 'profile': 'offensive'}, variants)
+        self.assertIn({'header': 'X-HTTP-Method-Override', 'value': 'GET', 'profile': 'offensive'}, variants)
+        self.assertIn({'header': 'X-Forwarded-Scheme', 'value': 'https', 'profile': 'offensive'}, variants)
+        self.assertIn({'header': 'Front-End-Https', 'value': 'on', 'profile': 'offensive'}, variants)
+
+    def test_probe_metadata_preserves_offensive_profile(self):
+        """Bypass metadata should preserve the variant profile for reporting."""
+
+        metadata = HeaderBypassProbe.metadata(
+            {'header': 'X-ProxyUser-IP', 'value': '0.0.0.0', 'profile': 'offensive'},
+            ('blocked', 'https://example.com/admin', '10B', '403'),
+            ('success', 'https://example.com/admin', '100B', '200')
+        )
+
+        self.assertEqual(metadata['bypass_profile'], 'offensive')
+        self.assertEqual(metadata['bypass_score'], 100)
+        self.assertIn('waf-block-cleared', metadata['bypass_reasons'])
 
     def test_response_status_handles_malformed_response_data(self):
         """Response status resolver should tolerate malformed response tuples."""
@@ -393,6 +472,67 @@ class TestHeaderBypassProbe(unittest.TestCase):
         self.assertIsNone(HeaderBypassProbe.response_code(None))
         self.assertIsNone(HeaderBypassProbe.response_code(()))
         self.assertIsNone(HeaderBypassProbe.response_code(('body', 'url', 'size', 'abc')))
+
+    def test_probe_invalid_profile_falls_back_to_safe(self):
+        """Invalid profile values should preserve safe default behaviour."""
+
+        cfg = self.make_config(header_bypass_profile='unknown')
+        probe = HeaderBypassProbe(cfg)
+
+        self.assertEqual(probe.profile, HeaderBypassProbe.SAFE_PROFILE)
+
+    def test_probe_adds_profile_to_offensive_path_variants(self):
+        """Offensive profile should be preserved on path bypass variants."""
+
+        cfg = self.make_config(
+            header_bypass_profile='offensive',
+            header_bypass_headers=[],
+            header_bypass_ips=[],
+            header_bypass_limit=0,
+        )
+        probe = HeaderBypassProbe(cfg)
+
+        variants = probe.build_path_variants('https://example.com/admin?tab=1')
+
+        self.assertGreater(len(variants), 0)
+        self.assertTrue(all(variant.get('profile') == 'offensive' for variant in variants))
+
+    def test_probe_skips_unchanged_path_variant_from_helper(self):
+        """Path variant builder should ignore helper output equal to the original path."""
+
+        cfg = self.make_config(
+            header_bypass_headers=[],
+            header_bypass_ips=[],
+            header_bypass_limit=0,
+        )
+        probe = HeaderBypassProbe(cfg)
+        helper_name = '_HeaderBypassProbe__matrix_parameter_variant'
+        original_helper = getattr(HeaderBypassProbe, helper_name)
+
+        try:
+            setattr(HeaderBypassProbe, helper_name, staticmethod(lambda path: path))
+            variants = probe.build_path_variants('https://example.com/admin')
+        finally:
+            setattr(HeaderBypassProbe, helper_name, staticmethod(original_helper))
+
+        self.assertNotIn('matrix-parameter', [variant['variant'] for variant in variants])
+
+    def test_probe_evidence_handles_unchanged_or_incomplete_response_data(self):
+        """Evidence scoring should tolerate unchanged and malformed response data."""
+
+        unchanged_score, unchanged_reasons = HeaderBypassProbe.evidence(
+            ('success', 'https://example.com/admin', '10B', 'abc'),
+            ('success', 'https://example.com/admin', '10B', 'abc'),
+        )
+        changed_score, changed_reasons = HeaderBypassProbe.evidence(
+            ('forbidden', 'https://example.com/admin', '10B', '403'),
+            ('forbidden', 'https://example.com/admin', '11B', '404'),
+        )
+
+        self.assertEqual(unchanged_score, 0)
+        self.assertEqual(unchanged_reasons, [])
+        self.assertEqual(changed_score, 50)
+        self.assertEqual(changed_reasons, ['status-code-changed', 'blocked-status-cleared'])
 
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@
 """
 
 import os
+import time
 
 from .exceptions import NetworkTransportError
 from .process import ProcessRunner
@@ -63,15 +64,25 @@ class NetworkTransportManager(object):
 
     def start(self):
         """
-        Start active transport.
+        Start active transport and validate optional connectivity healthcheck.
 
+        :raise NetworkTransportError:
         :return:
         """
 
         if self.rotate_mode == 'per-target' and self.profile_index < 0:
             self.rotate()
 
-        return self.adapter.start()
+        started = False
+        try:
+            result = self.adapter.start()
+            started = True
+            self.__healthcheck()
+            return result
+        except NetworkTransportError:
+            if started is True:
+                self.__safe_stop_after_failed_start()
+            raise
 
     def stop(self):
         """
@@ -99,6 +110,83 @@ class NetworkTransportManager(object):
         self.profile_index = (self.profile_index + 1) % len(self.profiles)
         self.adapter = self.__build_adapter(self.profiles[self.profile_index])
         return self.adapter
+
+    def __healthcheck(self):
+        """
+        Validate transport connectivity after startup when configured.
+
+        :raise NetworkTransportError:
+        :return: int|None
+        """
+
+        url = self.params.get('transport_healthcheck_url')
+        if url is None:
+            self.__wait_adapter_ready_without_healthcheck()
+            return None
+
+        timeout = 30 if self.params.get('transport_timeout') is None else int(self.params.get('transport_timeout'))
+        deadline = time.monotonic() + timeout
+        last_error = None
+
+        while time.monotonic() <= deadline:
+            self.__assert_adapter_running()
+            request_timeout = max(1, min(5, int(deadline - time.monotonic()) or 1))
+
+            try:
+                return self.runner.healthcheck(url, timeout=request_timeout)
+            except NetworkTransportError as error:
+                last_error = error
+                if time.monotonic() >= deadline:
+                    break
+                time.sleep(1)
+
+        raise NetworkTransportError('Transport healthcheck failed for {0}: {1}'.format(url, last_error))
+
+    def __assert_adapter_running(self):
+        """
+        Ask the active adapter to validate its runtime process when supported.
+
+        :raise NetworkTransportError:
+        :return: None
+        """
+
+        assert_running = getattr(self.adapter, 'assert_running', None)
+        if assert_running is not None:
+            assert_running()
+
+    def __wait_adapter_ready_without_healthcheck(self):
+        """
+        Wait for adapters that need a short OS-route startup grace period.
+
+        Healthcheck URL remains optional. When it is absent, long-running VPN
+        backends still get a deterministic local readiness window before the
+        scanner performs its first target socket check.
+
+        :raise NetworkTransportError:
+        :return: None
+        """
+
+        wait_ready = getattr(self.adapter, 'wait_ready', None)
+        if wait_ready is None:
+            self.__assert_adapter_running()
+            return
+
+        wait_ready(timeout=30 if self.params.get('transport_timeout') is None else int(self.params.get('transport_timeout')))
+
+    def __safe_stop_after_failed_start(self):
+        """
+        Stop transport after a post-start validation failure.
+
+        Stop errors are intentionally ignored so the original startup failure
+        remains the actionable error for the caller.
+
+        :return: None
+        """
+
+        try:
+            self.adapter.stop()
+        except NetworkTransportError:
+            return
 
     def __build_adapter(self, profile):
         """

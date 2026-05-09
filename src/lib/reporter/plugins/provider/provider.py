@@ -16,6 +16,8 @@
     Development Team: Stanislav WEB
 """
 
+import copy
+
 from src.core import filesystem, FileSystemError
 from src.lib import tpl
 
@@ -63,7 +65,7 @@ class PluginProvider(object):
                 {'url': url, 'size': '0B', 'code': '-'}
                 for url in self._data.get('items', {}).get(status, [])
             ]
-        return items
+        return copy.deepcopy(items)
 
     @staticmethod
     def format_report_item(item):
@@ -96,8 +98,14 @@ class PluginProvider(object):
                 'bypass={0}'.format(item.get('bypass')),
             ]
 
+            if item.get('bypass_profile'):
+                details.append('profile={0}'.format(item.get('bypass_profile')))
+
             if item.get('bypass_header'):
                 details.append('header={0}'.format(item.get('bypass_header')))
+
+            if item.get('bypass_variant'):
+                details.append('variant={0}'.format(item.get('bypass_variant')))
 
             if item.get('bypass_value'):
                 details.append('value={0}'.format(item.get('bypass_value')))
@@ -107,6 +115,29 @@ class PluginProvider(object):
                     item.get('bypass_from_code'),
                     item.get('bypass_to_code')
                 ))
+
+            if item.get('bypass_score') is not None:
+                details.append('score={0}'.format(item.get('bypass_score')))
+
+            if item.get('bypass_reasons'):
+                details.append('reasons={0}'.format(';'.join([
+                    str(reason) for reason in item.get('bypass_reasons', [])
+                ])))
+
+            value = '{0} | {1}'.format(value, ', '.join(details))
+
+        debug_detection = item.get('debug_detection')
+        if isinstance(debug_detection, dict):
+            details = ['debug={0}'.format(debug_detection.get('type', 'debug'))]
+
+            if debug_detection.get('runtime'):
+                details.append('runtime={0}'.format(debug_detection.get('runtime')))
+
+            if debug_detection.get('signal'):
+                details.append('signal={0}'.format(debug_detection.get('signal')))
+
+            if debug_detection.get('confidence') is not None:
+                details.append('confidence={0}%'.format(debug_detection.get('confidence')))
 
             value = '{0} | {1}'.format(value, ', '.join(details))
 

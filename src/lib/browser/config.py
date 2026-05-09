@@ -21,7 +21,7 @@ class Config(object):
 
     """Config class"""
 
-    BODY_REQUIRED_SNIFFERS = ('indexof', 'collation')
+    BODY_REQUIRED_SNIFFERS = ('indexof', 'collation', 'stacktrace')
     DEFAULT_SOCKET_TIMEOUT = 10
     DEFAULT_MIN_THREADS = 1
     DEFAULT_MAX_THREADS = 25
@@ -43,8 +43,8 @@ class Config(object):
         """
 
         self._scan = params.get('scan')
-        self._scheme = self.DEFAULT_SCHEME if params.get('scheme') is None else params.get('scheme')
-        self._ssl = params.get('ssl')
+        self._scheme = self._normalize_scheme(params.get('scheme'), params.get('ssl'))
+        self._ssl = self._scheme == 'https://'
         self._host = params.get('host')
         self._session_save = params.get('session_save')
         self._session_load = params.get('session_load')
@@ -58,6 +58,7 @@ class Config(object):
         self._transport_timeout = 30 if params.get('transport_timeout') is None else int(
             params.get('transport_timeout'))
         self._transport_healthcheck_url = params.get('transport_healthcheck_url')
+        self._transport_bin = params.get('transport_bin')
         self._openvpn_auth = params.get('openvpn_auth')
         self._headers = params.get('header')
         self._cookies = params.get('cookie')
@@ -74,6 +75,7 @@ class Config(object):
         self._is_waf_safe_mode = params.get('waf_safe_mode') is True
         self._is_waf_detect = params.get('waf_detect') is True or self._is_waf_safe_mode is True
         self._is_header_bypass = params.get('header_bypass') is True
+        self._header_bypass_profile = str(params.get('header_bypass_profile') or 'safe').strip().lower()
         self._header_bypass_headers = self._normalize_csv(params.get('header_bypass_headers'))
         self._header_bypass_ips = self._normalize_csv(params.get('header_bypass_ips'))
         self._header_bypass_status = self._normalize_csv(params.get('header_bypass_status'))
@@ -90,7 +92,7 @@ class Config(object):
         self._recursive_depth = 1 if params.get('recursive_depth') is None else int(params.get('recursive_depth'))
         self._recursive_status = self._normalize_csv(params.get('recursive_status'))
         self._recursive_exclude = self._normalize_csv(params.get('recursive_exclude'))
-        self._retries = False if params.get('retries') is None else params.get('retries')
+        self._retries = self._normalize_retries(params.get('retries'))
         self._method = params.get('method')
         self._delay = params.get('delay')
         self._timeout = self.DEFAULT_SOCKET_TIMEOUT if params.get('timeout') is None else float(params.get('timeout'))
@@ -115,6 +117,54 @@ class Config(object):
         self._min_response_length = params.get('min_response_length')
         self._max_response_length = params.get('max_response_length')
 
+    @classmethod
+    def _normalize_scheme(cls, scheme, ssl=False):
+        """
+        Normalize the target scheme and keep legacy ssl=True configs compatible.
+
+        The public target protocol is the scheme. The ssl value is kept as a
+        backward-compatible wizard/session input only and must not diverge from
+        the effective request provider.
+
+        :param str | None scheme: Configured URL scheme.
+        :param bool ssl: Legacy SSL toggle from old wizard configs.
+        :return: Normalized URL scheme.
+        """
+
+        normalized = cls.DEFAULT_SCHEME if scheme is None else str(scheme).strip().lower()
+
+        if normalized in ['http', 'https']:
+            normalized = normalized + '://'
+
+        if ssl is True and normalized == cls.DEFAULT_SCHEME:
+            return 'https://'
+
+        return normalized
+
+    @staticmethod
+    def _normalize_retries(value):
+        """Normalize urllib3 retry count.
+
+        ``None`` keeps the historical disabled value used by direct unit-level
+        config construction. CLI and wizard defaults still pass an explicit
+        non-negative integer.
+
+        :param int|str|bool|None value: Retry count value.
+        :return: Non-negative retry count or False when unset.
+        """
+
+        if value is None:
+            return False
+
+        if value is False:
+            return False
+
+        retries = int(value)
+        if retries < 0:
+            raise ValueError('retries must be a non-negative integer')
+
+        return retries
+
     @staticmethod
     def _normalize_csv(value):
         """
@@ -127,7 +177,7 @@ class Config(object):
         if value is None:
             return None
         if isinstance(value, list):
-            return value
+            return list(value)
         return [item.strip() for item in str(value).split(',') if item.strip()]
 
     @staticmethod
@@ -409,12 +459,31 @@ class Config(object):
         return self._is_header_bypass
 
     @property
+    def header_bypass_profile(self):
+        """Header-bypass probe profile."""
+
+        from .header_bypass import HeaderBypassProbe
+
+        if self._header_bypass_profile not in HeaderBypassProbe.PROFILES:
+            return HeaderBypassProbe.SAFE_PROFILE
+
+        return self._header_bypass_profile
+
+    @property
     def header_bypass_headers(self):
         """Header names used by header-injection bypass probes."""
 
         if self._header_bypass_headers is None:
             from .header_bypass import HeaderBypassProbe
-            return list(HeaderBypassProbe.DEFAULT_HEADERS)
+            headers = list(HeaderBypassProbe.DEFAULT_HEADERS)
+
+            if self.header_bypass_profile == HeaderBypassProbe.OFFENSIVE_PROFILE:
+                headers.extend([
+                    header for header in HeaderBypassProbe.OFFENSIVE_HEADERS
+                    if header.lower() not in {item.lower() for item in headers}
+                ])
+
+            return headers
 
         return [str(item).strip() for item in self._header_bypass_headers if str(item).strip()]
 
@@ -424,6 +493,10 @@ class Config(object):
 
         if self._header_bypass_ips is None:
             from .header_bypass import HeaderBypassProbe
+
+            if self.header_bypass_profile == HeaderBypassProbe.OFFENSIVE_PROFILE:
+                return list(HeaderBypassProbe.OFFENSIVE_IP_VALUES)
+
             return list(HeaderBypassProbe.DEFAULT_IP_VALUES)
 
         return [str(item).strip() for item in self._header_bypass_ips if str(item).strip()]
@@ -472,7 +545,7 @@ class Config(object):
     def sniffers(self):
         """Get sniffers."""
 
-        return self._sniff
+        return None if self._sniff is None else list(self._sniff)
 
     @property
     def is_response_filtering(self):
@@ -564,13 +637,13 @@ class Config(object):
     def extensions(self):
         """Extensions resolver."""
 
-        return [] if self._extensions is None else self._extensions
+        return [] if self._extensions is None else list(self._extensions)
 
     @property
     def ignore_extensions(self):
         """Ignore extensions resolver."""
 
-        return [] if self._ignore_extensions is None else self._ignore_extensions
+        return [] if self._ignore_extensions is None else list(self._ignore_extensions)
 
     @property
     def is_recursive(self):
@@ -638,6 +711,12 @@ class Config(object):
         """Transport healthcheck URL."""
 
         return self._transport_healthcheck_url
+
+    @property
+    def transport_bin(self):
+        """Transport executable path or command name."""
+
+        return self._transport_bin
 
     @property
     def openvpn_auth(self):

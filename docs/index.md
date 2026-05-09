@@ -8,7 +8,7 @@ OpenDoor supports single-target and batch scanning, custom wordlists, response f
 
 > Use OpenDoor only on systems you own or have explicit permission to test.
 
-![OpenDoor](img/logo.png)
+![OpenDoor](https://github.com/stanislav-web/OpenDoor/raw/master/logo.png)
 
 ---
 
@@ -168,18 +168,19 @@ Transport profiles are local runtime files. Never commit real VPN private keys, 
 OpenDoor can write results in multiple formats.
 
 ```shell
-opendoor --host https://example.com --reports std,json,html
+opendoor --host https://example.com --reports std,json,html,sarif
 opendoor --host https://example.com --reports json,sqlite --reports-dir ./reports
 ```
 
-| Format | Purpose |
-|---|---|
-| `std` | Terminal output |
-| `txt` | Plain text output |
-| `json` | Machine-readable output |
-| `csv` | Spreadsheet-friendly output |
-| `html` | Human-readable report |
+| Format   | Purpose |
+|----------|---|
+| `std`    | Terminal output |
+| `txt`    | Plain text output |
+| `json`   | Machine-readable output |
+| `csv`    | Spreadsheet-friendly output |
+| `html`   | Human-readable report |
 | `sqlite` | Structured local database for post-processing |
+| `sarif`  | SARIF 2.1.0 output for CI/CD code scanning |
 
 Header-bypass evidence is preserved in detailed report formats. CSV and SQLite reports expose dedicated bypass fields, while JSON and HTML keep the full `report_items` metadata.
 

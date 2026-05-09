@@ -240,11 +240,13 @@ class Controller(object):
 
                     transport.rotate()
                     cls._log_transport_start(transport)
+                    cls._debug_transport(params, transport, 'starting')
 
                     transport_started = False
                     try:
                         transport.start()
                         transport_started = True
+                        cls._debug_transport(params, transport, 'started')
 
                         scan_result = cls._scan_target(target_params)
 
@@ -262,16 +264,20 @@ class Controller(object):
                         target_failures.append(cls._record_target_failure(target_params, error))
                     finally:
                         if transport_started is True:
+                            cls._debug_transport(params, transport, 'stopping')
                             transport.stop()
                             cls._log_transport_stop(transport)
+                            cls._debug_transport(params, transport, 'stopped')
 
             else:
                 cls._log_transport_start(transport)
+                cls._debug_transport(params, transport, 'starting')
 
                 transport_started = False
                 try:
                     transport.start()
                     transport_started = True
+                    cls._debug_transport(params, transport, 'started')
 
                     for target in targets:
                         target_params = dict(params)
@@ -295,8 +301,10 @@ class Controller(object):
                             )
                 finally:
                     if transport_started is True:
+                        cls._debug_transport(params, transport, 'stopping')
                         transport.stop()
                         cls._log_transport_stop(transport)
+                        cls._debug_transport(params, transport, 'stopped')
 
             if ci_mode_enabled is True:
                 if len(fail_on_matches) > 0:
@@ -383,6 +391,9 @@ class Controller(object):
 
         if params.get('transport_healthcheck_url') is not None:
             overrides['transport_healthcheck_url'] = params.get('transport_healthcheck_url')
+
+        if params.get('transport_bin') is not None:
+            overrides['transport_bin'] = params.get('transport_bin')
 
         if params.get('openvpn_auth') is not None:
             overrides['openvpn_auth'] = params.get('openvpn_auth')
@@ -512,6 +523,55 @@ class Controller(object):
             return [target]
 
         return []
+
+
+    @classmethod
+    def _debug_transport(cls, params, transport, state):
+        """
+        Print debug-level transport diagnostics.
+
+        :param dict params:
+        :param NetworkTransportManager transport:
+        :param str state:
+        :return: None
+        """
+
+        if cls._is_transport_loggable(transport) is not True:
+            return
+
+        if cls._is_debug_enabled(params, level=1) is not True:
+            return
+
+        tpl.debug(msg='Network transport {0}: mode={1} profile={2} rotate={3} timeout={4}s healthcheck={5}'.format(
+            state,
+            transport.transport,
+            transport.current_profile_name,
+            getattr(transport, 'rotate_mode', 'none'),
+            params.get('transport_timeout') or 30,
+            params.get('transport_healthcheck_url') or '-'
+        ))
+
+        if cls._is_debug_enabled(params, level=2) is True:
+            tpl.debug(msg='Network transport paths: profile={0} profiles={1} bin={2}'.format(
+                params.get('transport_profile') or '-',
+                params.get('transport_profiles') or '-',
+                params.get('transport_bin') or '-'
+            ))
+
+    @staticmethod
+    def _is_debug_enabled(params, level=1):
+        """
+        Check current debug level.
+
+        :param dict params:
+        :param int level:
+        :return: bool
+        """
+
+        try:
+            return int(params.get('debug') or 0) >= level
+        except (TypeError, ValueError):
+            return False
 
     @staticmethod
     def _is_transport_loggable(transport):

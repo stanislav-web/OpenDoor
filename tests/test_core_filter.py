@@ -108,6 +108,18 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(Filter.scan('directories'), 'directories')
         self.assertEqual(Filter.scan('subdomains'), 'subdomains')
 
+    def test_filter_validates_retries_as_non_negative_integer(self):
+        """Filter.filter() should normalize retries and reject unsafe values."""
+
+        self.assertEqual(Filter.filter({'host': 'example.com', 'retries': '0'})['retries'], 0)
+        self.assertEqual(Filter.filter({'host': 'example.com', 'retries': '3'})['retries'], 3)
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'retries': '-1'})
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'retries': 'abc'})
+
 
     def test_filter_builds_single_target_list_for_host(self):
         """Filter.filter() should expose a single normalized target for --host."""
@@ -602,6 +614,70 @@ class TestFilter(unittest.TestCase):
         with self.assertRaises(FilterError):
             Filter.bucket_values('success,bad bucket', key='--fail-on-bucket')
 
+    def test_filter_should_normalize_fail_on_bucket_in_normal_flow(self):
+        """Filter.filter() should normalize fail-on bucket names in normal scan mode."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'fail_on_bucket': 'success, blocked,success',
+        })
+
+        self.assertEqual(actual['fail_on_bucket'], ['success', 'blocked'])
+
+    def test_filter_should_keep_raw_request_without_headers_unmerged(self):
+        """Filter.filter() should skip raw-request header merge when no headers are present."""
+
+        with tempfile.NamedTemporaryFile('w+', delete=False, encoding='utf-8') as handle:
+            handle.write('GET https://secure.example.com/api/v1/users HTTP/1.1\n\n')
+            filepath = handle.name
+
+        try:
+            actual = Filter.filter({'raw_request': filepath})
+        finally:
+            os.unlink(filepath)
+
+        self.assertEqual(actual['host'], 'secure.example.com')
+        self.assertEqual(actual['scheme'], 'https://')
+        self.assertNotIn('header', actual)
+        self.assertNotIn('cookie', actual)
+
+    def test_filter_header_bypass_profile_should_default_empty_values_to_safe(self):
+        """Filter.header_bypass_profile() should normalize blank and null-like values to safe."""
+
+        self.assertEqual(Filter.header_bypass_profile(''), 'safe')
+        self.assertEqual(Filter.header_bypass_profile(' null '), 'safe')
+        self.assertEqual(Filter.header_bypass_profile(None), 'safe')
+
+    def test_bucket_values_should_ignore_empty_items_and_reject_empty_lists(self):
+        """Filter.bucket_values() should skip empty CSV items and reject empty results."""
+
+        self.assertEqual(Filter.bucket_values('success,, blocked,'), ['success', 'blocked'])
+
+        with self.assertRaises(FilterError):
+            Filter.bucket_values(' , , ', key='--fail-on-bucket')
+
+    def test_debug_and_session_helpers_should_cover_remaining_error_paths(self):
+        """Filter helpers should reject invalid debug levels and missing session paths."""
+
+        with self.assertRaises(FilterError):
+            Filter.debug_level(4, key='--debug')
+
+        with self.assertRaises(FilterError):
+            Filter.session_file(None, key='--session-file')
+
+    def test_filter_should_reject_transport_profiles_without_rotation_when_profile_exists(self):
+        """Filter.filter() should reject profiles lists unless per-target rotation is enabled."""
+
+        with self.assertRaises(FilterError) as ctx:
+            Filter.filter({
+                'host': 'example.com',
+                'transport': 'wireguard',
+                'transport_profile': './vpn/nl.conf',
+                'transport_profiles': './vpn/profiles.txt',
+            })
+
+        self.assertIn('--transport-profiles requires --transport-rotate per-target', str(ctx.exception))
+
     def test_filter_should_keep_fail_on_bucket_with_session_load(self):
         """Filter.filter() should preserve invocation-level CI policy for session resume."""
 
@@ -670,12 +746,14 @@ class TestFilter(unittest.TestCase):
             'transport_rotate': 'none',
             'transport_timeout': 15,
             'transport_healthcheck_url': 'https://example.com/ip',
+            'transport_bin': 'wg-quick',
         })
 
         self.assertEqual(actual['transport'], 'wireguard')
         self.assertTrue(actual['transport_profile'].endswith('profiles/nl.conf'))
         self.assertEqual(actual['transport_rotate'], 'none')
         self.assertEqual(actual['transport_timeout'], 15)
+        self.assertEqual(actual['transport_bin'], 'wg-quick')
         self.assertEqual(actual['transport_healthcheck_url'], 'https://example.com/ip')
 
     def test_filter_should_normalize_transport_none_values(self):
@@ -963,6 +1041,39 @@ class TestFilter(unittest.TestCase):
                 'openvpn_auth': './vpn/auth.txt',
             })
 
+
+    def test_filter_should_require_proxy_source_for_proxy_transport(self):
+        """Filter.filter() should reject proxy transport without a proxy source."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({
+                'host': 'example.com',
+                'transport': 'proxy',
+            })
+
+    def test_filter_should_reject_transport_profile_for_proxy_transport(self):
+        """Filter.filter() should reject VPN profile options for proxy transport."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({
+                'host': 'example.com',
+                'transport': 'proxy',
+                'proxy': 'http://127.0.0.1:8080',
+                'transport_profile': './vpn/nl.conf',
+            })
+
+    def test_filter_should_accept_proxy_transport_with_proxy_source(self):
+        """Filter.filter() should accept proxy transport with explicit proxy source."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'transport': 'proxy',
+            'proxy': 'http://127.0.0.1:8080',
+        })
+
+        self.assertEqual(actual['transport'], 'proxy')
+        self.assertEqual(actual['proxy'], 'http://127.0.0.1:8080')
+
     def test_filter_should_reject_proxy_transport_with_openvpn_auth(self):
         """Filter.filter() should reject OpenVPN auth for proxy transport."""
 
@@ -1023,6 +1134,31 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(Filter.transport_rotate('null'), 'none')
         self.assertEqual(Filter.transport_rotate('NONE'), 'none')
 
+    def test_filter_should_reject_transport_bin_for_direct_transport(self):
+        """Filter.validate_transport_options() should reject transport_bin in direct mode."""
+
+        with self.assertRaises(Exception) as ctx:
+            Filter.filter({
+                'host': 'example.com',
+                'transport': 'direct',
+                'transport_bin': 'openvpn',
+            })
+
+        self.assertIn('--transport-bin cannot be used with --transport direct', str(ctx.exception))
+
+    def test_filter_should_reject_transport_bin_for_proxy_transport(self):
+        """Filter.validate_transport_options() should reject transport_bin in proxy mode."""
+
+        with self.assertRaises(Exception) as ctx:
+            Filter.filter({
+                'host': 'example.com',
+                'transport': 'proxy',
+                'proxy': 'socks5://127.0.0.1:9050',
+                'transport_bin': 'openvpn',
+            })
+
+        self.assertIn('--transport-bin cannot be used with --transport proxy', str(ctx.exception))
+
     def test_filter_should_reject_invalid_transport_options_with_session_load(self):
         """Filter.filter() should validate transport options in session-load flow."""
 
@@ -1039,6 +1175,49 @@ class TestFilter(unittest.TestCase):
                 'transport': 'proxy',
                 'transport_rotate': 'per-target',
             })
+
+    def test_filter_should_preserve_session_load_debug_fail_bucket_and_transport_bin(self):
+        """Filter.filter() should preserve invocation-only flags in session-load flow."""
+
+        actual = Filter.filter({
+            'session_load': 'session.json',
+            'debug': '2',
+            'fail_on_bucket': ' success,blocked ',
+            'transport': 'wireguard',
+            'transport_profile': './vpn/nl.conf',
+            'transport_bin': 'wg-quick',
+        })
+
+        self.assertEqual(actual['debug'], 2)
+        self.assertEqual(actual['fail_on_bucket'], ['success', 'blocked'])
+        self.assertEqual(actual['transport_bin'], 'wg-quick')
+        self.assertTrue(actual['transport_profile'].endswith('vpn/nl.conf'))
+
+    def test_filter_helpers_should_cover_empty_bucket_debug_and_session_path_errors(self):
+        """Filter helper validators should cover empty bucket and missing value branches."""
+
+        with self.assertRaises(FilterError):
+            Filter.bucket_values(' , , ', key='--fail-on-bucket')
+
+        with self.assertRaises(FilterError):
+            Filter.debug_level(None, key='--debug')
+
+        with self.assertRaises(FilterError):
+            Filter.session_file(None, key='--session-save')
+
+    def test_filter_should_reject_proxy_transport_profiles(self):
+        """Filter.validate_transport_options() should reject profile lists in proxy mode."""
+
+        with self.assertRaises(FilterError) as ctx:
+            Filter.filter({
+                'host': 'example.com',
+                'transport': 'proxy',
+                'proxy': 'http://127.0.0.1:8080',
+                'transport_profiles': './vpn/profiles.txt',
+            })
+
+        self.assertIn('--transport-profiles cannot be used with --transport proxy', str(ctx.exception))
+
 
 if __name__ == '__main__':
     unittest.main()

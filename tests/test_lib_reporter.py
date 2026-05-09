@@ -62,6 +62,16 @@ class TestReporter(unittest.TestCase):
         self.assertTrue(Reporter.is_reported('resource'))
         self.assertTrue(Reporter.external_directory.endswith(os.path.sep))
 
+    def test_is_reported_keeps_external_directory_separator(self):
+        """Reporter.is_reported() should keep already-normalized external directory paths unchanged."""
+
+        Reporter.external_directory = self.base_dir + os.path.sep
+        with open(os.path.join(self.base_dir, 'resource'), 'w', encoding='utf-8'):
+            pass
+
+        self.assertTrue(Reporter.is_reported('resource'))
+        self.assertEqual(Reporter.external_directory, self.base_dir + os.path.sep)
+
     def test_is_reported_wraps_filesystem_errors(self):
         """Reporter.is_reported() should wrap filesystem failures into ReporterError."""
 

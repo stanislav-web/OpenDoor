@@ -368,7 +368,6 @@ class ResponseProvider(object):
             ],
             'strong_body_markers': [
                 'fortiweb web application firewall',
-                'fortinet',
             ],
             'body_markers': [
                 'fortiweb',
@@ -437,6 +436,43 @@ class ResponseProvider(object):
             ],
         },
         {
+            'name': 'SW JS Challenge',
+            'confidence': 90,
+            'strong_header_markers': [],
+            'header_markers': [
+                'server: sw',
+                'set-cookie: __js_p_=',
+                        'content-type: text/html; charset=utf-8',
+                'cache-control: no-cache',
+            ],
+            'strong_body_markers': [
+                'meta name="robots" content="noindex, noarchive"',
+                        'document.cookie = "__jua_="',
+                'get_jhash(',
+            ],
+            'body_markers': [
+                'gorizontal-vertikal',
+                'ajaxload.info',
+                'data:image/gif;base64',
+                'construct_utm_uri',
+            ],
+        },
+        {
+            'name': 'CityHost Secure Page',
+            'confidence': 88,
+            'strong_header_markers': [
+                'cityhost_secure_page=security_page_have_not_pass',
+            ],
+            'header_markers': [],
+            'strong_body_markers': [
+                'security_page_have_not_pass',
+            ],
+            'body_markers': [
+                'cityhost secure page',
+                'security page have not pass',
+            ],
+        },
+        {
             'name': 'Huawei Cloud WAF',
             'confidence': 83,
             'strong_header_markers': [
@@ -454,6 +490,461 @@ class ResponseProvider(object):
                 'huawei cloud',
                 'cloud waf',
                 'request blocked',
+            ],
+        },
+        {
+            'name': 'DDoS-GUARD',
+            'confidence': 83,
+            'strong_header_markers': [
+                'server: ddos-guard',
+                'ddos-guard',
+            ],
+            'header_markers': [],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'ddos-guard',
+            ],
+            'body_markers': [
+                'ddos-guard',
+                'ddos protection',
+            ],
+        },
+        {
+            'name': 'Google Cloud Armor',
+            'confidence': 83,
+            'strong_header_markers': [],
+            'header_markers': [
+                'server: google frontend',
+                'x-cloud-trace-context',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'google cloud armor',
+                'denied by cloud armor',
+            ],
+            'body_markers': [
+                'cloud armor',
+                'google cloud armor',
+                'denied by cloud armor',
+            ],
+        },
+        {
+            'name': 'SafeLine',
+            'confidence': 84,
+            'strong_header_markers': [
+                'x-safeline',
+                'safeline',
+            ],
+            'header_markers': [],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'blocked by safeline',
+                'chaitin safeline',
+                'safeline waf',
+            ],
+            'body_markers': [
+                'safeline',
+                'blocked by safeline',
+                'chaitin safeline',
+            ],
+        },
+        {
+            'name': 'Tencent Cloud WAF',
+            'confidence': 83,
+            'strong_header_markers': [
+                'x-qcloud-waf',
+                'server: tencent cloud waf',
+            ],
+            'header_markers': [
+                'qcloudwaf',
+                'tencent cloud waf',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'tencent cloud waf',
+                'qcloud waf',
+            ],
+            'body_markers': [
+                'tencent cloud waf',
+                'qcloud waf',
+                'request has been blocked',
+            ],
+        },
+        {
+            'name': 'Vercel WAF',
+            'confidence': 82,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [
+                'vercel security checkpoint',
+                'vercel waf',
+                'request blocked by vercel',
+            ],
+            'body_markers': [
+                'vercel security checkpoint',
+                'vercel waf',
+                'request blocked by vercel',
+            ],
+        },
+        {
+            'name': 'Wallarm',
+            'confidence': 84,
+            'strong_header_markers': [
+                'x-wallarm',
+                'wallarm',
+            ],
+            'header_markers': [],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'blocked by wallarm',
+                'wallarm blocked',
+            ],
+            'body_markers': [
+                'wallarm',
+                'blocked by wallarm',
+                'wallarm blocked',
+            ],
+        },
+        {
+            'name': 'Wordfence',
+            'confidence': 83,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [
+                'generated by wordfence',
+                'wordfence security',
+                'this response was generated by wordfence',
+            ],
+            'body_markers': [
+                'wordfence',
+                'wordfence security',
+                'generated by wordfence',
+            ],
+        },
+        {
+            'name': '360 WAF',
+            'confidence': 84,
+            'strong_header_markers': [
+                'wzws-ray',
+                'x-powered-by-360wzb',
+            ],
+            'header_markers': [
+                'server: qianxin-waf',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'wzws-waf-cgi/',
+                'wangshan.360.cn',
+            ],
+            'body_markers': [
+                'your access has been intercepted because your links may threaten website security',
+                'wzws-waf-cgi/',
+                'wangshan.360.cn',
+            ],
+        },
+        {
+            'name': 'Airlock',
+            'confidence': 82,
+            'strong_header_markers': [
+                'al-sess',
+                'al-lb',
+            ],
+            'header_markers': [],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'server detected a syntax error in your request',
+                'check your request and all parameters',
+            ],
+            'body_markers': [
+                'airlock',
+                'syntax error in your request',
+            ],
+        },
+        {
+            'name': 'Aliyun WAF',
+            'confidence': 84,
+            'strong_header_markers': [],
+            'header_markers': [
+                'aliyun',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'errors.aliyun.com',
+                'your request has been blocked as it may cause potential threats',
+            ],
+            'body_markers': [
+                'errors.aliyun.com',
+                'potential threats to the server',
+            ],
+        },
+        {
+            'name': 'Anquanbao',
+            'confidence': 84,
+            'strong_header_markers': [
+                'x-powered-by-anquanbao',
+            ],
+            'header_markers': [],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                '/aqb_cc/error/',
+                'hidden_intercept_time',
+            ],
+            'body_markers': [
+                'anquanbao',
+                '/aqb_cc/error/',
+                'hidden_intercept_time',
+            ],
+        },
+        {
+            'name': 'BinarySec',
+            'confidence': 82,
+            'strong_header_markers': [
+                'x-binarysec-via',
+                'x-binarysec-nocache',
+            ],
+            'header_markers': [
+                'server: binarysec',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'binarysec',
+            ],
+        },
+        {
+            'name': 'BitNinja',
+            'confidence': 84,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [
+                'security check by bitninja',
+                'visitor anti-robot validation',
+            ],
+            'body_markers': [
+                'bitninja',
+                'your ip will be removed from bitninja',
+                'you will be challenged by a recaptcha page',
+            ],
+        },
+        {
+            'name': 'Bluedon WAF',
+            'confidence': 82,
+            'strong_header_markers': [],
+            'header_markers': [
+                'server: bdwaf',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'bluedon web application firewall',
+            ],
+            'body_markers': [
+                'bdwaf',
+                'bluedon web application firewall',
+            ],
+        },
+        {
+            'name': 'ChinaCache',
+            'confidence': 81,
+            'strong_header_markers': [
+                'powered-by-chinacache',
+            ],
+            'header_markers': [
+                'chinacache',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'chinacache',
+            ],
+        },
+        {
+            'name': 'Comodo WAF',
+            'confidence': 82,
+            'strong_header_markers': [],
+            'header_markers': [
+                'server: protected by comodo waf',
+                'protected by comodo waf',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'protected by comodo waf',
+            ],
+            'body_markers': [
+                'comodo waf',
+            ],
+        },
+        {
+            'name': 'DoSArrest',
+            'confidence': 82,
+            'strong_header_markers': [
+                'x-dis-request-id',
+            ],
+            'header_markers': [
+                'server: dosarrest',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'dosarrest',
+            ],
+        },
+        {
+            'name': 'DotDefender',
+            'confidence': 84,
+            'strong_header_markers': [
+                'x-dotdefender-denied',
+            ],
+            'header_markers': [],
+            'strong_body_markers': [
+                'dotdefender blocked your request',
+            ],
+            'body_markers': [
+                'dotdefender',
+                'blocked your request',
+            ],
+        },
+        {
+            'name': 'GoDaddy Website Firewall',
+            'confidence': 84,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [
+                'access denied - godaddy website firewall',
+            ],
+            'body_markers': [
+                'godaddy website firewall',
+            ],
+        },
+        {
+            'name': 'GreyWizard',
+            'confidence': 83,
+            'strong_header_markers': [],
+            'header_markers': [
+                'server: greywizard',
+                'greywizard',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'contact the website owner or grey wizard',
+                "we\'ve detected attempted attack or non standard traffic",
+            ],
+            'body_markers': [
+                'grey wizard',
+                'attempted attack or non standard traffic',
+            ],
+        },
+        {
+            'name': 'IBM DataPower',
+            'confidence': 80,
+            'strong_header_markers': [],
+            'header_markers': [
+                'x-backside-transport',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'datapower',
+            ],
+        },
+        {
+            'name': 'Imunify360',
+            'confidence': 83,
+            'strong_header_markers': [],
+            'header_markers': [
+                'server: imunify360-webshield',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'protected by imunify360',
+                'powered by imunify360',
+            ],
+            'body_markers': [
+                'imunify360',
+                'imunify360 preloader',
+            ],
+        },
+        {
+            'name': 'Instart DX',
+            'confidence': 82,
+            'strong_header_markers': [
+                'x-instart-request-id',
+                'x-instart-wl',
+                'x-instart-cache',
+            ],
+            'header_markers': [],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'the requested url was rejected. please consult with your administrator.',
+            ],
+            'body_markers': [
+                'instart',
+                'the requested url was rejected',
+            ],
+        },
+        {
+            'name': 'NAXSI',
+            'confidence': 84,
+            'strong_header_markers': [
+                'x-data-origin: naxsi/waf',
+                'server: naxsi/waf',
+            ],
+            'header_markers': [
+                'naxsi/waf',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'this request has been blocked by naxsi',
+                'naxsi blocked information',
+            ],
+            'body_markers': [
+                'naxsi',
+                'this request has been blocked by naxsi',
+            ],
+        },
+        {
+            'name': 'NinjaFirewall',
+            'confidence': 82,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [
+                'ninjafirewall: 403 forbidden',
+                'for security reasons, it was blocked and logged',
+            ],
+            'body_markers': [
+                'ninjafirewall',
+                'blocked and logged',
+            ],
+        },
+        {
+            'name': 'Profense',
+            'confidence': 81,
+            'strong_header_markers': [
+                'plbsid',
+            ],
+            'header_markers': [
+                'server: profense',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'profense',
+            ],
+        },
+        {
+            'name': 'WebKnight',
+            'confidence': 82,
+            'strong_header_markers': [
+                'server: webknight/',
+            ],
+            'header_markers': [
+                'webknight',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'webknight application firewall alert',
+            ],
+            'body_markers': [
+                'webknight',
             ],
         },
     ]
@@ -491,6 +982,70 @@ class ResponseProvider(object):
         'apptrana',
         'x-hwwaf-',
         'hwwafsesid',
+        'server: ddos-guard',
+        'ddos-guard',
+        'server: google frontend',
+        'x-cloud-trace-context',
+        'x-safeline',
+        'safeline',
+        'x-qcloud-waf',
+        'server: tencent cloud waf',
+        'qcloudwaf',
+        'tencent cloud waf',
+        'x-wallarm',
+        'wallarm',
+        'wzws-ray',
+        'x-powered-by-360wzb',
+        'al-sess',
+        'al-lb',
+        'x-powered-by-anquanbao',
+        'x-binarysec-via',
+        'x-binarysec-nocache',
+        'x-dis-request-id',
+        'x-dotdefender-denied',
+        'x-instart-request-id',
+        'x-instart-wl',
+        'x-instart-cache',
+        'x-data-origin: naxsi/waf',
+        'server: naxsi/waf',
+        'naxsi/waf',
+        'plbsid',
+        'server: webknight/',
+        'webknight',
+    ]
+
+    DEFAULT_WAF_PASSIVE_HEADER_MARKERS_REQUIRE_BLOCKED_STATUS = [
+        'server: ddos-guard',
+        'ddos-guard',
+        'server: google frontend',
+        'x-cloud-trace-context',
+        'x-safeline',
+        'safeline',
+        'x-qcloud-waf',
+        'server: tencent cloud waf',
+        'qcloudwaf',
+        'tencent cloud waf',
+        'x-wallarm',
+        'wallarm',
+        'wzws-ray',
+        'x-powered-by-360wzb',
+        'al-sess',
+        'al-lb',
+        'x-powered-by-anquanbao',
+        'x-binarysec-via',
+        'x-binarysec-nocache',
+        'x-dis-request-id',
+        'x-instart-request-id',
+        'x-instart-wl',
+        'x-instart-cache',
+        'x-data-origin: naxsi/waf',
+        'server: naxsi/waf',
+        'plbsid',
+        'server: webknight/',
+        'naxsi/waf',
+        'server: naxsi',
+        'webknight',
+        'server: webknight',
     ]
 
     DEFAULT_WAF_BODY_MARKERS = [
@@ -524,11 +1079,43 @@ class ResponseProvider(object):
         'website protection',
         'huawei cloud waf',
         'cloud waf',
+        'ddos-guard',
+        'cloud armor',
+        'google cloud armor',
+        'denied by cloud armor',
+        'safeline',
+        'blocked by safeline',
+        'tencent cloud waf',
+        'qcloud waf',
+        'vercel security checkpoint',
+        'vercel waf',
+        'wallarm',
+        'blocked by wallarm',
+        'wordfence security',
+        'generated by wordfence',
+        'wzws-waf-cgi/',
+        'wangshan.360.cn',
+        'server detected a syntax error in your request',
+        'errors.aliyun.com',
+        'hidden_intercept_time',
+        'security check by bitninja',
+        'visitor anti-robot validation',
+        'bluedon web application firewall',
+        'protected by comodo waf',
+        'dotdefender blocked your request',
+        'access denied - godaddy website firewall',
+        'contact the website owner or grey wizard',
+        'protected by imunify360',
+        'this request has been blocked by naxsi',
+        'naxsi blocked information',
+        'ninjafirewall: 403 forbidden',
+        'for security reasons, it was blocked and logged',
+        'webknight application firewall alert',
     ]
 
     DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     DEFAULT_HTTP_REDIRECT_STATUSES = [300, 301, 302, 303, 304, 307, 308]
-    DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 410, 409, 411, 412, 424, 429, 440, 500, 501, 502, 503, 504, 509, 511, 520, 522]
+    DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 410, 409, 411, 412, 424, 425, 429, 440, 500, 501, 502, 503, 504, 509, 511, 520, 522]
     DEFAULT_SSL_CERT_REQUIRED_STATUSES = [423, 496, 525]
     DEFAULT_HTTP_FORBIDDEN_STATUSES = [403, 405]
     DEFAULT_HTTP_AUTH_STATUSES = [401]
@@ -766,6 +1353,24 @@ class ResponseProvider(object):
             (len(body_signals) * 20)
         )
 
+    @staticmethod
+    def __dedupe_signals(signals):
+        """
+        Preserve signal order while removing duplicate evidence markers.
+
+        :param list signals:
+        :return: list[str]
+        """
+
+        result = []
+        seen = set()
+        for signal in signals:
+            if signal in seen:
+                continue
+            seen.add(signal)
+            result.append(signal)
+        return result
+
     def __build_waf_result(self, signature, signals):
         """
         Build normalized WAF detection payload.
@@ -778,8 +1383,40 @@ class ResponseProvider(object):
         return {
             'name': signature.get('name'),
             'confidence': int(signature.get('confidence', 80)),
-            'signals': signals[:5],
+            'signals': self.__dedupe_signals(signals)[:5],
         }
+
+    @classmethod
+    def __filter_passive_header_signals(cls, signals):
+        """Drop passive WAF presence headers unless the status is block-like.
+
+        Header matchers can return either exact marker values or expanded
+        strings such as ``header:server: webknight/4.6``. Use exact and
+        embedded-marker checks so passive gateway/WAF presence does not turn a
+        normal 200 response into ``blocked`` through vendor scoring or the
+        Generic WAF fallback.
+        """
+        filtered = []
+
+        for signal in signals:
+            normalized = str(signal or '').lower().strip()
+            if normalized.startswith('header:'):
+                normalized = normalized[len('header:'):].strip()
+
+            is_passive = False
+            for marker in cls.DEFAULT_WAF_PASSIVE_HEADER_MARKERS_REQUIRE_BLOCKED_STATUS:
+                passive_marker = str(marker or '').lower().strip()
+                if not passive_marker:
+                    continue
+
+                if normalized == passive_marker or passive_marker in normalized:
+                    is_passive = True
+                    break
+
+            if not is_passive:
+                filtered.append(signal)
+
+        return filtered
 
     @staticmethod
     def __cloudflare_has_active_block_signal(
@@ -820,6 +1457,47 @@ class ResponseProvider(object):
             return int(response.status) == 429 and len(header_signals) > 0
         except (AttributeError, TypeError, ValueError):
             return False
+
+    @staticmethod
+    def __sw_js_challenge_has_active_signal(header_blob, body_blob):
+        """
+        Return True only for the active SW __js_p_ JavaScript challenge page.
+
+        Passive `server: sw` or a leftover `__js_p_` cookie must not be enough
+        to mark a normal 200 response as blocked.
+
+        :param str header_blob:
+        :param str body_blob:
+        :return: bool
+        """
+
+        header_blob = str(header_blob or '')
+        body_blob = str(body_blob or '')
+
+        if '__js_p_=' not in header_blob:
+            return False
+
+        if 'server: sw' not in header_blob:
+            return False
+
+        strong_body_markers = [
+            'meta name="robots" content="noindex, noarchive"',
+            'document.cookie = "__jhash_="',
+            'document.cookie = "__jua_="',
+            'get_jhash(',
+        ]
+        body_markers = [
+            'gorizontal-vertikal',
+            'ajaxload.info',
+            'data:image/gif;base64',
+            'construct_utm_uri',
+            'window.location.href',
+        ]
+
+        strong_hits = sum(1 for marker in strong_body_markers if marker in body_blob)
+        body_hits = sum(1 for marker in body_markers if marker in body_blob)
+
+        return strong_hits >= 2 and body_hits >= 2
 
     def __detect_waf(self, response):
         """
@@ -862,6 +1540,20 @@ class ResponseProvider(object):
                 body_blob,
                 signature.get('body_markers', [])
             )
+
+            if blocked_like_status is False:
+                strong_header_signals = self.__filter_passive_header_signals(strong_header_signals)
+                header_signals = self.__filter_passive_header_signals(header_signals)
+
+            if blocked_like_status is False and signature.get('header_requires_blocked_status') is True:
+                strong_header_signals = []
+                header_signals = []
+
+            if signature.get('name') == 'SW JS Challenge' and not self.__sw_js_challenge_has_active_signal(
+                    header_blob,
+                    body_blob
+            ):
+                continue
 
             if signature.get('name') == 'Cloudflare' and not self.__cloudflare_has_active_block_signal(
                     response,
@@ -909,8 +1601,18 @@ class ResponseProvider(object):
                     header_signals + strong_body_signals + body_signals
                 )
 
-        generic_header_signals = self.__match_markers('header', header_blob, self.DEFAULT_WAF_HEADER_MARKERS)
+        generic_header_markers = self.DEFAULT_WAF_HEADER_MARKERS
+        if blocked_like_status is False:
+            generic_header_markers = [
+                marker for marker in generic_header_markers
+                if marker not in self.DEFAULT_WAF_PASSIVE_HEADER_MARKERS_REQUIRE_BLOCKED_STATUS
+            ]
+
+        generic_header_signals = self.__match_markers('header', header_blob, generic_header_markers)
         generic_body_signals = self.__match_markers('body', body_blob, self.DEFAULT_WAF_BODY_MARKERS)
+
+        if blocked_like_status is False:
+            generic_header_signals = self.__filter_passive_header_signals(generic_header_signals)
 
         if len(generic_header_signals) > 0:
             return {

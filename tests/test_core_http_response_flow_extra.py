@@ -83,18 +83,18 @@ class TestResponseFlowExtra(unittest.TestCase):
 
         return HTTPResponse(status=status, body=body, headers=headers or {})
 
-    def test_handle_uses_dict_debug_branch_when_headers_items_are_not_jsonable(self):
-        """Response.handle() should debug-log dict(headers) when headers.items() is not jsonable."""
+    def test_handle_leaves_response_header_debug_to_request_layer(self):
+        """Response.handle() should not duplicate response header debug output."""
 
         debug = self.make_debug(level=99)
         response_handler = Response(self.make_config(scan='directories'), debug, tpl=MagicMock())
         response = self.make_response(status=200, body=b'ok', headers={'Content-Length': '2'})
 
-        with patch('src.core.http.response.helper.is_jsonable', return_value=False):
-            status, url, size, code = response_handler.handle(response, 'http://example.com/path', 1, 2, [])
+        status, url, size, code = response_handler.handle(response, 'http://example.com/path', 1, 2, [])
 
         self.assertEqual((status, url, size, code), ('success', 'http://example.com/path', '2B', '200'))
-        debug.debug_response.assert_called_once()
+        self.assertEqual(response.headers.get('Status'), '200')
+        debug.debug_response.assert_not_called()
 
     def test_handle_redirect_in_subdomain_scan_appends_ips_and_applies_ignore_list(self):
         """Response.handle() should downgrade ignored redirects and append IPs for subdomain scan."""
@@ -121,6 +121,65 @@ class TestResponseFlowExtra(unittest.TestCase):
             status, url, size, code = response_handler.handle(response, 'http://sub.example.com/path', 1, 2, [])
 
         self.assertEqual((status, url, size, code), ('success', 'http://sub.example.com/path [2.2.2.2]', '2B', '200'))
+
+    def test_handle_subdomain_scan_reuses_cached_ips_for_same_host(self):
+        """Response.handle() should cache rendered subdomain IP lookups per hostname."""
+
+        cfg = self.make_config(scan='subdomains')
+        debug = self.make_debug(level=0)
+        response_handler = Response(cfg, debug, tpl=MagicMock())
+        first_response = self.make_response(status=200, body=b'ok', headers={'Content-Length': '2'})
+        second_response = self.make_response(status=403, body=b'no', headers={'Content-Length': '2'})
+
+        with patch('src.core.http.response.Socket.get_ips_addresses', return_value='[2.2.2.2]') as ip_mock:
+            first = response_handler.handle(first_response, 'http://sub.example.com/path-a', 1, 2, [])
+            second = response_handler.handle(second_response, 'http://sub.example.com/path-b', 2, 2, [])
+
+        self.assertEqual(first, ('success', 'http://sub.example.com/path-a [2.2.2.2]', '2B', '200'))
+        self.assertEqual(second, ('forbidden', 'http://sub.example.com/path-b [2.2.2.2]', '2B', '403'))
+        ip_mock.assert_called_once_with('sub.example.com')
+
+    def test_handle_subdomain_scan_resolves_distinct_hosts_separately(self):
+        """Response.handle() should keep subdomain IP cache scoped by hostname."""
+
+        cfg = self.make_config(scan='subdomains')
+        debug = self.make_debug(level=0)
+        response_handler = Response(cfg, debug, tpl=MagicMock())
+
+        def resolve(hostname):
+            return '[{0}]'.format(hostname)
+
+        with patch('src.core.http.response.Socket.get_ips_addresses', side_effect=resolve) as ip_mock:
+            first = response_handler.handle(
+                self.make_response(status=200, body=b'ok', headers={'Content-Length': '2'}),
+                'http://api.example.com/path',
+                1,
+                2,
+                []
+            )
+            second = response_handler.handle(
+                self.make_response(status=200, body=b'ok', headers={'Content-Length': '2'}),
+                'http://admin.example.com/path',
+                2,
+                2,
+                []
+            )
+
+        self.assertEqual(first[1], 'http://api.example.com/path [api.example.com]')
+        self.assertEqual(second[1], 'http://admin.example.com/path [admin.example.com]')
+        self.assertEqual(ip_mock.call_count, 2)
+
+    def test_get_subdomain_ips_returns_empty_string_for_unparseable_host(self):
+        """Response._get_subdomain_ips() should not resolve when URL has no hostname."""
+
+        cfg = self.make_config(scan='subdomains')
+        debug = self.make_debug(level=0)
+        response_handler = Response(cfg, debug, tpl=MagicMock())
+
+        with patch('src.core.http.response.Socket.get_ips_addresses') as ip_mock:
+            self.assertEqual(response_handler._get_subdomain_ips('/relative/path'), '')
+
+        ip_mock.assert_not_called()
 
     def test_handle_returns_none_for_statusless_non_subdomain_response(self):
         """Response.handle() should return None for statusless non-subdomain inputs."""

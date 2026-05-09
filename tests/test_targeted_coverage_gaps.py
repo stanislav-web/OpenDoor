@@ -8,6 +8,7 @@ from urllib3.exceptions import ProxySchemeUnknown
 
 from src import Controller, SrcError
 from src.core.filesystem.exceptions import FileSystemError
+from src.core.decorators.timer import execution_time
 from src.core.http.exceptions import ProxyRequestError
 from src.core.http.proxy import Proxy
 from src.core.network.exceptions import NetworkTransportError
@@ -251,6 +252,25 @@ class TestProxyTargetedCoverage(unittest.TestCase):
         with patch('src.core.http.proxy.importlib.import_module', return_value=package_module):
             with self.assertRaises(ProxyRequestError):
                 getattr(proxy, '_Proxy__proxy_pool')()
+
+
+
+class TestTimerTargetedCoverage(unittest.TestCase):
+    """Targeted coverage for execution_time decorator branches."""
+
+    def test_execution_time_without_positional_args_does_not_log_when_debug_is_disabled(self):
+        """execution_time() should handle wrapped functions without positional arguments."""
+
+        log = MagicMock()
+
+        @execution_time(log=log)
+        def wrapped():
+            return 'ok'
+
+        with patch('src.core.decorators.timer.time.time', side_effect=[10.0, 12.0]):
+            self.assertEqual(wrapped(), 'ok')
+
+        log.debug.assert_not_called()
 
 
 class TestControllerTargetedCoverage(unittest.TestCase):

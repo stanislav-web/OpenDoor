@@ -545,6 +545,29 @@ class TestCalibration(unittest.TestCase):
         self.assertEqual(Calibration._content_kind(''), 'empty')
         self.assertGreater(Calibration._text_density(body), 0.0)
 
+    def test_calibration_html_filters_should_handle_tolerant_closing_tags(self):
+        """HTML filters should remove tolerant script/style/comment blocks."""
+
+        body = (
+            '<html><head>'
+            '<script>alert(1)</script\t\n bar>'
+            '<style>body{color:red}</style foo="bar">'
+            '<!-- hidden --!>'
+            '</head><body><main>Visible text</main></body></html>'
+        )
+
+        normalized = Calibration._normalize_body(body)
+        visible = Calibration._visible_text(body)
+
+        self.assertIn('visible text', normalized)
+        self.assertIn('visible text', visible)
+        self.assertNotIn('alert', normalized)
+        self.assertNotIn('alert', visible)
+        self.assertNotIn('color', normalized)
+        self.assertNotIn('color', visible)
+        self.assertNotIn('hidden', normalized)
+        self.assertNotIn('hidden', visible)
+
     def test_calibration_semantic_similarity_helpers_should_cover_edges(self):
         """Semantic similarity helpers should cover empty, invalid and partial inputs."""
 
@@ -604,6 +627,71 @@ class TestCalibration(unittest.TestCase):
         )
         self.assertIsNone(calibration.match_dns_wildcard('empty.example.com', []))
         self.assertIsNone(Calibration().match_dns_wildcard('empty.example.com', ['203.0.113.10']))
+
+    def test_calibration_should_drop_invalid_dns_wildcard_addresses_payload(self):
+        """Calibration.from_dict() should ignore malformed DNS wildcard address payloads."""
+
+        restored = Calibration.from_dict({
+            'signatures': [],
+            'threshold': 0.91,
+            'dnsWildcardAddresses': '203.0.113.10',
+        })
+
+        self.assertIsNotNone(restored)
+        self.assertEqual(restored.threshold, 0.91)
+        self.assertEqual(restored.dns_wildcard_addresses, [])
+
+    def test_calibration_score_should_skip_bucket_reason_when_bucket_differs(self):
+        """Calibration._score() should not add bucket reason when buckets differ."""
+
+        baseline = {
+            'code': 200,
+            'bucket': 'success',
+            'normalized_body_hash': 'body-a',
+            'body_skeleton_hash': 'skeleton-a',
+            'visible_text_hash': 'visible-a',
+            'semantic_phrases': ['not found'],
+            'semantic_terms': ['missing'],
+            'dom_tokens': ['html', 'body'],
+            'text_density': 0.5,
+            'content_kind': 'html',
+            'title': 'not found',
+            'redirect_location': '',
+            'size': 100,
+            'word_count': 10,
+            'line_count': 2,
+            'header_fingerprint': {'server': 'nginx'},
+        }
+        candidate = dict(baseline)
+        candidate['bucket'] = 'auth'
+
+        score, reasons = Calibration._score(baseline, candidate)
+
+        self.assertGreater(score, 0)
+        self.assertNotIn('bucket', reasons)
+        self.assertIn('body-hash', reasons)
+
+    def test_calibration_should_normalize_dns_addresses_with_empty_and_duplicate_values(self):
+        """Calibration._normalize_dns_addresses() should trim, lowercase and deduplicate values."""
+
+        actual = Calibration._normalize_dns_addresses([
+            None,
+            '',
+            ' 203.0.113.10 ',
+            '203.0.113.10',
+            'EXAMPLE.COM',
+        ])
+
+        self.assertEqual(actual, ['203.0.113.10', 'example.com'])
+
+    def test_calibration_header_should_resolve_exact_and_lowercase_get_paths(self):
+        """Calibration._header() should cover exact and lowercase mapping get paths."""
+
+        exact_response = SimpleNamespace(headers={'server': 'nginx'})
+        lowercase_response = SimpleNamespace(headers={'server': 'nginx'})
+
+        self.assertEqual(Calibration._header(exact_response, 'server'), 'nginx')
+        self.assertEqual(Calibration._header(lowercase_response, 'Server'), 'nginx')
 
 
 if __name__ == '__main__':

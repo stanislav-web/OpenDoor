@@ -34,29 +34,59 @@ It is intended for safer scan classification and better operator awareness.
 
 The heuristic WAF detection engine currently recognizes probable signals for:
 
+- 360 WAF
+- Airlock
 - Akamai
+- Aliyun WAF
+- Anquanbao
 - Anubis
 - AppTrana
 - AWS WAF
 - Azure Front Door
 - Barracuda
+- BinarySec
+- BitNinja
+- Bluedon WAF
+- ChinaCache
+- CityHost
 - Cloudflare
+- Comodo WAF
 - DataDome
+- DDoS-GUARD
 - Distil
+- DoSArrest
+- DotDefender
 - F5 BIG-IP ASM
 - Fastly
 - FortiWeb
+- GoDaddy Website Firewall
+- Google Cloud Armor
+- GreyWizard
 - Huawei Cloud WAF
+- IBM DataPower
 - Imperva
+- Imunify360
+- Instart DX
 - Kasada
 - ModSecurity
+- NAXSI
 - NetScaler / Citrix WAF
+- NinjaFirewall
 - PerimeterX / HUMAN
+- Profense
 - Radware
 - Reblaze
+- SafeLine
 - Sucuri
+- Tencent Cloud WAF
+- Vercel WAF
+- Wallarm
+- WebKnight
+- Wordfence
 
 Detection is heuristic. Treat results as probable signals and verify important findings manually.
+
+OpenDoor keeps WAF detection passive: it classifies the responses that the scanner already receives and does not add extra WAF-triggering requests. Passive gateway or server markers that are commonly present on normal traffic are gated by block-like status codes in both vendor-specific detection and generic fallback detection to reduce false positives on successful pages.
 
 ---
 

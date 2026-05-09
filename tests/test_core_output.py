@@ -57,6 +57,16 @@ class TestOutput(unittest.TestCase):
                 patch('src.core.system.output.os.name', 'posix'):
             self.assertTrue(output.is_windows)
 
+    def test_writels_can_skip_flush(self):
+        """Output.writels() should not flush stdout when flush is disabled."""
+
+        fake_stdout = unittest.mock.MagicMock()
+        with patch('src.core.system.output.sys.stdout', fake_stdout):
+            Output.writels('message', flush=False)
+
+        fake_stdout.write.assert_called_once_with('\r\x1b[Kmessage')
+        fake_stdout.flush.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()

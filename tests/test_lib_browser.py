@@ -486,6 +486,96 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(result['total']['ignored'], 1)
         self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
 
+    def test_add_urls_deduplicates_subdomain_candidates_before_queueing(self):
+        """Browser._add_urls() should skip duplicate subdomain URLs before HTTP queueing."""
+
+        br = self.make_browser()
+        config = self.browser_configuration({'host': 'example.com', 'scan': 'subdomains', 'reports': 'std'})
+        pool = SimpleNamespace(
+            total_items_size=3,
+            submitted_size=0,
+            add=MagicMock(),
+            join=MagicMock(),
+        )
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        type(reader).total_lines = property(lambda _self: 3)
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        br._add_urls([
+            'http://api.example.com',
+            'http://api.example.com',
+            'http://admin.example.com',
+        ])
+
+        self.assertEqual(pool.add.call_count, 2)
+        self.assertEqual(pool.total_items_size, 2)
+        self.assertEqual(
+            [call.args[1] for call in pool.add.call_args_list],
+            ['http://api.example.com', 'http://admin.example.com']
+        )
+        pool.join.assert_called_once_with()
+
+    def test_add_urls_does_not_shrink_directory_scan_totals_for_duplicate_urls(self):
+        """Browser._add_urls() should keep directory scan totals compatible with previous behavior."""
+
+        br = self.make_browser()
+        pool = SimpleNamespace(
+            total_items_size=2,
+            submitted_size=0,
+            add=MagicMock(),
+            join=MagicMock(),
+        )
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        type(reader).total_lines = property(lambda _self: 2)
+
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        br._add_urls([
+            'http://example.com/admin',
+            'http://example.com/admin',
+        ])
+
+        self.assertEqual(pool.add.call_count, 1)
+        self.assertEqual(pool.total_items_size, 2)
+        pool.join.assert_called_once_with()
+
+    def test_add_urls_deduplicates_subdomain_ignored_candidate_once(self):
+        """Browser._add_urls() should report a duplicated ignored subdomain candidate only once."""
+
+        br = self.make_browser()
+        config = self.browser_configuration({'host': 'example.com', 'scan': 'subdomains', 'reports': 'std'})
+        pool = SimpleNamespace(
+            total_items_size=2,
+            submitted_size=0,
+            add=MagicMock(),
+            join=MagicMock(),
+        )
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = ['admin']
+        type(reader).total_lines = property(lambda _self: 2)
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._add_urls([
+                'http://admin.example.com/admin',
+                'http://admin.example.com/admin',
+            ])
+
+        pool.add.assert_not_called()
+        self.assertEqual(pool.total_items_size, 1)
+        self.assertEqual(getattr(br, '_Browser__result')['total']['ignored'], 1)
+        warning_mock.assert_called_once()
+        pool.join.assert_called_once_with()
+
     def test_add_urls_propagates_keyboard_interrupt(self):
         """Browser._add_urls() should re-raise KeyboardInterrupt from the pool layer."""
 
@@ -520,6 +610,7 @@ class TestBrowser(unittest.TestCase):
         pool = SimpleNamespace(total_items_size=10, is_started=True)
         reader = MagicMock()
         reader.total_lines = 10
+        reader.count_active_lines.return_value = 10
 
         setattr(br, '_Browser__config', config)
         setattr(br, '_Browser__debug', debug)
@@ -556,6 +647,7 @@ class TestBrowser(unittest.TestCase):
         pool = SimpleNamespace(total_items_size=10, is_started=True)
         reader = MagicMock()
         reader.total_lines = 10
+        reader.count_active_lines.return_value = 10
 
         setattr(br, '_Browser__config', config)
         setattr(br, '_Browser__debug', debug)
@@ -589,6 +681,7 @@ class TestBrowser(unittest.TestCase):
         pool = SimpleNamespace(total_items_size=10, is_started=True)
         reader = MagicMock()
         reader.total_lines = 10
+        reader.count_active_lines.return_value = 10
 
         setattr(br, '_Browser__config', config)
         setattr(br, '_Browser__debug', debug)
@@ -621,6 +714,7 @@ class TestBrowser(unittest.TestCase):
         debug = MagicMock()
         pool = SimpleNamespace(total_items_size=10, is_started=False)
         reader = MagicMock()
+        reader.count_active_lines.return_value = 10
 
         setattr(br, '_Browser__config', config)
         setattr(br, '_Browser__debug', debug)
@@ -651,6 +745,7 @@ class TestBrowser(unittest.TestCase):
         debug = MagicMock()
         pool = SimpleNamespace(total_items_size=10, is_started=True)
         reader = MagicMock()
+        reader.count_active_lines.return_value = 10
         reader.randomize_list.side_effect = ReaderError('bad list')
 
         setattr(br, '_Browser__config', config)
@@ -678,6 +773,7 @@ class TestBrowser(unittest.TestCase):
         debug = MagicMock()
         pool = SimpleNamespace(total_items_size=10, is_started=True)
         reader = MagicMock()
+        reader.count_active_lines.return_value = 10
 
         setattr(br, '_Browser__config', config)
         setattr(br, '_Browser__debug', debug)
@@ -688,6 +784,62 @@ class TestBrowser(unittest.TestCase):
                 patch('src.lib.browser.browser.tpl.info'):
             with self.assertRaises(BrowserError):
                 br.scan()
+
+    def test_scan_aborts_when_active_wordlist_is_shorter_than_planned_total(self):
+        """Browser.scan() should not silently finish a partial runtime wordlist."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(
+            is_random_list=True,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=True,
+            host='example.com',
+            port=80,
+            scheme='http://'
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=93661, is_started=True)
+        reader = MagicMock()
+        reader.total_lines = 93661
+        reader.count_active_lines.return_value = 4167
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            with self.assertRaises(BrowserError) as ctx:
+                br.scan()
+
+        self.assertIn('planned 93661 item(s), active runtime list has 4167', str(ctx.exception))
+        warning_mock.assert_called_with(msg='Active scan list size mismatch: planned 93661 item(s), active runtime list has 4167. Aborting to avoid a partial scan.')
+        reader.get_lines.assert_not_called()
+
+    def test_done_warns_when_streaming_finishes_before_all_planned_items_are_submitted(self):
+        """Browser.done() should explain early EOF instead of only printing the final summary."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(reports=[])
+        pool = SimpleNamespace(
+            total_items_size=93661,
+            submitted_size=4167,
+            workers_size=1,
+            size=0,
+        )
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__session', None)
+        setattr(br, '_Browser__session_dirty', False)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br.done()
+
+        warning_mock.assert_called_once()
+        self.assertIn('submitting 4167/93661 planned item(s)', warning_mock.call_args.kwargs['msg'])
 
     def test_catch_report_data_initializes_report_items_when_missing(self):
         """Browser.__catch_report_data() should restore report_items when old payloads do not have it."""

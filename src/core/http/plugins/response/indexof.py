@@ -64,6 +64,13 @@ class IndexofResponsePlugin(ResponsePluginProvider):
         r'>\s*size\s*<',
     )
 
+    PATH_HEADING_PATTERNS = (
+        r'<title>\s*index\s+of\s+/[^<]*</title>',
+        r'<h1[^>]*>\s*index\s+of\s+/[^<]*</h1>',
+        r'<title>\s*directory\s+listing\s+(?:for|--)\s+/?[^<]*</title>',
+        r'<h1[^>]*>\s*directory\s+listing\s+(?:for|--)\s+/?[^<]*</h1>',
+    )
+
     DENY_PATTERNS = (
         r'type=["\']password["\']',
         r'access denied',
@@ -151,9 +158,17 @@ class IndexofResponsePlugin(ResponsePluginProvider):
         layout_hits = self._count_matches(self.AUTO_INDEX_LAYOUT_PATTERNS, body)
         header_hits = self._count_matches(self.LISTING_HEADER_PATTERNS, body)
         listing_links = self._count_listing_links(body)
+        path_heading_hits = self._count_matches(self.PATH_HEADING_PATTERNS, body)
 
         if title_hits > 0 and strong_body_hits > 0:
-            return True
+            if parent_hits > 0 or apache_sort_hits > 0:
+                return True
+            if layout_hits > 0 and listing_links >= 1:
+                return True
+            if header_hits >= 2 and listing_links >= 1:
+                return True
+            if path_heading_hits >= 2 and listing_links >= 1:
+                return True
 
         if title_hits > 0 and parent_hits > 0:
             return True

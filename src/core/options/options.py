@@ -193,7 +193,7 @@ class Options(object):
                 "argl": "--fingerprint",
                 "default": False,
                 "action": "store_true",
-                "help": "Detect probable CMS, framework or custom stack before the scan",
+                "help": "Detect probable CMS, framework, security posture and passive privacy risks before the scan",
                 "type": bool
             },
             {
@@ -222,6 +222,15 @@ class Options(object):
                 "action": "store_true",
                 "help": "Probe blocked 401/403 paths with controlled header-injection bypass variants",
                 "type": bool
+            },
+            {
+                "group": "request",
+                "args": None,
+                "argl": "--header-bypass-profile",
+                "default": None,
+                "action": "store",
+                "help": "Header-bypass probe profile: safe or offensive",
+                "type": str
             },
             {
                 "group": "request",
@@ -265,7 +274,7 @@ class Options(object):
                 "argl": "--debug",
                 "default": 0,
                 "action": "store",
-                "help": "Debug level -1 (silent), 1 - 3",
+                "help": "Debug level: -1 quiet, 0 normal, 1 scan decisions, 2 requests, 3 responses/classification",
                 "type": int
             },
             {
@@ -339,6 +348,15 @@ class Options(object):
                 "action": "store",
                 "help": "Seconds to wait for transport commands",
                 "type": int
+            },
+            {
+                "group": "network",
+                "args": None,
+                "argl": "--transport-bin",
+                "default": None,
+                "action": "store",
+                "help": "Optional transport executable path or command name",
+                "type": str
             },
             {
                 "group": "network",
@@ -738,7 +756,7 @@ class Options(object):
                         break
             else:
                 for arg, value in vars(self.args).items():
-                    if value or (arg == 'header_bypass_limit' and value == 0):
+                    if value or arg in ['debug'] or (arg == 'header_bypass_limit' and value == 0):
                         args[arg] = value
                 args = Filter.filter(args)
 

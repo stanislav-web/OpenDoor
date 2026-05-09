@@ -4,6 +4,9 @@
     WireGuard network transport.
 """
 
+import os
+import platform
+
 from .base import BaseTransport
 
 
@@ -14,6 +17,26 @@ class WireGuardTransport(BaseTransport):
     name = 'wireguard'
     profile_extension = '.conf'
 
+    @staticmethod
+    def executable_candidates():
+        """
+        Return common wg-quick locations across Unix-like systems.
+
+        :return: list[str]
+        """
+
+        if os.name == 'nt' or platform.system().lower() == 'windows':
+            return []
+
+        return [
+            '/usr/bin/wg-quick',
+            '/usr/sbin/wg-quick',
+            '/usr/local/bin/wg-quick',
+            '/usr/local/sbin/wg-quick',
+            '/opt/homebrew/bin/wg-quick',
+            '/opt/homebrew/sbin/wg-quick',
+        ]
+
     def build_up_command(self):
         """
         Build WireGuard up command.
@@ -22,7 +45,7 @@ class WireGuardTransport(BaseTransport):
         """
 
         self.validate_profile()
-        return ['wg-quick', 'up', self.profile]
+        return [self.resolve_executable('wg-quick', self.executable_candidates()), 'up', self.profile]
 
     def build_down_command(self):
         """
@@ -32,7 +55,7 @@ class WireGuardTransport(BaseTransport):
         """
 
         self.validate_profile()
-        return ['wg-quick', 'down', self.profile]
+        return [self.resolve_executable('wg-quick', self.executable_candidates()), 'down', self.profile]
 
     def start(self):
         """

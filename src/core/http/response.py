@@ -39,6 +39,7 @@ class Response(ResponseProvider):
         self.__debug = debug
         self.__config = config
         self.__tpl = kwargs.get('tpl')
+        self.__subdomain_ip_cache = {}
 
         if True is self.__config.is_sniff:
             try:
@@ -62,6 +63,27 @@ class Response(ResponseProvider):
             except ResponsePluginError as error:
                 raise ResponsePluginError(str(error))
 
+    def _get_subdomain_ips(self, request_url):
+        """
+        Resolve and cache IP addresses rendered for subdomain scan report items.
+
+        :param str request_url: request URL
+        :return: str
+        """
+
+        hostname = helper.parse_url(request_url).hostname
+        if not hostname:
+            return ''
+
+        if not hasattr(self, '_Response__subdomain_ip_cache'):
+            self.__subdomain_ip_cache = {}
+
+        hostname = str(hostname).strip().lower()
+        if hostname not in self.__subdomain_ip_cache:
+            self.__subdomain_ip_cache[hostname] = Socket.get_ips_addresses(hostname)
+
+        return self.__subdomain_ip_cache.get(hostname, '')
+
     def handle(self, response, request_url, items_size, total_size, ignore_list):
         """
         Response handler
@@ -75,12 +97,7 @@ class Response(ResponseProvider):
         """
 
         if hasattr(response, 'status'):
-            if self.HTTP_DBG_LEVEL <= self.__debug.level:
-                response.headers.update({'Status': str(response.status)})
-                if helper.is_jsonable(response.headers.items()):
-                    self.__debug.debug_response(response.headers.items())
-                else:
-                    self.__debug.debug_response(dict(response.headers))
+            response.headers.update({'Status': str(response.status)})
 
             try:
                 status = super(Response, self).detect(request_url, response)
@@ -95,13 +112,13 @@ class Response(ResponseProvider):
                     if check_for_ignored in ignore_list:
                         status = 'failed'
                     if self.__config.SUBDOMAINS_SCAN == self.__config.scan:
-                        ips = Socket.get_ips_addresses(helper.parse_url(request_url).hostname)
+                        ips = self._get_subdomain_ips(request_url)
                         url = request_url = '{0} {1}'.format(request_url, ips)
                     else:
                         url = redirect_uri
                 else:
                     if self.__config.SUBDOMAINS_SCAN == self.__config.scan:
-                        ips = Socket.get_ips_addresses(helper.parse_url(request_url).hostname)
+                        ips = self._get_subdomain_ips(request_url)
                         url = request_url = '{0} {1}'.format(request_url, ips)
                     else:
                         url = request_url
@@ -116,6 +133,15 @@ class Response(ResponseProvider):
                     response_code=response_code,
                     waf_name=waf_detection.get('name') if waf_detection else None,
                     waf_confidence=waf_detection.get('confidence') if waf_detection else None,
+                )
+                getattr(self.__debug, 'debug_classification', lambda *args, **kwargs: True)(
+                    status=status,
+                    code=response_code,
+                    size=content_size,
+                    waf_name=waf_detection.get('name') if waf_detection else None,
+                    waf_confidence=waf_detection.get('confidence') if waf_detection else None,
+                    signals=waf_detection.get('signals') if waf_detection else None,
+                    redirect_uri=redirect_uri
                 )
 
                 return status, url, content_size, response_code

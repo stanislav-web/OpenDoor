@@ -256,6 +256,8 @@ Short form:
 opendoor --host https://example.com -t 20
 ```
 
+**Caution!** A large number of threads may trigger a WAF. Use `--waf-safe-mode` to avoid WAF-triggered scans.
+
 ### Keep-alive
 
 ```shell
@@ -639,6 +641,28 @@ CSV reports include dedicated columns for these fields. SQLite reports persist t
 
 ---
 
+## ⏸ Runtime Pause / Resume
+
+During a running scan, press `Ctrl+C` once to open the interactive runtime pause menu.
+
+```text
+Stopping threads (...)...
+Press "[C]ontinue" to resume or "[E]xit" to abort session:
+```
+
+Available actions:
+
+| Input | Action |
+|---|---|
+| `C` or `c` | Resume the current scan without restarting it. |
+| `Enter` | Resume the current scan. |
+| `E`, `e`, `Q`, or `q` | Abort the current scan. |
+
+This is a runtime control and does not require `--session-save` or `--session-load`.
+Sessions are still the correct tool when you need to stop the process and resume later from disk.
+
+---
+
 ## 🔁 Sessions
 
 Sessions allow long-running scans to be saved and resumed.
@@ -780,7 +804,32 @@ Supported rotation modes:
 opendoor --host https://example.com --transport-timeout 60
 ```
 
-### Transport healthcheck
+
+### Transport executable path
+
+OpenDoor is cross-platform, but VPN modes require an OS-level backend executable. OpenDoor searches `PATH` and common OS-specific locations. Use `--transport-bin` when the backend is installed elsewhere.
+
+```shell
+opendoor \
+  --host https://example.com \
+  --transport openvpn \
+  --transport-profile ./profile.ovpn \
+  --transport-bin /opt/homebrew/sbin/openvpn
+```
+
+Windows OpenVPN example:
+
+```powershell
+opendoor `
+  --host https://example.com `
+  --transport openvpn `
+  --transport-profile .\profile.ovpn `
+  --transport-bin "C:\Program Files\OpenVPN\bin\openvpn.exe"
+```
+
+If a VPN is already connected by a GUI client or corporate VPN agent, keep OpenDoor in `direct` mode. The scanner will use the active system route.
+
+### Transport health check
 
 ```shell
 opendoor \
@@ -901,12 +950,13 @@ Sniffers are built-in response analysis plugins.
 opendoor --host https://example.com --sniff indexof
 opendoor --host https://example.com --sniff skipempty
 opendoor --host https://example.com --sniff skipsizes=24:41:50
+opendoor --host https://example.com --sniff stacktrace
 ```
 
 Multiple sniffers can be combined:
 
 ```shell
-opendoor --host https://example.com --sniff skipempty,file,collation,indexof,skipsizes=24:41:50
+opendoor --host https://example.com --sniff stacktrace,skipempty,file,collation,indexof,skipsizes=24:41:50
 ```
 
 For details, see [Sniffers](Sniffers.md).
@@ -923,11 +973,15 @@ opendoor --host https://example.com --debug 2
 opendoor --host https://example.com --debug 3
 ```
 
-Silent mode:
+Supported values:
 
-```shell
-opendoor --host https://example.com --debug -1
-```
+| Value | Meaning |
+|---:|---|
+| `-1` | Quiet progress mode: hide regular missed/ignored scan progress, keep important findings and warnings |
+| `0` | Normal output |
+| `1` | Scanner decisions: scan setup, lists, sniffers, proxy mode, WAF/header-bypass/auto-calibration/recursive lifecycle |
+| `2` | Outgoing HTTP request diagnostics, including request headers and cookie routing |
+| `3` | Incoming HTTP response diagnostics, including response headers and classification summaries |
 
 Use debug output when validating filters, transport behavior, request headers, response classification, or report generation.
 

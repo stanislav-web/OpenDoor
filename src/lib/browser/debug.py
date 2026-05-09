@@ -36,8 +36,68 @@ class Debug(DebugProvider):
         self.__cfg = Config
         self.__level = self.__cfg.debug
 
-        if self.__level > 0:
+        if self.is_scan_debug():
             tpl.debug(key='debug', level=self.__cfg.debug, method=self.__cfg.method)
+
+    def is_enabled(self, level):
+        """Return True when the current debug level includes the requested level.
+
+        :param int level: required debug level
+        :return: whether the level is enabled
+        :rtype: bool
+        """
+
+        return self.__level >= level
+
+    def is_scan_debug(self):
+        """Return True for scanner decision debug output.
+
+        :return: whether level 1 output is enabled
+        :rtype: bool
+        """
+
+        return self.is_enabled(1)
+
+    def is_request_debug(self):
+        """Return True for outgoing request debug output.
+
+        :return: whether level 2 output is enabled
+        :rtype: bool
+        """
+
+        return self.is_enabled(2)
+
+    def is_response_debug(self):
+        """Return True for incoming response debug output.
+
+        :return: whether level 3 output is enabled
+        :rtype: bool
+        """
+
+        return self.is_enabled(3)
+
+    @classmethod
+    def __normalize_debug_headers(cls, headers):
+        """Return a serializable copy of request/response headers.
+
+        Debug output intentionally keeps header values visible.
+
+        :param dict|object headers: header mapping or header-like object
+        :return: normalized header mapping
+        :rtype: dict
+        """
+
+        if not isinstance(headers, dict):
+            try:
+                headers = dict(headers)
+            except (TypeError, ValueError):
+                headers = getattr(headers, '__dict__', {})
+
+        safe_headers = {}
+        for name, value in dict(headers or {}).items():
+            safe_headers[name] = value
+
+        return safe_headers
 
     @property
     def level(self):
@@ -48,7 +108,7 @@ class Debug(DebugProvider):
     def debug_user_agents(self):
         """Debug info for user agent."""
 
-        if self.__level > 0:
+        if self.is_scan_debug():
             if self.__cfg.is_random_user_agent is True:
                 tpl.debug(key='random_browser')
             else:
@@ -59,7 +119,7 @@ class Debug(DebugProvider):
     def debug_list(self, total_lines):
         """Debug scan list."""
 
-        if self.__level > 0:
+        if self.is_scan_debug():
             if self.__cfg.is_random_list is True:
                 tpl.debug(key='randomizing')
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
@@ -78,6 +138,9 @@ class Debug(DebugProvider):
     def debug_connection_pool(self, keymsg, pool, connection_type):
         """Debug connection pool message."""
 
+        if not self.is_request_debug():
+            return True
+
         tpl.debug(key=keymsg, type=connection_type)
         if pool:
             tpl.debug(str(pool), type=connection_type)
@@ -87,7 +150,7 @@ class Debug(DebugProvider):
     def debug_header_bypass(self):
         """Debug header-bypass configuration."""
 
-        if self.__level > 0 and self.__cfg.is_header_bypass is True:
+        if self.is_scan_debug() and self.__cfg.is_header_bypass is True:
             tpl.debug(
                 key='header_bypass_enabled',
                 statuses=','.join([str(status) for status in self.__cfg.header_bypass_status]),
@@ -99,6 +162,9 @@ class Debug(DebugProvider):
 
     def debug_proxy_pool(self):
         """Debug proxy pool message."""
+
+        if not self.is_scan_debug():
+            return True
 
         if self.__cfg.is_external_proxy_list is True:
             tpl.debug(key='proxy_pool_external_start')
@@ -112,10 +178,13 @@ class Debug(DebugProvider):
     def debug_request(self, request_header, url, method):
         """Debug request."""
 
+        if not self.is_request_debug():
+            return True
+
         if not isinstance(request_header, dict):
             request_header = request_header.__dict__
 
-        request_data = dict(request_header)
+        request_data = self.__normalize_debug_headers(request_header)
         request_data.update({'Request URI': url, 'Request Method': method})
 
         tpl.debug(key='request_header_dbg', dbg=helper.to_json(request_data))
@@ -125,7 +194,11 @@ class Debug(DebugProvider):
     def debug_response(self, response_header):
         """Debug response."""
 
-        tpl.debug(key='response_header_dbg', dbg=helper.to_json(response_header))
+        if not self.is_response_debug():
+            return True
+
+        response_data = self.__normalize_debug_headers(response_header)
+        tpl.debug(key='response_header_dbg', dbg=helper.to_json(response_data))
 
         return True
 
@@ -199,6 +272,142 @@ class Debug(DebugProvider):
     def debug_load_sniffer_plugin(self, description):
         """Debug load sniffers plugin."""
 
-        tpl.debug(key='load_sniffer_plugin', description=description)
+        if self.is_scan_debug():
+            tpl.debug(key='load_sniffer_plugin', description=description)
+
+        return True
+
+    def debug_cookie_accept_enabled(self):
+        """Debug active response cookie routing."""
+
+        if self.is_request_debug():
+            tpl.debug(key='accept_cookies_enabled')
+
+        return True
+
+    def debug_cookie_accepted(self, cookies):
+        """Debug cookies accepted from a response.
+
+        :param str cookies: cookie header value prepared for following requests
+        :return: bool
+        """
+
+        if self.is_request_debug():
+            tpl.debug(key='response_cookies_accepted', cookies=cookies)
+
+        return True
+
+    def debug_cookie_attached(self, headers):
+        """Debug Cookie header attached to an outgoing request.
+
+        :param dict headers: outgoing request headers
+        :return: bool
+        """
+
+        if self.is_request_debug() and isinstance(headers, dict) and headers.get('Cookie'):
+            tpl.debug(key='cookie_header_attached', cookies=headers.get('Cookie'))
+
+        return True
+
+    def debug_auto_calibration_enabled(self):
+        """Debug auto-calibration configuration."""
+
+        if self.is_scan_debug():
+            tpl.debug(
+                msg='Auto-calibration enabled: samples={0}, threshold={1}'.format(
+                    self.__cfg.calibration_samples,
+                    self.__cfg.calibration_threshold
+                )
+            )
+
+        return True
+
+    def debug_header_bypass_skipped(self, status):
+        """Debug skipped header-bypass probe."""
+
+        if self.is_scan_debug():
+            tpl.debug(
+                key='header_bypass_skipped',
+                status=status or '-',
+                statuses=','.join([str(status) for status in self.__cfg.header_bypass_status])
+            )
+
+        return True
+
+    def debug_header_bypass_probing(self, status, variants):
+        """Debug header-bypass probe start."""
+
+        if self.is_scan_debug():
+            tpl.debug(key='header_bypass_probing', status=status or '-', variants=variants)
+
+        return True
+
+    def debug_header_bypass_candidate(self, metadata):
+        """Debug promising header-bypass candidate."""
+
+        if self.is_scan_debug():
+            tpl.debug(
+                key='header_bypass_candidate',
+                header=metadata.get('bypass_header') or metadata.get('bypass_variant'),
+                from_code=metadata.get('bypass_from_code') or '-',
+                to_code=metadata.get('bypass_to_code') or '-'
+            )
+
+        return True
+
+    def debug_header_bypass_finished(self):
+        """Debug header-bypass probe completion."""
+
+        if self.is_scan_debug():
+            tpl.debug(key='header_bypass_finished')
+
+        return True
+
+    def debug_recursive_expansion(self, parent_url, child_count, next_depth):
+        """Debug recursive queue expansion."""
+
+        if self.is_scan_debug():
+            tpl.debug(
+                msg='Recursive expansion [{0}] -> +{1} urls (next depth: {2})'.format(
+                    parent_url,
+                    child_count,
+                    next_depth
+                )
+            )
+
+        return True
+
+    def debug_classification(
+            self,
+            status,
+            code='-',
+            size='-',
+            waf_name=None,
+            waf_confidence=None,
+            signals=None,
+            redirect_uri=None
+    ):
+        """Debug response classification summary."""
+
+        if not self.is_response_debug():
+            return True
+
+        parts = [
+            'Classification: {0}'.format(status),
+            'code={0}'.format(code),
+            'size={0}'.format(size),
+        ]
+
+        if redirect_uri:
+            parts.append('redirect={0}'.format(redirect_uri))
+        if waf_name:
+            parts.append('waf={0}'.format(waf_name))
+        if waf_confidence is not None:
+            parts.append('confidence={0}'.format(waf_confidence))
+
+        tpl.debug(msg='; '.join(parts))
+
+        if signals:
+            tpl.debug(msg='WAF signals: {0}'.format(', '.join([str(signal) for signal in signals])))
 
         return True

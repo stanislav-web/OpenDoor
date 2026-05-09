@@ -16,3 +16,4 @@ jobs:
     with:
       runner: macos-latest
       python-version: "3.12"
+    secrets: inherit

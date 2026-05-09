@@ -106,7 +106,7 @@ opendoor \
   --host https://example.com \
   --method GET \
   --header-bypass \
-  --reports std,json,csv,sqlite
+  --reports std,json,csv,sqlite,sarif
 ```
 
 Use:
@@ -115,6 +115,7 @@ Use:
 - `json` for full machine-readable metadata;
 - `csv` for stable bypass columns;
 - `sqlite` for structured local analysis.
+- `sarif` for GitGub cctions.
 
 ---
 

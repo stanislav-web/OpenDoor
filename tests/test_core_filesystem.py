@@ -365,5 +365,27 @@ class TestFileSystem(unittest.TestCase):
 
         self.assertEqual(loaded, [['a', 'b']])
 
+    def test_shuffle_should_not_concatenate_last_line_without_final_newline(self):
+        """FileSystem.shuffle() should preserve line boundaries when source lacks final newline."""
+
+        source = tempfile.NamedTemporaryFile(delete=False, mode='w', encoding=FileSystem.text_encoding)
+        source.write('fail001\ncurrency\nfail002\nfail002')
+        source.close()
+        self.addCleanup(lambda: os.path.exists(source.name) and os.unlink(source.name))
+
+        output = tempfile.NamedTemporaryFile(delete=False)
+        output.close()
+        self.addCleanup(lambda: os.path.exists(output.name) and os.unlink(output.name))
+
+        with patch('src.core.filesystem.filesystem.random.shuffle', side_effect=lambda items: items.reverse()):
+            FileSystem.shuffle(source.name, output.name, 2)
+
+        with open(output.name, 'r', encoding=FileSystem.text_encoding) as file:
+            shuffled = [line.rstrip('\n') for line in file.readlines()]
+
+        self.assertCountEqual(shuffled, ['fail001', 'currency', 'fail002', 'fail002'])
+        self.assertNotIn('fail002currency', shuffled)
+
+
 if __name__ == '__main__':
     unittest.main()

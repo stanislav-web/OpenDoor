@@ -122,7 +122,7 @@ body:
       description: What did you expect to happen?
       placeholder: "The scan should..., report should..., output should..."
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: reproduce
@@ -134,7 +134,7 @@ body:
         2. Run ...
         3. Observe ...
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: logs

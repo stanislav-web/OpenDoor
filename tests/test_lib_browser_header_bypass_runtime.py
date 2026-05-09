@@ -396,6 +396,7 @@ class TestBrowserHeaderBypassRuntime(unittest.TestCase):
             'header_bypass_ips': ['127.0.0.1', '10.0.0.1'],
             'header_bypass_status': [401, 403],
             'header_bypass_limit': 0,
+            'header_bypass_profile': 'offensive',
             'session_save': '/tmp/session.json',
             'session_autosave_sec': 20,
             'session_autosave_items': 200,
@@ -418,6 +419,7 @@ class TestBrowserHeaderBypassRuntime(unittest.TestCase):
         self.assertEqual(params['header_bypass_ips'], '127.0.0.1,10.0.0.1')
         self.assertEqual(params['header_bypass_status'], '401,403')
         self.assertEqual(params['header_bypass_limit'], 0)
+        self.assertEqual(params['header_bypass_profile'], 'offensive')
 
     def test_export_session_params_should_not_export_header_bypass_tuning_when_disabled(self):
         """Session export should avoid noisy header-bypass tuning when bypass is disabled."""
@@ -431,6 +433,7 @@ class TestBrowserHeaderBypassRuntime(unittest.TestCase):
         self.assertNotIn('header_bypass_ips', params)
         self.assertNotIn('header_bypass_status', params)
         self.assertNotIn('header_bypass_limit', params)
+        self.assertNotIn('header_bypass_profile', params)
 
     def test_http_request_ignores_empty_probe_http_response_object(self):
         """Browser should ignore probe requests that return no HTTP response object."""

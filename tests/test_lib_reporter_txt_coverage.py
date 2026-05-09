@@ -186,6 +186,100 @@ class TestTextReportPluginCoverage(unittest.TestCase):
             'bypass=header, header=X-Original-URL, value=/admin, 403->200'
         )
 
+    def test_should_render_fingerprint_evidence_signals(self):
+        """Text fingerprint report should expose compact evidence for QA/debugging."""
+
+        plugin = TextReportPlugin.__new__(TextReportPlugin)
+        plugin._data = {
+            'fingerprint': {
+                'category': 'custom',
+                'name': 'Unknown custom stack',
+                'confidence': 45,
+                'signals': [
+                    {'type': 'route', 'value': '.php route marker', 'weight': 4.5},
+                ],
+                'runtime': {
+                    'name': 'PHP',
+                    'confidence': 61,
+                    'signals': [
+                        {'type': 'cookie', 'value': 'PHPSESSID', 'weight': 7},
+                    ],
+                },
+                'infrastructure': {
+                    'provider': 'Cloudflare',
+                    'confidence': 80,
+                    'signals': [
+                        {'type': 'header', 'value': 'cf-ray', 'weight': 7},
+                    ],
+                },
+                'security_headers': {
+                    'hsts': {
+                        'grade': 'weak',
+                        'max_age': 300,
+                        'include_subdomains': False,
+                        'preload_ready': False,
+                        'warnings': ['max-age below preload requirement'],
+                    },
+                },
+            },
+        }
+
+        rows = plugin.format_fingerprint_summary()
+
+        self.assertIn('signals: route:.php route marker(4.5)', rows)
+        self.assertIn('runtime_signals: cookie:PHPSESSID(7)', rows)
+        self.assertIn('infrastructure_signals: header:cf-ray(7)', rows)
+        self.assertIn('hsts_warnings: max-age below preload requirement', rows)
+
+
+    def test_should_format_signal_without_weight(self):
+        """Fingerprint signal formatter should omit weight suffix when no score exists."""
+
+        plugin = TextReportPlugin.__new__(TextReportPlugin)
+        plugin._data = {
+            'fingerprint': {
+                'category': 'custom',
+                'name': 'Unknown',
+                'confidence': 10,
+                'signals': [
+                    {'type': 'header', 'value': 'server=nginx'},
+                ],
+            },
+        }
+
+        rows = plugin.format_fingerprint_summary()
+
+        self.assertIn('signals: header:server=nginx', rows)
+
+    def test_should_format_scalar_signal_list_value(self):
+        """Fingerprint signal formatter should preserve scalar values."""
+
+        plugin = TextReportPlugin.__new__(TextReportPlugin)
+        plugin._data = {
+            'fingerprint': {
+                'category': 'custom',
+                'name': 'Unknown',
+                'confidence': 10,
+                'signals': 'server=nginx',
+            },
+        }
+
+        rows = plugin.format_fingerprint_summary()
+
+        self.assertIn('signals: server=nginx', rows)
+
+    def test_should_process_non_dict_items_as_empty(self):
+        """TextReportPlugin.process() should ignore malformed non-dict items payload."""
+
+        with patch('src.lib.reporter.plugins.txt.filesystem.makedir', return_value=self.target_dir), \
+                patch('src.lib.reporter.plugins.txt.filesystem.clear') as clear_mock:
+            plugin = TextReportPlugin(self.target, {'items': ['bad']}, directory='/custom/reports')
+            with patch.object(plugin, 'record') as record_mock:
+                plugin.process()
+
+        clear_mock.assert_called_once_with(self.target_dir, extension='.txt')
+        record_mock.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()

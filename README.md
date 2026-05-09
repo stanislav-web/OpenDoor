@@ -1,22 +1,21 @@
 # OpenDoor — OWASP Web Recon & Directory Discovery Platform
 
-![OpenDoor](/logo.png)
+![OpenDoor](https://github.com/stanislav-web/OpenDoor/raw/master/logo.png)
 
 **OpenDoor** is an open-source CLI Recon Platform for authorized web reconnaissance, directory discovery, subdomain enumeration, fingerprint detection, WAF detection, controlled header-bypass probing, response filtering, reporting, and transport-based scanning workflows.
 
 It helps security researchers, penetration testers, bug bounty hunters, DevSecOps engineers, and developers identify exposed paths, login panels, directory listings, restricted resources, backup files, web shells, subdomains, and other potentially sensitive web assets.
 
 > Use OpenDoor only on systems you own or have explicit permission to test.
-
 ---
 
 ## ✅ Project status
 
 [![PyPI version](https://img.shields.io/pypi/v/opendoor)](https://pypi.org/project/opendoor/)
+[![Homebrew](https://img.shields.io/homebrew/v/opendoor?label=homebrew)](https://formulae.brew.sh/formula/opendoor)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-green.svg)](https://www.python.org/)
 [![Documentation Status](https://app.readthedocs.org/projects/opendoor/badge/?version=latest)](https://opendoor.readthedocs.io/)
 [![Docker Image](https://github.com/stanislav-web/OpenDoor/actions/workflows/docker-image.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/docker-image.yml)
-[![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 [![Coverage](https://codecov.io/github/stanislav-web/OpenDoor/graph/badge.svg?token=dyBxutYBso)](https://codecov.io/github/stanislav-web/OpenDoor)
 [![CodeQL](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql)
@@ -55,29 +54,31 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - directory discovery;
 - recursive directory discovery;
 - subdomain enumeration;
-- multi-threading scans;
+- multi-threading scans for faster lookups;
 - single target, target file, stdin, IPv4 CIDR, and IPv4 range input modes;
-- custom wordlists, prefixes, and extension filters;
-- custom request headers, cookies, and raw HTTP request templates;
+- custom wordlists, prefixes, shuffling to break scan patterns and extension filters;
+- custom request headers, cookies forwarding, and raw HTTP request templates;
 - response filters by status, size, text, regex, and body length;
+- response sniffers for detecting directory listings, empty responses, known file exposures, collation errors, and exposed debug stack traces;
 - smart auto-calibration for soft-404, wildcard, catch-all, semantic response-diff, and DNS wildcard cases;
 - technology fingerprint detection for CMS, ecommerce platforms, frameworks, runtime stacks, infrastructure, and HSTS posture;
-- passive WAF detection and WAF-safe scan mode;
+- passive privacy-risk checks in `--fingerprint`, including possible HSTS, ETag/cache, and persistent-cookie supercookie surfaces.
+- passive WAF detection and bypass in secure scanning mode;
 - controlled header and path bypass probes for blocked `401` and `403` resources;
-- resumable scan sessions with checkpoint autosave;
+- resumable scan sessions with checkpoint autosave for long term scans;
 - CI/CD fail-on result bucket rules;
-- official Docker image distribution via GitHub Container Registry;
 - reports in terminal, text, JSON, CSV, HTML, SARIF and SQLite formats;
 - proxy, OpenVPN, and WireGuard transport profiles;
 - sequential per-target transport rotation for batch workflows;
 - configuration wizard for repeatable scan profiles.
-- built-in wordlists
+- built-in wordlists (upd. 2026-05);
 
 ---
 
 ## 🧭 Where does OpenDoor make sense?
 
 It is designed for real targets where speed alone is not enough: WAFs, CDNs, soft-404 pages, wildcard routes, restricted resources, authenticated areas, unstable networks, multi-target batches, and transport-controlled scans.
+Since it first launch in 2016 to the present day, the OpenDoor has changed dramatically, growing from a primitive brute forcer into a new adaptive discovery framework. Became DevOps and QA friendly.
 OpenDoor focuses on **context-aware discovery** instead of blind enumeration.
 
 ### What makes OpenDoor different
@@ -90,6 +91,7 @@ OpenDoor focuses on **context-aware discovery** instead of blind enumeration.
 | **Multi-signal auto-calibration** | OpenDoor does not rely only on status code or response size. It compares multiple response signals such as body hashes, visible text, semantic soft-404 phrases, DOM-token structure, titles, redirects, stable headers, word count, line count, text density, normalized dynamic tokens, and DNS wildcard baselines to reduce soft-404 and wildcard false positives. |
 | **Transport-level workflows** | OpenDoor supports direct, proxy, OpenVPN, and WireGuard transport modes. It can also rotate transport profiles per target in authorized batch scans, which is not the same as manually starting a VPN before running a scanner. |
 | **Resumable long scans** | OpenDoor can save scan checkpoints and resume later. This matters when scans are interrupted by crashes, unstable networks, blocked routes, terminal disconnects, or long multi-target jobs. |
+| **Runtime pause/resume** | Press `Ctrl+C` once during a scan to pause workers, then choose `C` to continue or `E` to abort without involving session files. |
 | **CI/CD-ready results** | OpenDoor can return a failing exit code only when selected result buckets are found, making it usable as a release gate or exposure regression check without custom post-processing scripts. |
 | **Auditable engineering** | OpenDoor is maintained with multi-platform CI, coverage checks, package checks, documentation builds, and a large unittest suite, making it easier to audit, contribute to, and depend on. |
 
@@ -97,17 +99,18 @@ OpenDoor focuses on **context-aware discovery** instead of blind enumeration.
 
 OpenDoor includes a heuristic fingerprint engine for detecting probable application stacks, CMS platforms, frameworks, site builders, static-site tooling, infrastructure providers, HSTS / preload readiness, and WAF / anti-bot systems.
 
-| Category | Examples |
-|---|---|
-| CMS | WordPress, Drupal, Joomla, TYPO3, Open Journal Systems, InstantCMS, CMS.S3 / Megagroup, Discuz!, NetCat |
-| E-commerce | Magento, WooCommerce, Shopify, PrestaShop, OpenCart, Shopware, Webasyst / Shop-Script |
+| Category                   | Examples |
+|----------------------------|---|
+| CMS                        | WordPress, Drupal, Joomla, TYPO3, Open Journal Systems, InstantCMS, CMS.S3 / Megagroup, Discuz!, NetCat |
+| E-commerce                 | Magento, WooCommerce, Shopify, PrestaShop, OpenCart, Shopware, Webasyst / Shop-Script |
 | Frameworks / app platforms | Laravel, Symfony, Django, Flask, FastAPI, Express, NestJS, Next.js, Nuxt, Rails, Spring |
-| Runtime / language stack | PHP, Node.js, JavaScript, Python, Ruby, .NET, Java/JVM, Elixir, static-site targets |
-| Site builders | Wix, Webflow, Squarespace, Tilda, Duda, Hostinger Website Builder |
-| Static / docs generators | MkDocs, Docusaurus, Hugo, Jekyll, VitePress |
-| Infrastructure / hosting | Cloudflare, AWS, Vercel, Netlify, GitHub Pages, GitLab Pages, Heroku, Azure, Google Cloud, Fastly, Akamai, Hostinger, DDoS-Guard, Tencent Cloud |
-| WAF / anti-bot | Cloudflare, AWS WAF, Azure Front Door, Akamai, Imperva, Sucuri, ModSecurity, DataDome, Kasada, F5 BIG-IP ASM |
-| Security headers | HSTS presence, max-age, includeSubDomains, preload directive, local preload readiness |
+| Runtime / language stack   | PHP, Node.js, JavaScript, Python, Ruby, .NET, Java/JVM, Elixir, static-site targets |
+| Site builders              | Wix, Webflow, Squarespace, Tilda, Duda, Hostinger Website Builder |
+| Static / docs generators   | MkDocs, Docusaurus, Hugo, Jekyll, VitePress |
+| Infrastructure / hosting   | Cloudflare, AWS, Vercel, Netlify, GitHub Pages, GitLab Pages, Heroku, Azure, Google Cloud, Fastly, Akamai, Hostinger, DDoS-Guard, Tencent Cloud |
+| Infrastructure / servers   | Nginx, Apache HTTP Server, Microsoft IIS, Caddy, LiteSpeed, lighttpd, Tornado, Gunicorn, Uvicorn, Hypercorn, Waitress, Apache Tomcat, Eclipse Jetty, Envoy, Traefik |
+| WAF / anti-bot             | Cloudflare, AWS WAF, Azure Front Door, Akamai, Imperva, Sucuri, ModSecurity, DataDome, Kasada, F5 BIG-IP ASM |
+| Security headers           | HSTS presence, max-age, includeSubDomains, preload directive, local preload readiness |
 
 Full list of supported technologies:
 [Fingerprinting technologies](https://opendoor.readthedocs.io/detection/fingerprinting)
@@ -156,8 +159,6 @@ yay -S opendoor
 ```
 
 ### Homebrew
-
-When the Homebrew formula is available:
 
 ```bash
 brew install opendoor
@@ -256,9 +257,37 @@ opendoor \
   --include-status 200-299,301,302,403 \
   --exclude-status 404,429,500-599 \
   --exclude-size-range 0-256 \
-  --sniff skipempty,collation,indexof,file \
+  --sniff skipempty,collation,indexof,file,stacktrace \
   --reports std,json,csv,sarif
 ```
+
+### Response sniffers
+
+Response sniffers classify interesting response bodies during discovery. They are useful when status code and size are not enough to understand what was found.
+
+```bash
+opendoor \
+  --host https://example.com \
+  --method GET \
+  --sniff stacktrace,indexof,file,collation \
+  --reports std,json,csv,html,sqlite,sarif
+```
+
+Useful sniffers include:
+
+| Sniffer | Purpose |
+|---|---|
+| `stacktrace` | Detect exposed debug/runtime stack traces and internal error details. Findings are reported under the `debug` bucket with `debug_detection` metadata. |
+| `indexof` | Detect directory listing pages. |
+| `file` | Detect known sensitive file exposure patterns. |
+| `collation` | Detect database collation / SQL error responses. |
+| `skipempty` | Skip empty responses. |
+| `skipsizes=46` | Skip responses with exact known noisy sizes. |
+| `skipsizes=46:1024` | Skip responses inside a noisy size range. |
+
+Body-dependent sniffers automatically force `GET` internally when the configured method is `HEAD`.
+
+Read more: [Sniffers reference](https://opendoor.readthedocs.io/Sniffers/)
 
 ### Authenticated scan from raw request
 
@@ -336,6 +365,18 @@ opendoor \
   --transport openvpn \
   --transport-profile ./profile.ovpn
 ```
+
+If OpenVPN is installed outside `PATH`, pass the backend explicitly:
+
+```bash
+opendoor \
+  --host https://example.com \
+  --transport openvpn \
+  --transport-profile ./profile.ovpn \
+  --transport-bin /opt/homebrew/sbin/openvpn
+```
+
+On Windows, `--transport-bin` can point to `C:\Program Files\OpenVPN\bin\openvpn.exe`. If a GUI client or corporate VPN agent already owns the tunnel, start that VPN outside OpenDoor and run OpenDoor in direct mode.
 
 ### WireGuard transport
 
@@ -512,4 +553,4 @@ If OpenDoor helps your authorized security work, you can support ongoing mainten
 [Support OpenDoor on Giveth](https://giveth.io/project/opendoor)
 
 ---
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/stanislav-web/OpenDoor)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/stanislav-web/OpenDoor) [![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)

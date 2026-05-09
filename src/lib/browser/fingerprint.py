@@ -16,10 +16,11 @@
     Development: Stanislav WEB
 """
 
+import copy
 import re
 import uuid
 from collections import defaultdict
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from src.core import helper
 
@@ -54,8 +55,33 @@ class Fingerprint(object):
                 'grade': 'missing',
                 'warnings': ['missing_hsts'],
             }
+        },
+        'privacy_risks': {
+            'supercookie': {
+                'risk': 'none',
+                'score': 0,
+                'signals': [],
+                'warnings': [],
+                'hsts_tracking_surface': False,
+                'etag_tracking_surface': False,
+                'cache_tracking_surface': False,
+                'persistent_cookie_surface': False,
+            }
         }
     }
+
+    @classmethod
+    def _default_result(cls):
+        """
+        Return an isolated default fingerprint result.
+
+        DEFAULT_RESULT contains nested lists/dicts, so shallow copies can leak
+        runtime mutations between failed or empty fingerprint attempts.
+
+        :return: dict
+        """
+
+        return copy.deepcopy(cls.DEFAULT_RESULT)
 
     PROBES = (
         '/wp-json/',
@@ -318,13 +344,20 @@ class Fingerprint(object):
         self._emit_progress(progress_current, progress_total, 'root')
         if root_response is None:
             self._emit_progress(progress_total, progress_total, 'done')
-            return dict(self.DEFAULT_RESULT)
+            return self._default_result()
 
         root_response, final_root_url = self._follow_redirects(root_response, base_url, method='GET')
         body = self._extract_body(root_response)
         body_lower = body.lower()
         headers = self._extract_headers(root_response)
         security_headers = self._build_security_headers(headers, base_url, final_root_url)
+        privacy_risks = self._build_privacy_risks(
+            headers=headers,
+            body=body,
+            body_size=len(body.encode('utf-8')),
+            final_root_url=final_root_url,
+            security_headers=security_headers,
+        )
         cookies = self._extract_cookies(root_response)
         generator = self._extract_generator(body)
         progress_current += 1
@@ -362,10 +395,11 @@ class Fingerprint(object):
         infra_candidates = self._build_infrastructure_candidates()
 
         if len(app_candidates) <= 0:
-            result = dict(self.DEFAULT_RESULT)
+            result = self._default_result()
             result['runtime'] = self._build_runtime_result(runtime_candidates)
             result['infrastructure'] = self._build_infrastructure_result(infra_candidates)
             result['security_headers'] = security_headers
+            result['privacy_risks'] = privacy_risks
             self._emit_progress(progress_total, progress_total, 'done')
             return result
 
@@ -386,6 +420,7 @@ class Fingerprint(object):
                 'runtime': self._build_runtime_result(runtime_candidates),
                 'infrastructure': self._build_infrastructure_result(infra_candidates),
                 'security_headers': security_headers,
+                'privacy_risks': privacy_risks,
             }
             self._emit_progress(progress_total, progress_total, 'done')
             return result
@@ -401,6 +436,7 @@ class Fingerprint(object):
             'runtime': self._build_runtime_result(runtime_candidates),
             'infrastructure': self._build_infrastructure_result(infra_candidates),
             'security_headers': security_headers,
+            'privacy_risks': privacy_risks,
         }
         self._emit_progress(progress_total, progress_total, 'done')
         return result
@@ -661,6 +697,288 @@ class Fingerprint(object):
             return None
         return max_age
 
+    @classmethod
+    def _build_privacy_risks(cls, headers, body, body_size, final_root_url, security_headers):
+        """
+        Build passive privacy-risk metadata from the root fingerprint response.
+
+        This detector reports server-side tracking surfaces only. It does not
+        claim that a browser identifier was actually stored or recovered.
+
+        :param dict headers: normalized response headers from the final root response
+        :param str body: decoded root response body
+        :param int body_size: decoded body size in bytes
+        :param str final_root_url: final root URL after redirects
+        :param dict security_headers: security-header metadata
+        :return: privacy risk metadata
+        :rtype: dict
+        """
+
+        supercookie = cls._build_supercookie_risk(
+            headers=headers,
+            body=body,
+            body_size=body_size,
+            final_root_url=final_root_url,
+            security_headers=security_headers,
+        )
+
+        return {'supercookie': supercookie}
+
+    @classmethod
+    def _build_supercookie_risk(cls, headers, body, body_size, final_root_url, security_headers):
+        """
+        Build passive supercookie/tracking-surface risk metadata.
+
+        :param dict headers: normalized response headers
+        :param str body: decoded response body
+        :param int body_size: response body size in bytes
+        :param str final_root_url: final root URL
+        :param dict security_headers: security-header metadata
+        :return: supercookie risk metadata
+        :rtype: dict
+        """
+
+        signals = []
+        warnings = []
+        score = 0
+        hsts_surface = False
+        etag_surface = False
+        cache_surface = False
+        cookie_surface = False
+
+        hsts = security_headers.get('hsts') if isinstance(security_headers, dict) else {}
+        if not isinstance(hsts, dict):
+            hsts = {}
+
+        hsts_max_age = hsts.get('max_age')
+        subdomains = cls._extract_first_party_subdomains(body, final_root_url)
+        long_hsts = bool(
+            hsts.get('present')
+            and hsts_max_age is not None
+            and int(hsts_max_age) >= 15552000
+        )
+
+        if long_hsts:
+            signals.append('long_lived_hsts:max_age={0}'.format(hsts_max_age))
+
+        if len(subdomains) >= 3:
+            signals.append('first_party_subdomain_fanout:{0}'.format(len(subdomains)))
+
+        if long_hsts and len(subdomains) >= 3:
+            hsts_surface = True
+            score += 40
+            warnings.append('long-lived HSTS combined with first-party subdomain fan-out')
+
+        cache_control = str(headers.get('cache-control', '') or '').lower()
+        etag = str(headers.get('etag', '') or '').strip()
+        body_is_small = int(body_size or 0) <= 4096
+        long_cache = cls._has_long_cache_lifetime(cache_control)
+
+        if long_cache:
+            cache_surface = True
+            score += 10
+            signals.append('long_lived_cache:{0}'.format(cache_control))
+
+        if etag and long_cache and body_is_small:
+            etag_surface = True
+            score += 35
+            signals.append('persistent_etag:{0}'.format(etag))
+            warnings.append('persistent ETag/cache validator with long cache lifetime')
+
+        cookie_warnings = cls._detect_persistent_cookie_surface(headers)
+        if len(cookie_warnings) > 0:
+            cookie_surface = True
+            score += 20
+            signals.extend(cookie_warnings)
+            warnings.append('long-lived client cookie surface')
+
+        risk = cls._privacy_score_to_risk(score)
+        if risk in ('none', 'low'):
+            warnings = []
+
+        return {
+            'risk': risk,
+            'score': min(score, 100),
+            'signals': signals,
+            'warnings': warnings,
+            'hsts_tracking_surface': hsts_surface,
+            'etag_tracking_surface': etag_surface,
+            'cache_tracking_surface': cache_surface,
+            'persistent_cookie_surface': cookie_surface,
+        }
+
+    @staticmethod
+    def _privacy_score_to_risk(score):
+        """
+        Convert a numeric privacy score into a stable risk bucket.
+
+        :param int score: numeric risk score
+        :return: risk bucket
+        :rtype: str
+        """
+
+        score = int(score or 0)
+        if score >= 60:
+            return 'high'
+        if score >= 35:
+            return 'medium'
+        if score > 0:
+            return 'low'
+        return 'none'
+
+    @classmethod
+    def _has_long_cache_lifetime(cls, cache_control):
+        """
+        Return True when Cache-Control allows persistent browser storage.
+
+        :param str cache_control: raw Cache-Control header value
+        :return: check result
+        :rtype: bool
+        """
+
+        cache_control = str(cache_control or '').lower()
+        if 'no-store' in cache_control:
+            return False
+        if 'immutable' in cache_control:
+            return True
+
+        match = re.search(r'(?:^|,|\s)max-age\s*=\s*(\d+)', cache_control)
+        if match is None:
+            return False
+
+        try:
+            return int(match.group(1)) >= 2592000
+        except (TypeError, ValueError):
+            return False
+
+    @classmethod
+    def _detect_persistent_cookie_surface(cls, headers):
+        """
+        Return persistent client-cookie signals from Set-Cookie headers.
+
+        :param dict headers: normalized response headers
+        :return: detected cookie signals
+        :rtype: list[str]
+        """
+
+        raw_cookie = str(headers.get('set-cookie', '') or '')
+        if not raw_cookie:
+            return []
+
+        cookie_parts = [item.strip() for item in raw_cookie.split(',') if item.strip()]
+        signals = []
+
+        for cookie in cookie_parts:
+            cookie_lower = cookie.lower()
+            max_age = cls._extract_cookie_max_age(cookie_lower)
+            if max_age is None or max_age < 2592000:
+                continue
+
+            missing_attrs = []
+            if 'httponly' not in cookie_lower:
+                missing_attrs.append('httponly')
+            if 'samesite=' not in cookie_lower:
+                missing_attrs.append('samesite')
+            if 'secure' not in cookie_lower:
+                missing_attrs.append('secure')
+
+            if len(missing_attrs) > 0:
+                cookie_name = cookie.split('=', 1)[0].strip()
+                signals.append(
+                    'persistent_cookie:{0}:max_age={1}:missing={2}'.format(
+                        cookie_name,
+                        max_age,
+                        '|'.join(missing_attrs),
+                    )
+                )
+
+        return signals
+
+    @staticmethod
+    def _extract_cookie_max_age(cookie):
+        """
+        Extract cookie Max-Age as integer seconds.
+
+        :param str cookie: raw Set-Cookie header value
+        :return: max-age seconds or None
+        :rtype: int|None
+        """
+
+        match = re.search(r'(?:^|;)\s*max-age\s*=\s*(\d+)', str(cookie or ''), re.IGNORECASE)
+        if match is None:
+            return None
+        try:
+            return int(match.group(1))
+        except (TypeError, ValueError):
+            return None
+
+    @classmethod
+    def _extract_first_party_subdomains(cls, body, final_root_url):
+        """
+        Extract first-party subdomains referenced by absolute URLs in the body.
+
+        The detector intentionally avoids matching special names such as bit00,
+        id00 or track00. Only structural first-party subdomain fan-out matters.
+
+        :param str body: decoded response body
+        :param str final_root_url: final root URL
+        :return: sorted first-party subdomains
+        :rtype: list[str]
+        """
+
+        root_host = cls._normalize_host(urlparse(str(final_root_url or '')).hostname)
+        site_domain = cls._site_domain(root_host)
+        if not root_host or not site_domain:
+            return []
+
+        hosts = set()
+        for match in re.finditer(r'https?://([^/\s"\'<>]+)', str(body or ''), re.IGNORECASE):
+            host = cls._normalize_host(match.group(1).split(':', 1)[0])
+            if not host or host == root_host:
+                continue
+            if host.endswith('.{0}'.format(site_domain)):
+                hosts.add(host)
+
+        return sorted(hosts)
+
+    @staticmethod
+    def _normalize_host(host):
+        """
+        Normalize host values for first-party comparisons.
+
+        :param str|None host: host value
+        :return: normalized host
+        :rtype: str
+        """
+
+        return str(host or '').strip().strip('.').lower()
+
+    @staticmethod
+    def _site_domain(host):
+        """
+        Return a lightweight site-domain suffix without external dependencies.
+
+        :param str host: normalized host
+        :return: site-domain suffix
+        :rtype: str
+        """
+
+        labels = [label for label in str(host or '').split('.') if label]
+        if len(labels) < 2:
+            return ''
+
+        two_level_public_suffixes = set([
+            'co.uk', 'org.uk', 'ac.uk', 'gov.uk',
+            'com.ua', 'net.ua', 'org.ua', 'gov.ua',
+            'com.au', 'net.au', 'org.au',
+            'co.jp', 'com.br', 'com.tr',
+        ])
+        suffix = '.'.join(labels[-2:])
+        if suffix in two_level_public_suffixes and len(labels) >= 3:
+            return '.'.join(labels[-3:])
+
+        return suffix
+
     def _extract_cookies(self, response):
         """
         Extract cookie names from response headers.
@@ -788,7 +1106,7 @@ class Fingerprint(object):
         })
 
         runtime = self.TECHNOLOGY_RUNTIME_MAP.get(technology)
-        if runtime:
+        if runtime and self._should_propagate_runtime_from_signal(signal_type):
             self._add_runtime_signal(runtime, 'technology', technology, min(float(weight), 4))
 
     def _add_infrastructure_signal(self, provider, signal_type, value, weight):
@@ -808,6 +1126,50 @@ class Fingerprint(object):
             'value': str(value),
             'weight': round(float(weight), 2),
         })
+
+    def _apply_server_infrastructure_rules(self, headers):
+        """
+        Add infrastructure signals from the HTTP Server header.
+
+        Server software is treated as infrastructure only. It must not mutate
+        application, framework or runtime candidates.
+
+        :param dict headers:
+        :return: None
+        """
+
+        server_header = str(headers.get('server', '')).strip()
+        server = server_header.lower()
+
+        if not server:
+            return
+
+        server_signal = 'server={0}'.format(server_header)
+        server_rules = (
+            ('Apache Tomcat', ('apache-coyote', 'apache tomcat', 'tomcat')),
+            ('Eclipse Jetty', ('jetty',)),
+            ('Microsoft IIS', ('microsoft-iis', 'iis/')),
+            ('OpenResty', ('openresty',)),
+            ('LiteSpeed', ('litespeed',)),
+            ('lighttpd', ('lighttpd',)),
+            ('Tornado', ('tornadoserver', 'tornado server')),
+            ('Gunicorn', ('gunicorn',)),
+            ('Uvicorn', ('uvicorn',)),
+            ('Hypercorn', ('hypercorn',)),
+            ('Waitress', ('waitress',)),
+            ('Caddy', ('caddy',)),
+            ('Envoy', ('envoy',)),
+            ('Traefik', ('traefik',)),
+            ('Nginx', ('nginx',)),
+        )
+
+        for provider, aliases in server_rules:
+            if any(alias in server for alias in aliases):
+                self._add_infrastructure_signal(provider, 'header', server_signal, 8)
+                return
+
+        if re.search(r'(^|[^a-z0-9])apache(/|\s|$)', server):
+            self._add_infrastructure_signal('Apache HTTP Server', 'header', server_signal, 8)
 
     def _apply_extended_cms_catalog_rules(self, body_lower, headers, cookies, generator):
         """
@@ -860,6 +1222,112 @@ class Fingerprint(object):
 
         return needle in str(headers.get(name, '')).lower()
 
+    @staticmethod
+    def _has_php_route_marker(body_lower, final_root_url):
+        """
+        Return True when the page exposes first-party PHP route/file markers.
+
+        :param str body_lower:
+        :param str final_root_url:
+        :return: bool
+        """
+
+        final_root_lower = str(final_root_url or '').lower()
+        if re.search(r'\.php(?:[?#/&]|$)', final_root_lower):
+            return True
+
+        body_text = str(body_lower or '')
+        if re.search(r"(?:href|src|action)=['\"](?:/|\.\.?/)?[^'\"]{0,160}\.php(?:[?#/&'\"]|$)", body_text):
+            return True
+
+        return re.search(
+            r"\b(?:index|read|show|article|news|print|login|search|catalog|page|view|download|profile|forum|topic|item|anons|articles)\.php(?:[?#/&\"']|$)",
+            body_text,
+        ) is not None
+
+    @staticmethod
+    def _looks_like_express_not_found(not_found_status, not_found_body_lower):
+        """
+        Return True for canonical Express finalhandler 404 responses.
+
+        :param int not_found_status:
+        :param str not_found_body_lower:
+        :return: bool
+        """
+
+        if int(not_found_status or 0) != 404:
+            return False
+
+        body_text = str(not_found_body_lower or '').strip()
+        if len(body_text) > 1200:
+            return False
+
+        return (
+            body_text.startswith('cannot get /')
+            or body_text.startswith('cannot post /')
+            or '<pre>cannot get /' in body_text
+            or '<pre>cannot post /' in body_text
+        )
+
+    @staticmethod
+    def _looks_like_nest_not_found(not_found_status, not_found_body_lower):
+        """
+        Return True for canonical NestJS JSON 404 responses.
+
+        :param int not_found_status:
+        :param str not_found_body_lower:
+        :return: bool
+        """
+
+        if int(not_found_status or 0) != 404:
+            return False
+
+        body_text = str(not_found_body_lower or '').strip()
+        if len(body_text) > 1600:
+            return False
+
+        return (
+            '"statuscode"' in body_text
+            and '"message"' in body_text
+            and 'cannot get /' in body_text
+            and '"error"' in body_text
+            and 'not found' in body_text
+        )
+
+    @staticmethod
+    def _looks_like_fastify_not_found(not_found_status, not_found_body_lower):
+        """
+        Return True for canonical Fastify route-not-found responses.
+
+        :param int not_found_status:
+        :param str not_found_body_lower:
+        :return: bool
+        """
+
+        if int(not_found_status or 0) != 404:
+            return False
+
+        body_text = str(not_found_body_lower or '').strip()
+        if len(body_text) > 1600:
+            return False
+
+        return 'route get:' in body_text and 'not found' in body_text
+
+    @staticmethod
+    def _should_propagate_runtime_from_signal(signal_type):
+        """
+        Return True when an application signal is strong enough to infer runtime.
+
+        Pure endpoint reachability is intentionally excluded: many legacy PHP
+        sites expose /docs, /swagger or redirected admin paths without running
+        the framework that owns the endpoint name.
+
+        :param str signal_type:
+        :return: bool
+        """
+
+        return str(signal_type or '').lower() != 'endpoint'
+
     def _apply_detection_rules(
         self,
         body,
@@ -894,6 +1362,7 @@ class Fingerprint(object):
         not_found_headers = not_found_headers or {}
         generator_lower = str(generator).lower()
         x_powered_by = str(headers.get('x-powered-by', '')).lower()
+        x_powered_cms = str(headers.get('x-powered-cms', '')).lower()
         server = str(headers.get('server', '')).lower()
         via = str(headers.get('via', '')).lower()
         x_cache = str(headers.get('x-cache', '')).lower()
@@ -905,6 +1374,10 @@ class Fingerprint(object):
         not_found_body_lower = str(not_found_body).lower()
         not_found_powered_by = str(not_found_headers.get('x-powered-by', '')).lower()
         not_found_server = str(not_found_headers.get('server', '')).lower()
+        php_route_marker = self._has_php_route_marker(body_lower, final_root_lower)
+        express_not_found = self._looks_like_express_not_found(not_found_status, not_found_body_lower)
+        nest_not_found = self._looks_like_nest_not_found(not_found_status, not_found_body_lower)
+        fastify_not_found = self._looks_like_fastify_not_found(not_found_status, not_found_body_lower)
         swagger_probe_up = any(probe_statuses.get(path) in [200, 301, 302, 401, 403] for path in [
             '/swagger',
             '/swagger/',
@@ -971,6 +1444,8 @@ class Fingerprint(object):
             self._add_signal('Shopify', self.ECOMMERCE_CATEGORY, 'header', 'x-shopid|server', 6)
 
         # Bitrix
+        if 'bitrix' in x_powered_cms:
+            self._add_signal('Bitrix', self.CMS_CATEGORY, 'header', 'x-powered-cms={0}'.format(headers.get('x-powered-cms')), 9)
         if '/bitrix/' in body_lower:
             self._add_signal('Bitrix', self.CMS_CATEGORY, 'markup', '/bitrix/', 6)
         if 'window.bx' in body_lower or 'bx.message' in body_lower or 'bx.setcsslist' in body_lower:
@@ -1370,15 +1845,20 @@ class Fingerprint(object):
             self._add_signal('Directus', self.CMS_CATEGORY, 'endpoint', '/admin + /admin/assets/', 4)
 
         # Strapi
-        if 'strapi' in x_powered_by:
+        strapi_header_hint = 'strapi' in x_powered_by
+        strapi_markup_hint = '/admin/init' in body_lower or ('strapi' in body_lower and '/uploads/' in body_lower)
+        strapi_init_up = probe_statuses.get('/admin/init') in [200, 301, 302, 401, 403]
+        strapi_hint = strapi_header_hint or strapi_markup_hint or strapi_init_up
+
+        if strapi_header_hint:
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 8)
-        if '/admin/init' in body_lower or ('strapi' in body_lower and '/uploads/' in body_lower):
+        if strapi_markup_hint:
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'markup', '/admin/init|strapi + /uploads/', 7)
-        if probe_statuses.get('/admin/init') in [200, 301, 302, 401, 403]:
+        if strapi_init_up:
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'endpoint', '/admin/init', 7)
-        if probe_statuses.get('/admin') in [200, 301, 302, 401, 403]:
+        if strapi_hint and probe_statuses.get('/admin') in [200, 301, 302, 401, 403]:
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'endpoint', '/admin', 4)
-        if probe_statuses.get('/uploads/') in [200, 301, 302, 401, 403]:
+        if strapi_hint and probe_statuses.get('/uploads/') in [200, 301, 302, 401, 403]:
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'endpoint', '/uploads/', 4)
 
         # Extended CMS catalog extension
@@ -1490,19 +1970,19 @@ class Fingerprint(object):
             self._add_signal('Express', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by') or not_found_headers.get('x-powered-by')), 8)
         if 'connect.sid' in cookies:
             self._add_signal('Express', self.FRAMEWORK_CATEGORY, 'cookie', 'connect.sid', 6)
-        if not_found_status == 404 and ('cannot get /' in not_found_body_lower or 'cannot post /' in not_found_body_lower):
+        if express_not_found:
             self._add_signal('Express', self.FRAMEWORK_CATEGORY, '404', 'Cannot GET/POST', 7)
 
         if 'nest' in x_powered_by or 'nest' in not_found_powered_by:
             self._add_signal('NestJS', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by') or not_found_headers.get('x-powered-by')), 8)
-        if not_found_status == 404 and 'statuscode' in not_found_body_lower and 'cannot get /' in not_found_body_lower and 'not found' in not_found_body_lower:
+        if nest_not_found:
             self._add_signal('NestJS', self.FRAMEWORK_CATEGORY, '404', 'statusCode + Cannot GET + Not Found', 9)
         if swagger_probe_up:
             self._add_signal('NestJS', self.FRAMEWORK_CATEGORY, 'endpoint', 'swagger/openapi', 4)
 
         if 'fastify' in x_powered_by or 'fastify' in server or 'fastify' in not_found_powered_by or 'fastify' in not_found_server:
             self._add_signal('Fastify', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by|server=fastify', 8)
-        if not_found_status == 404 and 'route get:' in not_found_body_lower and 'not found' in not_found_body_lower:
+        if fastify_not_found:
             self._add_signal('Fastify', self.FRAMEWORK_CATEGORY, '404', 'Route GET:* not found', 9)
 
         if 'uvicorn' in server or 'hypercorn' in server or 'uvicorn' in not_found_server or 'hypercorn' in not_found_server:
@@ -1516,6 +1996,8 @@ class Fingerprint(object):
             self._add_runtime_signal('PHP', 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 8)
         if 'phpsessid' in cookies:
             self._add_runtime_signal('PHP', 'cookie', 'PHPSESSID', 7)
+        if php_route_marker:
+            self._add_runtime_signal('PHP', 'route', '.php route marker', 4.5)
         if 'asp.net' in x_powered_by or 'x-aspnet-version' in headers:
             self._add_runtime_signal('.NET', 'header', 'x-powered-by|x-aspnet-version', 8)
         if 'asp.net_sessionid' in cookies:
@@ -1537,8 +2019,8 @@ class Fingerprint(object):
             self._add_runtime_signal('Node.js', 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 7)
         if 'connect.sid' in cookies or 'koa:sess' in cookies or 'koa.sess' in cookies:
             self._add_runtime_signal('Node.js', 'cookie', 'connect.sid|koa:sess', 6)
-        if not_found_status == 404 and ('cannot get /' in not_found_body_lower or 'cannot post /' in not_found_body_lower):
-            self._add_runtime_signal('Node.js', '404', 'Cannot GET/POST', 6)
+        if express_not_found or nest_not_found or fastify_not_found:
+            self._add_runtime_signal('Node.js', '404', 'canonical Node.js 404', 6)
 
         if 'koa' in x_powered_by or 'koa' in not_found_powered_by:
             self._add_signal('Koa', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by') or not_found_headers.get('x-powered-by')), 8)
@@ -1642,13 +2124,13 @@ class Fingerprint(object):
         if '.appspot.com' in final_root_lower:
             self._add_infrastructure_signal('Google App Engine', 'url', 'appspot.com', 8)
 
-        # Fastly / Akamai / OpenResty
+        # Fastly / Akamai / server engines
         if 'fastly' in x_served_by or 'x-fastly-request-id' in headers:
             self._add_infrastructure_signal('Fastly', 'header', 'x-served-by|x-fastly-request-id', 9)
         if 'akamai' in server or 'akamai-grn' in headers:
             self._add_infrastructure_signal('Akamai', 'header', 'server=akamai|akamai-grn', 9)
-        if 'openresty' in server:
-            self._add_infrastructure_signal('OpenResty', 'header', 'server=openresty', 5)
+
+        self._apply_server_infrastructure_rules(headers)
 
         # Hostinger / DDoS-Guard / Tencent Cloud
         if self._header_contains(headers, 'server', 'hcdn') or 'x-hcdn-cache-status' in headers \

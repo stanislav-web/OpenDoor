@@ -15,10 +15,31 @@ class TestBrowserConfigHeaderBypass(unittest.TestCase):
         cfg = Config({'reports': 'std'})
 
         self.assertFalse(cfg.is_header_bypass)
+        self.assertEqual(cfg.header_bypass_profile, HeaderBypassProbe.SAFE_PROFILE)
         self.assertEqual(cfg.header_bypass_headers, list(HeaderBypassProbe.DEFAULT_HEADERS))
         self.assertEqual(cfg.header_bypass_ips, list(HeaderBypassProbe.DEFAULT_IP_VALUES))
         self.assertEqual(cfg.header_bypass_status, list(HeaderBypassProbe.DEFAULT_STATUS_CODES))
         self.assertEqual(cfg.header_bypass_limit, 32)
+
+    def test_header_bypass_offensive_profile_expands_defaults(self):
+        """Offensive profile should expand default headers and trusted IP values."""
+
+        cfg = Config({
+            'reports': 'std',
+            'header_bypass_profile': 'offensive',
+        })
+
+        self.assertEqual(cfg.header_bypass_profile, HeaderBypassProbe.OFFENSIVE_PROFILE)
+        self.assertIn('X-ProxyUser-IP', cfg.header_bypass_headers)
+        self.assertIn('X-HTTP-Method-Override', cfg.header_bypass_headers)
+        self.assertIn('::1', cfg.header_bypass_ips)
+
+    def test_header_bypass_invalid_profile_falls_back_to_safe(self):
+        """Runtime config should fall back to safe for invalid profile values."""
+
+        cfg = Config({'reports': 'std', 'header_bypass_profile': 'invalid'})
+
+        self.assertEqual(cfg.header_bypass_profile, HeaderBypassProbe.SAFE_PROFILE)
 
     def test_header_bypass_custom_values_are_normalized(self):
         """Config should normalize custom header-bypass values."""

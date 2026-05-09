@@ -62,6 +62,9 @@ class Config(object):
         'proxy_pool_external_start': 'Fetching external proxy list...',
         'request_header_dbg': 'Request header:\n{dbg}',
         'response_header_dbg': 'Response header:\n{dbg}',
+        'accept_cookies_enabled': 'Accept cookies enabled',
+        'response_cookies_accepted': 'Response cookies accepted: {cookies}',
+        'cookie_header_attached': 'Cookie header attached: {cookies}',
         'load_sniffer_plugin': 'Load sniffer: {description}',
         'ignored_path': 'Ignored. The path {path} in ignore list',
         'proxy_max_retry_error': 'Skipped. Proxy {proxy} Max retries exceeded: {url}',
@@ -81,5 +84,9 @@ class Config(object):
         'header_bypass_probing': 'Header bypass probing: status={status}, variants={variants}',
         'header_bypass_candidate': 'Header bypass candidate: {header} changed {from_code} -> {to_code}',
         'header_bypass_finished': 'Header bypass finished: no promising variants',
-        'redirect': 'R {url} -> {rurl}'
+        'redirect': 'R {url} -> {rurl}',
+        'filtered_progress_notice': (
+            'Progress shows processed requests, not only reported findings. '
+            'Response filters, auto-calibration or sniffers may ignore many responses.'
+        ),
     }

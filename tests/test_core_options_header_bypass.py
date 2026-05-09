@@ -29,6 +29,8 @@ class TestOptionsHeaderBypass(unittest.TestCase):
             '--host',
             'example.com',
             '--header-bypass',
+            '--header-bypass-profile',
+            'offensive',
             '--header-bypass-headers',
             'X-Original-URL,X-Forwarded-For',
             '--header-bypass-ips',
@@ -43,6 +45,7 @@ class TestOptionsHeaderBypass(unittest.TestCase):
             option = Options()
 
         self.assertTrue(option.args.header_bypass)
+        self.assertEqual(option.args.header_bypass_profile, 'offensive')
         self.assertEqual(option.args.header_bypass_headers, 'X-Original-URL,X-Forwarded-For')
         self.assertEqual(option.args.header_bypass_ips, '127.0.0.1,10.0.0.1')
         self.assertEqual(option.args.header_bypass_status, '401,403-404')
@@ -56,6 +59,7 @@ class TestOptionsHeaderBypass(unittest.TestCase):
             hostlist=None,
             stdin=False,
             header_bypass=True,
+            header_bypass_profile='offensive',
             header_bypass_headers='X-Original-URL,X-Forwarded-For',
             header_bypass_ips='127.0.0.1,10.0.0.1',
             header_bypass_status='401,403-404',
@@ -75,6 +79,7 @@ class TestOptionsHeaderBypass(unittest.TestCase):
             'scheme': 'http://',
             'ssl': False,
             'header_bypass': True,
+            'header_bypass_profile': 'offensive',
             'header_bypass_headers': ['X-Original-URL', 'X-Forwarded-For'],
             'header_bypass_ips': ['127.0.0.1', '10.0.0.1'],
             'header_bypass_status': ['401', '403-404'],
@@ -88,6 +93,7 @@ class TestOptionsHeaderBypass(unittest.TestCase):
         filter_mock.assert_called_once_with({
             'host': 'example.com',
             'header_bypass': True,
+            'header_bypass_profile': 'offensive',
             'header_bypass_headers': 'X-Original-URL,X-Forwarded-For',
             'header_bypass_ips': '127.0.0.1,10.0.0.1',
             'header_bypass_status': '401,403-404',
@@ -100,6 +106,7 @@ class TestOptionsHeaderBypass(unittest.TestCase):
         actual = Filter.filter({
             'host': 'example.com',
             'header_bypass': True,
+            'header_bypass_profile': 'offensive',
             'header_bypass_headers': ' X-Original-URL, X-Forwarded-For ,x-forwarded-for ',
             'header_bypass_ips': ' 127.0.0.1, localhost,127.0.0.1 ',
             'header_bypass_status': '401,403-404',
@@ -107,6 +114,7 @@ class TestOptionsHeaderBypass(unittest.TestCase):
         })
 
         self.assertTrue(actual['header_bypass'])
+        self.assertEqual(actual['header_bypass_profile'], 'offensive')
         self.assertEqual(actual['header_bypass_headers'], ['X-Original-URL', 'X-Forwarded-For'])
         self.assertEqual(actual['header_bypass_ips'], ['127.0.0.1', 'localhost'])
         self.assertEqual(actual['header_bypass_status'], ['401', '403-404'])
@@ -151,12 +159,22 @@ class TestOptionsHeaderBypass(unittest.TestCase):
                 'header_bypass_limit': -1,
             })
 
+    def test_filter_should_reject_invalid_header_bypass_profile(self):
+        """Filter.filter() should validate header-bypass profile names."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({
+                'host': 'example.com',
+                'header_bypass_profile': 'aggressive',
+            })
+
     def test_filter_should_preserve_header_bypass_options_for_session_resume(self):
         """Filter.filter() should allow header-bypass tuning when resuming sessions."""
 
         actual = Filter.filter({
             'session_load': 'sessions/scan.json',
             'header_bypass': True,
+            'header_bypass_profile': 'offensive',
             'header_bypass_headers': 'X-Original-URL,X-Real-IP',
             'header_bypass_ips': '127.0.0.1',
             'header_bypass_status': '401,403',
@@ -164,6 +182,7 @@ class TestOptionsHeaderBypass(unittest.TestCase):
         })
 
         self.assertTrue(actual['header_bypass'])
+        self.assertEqual(actual['header_bypass_profile'], 'offensive')
         self.assertEqual(actual['header_bypass_headers'], ['X-Original-URL', 'X-Real-IP'])
         self.assertEqual(actual['header_bypass_ips'], ['127.0.0.1'])
         self.assertEqual(actual['header_bypass_status'], ['401', '403'])

@@ -161,6 +161,76 @@ class TestRequestProviderExtra(unittest.TestCase):
             provider.cookies_middleware(True, SimpleNamespace(headers={'x-test': '1'}))
 
         add_header_mock.assert_not_called()
+class TestRequestProviderDebugCoverage(unittest.TestCase):
+    """Coverage-only tests for response debug helpers."""
+
+    @staticmethod
+    def make_cfg(**overrides):
+        """Create a minimal config namespace for RequestProvider tests."""
+
+        base = {
+            'keep_alive': False,
+            'is_random_user_agent': False,
+            'user_agent': 'UA',
+            'method': 'HEAD',
+            'header': None,
+            'cookie': None,
+            'scheme': 'http://',
+            'host': 'example.com',
+            'port': 80,
+        }
+        base.update(overrides)
+        return SimpleNamespace(**base)
+
+    def test_build_response_debug_headers_handles_headerless_responses(self):
+        """Response debug headers should be empty for headerless objects."""
+
+        self.assertEqual(RequestProvider._build_response_debug_headers(SimpleNamespace(status=200)), {})
+
+    def test_build_response_debug_headers_falls_back_to_header_dict(self):
+        """Response debug headers should fall back to a header object's __dict__."""
+
+        class HeaderObject(object):
+            def __init__(self):
+                self.Server = 'nginx'
+
+        headers = RequestProvider._build_response_debug_headers(
+            SimpleNamespace(headers=HeaderObject(), status=200)
+        )
+
+        self.assertEqual(headers['Server'], 'nginx')
+        self.assertEqual(headers['Status'], '200')
+
+    def test_build_response_debug_headers_keeps_headers_without_status(self):
+        """Response debug headers should not require a response status attribute."""
+
+        headers = RequestProvider._build_response_debug_headers(SimpleNamespace(headers={'Server': 'nginx'}))
+
+        self.assertEqual(headers, {'Server': 'nginx'})
+
+    def test_debug_response_received_skips_headerless_responses(self):
+        """Response debug forwarding should skip objects without headers."""
+
+        provider = RequestProvider(self.make_cfg(), agent_list=['UA'])
+        debug = SimpleNamespace(debug_response=MagicMock())
+
+        self.assertTrue(provider._debug_response_received(debug, SimpleNamespace(status=200)))
+
+        debug.debug_response.assert_not_called()
+
+    def test_debug_response_received_forwards_serializable_headers(self):
+        """Response debug forwarding should pass normalized headers to Debug."""
+
+        provider = RequestProvider(self.make_cfg(), agent_list=['UA'])
+        debug = SimpleNamespace(debug_response=MagicMock())
+
+        self.assertTrue(provider._debug_response_received(
+            debug,
+            SimpleNamespace(headers={'Server': 'nginx'}, status=200)
+        ))
+
+        debug.debug_response.assert_called_once_with({'Server': 'nginx', 'Status': '200'})
+
 
 class TestSocketExtra(unittest.TestCase):
     """TestSocketExtra class."""

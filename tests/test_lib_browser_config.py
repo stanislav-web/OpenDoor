@@ -42,6 +42,24 @@ class TestBrowserConfig(unittest.TestCase):
         cfg = Config({'reports': 'std', 'ssl': True, 'port': 80})
         self.assertEqual(cfg.port, 443)
 
+    def test_scheme_is_source_of_truth_for_ssl_mode(self):
+        """Config should derive SSL mode from HTTPS scheme."""
+
+        cfg = Config({'reports': 'std', 'scheme': 'https://', 'ssl': False, 'port': 80})
+
+        self.assertEqual(cfg.scheme, 'https://')
+        self.assertTrue(cfg.is_ssl)
+        self.assertEqual(cfg.port, 443)
+
+    def test_legacy_ssl_true_promotes_default_http_scheme(self):
+        """Config should keep old wizard configs with ssl=True compatible."""
+
+        cfg = Config({'reports': 'std', 'scheme': 'http://', 'ssl': True, 'port': 80})
+
+        self.assertEqual(cfg.scheme, 'https://')
+        self.assertTrue(cfg.is_ssl)
+        self.assertEqual(cfg.port, 443)
+
     def test_method_uses_get_for_non_file_sniffers(self):
         """Config.method should use GET when multiple sniffers are enabled."""
 
@@ -57,11 +75,11 @@ class TestBrowserConfig(unittest.TestCase):
     def test_method_override_warning_lists_body_required_sniffers(self):
         """Config should describe why HEAD is overridden when body sniffers are selected."""
 
-        cfg = Config({'reports': 'std', 'method': 'HEAD', 'sniff': 'file,indexof,collation,skipempty'})
+        cfg = Config({'reports': 'std', 'method': 'HEAD', 'sniff': 'file,indexof,collation,stacktrace,skipempty'})
 
         self.assertEqual(
             cfg.method_override_warning,
-            'HEAD overridden to GET because selected sniffers/filters require response body: indexof, collation'
+            'HEAD overridden to GET because selected sniffers/filters require response body: indexof, collation, stacktrace'
         )
 
     def test_method_override_warning_is_empty_without_body_required_sniffers(self):
@@ -122,6 +140,16 @@ class TestBrowserConfig(unittest.TestCase):
         cfg = Config({'reports': 'std'})
         cfg.timeout = '4.5'
         self.assertEqual(cfg.timeout, 4.5)
+
+    def test_retries_are_normalized_for_runtime_transport(self):
+        """Config should expose retries as a non-negative integer for urllib3."""
+
+        self.assertEqual(Config({'reports': 'std', 'retries': '0'}).retries, 0)
+        self.assertEqual(Config({'reports': 'std', 'retries': '3'}).retries, 3)
+        self.assertFalse(Config({'reports': 'std', 'retries': None}).retries)
+
+        with self.assertRaises(ValueError):
+            Config({'reports': 'std', 'retries': '-1'})
 
     def test_threads_and_prefix_mutators_work(self):
         """Config should expose configurable threads and normalized prefixes."""
@@ -407,6 +435,7 @@ class TestBrowserConfig(unittest.TestCase):
             'transport_rotate': 'per-target',
             'transport_timeout': 15,
             'transport_healthcheck_url': 'https://example.com/ip',
+            'transport_bin': '/usr/bin/wg-quick',
             'openvpn_auth': '/tmp/auth.txt',
         })
 
@@ -416,6 +445,7 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(config.transport_rotate, 'per-target')
         self.assertEqual(config.transport_timeout, 15)
         self.assertEqual(config.transport_healthcheck_url, 'https://example.com/ip')
+        self.assertEqual(config.transport_bin, '/usr/bin/wg-quick')
         self.assertEqual(config.openvpn_auth, '/tmp/auth.txt')
 
     def test_config_should_default_to_direct_transport(self):
@@ -429,7 +459,48 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(config.transport_rotate, 'none')
         self.assertEqual(config.transport_timeout, 30)
         self.assertIsNone(config.transport_healthcheck_url)
+        self.assertIsNone(config.transport_bin)
         self.assertIsNone(config.openvpn_auth)
+
+class TestBrowserConfigDefensiveCopies(unittest.TestCase):
+    """Config defensive-copy regression tests."""
+
+    def test_config_list_getters_return_fresh_lists(self):
+        """Config list getters should not expose mutable internal lists."""
+
+        cfg = Config({
+            'reports': ['json'],
+            'sniff': ['indexof'],
+            'extensions': ['php'],
+            'ignore_extensions': ['jpg'],
+        })
+
+        reports = cfg.reports
+        sniffers = cfg.sniffers
+        extensions = cfg.extensions
+        ignore_extensions = cfg.ignore_extensions
+
+        reports.append('xml')
+        sniffers.append('file')
+        extensions.append('html')
+        ignore_extensions.append('png')
+
+        self.assertEqual(cfg.reports, ['json', 'std'])
+        self.assertEqual(cfg.sniffers, ['indexof'])
+        self.assertEqual(cfg.extensions, ['php'])
+        self.assertEqual(cfg.ignore_extensions, ['jpg'])
+
+    def test_normalize_csv_copies_input_lists(self):
+        """Config._normalize_csv() should copy list inputs."""
+
+        source = ['200', '403']
+        normalized = Config._normalize_csv(source)
+
+        normalized.append('404')
+
+        self.assertEqual(source, ['200', '403'])
+        self.assertEqual(normalized, ['200', '403', '404'])
+
 
 if __name__ == '__main__':
     unittest.main()

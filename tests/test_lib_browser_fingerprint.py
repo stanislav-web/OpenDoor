@@ -56,6 +56,32 @@ class TestFingerprint(unittest.TestCase):
         self.assertTrue(probe_path.startswith('/.well-known/'))
         self.assertTrue(probe_path.endswith('.txt'))
 
+
+    def test_default_result_returns_isolated_nested_state(self):
+        """Fingerprint default fallback should not share nested mutable state."""
+
+        first = Fingerprint._default_result()
+        second = Fingerprint._default_result()
+
+        first['security_headers']['hsts']['warnings'].append('mutated')
+        first['runtime']['signals'].append('runtime-mutated')
+        first['infrastructure']['candidates'].append({'name': 'infra-mutated'})
+
+        self.assertNotIn('mutated', second['security_headers']['hsts']['warnings'])
+        self.assertNotIn('runtime-mutated', second['runtime']['signals'])
+        self.assertEqual(second['infrastructure']['candidates'], [])
+
+    def test_detect_returns_isolated_default_when_root_response_is_missing(self):
+        """Fingerprint root-miss fallback should not mutate DEFAULT_RESULT."""
+
+        config = FakeConfig()
+        detector = Fingerprint(config=config, client=self._make_client(config, {}))
+        result = detector.detect()
+
+        result['security_headers']['hsts']['warnings'].append('mutated')
+
+        self.assertNotIn('mutated', Fingerprint.DEFAULT_RESULT['security_headers']['hsts']['warnings'])
+
     def test_detects_wordpress(self):
         """Fingerprint should detect WordPress from markup and probe signals."""
 
@@ -260,6 +286,71 @@ class TestFingerprint(unittest.TestCase):
                 base = 'http://example.com/'
                 responses = {
                     ('GET', base): FakeResponse(200, '<html><body>plain app</body></html>', headers),
+                    ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+                }
+
+                detector = Fingerprint(config=config, client=self._make_client(config, responses))
+                result = detector.detect()
+
+                self.assertEqual(result['category'], 'custom')
+                self.assertEqual(result['infrastructure']['provider'], expected_provider)
+                self.assertGreaterEqual(result['infrastructure']['confidence'], 70)
+
+    def test_detects_server_header_infrastructure_without_overwriting_runtime(self):
+        """Fingerprint should keep server software in infrastructure and PHP in runtime."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><a href="/contacts.php">Contacts</a></body></html>',
+                {
+                    'Server': 'nginx/1.20.2',
+                    'X-Powered-By': 'PHP/5.3.27',
+                },
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertEqual(result['infrastructure']['provider'], 'Nginx')
+        self.assertGreaterEqual(result['infrastructure']['confidence'], 70)
+        self.assertIn('nginx/1.20.2', result['infrastructure']['signals'][0]['value'])
+
+    def test_detects_server_header_infrastructure_catalog(self):
+        """Fingerprint should detect common HTTP Server header infrastructure engines."""
+
+        cases = [
+            ('Apache HTTP Server', 'Apache/2.4.58'),
+            ('Microsoft IIS', 'Microsoft-IIS/10.0'),
+            ('Caddy', 'Caddy'),
+            ('LiteSpeed', 'LiteSpeed'),
+            ('lighttpd', 'lighttpd/1.4.73'),
+            ('Tornado', 'TornadoServer/6.4'),
+            ('Gunicorn', 'gunicorn'),
+            ('Uvicorn', 'uvicorn'),
+            ('Hypercorn', 'hypercorn'),
+            ('Waitress', 'waitress'),
+            ('Apache Tomcat', 'Apache-Coyote/1.1'),
+            ('Eclipse Jetty', 'Jetty'),
+            ('Envoy', 'envoy'),
+            ('Traefik', 'traefik'),
+        ]
+
+        for expected_provider, server_header in cases:
+            with self.subTest(server_header=server_header):
+                config = FakeConfig()
+                base = 'http://example.com/'
+                responses = {
+                    ('GET', base): FakeResponse(
+                        200,
+                        '<html><body>plain app</body></html>',
+                        {'Server': server_header},
+                    ),
                     ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
                 }
 
@@ -553,6 +644,52 @@ class TestFingerprint(unittest.TestCase):
         self.assertEqual(result['category'], 'custom')
         self.assertEqual(result['name'], 'Unknown custom stack')
         self.assertNotIn('Bolt CMS', [candidate['name'] for candidate in result['candidates']])
+
+    def test_detects_bitrix_from_x_powered_cms_header(self):
+        """Fingerprint should detect Bitrix from X-Powered-CMS header."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body>ok</body></html>',
+                {'X-Powered-CMS': 'Bitrix Site Manager (084338cf6147abbfca438bf6bb2b3337)'}
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Bitrix')
+        self.assertGreaterEqual(result['confidence'], 70)
+        self.assertIn('PHP', result['runtime']['name'])
+
+    def test_does_not_false_positive_strapi_from_generic_admin_and_uploads_routes(self):
+        """Fingerprint should not classify generic /admin and /uploads routes as Strapi."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><a href="/admin">Admin</a><img src="/uploads/logo.png"></body></html>',
+                {}
+            ),
+            ('HEAD', 'http://example.com/admin/init'): FakeResponse(404, 'Not Found', {}),
+            ('HEAD', 'http://example.com/admin'): FakeResponse(302, '', {'Location': '/login'}),
+            ('HEAD', 'http://example.com/uploads/'): FakeResponse(200, '', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertNotIn('Strapi', [candidate['name'] for candidate in result['candidates']])
 
     def test_does_not_false_positive_directus_from_generic_admin_assets(self):
         """Fingerprint should not misclassify generic admin assets as Directus."""
@@ -1124,6 +1261,73 @@ class TestFingerprint(unittest.TestCase):
             self.assertEqual(result['name'], expected_name)
             self.assertEqual(result['runtime']['name'], expected_runtime)
 
+    def test_should_prefer_php_route_marker_over_endpoint_only_node_hint(self):
+        """Fingerprint should not infer Node.js runtime from weak endpoint-only hints."""
+
+        config = FakeConfig(host='soldatru.ru')
+        base = 'http://soldatru.ru/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><a href="/read.php?tid=945">article</a></body></html>',
+                {},
+            ),
+            ('HEAD', 'http://soldatru.ru/swagger'): FakeResponse(403, '', {}),
+            ('GET', 'http://soldatru.ru{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                '<html><body>regular missing page</body></html>',
+                {},
+            ),
+        }
+
+        result = Fingerprint(config=config, client=self._make_client(config, responses)).detect()
+
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertEqual(result['runtime']['signals'][0]['type'], 'route')
+
+    def test_should_keep_node_runtime_when_strong_node_signals_exist(self):
+        """Fingerprint should keep Node.js runtime when explicit Node markers are present."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><a href="/legacy.php">legacy</a></body></html>',
+                {'X-Powered-By': 'Express', 'Set-Cookie': 'connect.sid=abc; Path=/'},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                '<pre>Cannot GET /.well-known/missing-resource.txt</pre>',
+                {'X-Powered-By': 'Express'},
+            ),
+        }
+
+        result = Fingerprint(config=config, client=self._make_client(config, responses)).detect()
+
+        self.assertEqual(result['name'], 'Express')
+        self.assertEqual(result['runtime']['name'], 'Node.js')
+
+    def test_should_not_infer_node_runtime_from_generic_cannot_get_text(self):
+        """Fingerprint should ignore non-canonical long pages mentioning Cannot GET."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        generic_body = '<html><body>' + ('content ' * 220) + 'Cannot GET /example' + '</body></html>'
+        responses = {
+            ('GET', base): FakeResponse(200, '<html><body>plain site</body></html>', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                generic_body,
+                {},
+            ),
+        }
+
+        result = Fingerprint(config=config, client=self._make_client(config, responses)).detect()
+
+        self.assertEqual(result['runtime']['name'], 'unknown')
+
     def test_should_build_runtime_result_without_candidates(self):
         """Fingerprint._build_runtime_result() should return unknown runtime without candidates."""
         detector = Fingerprint(config=FakeConfig(), client=self._make_client(FakeConfig(), {}))
@@ -1134,6 +1338,129 @@ class TestFingerprint(unittest.TestCase):
 
         self.assertEqual(Fingerprint._calculate_confidence(0, 0), 35)
         self.assertEqual(Fingerprint._calculate_confidence(100, 100), 98)
+
+
+    def test_should_build_base_url_with_custom_port(self):
+        """Fingerprint._build_base_url() should include non-default ports."""
+
+        config = FakeConfig(scheme='https://', port=8443)
+        detector = Fingerprint(config=config, client=self._make_client(config, {}))
+
+        self.assertEqual(detector._build_base_url(), 'https://example.com:8443/')
+
+    def test_should_extract_cookies_skip_header_without_name_value_pair(self):
+        """Fingerprint._extract_cookies() should skip Set-Cookie headers without name/value separator."""
+
+        config = FakeConfig()
+        detector = Fingerprint(config=config, client=self._make_client(config, {}))
+        response = FakeResponse(200, 'ok', {'Set-Cookie': 'HttpOnly; Path=/'})
+
+        self.assertEqual(detector._extract_cookies(response), [])
+
+    def test_should_apply_extended_header_signature_match_and_mismatch(self):
+        """Fingerprint extended header rules should cover required header value matching."""
+
+        mismatch = Fingerprint(config=FakeConfig(), client=self._make_client(FakeConfig(), {}))
+        mismatch._apply_extended_cms_catalog_rules(
+            body_lower='',
+            headers={'x-generator': 'drupal'},
+            cookies=[],
+            generator='',
+        )
+        self.assertNotIn('Sitecore', [candidate['name'] for candidate in mismatch._build_candidates()])
+
+        matched = Fingerprint(config=FakeConfig(), client=self._make_client(FakeConfig(), {}))
+        matched._apply_extended_cms_catalog_rules(
+            body_lower='',
+            headers={'x-generator': 'sitecore xp'},
+            cookies=[],
+            generator='',
+        )
+        self.assertIn('Sitecore', [candidate['name'] for candidate in matched._build_candidates()])
+
+
+    def test_should_ignore_progress_callback_errors(self):
+        """Fingerprint._emit_progress() should ignore callback type errors."""
+
+        def broken_callback(_current, _total, _label):
+            raise TypeError('bad callback')
+
+        detector = Fingerprint(
+            config=FakeConfig(),
+            client=self._make_client(FakeConfig(), {}),
+            progress_callback=broken_callback,
+        )
+
+        self.assertIsNone(detector._emit_progress(1, 2, 'root'))
+
+    def test_should_return_default_when_root_request_fails_with_progress_callback(self):
+        """Fingerprint.detect() should finish progress and return default on missing root response."""
+
+        events = []
+        class NoneClient(object):
+            def request(self, _url):
+                return None
+
+        config = FakeConfig()
+        detector = Fingerprint(
+            config=config,
+            client=NoneClient(),
+            progress_callback=lambda current, total, label: events.append((current, total, label)),
+        )
+
+        result = detector.detect()
+
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertEqual(result['runtime']['name'], 'unknown')
+        self.assertEqual(events[-1][2], 'done')
+
+    def test_should_cover_remaining_hsts_grades(self):
+        """Fingerprint._build_hsts_result() should cover invalid, disabled, moderate and good HSTS grades."""
+
+        cases = [
+            ({'strict-transport-security': 'includeSubDomains'}, 'invalid', 'missing_max_age'),
+            ({'strict-transport-security': 'max-age=0; includeSubDomains'}, 'disabled', 'disabled'),
+            ({'strict-transport-security': 'max-age=16000000; includeSubDomains'}, 'moderate', 'max_age_below_preload_minimum'),
+            ({'strict-transport-security': 'max-age=31536000'}, 'good', 'missing_include_subdomains'),
+        ]
+
+        for headers, expected_grade, expected_warning in cases:
+            with self.subTest(expected_grade=expected_grade):
+                result = Fingerprint._build_hsts_result(
+                    headers=headers,
+                    base_url='https://example.com/',
+                    final_root_url='https://example.com/',
+                )
+
+                self.assertEqual(result['grade'], expected_grade)
+                self.assertIn(expected_warning, result['warnings'])
+
+    def test_should_parse_hsts_max_age_invalid_values_as_none(self):
+        """Fingerprint._parse_hsts_max_age() should reject invalid and negative max-age values."""
+
+        self.assertIsNone(Fingerprint._parse_hsts_max_age('invalid'))
+        self.assertIsNone(Fingerprint._parse_hsts_max_age('-1'))
+
+    def test_should_skip_extended_header_signature_when_value_mismatches(self):
+        """Fingerprint extended header rules should ignore headers with mismatched required values."""
+
+        detector = Fingerprint(config=FakeConfig(), client=self._make_client(FakeConfig(), {}))
+
+        detector._apply_extended_cms_catalog_rules(
+            body_lower='',
+            headers={'x-powered-cms': 'not-bitrix'},
+            cookies=[],
+            generator='',
+        )
+
+        self.assertNotIn('Bitrix', [candidate['name'] for candidate in detector._build_candidates()])
+
+    def test_should_detect_php_runtime_from_final_url_route_marker(self):
+        """Fingerprint._has_php_route_marker() should detect PHP markers in the final URL."""
+
+        self.assertTrue(Fingerprint._has_php_route_marker('', 'https://example.com/read.php?id=1'))
+
+
 class TestFingerprintHstsSecurityHeaders(unittest.TestCase):
     """HSTS security-header fingerprint coverage."""
 

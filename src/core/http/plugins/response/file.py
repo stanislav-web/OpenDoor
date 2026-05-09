@@ -116,6 +116,26 @@ class FileResponsePlugin(ResponsePluginProvider):
 
         return str(value).split(';', 1)[0].strip().lower()
 
+    def _is_textual_content_type(self, content_type):
+        """
+        Determine whether a Content-Type is a textual web/API response.
+
+        :param str content_type: normalized content type
+        :return: bool
+        """
+
+        if len(content_type) <= 0:
+            return False
+
+        if content_type.startswith('text/'):
+            return True
+
+        for item in self.TEXTUAL_CONTENT_TYPES:
+            if content_type == item:
+                return True
+
+        return False
+
     def _is_binary_content_type(self, content_type):
         """
         Determine whether a Content-Type looks like a real file/binary response.
@@ -127,9 +147,8 @@ class FileResponsePlugin(ResponsePluginProvider):
         if len(content_type) <= 0:
             return False
 
-        for item in self.TEXTUAL_CONTENT_TYPES:
-            if content_type == item:
-                return False
+        if self._is_textual_content_type(content_type) is True:
+            return False
 
         for item in self.BINARY_CONTENT_TYPES:
             if content_type.startswith(item):
@@ -154,19 +173,21 @@ class FileResponsePlugin(ResponsePluginProvider):
         content_length = self._extract_content_length()
         content_type = self._extract_content_type()
         content_disposition = str(self._get_header('Content-Disposition') or '').lower()
-
-        if content_length is not None and self.DEFAULT_SOURCE_DETECT_MIN_SIZE <= content_length:
-            return self.RESPONSE_INDEX
-
-        if self.DEFAULT_SOURCE_DETECT_MIN_SIZE <= body_length:
-            return self.RESPONSE_INDEX
-
         has_content = (content_length is not None and 0 < content_length) or 0 < body_length
 
         if 'attachment' in content_disposition and has_content:
             return self.RESPONSE_INDEX
 
         if self._is_binary_content_type(content_type) and has_content:
+            return self.RESPONSE_INDEX
+
+        if self._is_textual_content_type(content_type) is True:
+            return None
+
+        if content_length is not None and self.DEFAULT_SOURCE_DETECT_MIN_SIZE <= content_length:
+            return self.RESPONSE_INDEX
+
+        if self.DEFAULT_SOURCE_DETECT_MIN_SIZE <= body_length:
             return self.RESPONSE_INDEX
 
         return None

@@ -42,7 +42,8 @@ class TestBrowserWorker(unittest.TestCase):
         """ Worker.pause() test """
         
         self.assertEqual(self._worker.pause(), None)
-        self.assertFalse(getattr(self._worker, '_Worker__running', True))
+        self.assertFalse(getattr(self._worker, '_Worker__event').is_set())
+        self.assertTrue(getattr(self._worker, '_Worker__running', False))
 
 if __name__ == "__main__":
     unittest.main()
