@@ -363,8 +363,8 @@ class Calibration(object):
 
         value = html.unescape(str(body or '')).lower()
         value = re.sub(r'<!--.*?(?:-->|--!>)', ' ', value, flags=re.DOTALL)
-        value = re.sub(r'<script\b[^>]*>.*?</script\s*>', ' ', value, flags=re.DOTALL | re.IGNORECASE)
-        value = re.sub(r'<style\b[^>]*>.*?</style\s*>', ' ', value, flags=re.DOTALL | re.IGNORECASE)
+        value = re.sub(r'<script\b[^>]*>.*?</script\b[^>]*>', ' ', value, flags=re.DOTALL | re.IGNORECASE)
+        value = re.sub(r'<style\b[^>]*>.*?</style\b[^>]*>', ' ', value, flags=re.DOTALL | re.IGNORECASE)
 
         for pattern in cls.DYNAMIC_PATTERNS:
             value = re.sub(pattern, '<dynamic>', value, flags=re.IGNORECASE)
@@ -400,8 +400,8 @@ class Calibration(object):
 
         value = html.unescape(str(body or '')).lower()
         value = re.sub(r'<!--.*?(?:-->|--!>)', ' ', value, flags=re.DOTALL)
-        value = re.sub(r'<script\b[^>]*>.*?</script\s*>', ' ', value, flags=re.DOTALL | re.IGNORECASE)
-        value = re.sub(r'<style\b[^>]*>.*?</style\s*>', ' ', value, flags=re.DOTALL | re.IGNORECASE)
+        value = re.sub(r'<script\b[^>]*>.*?</script\b[^>]*>', ' ', value, flags=re.DOTALL | re.IGNORECASE)
+        value = re.sub(r'<style\b[^>]*>.*?</style\b[^>]*>', ' ', value, flags=re.DOTALL | re.IGNORECASE)
         value = re.sub(r'<[^>]+>', ' ', value)
 
         for pattern in cls.DYNAMIC_PATTERNS:

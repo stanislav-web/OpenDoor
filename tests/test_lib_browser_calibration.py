@@ -550,8 +550,8 @@ class TestCalibration(unittest.TestCase):
 
         body = (
             '<html><head>'
-            '<script>alert(1)</script >'
-            '<style>body{color:red}</style >'
+            '<script>alert(1)</script\t\n bar>'
+            '<style>body{color:red}</style foo="bar">'
             '<!-- hidden --!>'
             '</head><body><main>Visible text</main></body></html>'
         )
