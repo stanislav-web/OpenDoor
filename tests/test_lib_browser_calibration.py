@@ -545,6 +545,29 @@ class TestCalibration(unittest.TestCase):
         self.assertEqual(Calibration._content_kind(''), 'empty')
         self.assertGreater(Calibration._text_density(body), 0.0)
 
+    def test_calibration_html_filters_should_handle_tolerant_closing_tags(self):
+        """HTML filters should remove tolerant script/style/comment blocks."""
+
+        body = (
+            '<html><head>'
+            '<script>alert(1)</script >'
+            '<style>body{color:red}</style >'
+            '<!-- hidden --!>'
+            '</head><body><main>Visible text</main></body></html>'
+        )
+
+        normalized = Calibration._normalize_body(body)
+        visible = Calibration._visible_text(body)
+
+        self.assertIn('visible text', normalized)
+        self.assertIn('visible text', visible)
+        self.assertNotIn('alert', normalized)
+        self.assertNotIn('alert', visible)
+        self.assertNotIn('color', normalized)
+        self.assertNotIn('color', visible)
+        self.assertNotIn('hidden', normalized)
+        self.assertNotIn('hidden', visible)
+
     def test_calibration_semantic_similarity_helpers_should_cover_edges(self):
         """Semantic similarity helpers should cover empty, invalid and partial inputs."""
 

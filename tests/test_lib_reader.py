@@ -263,6 +263,41 @@ class TestReader(unittest.TestCase):
 
         self.assertEqual(line, 'http://example.com:8080/login.php')
 
+
+    def test_get_lines_should_prepare_subdomain_context_with_www_and_port(self):
+        """Reader.get_lines() should prepare subdomain context for www hosts and non-default ports."""
+
+        reader = self.create_reader(browser_config={'list': 'subdomains'})
+
+        with patch('src.lib.reader.reader.filesystem.readline') as readline_mock:
+            reader.get_lines(
+                params={'scheme': 'https://', 'host': 'www.example.com', 'port': 8443},
+                loader=lambda lines: lines,
+            )
+
+        handler_params = readline_mock.call_args.kwargs['handler_params']
+        self.assertEqual(handler_params['host_no_www'], 'example.com')
+        self.assertEqual(handler_params['port_suffix'], ':8443')
+
+    def test_subdomains_line_should_strip_www_when_host_context_is_not_prepared(self):
+        """Reader._subdomains__line() should strip www from fallback host context."""
+
+        line = Reader._subdomains__line(
+            'api\n',
+            {'scheme': 'http://', 'host': 'www.example.com', 'port_suffix': ':8080'},
+        )
+
+        self.assertEqual(line, 'http://api.example.com:8080')
+
+    def test_count_active_lines_should_wrap_filesystem_errors(self):
+        """Reader.count_active_lines() should wrap filesystem count errors."""
+
+        reader = self.create_reader(browser_config={'list': 'directories'})
+
+        with patch('src.lib.reader.reader.filesystem.count_lines', side_effect=FileSystemError('failed')):
+            with self.assertRaises(ReaderError):
+                reader.count_active_lines()
+
     def test_randomize_list_uses_shuf_on_non_windows(self):
         """Reader.randomize_list() should use GNU shuf safely on non-Windows systems."""
 

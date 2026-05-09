@@ -207,7 +207,7 @@ class HeaderBypassProbe(object):
     )
 
     OFFENSIVE_IP_VALUES = (
-        '0.0.0.0',
+        '0.0.0.0', # nosec B104 - header-bypass payload value, not a bind/listen address
         '127.0.0.1',
         'localhost',
         '::1',

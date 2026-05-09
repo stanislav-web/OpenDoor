@@ -355,6 +355,40 @@ class TestNetworkTransport(unittest.TestCase):
         runner.run.assert_any_call(['wg-quick', 'up', profile], timeout=1)
         runner.run.assert_any_call(['wg-quick', 'down', profile], timeout=1)
 
+
+    def test_manager_healthcheck_should_retry_until_success(self):
+        """NetworkTransportManager should retry healthcheck before the deadline."""
+
+        profile = self.make_file('.conf')
+        runner = MagicMock()
+        runner.healthcheck.side_effect = [NetworkTransportError('offline'), 200]
+
+        manager = NetworkTransportManager({
+            'transport': 'wireguard',
+            'transport_profile': profile,
+            'transport_healthcheck_url': 'https://ifconfig.me',
+            'transport_timeout': 9,
+        }, runner=runner)
+
+        with patch('src.core.network.transport.time.monotonic', side_effect=[0, 0, 1, 1, 2, 3]), \
+                patch('src.core.network.transport.time.sleep') as sleep_mock:
+            manager.start()
+
+        self.assertEqual(runner.healthcheck.call_count, 2)
+        sleep_mock.assert_called_once_with(1)
+
+    def test_manager_should_assert_adapter_running_when_supported(self):
+        """NetworkTransportManager should delegate liveness checks to capable adapters."""
+
+        manager = NetworkTransportManager({})
+        adapter = MagicMock()
+        adapter.assert_running = MagicMock()
+        manager.adapter = adapter
+
+        manager._NetworkTransportManager__assert_adapter_running()
+
+        adapter.assert_running.assert_called_once_with()
+
     def test_openvpn_transport_should_reject_exited_process_before_scan(self):
         """OpenVpnTransport.assert_running() should catch immediate OpenVPN failures."""
 

@@ -1112,5 +1112,48 @@ class TestFilter(unittest.TestCase):
                 'transport_rotate': 'per-target',
             })
 
+    def test_filter_should_preserve_session_load_debug_fail_bucket_and_transport_bin(self):
+        """Filter.filter() should preserve invocation-only flags in session-load flow."""
+
+        actual = Filter.filter({
+            'session_load': 'session.json',
+            'debug': '2',
+            'fail_on_bucket': ' success,blocked ',
+            'transport': 'wireguard',
+            'transport_profile': './vpn/nl.conf',
+            'transport_bin': 'wg-quick',
+        })
+
+        self.assertEqual(actual['debug'], 2)
+        self.assertEqual(actual['fail_on_bucket'], ['success', 'blocked'])
+        self.assertEqual(actual['transport_bin'], 'wg-quick')
+        self.assertTrue(actual['transport_profile'].endswith('vpn/nl.conf'))
+
+    def test_filter_helpers_should_cover_empty_bucket_debug_and_session_path_errors(self):
+        """Filter helper validators should cover empty bucket and missing value branches."""
+
+        with self.assertRaises(FilterError):
+            Filter.bucket_values(' , , ', key='--fail-on-bucket')
+
+        with self.assertRaises(FilterError):
+            Filter.debug_level(None, key='--debug')
+
+        with self.assertRaises(FilterError):
+            Filter.session_file(None, key='--session-save')
+
+    def test_filter_should_reject_proxy_transport_profiles(self):
+        """Filter.validate_transport_options() should reject profile lists in proxy mode."""
+
+        with self.assertRaises(FilterError) as ctx:
+            Filter.filter({
+                'host': 'example.com',
+                'transport': 'proxy',
+                'proxy': 'http://127.0.0.1:8080',
+                'transport_profiles': './vpn/profiles.txt',
+            })
+
+        self.assertIn('--transport-profiles cannot be used with --transport proxy', str(ctx.exception))
+
+
 if __name__ == '__main__':
     unittest.main()

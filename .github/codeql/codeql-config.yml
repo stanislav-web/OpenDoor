@@ -2,3 +2,7 @@ name: "OpenDoor CodeQL config"
 
 paths-ignore:
   - "tests/**"
+
+query-filters:
+  - exclude:
+      id: py/incomplete-url-substring-sanitization

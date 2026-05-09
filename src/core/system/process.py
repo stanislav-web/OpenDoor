@@ -17,6 +17,7 @@
 """
 
 import os
+import shlex
 import signal
 import subprocess
 from .exceptions import CoreSystemError
@@ -98,10 +99,11 @@ class Process(object):
         """
 
         try:
+            command = shlex.split(process) if isinstance(process, str) else process
             completed = subprocess.run(
-                process,
+                command,
                 cwd=os.getcwd(),
-                shell=True,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 check=False,

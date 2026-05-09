@@ -198,6 +198,29 @@ class TestReporterPluginsFullCoverage(unittest.TestCase):
         self.assertIn('true', html)
         self.assertIn('false', html)
 
+
+    def test_html_renderer_helpers_should_cover_duplicate_columns_and_slugs(self):
+        """HTML helper branches should handle duplicate keys and repeated slug separators."""
+
+        self.assertEqual(
+            html_report._get_total_finding_count({
+                'success': ['one'],
+                'metadata': {'not': 'a list'},
+            }),
+            1
+        )
+        self.assertEqual(
+            html_report._get_columns([
+                {'url': 'https://example.com/a', 'custom': 'one'},
+                {'url': 'https://example.com/b', 'custom': 'two', 'extra': 'three'},
+            ]),
+            ['url', 'custom', 'extra']
+        )
+        self.assertEqual(
+            html_report._get_status_dom_id('bad!! status'),
+            'status-bad-status'
+        )
+
     def test_html_renderer_covers_direct_private_render_helpers(self):
         """HTML renderer helpers should handle empty, unknown, and scalar branches."""
 
