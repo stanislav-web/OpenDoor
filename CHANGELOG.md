@@ -9,8 +9,7 @@ v5.15.3 (xx.05.2026)
 - (fix) detect Bitrix from CMS header and harden Strapi fingerprinting
 - (fix) tuned runtime fingerprint scoring so endpoint-only framework probes no longer imply Node.js/Python runtime
 - (fix) added conservative PHP route-marker runtime evidence for legacy PHP sites without exposed `X-Powered-By` headers
-- (fix) random-list shuffle and JS challenge detection
-- (fix) added scan worker stall diagnostics and ensured queued tasks are always marked done after worker errors to avoid silent hangs during long-running requests
+- (fix) broken random-list shuffle and JS challenge detection 
 - (fix) `--accept-cookies` routing so accepted cookies are preserved across scan requests and header-bypass variants.
 - (fix) gated passive WAF/gateway headers in both vendor-specific matching and generic fallback so normal 200 responses are not promoted to blocked
 - (fix) isolated default fingerprint fallback results with deep copies to prevent nested metadata leakage between failed or empty detection runs
@@ -24,7 +23,7 @@ v5.15.3 (xx.05.2026)
 - (fix) restored interactive HTML report controls by making visible URL copy, text search and status-group navigation use stable row metadata and explicit UI feedback
 - (fix) deduplicate duplicate subdomain scan candidates before they are submitted to the HTTP worker queue.
 - (fix) keep subdomain scan progress totals aligned when duplicate candidates are dropped.
-- (enhancement) Cache rendered subdomain IP lookups per hostname to avoid repeated DNS resolution in subdomain reports.
+- (fix) Cache rendered subdomain IP lookups per hostname to avoid repeated DNS resolution in subdomain reports.
 - (enhancement) added passive privacy-risk detection to `--fingerprint` for possible supercookie tracking surfaces.
 - (enhancement) added supercookie/privacy-risk metadata to `std`, `txt`, `csv`, `json`, `html`, `sqlite`, and `sarif` reports.
 - (enhancement) added `--header-bypass-profile safe|offensive` with offensive header spoofing and expanded path-normalization variants for controlled 401/403 bypass probing.
@@ -42,10 +41,12 @@ v5.15.3 (xx.05.2026)
 - (deprecated) made `scheme` the source of truth for HTTP/HTTPS mode and deprecated standalone wizard `ssl` configuration to prevent mismatched request providers
 - (docs) documented runtime pause/resume controls separately from session checkpoint resume.
 - (docs) updated documentation with added more detailed examples and hits
-- (tests) expanded coverage for transport healthcheck cleanup branches, OpenVPN liveness diagnostics and hardened indexof detection paths
 - (debug) added compact STD fingerprint evidence counters for report-level QA
+- (debug) added scan worker stall diagnostics and ensured queued tasks are always marked done after worker errors to avoid silent hangs during long-running requests
 - (debug) added compact fingerprint evidence signals to `fingerprint.txt` for easier QA of runtime/infrastructure detection
+- (dependencies) update dependencies to the latest versions
 - (tests) added regression coverage for new WAF signatures, passive-header false-positive protection and fingerprint fallback isolation
+- (tests) expanded coverage for transport healthcheck cleanup branches, OpenVPN liveness diagnostics and hardened indexof detection paths
 - (tests) coverage gate remains configured at `99%`
 
 v5.15.2 (04.05.2026)

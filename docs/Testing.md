@@ -252,7 +252,7 @@ A good Homebrew test should not require network access from the formula test blo
 
 ## 🧪 Release smoke checklist
 
-Before publishing a release, run at least:
+Before publishing a release manually, run at least:
 
 ```shell
 python -m unittest
