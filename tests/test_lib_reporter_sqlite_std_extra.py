@@ -205,33 +205,40 @@ class TestSqliteAndStdReporterExtra(unittest.TestCase):
             }
         })
 
-        with patch('src.lib.reporter.plugins.std.tabulate', return_value='TABLE') as tabulate_mock, \
-                patch('src.lib.reporter.plugins.std.sys.writeln') as writeln_mock:
+        with patch('src.lib.reporter.plugins.std.sys.writeln') as writeln_mock:
             plugin.process()
 
-        rows = tabulate_mock.call_args[0][0]
-        self.assertEqual(rows, [('success', 2), ('blocked', 1)])
-        self.assertEqual(tabulate_mock.call_args[1]['headers'], ['Statistics (test.local)', 'Summary'])
-        writeln_mock.assert_called_once_with('TABLE')
+        rendered = writeln_mock.call_args[0][0]
+        self.assertIn('Statistics (test.local)', rendered)
+        self.assertIn('Summary', rendered)
+        self.assertIn('success', rendered)
+        self.assertIn('blocked', rendered)
+        self.assertIn('2', rendered)
+        self.assertIn('1', rendered)
 
     def test_std_process_appends_fingerprint_and_infrastructure_summary(self):
         """StdReportPlugin should append fingerprint and infrastructure summary rows when present."""
 
         plugin = StdReportPlugin('test.local', self.make_data())
 
-        with patch('src.lib.reporter.plugins.std.tabulate', return_value='TABLE') as tabulate_mock, \
-                patch('src.lib.reporter.plugins.std.sys.writeln'):
+        with patch('src.lib.reporter.plugins.std.sys.writeln') as writeln_mock:
             plugin.process()
 
-        rows = tabulate_mock.call_args[0][0]
+        rendered = writeln_mock.call_args[0][0]
 
-        self.assertIn(('fingerprint_category', 'cms'), rows)
-        self.assertIn(('fingerprint_name', 'WordPress'), rows)
-        self.assertIn(('fingerprint_confidence', '95%'), rows)
-        self.assertIn(('fingerprint_infra', 'cloudflare'), rows)
-        self.assertIn(('fingerprint_infra_confidence', '92%'), rows)
-        self.assertIn(('hsts', 'preload-ready'), rows)
-        self.assertIn(('hsts_preload_ready', True), rows)
+        self.assertIn('fingerprint_category', rendered)
+        self.assertIn('cms', rendered)
+        self.assertIn('fingerprint_name', rendered)
+        self.assertIn('WordPress', rendered)
+        self.assertIn('fingerprint_confidence', rendered)
+        self.assertIn('95%', rendered)
+        self.assertIn('fingerprint_infra', rendered)
+        self.assertIn('cloudflare', rendered)
+        self.assertIn('fingerprint_infra_confidence', rendered)
+        self.assertIn('92%', rendered)
+        self.assertIn('hsts', rendered)
+        self.assertIn('preload-ready', rendered)
+        self.assertIn('hsts_preload_ready', rendered)
 
 
 if __name__ == '__main__':

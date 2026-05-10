@@ -62,6 +62,19 @@ class TestStdReportPluginFingerprintExtra(unittest.TestCase):
         self.assertIn('Statistics (test.local)', rendered)
         self.assertNotIn('fingerprint_category', rendered)
 
+    def test_format_summary_table_should_render_psql_like_output(self):
+        """StdReportPlugin.format_summary_table() should render native table output."""
+
+        rendered = StdReportPlugin.format_summary_table(
+            [('success', 2), ('failed', 10)],
+            ['Statistics (test.local)', 'Summary']
+        )
+
+        self.assertIn('+', rendered)
+        self.assertIn('| Statistics (test.local) | Summary |', rendered)
+        self.assertIn('| success                 | 2       |', rendered)
+        self.assertIn('| failed                  | 10      |', rendered)
+
 class TestStdReportPluginHardening(unittest.TestCase):
     """STD reporter hardening regression tests."""
 

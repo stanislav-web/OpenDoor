@@ -16,14 +16,56 @@
     Development: Stanislav WEB
 """
 
-from tabulate import tabulate
-
 from .provider import PluginProvider
 from src.core import sys
 
 
 class StdReportPlugin(PluginProvider):
     """ StdReportPlugin class"""
+
+    @staticmethod
+    def format_summary_table(rows, headers):
+        """
+        Render a small psql-like summary table without external dependencies.
+
+        :param list[tuple] rows: summary rows
+        :param list[str] headers: table headers
+        :return: formatted table
+        :rtype: str
+        """
+
+        safe_headers = [str(value) for value in headers]
+        safe_rows = [(str(key), str(value)) for key, value in rows]
+
+        first_width = max([len(safe_headers[0])] + [len(row[0]) for row in safe_rows])
+        second_width = max([len(safe_headers[1])] + [len(row[1]) for row in safe_rows])
+
+        border = '+-{0}-+-{1}-+'.format('-' * first_width, '-' * second_width)
+
+        def render_row(first, second):
+            """
+            Render a padded summary row.
+
+            :param str first: first column value
+            :param str second: second column value
+            :return: formatted row
+            :rtype: str
+            """
+
+            return '| {0} | {1} |'.format(first.ljust(first_width), second.ljust(second_width))
+
+        lines = [
+            border,
+            render_row(safe_headers[0], safe_headers[1]),
+            border,
+        ]
+
+        for row in safe_rows:
+            lines.append(render_row(row[0], row[1]))
+
+        lines.append(border)
+
+        return '\n'.join(lines)
 
     def __init__(self, target, data, directory=None):
         """
@@ -101,4 +143,4 @@ class StdReportPlugin(PluginProvider):
                     data += [('privacy_supercookie_warnings', len(warnings))]
 
         title = 'Statistics ({0})'.format(self._target)
-        sys.writeln(tabulate(data, headers=[title, 'Summary'], tablefmt="psql"))
+        sys.writeln(self.format_summary_table(data, [title, 'Summary']))
