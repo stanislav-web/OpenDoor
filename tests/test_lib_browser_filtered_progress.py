@@ -163,8 +163,51 @@ class TestBrowserFilteredProgress(unittest.TestCase):
         self.assertIn('https://localhost/pers.csp', output)
         self.assertIn('WAF safe mode activated: DDoS-GUARD (83%)', output)
         self.assertNotIn('pers.csp[', output)
+        self.assertIn('pers.csp\nWAF safe mode activated', output)
         self.assertIn(chr(13), output)
         self.assertFalse(getattr(browser, '_Browser__filtered_progress_active'))
+
+    def test_filtered_progress_should_continue_with_new_url_after_waf_warning(self):
+        """Progress rotation should keep updating URLs after a warning line."""
+
+        browser = self.make_browser(items_size=73, total_items_size=95067)
+        browser._Browser__config = SimpleNamespace(is_waf_safe_mode=True)
+        browser._Browser__waf_safe_lock = RLock()
+        browser._Browser__waf_safe_active = False
+        browser._Browser__waf_safe_vendor = None
+        browser._Browser__waf_safe_confidence = None
+        browser._Browser__waf_safe_delay = 0.75
+        browser._Browser__waf_safe_next_at = 0
+        stdout = io.StringIO()
+
+        for handler in list(Logger.log('warning').handlers):
+            Logger.log('warning').removeHandler(handler)
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=180)):
+                browser._Browser__emit_filtered_progress(
+                    'calibrated',
+                    ('success', 'https://localhost/pers.csp', '3KB', '404'),
+                    {'calibration_score': 1.0}
+                )
+                browser._Browser__activate_waf_safe_mode(
+                    {'name': 'DDoS-GUARD', 'confidence': 83},
+                    immediate=True
+                )
+                browser._Browser__pool.items_size = 74
+                browser._Browser__emit_filtered_progress(
+                    'calibrated',
+                    ('success', 'https://localhost/next-page.php', '3KB', '404'),
+                    {'calibration_score': 1.0}
+                )
+
+        output = stdout.getvalue()
+        last_visual_line = output.split('\n')[-1].split('\r')[-1]
+
+        self.assertIn('[000074/95067]', last_visual_line)
+        self.assertIn('https://localhost/next-page.php', last_visual_line)
+        self.assertNotIn('https://localhost/pers.csp', last_visual_line)
+        self.assertTrue(getattr(browser, '_Browser__filtered_progress_active'))
 
     def test_clear_filtered_progress_should_clear_active_rotating_line(self):
         """Real findings should be able to clear active filtered progress before stdout output."""

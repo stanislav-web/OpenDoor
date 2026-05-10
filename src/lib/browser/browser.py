@@ -962,7 +962,7 @@ class Browser(Filter):
             self.__waf_safe_confidence = detection.get('confidence')
             self.__waf_safe_next_at = time.monotonic() + self.__waf_safe_delay
 
-        self.__clear_filtered_progress()
+        self.__finish_filtered_progress_line()
         tpl.warning(
             key='waf_safe_mode_activated',
             vendor=self.__waf_safe_vendor or 'Generic WAF',
@@ -1364,6 +1364,28 @@ class Browser(Filter):
         if last_length > 0:
             sys.stdout.write('\r{0}\r'.format(' ' * last_length))
             sys.stdout.flush()
+
+        self.__filtered_progress_active = False
+        self.__filtered_progress_last_length = 0
+
+    def __finish_filtered_progress_line(self):
+        """Terminate an active rotating progress line before normal logger output.
+
+        Warnings and other logger lines are persistent output. They must start on
+        a fresh line, but we should not clear the previous progress text because
+        clearing resets the terminal state and can make the next rotating update
+        visually reuse stale URL fragments while only the counter changes.
+
+        :return: None
+        """
+
+        import sys
+
+        if getattr(self, '_Browser__filtered_progress_active', False) is not True:
+            return
+
+        sys.stdout.write('\n')
+        sys.stdout.flush()
 
         self.__filtered_progress_active = False
         self.__filtered_progress_last_length = 0

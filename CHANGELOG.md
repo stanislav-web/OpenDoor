@@ -1,6 +1,6 @@
 CHANGELOG
 =======
-v5.16.0 (@TODO)
+v5.16.0 (09.05.2026)
 ---------------------------
 - (fix) rendered fingerprint progress as a rotating single-line indicator and persisted only the final `done` state to reduce duplicate progress output.
 - (fix) made auto-calibrated rotating progress cross-platform by truncating suppressed-response lines to terminal width and clearing them before real findings.
