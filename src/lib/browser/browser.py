@@ -962,6 +962,7 @@ class Browser(Filter):
             self.__waf_safe_confidence = detection.get('confidence')
             self.__waf_safe_next_at = time.monotonic() + self.__waf_safe_delay
 
+        self.__clear_filtered_progress()
         tpl.warning(
             key='waf_safe_mode_activated',
             vendor=self.__waf_safe_vendor or 'Generic WAF',

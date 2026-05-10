@@ -1,15 +1,26 @@
 # -*- coding: utf-8 -*-
 
 import io
+import logging
 import unittest
+from threading import RLock
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from src.core.logger.logger import Logger
 from src.lib.browser.browser import Browser
 
 
 class TestBrowserFilteredProgress(unittest.TestCase):
     """Filtered progress rendering tests."""
+
+    def tearDown(self):
+        """Remove shared logger handlers after stdout-capture tests."""
+
+        for name in ('warning', logging.getLogger().name):
+            log_instance = Logger.log(name)
+            for handler in list(log_instance.handlers):
+                log_instance.removeHandler(handler)
 
     def make_browser(self, items_size=1, total_items_size=100):
         """
@@ -117,6 +128,43 @@ class TestBrowserFilteredProgress(unittest.TestCase):
         self.assertIn('https://example.com/one', output)
         self.assertIn('https://example.com/two', output)
         self.assertIn('https://example.com/three', output)
+
+
+    def test_waf_safe_mode_warning_should_clear_filtered_progress_first(self):
+        """WAF activation warning should not glue to a rotating calibration line."""
+
+        browser = self.make_browser(items_size=3523, total_items_size=95067)
+        browser._Browser__config = SimpleNamespace(is_waf_safe_mode=True)
+        browser._Browser__waf_safe_lock = RLock()
+        browser._Browser__waf_safe_active = False
+        browser._Browser__waf_safe_vendor = None
+        browser._Browser__waf_safe_confidence = None
+        browser._Browser__waf_safe_delay = 0.75
+        browser._Browser__waf_safe_next_at = 0
+        stdout = io.StringIO()
+
+        for handler in list(Logger.log('warning').handlers):
+            Logger.log('warning').removeHandler(handler)
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=220)):
+                browser._Browser__emit_filtered_progress(
+                    'calibrated',
+                    ('success', 'https://localhost/pers.csp', '3KB', '404'),
+                    {'calibration_score': 1.0}
+                )
+                browser._Browser__activate_waf_safe_mode(
+                    {'name': 'DDoS-GUARD', 'confidence': 83},
+                    immediate=True
+                )
+
+        output = stdout.getvalue()
+
+        self.assertIn('https://localhost/pers.csp', output)
+        self.assertIn('WAF safe mode activated: DDoS-GUARD (83%)', output)
+        self.assertNotIn('pers.csp[', output)
+        self.assertIn(chr(13), output)
+        self.assertFalse(getattr(browser, '_Browser__filtered_progress_active'))
 
     def test_clear_filtered_progress_should_clear_active_rotating_line(self):
         """Real findings should be able to clear active filtered progress before stdout output."""

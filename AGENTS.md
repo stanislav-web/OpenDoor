@@ -134,7 +134,6 @@ When modifying installation or release behavior, update:
 
 README style should preserve the current public project presentation:
 - badges
-- changelog excerpt
 - install variants
 - help section
 - tests/build section
@@ -158,7 +157,7 @@ Do not replace the repository style with an unrelated template.
 
 ---
 ## Coverage rule
-- Keep the project at 90%+ total coverage
+- Keep the project at 95%+ total coverage
 - Do not lower the current baseline without explicit maintainer approval
 - Prefer small targeted tests that protect current behavior before refactoring
 
