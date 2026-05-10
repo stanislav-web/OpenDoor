@@ -2,6 +2,7 @@ CHANGELOG
 =======
 v5.16.0 (@TODO)
 ---------------------------
+- (fix) made auto-calibrated rotating progress cross-platform by truncating suppressed-response lines to terminal width and clearing them before real findings.
 - (fix) diversified auto-calibration probe URL shapes so sites that return different soft-404/catch-all responses for root-level, application-like and static asset paths are calibrated more reliably.
 - (fix) compacted auto-calibration progress heartbeat output by removing verbose calibration reason lists and throttling suppressed-response progress by time.
 - (fix) renamed `--sniff stacktrace` findings from the generic `debug` bucket to the dedicated `stacktrace` bucket across runtime output, summaries and reports, with `stacktrace_detection` metadata and PHP fatal-error detection without the `PHP` prefix.

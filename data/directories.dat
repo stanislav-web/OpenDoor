@@ -8134,6 +8134,7 @@ a/config/server/info
 a/config/server/version
 a_add2basket.html
 a_admin
+a_d_m_i_n
 a_d_s.php
 a_fine.php
 a_fine_lingue.php
@@ -16678,6 +16679,7 @@ adpeeps
 adpics
 adpilot
 adplug
+adportal
 adquestions.php
 adquestions_ed.php
 adr
@@ -23878,6 +23880,7 @@ backtocs
 backtoschool.php
 backup
 Backup
+BACKUP
 backup0
 backup1
 backup2
@@ -27949,6 +27952,7 @@ caceres.html
 cacert.pem
 cache
 Cache
+CACHE
 cache1
 cache2
 cache30.php
@@ -30395,6 +30399,7 @@ checkmailbox.html
 checkmark
 checknew.php
 checkout
+Checkout
 checkout0.asp
 checkout1-new.asp
 checkout1.asp
@@ -30985,6 +30990,7 @@ ck.php
 Ck/ckfinder
 CKEditor
 ckeditor
+CKeditor
 ckeditor.php
 ckeditor/ckfinder/ckfinder.html
 ckeditor/ckfinder/core/connector/asp/connector.asp
@@ -32292,6 +32298,7 @@ cms400min
 cms400min.sln
 cms400min.suo
 cms-admin
+cms-Admin
 cms-admin.aspx
 cms-admin.php
 cms-login.aspx
@@ -32358,6 +32365,7 @@ cms/wp-admin
 cms/wp-login.php
 cms_addon
 cms_admin
+CMS_Admin
 cms_admin.php
 cms_admins
 cms_cache
@@ -32373,6 +32381,7 @@ cms_users
 cms_widgets
 cmsadm.php
 cmsadmin
+CMSAdmin
 cmsadmin.php
 cmsadmin.phtml
 cmsadmincontrols
@@ -33304,6 +33313,7 @@ componentes_vbv
 componenti
 componentone
 components
+Components
 components.aspx
 components.jsf
 components.php
@@ -35109,7 +35119,7 @@ control/settings
 control/signin
 control/sso
 control/status
-control/stream?contentId=<svg/onload=alert(1)>
+control/stream
 control/subscriptions
 control/system
 control/tags
@@ -35364,6 +35374,7 @@ controlpaneluser.asp
 controlpaneluser.aspx
 controlpaneluser.php
 controls
+Controls
 controls-infra
 controls.inc.php
 controls.js
@@ -36947,6 +36958,7 @@ customer-images
 customer-login.aspx
 customer-login.php
 customer-logoff.php
+customer-logout
 customer-media
 customer-portal
 customer-reviews
@@ -37440,6 +37452,7 @@ cwfaqs.cfm
 cwfl.htm
 cwhoiscart.php
 cwp
+CWP_Admin
 cws
 cwshell.inc
 cwshell.php
@@ -40046,6 +40059,7 @@ demos.html
 demos.php
 demoshop
 demosite
+demosites
 demote
 demotest
 den
@@ -40431,6 +40445,7 @@ dev/admin.php
 dev/mailbox
 dev_new
 dev_portal
+dev_site
 devadmin.php
 devapi
 devcomponents
@@ -40524,6 +40539,7 @@ devsql
 devtest
 devtools
 devtunnels
+devx
 dewplayer.swf
 dewslider.swf
 dex/.well-known/openid-configuration
@@ -40566,6 +40582,7 @@ dhcp
 dhcp.php
 dhcp_log
 dhl
+dhlsync
 dhm
 dht.php
 dhtml
@@ -40642,10 +40659,12 @@ diciembre
 dick
 dickhead
 dict
+dictionaries
 dictionary
 dictionary.html
 dictionary.php
 dictionary.txt
+dictionnaires
 did
 dida1968
 didriksons.php
@@ -42858,6 +42877,7 @@ ecards.php
 ecardsurvey.pd
 ecare
 ecartadmin
+eCartAdmin
 ecartadmin.php
 ecartis
 ecat
@@ -42965,8 +42985,10 @@ Edit
 edit
 edit1.php
 edit2.php
+edit-account
 edit-account.aspx
 edit-account.php
+edit-address
 edit-address.aspx
 edit-browser.php
 edit-comments.php
@@ -45775,6 +45797,7 @@ erreur_500.html
 erreur_acces.php
 erreur_interne.php
 erreurs
+errlog
 errlog.txt
 erro
 erro404.asp
@@ -45783,6 +45806,7 @@ erro500.aspx
 erro.asp
 erro.aspx
 error
+Error
 error1.html
 error1.tpl
 error2
@@ -45921,6 +45945,7 @@ error_page.php
 error_pages
 error_pago.html
 error_processor.cfm
+error_report
 error_report.php
 error_request1.cfm
 error_request.cfm
@@ -46004,6 +46029,7 @@ errorswarnings
 errortemplate.aspx
 errortemplates
 erros
+errpage
 errpage404.asp
 errpage.asp
 errpages
@@ -48503,6 +48529,7 @@ filetype
 filetypelist
 filetypes.inc.php
 fileupload
+FileUpload
 fileupload.asp
 fileupload.aspx
 fileupload.cfm
@@ -57461,6 +57488,7 @@ includeform.asp
 includeinc
 includelogin.aspx
 includes
+Includes
 includes2
 includes.inc
 includes.php
@@ -58528,6 +58556,7 @@ infinity
 inflation-print.htm
 influxdb
 info
+Info
 info1.html
 info1.php
 info2
@@ -61451,6 +61480,7 @@ jrun
 jrunscripts
 JS
 js
+Js
 js1
 js1.js
 js2
@@ -69233,6 +69263,7 @@ members_area.php
 members_img
 members_list
 members_list.php
+members_old
 members_only
 members_right.php
 membersarea
@@ -72475,6 +72506,7 @@ my_wishlist.asp
 myabracadaweb
 myacc_login.php
 myacceptedpayments.php
+MyAccount
 myAccount
 myaccount
 myaccount.asp
@@ -72496,6 +72528,7 @@ myad
 myadcom.php
 myaddressbook.php
 myadm
+myAdmin
 myadmin
 MyAdmin
 Myadmin
@@ -75865,6 +75898,7 @@ olap
 olate
 olbia-tempio.html
 olc
+OLD
 old
 old2
 old-catalog.php
@@ -76335,6 +76369,7 @@ opentools
 opentsdb
 openttd
 openui.log
+openurl
 openurl.asp
 openview
 openvmps
@@ -80777,6 +80812,7 @@ php_uploads
 phpad
 phpadm
 phpadm.php
+phpAdmin
 phpadmin
 phpadmin.php
 phpadmin/index.php
@@ -80854,8 +80890,10 @@ phpcompat.php
 phpconnect.php
 phpcounter
 phpdata.php
+phpdb
 phpdbadm.php
 phpdbadmin.php
+phpdev
 phpdig
 phpdoc
 phpdocumentor
@@ -80901,6 +80939,7 @@ phpfunctions
 phpgacl
 phpgb
 phpgedview
+phpgmailer
 phpgraphy
 phpgreetz
 phpgroupware
@@ -81301,6 +81340,7 @@ phpMyAdminREADME
 phpmyadminREADME
 phpMyAds
 phpmyagenda
+phpMyBackupPro
 phpmybackuppro
 phpmybibli
 phpmychat
@@ -81460,6 +81500,7 @@ phpThumb.php
 phpthumb.php
 phpthumb.unsharp.php
 phpThumbDebug
+phpthumbs
 phptmp
 phpunit
 phpunit.phar
@@ -81494,6 +81535,7 @@ phpwebsite
 phpwebstatistik
 phpwebthings
 phpwgetsitemap.php
+phpwhois
 phpwiki
 phpwind
 phpwishlist
@@ -82967,6 +83009,7 @@ portalhome
 portallogin.asp
 portallogin.php
 portalresults.mspx
+Portals
 portals
 portalsign.php
 portalsignin.php
@@ -84114,6 +84157,7 @@ privat.txt
 privat_bonus.php
 privat_products.php
 privat_wishlist.php
+Private
 private
 private2
 private2.php
@@ -85667,6 +85711,7 @@ provider.asp
 provider.html
 provider.tf
 providerlinks.php
+Providers
 providers
 providers.html
 providers.json
@@ -88706,6 +88751,7 @@ repomonkey
 repondre.php
 reponse.php
 repopulate
+Report
 report
 report2
 report2.php
@@ -88770,6 +88816,7 @@ reportlisting.php
 reportlocation.aspx
 reportproduct.aspx
 reportproduct.php
+Reports
 reports
 reports list
 reports-old
@@ -91664,6 +91711,7 @@ screenshots.html
 screenshots.php
 scribe
 scrips
+SCRIPT
 script
 script-shed
 script-solution.de
@@ -92376,6 +92424,7 @@ sectionspopoff
 sectiontemplate.php
 sector_fighters.php
 sectors
+Secure
 secure
 secure1
 secure2
@@ -95727,7 +95776,9 @@ site_cache
 site_cg/application/configs/application.ini
 site_database
 site_db
+site_development
 site_down.html
+site_error
 site_files
 site_flash
 site_functions.php
@@ -95757,11 +95808,13 @@ site_old
 site_product.php
 site_register.cfm
 site_report
+site_scripts
 site_search
 site_search.asp
 site_search.cfm
 site_search.html
 site_search.php
+site_settings
 site_specific
 site_test
 site_trailers
@@ -101878,6 +101931,7 @@ tembem.phtml
 temecula
 temes
 temes.php
+Temp
 temp
 TEMP
 temp1
@@ -101962,6 +102016,7 @@ tempfolder
 tempimage
 tempimages
 templ
+Template
 TEMPLATE
 template
 template1.html
@@ -106938,6 +106993,7 @@ uploadroot.aspx
 uploadroot.php
 uploadrootkit.asp
 uploadrootkit.php
+Uploads
 uploads
 uploads2
 uploads.asp
@@ -109338,7 +109394,7 @@ vc30
 vc-wiesbaden
 vc.aspx
 vc.htm
-vc/vc/interface/visit.jsp?type=\';alert(1);/
+vc/vc/interface/visit.jsp
 vcalendar
 vcard
 vcard4j
@@ -111336,6 +111392,7 @@ weather_test.php
 weatherbroad
 weave.htm
 weaverslave
+Web
 WEB
 web
 web1
@@ -112094,7 +112151,6 @@ webalyzer
 webapi/v1/system/accountmanage/account
 webapp
 webapp.php
-webapp/?fccc0\><script>alert(1)</script>5f43d=1
 webapp/auth
 webapp/log.dat
 webapp/log.log
@@ -112173,6 +112229,7 @@ webcontrol
 webcontrols
 webcopier
 webcortex
+webcron
 webcronsave.php
 webct
 webctrl_client
@@ -112210,7 +112267,9 @@ webdir.php
 webdirectory
 webdisk
 webdist
+webdoc
 webdocs
+webdownloads
 webdrive.php
 webdynamite
 webeasymail
@@ -112224,12 +112283,14 @@ WebEditor
 webeditor.php
 webeditor/filemanager
 webeditor/filemanagerbrowser.html
+webengine
 webenhancer
 weber
 webevent
 webevent.cgi
 webeveyn
 webex
+webface
 webfarm
 webfile
 webfilemanager
@@ -112275,6 +112336,7 @@ webhost
 webhosting
 webhosting.html
 webicons
+webilizer
 webim
 webimage
 webimages
@@ -112413,6 +112475,7 @@ webplayer
 webplus
 webportal
 webposition
+webproject
 webproject.asp
 webprojectdb
 webproxy
@@ -115268,6 +115331,7 @@ ws-client
 ws-client/loanCalculation.jsp
 ws.php
 ws.zip
+ws_addmin
 ws_admin
 WS_DataVersion.php
 WS_FTP

@@ -1280,12 +1280,36 @@ class Browser(Filter):
 
         getattr(getattr(self, '_Browser__debug', None), 'debug_header_bypass_finished', lambda *args, **kwargs: True)()
 
+    def __clear_filtered_progress(self):
+        """
+        Clear active rotating filtered-progress line before printing real findings.
+
+        Uses only carriage return and spaces, so it works on macOS, Linux and Windows
+        without relying on ANSI escape support.
+
+        :return: None
+        """
+
+        import sys
+
+        if getattr(self, '_Browser__filtered_progress_active', False) is not True:
+            return
+
+        last_length = getattr(self, '_Browser__filtered_progress_last_length', 0)
+        if last_length > 0:
+            sys.stdout.write('\r{0}\r'.format(' ' * last_length))
+            sys.stdout.flush()
+
+        self.__filtered_progress_active = False
+        self.__filtered_progress_last_length = 0
+
     def __emit_filtered_progress(self, bucket, response_data, metadata=None):
         """
-        Emit a throttled progress heartbeat for responses suppressed by filters/calibration.
+        Emit one-line rotating progress for responses suppressed by filters/calibration.
 
-        This prevents scans from looking frozen when most responses are intentionally
-        filtered out, while avoiding one visible line per suppressed response.
+        Suppressed responses are not findings and must not pollute stdout as persistent
+        lines. The rendered line is truncated to terminal width to avoid wrapping; wrapped
+        carriage-return progress can visually concatenate lines on macOS/Linux/Windows.
 
         :param str bucket: suppressed result bucket
         :param tuple response_data: classified response tuple
@@ -1293,6 +1317,10 @@ class Browser(Filter):
         :return: whether a progress line was emitted
         :rtype: bool
         """
+
+        import shutil
+        import sys
+        from datetime import datetime
 
         items_size = getattr(self.__pool, 'items_size', 0)
         total_size = getattr(self.__pool, 'total_items_size', 0)
@@ -1313,21 +1341,37 @@ class Browser(Filter):
                     '{0:.2f}'.format(float(score)) if isinstance(score, (int, float)) else score
                 )
 
-        tpl.info(
-            msg='{0:.1f}% [{1:06d}/{2}] - {3} - {4} - {5}{6} {7}'.format(
-                percent,
-                items_size,
-                total_size,
-                bucket,
-                response_code,
-                content_size,
-                details,
-                response_url
-            )
+        message = '[{0}] info:    {1:.1f}% [{2:06d}/{3}] - {4} - {5} - {6}{7} {8}'.format(
+            datetime.now().strftime('%H:%M:%S'),
+            percent,
+            items_size,
+            total_size,
+            bucket,
+            response_code,
+            content_size,
+            details,
+            response_url
         )
 
-        return True
+        try:
+            terminal_width = shutil.get_terminal_size((120, 24)).columns
+        except (AttributeError, OSError, ValueError):
+            terminal_width = 120
 
+        max_length = max(40, int(terminal_width) - 1)
+        if len(message) > max_length:
+            message = '{0}...'.format(message[:max_length - 3])
+
+        last_length = getattr(self, '_Browser__filtered_progress_last_length', 0)
+        clear_length = max(last_length, len(message))
+
+        sys.stdout.write('\r{0}\r{1}'.format(' ' * clear_length, message))
+        sys.stdout.flush()
+
+        self.__filtered_progress_last_length = len(message)
+        self.__filtered_progress_active = True
+
+        return True
 
     def __http_request(self, url, depth=0):
         """
@@ -1397,6 +1441,7 @@ class Browser(Filter):
                 return
             debug_response_data = getattr(self.__response, 'debug_response_data', None)
             if callable(debug_response_data):
+                self.__clear_filtered_progress()
                 debug_response_data(
                     response_data,
                     request_url=url,
