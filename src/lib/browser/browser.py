@@ -310,19 +310,74 @@ class Browser(Filter):
 
     def __fingerprint_progress(self, current, total, label):
         """
-        Print fingerprinting progress on one dynamic logger-formatted console line.
+        Render fingerprint progress as rotating single-line output.
+
+        Intermediate fingerprint stages are transient progress and should update
+        in-place. The final "done" stage is printed as a persistent logger line.
 
         :param int current: current progress position
         :param int total: total progress positions
-        :param str label: current fingerprinting stage
+        :param str label: current fingerprint stage
         :return: None
         """
 
-        bar = self.__render_fingerprint_bar(current, total)
-        tpl.line_log(key='fingerprint_progress', status='debug', bar=bar, stage=label)
+        import shutil
+        import sys
+        from datetime import datetime
 
-        if int(current or 0) >= int(total or 1):
-            output.writeln('')
+        try:
+            current_value = int(current or 0)
+            total_value = int(total or 0)
+        except (TypeError, ValueError):
+            current_value = 0
+            total_value = 0
+
+        percent = 0.0
+        if total_value > 0:
+            percent = min(100.0, max(0.0, (float(current_value) / float(total_value)) * 100.0))
+
+        bar_width = 24
+        filled = int(round((percent / 100.0) * bar_width))
+        filled = min(bar_width, max(0, filled))
+        bar = '[{0}{1}] {2:.1f}%'.format('#' * filled, '-' * (bar_width - filled), percent)
+
+        progress_message = 'Fingerprint {0} {1}'.format(bar, label)
+
+        if str(label) == 'done':
+            if getattr(self, '_Browser__fingerprint_progress_active', False) is True:
+                last_length = getattr(self, '_Browser__fingerprint_progress_last_length', 0)
+                if last_length > 0:
+                    sys.stdout.write('\r{0}\r'.format(' ' * last_length))
+                    sys.stdout.flush()
+
+            self.__fingerprint_progress_active = False
+            self.__fingerprint_progress_last_length = 0
+            tpl.info(msg=progress_message)
+            return
+
+        message = '[{0}] info:    {1}'.format(
+            datetime.now().strftime('%H:%M:%S'),
+            progress_message
+        )
+
+        try:
+            terminal_width = shutil.get_terminal_size((120, 24)).columns
+        except (AttributeError, OSError, ValueError):
+            terminal_width = 120
+
+        max_length = max(40, int(terminal_width) - 1)
+        if len(message) > max_length:
+            message = '{0}...'.format(message[:max_length - 3])
+
+        last_length = getattr(self, '_Browser__fingerprint_progress_last_length', 0)
+        clear_length = max(last_length, len(message))
+
+        sys.stdout.write('\r{0}\r{1}'.format(' ' * clear_length, message))
+        sys.stdout.flush()
+
+        self.__fingerprint_progress_last_length = len(message)
+        self.__fingerprint_progress_active = True
+
 
     @staticmethod
     def __normalize_fingerprint_summary_value(value, default='unknown'):

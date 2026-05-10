@@ -59,6 +59,7 @@ class FileResponsePlugin(ResponsePluginProvider):
         'application/xml',
         'text/xml',
         'application/xhtml+xml',
+        'application/x-shockwave-flash',
         'image/svg+xml',
     )
 

@@ -776,5 +776,103 @@ class TestCalibration(unittest.TestCase):
         self.assertFalse(Calibration._is_soft_200_shape_match(baseline, candidate))
 
 
+    def test_calibration_soft_200_numeric_helpers_should_cover_edges(self):
+        """Soft-200 numeric helpers should cover invalid and zero-value edges."""
+
+        self.assertEqual(Calibration._soft_200_number('bad'), 0.0)
+        self.assertEqual(Calibration._soft_200_number(None), 0.0)
+        self.assertEqual(Calibration._soft_200_number(3), 3.0)
+
+        self.assertEqual(Calibration._soft_200_similarity(0, 0), 1.0)
+        self.assertEqual(Calibration._soft_200_similarity(0, 10), 0.0)
+        self.assertEqual(Calibration._soft_200_similarity(10, 0), 0.0)
+        self.assertGreater(Calibration._soft_200_similarity(100, 99), 0.98)
+
+    def test_calibration_soft_200_signature_and_list_helpers_should_cover_edges(self):
+        """Soft-200 helper lookups and list similarity should cover edge paths."""
+
+        self.assertEqual(Calibration._soft_200_signature_value({'a': 1}, 'x', 'a'), 1)
+        self.assertIsNone(Calibration._soft_200_signature_value({'a': 1}, 'x', 'y'))
+
+        self.assertEqual(Calibration._soft_200_list_similarity([], []), 1.0)
+        self.assertEqual(Calibration._soft_200_list_similarity(['a'], []), 0.0)
+        self.assertEqual(Calibration._soft_200_list_similarity([], ['a']), 0.0)
+        self.assertEqual(Calibration._soft_200_list_similarity(['a', 'b'], ['b', 'c']), 1.0 / 3.0)
+
+    def test_calibration_soft_200_shape_should_cover_negative_branches(self):
+        """Soft-200 shape matching should reject mismatched signatures before positive signals."""
+
+        baseline = {
+            'code': 200,
+            'bucket': 'success',
+            'content_kind': 'html',
+            'size': 10000,
+            'word_count': 1000,
+            'line_count': 100,
+            'text_density': 0.50,
+            'body_skeleton_hash': 'body-a',
+            'dom_token_hash': 'dom-a',
+            'dom_tokens': ['html', 'body', 'main', 'ul', 'li'],
+            'title': 'Portal',
+        }
+
+        candidate = dict(baseline)
+
+        cases = [
+            (dict(baseline, code=404), candidate),
+            (baseline, dict(candidate, code=404)),
+            (dict(baseline, bucket='ignored'), candidate),
+            (baseline, dict(candidate, bucket='ignored')),
+            (dict(baseline, content_kind='json'), candidate),
+            (baseline, dict(candidate, content_kind='json')),
+            (dict(baseline, size=100), candidate),
+            (baseline, dict(candidate, size=100)),
+            (baseline, dict(candidate, size=9000)),
+            (baseline, dict(candidate, word_count=100)),
+            (baseline, dict(candidate, line_count=10)),
+            (baseline, dict(candidate, text_density=0.75)),
+        ]
+
+        for left, right in cases:
+            self.assertFalse(Calibration._is_soft_200_shape_match(left, right))
+
+    def test_calibration_soft_200_shape_should_cover_title_and_dom_positive_paths(self):
+        """Soft-200 shape matching should cover title and DOM-token positive fallbacks."""
+
+        baseline = {
+            'code': 200,
+            'bucket': 'success',
+            'content_kind': 'html',
+            'size': 10000,
+            'word_count': 1000,
+            'line_count': 100,
+            'text_density': 0.50,
+            'body_skeleton_hash': 'body-a',
+            'dom_token_hash': 'dom-a',
+            'dom_tokens': ['html', 'body', 'main', 'ul', 'li'],
+            'title': 'Portal',
+        }
+
+        title_candidate = dict(baseline)
+        title_candidate.update({
+            'size': 9990,
+            'body_skeleton_hash': 'body-b',
+            'dom_token_hash': 'dom-b',
+            'dom_tokens': ['x', 'y', 'z'],
+        })
+
+        self.assertTrue(Calibration._is_soft_200_shape_match(baseline, title_candidate))
+
+        dom_candidate = dict(baseline)
+        dom_candidate.update({
+            'title': 'Different',
+            'body_skeleton_hash': 'body-b',
+            'dom_token_hash': 'dom-b',
+            'dom_tokens': ['html', 'body', 'main', 'ul', 'li'],
+        })
+
+        self.assertTrue(Calibration._is_soft_200_shape_match(baseline, dom_candidate))
+
+
 if __name__ == '__main__':
     unittest.main()
