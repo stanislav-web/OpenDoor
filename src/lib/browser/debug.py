@@ -391,7 +391,8 @@ class Debug(DebugProvider):
             waf_name=None,
             waf_confidence=None,
             signals=None,
-            redirect_uri=None
+            redirect_uri=None,
+            stacktrace_detection=None
     ):
         """Debug response classification summary."""
 
@@ -415,5 +416,14 @@ class Debug(DebugProvider):
 
         if signals:
             tpl.debug(msg='WAF signals: {0}'.format(', '.join([str(signal) for signal in signals])))
+
+        if stacktrace_detection:
+            tpl.debug(
+                msg='StackTrace detection: runtime={0}; signal={1}; confidence={2}'.format(
+                    stacktrace_detection.get('runtime') or '-',
+                    stacktrace_detection.get('signal') or '-',
+                    stacktrace_detection.get('confidence') or '-'
+                )
+            )
 
         return True

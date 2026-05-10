@@ -292,5 +292,35 @@ class TestBrowserDebugCoverageOnly(unittest.TestCase):
         self.assertTrue(any('WAF signals: header:cf-ray' in message for message in messages))
 
 
+    def test_debug_classification_should_log_stacktrace_detection_metadata(self):
+        """Debug classification should accept and log stacktrace metadata."""
+
+        debug = self.make_debug({'debug': 3, 'reports': 'std'})
+        detection = {
+            'type': 'stacktrace',
+            'runtime': 'PHP',
+            'signal': 'Fatal error',
+            'confidence': 95,
+        }
+
+        with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
+            result = debug.debug_classification(
+                'stacktrace',
+                code=200,
+                size='796B',
+                stacktrace_detection=detection,
+            )
+
+        self.assertTrue(result)
+        messages = [
+            call.kwargs.get('msg')
+            for call in debug_mock.call_args_list
+            if call.kwargs.get('msg')
+        ]
+
+        self.assertIn('Classification: stacktrace; code=200; size=796B', messages)
+        self.assertIn('StackTrace detection: runtime=PHP; signal=Fatal error; confidence=95', messages)
+
+
 if __name__ == '__main__':
     unittest.main()

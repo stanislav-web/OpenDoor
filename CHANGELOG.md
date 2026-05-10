@@ -4,6 +4,7 @@ v5.16.0 (@TODO)
 ---------------------------
 - (fix) renamed `--sniff stacktrace` findings from the generic `debug` bucket to the dedicated `stacktrace` bucket across runtime output, summaries and reports, with `stacktrace_detection` metadata and PHP fatal-error detection without the `PHP` prefix.
 - (fix) made HTML report status tabs work as anchor-backed navigation with JavaScript filtering as progressive enhancement, improving large report responsiveness and browser compatibility.
+- (dependencies) removed unused `six` and replaced `tabulate` in the STD summary reporter with a native psql-like table formatter.
 
 v5.15.3 (09.05.2026)
 ---------------------------
