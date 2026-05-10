@@ -126,18 +126,18 @@ class PluginProvider(object):
 
             value = '{0} | {1}'.format(value, ', '.join(details))
 
-        debug_detection = item.get('debug_detection')
-        if isinstance(debug_detection, dict):
-            details = ['debug={0}'.format(debug_detection.get('type', 'debug'))]
+        stacktrace_detection = item.get('stacktrace_detection')
+        if isinstance(stacktrace_detection, dict):
+            details = ['stacktrace={0}'.format(stacktrace_detection.get('type', 'stacktrace'))]
 
-            if debug_detection.get('runtime'):
-                details.append('runtime={0}'.format(debug_detection.get('runtime')))
+            if stacktrace_detection.get('runtime'):
+                details.append('runtime={0}'.format(stacktrace_detection.get('runtime')))
 
-            if debug_detection.get('signal'):
-                details.append('signal={0}'.format(debug_detection.get('signal')))
+            if stacktrace_detection.get('signal'):
+                details.append('signal={0}'.format(stacktrace_detection.get('signal')))
 
-            if debug_detection.get('confidence') is not None:
-                details.append('confidence={0}%'.format(debug_detection.get('confidence')))
+            if stacktrace_detection.get('confidence') is not None:
+                details.append('confidence={0}%'.format(stacktrace_detection.get('confidence')))
 
             value = '{0} | {1}'.format(value, ', '.join(details))
 

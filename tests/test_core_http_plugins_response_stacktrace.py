@@ -25,7 +25,7 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
 
     def assert_detection(self, body, runtime, signal, confidence=80, headers=None):
         """
-        Assert that a response body is classified as debug stacktrace.
+        Assert that a response body is classified as stacktrace.
 
         :param str body: response body
         :param str runtime: expected runtime family
@@ -41,8 +41,8 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
             headers=headers or {'Content-Type': 'text/plain; charset=utf-8'},
         )
 
-        self.assertEqual(plugin.process(response), 'debug')
-        detection = getattr(response, 'opendoor_debug_detection')
+        self.assertEqual(plugin.process(response), 'stacktrace')
+        detection = getattr(response, 'opendoor_stacktrace_detection')
         self.assertEqual(detection['type'], 'stacktrace')
         self.assertEqual(detection['runtime'], runtime)
         self.assertEqual(detection['signal'], signal)
@@ -113,9 +113,9 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
         normal = self.make_response(body=b'<html><body>Server error</body></html>', headers={'Content-Type': 'text/html'})
 
         self.assertIsNone(plugin.process(binary))
-        self.assertFalse(hasattr(binary, 'opendoor_debug_detection'))
+        self.assertFalse(hasattr(binary, 'opendoor_stacktrace_detection'))
         self.assertIsNone(plugin.process(normal))
-        self.assertFalse(hasattr(normal, 'opendoor_debug_detection'))
+        self.assertFalse(hasattr(normal, 'opendoor_stacktrace_detection'))
 
     def test_ignores_empty_or_statusless_responses(self):
         """Should ignore empty responses and malformed response objects."""
@@ -135,14 +135,14 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
             'headers': {'content-type': 'text/plain; charset=utf-8'},
         })()
 
-        self.assertEqual(plugin.process(response), 'debug')
-        self.assertEqual(getattr(response, 'opendoor_debug_detection')['runtime'], 'python')
+        self.assertEqual(plugin.process(response), 'stacktrace')
+        self.assertEqual(getattr(response, 'opendoor_stacktrace_detection')['runtime'], 'python')
 
         plugin = StacktraceResponsePlugin(None)
         response = self.make_response(body=b'Traceback (most recent call last):', headers={})
 
-        self.assertEqual(plugin.process(response), 'debug')
-        self.assertEqual(getattr(response, 'opendoor_debug_detection')['runtime'], 'python')
+        self.assertEqual(plugin.process(response), 'stacktrace')
+        self.assertEqual(getattr(response, 'opendoor_stacktrace_detection')['runtime'], 'python')
 
     def test_accepts_vendor_json_and_xml_suffix_content_types(self):
         """Should inspect vendor structured content types ending with +json or +xml."""
@@ -170,4 +170,4 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
         )
 
         self.assertIsNone(plugin.process(response))
-        self.assertFalse(hasattr(response, 'opendoor_debug_detection'))
+        self.assertFalse(hasattr(response, 'opendoor_stacktrace_detection'))

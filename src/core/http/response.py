@@ -105,6 +105,7 @@ class Response(ResponseProvider):
                 content_size = ResponseProvider._get_content_size(response)
                 response_code = str(response.status)
                 waf_detection = self.waf_detection if status == self.DEFAULT_WAF_STATUS else None
+                stacktrace_detection = getattr(response, 'opendoor_stacktrace_detection', None) if status == 'stacktrace' else None
 
                 if status in ['redirect']:
                     redirect_uri = self._get_redirect_url(request_url, response)
@@ -133,6 +134,7 @@ class Response(ResponseProvider):
                     response_code=response_code,
                     waf_name=waf_detection.get('name') if waf_detection else None,
                     waf_confidence=waf_detection.get('confidence') if waf_detection else None,
+                    stacktrace_detection=stacktrace_detection,
                 )
                 getattr(self.__debug, 'debug_classification', lambda *args, **kwargs: True)(
                     status=status,
@@ -141,7 +143,8 @@ class Response(ResponseProvider):
                     waf_name=waf_detection.get('name') if waf_detection else None,
                     waf_confidence=waf_detection.get('confidence') if waf_detection else None,
                     signals=waf_detection.get('signals') if waf_detection else None,
-                    redirect_uri=redirect_uri
+                    redirect_uri=redirect_uri,
+                    stacktrace_detection=stacktrace_detection,
                 )
 
                 return status, url, content_size, response_code

@@ -1407,7 +1407,7 @@ def _get_columns(items):
         'bypass_to_code',
         'bypass_score',
         'bypass_reasons',
-        'debug_detection',
+        'stacktrace_detection',
     ]
 
     existing = []

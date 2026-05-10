@@ -87,10 +87,10 @@ class SqliteReportPlugin(PluginProvider):
                 'bypass_to_code TEXT, '
                 'bypass_score INTEGER, '
                 'bypass_reasons TEXT, '
-                'debug_detection TEXT, '
-                'debug_runtime TEXT, '
-                'debug_signal TEXT, '
-                'debug_confidence INTEGER'
+                'stacktrace_detection TEXT, '
+                'stacktrace_runtime TEXT, '
+                'stacktrace_signal TEXT, '
+                'stacktrace_confidence INTEGER'
                 ')'
             )
             cursor.execute(
@@ -155,9 +155,9 @@ class SqliteReportPlugin(PluginProvider):
             rows = []
             for status in self._data.get('items', {}).keys():
                 for item in self.get_report_items(status):
-                    debug_detection = item.get('debug_detection')
-                    if not isinstance(debug_detection, dict):
-                        debug_detection = {}
+                    stacktrace_detection = item.get('stacktrace_detection')
+                    if not isinstance(stacktrace_detection, dict):
+                        stacktrace_detection = {}
 
                     rows.append(
                         (
@@ -179,10 +179,10 @@ class SqliteReportPlugin(PluginProvider):
                             None if item.get('bypass_reasons') is None else ';'.join([
                                 str(reason) for reason in item.get('bypass_reasons', [])
                             ]),
-                            None if debug_detection.get('type') is None else str(debug_detection.get('type')),
-                            None if debug_detection.get('runtime') is None else str(debug_detection.get('runtime')),
-                            None if debug_detection.get('signal') is None else str(debug_detection.get('signal')),
-                            None if debug_detection.get('confidence') is None else int(debug_detection.get('confidence')),
+                            None if stacktrace_detection.get('type') is None else str(stacktrace_detection.get('type')),
+                            None if stacktrace_detection.get('runtime') is None else str(stacktrace_detection.get('runtime')),
+                            None if stacktrace_detection.get('signal') is None else str(stacktrace_detection.get('signal')),
+                            None if stacktrace_detection.get('confidence') is None else int(stacktrace_detection.get('confidence')),
                         )
                     )
 
@@ -192,7 +192,7 @@ class SqliteReportPlugin(PluginProvider):
                     'status, url, code, size, '
                     'bypass, bypass_profile, bypass_header, bypass_value, bypass_variant, bypass_url, '
                     'bypass_from_status, bypass_to_status, bypass_from_code, bypass_to_code, '
-                    'bypass_score, bypass_reasons, debug_detection, debug_runtime, debug_signal, debug_confidence'
+                    'bypass_score, bypass_reasons, stacktrace_detection, stacktrace_runtime, stacktrace_signal, stacktrace_confidence'
                     ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     rows
                 )

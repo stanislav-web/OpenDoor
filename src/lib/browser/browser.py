@@ -1193,7 +1193,7 @@ class Browser(Filter):
         if self.__calibration is None:
             return None
 
-        if response_data is not None and len(response_data) > 0 and response_data[0] == 'debug':
+        if response_data is not None and len(response_data) > 0 and response_data[0] == 'stacktrace':
             return None
 
         return self.__calibration.match(response_object, response_data)
@@ -1302,7 +1302,7 @@ class Browser(Filter):
                 return
 
             waf_detection = None
-            debug_detection = getattr(resp, 'opendoor_debug_detection', None)
+            stacktrace_detection = getattr(resp, 'opendoor_stacktrace_detection', None)
 
             if response_data[0] == 'blocked':
                 waf_detection = getattr(self.__response, 'waf_detection', None)
@@ -1336,8 +1336,8 @@ class Browser(Filter):
                 metadata = {}
                 if isinstance(waf_detection, dict):
                     metadata.update(waf_detection)
-                if isinstance(debug_detection, dict):
-                    metadata['debug_detection'] = dict(debug_detection)
+                if isinstance(stacktrace_detection, dict):
+                    metadata['stacktrace_detection'] = dict(stacktrace_detection)
                 if len(metadata) == 0:
                     metadata = None
 
@@ -1693,8 +1693,8 @@ class Browser(Filter):
                 item['bypass_score'] = int(metadata.get('bypass_score'))
             if metadata.get('bypass_reasons'):
                 item['bypass_reasons'] = list(metadata.get('bypass_reasons'))
-            if isinstance(metadata.get('debug_detection'), dict):
-                item['debug_detection'] = dict(metadata.get('debug_detection'))
+            if isinstance(metadata.get('stacktrace_detection'), dict):
+                item['stacktrace_detection'] = dict(metadata.get('stacktrace_detection'))
 
         self.__result['total'].update((status,))
         self.__result['items'][status] += [url]

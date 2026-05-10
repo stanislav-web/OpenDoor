@@ -426,7 +426,7 @@ Never commit real OpenVPN profiles, WireGuard private keys, auth files, or produ
 Configure report formats:
 
 ```ini
-reports = std,json,html,sqlite,csv
+reports = std,json,html,sqlite,csv,sarif
 ```
 
 Custom reports directory:
@@ -445,6 +445,7 @@ Common formats:
 | `html`   | Human-readable report                         |
 | `csv`    | Column-separated report                       |
 | `sqlite` | Structured local database for post-processing |
+| `sarif`  | SARIF 2.1.0 output for CI/CD code scanning |
 
 Header-bypass metadata is preserved in reports when `header_bypass = True` finds a candidate. CSV and SQLite expose dedicated bypass fields, while JSON and HTML preserve full `report_items` metadata.
 

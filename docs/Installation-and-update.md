@@ -134,7 +134,7 @@ docker pull ghcr.io/stanislav-web/opendoor:latest
 Verify the image:
 
 ```shell
-docker run --rm ghcr.io/stanislav-web/opendoor:latest --version
+docker run --rm -it ghcr.io/stanislav-web/opendoor:latest --version
 docker run --rm ghcr.io/stanislav-web/opendoor:latest --help
 ```
 
@@ -169,8 +169,8 @@ docker run --rm \
 Use a pinned release tag for reproducible runs:
 
 ```shell
-docker pull ghcr.io/stanislav-web/opendoor:5.14.0
-docker run --rm ghcr.io/stanislav-web/opendoor:5.14.0 --version
+docker pull ghcr.io/stanislav-web/opendoor:latest
+docker run --rm ghcr.io/stanislav-web/opendoor:latest --version
 ```
 
 ---

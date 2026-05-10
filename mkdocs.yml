@@ -2,13 +2,13 @@
 site_name: OpenDoor
 site_url: https://opendoor.readthedocs.io/
 repo_url: https://github.com/stanislav-web/OpenDoor
-repo_name: stanislav-web/OpenDoor
+repo_name: GitHub
 site_description: Open-source CLI scanner for authorized web reconnaissance, directory discovery, and exposure assessment.
 site_author: OpenDoor contributors
-copyright: Copyright © 2017-2026 OpenDoor contributors
+copyright: Copyright © 2016-2026 OpenDoor contributors
 
 extra:
-  homepage: https://github.com/stanislav-web/OpenDoor
+  homepage: OpenDoor
 
 nav:
   - Home: index.md
@@ -44,5 +44,16 @@ nav:
       - Changelog: Changelog.md
       - License: License.md
 
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
 theme:
   name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - shell
+  sticky_navigation: true

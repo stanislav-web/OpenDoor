@@ -181,7 +181,7 @@ Detects exposed debug stack traces and verbose internal error details.
 opendoor --host https://example.com --sniff stacktrace
 ```
 
-The `stacktrace` sniffer classifies matching responses into the `debug` bucket and attaches a `debug_detection` metadata object to detailed reports.
+The `stacktrace` sniffer classifies matching responses into the `stacktrace` bucket and attaches a `stacktrace_detection` metadata object to detailed reports.
 It is useful for fingerprinting runtime leaks in error responses, including Python, Node.js, NestJS, PHP, Java and SQL error patterns.
 
 Example:

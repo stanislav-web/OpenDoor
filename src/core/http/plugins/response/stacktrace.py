@@ -25,7 +25,7 @@ class StacktraceResponsePlugin(ResponsePluginProvider):
     """Detect exposed stack traces and debug error details."""
 
     DESCRIPTION = 'Stacktrace (detect exposed debug stack traces and internal error details)'
-    RESPONSE_INDEX = 'debug'
+    RESPONSE_INDEX = 'stacktrace'
 
     TEXTUAL_CONTENT_TYPES = (
         '',
@@ -78,7 +78,7 @@ class StacktraceResponsePlugin(ResponsePluginProvider):
             'runtime': 'php',
             'signal': 'php-error',
             'confidence': 90,
-            'pattern': re.compile(r'PHP\s+(Fatal\s+error|Warning|Parse\s+error|Notice)', re.IGNORECASE),
+            'pattern': re.compile(r'(?:PHP\s+)?(Fatal\s+error|Warning|Parse\s+error|Notice)', re.IGNORECASE),
         },
         {
             'runtime': 'mysql',
@@ -187,10 +187,10 @@ class StacktraceResponsePlugin(ResponsePluginProvider):
     @staticmethod
     def _build_detection(signal):
         """
-        Build stacktrace debug detection metadata.
+        Build stacktrace detection metadata.
 
         :param dict signal: matched signal definition
-        :return: debug detection metadata
+        :return: stacktrace detection metadata
         :rtype: dict
         """
 
@@ -222,7 +222,7 @@ class StacktraceResponsePlugin(ResponsePluginProvider):
 
         for signal in self.SIGNALS:
             if signal.get('pattern').search(self._body):
-                setattr(response, 'opendoor_debug_detection', self._build_detection(signal))
+                setattr(response, 'opendoor_stacktrace_detection', self._build_detection(signal))
                 return self.RESPONSE_INDEX
 
         return None

@@ -14,10 +14,10 @@ OpenDoor follows semantic versioning conventions:
 
 Security fixes are normally provided only for the latest stable release line.
 
-| Version | Supported | Notes |
-| ------- | --------- | ----- |
-| 5.14.x  | ✅        | Current stable release line. |
-| < 5.14  | ❌        | Please upgrade to the latest 5.14.x release. |
+| Version                       | Supported | Notes                                                     |
+|-------------------------------| --------- |-----------------------------------------------------------|
+| 5.15.x                        | ✅        | Current stable release line.                              |
+| < 5.15                        | ❌        | Please upgrade to the latest 5.15.x release.              |
 | `main` / development branches | ❌ | Development branches are not supported release artifacts. |
 
 When a new minor or major release line becomes current, this table should be updated accordingly.

@@ -112,9 +112,9 @@ OpenDoor follows semantic versioning conventions:
 Examples:
 
 ```text
-5.12.x  Patch updates within the 5.12 line
-5.13.0  New feature release
-6.0.0   Major platform or compatibility release
+1.1.x  Patch updates within the 1.1 line
+1.x.0  New feature release
+x.0.0   Major platform or compatibility release
 ```
 
 ---

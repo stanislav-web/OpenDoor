@@ -57,6 +57,8 @@ results.sarif
 
 # Misc
 TODO
+ROADMAP.md
+
 # Local transport profiles may contain secrets.
 data/wireguard-profiles/*.conf
 !data/wireguard-profiles/example.conf

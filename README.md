@@ -171,7 +171,7 @@ OpenDoor is available as an official project Docker image via GitHub Container R
 
 ```bash
 docker pull ghcr.io/stanislav-web/opendoor:latest
-docker run --rm ghcr.io/stanislav-web/opendoor:latest --version
+docker run --rm -it ghcr.io/stanislav-web/opendoor:latest --version
 ```
 
 Run a scan and write reports to the host:
@@ -278,13 +278,13 @@ Useful sniffers include:
 
 | Sniffer | Purpose |
 |---|---|
-| `stacktrace` | Detect exposed debug/runtime stack traces and internal error details. Findings are reported under the `debug` bucket with `debug_detection` metadata. |
 | `indexof` | Detect directory listing pages. |
 | `file` | Detect known sensitive file exposure patterns. |
 | `collation` | Detect database collation / SQL error responses. |
 | `skipempty` | Skip empty responses. |
 | `skipsizes=46` | Skip responses with exact known noisy sizes. |
 | `skipsizes=46:1024` | Skip responses inside a noisy size range. |
+| `stacktrace` | Detect exposed debug/runtime stack traces and internal error details. |
 
 Body-dependent sniffers automatically force `GET` internally when the configured method is `HEAD`.
 

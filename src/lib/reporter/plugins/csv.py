@@ -52,10 +52,10 @@ class CsvReportPlugin(PluginProvider):
         'bypass_to_code',
         'bypass_score',
         'bypass_reasons',
-        'debug_detection',
-        'debug_runtime',
-        'debug_signal',
-        'debug_confidence',
+        'stacktrace_detection',
+        'stacktrace_runtime',
+        'stacktrace_signal',
+        'stacktrace_confidence',
         'fingerprint_category',
         'fingerprint_name',
         'fingerprint_confidence',
@@ -238,19 +238,19 @@ class CsvReportPlugin(PluginProvider):
                     'bypass_to_code': '' if item.get('bypass_to_code') is None else str(item.get('bypass_to_code')),
                     'bypass_score': '' if item.get('bypass_score') is None else str(item.get('bypass_score')),
                     'bypass_reasons': self.__format_list(item.get('bypass_reasons', [])),
-                    'debug_detection': '',
-                    'debug_runtime': '',
-                    'debug_signal': '',
-                    'debug_confidence': '',
+                    'stacktrace_detection': '',
+                    'stacktrace_runtime': '',
+                    'stacktrace_signal': '',
+                    'stacktrace_confidence': '',
                 }
-                debug_detection = item.get('debug_detection')
-                if isinstance(debug_detection, dict):
+                stacktrace_detection = item.get('stacktrace_detection')
+                if isinstance(stacktrace_detection, dict):
                     row.update({
-                        'debug_detection': str(debug_detection.get('type', '')),
-                        'debug_runtime': str(debug_detection.get('runtime', '')),
-                        'debug_signal': str(debug_detection.get('signal', '')),
-                        'debug_confidence': '' if debug_detection.get('confidence') is None else str(
-                            debug_detection.get('confidence')
+                        'stacktrace_detection': str(stacktrace_detection.get('type', '')),
+                        'stacktrace_runtime': str(stacktrace_detection.get('runtime', '')),
+                        'stacktrace_signal': str(stacktrace_detection.get('signal', '')),
+                        'stacktrace_confidence': '' if stacktrace_detection.get('confidence') is None else str(
+                            stacktrace_detection.get('confidence')
                         ),
                     })
                 row.update(fingerprint_fields)

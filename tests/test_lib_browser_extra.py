@@ -562,13 +562,13 @@ class TestBrowserExtra(unittest.TestCase):
         self.assertIsNone(br._Browser__match_dns_wildcard_response('not-a-url'))
         br._Browser__calibration.match_dns_wildcard.assert_not_called()
 
-    def test_calibration_match_skips_debug_bucket(self):
-        """Auto-calibration should never suppress high-value debug findings."""
+    def test_calibration_match_skips_stacktrace_bucket(self):
+        """Auto-calibration should never suppress high-value stacktrace findings."""
 
         br = self.make_browser(is_auto_calibrate=True)
         br._Browser__calibration = SimpleNamespace(match=MagicMock(return_value={'score': 1.0}))
 
-        actual = br._Browser__match_calibrated_response(object(), ('debug', 'http://example.com/error', '1KB', '500'))
+        actual = br._Browser__match_calibrated_response(object(), ('stacktrace', 'http://example.com/error', '1KB', '500'))
 
         self.assertIsNone(actual)
         br._Browser__calibration.match.assert_not_called()
@@ -583,14 +583,14 @@ class TestBrowserExtra(unittest.TestCase):
 
         br._Browser__debug.debug_header_bypass_skipped.assert_called_once_with(403)
 
-    def test_http_request_merges_debug_detection_metadata_into_report_item(self):
-        """HTTP request flow should keep stacktrace metadata on accepted debug findings."""
+    def test_http_request_merges_stacktrace_detection_metadata_into_report_item(self):
+        """HTTP request flow should keep stacktrace metadata on accepted stacktrace findings."""
 
         br = self.make_browser(is_recursive=False)
         response = SimpleNamespace(
             data=b'Traceback (most recent call last):',
             headers={'Content-Type': 'text/plain'},
-            opendoor_debug_detection={
+            opendoor_stacktrace_detection={
                 'type': 'stacktrace',
                 'runtime': 'python',
                 'signal': 'python-traceback',
@@ -598,15 +598,15 @@ class TestBrowserExtra(unittest.TestCase):
             },
         )
         br._Browser__client.request.return_value = response
-        br._Browser__response.handle.return_value = ('debug', 'http://example.com/error', '1KB', '500')
+        br._Browser__response.handle.return_value = ('stacktrace', 'http://example.com/error', '1KB', '500')
         br._Browser__header_bypass = SimpleNamespace(should_probe=MagicMock(return_value=False))
         br._Browser__calibration = None
 
         br._Browser__http_request('http://example.com/error')
 
         self.assertEqual(
-            br._Browser__result['report_items']['debug'][0]['debug_detection'],
-            response.opendoor_debug_detection,
+            br._Browser__result['report_items']['stacktrace'][0]['stacktrace_detection'],
+            response.opendoor_stacktrace_detection,
         )
 
 
