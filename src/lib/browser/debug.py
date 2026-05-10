@@ -221,6 +221,12 @@ class Debug(DebugProvider):
                 tpl.line(msg='StackTrace', color='red'),
                 tpl.line(msg=urlpath, color='green')
             )
+        elif status in ['shadow']:
+            request_uri = '{0} ({1}) {2}'.format(
+                tpl.line(msg='OK', color='green'),
+                tpl.line(msg='Shadow', color='red'),
+                tpl.line(msg=urlpath, color='green')
+            )
         elif status in ['bad', 'forbidden']:
             request_uri = tpl.line(key='forbidden', color='yellow', url=urlpath)
         elif status in ['redirect']:
@@ -239,7 +245,7 @@ class Debug(DebugProvider):
 
         self.__clear = True if self.__catched else False
 
-        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'blocked', 'indexof', 'certificate', 'auth', 'stacktrace']:
+        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'blocked', 'indexof', 'certificate', 'auth', 'stacktrace', 'shadow']:
             sys.writels('', flush=True)
             tpl.info(
                 key='get_item',
@@ -393,7 +399,8 @@ class Debug(DebugProvider):
             signals=None,
             redirect_uri=None,
             stacktrace_detection=None,
-            secret_detection=None
+            secret_detection=None,
+            shadow_detection=None
     ):
         """Debug response classification summary."""
 
@@ -434,6 +441,15 @@ class Debug(DebugProvider):
                     stacktrace_detection.get('runtime') or '-',
                     stacktrace_detection.get('signal') or '-',
                     stacktrace_detection.get('confidence') or '-'
+                )
+            )
+
+        if shadow_detection:
+            tpl.debug(
+                msg='Shadow detection: base={0}; variant={1}; confidence={2}'.format(
+                    shadow_detection.get('base_url') or '-',
+                    shadow_detection.get('variant') or '-',
+                    shadow_detection.get('confidence') or '-'
                 )
             )
 

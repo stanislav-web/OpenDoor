@@ -51,6 +51,7 @@ class SarifReportPlugin(PluginProvider):
         'calibrated': 'note',
         'stacktrace': 'warning',
         'secret': 'warning',
+        'shadow': 'warning',
     }
     SECURITY_SEVERITY_BY_STATUS = {
         'success': '5.0',
@@ -67,6 +68,7 @@ class SarifReportPlugin(PluginProvider):
         'calibrated': '0.1',
         'stacktrace': '5.0',
         'secret': '7.0',
+        'shadow': '6.5',
     }
     RULE_NAMES = {
         'success': 'Exposed HTTP resource',
@@ -83,6 +85,7 @@ class SarifReportPlugin(PluginProvider):
         'calibrated': 'Auto-calibrated baseline match',
         'stacktrace': 'Exposed stacktrace details',
         'secret': 'Possible exposed secret',
+        'shadow': 'Exposed shadow copy',
     }
 
     def __init__(self, target, data, directory=None):
@@ -321,6 +324,7 @@ class SarifReportPlugin(PluginProvider):
             'bypassReasons': item.get('bypass_reasons', []),
             'stacktraceDetection': item.get('stacktrace_detection'),
             'secretDetection': item.get('secret_detection'),
+            'shadowDetection': item.get('shadow_detection'),
         }
         properties.update(self.fingerprint_properties())
         return self.clean_properties(properties)
@@ -348,6 +352,8 @@ class SarifReportPlugin(PluginProvider):
             return 'OpenDoor detected exposed stacktrace details for {0}'.format(url)
         if normalized_status == 'secret':
             return 'OpenDoor detected a possible exposed secret at {0}'.format(url)
+        if normalized_status == 'shadow':
+            return 'OpenDoor detected an exposed shadow copy at {0}'.format(url)
         if normalized_status == 'indexof':
             return 'OpenDoor detected a directory listing candidate at {0}'.format(url)
         return 'OpenDoor classified {0} as {1}'.format(url, normalized_status)

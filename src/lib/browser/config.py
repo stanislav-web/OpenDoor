@@ -21,7 +21,7 @@ class Config(object):
 
     """Config class"""
 
-    BODY_REQUIRED_SNIFFERS = ('indexof', 'collation', 'stacktrace', 'secret')
+    BODY_REQUIRED_SNIFFERS = ('indexof', 'collation', 'stacktrace', 'secret', 'shadow')
     DEFAULT_SOCKET_TIMEOUT = 10
     DEFAULT_MIN_THREADS = 1
     DEFAULT_MAX_THREADS = 25
@@ -540,6 +540,12 @@ class Config(object):
         """If sniffers are available."""
 
         return self._sniff is not None and len(self._sniff) > 0
+
+    @property
+    def is_shadow_sniff(self):
+        """If active shadow-copy probing is enabled."""
+
+        return self.is_sniff is True and 'shadow' in self.sniffers
 
     @property
     def sniffers(self):

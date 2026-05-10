@@ -41,6 +41,7 @@ from .exceptions import BrowserError
 from .fingerprint import Fingerprint
 from .filter import Filter
 from .header_bypass import HeaderBypassProbe
+from .shadow import ShadowProbe
 from .threadpool import ThreadPool
 
 
@@ -98,6 +99,7 @@ class Browser(Filter):
             self.__waf_safe_block_events = []
             self.__calibration = None
             self.__header_bypass = HeaderBypassProbe(self.__config)
+            self.__shadow_probe = None
 
             requested_method = str(getattr(self.__config, '_method', '') or '').upper()
             effective_method = str(getattr(self.__config, 'method', '') or '').upper()
@@ -150,6 +152,13 @@ class Browser(Filter):
             self.__result = {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()}
 
             self.__response = response(config=self.__config, debug=self.__debug, tpl=tpl)
+
+            if ShadowProbe.is_enabled(self.__config) is True:
+                self.__shadow_probe = ShadowProbe(
+                    self.__request_with_waf_safe_mode,
+                    self.__handle_shadow_match,
+                    self.__emit_shadow_probe_progress
+                )
 
             if True is getattr(self.__config, 'is_session_enabled', False):
                 self.__session = SessionManager(
@@ -1527,6 +1536,8 @@ class Browser(Filter):
                     metadata=metadata,
                 )
 
+                self.__enqueue_shadow_probes(response_data, resp)
+
                 if False is self.__should_suspend_recursive_expansion(response_data[0]):
                     if self.__should_expand_recursively(response_data[3], response_data[1], depth):
                         if response_data[1] not in self.__visited_recursive:
@@ -1537,6 +1548,90 @@ class Browser(Filter):
             raise BrowserError(error)
         finally:
             self.__finalize_processed_request(url, depth)
+
+    def __enqueue_shadow_probes(self, response_data, response_object):
+        """Queue active shadow postfix probes for eligible success responses."""
+
+        shadow_probe = getattr(self, '_Browser__shadow_probe', None)
+        if shadow_probe is None:
+            return 0
+
+        try:
+            status, request_url = response_data[0], response_data[1]
+        except (TypeError, IndexError):
+            return 0
+
+        if status != 'success':
+            return 0
+
+        return shadow_probe.enqueue(request_url, response_object, status)
+
+    def __emit_shadow_probe_progress(self, url, response_object, current, total):
+        """Emit rotating progress for a completed non-matching shadow probe."""
+
+        try:
+            response_data = (
+                'shadow-probe',
+                str(url),
+                self.__response._get_content_size(response_object),
+                str(getattr(response_object, 'status', '-'))
+            )
+        except (TypeError, ValueError, AttributeError):
+            response_data = ('shadow-probe', str(url), '-', '-')
+
+        self.__emit_filtered_progress('shadow-probe', response_data, {
+            'calibration_score': '{0}/{1}'.format(current, total)
+        })
+        return True
+
+    def __handle_shadow_match(self, url, response_object, metadata):
+        """Persist and render one confirmed shadow-copy finding."""
+
+        response_data = (
+            'shadow',
+            str(url),
+            self.__response._get_content_size(response_object),
+            str(getattr(response_object, 'status', '-'))
+        )
+
+        if isinstance(metadata, dict) and isinstance(metadata.get('shadow_detection'), dict):
+            try:
+                setattr(response_object, 'opendoor_shadow_detection', dict(metadata.get('shadow_detection')))
+            except (AttributeError, TypeError):
+                pass
+
+        debug_response_data = getattr(self.__response, 'debug_response_data', None)
+        if callable(debug_response_data):
+            self.__clear_filtered_progress()
+            debug_response_data(
+                response_data,
+                request_url=str(url),
+                items_size=self.__pool.items_size,
+                total_size=self.__pool.total_items_size,
+                response=response_object
+            )
+
+        self.__catch_report_data(
+            'shadow',
+            response_data[1],
+            response_data[2],
+            response_data[3],
+            metadata=metadata
+        )
+        return True
+
+    def __drain_shadow_probes(self):
+        """Drain active shadow probes before summary and reports are generated."""
+
+        shadow_probe = getattr(self, '_Browser__shadow_probe', None)
+        if shadow_probe is None:
+            return True
+
+        shadow_probe.drain()
+        submitted = shadow_probe.submitted
+        if submitted > 0:
+            self.__result['total'].update({'shadow_probes': submitted})
+        return True
 
     def __get_response_length(self, response):
         """Resolve response size in bytes for response filters."""
@@ -1875,6 +1970,8 @@ class Browser(Filter):
                 item['stacktrace_detection'] = dict(metadata.get('stacktrace_detection'))
             if isinstance(metadata.get('secret_detection'), dict):
                 item['secret_detection'] = dict(metadata.get('secret_detection'))
+            if isinstance(metadata.get('shadow_detection'), dict):
+                item['shadow_detection'] = dict(metadata.get('shadow_detection'))
 
         self.__result['total'].update((status,))
         self.__result['items'][status] += [url]
@@ -1895,6 +1992,7 @@ class Browser(Filter):
         """
 
         self.__ensure_session_runtime_state()
+        self.__drain_shadow_probes()
 
         self.__result['total'].update({"items": self.__pool.total_items_size})
         self.__result['total'].update({"workers": self.__pool.workers_size})

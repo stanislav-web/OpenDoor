@@ -78,6 +78,7 @@ setup(
             [
                 'data/directories.dat',
                 'data/ignored.dat',
+                'data/shadow-suffixes.dat',
                 'data/proxies.dat',
                 'data/subdomains.dat',
                 'data/useragents.dat',

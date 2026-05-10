@@ -8,9 +8,14 @@ v5.16.0 (@TODO)
 - (fix) compacted auto-calibration progress heartbeat output by removing verbose calibration reason lists and throttling suppressed-response progress by time.
 - (fix) renamed `--sniff stacktrace` findings from the generic `debug` bucket to the dedicated `stacktrace` bucket across runtime output, summaries and reports, with `stacktrace_detection` metadata and PHP fatal-error detection without the `PHP` prefix.
 - (fix) made HTML report status tabs work as anchor-backed navigation with JavaScript filtering as progressive enhancement, improving large report responsiveness and browser compatibility.
-- (enhancement) added `--sniff secret` to classify successful textual responses with possible leaked API keys, tokens, private keys, JWTs and credential URLs into the `secret` bucket.
+- (feature) added `--sniff shadow` active Shadow Copy Detection to probe confirmed `200 OK` file-like hits for exposed backup/postfix copies such as `.bak`, `.old`  etc variants.
+- (feature) added `--sniff secret` to classify successful textual responses with possible leaked API keys, tokens, private keys, JWTs and credential URLs into the `secret` bucket.
+- (enhancement) added the `shadow` result bucket, red `Shadow` runtime marker, summary counter and `shadow_detection` metadata across standard, text, CSV, JSON, HTML, SQLite and SARIF reports.
 - (enhancement) preserves redacted Secret Sniffer metadata in standard, text, CSV, JSON, HTML, SQLite and SARIF reports without storing raw secret values.
 - (dependencies) removed unused `six` and replaced `tabulate` in the STD summary reporter with a native psql-like table formatter.
+- (dictionary) bundled `data/shadow-suffixes.dat` in source and wheel distributions so PyPI, Homebrew-style source builds and local installs include the built-in shadow suffix catalog by default.
+- (dictionary) cleaned and normalized inernal directories list
+- (dictionary) refreshed derectories wordlist with `TODO` entries
 
 v5.15.3 (09.05.2026)
 ---------------------------

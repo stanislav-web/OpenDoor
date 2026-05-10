@@ -1465,6 +1465,7 @@ def _get_columns(items):
         'bypass_reasons',
         'stacktrace_detection',
         'secret_detection',
+        'shadow_detection',
     ]
 
     existing = []

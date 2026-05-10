@@ -11,7 +11,7 @@ opendoor --host https://example.com --sniff <plugins>
 Multiple sniffers can be combined with commas:
 
 ```shell
-opendoor --host https://example.com --sniff secret,stacktrace,skipempty,file,collation,indexof
+opendoor --host https://example.com --sniff secret,shadow,stacktrace,skipempty,file,collation,indexof
 ```
 
 Some sniffers accept parameters:
@@ -35,6 +35,7 @@ Common cases:
 | Directory listings | `indexof` |
 | Large downloadable files | `file` |
 | Possible leaked API keys, tokens, private keys or credentials | `secret` |
+| Exposed backup or shadow copies near confirmed files | `shadow` |
 | Exposed debug stack traces or verbose error details | `stacktrace` |
 | Redirect-like or duplicated fallback responses | `collation` |
 
@@ -61,7 +62,7 @@ opendoor \
   --auto-calibrate \
   --exclude-status 404,429,500-599 \
   --exclude-size-range 0-256 \
-  --sniff secret,stacktrace,skipempty,file,collation,indexof
+  --sniff secret,shadow,stacktrace,skipempty,file,collation,indexof
 ```
 
 ---
@@ -195,7 +196,7 @@ Example:
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff secret,stacktrace,indexof,file \
+  --sniff secret,shadow,stacktrace,indexof,file \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
@@ -207,8 +208,33 @@ Place `secret` before cleanup sniffers such as `skipempty` or `collation` when l
 opendoor \
   --host https://example.com \
   --auto-calibrate \
-  --sniff secret,stacktrace,skipempty,collation,indexof,file
+  --sniff secret,shadow,stacktrace,skipempty,collation,indexof,file
 ```
+
+---
+
+## 🕵️ `shadow`
+
+Actively probes for exposed backup/shadow copies next to confirmed successful files.
+
+```shell
+opendoor --host https://example.com --method GET --sniff shadow
+```
+
+Unlike passive body-only sniffers, `shadow` generates a bounded set of postfix candidates only after OpenDoor has already found a `200 OK` file-like response. For example, a confirmed `/index.php` hit can trigger probes such as `/index.php.bak`, `/index.php.old` etc.
+A candidate is classified into the `shadow` bucket only when the probe is successful and the normalized response content matches the original base file. Matching findings include `shadow_detection` metadata such as base URL, suffix variant, confidence, reason and size comparison.
+
+Example:
+
+```shell
+opendoor \
+  --host https://example.com \
+  --method GET \
+  --sniff shadow,secret,stacktrace,indexof,file \
+  --reports std,json,csv,html,sqlite,sarif
+```
+
+Use `shadow` when developers may accidentally deploy old, backup or editor-created copies of application files across PHP, Python, Node.js or mixed stacks.
 
 ---
 
@@ -229,7 +255,7 @@ Example:
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff secret,stacktrace,indexof,file \
+  --sniff secret,shadow,stacktrace,indexof,file \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
@@ -241,7 +267,7 @@ Place `stacktrace` before cleanup sniffers such as `skipempty` or `collation` wh
 opendoor \
   --host https://example.com \
   --auto-calibrate \
-  --sniff secret,stacktrace,skipempty,collation,indexof,file
+  --sniff secret,shadow,stacktrace,skipempty,collation,indexof,file
 ```
 
 ---
@@ -286,7 +312,7 @@ opendoor \
   --host https://example.com \
   --method GET \
   --auto-calibrate \
-  --sniff secret,stacktrace,skipempty,file,collation,indexof
+  --sniff secret,shadow,stacktrace,skipempty,file,collation,indexof
 ```
 
 ### Known false-positive sizes
@@ -314,7 +340,7 @@ opendoor \
   --hostlist targets.txt \
   --method GET \
   --auto-calibrate \
-  --sniff skipempty,file,collation,indexof \
+  --sniff shadow,skipempty,file,collation,indexof \
   --reports json,sqlite
 ```
 
@@ -329,7 +355,7 @@ opendoor \
   --host https://example.com \
   --method GET \
   --auto-calibrate \
-  --sniff secret,stacktrace,skipempty,file,collation,indexof
+  --sniff secret,shadow,stacktrace,skipempty,file,collation,indexof
 ```
 
 For fast scans where response body analysis is not required, keep the default request method and use status/size filters instead.
@@ -380,11 +406,13 @@ opendoor --host https://example.com --exclude-size-range 1000-2000
 
 ## ✅ Summary
 
-| Sniffer | Purpose                                            |
-|---|----------------------------------------------------|
-| `skipempty` | Skip empty or blank responses                      |
-| `skipsizes=NUM:NUM...` | Skip known false-positive body sizes               |
-| `indexof` | Detect directory listing pages                     |
-| `file` | Detect downloadable or interesting files           |
-| `collation` | Detect repeated fallback or redirect-like responses |
-| `stacktrace` | Detect possible errors in responses          |
+| Sniffer                | Purpose                                                          |
+|------------------------|------------------------------------------------------------------|
+| `skipempty`            | Skip empty or blank responses                                    |
+| `skipsizes=NUM:NUM...` | Skip known false-positive body sizes                             |
+| `indexof`              | Detect directory listing pages                                   |
+| `file`                 | Detect downloadable or interesting files                         |
+| `collation`            | Detect repeated fallback or redirect-like responses              |
+| `stacktrace`           | Detect possible errors in responses                              |
+| `secret`               | Detects possible exposed secrets in successful textual responses |
+| `shadow`               | Detect possible archive or backuped files                        |

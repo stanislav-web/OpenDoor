@@ -95,7 +95,15 @@ class SqliteReportPlugin(PluginProvider):
                 'secret_redacted TEXT, '
                 'secret_confidence INTEGER, '
                 'secret_count INTEGER, '
-                'secret_types TEXT'
+                'secret_types TEXT, '
+                'shadow_detection TEXT, '
+                'shadow_confidence INTEGER, '
+                'shadow_reason TEXT, '
+                'shadow_base_url TEXT, '
+                'shadow_variant TEXT, '
+                'shadow_similarity REAL, '
+                'shadow_base_size INTEGER, '
+                'shadow_size INTEGER'
                 ')'
             )
             cursor.execute(
@@ -166,6 +174,9 @@ class SqliteReportPlugin(PluginProvider):
                     secret_detection = item.get('secret_detection')
                     if not isinstance(secret_detection, dict):
                         secret_detection = {}
+                    shadow_detection = item.get('shadow_detection')
+                    if not isinstance(shadow_detection, dict):
+                        shadow_detection = {}
 
                     rows.append(
                         (
@@ -198,6 +209,14 @@ class SqliteReportPlugin(PluginProvider):
                             None if secret_detection.get('types') is None else ';'.join([
                                 str(secret_type) for secret_type in secret_detection.get('types', [])
                             ]),
+                            None if shadow_detection.get('type') is None else str(shadow_detection.get('type')),
+                            None if shadow_detection.get('confidence') is None else int(shadow_detection.get('confidence')),
+                            None if shadow_detection.get('reason') is None else str(shadow_detection.get('reason')),
+                            None if shadow_detection.get('base_url') is None else str(shadow_detection.get('base_url')),
+                            None if shadow_detection.get('variant') is None else str(shadow_detection.get('variant')),
+                            None if shadow_detection.get('similarity') is None else float(shadow_detection.get('similarity')),
+                            None if shadow_detection.get('base_size') is None else int(shadow_detection.get('base_size')),
+                            None if shadow_detection.get('shadow_size') is None else int(shadow_detection.get('shadow_size')),
                         )
                     )
 
@@ -208,8 +227,10 @@ class SqliteReportPlugin(PluginProvider):
                     'bypass, bypass_profile, bypass_header, bypass_value, bypass_variant, bypass_url, '
                     'bypass_from_status, bypass_to_status, bypass_from_code, bypass_to_code, '
                     'bypass_score, bypass_reasons, stacktrace_detection, stacktrace_runtime, stacktrace_signal, '
-                    'stacktrace_confidence, secret_detection, secret_redacted, secret_confidence, secret_count, secret_types'
-                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    'stacktrace_confidence, secret_detection, secret_redacted, secret_confidence, secret_count, secret_types, '
+                    'shadow_detection, shadow_confidence, shadow_reason, shadow_base_url, shadow_variant, '
+                    'shadow_similarity, shadow_base_size, shadow_size'
+                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     rows
                 )
 

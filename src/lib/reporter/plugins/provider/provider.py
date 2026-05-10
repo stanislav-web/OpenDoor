@@ -161,6 +161,24 @@ class PluginProvider(object):
 
             value = '{0} | {1}'.format(value, ', '.join(details))
 
+        shadow_detection = item.get('shadow_detection')
+        if isinstance(shadow_detection, dict):
+            details = ['shadow={0}'.format(shadow_detection.get('type', 'backup_copy'))]
+
+            if shadow_detection.get('variant'):
+                details.append('variant={0}'.format(shadow_detection.get('variant')))
+
+            if shadow_detection.get('base_url'):
+                details.append('base={0}'.format(shadow_detection.get('base_url')))
+
+            if shadow_detection.get('confidence') is not None:
+                details.append('confidence={0}%'.format(shadow_detection.get('confidence')))
+
+            if shadow_detection.get('similarity') is not None:
+                details.append('similarity={0}'.format(shadow_detection.get('similarity')))
+
+            value = '{0} | {1}'.format(value, ', '.join(details))
+
         return value
 
     def process(self):

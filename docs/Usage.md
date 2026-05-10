@@ -952,12 +952,13 @@ opendoor --host https://example.com --sniff skipempty
 opendoor --host https://example.com --sniff skipsizes=24:41:50
 opendoor --host https://example.com --sniff stacktrace
 opendoor --host https://example.com --sniff secret
+opendoor --host https://example.com --sniff shadow
 ```
 
 Multiple sniffers can be combined:
 
 ```shell
-opendoor --host https://example.com --sniff secret,stacktrace,skipempty,file,collation,indexof,skipsizes=24:41:50
+opendoor --host https://example.com --sniff secret,shadow,stacktrace,skipempty,file,collation,indexof,skipsizes=24:41:50
 ```
 
 For details, see [Sniffers](Sniffers.md).

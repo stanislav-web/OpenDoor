@@ -32,3 +32,6 @@ from .stacktrace import StacktraceResponsePlugin as stacktrace
 
 # noinspection PyPep8Naming
 from .secret import SecretResponsePlugin as secret
+
+# noinspection PyPep8Naming
+from .shadow import ShadowResponsePlugin as shadow

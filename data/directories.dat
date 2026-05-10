@@ -4783,9 +4783,9 @@
 +CSCOE+/logon.html
 +CSCOE+/session_password.html
 +CSCOT+/oem
-+CSCOT+/oem-customization?app=AnyConnect&type=oem&platform=..&resource-type=..&name=%2bCSCOE%2b/portal_inc.lua
++CSCOT+/oem-customization
 +CSCOT+/translation
-+CSCOT+/translation-table?type=mst&textdomain=/%2bCSCOE%2b/portal_inc.lua&default-language&lang=..
++CSCOT+/translation-table
 --7.php
 -.php
 -/health
@@ -50789,7 +50789,6 @@ fw
 fw9.pdf
 fw-panel
 fw.login.php
-fw.login.php?apikey=%27UNION%20select%201,%27YToyOntzOjM6InVpZCI7czo0OiItMTAwIjtzOjIyOiJBQ1RJVkVfRElSRUNUT1JZX0lOREVYIjtzOjE6IjEiO30=%27;
 fw_chart.html
 fw_g2_search.php
 fw_g3_search.php
@@ -92520,8 +92519,6 @@ secure/mail
 secure/main
 secure/maintenance
 secure/ManageFilters.jspa
-secure/ManageFilters.jspa?filter=popular&filterView=popular
-secure/ManageFilters.jspa?filterView=search&Search=Search&filterView=search&sortColumn=favcount&sortAscending=false
 secure/media
 secure/member
 secure/members
@@ -112072,7 +112069,7 @@ webadmin/templates
 webadmin/themes
 webadmin/tokens
 webadmin/tools/systemstatus_remote.php
-webadmin/tools/unixlogin.php?login=admin&password=g%27%2C%27%27%29%3Bimport%20os%3Bos.system%28%276563686f2022626d39755a5868706333526c626e513d22207c20626173653634202d64203e202f7573722f6c6f63616c2f6e6574737765657065722f77656261646d696e2f6f7574%27.decode%28%27hex%27%29%29%23&timeout=5
+webadmin/tools/unixlogin.php
 webadmin/transactions
 webadmin/transfers
 webadmin/translations

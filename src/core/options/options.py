@@ -536,7 +536,7 @@ class Options(object):
                 "argl": "--sniff",
                 "default": None,
                 "action": "store",
-                "help": "Response sniff plugins (secret,stacktrace,indexof,collation,file,skipempty,skipsizes=NUM:NUM...)",
+                "help": "Response sniff plugins (shadow,secret,stacktrace,indexof,collation,file,skipempty,skipsizes=NUM:NUM...)",
                 "type": str
             },
             {

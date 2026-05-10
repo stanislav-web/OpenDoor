@@ -61,6 +61,14 @@ class CsvReportPlugin(PluginProvider):
         'secret_confidence',
         'secret_count',
         'secret_types',
+        'shadow_detection',
+        'shadow_confidence',
+        'shadow_reason',
+        'shadow_base_url',
+        'shadow_variant',
+        'shadow_similarity',
+        'shadow_base_size',
+        'shadow_size',
         'fingerprint_category',
         'fingerprint_name',
         'fingerprint_confidence',
@@ -252,6 +260,14 @@ class CsvReportPlugin(PluginProvider):
                     'secret_confidence': '',
                     'secret_count': '',
                     'secret_types': '',
+                    'shadow_detection': '',
+                    'shadow_confidence': '',
+                    'shadow_reason': '',
+                    'shadow_base_url': '',
+                    'shadow_variant': '',
+                    'shadow_similarity': '',
+                    'shadow_base_size': '',
+                    'shadow_size': '',
                 }
                 stacktrace_detection = item.get('stacktrace_detection')
                 if isinstance(stacktrace_detection, dict):
@@ -273,6 +289,26 @@ class CsvReportPlugin(PluginProvider):
                         ),
                         'secret_count': '' if secret_detection.get('count') is None else str(secret_detection.get('count')),
                         'secret_types': self.__format_list(secret_detection.get('types', [])),
+                    })
+                shadow_detection = item.get('shadow_detection')
+                if isinstance(shadow_detection, dict):
+                    row.update({
+                        'shadow_detection': str(shadow_detection.get('type', '')),
+                        'shadow_confidence': '' if shadow_detection.get('confidence') is None else str(
+                            shadow_detection.get('confidence')
+                        ),
+                        'shadow_reason': str(shadow_detection.get('reason', '')),
+                        'shadow_base_url': str(shadow_detection.get('base_url', '')),
+                        'shadow_variant': str(shadow_detection.get('variant', '')),
+                        'shadow_similarity': '' if shadow_detection.get('similarity') is None else str(
+                            shadow_detection.get('similarity')
+                        ),
+                        'shadow_base_size': '' if shadow_detection.get('base_size') is None else str(
+                            shadow_detection.get('base_size')
+                        ),
+                        'shadow_size': '' if shadow_detection.get('shadow_size') is None else str(
+                            shadow_detection.get('shadow_size')
+                        ),
                     })
                 row.update(fingerprint_fields)
                 rows.append(row)

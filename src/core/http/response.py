@@ -68,11 +68,14 @@ class Response(ResponseProvider):
         waf_detection = self.waf_detection if status == self.DEFAULT_WAF_STATUS else None
         stacktrace_detection = None
         secret_detection = None
+        shadow_detection = None
 
         if response is not None and status == 'stacktrace':
             stacktrace_detection = getattr(response, 'opendoor_stacktrace_detection', None)
         if response is not None and status == 'secret':
             secret_detection = getattr(response, 'opendoor_secret_detection', None)
+        if response is not None and status == 'shadow':
+            shadow_detection = getattr(response, 'opendoor_shadow_detection', None)
 
         self.__debug.debug_request_uri(
             status=status,
@@ -86,6 +89,7 @@ class Response(ResponseProvider):
             waf_confidence=waf_detection.get('confidence') if waf_detection else None,
             stacktrace_detection=stacktrace_detection,
             secret_detection=secret_detection,
+            **({'shadow_detection': shadow_detection} if shadow_detection is not None else {})
         )
         getattr(self.__debug, 'debug_classification', lambda *args, **kwargs: True)(
             status=status,
@@ -97,6 +101,7 @@ class Response(ResponseProvider):
             redirect_uri=redirect_uri,
             stacktrace_detection=stacktrace_detection,
             secret_detection=secret_detection,
+            **({'shadow_detection': shadow_detection} if shadow_detection is not None else {})
         )
 
         return True
@@ -163,6 +168,7 @@ class Response(ResponseProvider):
                 waf_detection = self.waf_detection if status == self.DEFAULT_WAF_STATUS else None
                 stacktrace_detection = getattr(response, 'opendoor_stacktrace_detection', None) if status == 'stacktrace' else None
                 secret_detection = getattr(response, 'opendoor_secret_detection', None) if status == 'secret' else None
+                shadow_detection = getattr(response, 'opendoor_shadow_detection', None) if status == 'shadow' else None
 
                 if status in ['redirect']:
                     redirect_uri = self._get_redirect_url(request_url, response)
@@ -194,6 +200,7 @@ class Response(ResponseProvider):
                         waf_confidence=waf_detection.get('confidence') if waf_detection else None,
                         stacktrace_detection=stacktrace_detection,
                         secret_detection=secret_detection,
+                        **({'shadow_detection': shadow_detection} if shadow_detection is not None else {})
                     )
                     getattr(self.__debug, 'debug_classification', lambda *args, **kwargs: True)(
                         status=status,
@@ -205,6 +212,7 @@ class Response(ResponseProvider):
                         redirect_uri=redirect_uri,
                         stacktrace_detection=stacktrace_detection,
                         secret_detection=secret_detection,
+                        **({'shadow_detection': shadow_detection} if shadow_detection is not None else {})
                     )
 
                 return status, url, content_size, response_code

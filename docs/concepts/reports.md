@@ -46,7 +46,7 @@ opendoor --host https://example.com --reports std
 
 Use `std` for interactive work.
 
-The terminal summary includes all result buckets, including `bypass` when Header Injection Bypass candidates are found.
+The terminal summary includes all result buckets.
 
 ---
 
@@ -74,7 +74,7 @@ opendoor --host https://example.com --reports json
 
 Use JSON for automation, pipelines, post-processing, and CI/CD artifact uploads.
 
-JSON preserves detailed `report_items` metadata, including WAF, fingerprint, calibration, and header-bypass fields.
+JSON preserves detailed `report_items` metadata, including WAF, fingerprint, calibration, header-bypass, secret, stacktrace and shadow fields.
 
 ---
 
@@ -86,7 +86,7 @@ opendoor --host https://example.com --reports csv
 
 Use CSV for spreadsheets, simple data analysis, and CI artifacts that need stable columns.
 
-CSV includes dedicated Header Injection Bypass columns:
+Header Injection Bypass columns:
 
 | Column | Meaning |
 |---|---|
@@ -95,6 +95,17 @@ CSV includes dedicated Header Injection Bypass columns:
 | `bypass_value` | Header value used for the probe |
 | `bypass_from_code` | Original blocked status code |
 | `bypass_to_code` | Resulting status code |
+
+Shadow Copy Detection columns:
+
+| Column | Meaning |
+|---|---|
+| `shadow` | Shadow finding type |
+| `shadow_confidence` | Confidence score for the exposed copy |
+| `shadow_reason` | Detection reason, for example `content_match` |
+| `shadow_base_url` | Original confirmed file used as the probe base |
+| `shadow_variant` | Matched postfix suffix such as `.bak`, `.old` or `~` |
+| `shadow_similarity` | Similarity score used by the detector |
 
 ---
 
@@ -116,9 +127,10 @@ OpenDoor writes SARIF 2.1.0 files with one run per generated report. Result buck
 | `forbidden` | `opendoor.finding.forbidden` | `note` |
 | `blocked` | `opendoor.finding.blocked` | `warning` |
 | `bypass` | `opendoor.finding.bypass` | `warning` |
+| `shadow` | `opendoor.finding.shadow` | `warning` |
 | fingerprint metadata | `opendoor.fingerprint.detected` | `note` |
 
-SARIF result `properties` preserve OpenDoor-specific evidence: target, URL, bucket, status code, response size, WAF metadata, bypass metadata and fingerprint metadata.
+SARIF result `properties` preserve OpenDoor-specific evidence: target, URL, bucket, status code, response size, WAF metadata, bypass metadata, secret/stacktrace/shadow metadata and fingerprint metadata.
 
 Example GitHub Code Scanning upload:
 
@@ -153,7 +165,7 @@ opendoor --host https://example.com --reports html
 
 Use HTML for a readable standalone report.
 
-HTML preserves detailed `report_items` metadata, including header-bypass evidence.
+HTML preserves detailed `report_items` metadata, including header-bypass, secret, stacktrace and shadow evidence.
 
 ---
 
@@ -173,7 +185,9 @@ SQLite is useful for:
 - recurring exposure checks;
 - historical comparison.
 
-SQLite persists Header Injection Bypass metadata in nullable item columns:
+SQLite persists Header Injection Bypass and Shadow Copy Detection metadata in nullable item columns.
+
+Header Injection Bypass columns:
 
 | Column | Meaning |
 |---|---|
@@ -182,6 +196,17 @@ SQLite persists Header Injection Bypass metadata in nullable item columns:
 | `bypass_value` | Header value used for the probe |
 | `bypass_from_code` | Original blocked status code |
 | `bypass_to_code` | Resulting status code |
+
+Shadow Copy Detection columns:
+
+| Column | Meaning |
+|---|---|
+| `shadow` | Shadow finding type |
+| `shadow_confidence` | Confidence score for the exposed copy |
+| `shadow_reason` | Detection reason, for example `content_match` |
+| `shadow_base_url` | Original confirmed file used as the probe base |
+| `shadow_variant` | Matched postfix suffix such as `.bak`, `.old` or `~` |
+| `shadow_similarity` | Similarity score used by the detector |
 
 ---
 
@@ -195,6 +220,37 @@ opendoor \
 ```
 
 This is useful when one scan needs both human-readable and machine-readable output.
+
+---
+
+## Shadow-copy evidence
+
+When `--sniff shadow` is enabled and a postfix copy is confirmed, OpenDoor stores the result in the `shadow` bucket. Shadow probes are active but bounded: they are generated only from confirmed `200 OK` file-like hits and the shadow queue is drained before final summary, report generation and `--fail-on-bucket` checks.
+
+Detailed report items include:
+
+| Field | Meaning |
+|---|---|
+| `shadow_detection.type` | Finding type, for example `backup_copy` |
+| `shadow_detection.confidence` | Confidence score |
+| `shadow_detection.reason` | Detection reason, for example `content_match` |
+| `shadow_detection.base_url` | Original confirmed file used as the probe base |
+| `shadow_detection.variant` | Matched postfix suffix |
+| `shadow_detection.similarity` | Similarity score |
+| `shadow_detection.base_size` | Base response size |
+| `shadow_detection.shadow_size` | Shadow response size |
+
+Report support:
+
+| Report | Shadow evidence |
+|---|---|
+| `std` | Shows the `shadow` bucket and shadow counter in summary statistics |
+| `txt` | Includes shadow evidence in shadow report lines |
+| `json` | Preserves full metadata in `report_items` |
+| `csv` | Adds dedicated shadow columns |
+| `html` | Preserves detailed `report_items` metadata |
+| `sqlite` | Stores shadow metadata in nullable item columns |
+| `sarif` | Preserves shadow evidence in SARIF result properties |
 
 ---
 
@@ -232,12 +288,12 @@ Report support:
 opendoor \
   --host https://example.com \
   --reports json,sqlite,csv,sarif \
-  --fail-on-bucket success,auth,forbidden,bypass
+  --fail-on-bucket success,auth,forbidden,bypass,shadow
 ```
 
 In CI/CD, prefer machine-readable formats such as `json`, `sqlite`, `csv`, and `sarif`.
 
-Use the `bypass` bucket when Header Injection Bypass candidates should fail the pipeline.
+Use the `bypass` bucket when Header Injection Bypass candidates should fail the pipeline. Use the `shadow` bucket when exposed backup/shadow copies should fail the pipeline.
 
 ---
 
