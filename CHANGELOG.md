@@ -2,6 +2,8 @@ CHANGELOG
 =======
 v5.16.0 (@TODO)
 ---------------------------
+- (fix) diversified auto-calibration probe URL shapes so sites that return different soft-404/catch-all responses for root-level, application-like and static asset paths are calibrated more reliably.
+- (fix) compacted auto-calibration progress heartbeat output by removing verbose calibration reason lists and throttling suppressed-response progress by time.
 - (fix) renamed `--sniff stacktrace` findings from the generic `debug` bucket to the dedicated `stacktrace` bucket across runtime output, summaries and reports, with `stacktrace_detection` metadata and PHP fatal-error detection without the `PHP` prefix.
 - (fix) made HTML report status tabs work as anchor-backed navigation with JavaScript filtering as progressive enhancement, improving large report responsiveness and browser compatibility.
 - (dependencies) removed unused `six` and replaced `tabulate` in the STD summary reporter with a native psql-like table formatter.

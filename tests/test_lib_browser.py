@@ -402,6 +402,14 @@ class TestBrowser(unittest.TestCase):
             items_size=2,
             total_size=10,
             ignore_list=[],
+            emit_debug=False,
+        )
+        response_handler.debug_response_data.assert_called_once_with(
+            ('success', 'http://example.com/login.php', '42B', '200'),
+            request_url='http://example.com/login.php',
+            items_size=2,
+            total_size=10,
+            response='response',
         )
 
         result = getattr(br, '_Browser__result')
@@ -1874,6 +1882,9 @@ class TestBrowser(unittest.TestCase):
 
         br._Browser__http_request('http://example.com/admin')
 
+        self.assertEqual(response_handler.handle.call_count, 1)
+        self.assertEqual(response_handler.handle.call_args.kwargs.get('emit_debug'), False)
+
         result = getattr(br, '_Browser__result')
         self.assertEqual(result['total']['calibrated'], 1)
         self.assertEqual(result['items']['calibrated'], ['http://example.com/admin'])
@@ -1897,10 +1908,38 @@ class TestBrowser(unittest.TestCase):
             actual = br._Browser__build_calibration_urls()
 
         self.assertEqual(actual, [
-            'http://example.com/assets/abcdef123456-0.map',
+            'http://example.com/abcdef123456-0',
             'http://example.com/assets/abcdef123456-1.map',
         ])
         self.assertNotIn('opendoor', ''.join(actual).lower())
+
+    def test_calibrate_should_build_mixed_probe_url_shapes(self):
+        """Browser calibration probes should cover root, asset and app-like paths."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'auto_calibrate': True,
+            'calibration_samples': 8,
+        }))
+
+        with patch('src.lib.browser.browser.uuid.uuid4') as uuid4_mock:
+            uuid4_mock.return_value.hex = 'abcdef1234567890'
+            actual = br._Browser__build_calibration_urls()
+
+        self.assertEqual(actual, [
+            'http://example.com/abcdef123456-0',
+            'http://example.com/assets/abcdef123456-1.map',
+            'http://example.com/abcdef123456-2.php',
+            'http://example.com/abcdef123456-3.html',
+            'http://example.com/api/abcdef123456-4',
+            'http://example.com/static/abcdef123456-5.js',
+            'http://example.com/wp-content/uploads/abcdef123456-6.php',
+            'http://example.com/admin/abcdef123456-7',
+        ])
 
     def test_calibrate_should_build_baseline_from_probe_responses(self):
         """Browser.calibrate() should build baseline signatures from calibration probes."""

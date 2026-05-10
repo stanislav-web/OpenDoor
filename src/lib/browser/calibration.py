@@ -190,6 +190,174 @@ class Calibration(object):
 
         return None
 
+    @classmethod
+    def _soft_200_number(cls, value):
+        """
+        Convert signature numeric value to float.
+
+        :param object value: numeric-like value
+        :return: converted value
+        :rtype: float
+        """
+
+        try:
+            return float(value or 0)
+        except (TypeError, ValueError):
+            return 0.0
+
+    @classmethod
+    def _soft_200_similarity(cls, left, right):
+        """
+        Return ratio similarity for two numeric values.
+
+        :param object left: first numeric value
+        :param object right: second numeric value
+        :return: similarity from 0.0 to 1.0
+        :rtype: float
+        """
+
+        left_value = cls._soft_200_number(left)
+        right_value = cls._soft_200_number(right)
+
+        if left_value <= 0 and right_value <= 0:
+            return 1.0
+        if left_value <= 0 or right_value <= 0:
+            return 0.0
+
+        return 1.0 - (abs(left_value - right_value) / max(left_value, right_value))
+
+    @classmethod
+    def _soft_200_signature_value(cls, signature, *names):
+        """
+        Read first available signature field.
+
+        :param dict signature: calibration signature
+        :param tuple names: candidate field names
+        :return: field value
+        """
+
+        for name in names:
+            if name in signature:
+                return signature.get(name)
+
+        return None
+
+    @classmethod
+    def _soft_200_list_similarity(cls, left, right):
+        """
+        Return set similarity for token lists.
+
+        :param list left: first token list
+        :param list right: second token list
+        :return: similarity from 0.0 to 1.0
+        :rtype: float
+        """
+
+        left_set = set(left or [])
+        right_set = set(right or [])
+
+        if not left_set and not right_set:
+            return 1.0
+        if not left_set or not right_set:
+            return 0.0
+
+        return float(len(left_set & right_set)) / float(len(left_set | right_set))
+
+    @classmethod
+    def _is_soft_200_shape_match(cls, baseline, candidate):
+        """
+        Return True when two large 200 HTML responses look like the same catch-all template.
+
+        This intentionally requires much more than just matching size. It targets sites
+        that return one large 200 page for arbitrary missing application paths.
+
+        :param dict baseline: baseline calibration signature
+        :param dict candidate: candidate response signature
+        :return: whether both signatures represent the same soft-200 template
+        :rtype: bool
+        """
+
+        baseline_code = int(cls._soft_200_signature_value(baseline, 'code', 'status_code', 'response_code') or 0)
+        candidate_code = int(cls._soft_200_signature_value(candidate, 'code', 'status_code', 'response_code') or 0)
+
+        if baseline_code != 200 or candidate_code != 200:
+            return False
+
+        baseline_bucket = cls._soft_200_signature_value(baseline, 'bucket', 'status', 'result_status')
+        candidate_bucket = cls._soft_200_signature_value(candidate, 'bucket', 'status', 'result_status')
+
+        if baseline_bucket and candidate_bucket:
+            if baseline_bucket != 'success' or candidate_bucket != 'success':
+                return False
+
+        baseline_kind = cls._soft_200_signature_value(baseline, 'content_kind', 'content_type_kind', 'body_kind')
+        candidate_kind = cls._soft_200_signature_value(candidate, 'content_kind', 'content_type_kind', 'body_kind')
+
+        if baseline_kind and candidate_kind:
+            if baseline_kind != 'html' or candidate_kind != 'html':
+                return False
+
+        baseline_size = cls._soft_200_signature_value(baseline, 'size', 'content_size', 'body_size')
+        candidate_size = cls._soft_200_signature_value(candidate, 'size', 'content_size', 'body_size')
+
+        if min(cls._soft_200_number(baseline_size), cls._soft_200_number(candidate_size)) < 2048:
+            return False
+
+        if cls._soft_200_similarity(baseline_size, candidate_size) < 0.985:
+            return False
+
+        baseline_words = cls._soft_200_signature_value(baseline, 'word_count', 'words')
+        candidate_words = cls._soft_200_signature_value(candidate, 'word_count', 'words')
+
+        if baseline_words is not None and candidate_words is not None:
+            if cls._soft_200_similarity(baseline_words, candidate_words) < 0.97:
+                return False
+
+        baseline_lines = cls._soft_200_signature_value(baseline, 'line_count', 'lines')
+        candidate_lines = cls._soft_200_signature_value(candidate, 'line_count', 'lines')
+
+        if baseline_lines is not None and candidate_lines is not None:
+            if cls._soft_200_similarity(baseline_lines, candidate_lines) < 0.97:
+                return False
+
+        baseline_density = cls._soft_200_signature_value(baseline, 'text_density')
+        candidate_density = cls._soft_200_signature_value(candidate, 'text_density')
+
+        if baseline_density is not None and candidate_density is not None:
+            if abs(cls._soft_200_number(baseline_density) - cls._soft_200_number(candidate_density)) > 0.05:
+                return False
+
+        hash_pairs = (
+            ('body_skeleton_hash', 'body_skeleton_hash'),
+            ('html_skeleton_hash', 'html_skeleton_hash'),
+            ('dom_token_hash', 'dom_token_hash'),
+            ('visible_text_hash', 'visible_text_hash'),
+            ('semantic_terms_hash', 'semantic_terms_hash'),
+        )
+
+        for baseline_name, candidate_name in hash_pairs:
+            baseline_hash = baseline.get(baseline_name)
+            candidate_hash = candidate.get(candidate_name)
+            if baseline_hash and candidate_hash and baseline_hash == candidate_hash:
+                return True
+
+        baseline_title = baseline.get('title')
+        candidate_title = candidate.get('title')
+
+        if baseline_title and candidate_title and baseline_title == candidate_title:
+            if cls._soft_200_similarity(baseline_size, candidate_size) >= 0.995:
+                return True
+
+        baseline_tokens = baseline.get('dom_tokens') or []
+        candidate_tokens = candidate.get('dom_tokens') or []
+
+        if cls._soft_200_list_similarity(baseline_tokens, candidate_tokens) >= 0.98:
+            return True
+
+        return False
+
+
+
     def match(self, response, response_data):
         """
         Match a response against calibration baseline.
@@ -316,6 +484,10 @@ class Calibration(object):
         if cls._is_exact_shape_match(baseline, candidate) is True:
             score += 0.08
             reasons.append('exact-shape')
+
+        if cls._is_soft_200_shape_match(baseline, candidate) is True:
+            score += 0.04
+            reasons.append('soft-200-shape')
 
         header_score = cls._header_similarity(
             baseline.get('header_fingerprint') or {},

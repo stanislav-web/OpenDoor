@@ -694,5 +694,87 @@ class TestCalibration(unittest.TestCase):
         self.assertEqual(Calibration._header(lowercase_response, 'Server'), 'nginx')
 
 
+    def test_calibration_should_match_large_soft_200_catch_all_shape(self):
+        """Calibration.match() should match large 200 catch-all templates without not-found text."""
+
+        repeated_links = ''.join([
+            '<li><a href="/section/{0}">Section {0}</a></li>'.format(index)
+            for index in range(220)
+        ])
+
+        baseline_body = (
+            '<html><head><title>Portal</title></head>'
+            '<body><header><nav>{0}</nav></header>'
+            '<main><h1>Directory</h1><p>Requested /random-soft-200-a</p>{0}</main>'
+            '<footer>Generated marker 123456</footer></body></html>'
+        ).format(repeated_links)
+
+        candidate_body = (
+            '<html><head><title>Portal</title></head>'
+            '<body><header><nav>{0}</nav></header>'
+            '<main><h1>Directory</h1><p>Requested /admin-panel-missing</p>{0}</main>'
+            '<footer>Generated marker 987654</footer></body></html>'
+        ).format(repeated_links)
+
+        baseline_response = self.make_response(status=200, body=baseline_body)
+        candidate_response = self.make_response(status=200, body=candidate_body)
+
+        baseline_signature = Calibration.build_signature(
+            baseline_response,
+            ('success', 'http://example.com/random-soft-200-a', '{0}B'.format(len(baseline_body)), '200')
+        )
+        calibration = Calibration(signatures=[baseline_signature], threshold=0.85)
+
+        actual = calibration.match(
+            candidate_response,
+            ('success', 'http://example.com/admin-panel-missing', '{0}B'.format(len(candidate_body)), '200')
+        )
+
+        self.assertIsNotNone(actual)
+        self.assertGreaterEqual(actual['calibration_score'], 0.85)
+        self.assertIn('soft-200-shape', actual['calibration_reason'])
+
+    def test_calibration_soft_200_shape_should_not_match_small_pages(self):
+        """Soft-200 shape matching should not classify small useful pages by size alone."""
+
+        baseline = {
+            'code': 200,
+            'bucket': 'success',
+            'content_kind': 'html',
+            'body_skeleton_hash': 'same',
+            'dom_token_hash': 'same',
+            'dom_tokens': ['html', 'body'],
+            'text_density': 0.5,
+            'size': 100,
+            'word_count': 10,
+            'line_count': 1,
+        }
+        candidate = dict(baseline)
+
+        self.assertFalse(Calibration._is_soft_200_shape_match(baseline, candidate))
+
+    def test_calibration_soft_200_shape_should_not_match_different_dom(self):
+        """Soft-200 shape matching should require matching DOM or body shape."""
+
+        baseline = {
+            'code': 200,
+            'bucket': 'success',
+            'content_kind': 'html',
+            'body_skeleton_hash': 'body-a',
+            'dom_token_hash': 'dom-a',
+            'dom_tokens': ['html', 'body', 'main', 'ul', 'li'],
+            'text_density': 0.5,
+            'size': 10000,
+            'word_count': 1000,
+            'line_count': 100,
+        }
+        candidate = dict(baseline)
+        candidate['body_skeleton_hash'] = 'body-b'
+        candidate['dom_token_hash'] = 'dom-b'
+        candidate['dom_tokens'] = ['html', 'body', 'form', 'input']
+
+        self.assertFalse(Calibration._is_soft_200_shape_match(baseline, candidate))
+
+
 if __name__ == '__main__':
     unittest.main()

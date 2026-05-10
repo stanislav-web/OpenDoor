@@ -657,14 +657,29 @@ class Browser(Filter):
         """
         Build random impossible URLs for calibration probes.
 
+        Calibration probes must cover multiple URL shapes. Some targets return a
+        normal 404 for static asset-like paths while serving a soft-200 catch-all
+        page for root-level or application-like paths.
+
         :return: list[str]
         """
 
         urls = []
         token = uuid.uuid4().hex[:12]
+        path_templates = (
+            '{token}-{index}',
+            'assets/{token}-{index}.map',
+            '{token}-{index}.php',
+            '{token}-{index}.html',
+            'api/{token}-{index}',
+            'static/{token}-{index}.js',
+            'wp-content/uploads/{token}-{index}.php',
+            'admin/{token}-{index}',
+        )
 
         for index in range(self.__config.calibration_samples):
-            path = 'assets/{0}-{1}.map'.format(token, index)
+            template = path_templates[index % len(path_templates)]
+            path = template.format(token=token, index=index)
             urls.append(self.__build_calibration_url(path))
 
         return urls
@@ -1265,6 +1280,55 @@ class Browser(Filter):
 
         getattr(getattr(self, '_Browser__debug', None), 'debug_header_bypass_finished', lambda *args, **kwargs: True)()
 
+    def __emit_filtered_progress(self, bucket, response_data, metadata=None):
+        """
+        Emit a throttled progress heartbeat for responses suppressed by filters/calibration.
+
+        This prevents scans from looking frozen when most responses are intentionally
+        filtered out, while avoiding one visible line per suppressed response.
+
+        :param str bucket: suppressed result bucket
+        :param tuple response_data: classified response tuple
+        :param dict metadata: optional suppression metadata
+        :return: whether a progress line was emitted
+        :rtype: bool
+        """
+
+        items_size = getattr(self.__pool, 'items_size', 0)
+        total_size = getattr(self.__pool, 'total_items_size', 0)
+
+        percent = 0.0
+        if total_size:
+            percent = (float(items_size) / float(total_size)) * 100.0
+
+        response_url = response_data[1] if len(response_data) > 1 else '-'
+        content_size = response_data[2] if len(response_data) > 2 else '-'
+        response_code = response_data[3] if len(response_data) > 3 else '-'
+
+        details = ''
+        if metadata:
+            score = metadata.get('calibration_score')
+            if score is not None:
+                details = ' - score={0}'.format(
+                    '{0:.2f}'.format(float(score)) if isinstance(score, (int, float)) else score
+                )
+
+        tpl.info(
+            msg='{0:.1f}% [{1:06d}/{2}] - {3} - {4} - {5}{6} {7}'.format(
+                percent,
+                items_size,
+                total_size,
+                bucket,
+                response_code,
+                content_size,
+                details,
+                response_url
+            )
+        )
+
+        return True
+
+
     def __http_request(self, url, depth=0):
         """
         Make HTTP request
@@ -1294,7 +1358,8 @@ class Browser(Filter):
                 request_url=url,
                 items_size=self.__pool.items_size,
                 total_size=self.__pool.total_items_size,
-                ignore_list=self.__reader.get_ignored_list()
+                ignore_list=self.__reader.get_ignored_list(),
+                emit_debug=False
             )
 
             if None is response_data:
@@ -1321,6 +1386,7 @@ class Browser(Filter):
 
             calibration_match = self.__match_calibrated_response(resp, response_data)
             if calibration_match is not None:
+                self.__emit_filtered_progress('calibrated', response_data, calibration_match)
                 self.__catch_report_data(
                     'calibrated',
                     response_data[1],
@@ -1329,6 +1395,15 @@ class Browser(Filter):
                     metadata=calibration_match
                 )
                 return
+            debug_response_data = getattr(self.__response, 'debug_response_data', None)
+            if callable(debug_response_data):
+                debug_response_data(
+                    response_data,
+                    request_url=url,
+                    items_size=self.__pool.items_size,
+                    total_size=self.__pool.total_items_size,
+                    response=resp
+                )
 
             if False is self.__is_response_allowed(resp, response_data):
                 self.__catch_report_data('ignored', response_data[1], response_data[2], response_data[3])
