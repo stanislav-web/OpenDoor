@@ -41,6 +41,7 @@ syslog/
 site/
 data/test.dat
 release.sh
+debug.log
 
 # Local binaries / keys
 opendoor

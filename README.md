@@ -71,8 +71,8 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - reports in terminal, text, JSON, CSV, HTML, SARIF and SQLite formats;
 - proxy, OpenVPN, and WireGuard transport profiles;
 - sequential per-target transport rotation for batch workflows;
-- configuration wizard for repeatable scan profiles.
-- built-in wordlists (upd. 2026-05);
+- configuration wizard for repeatable scan profiles;
+- built-in wordlists (upd. 2026-05)
 
 ---
 

@@ -44,6 +44,7 @@ reports
 syslog
 site
 *.log
+debug.log
 
 # Local binaries / keys
 opendoor

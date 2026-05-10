@@ -105,6 +105,40 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
             headers={'Content-Type': 'application/problem+json'},
         )
 
+
+    def test_ignores_standard_404_body_with_notice_like_path(self):
+        """Should not classify a normal nginx/apache-style 404 page as a PHP notice."""
+
+        plugin = StacktraceResponsePlugin(None)
+        body = (
+            '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">\n'
+            '<html><head><title>404 Not Found</title></head><body>\n'
+            '<h1>Not Found</h1>\n'
+            '<p>The requested URL /noticeware was not found on this server.</p>\n'
+            '</body></html>'
+        )
+        response = self.make_response(
+            status=404,
+            body=body.encode('utf-8'),
+            headers={
+                'Content-Type': 'text/html; charset=iso-8859-1',
+                'Server': 'nginx/1.12.1',
+            },
+        )
+
+        self.assertIsNone(plugin.process(response))
+        self.assertFalse(hasattr(response, 'opendoor_stacktrace_detection'))
+
+    def test_detects_php_notice_when_formatted_as_runtime_error(self):
+        """Should still detect real PHP Notice runtime diagnostics."""
+
+        self.assert_detection(
+            'Notice: Undefined index: user_id in /var/www/html/index.php on line 12',
+            'php',
+            'php-error',
+            90,
+        )
+
     def test_ignores_binary_and_normal_responses(self):
         """Should avoid binary bodies and normal non-debug text."""
 

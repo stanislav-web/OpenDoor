@@ -11997,7 +11997,6 @@ admin/proxy/versions
 admin/queue
 admin/queues
 admin/queues.jsp
-admin/queues.jsp?QueueFilter=yu1ey%22%3e%3cscript%3ealert(%221%22)%3c%2fscript%3eqb68
 admin/qwerty.html
 admin/qwerty.php
 admin/ready
@@ -86085,10 +86084,9 @@ publications.cfm
 publications.htm
 publications.html
 publications.php
-publications/?id=
-publications/book_reviews/full_review.asp?id=
-publications/publication.asp?id=
-publications/view.asp?id=
+publications/book_reviews/full_review.asp
+publications/publication.asp
+publications/view.asp
 publiccat.php
 publicdeliver.cfm
 publicecard.php
@@ -98538,7 +98536,7 @@ Status
 status
 status2.htm
 status2.php
-status%3E%3Cscript%3Ealert(31337)%3C%2Fscript%3E
+status.js
 status-check.php
 status.asp
 status.aspx

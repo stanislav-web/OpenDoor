@@ -78,7 +78,10 @@ class StacktraceResponsePlugin(ResponsePluginProvider):
             'runtime': 'php',
             'signal': 'php-error',
             'confidence': 90,
-            'pattern': re.compile(r'(?:PHP\s+)?(Fatal\s+error|Warning|Parse\s+error|Notice)', re.IGNORECASE),
+            'pattern': re.compile(
+                r'(?:PHP\s+)?(?:Fatal\s+error|Warning|Parse\s+error|Notice)\s*:',
+                re.IGNORECASE,
+            ),
         },
         {
             'runtime': 'mysql',

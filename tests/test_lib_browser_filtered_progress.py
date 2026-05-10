@@ -130,6 +130,80 @@ class TestBrowserFilteredProgress(unittest.TestCase):
         self.assertIn('https://example.com/three', output)
 
 
+
+
+    def test_add_urls_should_not_glue_ignored_warning_after_filtered_progress(self):
+        """_add_urls() should finish rotating progress before ignored-list warnings."""
+
+        browser = self.make_browser(items_size=2047, total_items_size=95062)
+        browser._Browser__reader = SimpleNamespace(
+            total_lines=95062,
+            get_ignored_list=lambda: ['index.php'],
+        )
+        browser._Browser__deduplicate_scan_url = lambda url: True
+        browser._Browser__register_pending_request = lambda url, depth: True
+        browser._Browser__catch_report_data = lambda *args, **kwargs: None
+
+        def add_task(_callback, _url, _depth):
+            browser._Browser__emit_filtered_progress(
+                'calibrated',
+                ('success', 'https://localhost/accounts/sellers', '214B', '404'),
+                {'calibration_score': 1.0}
+            )
+
+        browser._Browser__pool = SimpleNamespace(
+            items_size=2047,
+            total_items_size=95062,
+            add=add_task,
+            join=lambda: None,
+        )
+        stdout = io.StringIO()
+
+        for handler in list(Logger.log('warning').handlers):
+            Logger.log('warning').removeHandler(handler)
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=220)):
+                browser._add_urls([
+                    'https://localhost/accounts/sellers',
+                    'https://localhost/index.php',
+                ])
+
+        output = stdout.getvalue()
+
+        self.assertIn('https://localhost/accounts/sellers', output)
+        self.assertIn('Ignored /index.php', output)
+        self.assertNotIn('accounts/sellers[', output)
+        self.assertIn('accounts/sellers\n', output)
+        self.assertFalse(getattr(browser, '_Browser__filtered_progress_active'))
+
+    def test_ignored_item_warning_should_finish_filtered_progress_line(self):
+        """Ignored-item warnings should not glue to active calibrated progress."""
+
+        browser = self.make_browser(items_size=2047, total_items_size=95062)
+        browser._Browser__reader = SimpleNamespace(total_lines=95062)
+        stdout = io.StringIO()
+
+        for handler in list(Logger.log('warning').handlers):
+            Logger.log('warning').removeHandler(handler)
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=220)):
+                browser._Browser__emit_filtered_progress(
+                    'calibrated',
+                    ('success', 'https://localhost/accounts/sellers', '214B', '404'),
+                    {'calibration_score': 1.0}
+                )
+                browser._Browser__emit_ignored_item_warning('https://localhost/index.php')
+
+        output = stdout.getvalue()
+
+        self.assertIn('https://localhost/accounts/sellers', output)
+        self.assertIn('Ignored /index.php', output)
+        self.assertNotIn('accounts/sellers[', output)
+        self.assertIn('accounts/sellers\n', output)
+        self.assertFalse(getattr(browser, '_Browser__filtered_progress_active'))
+
     def test_waf_safe_mode_warning_should_clear_filtered_progress_first(self):
         """WAF activation warning should not glue to a rotating calibration line."""
 
@@ -208,6 +282,51 @@ class TestBrowserFilteredProgress(unittest.TestCase):
         self.assertIn('https://localhost/next-page.php', last_visual_line)
         self.assertNotIn('https://localhost/pers.csp', last_visual_line)
         self.assertTrue(getattr(browser, '_Browser__filtered_progress_active'))
+
+
+    def test_emit_filtered_progress_should_prefer_request_url_for_redirect_calibration(self):
+        """Rotating calibration progress should show scanned URL, not redirect target."""
+
+        browser = self.make_browser(items_size=74, total_items_size=95067)
+        stdout = io.StringIO()
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=220)):
+                result = browser._Browser__emit_filtered_progress(
+                    'calibrated',
+                    ('redirect', 'https://localhost/', '0B', '301'),
+                    {'calibration_score': 1.0},
+                    request_url='https://localhost/CMS.h'
+                )
+
+        output = stdout.getvalue()
+        rendered = output.split('\r')[-1]
+
+        self.assertTrue(result)
+        self.assertIn('[000074/95067]', rendered)
+        self.assertIn('https://localhost/CMS.h', rendered)
+        self.assertNotIn('https://localhost/ ', rendered)
+
+    def test_emit_filtered_progress_should_keep_rendered_url_without_request_url(self):
+        """Direct helper usage should remain backward-compatible without request URL."""
+
+        browser = self.make_browser(items_size=74, total_items_size=95067)
+        stdout = io.StringIO()
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=220)):
+                result = browser._Browser__emit_filtered_progress(
+                    'calibrated',
+                    ('redirect', 'https://localhost/', '0B', '301'),
+                    {'calibration_score': 1.0}
+                )
+
+        output = stdout.getvalue()
+        rendered = output.split('\r')[-1]
+
+        self.assertTrue(result)
+        self.assertIn('[000074/95067]', rendered)
+        self.assertIn('https://localhost/', rendered)
 
     def test_clear_filtered_progress_should_clear_active_rotating_line(self):
         """Real findings should be able to clear active filtered progress before stdout output."""

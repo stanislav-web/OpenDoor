@@ -90,6 +90,7 @@ class Browser(Filter):
             self.__processed_offset = 0
             self.__session_snapshot = params.get('session_snapshot')
             self.__waf_safe_lock = threading.RLock()
+            self.__progress_output_lock = threading.RLock()
             self.__waf_safe_active = False
             self.__waf_safe_next_at = 0.0
             self.__waf_safe_delay = self.WAF_SAFE_MIN_DELAY
@@ -628,7 +629,7 @@ class Browser(Filter):
 
             if self.__calibration.is_enabled is True:
                 tpl.info(
-                    msg='Auto-calibration baseline ready: signatures={0}, DNS wildcard addresses={1}'.format(
+                    msg='Auto-calibration baseline ready: stored signatures={0}, DNS wildcard addresses={1}'.format(
                         len(signatures),
                         len(self.__calibration.dns_wildcard_addresses)
                     )
@@ -1345,6 +1346,14 @@ class Browser(Filter):
 
         getattr(getattr(self, '_Browser__debug', None), 'debug_header_bypass_finished', lambda *args, **kwargs: True)()
 
+    def __get_progress_output_lock(self):
+        """Return the shared lock for rotating progress and persistent log output."""
+
+        if not hasattr(self, '_Browser__progress_output_lock'):
+            self.__progress_output_lock = threading.RLock()
+
+        return self.__progress_output_lock
+
     def __clear_filtered_progress(self):
         """
         Clear active rotating filtered-progress line before printing real findings.
@@ -1357,16 +1366,17 @@ class Browser(Filter):
 
         import sys
 
-        if getattr(self, '_Browser__filtered_progress_active', False) is not True:
-            return
+        with self.__get_progress_output_lock():
+            if getattr(self, '_Browser__filtered_progress_active', False) is not True:
+                return
 
-        last_length = getattr(self, '_Browser__filtered_progress_last_length', 0)
-        if last_length > 0:
-            sys.stdout.write('\r{0}\r'.format(' ' * last_length))
-            sys.stdout.flush()
+            last_length = getattr(self, '_Browser__filtered_progress_last_length', 0)
+            if last_length > 0:
+                sys.stdout.write('\r{0}\r'.format(' ' * last_length))
+                sys.stdout.flush()
 
-        self.__filtered_progress_active = False
-        self.__filtered_progress_last_length = 0
+            self.__filtered_progress_active = False
+            self.__filtered_progress_last_length = 0
 
     def __finish_filtered_progress_line(self):
         """Terminate an active rotating progress line before normal logger output.
@@ -1381,16 +1391,17 @@ class Browser(Filter):
 
         import sys
 
-        if getattr(self, '_Browser__filtered_progress_active', False) is not True:
-            return
+        with self.__get_progress_output_lock():
+            if getattr(self, '_Browser__filtered_progress_active', False) is not True:
+                return
 
-        sys.stdout.write('\n')
-        sys.stdout.flush()
+            sys.stdout.write('\n')
+            sys.stdout.flush()
 
-        self.__filtered_progress_active = False
-        self.__filtered_progress_last_length = 0
+            self.__filtered_progress_active = False
+            self.__filtered_progress_last_length = 0
 
-    def __emit_filtered_progress(self, bucket, response_data, metadata=None):
+    def __emit_filtered_progress(self, bucket, response_data, metadata=None, request_url=None):
         """
         Emit one-line rotating progress for responses suppressed by filters/calibration.
 
@@ -1401,6 +1412,7 @@ class Browser(Filter):
         :param str bucket: suppressed result bucket
         :param tuple response_data: classified response tuple
         :param dict metadata: optional suppression metadata
+        :param str request_url: original request URL, used for redirect responses
         :return: whether a progress line was emitted
         :rtype: bool
         """
@@ -1416,7 +1428,7 @@ class Browser(Filter):
         if total_size:
             percent = (float(items_size) / float(total_size)) * 100.0
 
-        response_url = response_data[1] if len(response_data) > 1 else '-'
+        response_url = request_url if request_url else (response_data[1] if len(response_data) > 1 else '-')
         content_size = response_data[2] if len(response_data) > 2 else '-'
         response_code = response_data[3] if len(response_data) > 3 else '-'
 
@@ -1449,14 +1461,15 @@ class Browser(Filter):
         if len(message) > max_length:
             message = '{0}...'.format(message[:max_length - 3])
 
-        last_length = getattr(self, '_Browser__filtered_progress_last_length', 0)
-        clear_length = max(last_length, len(message))
+        with self.__get_progress_output_lock():
+            last_length = getattr(self, '_Browser__filtered_progress_last_length', 0)
+            clear_length = max(last_length, len(message))
 
-        sys.stdout.write('\r{0}\r{1}'.format(' ' * clear_length, message))
-        sys.stdout.flush()
+            sys.stdout.write('\r{0}\r{1}'.format(' ' * clear_length, message))
+            sys.stdout.flush()
 
-        self.__filtered_progress_last_length = len(message)
-        self.__filtered_progress_active = True
+            self.__filtered_progress_last_length = len(message)
+            self.__filtered_progress_active = True
 
         return True
 
@@ -1518,7 +1531,7 @@ class Browser(Filter):
 
             calibration_match = self.__match_calibrated_response(resp, response_data)
             if calibration_match is not None:
-                self.__emit_filtered_progress('calibrated', response_data, calibration_match)
+                self.__emit_filtered_progress('calibrated', response_data, calibration_match, request_url=url)
                 self.__catch_report_data(
                     'calibrated',
                     response_data[1],
@@ -1903,6 +1916,18 @@ class Browser(Filter):
         self.__seen_scan_urls.add(key)
         return True
 
+    def __emit_ignored_item_warning(self, url):
+        """Emit an ignored-item warning without gluing it to rotating progress."""
+
+        with self.__get_progress_output_lock():
+            self.__finish_filtered_progress_line()
+            tpl.warning(
+                key='ignored_item',
+                current='{0:0{l}d}'.format(0, l=len(str(abs(self.__reader.total_lines)))),
+                total=self.__reader.total_lines,
+                item=helper.parse_url(url).path
+            )
+
     def _add_urls(self, urllist):
         """
         Add received urllist to threadpool
@@ -1924,12 +1949,7 @@ class Browser(Filter):
                         self.__pool.add(self.__http_request, url, 0)
                 else:
                     self.__catch_report_data('ignored', url)
-                    tpl.warning(
-                        key='ignored_item',
-                        current='{0:0{l}d}'.format(0, l=len(str(abs(self.__reader.total_lines)))),
-                        total=self.__reader.total_lines,
-                        item=helper.parse_url(url).path
-                    )
+                    self.__emit_ignored_item_warning(url)
             self.__pool.join()
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt
@@ -2340,6 +2360,9 @@ class Browser(Filter):
             }
         if not hasattr(self, '_Browser__waf_safe_lock'):
             self.__waf_safe_lock = threading.RLock()
+
+        if not hasattr(self, '_Browser__progress_output_lock'):
+            self.__progress_output_lock = threading.RLock()
 
         if not hasattr(self, '_Browser__waf_safe_active'):
             self.__waf_safe_active = False
