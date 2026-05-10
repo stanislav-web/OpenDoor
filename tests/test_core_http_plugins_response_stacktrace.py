@@ -139,6 +139,29 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
             90,
         )
 
+    def test_ignores_standard_404_body_with_warning_like_path(self):
+        """Should not classify ordinary 404 pages whose URL contains warning-like text."""
+
+        plugin = StacktraceResponsePlugin(None)
+        body = (
+            '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">'
+            '<html><head><title>404 Not Found</title></head><body>'
+            '<h1>Not Found</h1>'
+            '<p>The requested URL /errorswarnings was not found on this server.</p>'
+            '</body></html>'
+        )
+        response = self.make_response(
+            status=404,
+            body=body.encode('utf-8'),
+            headers={
+                'Content-Type': 'text/html; charset=iso-8859-1',
+                'Server': 'nginx/1.12.1',
+            },
+        )
+
+        self.assertIsNone(plugin.process(response))
+        self.assertFalse(hasattr(response, 'opendoor_stacktrace_detection'))
+
     def test_ignores_binary_and_normal_responses(self):
         """Should avoid binary bodies and normal non-debug text."""
 
