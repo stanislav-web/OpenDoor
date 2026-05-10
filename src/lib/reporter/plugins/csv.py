@@ -56,6 +56,11 @@ class CsvReportPlugin(PluginProvider):
         'stacktrace_runtime',
         'stacktrace_signal',
         'stacktrace_confidence',
+        'secret_detection',
+        'secret_redacted',
+        'secret_confidence',
+        'secret_count',
+        'secret_types',
         'fingerprint_category',
         'fingerprint_name',
         'fingerprint_confidence',
@@ -242,6 +247,11 @@ class CsvReportPlugin(PluginProvider):
                     'stacktrace_runtime': '',
                     'stacktrace_signal': '',
                     'stacktrace_confidence': '',
+                    'secret_detection': '',
+                    'secret_redacted': '',
+                    'secret_confidence': '',
+                    'secret_count': '',
+                    'secret_types': '',
                 }
                 stacktrace_detection = item.get('stacktrace_detection')
                 if isinstance(stacktrace_detection, dict):
@@ -252,6 +262,17 @@ class CsvReportPlugin(PluginProvider):
                         'stacktrace_confidence': '' if stacktrace_detection.get('confidence') is None else str(
                             stacktrace_detection.get('confidence')
                         ),
+                    })
+                secret_detection = item.get('secret_detection')
+                if isinstance(secret_detection, dict):
+                    row.update({
+                        'secret_detection': str(secret_detection.get('type', '')),
+                        'secret_redacted': str(secret_detection.get('redacted', '')),
+                        'secret_confidence': '' if secret_detection.get('confidence') is None else str(
+                            secret_detection.get('confidence')
+                        ),
+                        'secret_count': '' if secret_detection.get('count') is None else str(secret_detection.get('count')),
+                        'secret_types': self.__format_list(secret_detection.get('types', [])),
                     })
                 row.update(fingerprint_fields)
                 rows.append(row)

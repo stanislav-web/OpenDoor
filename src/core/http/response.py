@@ -67,9 +67,12 @@ class Response(ResponseProvider):
         redirect_uri = rendered_url if status == 'redirect' else None
         waf_detection = self.waf_detection if status == self.DEFAULT_WAF_STATUS else None
         stacktrace_detection = None
+        secret_detection = None
 
         if response is not None and status == 'stacktrace':
             stacktrace_detection = getattr(response, 'opendoor_stacktrace_detection', None)
+        if response is not None and status == 'secret':
+            secret_detection = getattr(response, 'opendoor_secret_detection', None)
 
         self.__debug.debug_request_uri(
             status=status,
@@ -82,6 +85,7 @@ class Response(ResponseProvider):
             waf_name=waf_detection.get('name') if waf_detection else None,
             waf_confidence=waf_detection.get('confidence') if waf_detection else None,
             stacktrace_detection=stacktrace_detection,
+            secret_detection=secret_detection,
         )
         getattr(self.__debug, 'debug_classification', lambda *args, **kwargs: True)(
             status=status,
@@ -92,6 +96,7 @@ class Response(ResponseProvider):
             signals=waf_detection.get('signals') if waf_detection else None,
             redirect_uri=redirect_uri,
             stacktrace_detection=stacktrace_detection,
+            secret_detection=secret_detection,
         )
 
         return True
@@ -157,6 +162,7 @@ class Response(ResponseProvider):
                 response_code = str(response.status)
                 waf_detection = self.waf_detection if status == self.DEFAULT_WAF_STATUS else None
                 stacktrace_detection = getattr(response, 'opendoor_stacktrace_detection', None) if status == 'stacktrace' else None
+                secret_detection = getattr(response, 'opendoor_secret_detection', None) if status == 'secret' else None
 
                 if status in ['redirect']:
                     redirect_uri = self._get_redirect_url(request_url, response)
@@ -187,6 +193,7 @@ class Response(ResponseProvider):
                         waf_name=waf_detection.get('name') if waf_detection else None,
                         waf_confidence=waf_detection.get('confidence') if waf_detection else None,
                         stacktrace_detection=stacktrace_detection,
+                        secret_detection=secret_detection,
                     )
                     getattr(self.__debug, 'debug_classification', lambda *args, **kwargs: True)(
                         status=status,
@@ -197,6 +204,7 @@ class Response(ResponseProvider):
                         signals=waf_detection.get('signals') if waf_detection else None,
                         redirect_uri=redirect_uri,
                         stacktrace_detection=stacktrace_detection,
+                        secret_detection=secret_detection,
                     )
 
                 return status, url, content_size, response_code

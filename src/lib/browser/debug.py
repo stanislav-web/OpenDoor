@@ -392,7 +392,8 @@ class Debug(DebugProvider):
             waf_confidence=None,
             signals=None,
             redirect_uri=None,
-            stacktrace_detection=None
+            stacktrace_detection=None,
+            secret_detection=None
     ):
         """Debug response classification summary."""
 
@@ -416,6 +417,16 @@ class Debug(DebugProvider):
 
         if signals:
             tpl.debug(msg='WAF signals: {0}'.format(', '.join([str(signal) for signal in signals])))
+
+        if secret_detection:
+            tpl.debug(
+                msg='Secret detection: type={0}; redacted={1}; confidence={2}; count={3}'.format(
+                    secret_detection.get('type') or '-',
+                    secret_detection.get('redacted') or '-',
+                    secret_detection.get('confidence') or '-',
+                    secret_detection.get('count') or '-',
+                )
+            )
 
         if stacktrace_detection:
             tpl.debug(

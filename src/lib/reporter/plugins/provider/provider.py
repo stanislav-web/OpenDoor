@@ -141,6 +141,26 @@ class PluginProvider(object):
 
             value = '{0} | {1}'.format(value, ', '.join(details))
 
+        secret_detection = item.get('secret_detection')
+        if isinstance(secret_detection, dict):
+            details = ['secret={0}'.format(secret_detection.get('type', 'secret'))]
+
+            if secret_detection.get('redacted'):
+                details.append('redacted={0}'.format(secret_detection.get('redacted')))
+
+            if secret_detection.get('confidence') is not None:
+                details.append('confidence={0}%'.format(secret_detection.get('confidence')))
+
+            if secret_detection.get('count') is not None:
+                details.append('count={0}'.format(secret_detection.get('count')))
+
+            if secret_detection.get('types'):
+                details.append('types={0}'.format(';'.join([
+                    str(secret_type) for secret_type in secret_detection.get('types', [])
+                ])))
+
+            value = '{0} | {1}'.format(value, ', '.join(details))
+
         return value
 
     def process(self):

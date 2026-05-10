@@ -60,7 +60,7 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - custom wordlists, prefixes, shuffling to break scan patterns and extension filters;
 - custom request headers, cookies forwarding, and raw HTTP request templates;
 - response filters by status, size, text, regex, and body length;
-- response sniffers for detecting directory listings, empty responses, known file exposures, collation, errors and exposed debug stack traces;
+- response sniffers for detecting directory listings, empty responses, known file exposures, collation, possible exposed secrets, errors and exposed debug stack traces;
 - smart auto-calibration for soft-404, wildcard, catch-all, semantic response-diff, and DNS wildcard cases;
 - technology fingerprint detection for CMS, ecommerce platforms, frameworks, runtime stacks, infrastructure, and HSTS posture;
 - passive privacy-risk checks in `--fingerprint`, including possible HSTS, ETag/cache, and persistent-cookie supercookie surfaces.
@@ -258,7 +258,7 @@ opendoor \
   --include-status 200-299,301,302,403 \
   --exclude-status 404,429,500-599 \
   --exclude-size-range 0-256 \
-  --sniff skipempty,collation,indexof,file,stacktrace \
+  --sniff secret,skipempty,collation,indexof,file,stacktrace \
   --reports std,json,csv,sarif
 ```
 
@@ -270,7 +270,7 @@ Response sniffers classify interesting response bodies during discovery. They ar
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff stacktrace,indexof,file,collation \
+  --sniff secret,stacktrace,indexof,file,collation \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
@@ -285,6 +285,7 @@ Useful sniffers include:
 | `skipsizes=46` | Skip responses with exact known noisy sizes. |
 | `skipsizes=46:1024` | Skip responses inside a noisy size range. |
 | `stacktrace` | Detect exposed debug/runtime stack traces and internal error details. |
+| `secret` | Detect possible exposed API keys, tokens, private keys and credentials with redacted report metadata. |
 
 Body-dependent sniffers automatically force `GET` internally when the configured method is `HEAD`.
 

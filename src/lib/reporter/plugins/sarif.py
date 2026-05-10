@@ -50,6 +50,7 @@ class SarifReportPlugin(PluginProvider):
         'certificate': 'warning',
         'calibrated': 'note',
         'stacktrace': 'warning',
+        'secret': 'warning',
     }
     SECURITY_SEVERITY_BY_STATUS = {
         'success': '5.0',
@@ -65,6 +66,7 @@ class SarifReportPlugin(PluginProvider):
         'certificate': '4.0',
         'calibrated': '0.1',
         'stacktrace': '5.0',
+        'secret': '7.0',
     }
     RULE_NAMES = {
         'success': 'Exposed HTTP resource',
@@ -80,6 +82,7 @@ class SarifReportPlugin(PluginProvider):
         'certificate': 'Certificate-related finding',
         'calibrated': 'Auto-calibrated baseline match',
         'stacktrace': 'Exposed stacktrace details',
+        'secret': 'Possible exposed secret',
     }
 
     def __init__(self, target, data, directory=None):
@@ -317,6 +320,7 @@ class SarifReportPlugin(PluginProvider):
             'bypassScore': self.maybe_int(item.get('bypass_score')),
             'bypassReasons': item.get('bypass_reasons', []),
             'stacktraceDetection': item.get('stacktrace_detection'),
+            'secretDetection': item.get('secret_detection'),
         }
         properties.update(self.fingerprint_properties())
         return self.clean_properties(properties)
@@ -342,6 +346,8 @@ class SarifReportPlugin(PluginProvider):
             return 'OpenDoor detected a WAF-like response for {0}'.format(url)
         if normalized_status == 'stacktrace':
             return 'OpenDoor detected exposed stacktrace details for {0}'.format(url)
+        if normalized_status == 'secret':
+            return 'OpenDoor detected a possible exposed secret at {0}'.format(url)
         if normalized_status == 'indexof':
             return 'OpenDoor detected a directory listing candidate at {0}'.format(url)
         return 'OpenDoor classified {0} as {1}'.format(url, normalized_status)

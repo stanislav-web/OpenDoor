@@ -1467,6 +1467,7 @@ class Browser(Filter):
 
             waf_detection = None
             stacktrace_detection = getattr(resp, 'opendoor_stacktrace_detection', None)
+            secret_detection = getattr(resp, 'opendoor_secret_detection', None)
 
             if response_data[0] == 'blocked':
                 waf_detection = getattr(self.__response, 'waf_detection', None)
@@ -1513,6 +1514,8 @@ class Browser(Filter):
                     metadata.update(waf_detection)
                 if isinstance(stacktrace_detection, dict):
                     metadata['stacktrace_detection'] = dict(stacktrace_detection)
+                if isinstance(secret_detection, dict):
+                    metadata['secret_detection'] = dict(secret_detection)
                 if len(metadata) == 0:
                     metadata = None
 
@@ -1870,6 +1873,8 @@ class Browser(Filter):
                 item['bypass_reasons'] = list(metadata.get('bypass_reasons'))
             if isinstance(metadata.get('stacktrace_detection'), dict):
                 item['stacktrace_detection'] = dict(metadata.get('stacktrace_detection'))
+            if isinstance(metadata.get('secret_detection'), dict):
+                item['secret_detection'] = dict(metadata.get('secret_detection'))
 
         self.__result['total'].update((status,))
         self.__result['items'][status] += [url]

@@ -73,6 +73,7 @@ class Config(object):
         'connection_timeout_error': 'Connection timeout error! {url}. Increase using --timeout option',
         'certificate': 'Cert required {url}',
         'success': 'OK {url}',
+        'secret': 'OK (Possible Secret) {url}',
         'file': 'File {url}',
         'indexof': 'Index {url}',
         'forbidden': 'Denied {url}',

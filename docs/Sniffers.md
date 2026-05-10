@@ -11,7 +11,7 @@ opendoor --host https://example.com --sniff <plugins>
 Multiple sniffers can be combined with commas:
 
 ```shell
-opendoor --host https://example.com --sniff stacktrace,skipempty,file,collation,indexof
+opendoor --host https://example.com --sniff secret,stacktrace,skipempty,file,collation,indexof
 ```
 
 Some sniffers accept parameters:
@@ -34,6 +34,7 @@ Common cases:
 | Known false-positive response sizes | `skipsizes` |
 | Directory listings | `indexof` |
 | Large downloadable files | `file` |
+| Possible leaked API keys, tokens, private keys or credentials | `secret` |
 | Exposed debug stack traces or verbose error details | `stacktrace` |
 | Redirect-like or duplicated fallback responses | `collation` |
 
@@ -60,7 +61,7 @@ opendoor \
   --auto-calibrate \
   --exclude-status 404,429,500-599 \
   --exclude-size-range 0-256 \
-  --sniff stacktrace,skipempty,file,collation,indexof
+  --sniff secret,stacktrace,skipempty,file,collation,indexof
 ```
 
 ---
@@ -173,6 +174,44 @@ This sniffer is useful when scanning wordlists that include file names or backup
 
 ---
 
+
+## 🔐 `secret`
+
+Detects possible exposed secrets in successful textual responses.
+
+```shell
+opendoor --host https://example.com --sniff secret
+```
+
+The `secret` sniffer classifies matching `200 OK` responses into the `secret` bucket and attaches a redacted `secret_detection` metadata object to detailed reports. Without `--sniff secret`, the same successful response remains in the normal `success` bucket.
+
+It currently looks for common leak families such as AWS access keys, GitHub tokens, Slack tokens, Stripe keys, Google API keys, JWT-like bearer tokens, private key blocks, database URLs with credentials, and generic key/token/password assignments.
+
+Report metadata is intentionally redacted. OpenDoor stores the secret type, confidence, match count, matched type list and redacted preview, but not the raw secret value.
+
+Example:
+
+```shell
+opendoor \
+  --host https://example.com \
+  --method GET \
+  --sniff secret,stacktrace,indexof,file \
+  --reports std,json,csv,html,sqlite,sarif
+```
+
+If the requested method is `HEAD`, OpenDoor overrides it to `GET` when `secret` is selected because this sniffer needs response body analysis.
+
+Place `secret` before cleanup sniffers such as `skipempty` or `collation` when leaked credentials are high-priority findings:
+
+```shell
+opendoor \
+  --host https://example.com \
+  --auto-calibrate \
+  --sniff secret,stacktrace,skipempty,collation,indexof,file
+```
+
+---
+
 ## 🧯 `stacktrace`
 
 Detects exposed debug stack traces and verbose internal error details.
@@ -190,7 +229,7 @@ Example:
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff stacktrace,indexof,file \
+  --sniff secret,stacktrace,indexof,file \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
@@ -202,7 +241,7 @@ Place `stacktrace` before cleanup sniffers such as `skipempty` or `collation` wh
 opendoor \
   --host https://example.com \
   --auto-calibrate \
-  --sniff stacktrace,skipempty,collation,indexof,file
+  --sniff secret,stacktrace,skipempty,collation,indexof,file
 ```
 
 ---
@@ -247,7 +286,7 @@ opendoor \
   --host https://example.com \
   --method GET \
   --auto-calibrate \
-  --sniff stacktrace,skipempty,file,collation,indexof
+  --sniff secret,stacktrace,skipempty,file,collation,indexof
 ```
 
 ### Known false-positive sizes
@@ -290,7 +329,7 @@ opendoor \
   --host https://example.com \
   --method GET \
   --auto-calibrate \
-  --sniff stacktrace,skipempty,file,collation,indexof
+  --sniff secret,stacktrace,skipempty,file,collation,indexof
 ```
 
 For fast scans where response body analysis is not required, keep the default request method and use status/size filters instead.

@@ -122,6 +122,7 @@ class TestResponseFlowExtra(unittest.TestCase):
             waf_name=None,
             waf_confidence=None,
             stacktrace_detection=None,
+            secret_detection=None,
         )
         debug.debug_classification.assert_called_once_with(
             status='success',
@@ -132,6 +133,7 @@ class TestResponseFlowExtra(unittest.TestCase):
             signals=None,
             redirect_uri=None,
             stacktrace_detection=None,
+            secret_detection=None,
         )
 
     def test_handle_can_classify_without_runtime_debug_output(self):

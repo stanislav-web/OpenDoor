@@ -90,7 +90,12 @@ class SqliteReportPlugin(PluginProvider):
                 'stacktrace_detection TEXT, '
                 'stacktrace_runtime TEXT, '
                 'stacktrace_signal TEXT, '
-                'stacktrace_confidence INTEGER'
+                'stacktrace_confidence INTEGER, '
+                'secret_detection TEXT, '
+                'secret_redacted TEXT, '
+                'secret_confidence INTEGER, '
+                'secret_count INTEGER, '
+                'secret_types TEXT'
                 ')'
             )
             cursor.execute(
@@ -158,6 +163,9 @@ class SqliteReportPlugin(PluginProvider):
                     stacktrace_detection = item.get('stacktrace_detection')
                     if not isinstance(stacktrace_detection, dict):
                         stacktrace_detection = {}
+                    secret_detection = item.get('secret_detection')
+                    if not isinstance(secret_detection, dict):
+                        secret_detection = {}
 
                     rows.append(
                         (
@@ -183,6 +191,13 @@ class SqliteReportPlugin(PluginProvider):
                             None if stacktrace_detection.get('runtime') is None else str(stacktrace_detection.get('runtime')),
                             None if stacktrace_detection.get('signal') is None else str(stacktrace_detection.get('signal')),
                             None if stacktrace_detection.get('confidence') is None else int(stacktrace_detection.get('confidence')),
+                            None if secret_detection.get('type') is None else str(secret_detection.get('type')),
+                            None if secret_detection.get('redacted') is None else str(secret_detection.get('redacted')),
+                            None if secret_detection.get('confidence') is None else int(secret_detection.get('confidence')),
+                            None if secret_detection.get('count') is None else int(secret_detection.get('count')),
+                            None if secret_detection.get('types') is None else ';'.join([
+                                str(secret_type) for secret_type in secret_detection.get('types', [])
+                            ]),
                         )
                     )
 
@@ -192,8 +207,9 @@ class SqliteReportPlugin(PluginProvider):
                     'status, url, code, size, '
                     'bypass, bypass_profile, bypass_header, bypass_value, bypass_variant, bypass_url, '
                     'bypass_from_status, bypass_to_status, bypass_from_code, bypass_to_code, '
-                    'bypass_score, bypass_reasons, stacktrace_detection, stacktrace_runtime, stacktrace_signal, stacktrace_confidence'
-                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    'bypass_score, bypass_reasons, stacktrace_detection, stacktrace_runtime, stacktrace_signal, '
+                    'stacktrace_confidence, secret_detection, secret_redacted, secret_confidence, secret_count, secret_types'
+                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     rows
                 )
 
