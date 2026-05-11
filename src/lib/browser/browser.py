@@ -41,6 +41,7 @@ from .exceptions import BrowserError
 from .fingerprint import Fingerprint
 from .filter import Filter
 from .header_bypass import HeaderBypassProbe
+from .open_redirect import OpenRedirectProbe
 from .shadow import ShadowProbe
 from .threadpool import ThreadPool
 
@@ -100,6 +101,7 @@ class Browser(Filter):
             self.__waf_safe_block_events = []
             self.__calibration = None
             self.__header_bypass = HeaderBypassProbe(self.__config)
+            self.__open_redirect_probe = OpenRedirectProbe() if OpenRedirectProbe.is_enabled(self.__config) is True else None
             self.__shadow_probe = None
 
             requested_method = str(getattr(self.__config, '_method', '') or '').upper()
@@ -1299,6 +1301,83 @@ class Browser(Filter):
 
         return self.__calibration.match(response_object, response_data)
 
+
+    def __probe_open_redirect(self, url):
+        """Run controlled open redirect verification for eligible query parameters.
+
+        :param str url: original scan request URL
+        :return: True when a confirmed finding was persisted
+        :rtype: bool
+        """
+
+        self.__ensure_session_runtime_state()
+
+        open_redirect_probe = getattr(self, '_Browser__open_redirect_probe', None)
+        if open_redirect_probe is None:
+            return False
+
+        for variant in open_redirect_probe.filter_new_variants(url):
+            response_object = self.__request_with_waf_safe_mode(variant.get('url'))
+
+            if response_object is None:
+                continue
+
+            if OpenRedirectProbe.is_confirmed(response_object) is not True:
+                continue
+
+            metadata = OpenRedirectProbe.metadata(url, variant, response_object)
+            self.__handle_open_redirect_match(variant.get('url'), response_object, metadata)
+            return True
+
+        return False
+
+    def __handle_open_redirect_match(self, url, response_object, metadata):
+        """Persist and render one confirmed open redirect finding.
+
+        :param str url: controlled probe URL
+        :param object response_object: matching redirect response
+        :param dict metadata: open redirect detection metadata
+        :return: True
+        :rtype: bool
+        """
+
+        response_data = (
+            'openredirect',
+            str(url),
+            self.__response._get_content_size(response_object),
+            str(getattr(response_object, 'status', '-'))
+        )
+
+        if isinstance(metadata, dict) and isinstance(metadata.get('openredirect_detection'), dict):
+            try:
+                setattr(
+                    response_object,
+                    'opendoor_openredirect_detection',
+                    dict(metadata.get('openredirect_detection'))
+                )
+            except (AttributeError, TypeError):
+                pass
+
+        debug_response_data = getattr(self.__response, 'debug_response_data', None)
+        if callable(debug_response_data):
+            self.__clear_filtered_progress()
+            debug_response_data(
+                response_data,
+                request_url=str(url),
+                items_size=self.__pool.items_size,
+                total_size=self.__pool.total_items_size,
+                response=response_object
+            )
+
+        self.__catch_report_data(
+            'openredirect',
+            response_data[1],
+            response_data[2],
+            response_data[3],
+            metadata=metadata
+        )
+        return True
+
     def __probe_header_bypass(self, url, base_response_data):
         """
         Run controlled header-injection bypass probes for blocked responses.
@@ -1548,6 +1627,7 @@ class Browser(Filter):
 
             self.__update_waf_safe_backoff(resp, response_data)
             self.__probe_header_bypass(url, response_data)
+            self.__probe_open_redirect(url)
 
             calibration_match = self.__match_calibrated_response(resp, response_data)
             if calibration_match is not None:
@@ -2035,6 +2115,8 @@ class Browser(Filter):
                 item['secret_detection'] = dict(metadata.get('secret_detection'))
             if isinstance(metadata.get('shadow_detection'), dict):
                 item['shadow_detection'] = dict(metadata.get('shadow_detection'))
+            if isinstance(metadata.get('openredirect_detection'), dict):
+                item['openredirect_detection'] = dict(metadata.get('openredirect_detection'))
 
         self.__result['total'].update((status,))
         self.__result['items'][status] += [url]

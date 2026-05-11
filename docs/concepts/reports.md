@@ -74,7 +74,7 @@ opendoor --host https://example.com --reports json
 
 Use JSON for automation, pipelines, post-processing, and CI/CD artifact uploads.
 
-JSON preserves detailed `report_items` metadata, including WAF, fingerprint, calibration, header-bypass, secret, stacktrace and shadow fields.
+JSON preserves detailed `report_items` metadata, including WAF, fingerprint, calibration, header-bypass, secret, stacktrace, shadow and openredirect fields.
 
 ---
 
@@ -107,6 +107,18 @@ Shadow Copy Detection columns:
 | `shadow_variant` | Matched postfix suffix such as `.bak`, `.old` or `~` |
 | `shadow_similarity` | Similarity score used by the detector |
 
+Open Redirect Verification columns:
+
+| Column | Meaning |
+|---|---|
+| `openredirect` | Finding type, currently `open_redirect` |
+| `openredirect_confidence` | Confidence score for the confirmed redirect |
+| `openredirect_parameter` | Redirect-like query parameter that accepted the marker payload |
+| `openredirect_payload` | Controlled marker payload used for verification |
+| `openredirect_variant` | Payload variant name |
+| `openredirect_location` | Confirmed `Location` header value |
+| `openredirect_source_url` | Original discovered URL used as the probe base |
+
 ---
 
 ## SARIF
@@ -128,9 +140,10 @@ OpenDoor writes SARIF 2.1.0 files with one run per generated report. Result buck
 | `blocked` | `opendoor.finding.blocked` | `warning` |
 | `bypass` | `opendoor.finding.bypass` | `warning` |
 | `shadow` | `opendoor.finding.shadow` | `warning` |
+| `openredirect` | `opendoor.finding.openredirect` | `error` |
 | fingerprint metadata | `opendoor.fingerprint.detected` | `note` |
 
-SARIF result `properties` preserve OpenDoor-specific evidence: target, URL, bucket, status code, response size, WAF metadata, bypass metadata, secret/stacktrace/shadow metadata and fingerprint metadata.
+SARIF result `properties` preserve OpenDoor-specific evidence: target, URL, bucket, status code, response size, WAF metadata, bypass metadata, secret/stacktrace/shadow/openredirect metadata and fingerprint metadata.
 
 Example GitHub Code Scanning upload:
 
@@ -165,7 +178,7 @@ opendoor --host https://example.com --reports html
 
 Use HTML for a readable standalone report.
 
-HTML preserves detailed `report_items` metadata, including header-bypass, secret, stacktrace and shadow evidence.
+HTML preserves detailed `report_items` metadata, including header-bypass, secret, stacktrace, shadow and openredirect evidence.
 
 ---
 
@@ -185,7 +198,7 @@ SQLite is useful for:
 - recurring exposure checks;
 - historical comparison.
 
-SQLite persists Header Injection Bypass and Shadow Copy Detection metadata in nullable item columns.
+SQLite persists Header Injection Bypass, Shadow Copy Detection and Open Redirect Verification metadata in nullable item columns.
 
 Header Injection Bypass columns:
 
@@ -207,6 +220,18 @@ Shadow Copy Detection columns:
 | `shadow_base_url` | Original confirmed file used as the probe base |
 | `shadow_variant` | Matched postfix suffix such as `.bak`, `.old` or `~` |
 | `shadow_similarity` | Similarity score used by the detector |
+
+Open Redirect Verification columns:
+
+| Column | Meaning |
+|---|---|
+| `openredirect` | Finding type |
+| `openredirect_confidence` | Confidence score |
+| `openredirect_parameter` | Redirect-like query parameter that accepted the marker payload |
+| `openredirect_payload` | Controlled marker payload used for verification |
+| `openredirect_variant` | Payload variant name |
+| `openredirect_location` | Confirmed `Location` header value |
+| `openredirect_source_url` | Original discovered URL used as the probe base |
 
 ---
 
@@ -254,6 +279,38 @@ Report support:
 
 ---
 
+## Open redirect evidence
+
+When `--sniff openredirect` is enabled and a redirect-like parameter is confirmed vulnerable, OpenDoor stores the result in the `openredirect` bucket. Open redirect verification is active but bounded: it uses discovered URLs that already contain redirect-like query parameters and verifies only controlled marker payloads such as `https://opendoor.invalid/` or `//opendoor.invalid/`. OpenDoor does not follow the external redirect.
+
+Detailed report items include:
+
+| Field | Meaning |
+|---|---|
+| `openredirect_detection.type` | Finding type, currently `open_redirect` |
+| `openredirect_detection.confidence` | Confidence score |
+| `openredirect_detection.source_url` | Original discovered URL |
+| `openredirect_detection.probe_url` | Controlled verification URL sent to the target |
+| `openredirect_detection.parameter` | Redirect-like query parameter that accepted the marker payload |
+| `openredirect_detection.payload` | Controlled marker payload |
+| `openredirect_detection.variant` | Payload variant name |
+| `openredirect_detection.location` | Confirmed `Location` header value |
+| `openredirect_detection.marker_host` | Controlled marker host, by default `opendoor.invalid` |
+
+Report support:
+
+| Report | Open redirect evidence |
+|---|---|
+| `std` | Shows the `openredirect` bucket and counter in summary statistics |
+| `txt` | Includes open redirect evidence in openredirect report lines |
+| `json` | Preserves full metadata in `report_items` |
+| `csv` | Adds dedicated openredirect columns |
+| `html` | Preserves detailed `report_items` metadata |
+| `sqlite` | Stores openredirect metadata in nullable item columns |
+| `sarif` | Preserves openredirect evidence in SARIF result properties |
+
+---
+
 ## Header-bypass evidence
 
 When `--header-bypass` is enabled and a candidate is found, OpenDoor stores the result in the `bypass` bucket.
@@ -288,12 +345,12 @@ Report support:
 opendoor \
   --host https://example.com \
   --reports json,sqlite,csv,sarif \
-  --fail-on-bucket success,auth,forbidden,bypass,shadow
+  --fail-on-bucket success,auth,forbidden,bypass,shadow,openredirect
 ```
 
 In CI/CD, prefer machine-readable formats such as `json`, `sqlite`, `csv`, and `sarif`.
 
-Use the `bypass` bucket when Header Injection Bypass candidates should fail the pipeline. Use the `shadow` bucket when exposed backup/shadow copies should fail the pipeline.
+Use the `bypass` bucket when Header Injection Bypass candidates should fail the pipeline. Use the `shadow` bucket when exposed backup/shadow copies should fail the pipeline. Use the `openredirect` bucket when confirmed open redirect vulnerabilities should fail the pipeline.
 
 ---
 

@@ -69,6 +69,7 @@ class Response(ResponseProvider):
         stacktrace_detection = None
         secret_detection = None
         shadow_detection = None
+        openredirect_detection = None
 
         if response is not None and status == 'stacktrace':
             stacktrace_detection = getattr(response, 'opendoor_stacktrace_detection', None)
@@ -76,6 +77,8 @@ class Response(ResponseProvider):
             secret_detection = getattr(response, 'opendoor_secret_detection', None)
         if response is not None and status == 'shadow':
             shadow_detection = getattr(response, 'opendoor_shadow_detection', None)
+        if response is not None and status == 'openredirect':
+            openredirect_detection = getattr(response, 'opendoor_openredirect_detection', None)
 
         self.__debug.debug_request_uri(
             status=status,
@@ -89,7 +92,10 @@ class Response(ResponseProvider):
             waf_confidence=waf_detection.get('confidence') if waf_detection else None,
             stacktrace_detection=stacktrace_detection,
             secret_detection=secret_detection,
-            **({'shadow_detection': shadow_detection} if shadow_detection is not None else {})
+            **dict(
+                ({'shadow_detection': shadow_detection} if shadow_detection is not None else {}),
+                **({'openredirect_detection': openredirect_detection} if openredirect_detection is not None else {})
+            )
         )
         getattr(self.__debug, 'debug_classification', lambda *args, **kwargs: True)(
             status=status,
@@ -101,7 +107,10 @@ class Response(ResponseProvider):
             redirect_uri=redirect_uri,
             stacktrace_detection=stacktrace_detection,
             secret_detection=secret_detection,
-            **({'shadow_detection': shadow_detection} if shadow_detection is not None else {})
+            **dict(
+                ({'shadow_detection': shadow_detection} if shadow_detection is not None else {}),
+                **({'openredirect_detection': openredirect_detection} if openredirect_detection is not None else {})
+            )
         )
 
         return True
@@ -169,6 +178,7 @@ class Response(ResponseProvider):
                 stacktrace_detection = getattr(response, 'opendoor_stacktrace_detection', None) if status == 'stacktrace' else None
                 secret_detection = getattr(response, 'opendoor_secret_detection', None) if status == 'secret' else None
                 shadow_detection = getattr(response, 'opendoor_shadow_detection', None) if status == 'shadow' else None
+                openredirect_detection = getattr(response, 'opendoor_openredirect_detection', None) if status == 'openredirect' else None
 
                 if status in ['redirect']:
                     redirect_uri = self._get_redirect_url(request_url, response)
@@ -200,7 +210,10 @@ class Response(ResponseProvider):
                         waf_confidence=waf_detection.get('confidence') if waf_detection else None,
                         stacktrace_detection=stacktrace_detection,
                         secret_detection=secret_detection,
-                        **({'shadow_detection': shadow_detection} if shadow_detection is not None else {})
+                        **dict(
+                            ({'shadow_detection': shadow_detection} if shadow_detection is not None else {}),
+                            **({'openredirect_detection': openredirect_detection} if openredirect_detection is not None else {})
+                        )
                     )
                     getattr(self.__debug, 'debug_classification', lambda *args, **kwargs: True)(
                         status=status,
@@ -212,7 +225,10 @@ class Response(ResponseProvider):
                         redirect_uri=redirect_uri,
                         stacktrace_detection=stacktrace_detection,
                         secret_detection=secret_detection,
-                        **({'shadow_detection': shadow_detection} if shadow_detection is not None else {})
+                        **dict(
+                            ({'shadow_detection': shadow_detection} if shadow_detection is not None else {}),
+                            **({'openredirect_detection': openredirect_detection} if openredirect_detection is not None else {})
+                        )
                     )
 
                 return status, url, content_size, response_code

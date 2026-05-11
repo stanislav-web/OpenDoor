@@ -298,7 +298,7 @@ Keep recursion depth controlled to avoid overly large scans.
 Sniffers are built-in response analysis plugins.
 
 ```ini
-sniff = skipempty,collation,indexof,file
+sniff = skipempty,collation,indexof,file,openredirect
 ```
 
 Known false-positive response sizes:
@@ -316,6 +316,7 @@ Common values:
 | `indexof` | Detect directory listings |
 | `file` | Detect downloadable or interesting files |
 | `collation` | Detect repeated fallback responses |
+| `openredirect` | Verify redirect-like parameters for confirmed open redirect issues |
 
 For details, see [Sniffers](Sniffers.md).
 
@@ -482,12 +483,12 @@ Sessions are useful for large scans, unstable networks, recursive discovery, and
 Enable CI/CD fail-on behavior by selected result buckets:
 
 ```ini
-fail_on_bucket = success,auth,forbidden,blocked,bypass
+fail_on_bucket = success,auth,forbidden,blocked,bypass,openredirect
 ```
 
 When at least one selected bucket is found, OpenDoor exits with code `1`.
 
-Use the `bypass` bucket when header-bypass candidates should fail the pipeline.
+Use the `bypass` bucket when header-bypass candidates should fail the pipeline. Use the `openredirect` bucket when confirmed open redirect vulnerabilities should fail the pipeline.
 
 This is useful for:
 

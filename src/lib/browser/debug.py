@@ -227,6 +227,14 @@ class Debug(DebugProvider):
                 tpl.line(msg='Shadow', color='red'),
                 tpl.line(msg=urlpath, color='green')
             )
+        elif status in ['openredirect']:
+            openredirect_detection = kwargs.get('openredirect_detection') or {}
+            request_uri = '{0} ({1}) {2} -> {3}'.format(
+                tpl.line(msg='R', color='blue'),
+                tpl.line(msg='OpenRedirect', color='red'),
+                tpl.line(msg=urlpath, color='green'),
+                tpl.line(msg=openredirect_detection.get('location') or '-', color='blue')
+            )
         elif status in ['bad', 'forbidden']:
             request_uri = tpl.line(key='forbidden', color='yellow', url=urlpath)
         elif status in ['redirect']:
@@ -245,7 +253,7 @@ class Debug(DebugProvider):
 
         self.__clear = True if self.__catched else False
 
-        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'blocked', 'indexof', 'certificate', 'auth', 'stacktrace', 'shadow']:
+        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'blocked', 'indexof', 'certificate', 'auth', 'stacktrace', 'shadow', 'openredirect']:
             sys.writels('', flush=True)
             tpl.info(
                 key='get_item',
@@ -400,7 +408,8 @@ class Debug(DebugProvider):
             redirect_uri=None,
             stacktrace_detection=None,
             secret_detection=None,
-            shadow_detection=None
+            shadow_detection=None,
+            openredirect_detection=None
     ):
         """Debug response classification summary."""
 
@@ -450,6 +459,16 @@ class Debug(DebugProvider):
                     shadow_detection.get('base_url') or '-',
                     shadow_detection.get('variant') or '-',
                     shadow_detection.get('confidence') or '-'
+                )
+            )
+
+        if openredirect_detection:
+            tpl.debug(
+                msg='OpenRedirect detection: param={0}; variant={1}; location={2}; confidence={3}'.format(
+                    openredirect_detection.get('parameter') or '-',
+                    openredirect_detection.get('variant') or '-',
+                    openredirect_detection.get('location') or '-',
+                    openredirect_detection.get('confidence') or '-'
                 )
             )
 

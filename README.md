@@ -2,7 +2,7 @@
 
 ![OpenDoor](https://github.com/stanislav-web/OpenDoor/raw/master/logo.png)
 
-**OpenDoor** is an open-source CLI Recon Platform for authorized web reconnaissance, directory discovery, subdomain enumeration, fingerprint detection, WAF detection, controlled header-bypass probing, response filtering, reporting, and transport-based scanning workflows.
+**OpenDoor** is an open-source CLI Recon Platform for authorized web reconnaissance, directory discovery, subdomain enumeration, fingerprint detection, WAF detection, controlled header-bypass probing, response filtering, reporting, verified open-redirect checks, and transport-based scanning workflows.
 
 It helps security researchers, penetration testers, bug bounty hunters, DevSecOps engineers, and developers identify exposed paths, login panels, directory listings, restricted resources, backup files, web shells, subdomains, and other potentially sensitive web assets.
 
@@ -60,7 +60,7 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - custom wordlists, prefixes, shuffling to break scan patterns and extension filters;
 - custom request headers, cookies forwarding, and raw HTTP request templates;
 - response filters by status, size, text, regex, and body length;
-- response sniffers for detecting directory listings, empty responses, known file exposures, active shadow-copy probes, collation, possible exposed secrets, errors and exposed debug stack traces;
+- response sniffers for detecting directory listings, empty responses, known file exposures, active shadow-copy probes, collation, possible exposed secrets, errors, exposed debug stack traces, and verified open redirect vulnerabilities;
 - smart auto-calibration for soft-404, wildcard, catch-all, semantic response-diff, and DNS wildcard cases;
 - technology fingerprint detection for CMS, ecommerce platforms, frameworks, runtime stacks, infrastructure, and HSTS posture;
 - passive privacy-risk checks in `--fingerprint`, including possible HSTS, ETag/cache, and supercookie surfaces.
@@ -258,7 +258,7 @@ opendoor \
   --include-status 200-299,301,302,403 \
   --exclude-status 404,429,500-599 \
   --exclude-size-range 0-256 \
-  --sniff secret,shadow,skipempty,collation,indexof,file,stacktrace \
+  --sniff secret,shadow,openredirect,skipempty,collation,indexof,file,stacktrace \
   --reports std,json,csv,sarif
 ```
 
@@ -270,7 +270,7 @@ Response sniffers classify interesting response bodies during discovery. They ar
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff secret,shadow,stacktrace,indexof,file,collation \
+  --sniff secret,shadow,openredirect,stacktrace,indexof,file,collation \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
@@ -287,6 +287,7 @@ Useful sniffers include:
 | `stacktrace` | Detect exposed debug/runtime stack traces and internal error details.                                                  |
 | `secret` | Detect possible exposed API keys, tokens, private keys and credentials with redacted report metadata.                  |
 | `shadow` | Actively probe confirmed `200 OK` file-like hits for exposed backup/shadow copies such as `.bak`, `.old` etc variants. |
+| `openredirect` | Actively verify redirect-like query parameters with controlled marker URLs and report only confirmed open redirect vulnerabilities. |
 
 Body-dependent sniffers automatically force `GET` internally when the configured method is `HEAD`.
 

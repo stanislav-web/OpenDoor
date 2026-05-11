@@ -179,6 +179,25 @@ class PluginProvider(object):
 
             value = '{0} | {1}'.format(value, ', '.join(details))
 
+
+        openredirect_detection = item.get('openredirect_detection')
+        if isinstance(openredirect_detection, dict):
+            details = ['openredirect={0}'.format(openredirect_detection.get('type', 'open_redirect'))]
+
+            if openredirect_detection.get('parameter'):
+                details.append('param={0}'.format(openredirect_detection.get('parameter')))
+
+            if openredirect_detection.get('variant'):
+                details.append('variant={0}'.format(openredirect_detection.get('variant')))
+
+            if openredirect_detection.get('location'):
+                details.append('location={0}'.format(openredirect_detection.get('location')))
+
+            if openredirect_detection.get('confidence') is not None:
+                details.append('confidence={0}%'.format(openredirect_detection.get('confidence')))
+
+            value = '{0} | {1}'.format(value, ', '.join(details))
+
         return value
 
     def process(self):

@@ -11,7 +11,7 @@ opendoor --host https://example.com --sniff <plugins>
 Multiple sniffers can be combined with commas:
 
 ```shell
-opendoor --host https://example.com --sniff secret,shadow,stacktrace,skipempty,file,collation,indexof
+opendoor --host https://example.com --sniff secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
 ```
 
 Some sniffers accept parameters:
@@ -37,6 +37,7 @@ Common cases:
 | Possible leaked API keys, tokens, private keys or credentials | `secret` |
 | Exposed backup or shadow copies near confirmed files | `shadow` |
 | Exposed debug stack traces or verbose error details | `stacktrace` |
+| Redirect parameters that may accept arbitrary external targets | `openredirect` |
 | Redirect-like or duplicated fallback responses | `collation` |
 
 Sniffers are especially useful when combined with response filters and auto-calibration.
@@ -50,7 +51,7 @@ OpenDoor has several layers for response classification.
 | Layer | Purpose |
 |---|---|
 | Response filters | Explicit user-defined rules, such as status, size, text, and regex filters. |
-| Sniffers | Built-in heuristics for common false positives and interesting response types. |
+| Sniffers | Built-in heuristics and bounded active probes for common false positives and interesting response types. |
 | Auto-calibration | Baseline-based classification for soft-404, wildcard, and catch-all responses. |
 
 A practical low-noise scan often uses all three:
@@ -62,7 +63,7 @@ opendoor \
   --auto-calibrate \
   --exclude-status 404,429,500-599 \
   --exclude-size-range 0-256 \
-  --sniff secret,shadow,stacktrace,skipempty,file,collation,indexof
+  --sniff secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
 ```
 
 ---
@@ -238,6 +239,50 @@ Use `shadow` when developers may accidentally deploy old, backup or editor-creat
 
 ---
 
+## 🔁 `openredirect`
+
+Actively verifies redirect-like query parameters with controlled external marker values.
+
+```shell
+opendoor --host https://example.com --method GET --sniff openredirect
+```
+
+Unlike a passive external-redirect detector, `openredirect` reports only confirmed open redirect vulnerabilities. It builds bounded verification requests from discovered URLs that already contain redirect-like query parameters such as `next`, `redirect`, `redirect_uri`, `returnUrl`, `continue`, `callback`, `target`, `destination`, `goto`, `to`, `r`, `u`, or `RelayState`.
+
+For example, a discovered URL such as:
+
+```text
+https://example.com/login?returnUrl=/profile
+```
+
+can be verified with controlled marker targets such as:
+
+```text
+https://example.com/login?returnUrl=https%3A%2F%2Fopendoor.invalid%2F
+```
+
+A finding is created only when the target responds with a redirect status and a `Location` header pointing to the marker host:
+
+```text
+302 Location: https://opendoor.invalid/
+```
+
+OpenDoor does not need to own `opendoor.invalid` and does not follow the external redirect. The marker is used only as evidence that the endpoint accepted an arbitrary external redirect target.
+
+Matching findings are classified into the `openredirect` bucket and include `openredirect_detection` metadata such as source URL, probe URL, parameter, payload, variant, marker host, confirmed Location header and confidence.
+
+Example:
+
+```shell
+opendoor \
+  --host https://example.com \
+  --method GET \
+  --sniff openredirect,secret,stacktrace,indexof,file \
+  --reports std,json,csv,html,sqlite,sarif
+```
+
+---
+
 ## 🧯 `stacktrace`
 
 Detects exposed debug stack traces and verbose internal error details.
@@ -312,7 +357,7 @@ opendoor \
   --host https://example.com \
   --method GET \
   --auto-calibrate \
-  --sniff secret,shadow,stacktrace,skipempty,file,collation,indexof
+  --sniff secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
 ```
 
 ### Known false-positive sizes
@@ -340,7 +385,7 @@ opendoor \
   --hostlist targets.txt \
   --method GET \
   --auto-calibrate \
-  --sniff shadow,skipempty,file,collation,indexof \
+  --sniff shadow,openredirect,skipempty,file,collation,indexof \
   --reports json,sqlite
 ```
 
@@ -355,7 +400,7 @@ opendoor \
   --host https://example.com \
   --method GET \
   --auto-calibrate \
-  --sniff secret,shadow,stacktrace,skipempty,file,collation,indexof
+  --sniff secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
 ```
 
 For fast scans where response body analysis is not required, keep the default request method and use status/size filters instead.
@@ -416,3 +461,4 @@ opendoor --host https://example.com --exclude-size-range 1000-2000
 | `stacktrace`           | Detect possible errors in responses                              |
 | `secret`               | Detects possible exposed secrets in successful textual responses |
 | `shadow`               | Detect possible archive or backuped files                        |
+| `openredirect`         | Verify redirect parameters for confirmed open redirect issues     |

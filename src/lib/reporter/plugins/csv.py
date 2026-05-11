@@ -69,6 +69,13 @@ class CsvReportPlugin(PluginProvider):
         'shadow_similarity',
         'shadow_base_size',
         'shadow_size',
+        'openredirect_detection',
+        'openredirect_confidence',
+        'openredirect_parameter',
+        'openredirect_variant',
+        'openredirect_payload',
+        'openredirect_location',
+        'openredirect_source_url',
         'fingerprint_category',
         'fingerprint_name',
         'fingerprint_confidence',
@@ -268,6 +275,13 @@ class CsvReportPlugin(PluginProvider):
                     'shadow_similarity': '',
                     'shadow_base_size': '',
                     'shadow_size': '',
+                    'openredirect_detection': '',
+                    'openredirect_confidence': '',
+                    'openredirect_parameter': '',
+                    'openredirect_variant': '',
+                    'openredirect_payload': '',
+                    'openredirect_location': '',
+                    'openredirect_source_url': '',
                 }
                 stacktrace_detection = item.get('stacktrace_detection')
                 if isinstance(stacktrace_detection, dict):
@@ -309,6 +323,19 @@ class CsvReportPlugin(PluginProvider):
                         'shadow_size': '' if shadow_detection.get('shadow_size') is None else str(
                             shadow_detection.get('shadow_size')
                         ),
+                    })
+                openredirect_detection = item.get('openredirect_detection')
+                if isinstance(openredirect_detection, dict):
+                    row.update({
+                        'openredirect_detection': str(openredirect_detection.get('type', '')),
+                        'openredirect_confidence': '' if openredirect_detection.get('confidence') is None else str(
+                            openredirect_detection.get('confidence')
+                        ),
+                        'openredirect_parameter': str(openredirect_detection.get('parameter', '')),
+                        'openredirect_variant': str(openredirect_detection.get('variant', '')),
+                        'openredirect_payload': str(openredirect_detection.get('payload', '')),
+                        'openredirect_location': str(openredirect_detection.get('location', '')),
+                        'openredirect_source_url': str(openredirect_detection.get('source_url', '')),
                     })
                 row.update(fingerprint_fields)
                 rows.append(row)

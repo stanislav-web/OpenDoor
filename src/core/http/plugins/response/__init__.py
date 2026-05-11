@@ -35,3 +35,6 @@ from .secret import SecretResponsePlugin as secret
 
 # noinspection PyPep8Naming
 from .shadow import ShadowResponsePlugin as shadow
+
+# noinspection PyPep8Naming
+from .openredirect import OpenredirectResponsePlugin as openredirect

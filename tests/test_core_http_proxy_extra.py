@@ -261,6 +261,68 @@ class TestProxyExtra(unittest.TestCase):
         self.assertEqual(stdout.getvalue(), '\n')
         tpl.warning.assert_called_once()
 
+
+    def test_request_warns_after_proxy_list_retry_times_out(self):
+        """Proxy.request() should format retry read timeouts without raw urllib3 details."""
+
+        cfg = self.make_cfg(scan='directories', is_standalone_proxy=False)
+        tpl = MagicMock()
+        proxy = Proxy(cfg, self.make_debug(), tpl=tpl, proxy_list=['http://unused'], agent_list=['UA'])
+        proxy._Proxy__server = 'socks5://127.0.0.1:9050'
+
+        with patch.object(
+            proxy,
+            '_Proxy__pool_request',
+            side_effect=[
+                MaxRetryError(None, '/', None),
+                ReadTimeoutError(None, '/', 'Read timed out'),
+            ],
+        ) as pool_request_mock:
+            actual = proxy.request('https://localhost/')
+
+        self.assertIsNone(actual)
+        self.assertEqual(pool_request_mock.call_count, 2)
+        self.assertEqual(tpl.warning.call_count, 2)
+        self.assertIn('connection timed out', tpl.warning.call_args_list[1].kwargs['msg'])
+
+    def test_finish_active_terminal_line_ignores_stdout_errors(self):
+        """Proxy.__finish_active_terminal_line() should never fail on broken stdout."""
+
+        class BrokenStdout(object):
+            """stdout stub that raises while writing."""
+
+            def write(self, _value):
+                """Raise an OS error to emulate a closed output stream."""
+
+                raise OSError('closed')
+
+            def flush(self):
+                """Flush no-op for interface completeness."""
+
+                return None
+
+        with patch('sys.stdout', BrokenStdout()):
+            self.assertIsNone(getattr(Proxy, '_Proxy__finish_active_terminal_line')())
+
+    def test_format_proxy_error_normalizes_common_network_errors(self):
+        """Proxy.__format_proxy_error() should emit compact network diagnostics."""
+
+        formatter = getattr(Proxy, '_Proxy__format_proxy_error')
+
+        self.assertEqual(formatter(Exception('Operation timed out')), 'connection timed out')
+        self.assertEqual(formatter(Exception('Connection reset by peer')), 'connection reset')
+        self.assertEqual(formatter(Exception('Name or service not known')), 'name resolution failed')
+        self.assertEqual(formatter(Exception('plain failure')), 'plain failure')
+
+    def test_format_proxy_error_truncates_long_unknown_errors(self):
+        """Proxy.__format_proxy_error() should keep unexpected errors readable."""
+
+        formatter = getattr(Proxy, '_Proxy__format_proxy_error')
+        message = formatter(Exception('x' * 300))
+
+        self.assertEqual(len(message), 180)
+        self.assertTrue(message.endswith('...'))
+
     def test_request_suppresses_retry_warning_for_non_default_scan(self):
         """Proxy.request() should not warn or retry on MaxRetryError for non-default scan mode."""
 

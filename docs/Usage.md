@@ -921,7 +921,7 @@ opendoor --host https://example.com --fail-on-bucket success,auth,forbidden,bloc
 
 When selected buckets are found, OpenDoor exits with code `1`.
 
-The `bypass` bucket can be used as a CI/CD signal when header-bypass candidates should fail the pipeline.
+The `bypass` bucket can be used as a CI/CD signal when header-bypass candidates should fail the pipeline. The `openredirect` bucket can fail a pipeline when controlled open redirect verification confirms a vulnerable endpoint.
 
 This is useful for:
 
@@ -937,7 +937,7 @@ Example:
 opendoor \
   --host https://example.com \
   --reports json,sqlite \
-  --fail-on-bucket success,auth,forbidden,bypass
+  --fail-on-bucket success,auth,forbidden,bypass,openredirect
 ```
 
 ---
@@ -953,12 +953,13 @@ opendoor --host https://example.com --sniff skipsizes=24:41:50
 opendoor --host https://example.com --sniff stacktrace
 opendoor --host https://example.com --sniff secret
 opendoor --host https://example.com --sniff shadow
+opendoor --host https://example.com --sniff openredirect
 ```
 
 Multiple sniffers can be combined:
 
 ```shell
-opendoor --host https://example.com --sniff secret,shadow,stacktrace,skipempty,file,collation,indexof,skipsizes=24:41:50
+opendoor --host https://example.com --sniff secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof,skipsizes=24:41:50
 ```
 
 For details, see [Sniffers](Sniffers.md).

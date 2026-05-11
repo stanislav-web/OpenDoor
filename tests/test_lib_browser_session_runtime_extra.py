@@ -163,6 +163,26 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
         self.assertTrue(params['fingerprint'])
         self.assertTrue(params['waf_detect'])
 
+    def test_build_session_snapshot_exports_all_selected_sniffers(self):
+        """Browser session checkpoint should preserve every selected sniffer alias."""
+
+        sniffers = [
+            'secret',
+            'file',
+            'collation',
+            'indexof',
+            'skipempty',
+            'stacktrace',
+            'shadow',
+            'skipsizes=10:200',
+            'openredirect',
+        ]
+        br = self.make_browser(sniffers=sniffers)
+
+        snapshot = br._Browser__build_session_snapshot(reason='items')
+
+        self.assertEqual(snapshot['params']['sniff'], ','.join(sniffers))
+
     def test_restore_session_state_rehydrates_pending_sets_and_total_size(self):
         """Browser should restore logical checkpoint state into runtime structures."""
 

@@ -103,7 +103,14 @@ class SqliteReportPlugin(PluginProvider):
                 'shadow_variant TEXT, '
                 'shadow_similarity REAL, '
                 'shadow_base_size INTEGER, '
-                'shadow_size INTEGER'
+                'shadow_size INTEGER, '
+                'openredirect_detection TEXT, '
+                'openredirect_confidence INTEGER, '
+                'openredirect_parameter TEXT, '
+                'openredirect_variant TEXT, '
+                'openredirect_payload TEXT, '
+                'openredirect_location TEXT, '
+                'openredirect_source_url TEXT'
                 ')'
             )
             cursor.execute(
@@ -177,6 +184,9 @@ class SqliteReportPlugin(PluginProvider):
                     shadow_detection = item.get('shadow_detection')
                     if not isinstance(shadow_detection, dict):
                         shadow_detection = {}
+                    openredirect_detection = item.get('openredirect_detection')
+                    if not isinstance(openredirect_detection, dict):
+                        openredirect_detection = {}
 
                     rows.append(
                         (
@@ -217,6 +227,13 @@ class SqliteReportPlugin(PluginProvider):
                             None if shadow_detection.get('similarity') is None else float(shadow_detection.get('similarity')),
                             None if shadow_detection.get('base_size') is None else int(shadow_detection.get('base_size')),
                             None if shadow_detection.get('shadow_size') is None else int(shadow_detection.get('shadow_size')),
+                            None if openredirect_detection.get('type') is None else str(openredirect_detection.get('type')),
+                            None if openredirect_detection.get('confidence') is None else int(openredirect_detection.get('confidence')),
+                            None if openredirect_detection.get('parameter') is None else str(openredirect_detection.get('parameter')),
+                            None if openredirect_detection.get('variant') is None else str(openredirect_detection.get('variant')),
+                            None if openredirect_detection.get('payload') is None else str(openredirect_detection.get('payload')),
+                            None if openredirect_detection.get('location') is None else str(openredirect_detection.get('location')),
+                            None if openredirect_detection.get('source_url') is None else str(openredirect_detection.get('source_url')),
                         )
                     )
 
@@ -229,8 +246,10 @@ class SqliteReportPlugin(PluginProvider):
                     'bypass_score, bypass_reasons, stacktrace_detection, stacktrace_runtime, stacktrace_signal, '
                     'stacktrace_confidence, secret_detection, secret_redacted, secret_confidence, secret_count, secret_types, '
                     'shadow_detection, shadow_confidence, shadow_reason, shadow_base_url, shadow_variant, '
-                    'shadow_similarity, shadow_base_size, shadow_size'
-                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    'shadow_similarity, shadow_base_size, shadow_size, openredirect_detection, '
+                    'openredirect_confidence, openredirect_parameter, openredirect_variant, openredirect_payload, '
+                    'openredirect_location, openredirect_source_url'
+                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     rows
                 )
 
