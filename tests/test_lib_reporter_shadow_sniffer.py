@@ -25,13 +25,13 @@ class TestShadowSnifferReportMetadata(unittest.TestCase):
         self.target = 'shadow.local'
         self.shadow_detection = {
             'type': 'backup_copy',
-            'confidence': 95,
-            'reason': 'content_match',
+            'confidence': 90,
+            'reason': 'content_diff',
             'base_url': 'https://shadow.local/index.php',
             'url': 'https://shadow.local/index.php.bak',
             'variant': '.bak',
             'variant_type': 'suffix',
-            'similarity': 1.0,
+            'similarity': 0.96,
             'base_size': 21,
             'shadow_size': 21,
             'content_type': 'text/html',
@@ -65,7 +65,7 @@ class TestShadowSnifferReportMetadata(unittest.TestCase):
             actual,
             'https://shadow.local/index.php.bak - 200 - 21B | '
             'shadow=backup_copy, variant=.bak, base=https://shadow.local/index.php, '
-            'confidence=95%, similarity=1.0'
+            'confidence=90%, similarity=0.96'
         )
 
     def test_csv_report_exposes_queryable_shadow_columns(self):
@@ -80,11 +80,11 @@ class TestShadowSnifferReportMetadata(unittest.TestCase):
 
         self.assertEqual(rows[0]['status'], 'shadow')
         self.assertEqual(rows[0]['shadow_detection'], 'backup_copy')
-        self.assertEqual(rows[0]['shadow_confidence'], '95')
-        self.assertEqual(rows[0]['shadow_reason'], 'content_match')
+        self.assertEqual(rows[0]['shadow_confidence'], '90')
+        self.assertEqual(rows[0]['shadow_reason'], 'content_diff')
         self.assertEqual(rows[0]['shadow_base_url'], 'https://shadow.local/index.php')
         self.assertEqual(rows[0]['shadow_variant'], '.bak')
-        self.assertEqual(rows[0]['shadow_similarity'], '1.0')
+        self.assertEqual(rows[0]['shadow_similarity'], '0.96')
         self.assertEqual(rows[0]['shadow_base_size'], '21')
         self.assertEqual(rows[0]['shadow_size'], '21')
 
@@ -108,11 +108,11 @@ class TestShadowSnifferReportMetadata(unittest.TestCase):
             (
                 'shadow',
                 'backup_copy',
-                95,
-                'content_match',
+                90,
+                'content_diff',
                 'https://shadow.local/index.php',
                 '.bak',
-                1.0,
+                0.96,
                 21,
                 21,
             )

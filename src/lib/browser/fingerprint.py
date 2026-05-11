@@ -175,6 +175,7 @@ class Fingerprint(object):
         ('InstantCMS', CMS_CATEGORY, ('instantcms', 'instant cms')),
         ('ImpressPages CMS', CMS_CATEGORY, ('impresspages', 'impresspages cms')),
         ('Jimdo', SITE_BUILDER_CATEGORY, ('jimdo',)),
+        ('Mobirise', SITE_BUILDER_CATEGORY, ('mobirise', 'mobirise website builder')),
         ('Kooboo CMS', CMS_CATEGORY, ('kooboo', 'kooboo cms')),
         ('Liferay', CMS_CATEGORY, ('liferay', 'liferay portal')),
         ('Microsoft SharePoint', CMS_CATEGORY, ('microsoft sharepoint', 'sharepoint')),
@@ -245,6 +246,19 @@ class Fingerprint(object):
         ('InstantCMS', CMS_CATEGORY, ('instantcms', 'icms-', '/templates/default/')),
         ('ImpressPages CMS', CMS_CATEGORY, ('impresspages', 'ip_themes/', 'ip_content')),
         ('Jimdo', SITE_BUILDER_CATEGORY, ('jimcdn.com', 'jimdo_layout_css', 'jimdo.com')),
+        (
+            'Mobirise',
+            SITE_BUILDER_CATEGORY,
+            (
+                '/assets/mobirise/',
+                '/assets/web/assets/mobirise-icons',
+                'mobirise-icons.css',
+                'mbr-additional.css',
+                'mbr-section-title',
+                'mbr-section-btn',
+                'mbr-fonts-style',
+            ),
+        ),
         ('Liferay', CMS_CATEGORY, ('liferay', '/o/frontend-js-', 'portlet-boundary')),
         (
             'Microsoft SharePoint',
@@ -1470,6 +1484,16 @@ class Fingerprint(object):
             self._add_signal('Tilda', self.SITE_BUILDER_CATEGORY, 'asset', 'static.tildacdn.', 7)
         if 'tilda-pub-' in body_lower:
             self._add_signal('Tilda', self.SITE_BUILDER_CATEGORY, 'markup', 'tilda-pub-', 4)
+
+        # Mobirise
+        if 'mobirise' in generator_lower:
+            self._add_signal('Mobirise', self.SITE_BUILDER_CATEGORY, 'meta', 'generator={0}'.format(generator), 8)
+        if '/assets/mobirise/' in body_lower or '/assets/web/assets/mobirise-icons' in body_lower \
+                or 'mobirise-icons.css' in body_lower:
+            self._add_signal('Mobirise', self.SITE_BUILDER_CATEGORY, 'asset', 'assets/mobirise|mobirise-icons', 7)
+        if 'mbr-additional.css' in body_lower or 'mbr-section-title' in body_lower \
+                or 'mbr-section-btn' in body_lower or 'mbr-fonts-style' in body_lower:
+            self._add_signal('Mobirise', self.SITE_BUILDER_CATEGORY, 'markup', 'mbr-*', 5)
 
         # Webflow
         if 'webflow' in generator_lower:

@@ -175,6 +175,51 @@ class TestFingerprint(unittest.TestCase):
         self.assertEqual(result['category'], 'sitebuilder')
         self.assertEqual(result['name'], 'Webflow')
 
+    def test_detects_mobirise_from_generator_and_assets(self):
+        """Fingerprint should detect Mobirise landing-page builder output."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><meta name="generator" content="Mobirise Website Builder v5.9.18">'
+                '<link rel="stylesheet" href="assets/web/assets/mobirise-icons/mobirise-icons.css">'
+                '<link rel="stylesheet" href="assets/mobirise/css/mbr-additional.css"></head>'
+                '<body><section class="mbr-section-title mbr-fonts-style">Landing</section>'
+                '<div class="mbr-section-btn"></div></body></html>',
+                {}
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'sitebuilder')
+        self.assertEqual(result['name'], 'Mobirise')
+        self.assertGreaterEqual(result['confidence'], 80)
+
+    def test_does_not_detect_mobirise_from_plain_text_only(self):
+        """Fingerprint should not classify pages that only mention Mobirise as text."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><p>We can rebuild landing pages made with Mobirise.</p></body></html>',
+                {}
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+
     def test_detects_5145_regional_cms_and_sitebuilder_catalog(self):
         """Fingerprint should detect regional CMS and site-builder catalog additions."""
 

@@ -2,6 +2,7 @@
 
 """Runtime shadow-copy probing for confirmed 200 OK file hits."""
 
+import difflib
 import hashlib
 import threading
 from queue import Queue
@@ -18,6 +19,8 @@ class ShadowProbe(object):
     MAX_CANDIDATES_PER_HIT = 12
     MAX_TOTAL_PROBES = 500
     MAX_BODY_SIZE = 1024 * 1024
+    MIN_DIFF_SIMILARITY = 0.90
+    MAX_SIZE_DELTA_RATIO = 0.25
     SHADOW_STATUSES = {200}
     QUEUE_TIMEOUT_SEC = 0.25
 
@@ -232,6 +235,7 @@ class ShadowProbe(object):
 
         return {
             'hash': hashlib.sha256(normalized.encode('utf-8')).hexdigest(),
+            'normalized': normalized,
             'size': int(size),
             'content_type': cls.content_type(response),
         }
@@ -298,9 +302,50 @@ class ShadowProbe(object):
         return str(value or '').split(';', 1)[0].strip().lower()
 
     @classmethod
+    def similarity_ratio(cls, base_signature, candidate_signature):
+        """
+        Calculate normalized body similarity for related shadow candidates.
+
+        :param dict base_signature: base response signature
+        :param dict candidate_signature: candidate response signature
+        :return: similarity ratio in range 0.0..1.0
+        :rtype: float
+        """
+
+        base_body = str(base_signature.get('normalized', ''))
+        candidate_body = str(candidate_signature.get('normalized', ''))
+        if not base_body or not candidate_body:
+            return 0.0
+
+        return float(difflib.SequenceMatcher(None, base_body, candidate_body).ratio())
+
+    @classmethod
+    def size_delta_ratio(cls, base_signature, candidate_signature):
+        """
+        Calculate relative body size delta for shadow candidate filtering.
+
+        :param dict base_signature: base response signature
+        :param dict candidate_signature: candidate response signature
+        :return: relative size delta
+        :rtype: float
+        """
+
+        base_size = int(base_signature.get('size', 0) or 0)
+        candidate_size = int(candidate_signature.get('size', 0) or 0)
+        if base_size <= 0 or candidate_size <= 0:
+            return 1.0
+
+        return abs(base_size - candidate_size) / float(max(base_size, candidate_size))
+
+    @classmethod
     def is_match(cls, base_signature, response):
         """
-        Compare a shadow candidate response with its base signature.
+        Compare a changed shadow candidate response with its base signature.
+
+        Identical copies are intentionally ignored because they do not add new
+        information beyond the original success response. A shadow finding is
+        emitted only when the candidate is still strongly related to the base
+        response but contains a real content difference.
 
         :param dict base_signature: base response signature
         :param object response: candidate response
@@ -312,9 +357,17 @@ class ShadowProbe(object):
         if not isinstance(base_signature, dict) or candidate_signature is None:
             return None
 
-        if candidate_signature.get('hash') != base_signature.get('hash'):
+        if candidate_signature.get('hash') == base_signature.get('hash'):
             return None
 
+        if cls.size_delta_ratio(base_signature, candidate_signature) > cls.MAX_SIZE_DELTA_RATIO:
+            return None
+
+        similarity = cls.similarity_ratio(base_signature, candidate_signature)
+        if similarity < cls.MIN_DIFF_SIMILARITY or similarity >= 1.0:
+            return None
+
+        candidate_signature['similarity'] = round(similarity, 4)
         return candidate_signature
 
     @classmethod
@@ -334,13 +387,13 @@ class ShadowProbe(object):
         return {
             'shadow_detection': {
                 'type': 'backup_copy',
-                'confidence': 95,
-                'reason': 'content_match',
+                'confidence': 90,
+                'reason': 'content_diff',
                 'base_url': str(base_url),
                 'url': str(candidate_url),
                 'variant': str(suffix),
                 'variant_type': 'suffix',
-                'similarity': 1.0,
+                'similarity': float(candidate_signature.get('similarity', 0.0)),
                 'base_size': int(base_signature.get('size', 0)),
                 'shadow_size': int(candidate_signature.get('size', 0)),
                 'content_type': str(candidate_signature.get('content_type', '')),

@@ -57,7 +57,7 @@ class Config(object):
         'addtopool': 'Adding {total} lines to queue...',
         'http_pool_start': 'Using HTTP {type} connection',
         'https_pool_start': 'Using SSL {type} connection',
-        'proxy_pool_standalone': 'Using custom proxy server: {server}',
+        'proxy_pool_standalone': 'Using proxy server: {server}',
         'proxy_pool_internal_start': 'Fetching internal proxy list...',
         'proxy_pool_external_start': 'Fetching external proxy list...',
         'request_header_dbg': 'Request header:\n{dbg}',

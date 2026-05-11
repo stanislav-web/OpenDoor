@@ -87,31 +87,48 @@ class TestShadowProbe(unittest.TestCase):
         self.assertEqual(candidates[0], ('https://example.com/index.php.s0?x=1', '.s0'))
         self.assertEqual(candidates[-1], ('https://example.com/index.php.s11?x=1', '.s11'))
 
-    def test_should_classify_exact_content_match_as_shadow(self):
-        """Should request generated candidates and report exact content matches only."""
+    def test_should_ignore_identical_shadow_copy_and_classify_near_copy_diff(self):
+        """Should report changed near-copies and ignore byte-identical copies."""
 
-        base = self.make_response(body=b'<?php echo "stable"; ?>')
+        base = self.make_response(body=(b'<?php echo "stable"; ?>\n' * 10))
         matches = []
         progress = []
 
         def request(url):
             if url.endswith('.bak'):
-                return self.make_response(body=b'<?php echo "stable"; ?>')
+                return self.make_response(body=(b'<?php echo "stable"; ?>\n' * 10))
+            if url.endswith('.old'):
+                return self.make_response(body=(b'<?php echo "stable"; ?>\n' * 10) + b'<!-- backup marker -->\n')
             return self.make_response(body=b'not the same')
 
         probe = ShadowProbe(request, lambda url, response, metadata: matches.append((url, metadata)), lambda *args: progress.append(args))
-        with patch.object(probe, '_ShadowProbe__suffixes', ['.bak', '.old']):
-            self.assertEqual(probe.enqueue('https://example.com/index.php', base, 'success'), 2)
+        with patch.object(probe, '_ShadowProbe__suffixes', ['.bak', '.old', '.tmp']):
+            self.assertEqual(probe.enqueue('https://example.com/index.php', base, 'success'), 3)
             probe.drain()
 
         self.assertEqual(len(matches), 1)
-        self.assertEqual(matches[0][0], 'https://example.com/index.php.bak')
+        self.assertEqual(matches[0][0], 'https://example.com/index.php.old')
         detection = matches[0][1]['shadow_detection']
         self.assertEqual(detection['type'], 'backup_copy')
+        self.assertEqual(detection['reason'], 'content_diff')
         self.assertEqual(detection['base_url'], 'https://example.com/index.php')
-        self.assertEqual(detection['variant'], '.bak')
-        self.assertEqual(detection['confidence'], 95)
-        self.assertEqual(len(progress), 1)
+        self.assertEqual(detection['variant'], '.old')
+        self.assertEqual(detection['confidence'], 90)
+        self.assertGreater(detection['similarity'], 0.90)
+        self.assertLess(detection['similarity'], 1.0)
+        self.assertGreaterEqual(len(progress), 1)
+
+    def test_should_ignore_unrelated_shadow_candidate(self):
+        """Should skip unrelated 200 OK candidates even when the suffix matches."""
+
+        base = self.make_response(body=b'<?php echo "stable"; ?>')
+        probe = ShadowProbe(lambda url: self.make_response(body=b'<html>generic fallback</html>'), MagicMock())
+
+        with patch.object(probe, '_ShadowProbe__suffixes', ['.bak']):
+            self.assertEqual(probe.enqueue('https://example.com/index.php', base, 'success'), 1)
+            probe.drain()
+
+        self.assertEqual(probe.findings, 0)
 
     def test_should_skip_non_success_non_file_like_binary_and_shadow_buckets(self):
         """Should keep active probing limited to success 200 file-like responses."""
@@ -195,7 +212,7 @@ class TestShadowProbe(unittest.TestCase):
         """Should keep worker counters stable for matches and request failures."""
 
         responses = {
-            'https://example.com/index.php.bak': self.make_response(body=b'base'),
+            'https://example.com/index.php.bak': self.make_response(body=(b'base stable body line\n' * 5) + b'changed\n'),
         }
 
         def request(url):
@@ -205,7 +222,7 @@ class TestShadowProbe(unittest.TestCase):
 
         matches = []
         probe = ShadowProbe(request, lambda url, response, metadata: matches.append(metadata))
-        base = self.make_response(body=b'base')
+        base = self.make_response(body=b'base stable body line\n' * 5)
 
         with patch.object(probe, '_ShadowProbe__suffixes', ['.bak', '.old']):
             self.assertEqual(probe.enqueue('https://example.com/index.php', base, 'success'), 2)

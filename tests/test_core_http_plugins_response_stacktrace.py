@@ -162,6 +162,26 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
         self.assertIsNone(plugin.process(response))
         self.assertFalse(hasattr(response, 'opendoor_stacktrace_detection'))
 
+
+    def test_ignores_html_css_warning_and_error_tokens(self):
+        """Should not classify ordinary CSS warning/error class names as PHP diagnostics."""
+
+        plugin = StacktraceResponsePlugin(None)
+        body = (
+            '<!DOCTYPE html><html><head><style>'
+            '.btn-warning:active,.alert-warning:hover,.has-error .form-control{background:#fff}'
+            '.ion-alert:before{content:"\f101"}'
+            '</style></head><body><article>normal page source</article></body></html>'
+        )
+        response = self.make_response(
+            status=200,
+            body=body.encode('utf-8'),
+            headers={'Content-Type': 'text/html; charset=utf-8'},
+        )
+
+        self.assertIsNone(plugin.process(response))
+        self.assertFalse(hasattr(response, 'opendoor_stacktrace_detection'))
+
     def test_ignores_binary_and_normal_responses(self):
         """Should avoid binary bodies and normal non-debug text."""
 

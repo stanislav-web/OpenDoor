@@ -63,7 +63,7 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - response sniffers for detecting directory listings, empty responses, known file exposures, active shadow-copy probes, collation, possible exposed secrets, errors and exposed debug stack traces;
 - smart auto-calibration for soft-404, wildcard, catch-all, semantic response-diff, and DNS wildcard cases;
 - technology fingerprint detection for CMS, ecommerce platforms, frameworks, runtime stacks, infrastructure, and HSTS posture;
-- passive privacy-risk checks in `--fingerprint`, including possible HSTS, ETag/cache, and persistent-cookie supercookie surfaces.
+- passive privacy-risk checks in `--fingerprint`, including possible HSTS, ETag/cache, and supercookie surfaces.
 - passive WAF detection and bypass in secure scanning mode;
 - controlled header and path bypass probes for blocked `401` and `403` resources;
 - resumable scan sessions with checkpoint autosave for long term scans;

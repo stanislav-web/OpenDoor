@@ -239,6 +239,7 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 ### Site builders
 
 - Squarespace
+- Mobirise
 - Tilda
 - Webflow
 - Wix

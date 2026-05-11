@@ -79,7 +79,7 @@ class StacktraceResponsePlugin(ResponsePluginProvider):
             'signal': 'php-error',
             'confidence': 90,
             'pattern': re.compile(
-                r'(?:PHP\s+)?(?:Fatal\s+error|Warning|Parse\s+error|Notice)\s*:',
+                r'(?<![A-Za-z0-9_-])(?:PHP\s+)?(?:Fatal\s+error|Warning|Parse\s+error|Notice)\s*:',
                 re.IGNORECASE,
             ),
         },
