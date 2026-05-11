@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import io
 import unittest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -189,6 +190,75 @@ class TestProxyExtra(unittest.TestCase):
             actual = proxy.request('http://example.com/path')
 
         self.assertEqual(actual.status, 200)
+        tpl.warning.assert_called_once()
+
+    def test_request_raises_proxy_error_after_standalone_proxy_retry_fails(self):
+        """Proxy.request() should fail fast when a standalone proxy retry also fails."""
+
+        cfg = self.make_cfg(scan='directories', is_standalone_proxy=True)
+        tpl = MagicMock()
+        proxy = Proxy(cfg, self.make_debug(), tpl=tpl, proxy_list=['http://unused'], agent_list=['UA'])
+        proxy._Proxy__server = 'socks5://127.0.0.1:9050'
+
+        with patch.object(
+            proxy,
+            '_Proxy__pool_request',
+            side_effect=[
+                MaxRetryError(None, '/', None),
+                MaxRetryError(None, '/', OSError('Connection refused')),
+            ],
+        ) as pool_request_mock:
+            with self.assertRaises(ProxyRequestError) as context:
+                proxy.request('https://localhost/')
+
+        self.assertEqual(pool_request_mock.call_count, 2)
+        self.assertEqual(tpl.warning.call_count, 1)
+        self.assertEqual(tpl.warning.call_args_list[0].kwargs['key'], 'proxy_max_retry_error')
+        tpl.error.assert_called_once()
+        self.assertIn('unavailable after retry', tpl.error.call_args.kwargs['msg'])
+        self.assertIn('connection refused', tpl.error.call_args.kwargs['msg'])
+        self.assertIn('connection refused', str(context.exception))
+
+    def test_request_warns_after_proxy_list_retry_fails(self):
+        """Proxy.request() should not abort the scan when a proxy-list retry fails."""
+
+        cfg = self.make_cfg(scan='directories', is_standalone_proxy=False)
+        tpl = MagicMock()
+        proxy = Proxy(cfg, self.make_debug(), tpl=tpl, proxy_list=['http://unused'], agent_list=['UA'])
+        proxy._Proxy__server = 'socks5://127.0.0.1:9050'
+
+        with patch.object(
+            proxy,
+            '_Proxy__pool_request',
+            side_effect=[
+                MaxRetryError(None, '/', None),
+                MaxRetryError(None, '/', OSError('Connection refused')),
+            ],
+        ) as pool_request_mock:
+            actual = proxy.request('https://localhost/')
+
+        self.assertIsNone(actual)
+        self.assertEqual(pool_request_mock.call_count, 2)
+        self.assertEqual(tpl.warning.call_count, 2)
+        tpl.error.assert_not_called()
+        self.assertIn('unavailable after retry', tpl.warning.call_args_list[1].kwargs['msg'])
+        self.assertIn('connection refused', tpl.warning.call_args_list[1].kwargs['msg'])
+
+    def test_request_breaks_active_progress_line_before_proxy_warning(self):
+        """Proxy.request() should move proxy warnings away from rotating progress output."""
+
+        cfg = self.make_cfg(scan='directories')
+        tpl = MagicMock()
+        proxy = Proxy(cfg, self.make_debug(), tpl=tpl, proxy_list=['http://unused'], agent_list=['UA'])
+        stdout = io.StringIO()
+        response = HTTPResponse(status=200, body=b'ok', headers={})
+
+        with patch('sys.stdout', stdout):
+            with patch.object(proxy, '_Proxy__pool_request', side_effect=[MaxRetryError(None, '/', None), response]):
+                actual = proxy.request('http://example.com/path')
+
+        self.assertEqual(actual.status, 200)
+        self.assertEqual(stdout.getvalue(), '\n')
         tpl.warning.assert_called_once()
 
     def test_request_suppresses_retry_warning_for_non_default_scan(self):

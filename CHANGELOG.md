@@ -6,8 +6,10 @@ v5.16.0 (11.05.2026)
 - (fix) made auto-calibrated rotating progress cross-platform by truncating suppressed-response lines to terminal width and clearing them before real findings.
 - (fix) diversified auto-calibration probe URL shapes so sites that return different soft-404/catch-all responses for root-level, application-like and static asset paths are calibrated more reliably.
 - (fix) compacted auto-calibration progress heartbeat output by removing verbose calibration reason lists and throttling suppressed-response progress by time.
-- (fix) renamed `--sniff stacktrace` findings from the generic `debug` bucket to the dedicated `stacktrace` bucket across runtime output, summaries and reports, with `stacktrace_detection` metadata and PHP fatal-error detection without the `PHP` prefix.
+- (fix) renamed `--sniff stacktrace` findings from the generic `debug` bucket to the dedicated `stacktrace` bucket across runtime output, summaries and reports.
 - (fix) made HTML report status tabs work as anchor-backed navigation with JavaScript filtering as progressive enhancement, improving large report responsiveness and browser compatibility.
+- (fix) `ResponseError: Unknown response status : 523` to avoid abort on unexpected HTTP status codes.
+- (fix) Fixed graceful handling for unavailable standalone SOCKS/HTTP proxies.
 - (feature) added `--sniff shadow` active Shadow Copy Detection to probe confirmed `200 OK` file-like hits for exposed backup/postfix copies such as `.bak`, `.old`  etc variants.
 - (feature) added `--sniff secret` to classify successful textual responses with possible leaked API keys, tokens, private keys, JWTs and credential URLs into the `secret` bucket.
 - (enhancement) hardened Stacktrace sniffer detection to avoid false positives from normal HTML/CSS source code such as `.*-warning`, `.*-warning`, and similar style/class names.

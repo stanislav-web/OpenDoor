@@ -560,7 +560,16 @@ class Browser(Filter):
 
             return result
 
-        except (ProxyRequestError, HttpRequestError, HttpsRequestError, AttributeError, TypeError, ValueError) as error:
+        except ProxyRequestError as error:
+            if self.__is_standalone_proxy_mode() is True:
+                raise BrowserError(error)
+
+            tpl.warning(msg='Fingerprint skipped: {0}'.format(error))
+            result = dict(Fingerprint.DEFAULT_RESULT)
+            self.__result['fingerprint'] = result
+            return result
+
+        except (HttpRequestError, HttpsRequestError, AttributeError, TypeError, ValueError) as error:
             tpl.warning(msg='Fingerprint skipped: {0}'.format(error))
             result = dict(Fingerprint.DEFAULT_RESULT)
             self.__result['fingerprint'] = result
@@ -611,7 +620,13 @@ class Browser(Filter):
 
                     signatures.append(Calibration.build_signature(response_object, response_data))
 
-                except (ProxyRequestError, HttpRequestError, HttpsRequestError, ResponseError) as error:
+                except ProxyRequestError as error:
+                    if self.__is_standalone_proxy_mode() is True:
+                        raise BrowserError(error)
+
+                    tpl.warning(msg='Auto-calibration probe failed: {0}'.format(error))
+
+                except (HttpRequestError, HttpsRequestError, ResponseError) as error:
                     tpl.warning(msg='Auto-calibration probe failed: {0}'.format(error))
 
             self.__calibration = Calibration(
@@ -643,6 +658,11 @@ class Browser(Filter):
         except (AttributeError, TypeError, ValueError) as error:
             tpl.warning(msg='Auto-calibration skipped: {0}'.format(error))
             return None
+
+    def __is_standalone_proxy_mode(self):
+        """Return True when the scan uses one explicit proxy endpoint."""
+
+        return True is getattr(self.__config, 'is_standalone_proxy', False)
 
     def __is_subdomain_dns_calibration_enabled(self):
         """Return True when DNS wildcard calibration should run."""

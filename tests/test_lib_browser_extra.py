@@ -5,8 +5,9 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from src.core import helper
+from src.core import ProxyRequestError, helper
 from src.lib.browser.browser import Browser
+from src.lib.browser.exceptions import BrowserError
 
 
 class TestBrowserExtra(unittest.TestCase):
@@ -129,6 +130,45 @@ class TestBrowserExtra(unittest.TestCase):
         self.assertEqual(Browser._Browser__render_fingerprint_bar(2, 4, width=4), '[##--] 50.0%')
         self.assertEqual(Browser._Browser__render_fingerprint_bar(9, 4, width=4), '[####] 100.0%')
         self.assertEqual(Browser._Browser__render_fingerprint_bar(-1, 0, width=4), '[----] 0.0%')
+
+    def test_fingerprint_should_abort_on_standalone_proxy_error(self):
+        """Browser.fingerprint() should fail fast when the explicit proxy is unavailable."""
+
+        br = self.make_browser(is_fingerprint=True, is_standalone_proxy=True)
+        detector = MagicMock()
+        detector.detect.side_effect = ProxyRequestError(
+            'Proxy socks5://127.0.0.1:9050 unavailable after retry for /: connection refused'
+        )
+
+        with patch('src.lib.browser.browser.Fingerprint', return_value=detector), \
+                patch('src.lib.browser.browser.tpl.info'):
+            with self.assertRaises(BrowserError) as context:
+                br.fingerprint()
+
+        self.assertIn('connection refused', str(context.exception))
+
+    def test_calibrate_should_abort_on_standalone_proxy_error(self):
+        """Browser.calibrate() should not keep probing when the explicit proxy is unavailable."""
+
+        br = self.make_browser(
+            is_auto_calibrate=True,
+            is_standalone_proxy=True,
+            calibration_samples=1,
+            calibration_threshold=0.85,
+            SUBDOMAINS_SCAN='subdomains',
+        )
+        client = MagicMock()
+        client.request.side_effect = ProxyRequestError(
+            'Proxy socks5://127.0.0.1:9050 unavailable after retry for /: connection refused'
+        )
+        setattr(br, '_Browser__client', client)
+
+        with patch('src.lib.browser.browser.tpl.info'):
+            with self.assertRaises(BrowserError) as context:
+                br.calibrate()
+
+        self.assertEqual(client.request.call_count, 1)
+        self.assertIn('connection refused', str(context.exception))
 
     def test_fingerprint_progress_writes_line_without_final_newline(self):
         """Browser.__fingerprint_progress() should rotate intermediate progress in-place."""

@@ -58934,15 +58934,10 @@ index.php/admin.php
 index.php/en/component/pvm/?view=
 index.php/login
 index.php/robots.txt
-index.php::$DATA
 index.php?ac=link_more
-index.php?appservlang=%3Csvg%2Fonload=confirm%28%27xss%27%29%3E
-index.php?controller=javascript&action=adloader
-index.php?m=admin&c=index&a=login&pc_hash=
+index.php?m=admin
 index.php?q=user
 index.php?r=students/guardians/create
-index.php?redirect=//evil.com
-index.php?redirect=/\/evil.com
 index.php?s=captcha
 index.php_
 index.php_bak

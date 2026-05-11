@@ -19,6 +19,7 @@
 import importlib
 import random
 import re
+import sys
 
 from urllib3 import ProxyManager, Timeout, disable_warnings
 from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown, ReadTimeoutError, InsecureRequestWarning
@@ -142,12 +143,96 @@ class Proxy(RequestProvider, DebugProvider):
 
         except MaxRetryError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
+                self.__finish_active_terminal_line()
                 self.__tpl.warning(key='proxy_max_retry_error', url=helper.parse_url(url).path, proxy=self.__server)
-                return self.__pool_request(url, headers=request_headers)
+                return self.__retry_after_max_retry(url, request_headers)
 
         except ReadTimeoutError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
+                self.__finish_active_terminal_line()
                 self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
+
+    def __retry_after_max_retry(self, url, request_headers):
+        """
+        Retry a proxy request once after MaxRetryError without leaking raw urllib3 tracebacks.
+
+        :param str url: request uri
+        :param dict request_headers: request headers
+        :return: urllib3.HTTPResponse|None
+        """
+
+        try:
+            return self.__pool_request(url, headers=request_headers)
+        except MaxRetryError as error:
+            self.__warn_proxy_retry_failed(url, error)
+        except ReadTimeoutError as error:
+            self.__warn_proxy_retry_failed(url, error)
+
+        return None
+
+    def __warn_proxy_retry_failed(self, url, error):
+        """
+        Emit a concise warning or fatal error when the one-shot proxy retry still fails.
+
+        :param str url: request uri
+        :param Exception error: retry failure
+        :raise ProxyRequestError: when a standalone proxy is unavailable
+        :return: None
+        """
+
+        message = 'Proxy {0} unavailable after retry for {1}: {2}'.format(
+            self.__server or '-',
+            helper.parse_url(url).path,
+            self.__format_proxy_error(error),
+        )
+
+        if True is self.__cfg.is_standalone_proxy:
+            self.__tpl.error(msg=message)
+            raise ProxyRequestError(message)
+
+        self.__tpl.warning(msg=message)
+
+    @staticmethod
+    def __finish_active_terminal_line():
+        """
+        Move persistent warnings/errors to a clean line after rotating progress output.
+
+        :return: None
+        """
+
+        try:
+            sys.stdout.write('\n')
+            sys.stdout.flush()
+        except (AttributeError, OSError, ValueError):
+            return
+
+    @staticmethod
+    def __format_proxy_error(error):
+        """
+        Format nested urllib3/PySocks errors for a compact terminal message.
+
+        :param Exception error: proxy request error
+        :return: str
+        """
+
+        message = str(getattr(error, 'reason', None) or error)
+        message = re.sub(r'\s+', ' ', message).strip()
+
+        lowered = message.lower()
+        if 'connection refused' in lowered:
+            return 'connection refused'
+        if 'timed out' in lowered or 'timeout' in lowered:
+            return 'connection timed out'
+        if 'connection reset' in lowered:
+            return 'connection reset'
+        if 'name or service not known' in lowered or 'nodename nor servname' in lowered:
+            return 'name resolution failed'
+
+        max_length = 180
+        if len(message) > max_length:
+            return '{0}...'.format(message[:max_length - 3])
+
+        return message
 
     def __pool_request(self, url, headers=None):
         """
