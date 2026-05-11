@@ -183,6 +183,74 @@ class TestHeaderBypassProbe(unittest.TestCase):
             'value': '/Admin?tab=1',
         }, variants)
 
+    def test_probe_builds_403_normalization_prefix_variants(self):
+        """Probe should include controlled 403 path-normalization prefix variants."""
+
+        cfg = self.make_config(
+            header_bypass_headers=[],
+            header_bypass_ips=[],
+            header_bypass_limit=0,
+        )
+        probe = HeaderBypassProbe(cfg)
+
+        variants = probe.build_path_variants('https://example.com/admin?tab=1')
+
+        self.assertIn({
+            'type': 'path',
+            'variant': 'encoded-dot-prefix',
+            'url': 'https://example.com/%2e/admin?tab=1',
+            'value': '/%2e/admin?tab=1',
+        }, variants)
+        self.assertIn({
+            'type': 'path',
+            'variant': 'semicolon-prefix',
+            'url': 'https://example.com/;/admin?tab=1',
+            'value': '/;/admin?tab=1',
+        }, variants)
+        self.assertIn({
+            'type': 'path',
+            'variant': 'dot-semicolon-prefix',
+            'url': 'https://example.com/.;/admin?tab=1',
+            'value': '/.;/admin?tab=1',
+        }, variants)
+        self.assertIn({
+            'type': 'path',
+            'variant': 'double-slash-semicolon-prefix',
+            'url': 'https://example.com//;//admin?tab=1',
+            'value': '//;//admin?tab=1',
+        }, variants)
+        self.assertIn({
+            'type': 'path',
+            'variant': 'dot-dot-semicolon-suffix',
+            'url': 'https://example.com/admin..;/?tab=1',
+            'value': '/admin..;/?tab=1',
+        }, variants)
+
+    def test_probe_builds_403_normalization_variants_for_arbitrary_service_paths(self):
+        """Probe should not depend on admin-specific protected path names."""
+
+        cfg = self.make_config(
+            header_bypass_headers=[],
+            header_bypass_ips=[],
+            header_bypass_limit=0,
+        )
+        probe = HeaderBypassProbe(cfg)
+
+        variants = probe.build_path_variants('https://api.example.com/payments/internal-auth')
+
+        self.assertIn({
+            'type': 'path',
+            'variant': 'encoded-dot-prefix',
+            'url': 'https://api.example.com/%2e/payments/internal-auth',
+            'value': '/%2e/payments/internal-auth',
+        }, variants)
+        self.assertIn({
+            'type': 'path',
+            'variant': 'dot-dot-semicolon-suffix',
+            'url': 'https://api.example.com/payments/internal-auth..;/',
+            'value': '/payments/internal-auth..;/',
+        }, variants)
+
     def test_probe_keeps_header_variants_before_path_variants(self):
         """Combined probes should keep existing header order before path manipulations."""
 

@@ -109413,6 +109413,7 @@ v1/appliance/user/list/get
 v1/appliance/user/unbind
 v1/appliance/virtual/get
 v1/audio/speech
+v1/auth
 v1/auth-methods
 v1/auth/token/lookup-self
 v1/bank-image
@@ -109742,6 +109743,7 @@ v2/altair
 v2/api-docs
 v2/api/graphql
 v2/assets
+v2/auth
 v2/candles
 v2/client_configs
 v2/explorer
@@ -109803,6 +109805,7 @@ v3/api-docs
 v3/api-docs/swagger-config
 v3/api/graphql
 v3/apikey
+v3/auth
 v3/auth/user/list
 v3/authenticate
 v3/balances-fungible

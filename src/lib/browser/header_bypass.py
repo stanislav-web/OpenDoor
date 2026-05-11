@@ -422,6 +422,22 @@ class HeaderBypassProbe(object):
 
         return path.rstrip('/') + ';'
 
+    @staticmethod
+    def __prefixed_path(path, prefix):
+        """
+        Build a prefix-based path-normalization variant.
+
+        :param str path: original request path
+        :param str prefix: normalized prefix to prepend
+        :return: str | None
+        """
+
+        if path in ('', '/'):
+            return None
+
+        normalized_prefix = prefix if prefix.endswith('/') else '{0}/'.format(prefix.rstrip('/'))
+        return '{0}{1}'.format(normalized_prefix, path.lstrip('/'))
+
     def build_header_variants(self, url):
         """
         Build deterministic header variants for one blocked URL.
@@ -568,8 +584,27 @@ class HeaderBypassProbe(object):
         if path != '/' and not path.endswith('/%2e'):
             add('encoded-dot-segment', path.rstrip('/') + '/%2e')
 
+        encoded_dot_prefix = self.__prefixed_path(path, '/%2e')
+        if encoded_dot_prefix is not None:
+            add('encoded-dot-prefix', encoded_dot_prefix)
+
+        semicolon_prefix = self.__prefixed_path(path, '/;')
+        if semicolon_prefix is not None:
+            add('semicolon-prefix', semicolon_prefix)
+
+        dot_semicolon_prefix = self.__prefixed_path(path, '/.;')
+        if dot_semicolon_prefix is not None:
+            add('dot-semicolon-prefix', dot_semicolon_prefix)
+
+        double_slash_semicolon_prefix = self.__prefixed_path(path, '//;//')
+        if double_slash_semicolon_prefix is not None:
+            add('double-slash-semicolon-prefix', double_slash_semicolon_prefix)
+
         if path != '/' and not path.endswith(';/'):
             add('semicolon-suffix', path.rstrip('/') + ';/')
+
+        if path != '/' and not path.endswith('..;/'):
+            add('dot-dot-semicolon-suffix', path.rstrip('/') + '..;/')
 
         matrix_variant = self.__matrix_parameter_variant(path)
         if matrix_variant is not None:
