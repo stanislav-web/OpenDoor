@@ -51,6 +51,7 @@ class SarifReportPlugin(PluginProvider):
         'calibrated': 'note',
         'stacktrace': 'warning',
         'secret': 'warning',
+        'malware': 'error',
         'shadow': 'warning',
         'openredirect': 'error',
     }
@@ -69,6 +70,7 @@ class SarifReportPlugin(PluginProvider):
         'calibrated': '0.1',
         'stacktrace': '5.0',
         'secret': '7.0',
+        'malware': '8.0',
         'shadow': '6.5',
         'openredirect': '7.0',
     }
@@ -87,6 +89,7 @@ class SarifReportPlugin(PluginProvider):
         'calibrated': 'Auto-calibrated baseline match',
         'stacktrace': 'Exposed stacktrace details',
         'secret': 'Possible exposed secret',
+        'malware': 'Possible web malware or webshell content',
         'shadow': 'Exposed shadow copy',
         'openredirect': 'Verified open redirect',
     }
@@ -327,6 +330,7 @@ class SarifReportPlugin(PluginProvider):
             'bypassReasons': item.get('bypass_reasons', []),
             'stacktraceDetection': item.get('stacktrace_detection'),
             'secretDetection': item.get('secret_detection'),
+            'malwareDetection': item.get('malware_detection'),
             'shadowDetection': item.get('shadow_detection'),
             'openRedirectDetection': item.get('openredirect_detection'),
         }
@@ -356,6 +360,8 @@ class SarifReportPlugin(PluginProvider):
             return 'OpenDoor detected exposed stacktrace details for {0}'.format(url)
         if normalized_status == 'secret':
             return 'OpenDoor detected a possible exposed secret at {0}'.format(url)
+        if normalized_status == 'malware':
+            return 'OpenDoor detected possible web malware or webshell content at {0}'.format(url)
         if normalized_status == 'shadow':
             return 'OpenDoor detected an exposed shadow copy at {0}'.format(url)
         if normalized_status == 'openredirect':

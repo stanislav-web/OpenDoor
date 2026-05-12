@@ -26378,6 +26378,7 @@ bitrix.settings
 bitrix.settings.bak
 bitrix.settings.php
 bitrix.settings.php.bak
+bitrix/.access.php
 bitrix/.settings
 bitrix/.settings.bak
 bitrix/.settings.php
@@ -26450,8 +26451,11 @@ bitrix/tools/autosave.php
 bitrix/tools/get_catalog_menu.php
 bitrix/tools/html_editor_action.php
 bitrix/tools/mail_entry.php
+bitrix/tools/uf.php
+bitrix/tools/update.php
 bitrix/tools/upload.php
 bitrix/tools/vote/uf.php
+bitrix/updates
 bitrix/web.config
 bitrix_personal
 bitrix_server_test.log
@@ -49190,8 +49194,12 @@ files/filescmd.php
 files/indexx.php
 files/login
 files/misc
+files/presentations
+files/preview
+files/profiles
 Files/search.indexes
 files/shell.php
+files/tech
 files/tmp
 files/up.php
 files/uploader.php

@@ -258,7 +258,7 @@ opendoor \
   --include-status 200-299,301,302,403 \
   --exclude-status 404,429,500-599 \
   --exclude-size-range 0-256 \
-  --sniff secret,shadow,openredirect,skipempty,collation,indexof,file,stacktrace \
+  --sniff secret,shadow,openredirect,malware,skipempty,collation,indexof,file,stacktrace \
   --reports std,json,csv,sarif
 ```
 
@@ -270,24 +270,25 @@ Response sniffers classify interesting response bodies during discovery. They ar
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff secret,shadow,openredirect,stacktrace,indexof,file,collation \
+  --sniff secret,shadow,openredirect,malware,stacktrace,indexof,file,collation \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
 Useful sniffers include:
 
-| Sniffer | Purpose                                                                                                                |
-|---|------------------------------------------------------------------------------------------------------------------------|
-| `indexof` | Detect directory listing pages.                                                                                        |
-| `file` | Detect known sensitive file exposure patterns.                                                                         |
-| `collation` | Detect database collation / SQL error responses.                                                                       |
-| `skipempty` | Skip empty responses.                                                                                                  |
-| `skipsizes=46` | Skip responses with exact known noisy sizes.                                                                           |
-| `skipsizes=46:1024` | Skip responses inside a noisy size range.                                                                              |
-| `stacktrace` | Detect exposed debug/runtime stack traces and internal error details.                                                  |
-| `secret` | Detect possible exposed API keys, tokens, private keys and credentials with redacted report metadata.                  |
-| `shadow` | Actively probe confirmed `200 OK` file-like hits for exposed backup/shadow copies such as `.bak`, `.old` etc variants. |
-| `openredirect` | Actively verify redirect-like query parameters with controlled marker URLs and report only confirmed open redirect vulnerabilities. |
+| Sniffer             | Purpose                                                                                                                             |
+|---------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| `indexof`           | Detect directory listing pages.                                                                                                     |
+| `file`              | Detect known sensitive file exposure patterns.                                                                                      |
+| `collation`         | Detect database collation / SQL error responses.                                                                                    |
+| `skipempty`         | Skip empty responses.                                                                                                               |
+| `skipsizes=46`      | Skip responses with exact known noisy sizes.                                                                                        |
+| `skipsizes=46:1024` | Skip responses inside a noisy size range.                                                                                           |
+| `stacktrace`        | Detect exposed debug/runtime stack traces and internal error details.                                                               |
+| `secret`            | Detect possible exposed API keys, tokens, private keys and credentials with redacted report metadata.                               |
+| `shadow`            | Actively probe confirmed `200 OK` file-like hits for exposed backup/shadow copies such as `.bak`, `.old` etc variants.              |
+| `openredirect`      | Actively verify redirect-like query parameters with controlled marker URLs and report only confirmed open redirect vulnerabilities. |
+| `malware`           | Detect possible malicious content, webshell markers, injected scripts or obfuscated payloads.                                       |
 
 Body-dependent sniffers automatically force `GET` internally when the configured method is `HEAD`.
 

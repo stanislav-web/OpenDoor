@@ -54,6 +54,7 @@ class Browser(Filter):
         'secret',
         'indexof',
         'stacktrace',
+        'malware',
     )
     BASE_SUPPRESSOR_BUCKETS = (
         'skip',
@@ -1617,6 +1618,7 @@ class Browser(Filter):
             waf_detection = None
             stacktrace_detection = getattr(resp, 'opendoor_stacktrace_detection', None)
             secret_detection = getattr(resp, 'opendoor_secret_detection', None)
+            malware_detection = getattr(resp, 'opendoor_malware_detection', None)
 
             primary_suppressed = self.__should_suppress_primary_response(
                 resp,
@@ -1675,6 +1677,8 @@ class Browser(Filter):
                     metadata['stacktrace_detection'] = dict(stacktrace_detection)
                 if isinstance(secret_detection, dict):
                     metadata['secret_detection'] = dict(secret_detection)
+                if isinstance(malware_detection, dict):
+                    metadata['malware_detection'] = dict(malware_detection)
                 if len(metadata) == 0:
                     metadata = None
 
@@ -1865,6 +1869,11 @@ class Browser(Filter):
             detection = getattr(response_object, 'opendoor_stacktrace_detection', None)
             if isinstance(detection, dict):
                 return {'stacktrace_detection': dict(detection)}
+
+        if bucket == 'malware':
+            detection = getattr(response_object, 'opendoor_malware_detection', None)
+            if isinstance(detection, dict):
+                return {'malware_detection': dict(detection)}
 
         return {}
 
@@ -2355,6 +2364,7 @@ class Browser(Filter):
             ('secret_detection', 'opendoor_secret_detection'),
             ('shadow_detection', 'opendoor_shadow_detection'),
             ('openredirect_detection', 'opendoor_openredirect_detection'),
+            ('malware_detection', 'opendoor_malware_detection'),
         )
 
         applied = False
@@ -2432,6 +2442,8 @@ class Browser(Filter):
                 item['shadow_detection'] = dict(metadata.get('shadow_detection'))
             if isinstance(metadata.get('openredirect_detection'), dict):
                 item['openredirect_detection'] = dict(metadata.get('openredirect_detection'))
+            if isinstance(metadata.get('malware_detection'), dict):
+                item['malware_detection'] = dict(metadata.get('malware_detection'))
 
         self.__result['total'].update((status,))
         self.__result['items'][status] += [url]

@@ -61,6 +61,13 @@ class CsvReportPlugin(PluginProvider):
         'secret_confidence',
         'secret_count',
         'secret_types',
+        'malware_detection',
+        'malware_subtype',
+        'malware_family',
+        'malware_signal',
+        'malware_confidence',
+        'malware_count',
+        'malware_signals',
         'shadow_detection',
         'shadow_confidence',
         'shadow_reason',
@@ -267,6 +274,13 @@ class CsvReportPlugin(PluginProvider):
                     'secret_confidence': '',
                     'secret_count': '',
                     'secret_types': '',
+                    'malware_detection': '',
+                    'malware_subtype': '',
+                    'malware_family': '',
+                    'malware_signal': '',
+                    'malware_confidence': '',
+                    'malware_count': '',
+                    'malware_signals': '',
                     'shadow_detection': '',
                     'shadow_confidence': '',
                     'shadow_reason': '',
@@ -303,6 +317,21 @@ class CsvReportPlugin(PluginProvider):
                         ),
                         'secret_count': '' if secret_detection.get('count') is None else str(secret_detection.get('count')),
                         'secret_types': self.__format_list(secret_detection.get('types', [])),
+                    })
+                malware_detection = item.get('malware_detection')
+                if isinstance(malware_detection, dict):
+                    row.update({
+                        'malware_detection': str(malware_detection.get('type', '')),
+                        'malware_subtype': str(malware_detection.get('subtype', '')),
+                        'malware_family': str(malware_detection.get('family', '')),
+                        'malware_signal': str(malware_detection.get('signal', '')),
+                        'malware_confidence': '' if malware_detection.get('confidence') is None else str(
+                            malware_detection.get('confidence')
+                        ),
+                        'malware_count': '' if malware_detection.get('count') is None else str(
+                            malware_detection.get('count')
+                        ),
+                        'malware_signals': self.__format_list(malware_detection.get('signals', [])),
                     })
                 shadow_detection = item.get('shadow_detection')
                 if isinstance(shadow_detection, dict):

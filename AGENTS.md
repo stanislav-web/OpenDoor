@@ -188,9 +188,6 @@ Required command:
 
 ```bash
 python -m ruff check .
-python -m ruff check . --select C4,PIE --statistics
-python -m ruff check . --select SIM,RET --statistics
-python -m ruff check . --select ARG --statistics
 ```
 
 The blocking Ruff baseline is intentionally staged for the legacy codebase.
@@ -259,7 +256,7 @@ Use Vulture or similar project-wide analysis only as advisory because OpenDoor u
 Recommended advisory command:
 
 ```bash
-vulture src tests --min-confidence 85
+vulture src tests --min-confidence 65
 ```
 
 Before removing code reported as unused:

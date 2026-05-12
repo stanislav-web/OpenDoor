@@ -38,3 +38,6 @@ from .shadow import ShadowResponsePlugin as shadow
 
 # noinspection PyPep8Naming
 from .openredirect import OpenredirectResponsePlugin as openredirect
+
+# noinspection PyPep8Naming
+from .malware import MalwareResponsePlugin as malware

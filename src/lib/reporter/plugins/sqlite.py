@@ -96,6 +96,13 @@ class SqliteReportPlugin(PluginProvider):
                 'secret_confidence INTEGER, '
                 'secret_count INTEGER, '
                 'secret_types TEXT, '
+                'malware_detection TEXT, '
+                'malware_subtype TEXT, '
+                'malware_family TEXT, '
+                'malware_signal TEXT, '
+                'malware_confidence INTEGER, '
+                'malware_count INTEGER, '
+                'malware_signals TEXT, '
                 'shadow_detection TEXT, '
                 'shadow_confidence INTEGER, '
                 'shadow_reason TEXT, '
@@ -181,6 +188,9 @@ class SqliteReportPlugin(PluginProvider):
                     secret_detection = item.get('secret_detection')
                     if not isinstance(secret_detection, dict):
                         secret_detection = {}
+                    malware_detection = item.get('malware_detection')
+                    if not isinstance(malware_detection, dict):
+                        malware_detection = {}
                     shadow_detection = item.get('shadow_detection')
                     if not isinstance(shadow_detection, dict):
                         shadow_detection = {}
@@ -219,6 +229,15 @@ class SqliteReportPlugin(PluginProvider):
                             None if secret_detection.get('types') is None else ';'.join([
                                 str(secret_type) for secret_type in secret_detection.get('types', [])
                             ]),
+                            None if malware_detection.get('type') is None else str(malware_detection.get('type')),
+                            None if malware_detection.get('subtype') is None else str(malware_detection.get('subtype')),
+                            None if malware_detection.get('family') is None else str(malware_detection.get('family')),
+                            None if malware_detection.get('signal') is None else str(malware_detection.get('signal')),
+                            None if malware_detection.get('confidence') is None else int(malware_detection.get('confidence')),
+                            None if malware_detection.get('count') is None else int(malware_detection.get('count')),
+                            None if malware_detection.get('signals') is None else ';'.join([
+                                str(signal) for signal in malware_detection.get('signals', [])
+                            ]),
                             None if shadow_detection.get('type') is None else str(shadow_detection.get('type')),
                             None if shadow_detection.get('confidence') is None else int(shadow_detection.get('confidence')),
                             None if shadow_detection.get('reason') is None else str(shadow_detection.get('reason')),
@@ -245,11 +264,12 @@ class SqliteReportPlugin(PluginProvider):
                     'bypass_from_status, bypass_to_status, bypass_from_code, bypass_to_code, '
                     'bypass_score, bypass_reasons, stacktrace_detection, stacktrace_runtime, stacktrace_signal, '
                     'stacktrace_confidence, secret_detection, secret_redacted, secret_confidence, secret_count, secret_types, '
-                    'shadow_detection, shadow_confidence, shadow_reason, shadow_base_url, shadow_variant, '
+                    'malware_detection, malware_subtype, malware_family, malware_signal, malware_confidence, '
+                    'malware_count, malware_signals, shadow_detection, shadow_confidence, shadow_reason, shadow_base_url, shadow_variant, '
                     'shadow_similarity, shadow_base_size, shadow_size, openredirect_detection, '
                     'openredirect_confidence, openredirect_parameter, openredirect_variant, openredirect_payload, '
                     'openredirect_location, openredirect_source_url'
-                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     rows
                 )
 

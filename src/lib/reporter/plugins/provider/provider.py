@@ -161,6 +161,32 @@ class PluginProvider(object):
 
             value = '{0} | {1}'.format(value, ', '.join(details))
 
+        malware_detection = item.get('malware_detection')
+        if isinstance(malware_detection, dict):
+            details = ['malware={0}'.format(malware_detection.get('type', 'malware'))]
+
+            if malware_detection.get('subtype'):
+                details.append('subtype={0}'.format(malware_detection.get('subtype')))
+
+            if malware_detection.get('family'):
+                details.append('family={0}'.format(malware_detection.get('family')))
+
+            if malware_detection.get('signal'):
+                details.append('signal={0}'.format(malware_detection.get('signal')))
+
+            if malware_detection.get('confidence') is not None:
+                details.append('confidence={0}%'.format(malware_detection.get('confidence')))
+
+            if malware_detection.get('count') is not None:
+                details.append('count={0}'.format(malware_detection.get('count')))
+
+            if malware_detection.get('signals'):
+                details.append('signals={0}'.format(';'.join([
+                    str(signal) for signal in malware_detection.get('signals', [])
+                ])))
+
+            value = '{0} | {1}'.format(value, ', '.join(details))
+
         shadow_detection = item.get('shadow_detection')
         if isinstance(shadow_detection, dict):
             details = ['shadow={0}'.format(shadow_detection.get('type', 'backup_copy'))]

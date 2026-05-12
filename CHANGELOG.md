@@ -10,6 +10,7 @@ v5.16.0 (11.05.2026)
 - (fix) made HTML report status tabs work as anchor-backed navigation with JavaScript filtering as progressive enhancement, improving large report responsiveness and browser compatibility.
 - (fix) `ResponseError: Unknown response status : 523` to avoid abort scans on unexpected HTTP status codes.
 - (fix) Fixed graceful handling for unavailable standalone SOCKS/HTTP proxies.
+- (feature) added `--sniff malware` to passively classify suspicious malware, webshell, injected script and obfuscated payload indicators into the `malware` bucket with structured metadata across runtime output and reports.
 - (feature) added `--sniff shadow` active Shadow Copy Detection to probe confirmed `200 OK` file-like hits for exposed backup/postfix copies such as `.bak`, `.old`  etc variants.
 - (feature) added `--sniff secret` to classify successful textual responses with possible leaked API keys, tokens, private keys, JWTs and credential URLs into the `secret` bucket.
 - (feature) added `--sniff openredirect` for verified open redirect detection: OpenDoor now performs bounded active checks on discovered redirect-like query parameters, reports findings in the `openredirect` bucket, and preserves evidence across text, JSON, CSV, HTML, SQLite, and SARIF reports.

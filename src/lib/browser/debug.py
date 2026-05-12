@@ -215,6 +215,12 @@ class Debug(DebugProvider):
 
         if status in ['success', 'file', 'indexof', 'certificate', 'auth']:
             request_uri = tpl.line(key=status, color='green', url=urlpath)
+        elif status in ['malware']:
+            request_uri = '{0} ({1}) {2}'.format(
+                tpl.line(msg='OK', color='green'),
+                tpl.line(msg='Malware', color='red'),
+                tpl.line(msg=urlpath, color='green')
+            )
         elif status in ['stacktrace']:
             request_uri = '{0} ({1}) {2}'.format(
                 tpl.line(msg='OK', color='green'),
@@ -253,7 +259,7 @@ class Debug(DebugProvider):
 
         self.__clear = True if self.__catched else False
 
-        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'blocked', 'indexof', 'certificate', 'auth', 'stacktrace', 'shadow', 'openredirect']:
+        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'blocked', 'indexof', 'certificate', 'auth', 'stacktrace', 'malware', 'shadow', 'openredirect']:
             sys.writels('', flush=True)
             tpl.info(
                 key='get_item',
@@ -409,7 +415,8 @@ class Debug(DebugProvider):
             stacktrace_detection=None,
             secret_detection=None,
             shadow_detection=None,
-            openredirect_detection=None
+            openredirect_detection=None,
+            malware_detection=None
     ):
         """Debug response classification summary."""
 
@@ -441,6 +448,17 @@ class Debug(DebugProvider):
                     secret_detection.get('redacted') or '-',
                     secret_detection.get('confidence') or '-',
                     secret_detection.get('count') or '-',
+                )
+            )
+
+        if malware_detection:
+            tpl.debug(
+                msg='Malware detection: subtype={0}; family={1}; signal={2}; confidence={3}; count={4}'.format(
+                    malware_detection.get('subtype') or '-',
+                    malware_detection.get('family') or '-',
+                    malware_detection.get('signal') or '-',
+                    malware_detection.get('confidence') or '-',
+                    malware_detection.get('count') or '-',
                 )
             )
 

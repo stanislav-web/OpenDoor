@@ -11,7 +11,7 @@ opendoor --host https://example.com --sniff <plugins>
 Multiple sniffers can be combined with commas:
 
 ```shell
-opendoor --host https://example.com --sniff secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
+opendoor --host https://example.com --sniff malware,secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
 ```
 
 Some sniffers accept parameters:
@@ -35,6 +35,7 @@ Common cases:
 | Directory listings | `indexof` |
 | Large downloadable files | `file` |
 | Possible leaked API keys, tokens, private keys or credentials | `secret` |
+| Possible malicious content, webshell markers, injected scripts or obfuscated payloads | `malware` |
 | Exposed backup or shadow copies near confirmed files | `shadow` |
 | Exposed debug stack traces or verbose error details | `stacktrace` |
 | Redirect parameters that may accept arbitrary external targets | `openredirect` |
@@ -63,7 +64,7 @@ opendoor \
   --auto-calibrate \
   --exclude-status 404,429,500-599 \
   --exclude-size-range 0-256 \
-  --sniff secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
+  --sniff malware,secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
 ```
 
 ---
@@ -197,19 +198,56 @@ Example:
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff secret,shadow,stacktrace,indexof,file \
+  --sniff malware,secret,shadow,stacktrace,indexof,file \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
 If the requested method is `HEAD`, OpenDoor overrides it to `GET` when `secret` is selected because this sniffer needs response body analysis.
 
-Place `secret` before cleanup sniffers such as `skipempty` or `collation` when leaked credentials are high-priority findings:
+```shell
+opendoor \
+  --host https://example.com \
+  --auto-calibrate \
+  --sniff malware,secret,shadow,stacktrace,skipempty,collation,indexof,file
+```
+
+---
+
+## 🧬 `malware`
+
+Passively detects suspicious malware and webshell indicators in successful textual responses.
+
+```shell
+opendoor --host https://example.com --sniff malware
+```
+
+The `malware` sniffer classifies matching responses into the `malware` bucket and attaches a `malware_detection` metadata object to detailed reports. WebShell and Malware findings are intentionally reported under the same `Malware` runtime marker and bucket, while subtype details are preserved in metadata.
+
+It currently looks for high-signal content patterns such as:
+
+- webshell family markers and file-manager panels;
+- PHP command-execution constructs wired to request parameters;
+- suspicious obfuscation clusters such as encoded payload loaders;
+- injected iframe or script payload patterns;
+- browser-side crypto-miner indicators.
+
+Example:
+
+```shell
+opendoor \
+  --host https://example.com \
+  --method GET \
+  --sniff malware,secret,shadow,stacktrace,indexof,file \
+  --reports std,json,csv,html,sqlite,sarif
+```
+
+If the requested method is `HEAD`, OpenDoor overrides it to `GET` when `malware` is selected because this sniffer needs response body analysis.
 
 ```shell
 opendoor \
   --host https://example.com \
   --auto-calibrate \
-  --sniff secret,shadow,stacktrace,skipempty,collation,indexof,file
+  --sniff malware,secret,shadow,stacktrace,skipempty,collation,indexof,file
 ```
 
 ---
@@ -231,7 +269,7 @@ Example:
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff shadow,secret,stacktrace,indexof,file \
+  --sniff shadow,malware,secret,stacktrace,indexof,file \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
@@ -277,7 +315,7 @@ Example:
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff openredirect,secret,stacktrace,indexof,file \
+  --sniff openredirect,malware,secret,stacktrace,indexof,file \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
@@ -300,19 +338,17 @@ Example:
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff secret,shadow,stacktrace,indexof,file \
+  --sniff malware,secret,shadow,stacktrace,indexof,file \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
 If the requested method is `HEAD`, OpenDoor overrides it to `GET` when `stacktrace` is selected because this sniffer needs response body analysis.
 
-Place `stacktrace` before cleanup sniffers such as `skipempty` or `collation` when debug exposures are high-priority findings:
-
 ```shell
 opendoor \
   --host https://example.com \
   --auto-calibrate \
-  --sniff secret,shadow,stacktrace,skipempty,collation,indexof,file
+  --sniff malware,secret,shadow,stacktrace,skipempty,collation,indexof,file
 ```
 
 ---
@@ -357,7 +393,7 @@ opendoor \
   --host https://example.com \
   --method GET \
   --auto-calibrate \
-  --sniff secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
+  --sniff malware,secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
 ```
 
 ### Known false-positive sizes
@@ -385,7 +421,7 @@ opendoor \
   --hostlist targets.txt \
   --method GET \
   --auto-calibrate \
-  --sniff shadow,openredirect,skipempty,file,collation,indexof \
+  --sniff shadow,openredirect,malware,skipempty,file,collation,indexof \
   --reports json,sqlite
 ```
 
@@ -400,7 +436,7 @@ opendoor \
   --host https://example.com \
   --method GET \
   --auto-calibrate \
-  --sniff secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
+  --sniff malware,secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
 ```
 
 For fast scans where response body analysis is not required, keep the default request method and use status/size filters instead.
@@ -460,5 +496,6 @@ opendoor --host https://example.com --exclude-size-range 1000-2000
 | `collation`            | Detect repeated fallback or redirect-like responses              |
 | `stacktrace`           | Detect possible errors in responses                              |
 | `secret`               | Detects possible exposed secrets in successful textual responses |
+| `malware`              | Detect possible malware, webshell and injected payload indicators |
 | `shadow`               | Detect possible archive or backuped files                        |
 | `openredirect`         | Verify redirect parameters for confirmed open redirect issues     |

@@ -54,6 +54,7 @@ class TestSnifferArchitectureBaseline(unittest.TestCase):
             'secret': 'secret',
             'indexof': 'indexof',
             'stacktrace': 'stacktrace',
+            'malware': 'malware',
             'skipempty': 'skip',
             'collation': 'failed',
             'shadow': 'shadow',
@@ -76,6 +77,7 @@ class TestSnifferArchitectureBaseline(unittest.TestCase):
             'secret',
             'indexof',
             'stacktrace',
+            'malware',
             'skipempty',
             'collation',
             'shadow',
@@ -86,7 +88,7 @@ class TestSnifferArchitectureBaseline(unittest.TestCase):
 
         self.assertEqual(
             [plugin.RESPONSE_INDEX for plugin in response._response_plugins],
-            ['file', 'secret', 'indexof', 'stacktrace', 'skip', 'failed', 'shadow', 'openredirect', 'skip'],
+            ['file', 'secret', 'indexof', 'stacktrace', 'malware', 'skip', 'failed', 'shadow', 'openredirect', 'skip'],
         )
 
     def test_active_marker_sniffers_do_not_passively_block_later_detectors(self):
