@@ -36,7 +36,7 @@ class TestStdReportPluginFingerprintExtra(unittest.TestCase):
             plugin.process()
 
         rendered = writeln_mock.call_args[0][0]
-        self.assertIn('fingerprint_category', rendered)
+        self.assertNotIn('fingerprint_category', rendered)
         self.assertIn('Next.js', rendered)
         self.assertIn('fingerprint_infra', rendered)
         self.assertIn('AWS CloudFront', rendered)
@@ -61,6 +61,93 @@ class TestStdReportPluginFingerprintExtra(unittest.TestCase):
         rendered = writeln_mock.call_args[0][0]
         self.assertIn('Statistics (test.local)', rendered)
         self.assertNotIn('fingerprint_category', rendered)
+
+    def test_process_hides_noisy_stdout_summary_rows(self):
+        """StdReportPlugin.process() should hide noisy rows only from stdout Summary."""
+
+        plugin = StdReportPlugin(
+            'test.local',
+            {
+                'total': {
+                    'items': 10,
+                    'workers': 1,
+                    'calibrated': 8,
+                    'ignored': 2,
+                    'bad': 1,
+                    'skip': 3,
+                    'success': 2,
+                },
+                'fingerprint': {
+                    'category': 'cms',
+                    'name': 'Bitrix',
+                    'confidence': 98,
+                    'signals': [{'type': 'body', 'value': 'bitrix'}],
+                    'runtime': {
+                        'name': 'PHP',
+                        'confidence': 98,
+                        'signals': [{'type': 'header', 'value': 'x-powered-by'}],
+                    },
+                    'infrastructure': {
+                        'provider': 'Nginx',
+                        'confidence': 73,
+                        'signals': [{'type': 'header', 'value': 'server'}],
+                    },
+                    'security_headers': {
+                        'hsts': {
+                            'grade': 'missing',
+                            'max_age': None,
+                            'include_subdomains': False,
+                            'preload_ready': False,
+                        },
+                    },
+                    'privacy_risks': {
+                        'supercookie': {
+                            'risk': 'low',
+                            'score': 20,
+                            'hsts_tracking_surface': False,
+                            'etag_tracking_surface': False,
+                            'cache_tracking_surface': False,
+                            'persistent_cookie_surface': True,
+                        },
+                    },
+                },
+            },
+        )
+
+        with patch('src.lib.reporter.plugins.std.sys.writeln') as writeln_mock:
+            plugin.process()
+
+        rendered = writeln_mock.call_args[0][0]
+
+        self.assertIn('workers', rendered)
+        self.assertIn('fingerprint_name', rendered)
+        self.assertIn('fingerprint_confidence', rendered)
+        self.assertIn('fingerprint_runtime', rendered)
+        self.assertIn('fingerprint_infra', rendered)
+        self.assertIn('hsts', rendered)
+        self.assertIn('privacy_supercookie_risk', rendered)
+
+        for hidden_row in (
+            'calibrated',
+            'ignored',
+            'bad',
+            'skip',
+            'fingerprint_category',
+            'fingerprint_signals',
+            'fingerprint_runtime_confidence',
+            'fingerprint_runtime_signals',
+            'fingerprint_infra_confidence',
+            'fingerprint_infra_signals',
+            'hsts_max_age',
+            'hsts_include_subdomains',
+            'hsts_preload_ready',
+            'privacy_supercookie_score',
+            'privacy_supercookie_hsts',
+            'privacy_supercookie_etag',
+            'privacy_supercookie_cache',
+            'privacy_supercookie_cookie',
+        ):
+            self.assertNotIn(hidden_row, rendered)
 
     def test_format_summary_table_should_render_psql_like_output(self):
         """StdReportPlugin.format_summary_table() should render native table output."""
@@ -108,9 +195,12 @@ class TestStdReportPluginHardening(unittest.TestCase):
 
         rendered = writeln_mock.call_args[0][0]
 
-        self.assertIn('fingerprint_signals', rendered)
-        self.assertIn('fingerprint_runtime_signals', rendered)
-        self.assertIn('fingerprint_infra_signals', rendered)
+        self.assertIn('fingerprint_name', rendered)
+        self.assertIn('fingerprint_runtime', rendered)
+        self.assertIn('fingerprint_infra', rendered)
+        self.assertNotIn('fingerprint_signals', rendered)
+        self.assertNotIn('fingerprint_runtime_signals', rendered)
+        self.assertNotIn('fingerprint_infra_signals', rendered)
 
     def test_process_tolerates_malformed_total(self):
         """StdReportPlugin.process() should tolerate malformed total payloads."""

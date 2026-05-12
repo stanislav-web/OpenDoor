@@ -226,19 +226,17 @@ class TestSqliteAndStdReporterExtra(unittest.TestCase):
 
         rendered = writeln_mock.call_args[0][0]
 
-        self.assertIn('fingerprint_category', rendered)
-        self.assertIn('cms', rendered)
+        self.assertNotIn('fingerprint_category', rendered)
         self.assertIn('fingerprint_name', rendered)
         self.assertIn('WordPress', rendered)
         self.assertIn('fingerprint_confidence', rendered)
         self.assertIn('95%', rendered)
         self.assertIn('fingerprint_infra', rendered)
         self.assertIn('cloudflare', rendered)
-        self.assertIn('fingerprint_infra_confidence', rendered)
-        self.assertIn('92%', rendered)
+        self.assertNotIn('fingerprint_infra_confidence', rendered)
         self.assertIn('hsts', rendered)
         self.assertIn('preload-ready', rendered)
-        self.assertIn('hsts_preload_ready', rendered)
+        self.assertNotIn('hsts_preload_ready', rendered)
 
 
 if __name__ == '__main__':

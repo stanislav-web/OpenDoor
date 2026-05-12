@@ -86,57 +86,31 @@ class StdReportPlugin(PluginProvider):
         total = self._data.get('total')
         if not isinstance(total, dict):
             total = {}
-        data = list(total.items())
+
+        hidden_summary_keys = {'calibrated', 'ignored', 'bad', 'skip'}
+        data = [(key, value) for key, value in total.items() if key not in hidden_summary_keys]
         fingerprint = self._data.get('fingerprint')
 
         if isinstance(fingerprint, dict) and len(fingerprint) > 0:
             data += [
-                ('fingerprint_category', fingerprint.get('category', 'custom')),
                 ('fingerprint_name', fingerprint.get('name', 'Unknown custom stack')),
                 ('fingerprint_confidence', '{0}%'.format(fingerprint.get('confidence', 0))),
             ]
-
-
-            fingerprint_signals = fingerprint.get('signals')
-            if isinstance(fingerprint_signals, (list, tuple)) and len(fingerprint_signals) > 0:
-                data += [('fingerprint_signals', len(fingerprint_signals))]
             runtime = fingerprint.get('runtime')
             if isinstance(runtime, dict) and len(runtime) > 0:
-                data += [('fingerprint_runtime', runtime.get('name', 'unknown')), ('fingerprint_runtime_confidence', '{0}%'.format(runtime.get('confidence', 0)))]
-                runtime_signals = runtime.get('signals')
-                if isinstance(runtime_signals, (list, tuple)) and len(runtime_signals) > 0:
-                    data += [('fingerprint_runtime_signals', len(runtime_signals))]
+                data += [('fingerprint_runtime', runtime.get('name', 'unknown'))]
 
             infrastructure = fingerprint.get('infrastructure')
             if isinstance(infrastructure, dict) and len(infrastructure) > 0:
-                data += [
-                    ('fingerprint_infra', infrastructure.get('provider', 'unknown')),
-                    ('fingerprint_infra_confidence', '{0}%'.format(infrastructure.get('confidence', 0))),
-                ]
-
-                infrastructure_signals = infrastructure.get('signals')
-                if isinstance(infrastructure_signals, (list, tuple)) and len(infrastructure_signals) > 0:
-                    data += [('fingerprint_infra_signals', len(infrastructure_signals))]
+                data += [('fingerprint_infra', infrastructure.get('provider', 'unknown'))]
 
             hsts = fingerprint.get('security_headers', {}).get('hsts', {})
             if isinstance(hsts, dict) and len(hsts) > 0:
-                data += [
-                    ('hsts', hsts.get('grade', 'missing')),
-                    ('hsts_max_age', '-' if hsts.get('max_age') is None else hsts.get('max_age')),
-                    ('hsts_include_subdomains', hsts.get('include_subdomains', False)),
-                    ('hsts_preload_ready', hsts.get('preload_ready', False)),
-                ]
+                data += [('hsts', hsts.get('grade', 'missing'))]
 
             supercookie = fingerprint.get('privacy_risks', {}).get('supercookie', {})
             if isinstance(supercookie, dict) and len(supercookie) > 0:
-                data += [
-                    ('privacy_supercookie_risk', supercookie.get('risk', 'none')),
-                    ('privacy_supercookie_score', supercookie.get('score', 0)),
-                    ('privacy_supercookie_hsts', supercookie.get('hsts_tracking_surface', False)),
-                    ('privacy_supercookie_etag', supercookie.get('etag_tracking_surface', False)),
-                    ('privacy_supercookie_cache', supercookie.get('cache_tracking_surface', False)),
-                    ('privacy_supercookie_cookie', supercookie.get('persistent_cookie_surface', False)),
-                ]
+                data += [('privacy_supercookie_risk', supercookie.get('risk', 'none'))]
 
                 warnings = supercookie.get('warnings')
                 if isinstance(warnings, (list, tuple)) and len(warnings) > 0:

@@ -79,7 +79,8 @@ class TestReporterPrivacyRisks(unittest.TestCase):
 
         self.assertIn('privacy_supercookie_risk', rendered)
         self.assertIn('medium', rendered)
-        self.assertIn('privacy_supercookie_etag', rendered)
+        self.assertNotIn('privacy_supercookie_score', rendered)
+        self.assertNotIn('privacy_supercookie_etag', rendered)
 
     def test_text_report_writes_privacy_risk_summary(self):
         """TXT reporter should persist privacy-risk metadata in fingerprint.txt."""

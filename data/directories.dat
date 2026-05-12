@@ -7256,6 +7256,7 @@ _cat/count
 _cat/fielddata
 _cat/health
 _cat/indices
+_cat/indices?v
 _cat/master
 _cat/ml/anomaly_detectors
 _cat/ml/data_frame/analytics
@@ -8434,6 +8435,7 @@ abrowse.php
 abrowse_books.php
 abruzzo
 abs
+abslocalhost
 absolut
 absolutebm
 absolutebmxe
@@ -10254,6 +10256,7 @@ adframe.php
 adfs
 adfs/ls
 adfs/ls/idpinitiatedsignon.aspx
+adfs/ls/wia
 adfs/services/trust/2005/windowstransport
 adfs/services/trust/2005windowstransport
 adg
@@ -22006,6 +22009,8 @@ approved.html
 apps
 Apps
 apps2
+apps.1.xml
+apps.feed.xml
 apps.json
 apps.php
 apps.pnps
@@ -22013,6 +22018,8 @@ apps/.env
 apps/.env%20
 apps/__pycache__
 apps/client/.env
+apps/clientlibs
+apps/clientlibs/granite/utils
 apps/frontend/config/app.yml
 apps/frontend/config/databases.yml
 apps/frontend/configapp.yml
@@ -22798,6 +22805,7 @@ aspnet_client.php
 aspnet_client/FreeTextBox
 aspnet_client/system_web
 aspnet_client/system_web/2_0_50727
+aspnet_clientlocalhost
 aspnet_clients
 aspnet_files
 aspnet_webadmin
@@ -23487,6 +23495,7 @@ autodiscover
 autodiscover.php
 autodiscover.xml
 autodiscoverautodiscover.json
+autodiscoverlocalhost
 autodownload.html
 autoemail
 autoexec.bat
@@ -23579,6 +23588,7 @@ autotopup_old
 autotrader
 autotransport
 autoupdate
+autoupdatelocalhost
 autoviewer_pro
 autres
 autumn.html
@@ -30332,6 +30342,7 @@ CertControl
 certcontrol
 CertEnroll
 certenroll
+certenrolllocalhost
 certi.php
 certicom
 certificado
@@ -30360,12 +30371,14 @@ certified
 certify
 certkey.asp
 certprov
+certprovlocalhost
 certs
 certs/server.key
 certserv
 certserver
 certsrv
 certsrv.nsf
+certsrvlocalhost
 certsserver.key
 certstart.aspx
 cerulean
@@ -33187,6 +33200,7 @@ cms/themes/cp_themes/default/images/swfupload_f9.swf
 cms/themes/cp_themes/default/imagesswfupload.swf
 cms/themes/cp_themes/default/imagesswfupload_f9.swf
 Cms/typo3
+cms/views.py
 cms/Web.config
 cms/wp-admin
 cms/wp-login.php
@@ -33382,6 +33396,7 @@ code.txt
 code.zip
 code/api/.env
 code/web/.env
+CODE_OF_CONDUCT.rst
 code_tree
 code_view.php
 codeavalanche
@@ -34360,15 +34375,22 @@ conf/catalina.policy
 conf/catalina.properties
 conf/config.ini
 conf/context.xml
+conf/fastcgi_params
 conf/httpd.conf
+conf/koi-utf
+conf/koi-win
 conf/logging.properties
+conf/mime.types
 conf/push_ssh_keys.yml
 conf/push_ssh_keys_remote.yml
+conf/scgi_params
 conf/server.xml
 conf/solano.yml
 conf/tomcat8.conf
 conf/tomcat-users.xml
+conf/uwsgi_params
 conf/web.xml
+conf/win-utf
 conf/zoo.cfg
 conf_basic_config.php
 conf_global
@@ -34811,6 +34833,7 @@ confirmssr.htm
 confirmupload.asp
 conflg.php
 conflict
+conflocalhost
 conflogging.properties
 confluence
 confluence/admin
@@ -35649,11 +35672,18 @@ contrato.php
 contrexx
 contrib
 contrib.php
+contrib/README
+contrib/unicode2nginx
+contrib/unicode2nginx/koi-utf
+contrib/unicode2nginx/win-utf
+contrib/vim
+contriblocalhost
 contribute
 contribute.html
 contribute.php
 CONTRIBUTING.md
 contributing.md
+CONTRIBUTING.rst
 contribution
 contribution.php
 contributions
@@ -40423,6 +40453,7 @@ debug/vars
 debug/vschema
 debug_error.jsp
 debug_log
+debuglocalhost
 debugpprof
 debut_fileput.php
 dec
@@ -41338,7 +41369,9 @@ devices.dat
 devices.php
 devices.txt
 deviceupdatefiles_ext
+deviceupdatefiles_extlocalhost
 deviceupdatefiles_int
+deviceupdatefiles_intlocalhost
 devil
 devil-linux
 devils
@@ -41443,6 +41476,7 @@ diagrams
 diagwebapp
 dial
 dialin
+dialinlocalhost
 dialog
 dialog.htm
 dialog/oauth
@@ -42318,6 +42352,7 @@ docs.txt
 docs/.env
 docs/_build
 docs/_config.yml
+docs/_ext/djangocms.py
 docs/access.txt
 docs/adm
 docs/adm.php
@@ -42329,6 +42364,7 @@ docs/api-docs.json
 docs/cedentials.txt
 docs/CHANGELOG.html
 docs/changelog.txt
+docs/CHANGES
 docs/conf.py
 docs/export-demo.xml
 docs/html/admin/ch01.html
@@ -42346,6 +42382,8 @@ docs/html/developerch03s15.html
 docs/html/index.html
 docs/htmlindex.html
 docs/index.rst
+docs/LICENSE
+docs/localhost
 docs/maintenance.txt
 docs/Makefile
 docs/README
@@ -43782,6 +43820,7 @@ ecourse
 Ecp
 ecp
 ecp_core
+ecplocalhost
 ECqJV
 ecrire
 ecrm
@@ -47077,6 +47116,7 @@ etcd-events.log
 etcd.log
 etcdatabase.xml
 etchosts
+etclocalhost
 etcpasswd
 etcsecurity
 etenders
@@ -47382,6 +47422,7 @@ ewebeditpro5
 ewp
 EWS
 ews
+ewslocalhost
 ex
 ex0shell.php
 ex071101.log
@@ -47522,6 +47563,7 @@ Exchange.php
 exchange.php
 exchange/.env
 exchange/logon.asp
+exchangelocalhost
 exchangelogon.asp
 exchangelogon.html
 exchangelogon.php
@@ -47530,6 +47572,7 @@ exchangeroot.html
 exchangeroot.php
 ExchWeb
 exchweb
+exchweblocalhost
 excite
 Excite
 exclude
@@ -51644,6 +51687,7 @@ fwmon
 fws
 fwsm
 fwuam-stub.php
+fwuser
 fx
 fx-app
 fxk41rp5.php
@@ -54621,6 +54665,7 @@ grouper
 groupes
 groupes.html
 groupexpansion
+groupexpansionlocalhost
 groupform.php
 groupID
 groupId
@@ -56891,6 +56936,7 @@ hxhack.asa
 hy
 hybrid
 hybridconfig
+hybridconfiglocalhost
 hydenglu.aspx
 hydra
 hydra/.well-known/openid-configuration
@@ -69408,6 +69454,7 @@ mcss.php
 mcurrent.htm
 mcx
 mcx/mcxservice.svc
+mcxlocalhost
 mcxmcxservice.svc
 md
 md5.asp
@@ -69575,10 +69622,12 @@ meet.asp
 meet_me.php
 meet_them.php
 meeting
+meetinglocalhost
 meetings
 meetings.aspx
 meetings.html
 meetings_pop.html
+meetlocalhost
 mef
 mega
 mega_up.php
@@ -71083,6 +71132,7 @@ microsites
 microsoft
 Microsoft-Server-ActiveSync
 microsoft-server-activesync
+microsoft-server-activesynclocalhost
 microsoft.php
 microsoft.xmlhttp
 MicroStrategy/servlet/taskProc?taskId=shortURL&taskEnv=xml&taskContentType=xml&srcURL=https
@@ -76213,6 +76263,7 @@ oa_servlets
 OAapp/WebObjectsOAapp.woa
 OAB
 oab
+oablocalhost
 oaboard
 oadmin
 OAErrorDetailPage
@@ -76357,6 +76408,7 @@ ocportal
 ocr
 ocs
 ocsp
+ocsplocalhost
 oct06-sp.php
 oct.html
 october
@@ -78482,6 +78534,7 @@ OWA.aspx
 OWA.php
 owa.php
 owa/auth/logon.aspx
+owalocalhost
 owasp
 owfadmin
 owfadmin.php
@@ -81042,6 +81095,7 @@ persianblog
 persimmon
 persistent
 persistentchat
+persistentchatlocalhost
 persits
 perso
 person
@@ -81326,6 +81380,7 @@ phonebook
 phonebook.php
 phonecall.htm
 phoneconferencing
+phoneconferencinglocalhost
 PhoneLookup.php
 phonenumber
 phones
@@ -84189,6 +84244,7 @@ powerseller
 PowerShell
 powershell
 powershell.php
+powershelllocalhost
 powertech
 powiadom.php
 powie
@@ -86952,6 +87008,7 @@ publicity
 publicity.php
 publickey.php
 publickeys
+publiclocalhost
 publicmember.php
 publico
 publico/template
@@ -89786,6 +89843,8 @@ requestform.htm
 requesthandler
 requesthandler.aspx
 requesthandlerext
+requesthandlerextlocalhost
+requesthandlerlocalhost
 requestid
 requestinfo
 requestinfo.asp
@@ -90510,6 +90569,7 @@ rg
 rgo.php
 rgs
 rgsclients
+rgslocalhost
 rgt9igje.php
 rh
 rhein-main
