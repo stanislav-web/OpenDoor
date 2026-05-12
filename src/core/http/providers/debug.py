@@ -69,6 +69,14 @@ class DebugProvider(object):
         """
 
 
+    def debug_proxy_selected(self, server):
+        """Debug selected rotating proxy server.
+
+        :param str server: selected proxy server
+        :return: bool
+        """
+
+
     def debug_list(self, total_lines):
         """
         Debug scan list

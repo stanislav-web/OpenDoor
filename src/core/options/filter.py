@@ -218,6 +218,7 @@ class Filter(object):
                     key='--openvpn-auth'
                 )
 
+            Filter.validate_proxy_options(filtered)
             Filter.validate_transport_options(filtered)
 
             return filtered
@@ -328,6 +329,7 @@ class Filter(object):
         if raw_request is not None and len(targets) <= 0:
             raise FilterError('Unable to resolve target from --raw-request. Provide a Host header or use --host/--hostlist/--stdin')
 
+        Filter.validate_proxy_options(filtered)
         Filter.validate_transport_options(filtered)
 
         return filtered
@@ -1202,6 +1204,32 @@ class Filter(object):
             raise FilterError('{0} must be one of: {1}'.format(key, ', '.join(Filter.TRANSPORT_ROTATES)))
 
         return value
+
+
+    @staticmethod
+    def validate_proxy_options(filtered):
+        """Validate that only one proxy routing source is selected.
+
+        :param dict filtered: filtered CLI options
+        :raise FilterError:
+        :return: None
+        """
+
+        selected = []
+
+        if filtered.get('proxy'):
+            selected.append('--proxy')
+
+        if filtered.get('proxy_list'):
+            selected.append('--proxy-list')
+
+        if filtered.get('proxy_pool') is True:
+            selected.append('--proxy-pool')
+
+        if len(selected) > 1:
+            raise FilterError('{0} cannot be used together. Select exactly one proxy source.'.format(
+                ', '.join(selected)
+            ))
 
     @staticmethod
     def validate_transport_options(filtered):

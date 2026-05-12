@@ -150,6 +150,21 @@ class TestBrowserDebug(unittest.TestCase):
             self.assertTrue(auth_debug.debug_proxy_pool())
         debug_mock.assert_called_with(key='proxy_pool_standalone', server='http://user:*****@127.0.0.1:8080')
 
+    def test_debug_proxy_selected_logs_masked_rotating_proxy(self):
+        """Debug.debug_proxy_selected() should mask selected rotating proxy credentials."""
+
+        cfg = Config({'debug': 1, 'method': 'HEAD', 'proxy_list': 'proxy.txt', 'reports': 'std'})
+        with patch('sys.stdout', new=StringIO()):
+            debug = Debug(cfg)
+
+        with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
+            self.assertTrue(debug.debug_proxy_selected('http://user:pass@127.0.0.1:8080'))
+
+        debug_mock.assert_called_once_with(
+            key='proxy_pool_selected',
+            server='http://user:*****@127.0.0.1:8080',
+        )
+
     def test_debug_request_does_not_mutate_input_dict(self):
         """Debug.debug_request() should not mutate the original request header mapping."""
 

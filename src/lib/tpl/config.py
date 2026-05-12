@@ -60,6 +60,7 @@ class Config(object):
         'proxy_pool_standalone': 'Using proxy server: {server}',
         'proxy_pool_internal_start': 'Fetching internal proxy list...',
         'proxy_pool_external_start': 'Fetching external proxy list...',
+        'proxy_pool_selected': 'Selected proxy server: {server}',
         'request_header_dbg': 'Request header:\n{dbg}',
         'response_header_dbg': 'Response header:\n{dbg}',
         'accept_cookies_enabled': 'Accept cookies enabled',

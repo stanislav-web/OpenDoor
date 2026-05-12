@@ -11,13 +11,14 @@ v5.16.0 (11.05.2026)
 - (fix) `ResponseError: Unknown response status : 523` to avoid abort scans on unexpected HTTP status codes.
 - (fix) graceful handling for unavailable standalone SOCKS/HTTP proxies.
 - (fix) authenticated HTTP proxy support for HTTPS CONNECT requests and masked proxy credentials in debug, warning, and error output.
-- (fix) Cleaned WAF/header-bypass diagnostics: cookie accept debug now logs once, watchdog tracks long-running probe heartbeats, and piped logs no longer include ANSI clear-line sequences.
+- (fix) cleaned WAF/header-bypass diagnostics: cookie accept debug now logs once, watchdog tracks long-running probe heartbeats, and piped logs no longer include ANSI clear-line sequences.
 - (feature) added `--waf-guard` with configurable `--waf-guard-after` and `--waf-guard-threshold` to stop scans early when initial classified responses are overwhelmingly WAF-blocked.
 - (feature) added `--diff` to compare exactly two previous/current OpenDoor SQLite or JSON reports and show added, removed and changed findings without running a new scan.
 - (feature) added `--sniff malware` to passively classify suspicious malware, webshell, injected script and obfuscated payload indicators into the `malware` bucket with structured metadata across runtime output and reports.
 - (feature) added `--sniff shadow` active Shadow Copy Detection to probe confirmed `200 OK` file-like hits for exposed backup/postfix copies such as `.bak`, `.old`  etc variants.
 - (feature) added `--sniff secret` to classify successful textual responses with possible leaked API keys, tokens, private keys, JWTs and credential URLs into the `secret` bucket.
 - (feature) added `--sniff openredirect` for verified open redirect detection: OpenDoor now performs bounded active checks on discovered redirect-like query parameters, reports findings in the `openredirect` bucket, and preserves evidence across text, JSON, CSV, HTML, SQLite, and SARIF reports.
+- (enhancement) hardened proxy routing: `--proxy`, `--proxy-list`, and `--proxy-pool` are now mutually exclusive, rotating proxies skip dead entries during the current scan runtime, authenticated proxy-list entries support HTTPS CONNECT, and selected rotating proxies are shown in debug with credentials masked.
 - (enhancement) refactored the internal sniffer architecture to support independent multi-finding detection, additive security findings, suppressor separation and shared active-sniffer orchestration while preserving existing `--sniff` CLI aliases and report buckets.
 - (enhancement) improved controlled 403 `header-bypass` probing with additional safe path-normalization variants, including encoded-dot, semicolon-prefix, dot-semicolon-prefix, double-slash semicolon, and dot-dot semicolon suffix checks for arbitrary protected paths discovered during scans.
 - (enhancement) hardened Stacktrace sniffer detection to avoid false positives from normal HTML/CSS source code such as `.*-warning`, `.*-warning`, and similar style/class names.

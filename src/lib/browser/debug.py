@@ -221,6 +221,14 @@ class Debug(DebugProvider):
 
         return True
 
+    def debug_proxy_selected(self, server):
+        """Debug selected proxy for rotating proxy modes."""
+
+        if self.is_scan_debug():
+            tpl.debug(key='proxy_pool_selected', server=self.__mask_proxy_server(server))
+
+        return True
+
     def debug_request(self, request_header, url, method):
         """Debug request."""
 

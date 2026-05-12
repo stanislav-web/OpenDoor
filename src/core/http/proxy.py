@@ -53,6 +53,7 @@ class Proxy(RequestProvider, DebugProvider):
             self.__server = None
             self.__pm = None
             self.__proxy_pools = {}
+            self.__dead_proxies = set()
             self.__cfg = config
             self.__debug = debug
             self.__debug.debug_proxy_pool()
@@ -130,6 +131,9 @@ class Proxy(RequestProvider, DebugProvider):
         try:
             server = self.__cfg.proxy if True is self.__cfg.is_standalone_proxy else self.__get_random_proxy()
             self.__server = self.__normalize_proxy_server(server)
+
+            if True is not self.__cfg.is_standalone_proxy:
+                getattr(self.__debug, 'debug_proxy_selected', lambda *args, **kwargs: True)(self.__server)
 
             if self.__server in self.__proxy_pools:
                 return self.__proxy_pools[self.__server]
@@ -253,6 +257,7 @@ class Proxy(RequestProvider, DebugProvider):
             self.__tpl.error(msg=message)
             raise ProxyRequestError(message)
 
+        self.__mark_proxy_dead(self.__server)
         self.__tpl.warning(msg=message)
 
     @staticmethod
@@ -315,9 +320,54 @@ class Proxy(RequestProvider, DebugProvider):
             redirect=False,
         )
 
+        self.__mark_proxy_alive(self.__server)
         self._debug_response_received(self.__debug, response)
         self.__debug_cookie_middleware(response)
         return response
+
+    def __mark_proxy_dead(self, server):
+        """Remember a failed rotating proxy for the current scan runtime.
+
+        :param str|None server: proxy server URL
+        :return: None
+        """
+
+        if True is self.__cfg.is_standalone_proxy or not server:
+            return
+
+        normalized = self.__normalize_proxy_server(server)
+        self.__dead_proxies.add(normalized)
+        self.__proxy_pools.pop(normalized, None)
+
+    def __mark_proxy_alive(self, server):
+        """Clear stale dead-proxy state after a successful request.
+
+        :param str|None server: proxy server URL
+        :return: None
+        """
+
+        if not server:
+            return
+
+        self.__dead_proxies.discard(self.__normalize_proxy_server(server))
+
+    def __get_available_proxies(self):
+        """Return rotating proxies that are not marked dead.
+
+        :raise ProxyRequestError:
+        :return: list[str]
+        """
+
+        proxies = [
+            self.__normalize_proxy_server(server)
+            for server in self.__proxylist
+            if self.__normalize_proxy_server(server) not in self.__dead_proxies
+        ]
+
+        if not proxies:
+            raise ProxyRequestError('All rotating proxies are unavailable for this scan runtime')
+
+        return proxies
 
     def __get_random_proxy(self):
         """
@@ -325,8 +375,9 @@ class Proxy(RequestProvider, DebugProvider):
         :return: str
         """
 
-        index = random.randrange(0, len(self.__proxylist))
-        server = self.__proxylist[index]
+        proxy_list = self.__get_available_proxies()
+        index = random.randrange(0, len(proxy_list))
+        server = proxy_list[index]
         return self.__normalize_proxy_server(server)
 
     @classmethod

@@ -46,6 +46,7 @@ class TestProxyExtra(unittest.TestCase):
         return SimpleNamespace(
             level=level,
             debug_proxy_pool=MagicMock(),
+            debug_proxy_selected=MagicMock(),
             debug_request=MagicMock(),
             debug_response=MagicMock(),
         )
@@ -453,6 +454,88 @@ class TestProxyExtra(unittest.TestCase):
         debug.debug_cookie_accept_enabled.assert_called_once_with()
         debug.debug_cookie_accepted.assert_called_once_with('sid=abc')
 
+
+    def test_proxy_pool_passes_basic_auth_headers_for_authenticated_rotating_proxy(self):
+        """Proxy.__proxy_pool() should pass Proxy-Authorization for authenticated proxy-list entries."""
+
+        cfg = self.make_cfg(is_standalone_proxy=False)
+        debug = self.make_debug(level=1)
+        pool = MagicMock()
+        proxy = Proxy(
+            cfg,
+            debug,
+            tpl=MagicMock(),
+            proxy_list=['http://user:pass@127.0.0.1:8080'],
+            agent_list=['UA'],
+        )
+
+        with patch('src.core.http.proxy.ProxyManager', return_value=pool) as proxy_manager_mock:
+            actual = getattr(proxy, '_Proxy__proxy_pool')()
+
+        self.assertIs(actual, pool)
+        proxy_headers = proxy_manager_mock.call_args.kwargs['proxy_headers']
+        self.assertEqual(proxy_headers['proxy-authorization'], 'Basic dXNlcjpwYXNz')
+        debug.debug_proxy_selected.assert_called_once_with('http://user:pass@127.0.0.1:8080')
+
+    def test_dead_proxy_cache_skips_failed_rotating_proxy(self):
+        """Proxy should skip rotating proxies marked dead during the current scan runtime."""
+
+        cfg = self.make_cfg(is_standalone_proxy=False)
+        proxy = Proxy(
+            cfg,
+            self.make_debug(),
+            tpl=MagicMock(),
+            proxy_list=['http://dead:8080', 'http://alive:8080'],
+            agent_list=['UA'],
+        )
+
+        getattr(proxy, '_Proxy__mark_proxy_dead')('http://dead:8080')
+
+        with patch('src.core.http.proxy.random.randrange', return_value=0):
+            actual = getattr(proxy, '_Proxy__get_random_proxy')()
+
+        self.assertEqual(actual, 'http://alive:8080')
+
+    def test_dead_proxy_cache_raises_when_all_rotating_proxies_are_dead(self):
+        """Proxy should fail clearly when every rotating proxy is unavailable."""
+
+        cfg = self.make_cfg(is_standalone_proxy=False)
+        proxy = Proxy(
+            cfg,
+            self.make_debug(),
+            tpl=MagicMock(),
+            proxy_list=['http://dead:8080'],
+            agent_list=['UA'],
+        )
+
+        getattr(proxy, '_Proxy__mark_proxy_dead')('http://dead:8080')
+
+        with self.assertRaises(ProxyRequestError) as context:
+            getattr(proxy, '_Proxy__get_random_proxy')()
+
+        self.assertIn('All rotating proxies are unavailable', str(context.exception))
+
+    def test_request_marks_rotating_proxy_dead_after_retry_failure(self):
+        """Proxy.request() should add a failed rotating proxy to the runtime dead cache."""
+
+        cfg = self.make_cfg(scan='directories', is_standalone_proxy=False)
+        tpl = MagicMock()
+        proxy = Proxy(cfg, self.make_debug(), tpl=tpl, proxy_list=['http://dead:8080'], agent_list=['UA'])
+        proxy._Proxy__server = 'http://dead:8080'
+        proxy._Proxy__proxy_pools['http://dead:8080'] = MagicMock()
+
+        with patch.object(
+            proxy,
+            '_Proxy__pool_request',
+            side_effect=[
+                MaxRetryError(None, '/', None),
+                MaxRetryError(None, '/', OSError('Connection refused')),
+            ],
+        ):
+            self.assertIsNone(proxy.request('https://localhost/'))
+
+        self.assertIn('http://dead:8080', proxy._Proxy__dead_proxies)
+        self.assertNotIn('http://dead:8080', proxy._Proxy__proxy_pools)
 
 if __name__ == '__main__':
     unittest.main()

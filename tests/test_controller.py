@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import io
 import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
@@ -1129,6 +1130,67 @@ class TestController(unittest.TestCase):
             with self.assertRaises(SrcError):
                 Controller.diff_action({'diff': 'bad', 'reports': 'std'})
 
+    def test_controller_should_scan_targets_from_stdin_cli_flow(self):
+        """CLI --stdin should read mixed targets from STDIN and scan each target."""
+
+        controller = Controller.__new__(Controller)
+
+        browser_first = MagicMock()
+        browser_second = MagicMock()
+
+        with patch('src.controller.package.check_interpreter', return_value=True), \
+                patch('src.controller.events.terminate'), \
+                patch('src.core.options.options.sys.argv', ['opendoor.py', '--stdin', '--reports', 'std']), \
+                patch('src.core.options.filter.sys.stdin', io.StringIO('example.com\nhttps://secure.example.com\n')), \
+                patch('src.controller.package.banner', return_value='banner'), \
+                patch('src.controller.tpl.message'), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.browser', side_effect=[browser_first, browser_second]) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.__init__(controller)
+            actual = controller.run()
+
+        self.assertEqual(actual, 0)
+        self.assertEqual(browser_mock.call_count, 2)
+
+        first_params = browser_mock.call_args_list[0].args[0]
+        second_params = browser_mock.call_args_list[1].args[0]
+
+        expected_targets = [
+            {
+                'host': 'example.com',
+                'scheme': 'http://',
+                'ssl': False,
+                'source': 'example.com',
+            },
+            {
+                'host': 'secure.example.com',
+                'scheme': 'https://',
+                'ssl': True,
+                'source': 'https://secure.example.com',
+            },
+        ]
+
+        self.assertEqual(first_params['targets'], expected_targets)
+        self.assertEqual(first_params['host'], 'example.com')
+        self.assertEqual(first_params['scheme'], 'http://')
+        self.assertFalse(first_params['ssl'])
+        self.assertEqual(first_params['source'], 'example.com')
+
+        self.assertEqual(second_params['targets'], expected_targets)
+        self.assertEqual(second_params['host'], 'secure.example.com')
+        self.assertEqual(second_params['scheme'], 'https://')
+        self.assertTrue(second_params['ssl'])
+        self.assertEqual(second_params['source'], 'https://secure.example.com')
+
+        browser_first.ping.assert_called_once_with()
+        browser_first.scan.assert_called_once_with()
+        browser_first.done.assert_called_once_with()
+
+        browser_second.ping.assert_called_once_with()
+        browser_second.scan.assert_called_once_with()
+        browser_second.done.assert_called_once_with()
 
 if __name__ == '__main__':
     unittest.main()

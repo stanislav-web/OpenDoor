@@ -32,6 +32,29 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(actual['proxy'], 'http://127.0.0.1:8080')
         self.assertEqual(actual['debug'], 1)
 
+    def test_filter_rejects_multiple_proxy_sources(self):
+        """Filter.filter() should require exactly one proxy source when proxy routing is configured."""
+
+        cases = [
+            {'host': 'example.com', 'proxy': 'http://127.0.0.1:8080', 'proxy_list': 'proxies.txt'},
+            {'host': 'example.com', 'proxy': 'http://127.0.0.1:8080', 'proxy_pool': True},
+            {'host': 'example.com', 'proxy_list': 'proxies.txt', 'proxy_pool': True},
+        ]
+
+        for case in cases:
+            with self.subTest(case=case):
+                with self.assertRaises(FilterError) as context:
+                    Filter.filter(case)
+
+                self.assertIn('cannot be used together', str(context.exception))
+
+    def test_validate_proxy_options_allows_single_proxy_sources(self):
+        """Filter.validate_proxy_options() should allow each proxy source by itself."""
+
+        self.assertIsNone(Filter.validate_proxy_options({'proxy': 'http://127.0.0.1:8080'}))
+        self.assertIsNone(Filter.validate_proxy_options({'proxy_list': 'proxies.txt'}))
+        self.assertIsNone(Filter.validate_proxy_options({'proxy_pool': True}))
+
     def test_scheme_defaults_to_http(self):
         """Filter.scheme() should default to HTTP when scheme is missing."""
 
