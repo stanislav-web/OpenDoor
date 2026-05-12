@@ -260,6 +260,8 @@ class TestBrowserDebugCoverageOnly(unittest.TestCase):
 
         with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
             dbg.debug_cookie_accept_enabled()
+            dbg.debug_cookie_accept_enabled()
+            dbg.debug_cookie_accept_enabled()
             dbg.debug_cookie_accepted('sid=1')
             dbg.debug_cookie_attached({'Cookie': 'sid=1'})
             dbg.debug_cookie_attached({'X-Test': '1'})

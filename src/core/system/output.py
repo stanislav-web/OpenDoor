@@ -43,14 +43,35 @@ class Output(object):
         """
         Write to stdout on one line dynamically.
 
+        The legacy ANSI clear-line sequence is only safe for interactive terminals.
+        Log files and piped output should remain plain text, especially when
+        color is disabled by CLI_COLOR=0 or NO_COLOR.
+
         :param str msg: input message
         :param bool flush: force clear line
         :return: None
         """
 
-        sys.stdout.write("\r\x1b[K" + str(msg))
+        sys.stdout.write(Output.__line_prefix() + str(msg))
         if flush:
             sys.stdout.flush()
+
+    @staticmethod
+    def __line_prefix():
+        """
+        Return the dynamic-line prefix for the current stdout target.
+
+        :return: carriage-return prefix, with ANSI clear-line only for TTY output
+        :rtype: str
+        """
+
+        if os.environ.get('CLI_COLOR') == '0' or os.environ.get('NO_COLOR'):
+            return "\r"
+
+        if not hasattr(sys.stdout, 'isatty') or not sys.stdout.isatty():
+            return "\r"
+
+        return "\r\x1b[K"
 
     @staticmethod
     def writeln(msg):

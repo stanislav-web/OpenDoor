@@ -263,9 +263,54 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
             pool.join()
 
         warning_mock.assert_called_once()
-        self.assertIn('Scan worker has not completed a request', warning_mock.call_args.kwargs.get('msg'))
-        self.assertIn('https://example.test/hang', warning_mock.call_args.kwargs.get('msg'))
+        message = warning_mock.call_args.kwargs.get('msg')
+        self.assertIn('Scan worker is still processing an active request', message)
+        self.assertIn('https://example.test/hang', message)
+        self.assertIn('idle', message)
 
+    def test_should_not_warn_when_active_task_heartbeat_advances(self):
+        """ThreadPool.join() should not report a stall while subrequest heartbeat advances."""
+
+        class HeartbeatWorker:
+            completed = 0
+
+            def __init__(self):
+                self.heartbeat = 1.0
+
+            @property
+            def active_task(self):
+                current = self.heartbeat
+                self.heartbeat += 1.0
+                return {
+                    'label': 'https://example.test/admin',
+                    'started_at': 1.0,
+                    'last_activity_at': current,
+                    'detail': 'header-bypass probe',
+                }
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        queue = getattr(pool, '_ThreadPool__queue')
+        queue.put((lambda: None, ('https://example.test/admin',), {}))
+        setattr(pool, '_ThreadPool__submitted', 1)
+        setattr(pool, '_ThreadPool__workers', [HeartbeatWorker()])
+
+        waits = {'count': 0}
+
+        def release_after_two_waits(timeout=None):
+            waits['count'] += 1
+            if waits['count'] >= 2:
+                queue.unfinished_tasks = 0
+            return True
+
+        with patch.object(pool, 'JOIN_STALL_WARNING_SEC', 0.0), \
+                patch.object(queue.all_tasks_done, 'wait', side_effect=release_after_two_waits), \
+                patch('src.lib.browser.threadpool.time.monotonic', side_effect=[1.0, 2.0, 3.0]), \
+                patch('src.lib.browser.threadpool.tpl.warning') as warning_mock:
+            pool.join()
+
+        warning_mock.assert_not_called()
 
     def test_worker_active_task_returns_metadata_when_processing(self):
         """Worker.active_task should expose current task metadata."""
@@ -277,6 +322,26 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         self.assertEqual(worker.active_task, {
             'label': 'https://example.test/active',
             'started_at': 12.5,
+            'last_activity_at': 12.5,
+            'detail': None,
+        })
+
+    def test_should_update_active_task_heartbeat_metadata(self):
+        """Worker.touch_active_task() should expose long-running substep progress."""
+
+        worker = Worker(Queue(1), num_threads=1, timeout=0)
+        setattr(worker, '_Worker__task_label', 'https://example.test/active')
+        setattr(worker, '_Worker__task_started_at', 12.5)
+        setattr(worker, '_Worker__task_last_activity_at', 12.5)
+
+        with patch('src.lib.browser.worker.time.monotonic', return_value=14.0):
+            worker.touch_active_task('header-bypass 2/8')
+
+        self.assertEqual(worker.active_task, {
+            'label': 'https://example.test/active',
+            'started_at': 12.5,
+            'last_activity_at': 14.0,
+            'detail': 'header-bypass 2/8',
         })
 
     def test_worker_build_task_label_uses_keyword_arguments_and_fallback(self):
@@ -385,8 +450,8 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         rendered = getattr(pool, '_ThreadPool__format_active_tasks')(11.0)
 
-        self.assertIn('u1 (10s)', rendered)
-        self.assertIn('unknown task (0s)', rendered)
+        self.assertIn('u1 (10s, idle 10s)', rendered)
+        self.assertIn('unknown task (0s, idle 0s)', rendered)
         self.assertIn('+1 more', rendered)
 
     def test_threadpool_pause_prompts_even_from_main_thread(self):

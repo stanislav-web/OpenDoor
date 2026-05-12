@@ -35,6 +35,7 @@ class Debug(DebugProvider):
         self.__clear = False
         self.__cfg = Config
         self.__level = self.__cfg.debug
+        self.__cookie_accept_enabled_logged = False
 
         if self.is_scan_debug():
             tpl.debug(key='debug', level=self.__cfg.debug, method=self.__cfg.method)
@@ -304,10 +305,11 @@ class Debug(DebugProvider):
         return True
 
     def debug_cookie_accept_enabled(self):
-        """Debug active response cookie routing."""
+        """Debug active response cookie routing once per scan."""
 
-        if self.is_request_debug():
+        if self.is_request_debug() and self.__cookie_accept_enabled_logged is False:
             tpl.debug(key='accept_cookies_enabled')
+            self.__cookie_accept_enabled_logged = True
 
         return True
 

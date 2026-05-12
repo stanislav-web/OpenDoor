@@ -2,7 +2,7 @@
 
 import unittest
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from src.core import helper
 from src.lib.browser.browser import Browser
@@ -304,6 +304,36 @@ class TestBrowserHeaderBypassRuntime(unittest.TestCase):
         result = getattr(br, '_Browser__result')
         self.assertEqual(result['total']['bypass'], 0)
         self.assertEqual(result['total']['redirect'], 1)
+
+
+    def test_should_touch_worker_heartbeat_during_header_bypass_probes(self):
+        """Browser should mark header-bypass subrequest progress for the watchdog."""
+
+        br = self.make_browser(
+            header_bypass_headers=['X-Original-URL'],
+            header_bypass_limit=2,
+        )
+        br._Browser__client.request.side_effect = [
+            SimpleNamespace(),
+            SimpleNamespace(),
+        ]
+        br._Browser__response.handle.side_effect = [
+            ('forbidden', 'https://example.com/admin', '10B', '403'),
+            ('forbidden', 'https://example.com/admin', '10B', '403'),
+        ]
+        fake_worker = SimpleNamespace(touch_active_task=MagicMock())
+
+        with patch('src.lib.browser.browser.threading.current_thread', return_value=fake_worker):
+            br._Browser__probe_header_bypass(
+                'https://example.com/admin',
+                ('forbidden', 'https://example.com/admin', '10B', '403'),
+            )
+
+        details = [call.kwargs.get('detail') for call in fake_worker.touch_active_task.call_args_list]
+        self.assertIn('header-bypass 1/2: X-Original-URL', details)
+        self.assertIn('header-bypass 1/2: response received', details)
+        self.assertIn('header-bypass 2/2: X-Original-URL', details)
+        self.assertIn('header-bypass 2/2: response received', details)
 
     def test_request_with_waf_safe_mode_preserves_old_call_shape_without_extra_headers(self):
         """WAF-safe wrapper should not pass extra_headers=None to regular requests."""

@@ -1382,6 +1382,20 @@ class Browser(Filter):
         self.__catch_sniffer_finding(finding)
         return True
 
+    @staticmethod
+    def __touch_worker_task(detail=None):
+        """
+        Update the current worker heartbeat for long-running scan substeps.
+
+        :param str|None detail: current substep label
+        :return: None
+        """
+
+        worker = threading.current_thread()
+        touch = getattr(worker, 'touch_active_task', None)
+        if callable(touch):
+            touch(detail=detail)
+
     def __probe_header_bypass(self, url, base_response_data):
         """
         Run controlled header-injection bypass probes for blocked responses.
@@ -1412,14 +1426,24 @@ class Browser(Filter):
             len(variants)
         )
 
-        for variant in variants:
+        for index, variant in enumerate(variants, start=1):
             probe_url = variant.get('url') if variant.get('type') == 'path' else url
             extra_headers = None
 
             if variant.get('type') != 'path':
                 extra_headers = {variant.get('header'): variant.get('value')}
 
+            self.__touch_worker_task(
+                'header-bypass {0}/{1}: {2}'.format(
+                    index,
+                    len(variants),
+                    variant.get('header') or variant.get('variant') or 'probe'
+                )
+            )
             response_object = self.__request_with_waf_safe_mode(probe_url, extra_headers=extra_headers)
+            self.__touch_worker_task(
+                'header-bypass {0}/{1}: response received'.format(index, len(variants))
+            )
 
             if response_object is None:
                 continue

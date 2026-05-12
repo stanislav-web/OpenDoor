@@ -2,7 +2,7 @@
 
 import unittest
 from io import StringIO
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from src.core.system.output import Output
 
@@ -22,13 +22,37 @@ class TestOutput(unittest.TestCase):
         self.assertEqual(str(context.exception), 'abort')
 
     def test_writels_writes_and_flushes(self):
-        """Output.writels() should write a dynamic line and flush by default."""
+        """Output.writels() should write a plain dynamic line for piped output."""
 
         fake_stdout = StringIO()
         with patch('src.core.system.output.sys.stdout', fake_stdout):
             Output.writels('message')
 
-        self.assertEqual(fake_stdout.getvalue(), '\r\x1b[Kmessage')
+        self.assertEqual(fake_stdout.getvalue(), '\rmessage')
+
+    def test_should_keep_ansi_clear_line_only_for_interactive_tty(self):
+        """Output.writels() should keep ANSI clear-line only for interactive TTY output."""
+
+        fake_stdout = MagicMock()
+        fake_stdout.isatty.return_value = True
+
+        with patch('src.core.system.output.sys.stdout', fake_stdout), \
+                patch.dict('src.core.system.output.os.environ', {}, clear=True):
+            Output.writels('message')
+
+        fake_stdout.write.assert_called_once_with('\r\x1b[Kmessage')
+
+    def test_should_not_write_ansi_clear_line_when_cli_color_is_disabled(self):
+        """Output.writels() should keep log files clean when CLI_COLOR=0."""
+
+        fake_stdout = MagicMock()
+        fake_stdout.isatty.return_value = True
+
+        with patch('src.core.system.output.sys.stdout', fake_stdout), \
+                patch.dict('src.core.system.output.os.environ', {'CLI_COLOR': '0'}, clear=True):
+            Output.writels('message')
+
+        fake_stdout.write.assert_called_once_with('\rmessage')
 
     def test_writeln_writes_line_break(self):
         """Output.writeln() should append a trailing newline."""
@@ -61,10 +85,11 @@ class TestOutput(unittest.TestCase):
         """Output.writels() should not flush stdout when flush is disabled."""
 
         fake_stdout = unittest.mock.MagicMock()
+        fake_stdout.isatty.return_value = False
         with patch('src.core.system.output.sys.stdout', fake_stdout):
             Output.writels('message', flush=False)
 
-        fake_stdout.write.assert_called_once_with('\r\x1b[Kmessage')
+        fake_stdout.write.assert_called_once_with('\rmessage')
         fake_stdout.flush.assert_not_called()
 
 

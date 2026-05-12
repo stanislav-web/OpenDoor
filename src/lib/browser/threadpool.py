@@ -159,6 +159,7 @@ class ThreadPool(object):
         last_queue_size = self.size
         last_activity_at = time.monotonic()
         last_warning_at = last_activity_at
+        last_active_signature = self.__active_tasks_signature()
 
         with self.__queue.all_tasks_done:
             while int(getattr(self.__queue, 'unfinished_tasks', 0) or 0) > 0:
@@ -170,9 +171,15 @@ class ThreadPool(object):
 
                 completed = self.completed_size
                 queue_size = self.__queue._qsize()
-                if completed != last_completed or queue_size != last_queue_size:
+                active_signature = self.__active_tasks_signature()
+                if (
+                    completed != last_completed
+                    or queue_size != last_queue_size
+                    or active_signature != last_active_signature
+                ):
                     last_completed = completed
                     last_queue_size = queue_size
+                    last_active_signature = active_signature
                     last_activity_at = time.monotonic()
                     continue
 
@@ -180,7 +187,7 @@ class ThreadPool(object):
                 if (now - last_activity_at >= self.JOIN_STALL_WARNING_SEC
                         and now - last_warning_at >= self.JOIN_STALL_WARNING_SEC):
                     tpl.warning(
-                        msg='Scan worker has not completed a request for {0:.0f}s. '
+                        msg='Scan worker is still processing an active request for {0:.0f}s. '
                             'submitted={1}, completed={2}, queue={3}, active={4}'.format(
                                 now - last_activity_at,
                                 self.submitted_size,
@@ -190,6 +197,24 @@ class ThreadPool(object):
                             )
                     )
                     last_warning_at = now
+
+    def __active_tasks_signature(self):
+        """
+        Return a stable signature for active task heartbeat changes.
+
+        :return: tuple describing active task progress
+        :rtype: tuple
+        """
+
+        signature = []
+        for task in self.active_tasks:
+            signature.append((
+                str(task.get('label') or ''),
+                str(task.get('detail') or ''),
+                float(task.get('last_activity_at') or task.get('started_at') or 0.0),
+            ))
+
+        return tuple(signature)
 
     def __format_active_tasks(self, now):
         """
@@ -206,9 +231,16 @@ class ThreadPool(object):
         items = []
         for task in tasks[:3]:
             label = str(task.get('label') or 'unknown task')
+            detail = str(task.get('detail') or '').strip()
             started_at = float(task.get('started_at') or now)
+            last_activity_at = float(task.get('last_activity_at') or started_at)
             age = max(0.0, now - started_at)
-            items.append('{0} ({1:.0f}s)'.format(label, age))
+            idle = max(0.0, now - last_activity_at)
+
+            if detail:
+                items.append('{0} [{1}] ({2:.0f}s, idle {3:.0f}s)'.format(label, detail, age, idle))
+            else:
+                items.append('{0} ({1:.0f}s, idle {2:.0f}s)'.format(label, age, idle))
 
         if len(tasks) > 3:
             items.append('+{0} more'.format(len(tasks) - 3))
