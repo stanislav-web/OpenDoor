@@ -1582,7 +1582,7 @@ def _get_metadata(report_data):
     :rtype: dict
     """
 
-    excluded = {'items', 'report_items', 'total'}
+    excluded = {'items', 'report_items', 'total', 'filtered_items'}
 
     return {
         key: value

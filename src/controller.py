@@ -245,6 +245,7 @@ class Controller(object):
             cli_auto_calibrate = params.get('auto_calibrate')
             cli_calibration_samples = params.get('calibration_samples')
             cli_calibration_threshold = params.get('calibration_threshold')
+            cli_response_filter_overrides = cls._collect_response_filter_cli_overrides(params)
             cli_transport_overrides = cls._collect_transport_cli_overrides(params)
 
             if 'wizard' in params:
@@ -263,6 +264,7 @@ class Controller(object):
                 if cli_calibration_threshold is not None:
                     params['calibration_threshold'] = cli_calibration_threshold
 
+                params.update(cli_response_filter_overrides)
                 params.update(cli_transport_overrides)
 
             if params.get('session_load'):
@@ -289,6 +291,7 @@ class Controller(object):
                 if cli_calibration_threshold is not None:
                     restored['calibration_threshold'] = cli_calibration_threshold
 
+                restored.update(cli_response_filter_overrides)
                 restored.update(cli_transport_overrides)
 
                 params = restored
@@ -442,6 +445,38 @@ class Controller(object):
         brows.done()
 
         return brows.result
+
+    @staticmethod
+    def _collect_response_filter_cli_overrides(params):
+        """Collect explicit response-filter options for wizard/session overrides.
+
+        Session and wizard params restore a previous scan configuration. When a
+        user passes response filters together with --session-load or --wizard,
+        those explicit CLI values must override restored filters the same way
+        CI, calibration and transport overrides do.
+
+        :param dict params: filtered CLI params
+        :return: dict
+        """
+
+        override_keys = (
+            'include_status',
+            'exclude_status',
+            'exclude_size',
+            'exclude_size_range',
+            'match_text',
+            'exclude_text',
+            'match_regex',
+            'exclude_regex',
+            'min_response_length',
+            'max_response_length',
+        )
+
+        return {
+            key: params.get(key)
+            for key in override_keys
+            if params.get(key) is not None
+        }
 
     @staticmethod
     def _collect_transport_cli_overrides(params):

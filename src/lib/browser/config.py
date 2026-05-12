@@ -16,6 +16,8 @@
     Development: Stanislav WEB
 """
 
+import re
+
 
 class Config(object):
 
@@ -119,12 +121,21 @@ class Config(object):
         self._exclude_status = self._normalize_csv(params.get('exclude_status'))
         self._exclude_size = self._normalize_csv(params.get('exclude_size'))
         self._exclude_size_range = self._normalize_csv(params.get('exclude_size_range'))
-        self._match_text = self._normalize_csv(params.get('match_text'))
-        self._exclude_text = self._normalize_csv(params.get('exclude_text'))
-        self._match_regex = self._normalize_csv(params.get('match_regex'))
-        self._exclude_regex = self._normalize_csv(params.get('exclude_regex'))
-        self._min_response_length = params.get('min_response_length')
-        self._max_response_length = params.get('max_response_length')
+        self._match_text = self._normalize_text_filter_values(params.get('match_text'))
+        self._exclude_text = self._normalize_text_filter_values(params.get('exclude_text'))
+        self._match_regex = self._normalize_text_filter_values(params.get('match_regex'))
+        self._exclude_regex = self._normalize_text_filter_values(params.get('exclude_regex'))
+        self._min_response_length = self._normalize_optional_non_negative_int(
+            params.get('min_response_length'),
+            'min_response_length'
+        )
+        self._max_response_length = self._normalize_optional_non_negative_int(
+            params.get('max_response_length'),
+            'max_response_length'
+        )
+        self._match_regex_compiled = self._compile_regex_values(self._match_regex, 'match_regex')
+        self._exclude_regex_compiled = self._compile_regex_values(self._exclude_regex, 'exclude_regex')
+        self._validate_response_filters()
 
     @classmethod
     def _normalize_scheme(cls, scheme, ssl=False):
@@ -188,6 +199,175 @@ class Config(object):
         if isinstance(value, list):
             return list(value)
         return [item.strip() for item in str(value).split(',') if item.strip()]
+
+    @staticmethod
+    def _normalize_text_filter_values(value):
+        """Normalize body text or regex filters without comma splitting.
+
+        Regex patterns commonly contain commas, for example ``[a-z]{1,3}``.
+        Wizard/config values must therefore be treated as one pattern per config
+        key, while session/CLI append-style lists remain supported.
+
+        :param value: raw filter value
+        :return: list[str] | None
+        """
+
+        if value is None:
+            return None
+
+        if isinstance(value, list):
+            values = [str(item).strip() for item in value if str(item).strip()]
+            return values or None
+
+        text = str(value).strip()
+        if not text:
+            return None
+
+        return [text]
+
+    @staticmethod
+    def _normalize_optional_non_negative_int(value, name):
+        """Normalize an optional non-negative integer response filter.
+
+        :param value: raw integer-like value
+        :param str name: user-facing option/config name
+        :raise ValueError: when the value is not a non-negative integer
+        :return: int | None
+        """
+
+        if value is None:
+            return None
+
+        try:
+            normalized = int(value)
+        except (TypeError, ValueError):
+            raise ValueError('{0} must be a non-negative integer'.format(name))
+
+        if normalized < 0:
+            raise ValueError('{0} must be a non-negative integer'.format(name))
+
+        return normalized
+
+    @staticmethod
+    def _compile_regex_values(values, name):
+        """Compile response regex filters once during config construction.
+
+        :param list[str] | None values: regex source patterns
+        :param str name: user-facing option/config name
+        :raise ValueError: when a pattern is invalid
+        :return: list[re.Pattern]
+        """
+
+        if values is None:
+            return []
+
+        compiled = []
+        for pattern in values:
+            try:
+                compiled.append(re.compile(pattern))
+            except re.error as error:
+                raise ValueError('invalid regex in {0}: {1}'.format(name, error))
+
+        return compiled
+
+    @staticmethod
+    def _validate_status_tokens(values, name):
+        """Validate HTTP status filter tokens and inclusive ranges.
+
+        :param list[str] | None values: raw status tokens
+        :param str name: user-facing option/config name
+        :raise ValueError: when a token is malformed or outside HTTP range
+        :return: None
+        """
+
+        if values is None:
+            return
+
+        for value in values:
+            token = str(value).strip()
+            if not token:
+                continue
+
+            try:
+                if '-' in token:
+                    start, end = [int(chunk) for chunk in token.split('-', 1)]
+                    if start > end:
+                        raise ValueError
+                    if start < 100 or end > 599:
+                        raise ValueError
+                    continue
+
+                code = int(token)
+                if code < 100 or code > 599:
+                    raise ValueError
+            except ValueError:
+                raise ValueError('{0} accepts HTTP status codes 100-599 or ranges like 200-299'.format(name))
+
+    @staticmethod
+    def _validate_integer_values(values, name):
+        """Validate exact response-size values.
+
+        :param list[str] | None values: raw integer tokens
+        :param str name: user-facing option/config name
+        :raise ValueError: when a token is not a non-negative integer
+        :return: None
+        """
+
+        if values is None:
+            return
+
+        for value in values:
+            token = str(value).strip()
+            if not token:
+                continue
+            if not token.isdigit():
+                raise ValueError('{0} accepts only non-negative integer byte sizes'.format(name))
+
+    @staticmethod
+    def _validate_integer_ranges(values, name):
+        """Validate inclusive response-size range values.
+
+        :param list[str] | None values: raw range tokens
+        :param str name: user-facing option/config name
+        :raise ValueError: when a range is malformed
+        :return: None
+        """
+
+        if values is None:
+            return
+
+        for value in values:
+            token = str(value).strip()
+            if not token:
+                continue
+            if '-' not in token:
+                raise ValueError('{0} accepts byte ranges like 0-256'.format(name))
+            try:
+                start, end = [int(chunk) for chunk in token.split('-', 1)]
+            except ValueError:
+                raise ValueError('{0} accepts byte ranges like 0-256'.format(name))
+            if start < 0 or end < 0 or start > end:
+                raise ValueError('{0} range start must be less than or equal to end'.format(name))
+
+    def _validate_response_filters(self):
+        """Validate response filters for CLI, wizard and session-loaded params.
+
+        CLI input is already validated earlier, but wizard/session params reach
+        BrowserConfig directly. This guard keeps all entrypoints consistent and
+        fails early on malformed filters.
+
+        :raise ValueError: when response filter config is invalid
+        :return: None
+        """
+
+        self._validate_status_tokens(self._include_status, 'include_status')
+        self._validate_status_tokens(self._exclude_status, 'exclude_status')
+        self._validate_integer_values(self._exclude_size, 'exclude_size')
+        self._validate_integer_ranges(self._exclude_size_range, 'exclude_size_range')
+
+        if self._min_response_length is not None and self._max_response_length is not None:
+            if self._min_response_length > self._max_response_length:
+                raise ValueError('min_response_length cannot be greater than max_response_length')
 
     @staticmethod
     def _expand_numeric_tokens(values):
@@ -836,6 +1016,18 @@ class Config(object):
         """Regex patterns excluded from matching responses."""
 
         return [] if self._exclude_regex is None else [str(item).strip() for item in self._exclude_regex if str(item).strip()]
+
+    @property
+    def match_regex_compiled(self):
+        """Compiled regex patterns required for a response match."""
+
+        return list(self._match_regex_compiled)
+
+    @property
+    def exclude_regex_compiled(self):
+        """Compiled regex patterns excluded from matching responses."""
+
+        return list(self._exclude_regex_compiled)
 
     @property
     def min_response_length(self):

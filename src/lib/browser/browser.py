@@ -138,7 +138,7 @@ class Browser(Filter):
                         key='method_override',
                         sniffers=', '.join(method_override_items)
                     )
-            self.__result = {'total': {}, 'items': {}, 'report_items': {}}
+            self.__result = {'total': {}, 'items': {}, 'report_items': {}, 'filtered_items': []}
             self.__visited_recursive = set()
             self.__queued_recursive = set()
             self.__reader = Reader(browser_config={
@@ -175,7 +175,12 @@ class Browser(Filter):
             self.__pool = ThreadPool(num_threads=self.__config.threads, total_items=self.__reader.total_lines,
                                      timeout=self.__config.delay)
 
-            self.__result = {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()}
+            self.__result = {
+                'total': helper.counter(),
+                'items': helper.list(),
+                'report_items': helper.list(),
+                'filtered_items': [],
+            }
 
             self.__response = response(config=self.__config, debug=self.__debug, tpl=tpl)
 
@@ -196,7 +201,7 @@ class Browser(Filter):
             if self.__session_snapshot is not None:
                 self.__restore_session_state(self.__session_snapshot)
 
-        except (ResponseError, ReaderError) as error:
+        except (ResponseError, ReaderError, ValueError) as error:
             raise BrowserError(error)
 
     def ping(self):
@@ -1791,7 +1796,7 @@ class Browser(Filter):
             if False is self.__is_response_allowed(resp, response_data):
                 self.__emit_passive_sniffer_findings(passive_sniffer_findings, resp)
                 if primary_suppressed is not True:
-                    self.__catch_report_data('ignored', response_data[1], response_data[2], response_data[3])
+                    self.__catch_filtered_response_data(response_data[1], response_data[2], response_data[3])
             else:
                 metadata = {}
                 if isinstance(waf_detection, dict):
@@ -2193,16 +2198,14 @@ class Browser(Filter):
         return True
 
     def __apply_regex_filters(self, response_body):
-        """Apply regex-based response filters."""
+        """Apply precompiled regex-based response filters."""
 
-        import re
-
-        for pattern in self.__config.match_regex:
-            if re.search(pattern, response_body) is None:
+        for pattern in self.__config.match_regex_compiled:
+            if pattern.search(response_body) is None:
                 return False
 
-        for pattern in self.__config.exclude_regex:
-            if re.search(pattern, response_body) is not None:
+        for pattern in self.__config.exclude_regex_compiled:
+            if pattern.search(response_body) is not None:
                 return False
 
         return True
@@ -2555,6 +2558,31 @@ class Browser(Filter):
 
         return applied
 
+    def __catch_filtered_response_data(self, url, size='0B', code='-'):
+        """Store response-filtered base responses outside user-facing report buckets.
+
+        Explicit response filters are report visibility controls. Filtered base
+        responses are kept in raw JSON/session data for auditability, but they
+        must not pollute status buckets used by HTML, CSV, SARIF, TXT and SQLite
+        reports. Additive sniffer findings are emitted separately before this
+        method is called and remain reportable.
+
+        :param str url: response URL
+        :param str size: response content size
+        :param str code: actual response code
+        :return: None
+        """
+
+        if 'filtered_items' not in self.__result or not isinstance(self.__result.get('filtered_items'), list):
+            self.__result['filtered_items'] = []
+
+        self.__result['filtered_items'].append({
+            'url': url,
+            'size': size,
+            'code': str(code),
+            'reason': 'response_filter',
+        })
+
     def __catch_report_data(self, status, url, size='0B', code='-', metadata=None):
         """
         Add to basket report pool.
@@ -2835,9 +2863,16 @@ class Browser(Filter):
         """Hydrate browser state from loaded checkpoint."""
 
         self.__session_snapshot = snapshot
-        self.__result = snapshot.get('result') or {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()}
+        self.__result = snapshot.get('result') or {
+            'total': helper.counter(),
+            'items': helper.list(),
+            'report_items': helper.list(),
+            'filtered_items': [],
+        }
         if 'report_items' not in self.__result:
             self.__result['report_items'] = helper.list()
+        if 'filtered_items' not in self.__result or not isinstance(self.__result.get('filtered_items'), list):
+            self.__result['filtered_items'] = []
 
         self.__visited_recursive = set(snapshot.get('visitedRecursive', []))
         self.__queued_recursive = set(snapshot.get('queuedRecursive', []))

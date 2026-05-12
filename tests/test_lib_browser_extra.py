@@ -105,6 +105,7 @@ class TestBrowserExtra(unittest.TestCase):
             'total': helper.counter(),
             'items': helper.list(),
             'report_items': helper.list(),
+            'filtered_items': [],
         })
         setattr(br, '_Browser__session_lock', __import__('threading').RLock())
         setattr(br, '_Browser__session', None)
@@ -300,8 +301,8 @@ class TestBrowserExtra(unittest.TestCase):
         self.assertEqual(len(br._Browser__waf_safe_block_events), 1)
         warning_mock.assert_not_called()
 
-    def test_http_request_records_ignored_when_response_is_filtered_out(self):
-        """Browser should classify filtered responses as ignored."""
+    def test_http_request_records_filtered_response_without_report_bucket_noise(self):
+        """Browser should store filtered responses only in the raw filtered_items list."""
 
         br = self.make_browser(is_response_filtering=True)
         br._Browser__client.request.return_value = SimpleNamespace(data=b'body', headers={})
@@ -310,7 +311,18 @@ class TestBrowserExtra(unittest.TestCase):
         with patch.object(Browser, '_Browser__is_response_allowed', return_value=False):
             br._Browser__http_request('http://example.com/admin', depth=0)
 
-        self.assertEqual(br._Browser__result['items']['ignored'], ['http://example.com/admin'])
+        self.assertEqual(br._Browser__result['items']['ignored'], [])
+        self.assertEqual(
+            br._Browser__result['filtered_items'],
+            [
+                {
+                    'url': 'http://example.com/admin',
+                    'size': '10B',
+                    'code': '200',
+                    'reason': 'response_filter',
+                }
+            ]
+        )
 
     def test_is_response_allowed_rejects_excluded_status(self):
         """Browser should reject statuses from exclude-status filters."""

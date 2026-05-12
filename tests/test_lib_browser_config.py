@@ -257,6 +257,43 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertTrue(cfg.is_response_filtering)
         self.assertTrue(cfg.is_body_required_response_filtering)
 
+
+    def test_wizard_regex_filter_should_preserve_commas_and_precompile(self):
+        """Config should treat wizard regex values as one pattern even when they contain commas."""
+
+        cfg = Config({
+            'reports': 'std',
+            'method': 'HEAD',
+            'match_regex': '[a-z]{1,3}',
+            'exclude_regex': 'error,{critical}',
+        })
+
+        self.assertEqual(cfg.match_regex, ['[a-z]{1,3}'])
+        self.assertEqual(cfg.exclude_regex, ['error,{critical}'])
+        self.assertEqual(len(cfg.match_regex_compiled), 1)
+        self.assertEqual(len(cfg.exclude_regex_compiled), 1)
+        self.assertEqual(cfg.method, 'GET')
+
+    def test_config_rejects_invalid_wizard_response_filters_early(self):
+        """Config should reject invalid response filters from wizard/session params."""
+
+        invalid_cases = [
+            {'include_status': '99'},
+            {'exclude_status': '600'},
+            {'exclude_size': 'abc'},
+            {'exclude_size_range': '200-100'},
+            {'match_regex': '['},
+            {'min_response_length': -1},
+            {'min_response_length': 10, 'max_response_length': 1},
+        ]
+
+        for params in invalid_cases:
+            with self.subTest(params=params):
+                payload = {'reports': 'std'}
+                payload.update(params)
+                with self.assertRaises(ValueError):
+                    Config(payload)
+
     def test_method_override_items_merge_filters_and_sniffers_without_duplicates(self):
         """Config should merge body-required sniffers and filters into one override list."""
 

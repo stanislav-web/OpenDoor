@@ -90,6 +90,30 @@ class TestReporterPluginsFullCoverage(unittest.TestCase):
                 with self.assertRaises(Exception):
                     plugin.process()
 
+
+    def test_filtered_items_stay_raw_json_only_and_do_not_render_in_html(self):
+        """Filtered base responses should stay out of user-facing HTML findings/metadata."""
+
+        filtered_url = 'http://example.com/noise'
+        html = html_report.render_html_report('test.local', {
+            'total': {'items': 1},
+            'items': {},
+            'report_items': {},
+            'filtered_items': [
+                {
+                    'url': filtered_url,
+                    'size': '10B',
+                    'code': '404',
+                    'reason': 'response_filter',
+                }
+            ],
+        })
+
+        self.assertIn('No findings.', html)
+        self.assertNotIn(filtered_url, html)
+        self.assertNotIn('filtered_items', html)
+
+
     def test_html_renderer_covers_empty_report_items_and_metadata(self):
         """HTML renderer should render empty findings and metadata blocks."""
 
@@ -359,6 +383,34 @@ class TestReporterPluginsFullCoverage(unittest.TestCase):
 
         to_json_mock.assert_called_once_with(self.plain_data)
         record_mock.assert_called_once_with('/tmp/reports', self.target, '{"ok": true}')
+
+
+    def test_json_process_preserves_filtered_items_raw_payload(self):
+        """JsonReportPlugin should keep raw filtered_items available for audit/session analysis."""
+
+        data = {
+            'items': {},
+            'report_items': {},
+            'filtered_items': [
+                {
+                    'url': 'http://example.com/noise',
+                    'code': '404',
+                    'size': '10B',
+                    'reason': 'response_filter',
+                }
+            ],
+        }
+
+        with patch('src.lib.reporter.plugins.json.filesystem.makedir', return_value='/tmp/reports'), \
+                patch('src.lib.reporter.plugins.json.helper.to_json', return_value='{"filtered_items": []}') as to_json_mock, \
+                patch('src.lib.reporter.plugins.json.filesystem.clear'):
+            plugin = JsonReportPlugin(self.target, data, directory='/custom/')
+            with patch.object(plugin, 'record') as record_mock:
+                plugin.process()
+
+        to_json_mock.assert_called_once_with(data)
+        record_mock.assert_called_once_with('/tmp/reports', self.target, '{"filtered_items": []}')
+
 
     def test_json_process_propagates_to_json_runtime_error(self):
         """JsonReportPlugin should propagate errors raised before entering the filesystem try block."""
