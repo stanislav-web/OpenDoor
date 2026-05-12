@@ -43,11 +43,25 @@ from .filter import Filter
 from .header_bypass import HeaderBypassProbe
 from .open_redirect import OpenRedirectProbe
 from .shadow import ShadowProbe
+from .sniffers import SnifferEngine, SnifferResult
 from .threadpool import ThreadPool
 
 
 class Browser(Filter):
     """ Browser class """
+
+    ADDITIVE_SNIFFER_BUCKETS = (
+        'file',
+        'secret',
+        'indexof',
+        'stacktrace',
+    )
+    BASE_SUPPRESSOR_BUCKETS = (
+        'skip',
+    )
+    BASE_NORMAL_BUCKETS = (
+        'success',
+    )
 
     WAF_SAFE_MIN_DELAY = 0.75
     WAF_SAFE_MAX_DELAY = 8.0
@@ -101,7 +115,8 @@ class Browser(Filter):
             self.__waf_safe_block_events = []
             self.__calibration = None
             self.__header_bypass = HeaderBypassProbe(self.__config)
-            self.__open_redirect_probe = OpenRedirectProbe() if OpenRedirectProbe.is_enabled(self.__config) is True else None
+            self.__active_sniffer_names = SnifferEngine.active_names_from_config(self.__config)
+            self.__open_redirect_probe = OpenRedirectProbe() if self.__is_active_sniffer_enabled('openredirect') is True else None
             self.__shadow_probe = None
 
             requested_method = str(getattr(self.__config, '_method', '') or '').upper()
@@ -156,7 +171,7 @@ class Browser(Filter):
 
             self.__response = response(config=self.__config, debug=self.__debug, tpl=tpl)
 
-            if ShadowProbe.is_enabled(self.__config) is True:
+            if self.__is_active_sniffer_enabled('shadow') is True:
                 self.__shadow_probe = ShadowProbe(
                     self.__request_with_waf_safe_mode,
                     self.__handle_shadow_match,
@@ -660,6 +675,20 @@ class Browser(Filter):
         except (AttributeError, TypeError, ValueError) as error:
             tpl.warning(msg='Auto-calibration skipped: {0}'.format(error))
             return None
+
+    def __is_active_sniffer_enabled(self, name):
+        """Return True when a built-in active sniffer is enabled.
+
+        :param str name: public sniffer alias
+        :return: bool
+        """
+
+        active_names = getattr(self, '_Browser__active_sniffer_names', None)
+        if active_names is None:
+            active_names = SnifferEngine.active_names_from_config(getattr(self, '_Browser__config', None))
+            self.__active_sniffer_names = active_names
+
+        return str(name).lower() in active_names
 
     def __is_standalone_proxy_mode(self):
         """Return True when the scan uses one explicit proxy endpoint."""
@@ -1341,41 +1370,16 @@ class Browser(Filter):
         :rtype: bool
         """
 
-        response_data = (
-            'openredirect',
-            str(url),
-            self.__response._get_content_size(response_object),
-            str(getattr(response_object, 'status', '-'))
+        finding = SnifferResult(
+            bucket='openredirect',
+            url=str(url),
+            code=str(getattr(response_object, 'status', '-')),
+            size=self.__response._get_content_size(response_object),
+            metadata=metadata,
         )
 
-        if isinstance(metadata, dict) and isinstance(metadata.get('openredirect_detection'), dict):
-            try:
-                setattr(
-                    response_object,
-                    'opendoor_openredirect_detection',
-                    dict(metadata.get('openredirect_detection'))
-                )
-            except (AttributeError, TypeError):
-                pass
-
-        debug_response_data = getattr(self.__response, 'debug_response_data', None)
-        if callable(debug_response_data):
-            self.__clear_filtered_progress()
-            debug_response_data(
-                response_data,
-                request_url=str(url),
-                items_size=self.__pool.items_size,
-                total_size=self.__pool.total_items_size,
-                response=response_object
-            )
-
-        self.__catch_report_data(
-            'openredirect',
-            response_data[1],
-            response_data[2],
-            response_data[3],
-            metadata=metadata
-        )
+        self.__emit_sniffer_finding(finding, response_object=response_object)
+        self.__catch_sniffer_finding(finding)
         return True
 
     def __probe_header_bypass(self, url, base_response_data):
@@ -1609,9 +1613,17 @@ class Browser(Filter):
                 self.__catch_report_data('ignored', url)
                 return
 
+            passive_sniffer_findings = self.__collect_passive_sniffer_findings(resp, response_data)
+
             waf_detection = None
             stacktrace_detection = getattr(resp, 'opendoor_stacktrace_detection', None)
             secret_detection = getattr(resp, 'opendoor_secret_detection', None)
+
+            primary_suppressed = self.__should_suppress_primary_response(
+                resp,
+                response_data,
+                passive_sniffer_findings,
+            )
 
             if response_data[0] == 'blocked':
                 waf_detection = getattr(self.__response, 'waf_detection', None)
@@ -1627,10 +1639,11 @@ class Browser(Filter):
 
             self.__update_waf_safe_backoff(resp, response_data)
             self.__probe_header_bypass(url, response_data)
-            self.__probe_open_redirect(url)
+            self.__run_inline_active_sniffers(url, response_data, resp)
 
             calibration_match = self.__match_calibrated_response(resp, response_data)
             if calibration_match is not None:
+                self.__emit_passive_sniffer_findings(passive_sniffer_findings, resp)
                 self.__emit_filtered_progress('calibrated', response_data, calibration_match, request_url=url)
                 self.__catch_report_data(
                     'calibrated',
@@ -1641,7 +1654,7 @@ class Browser(Filter):
                 )
                 return
             debug_response_data = getattr(self.__response, 'debug_response_data', None)
-            if callable(debug_response_data):
+            if callable(debug_response_data) and primary_suppressed is not True:
                 self.__clear_filtered_progress()
                 debug_response_data(
                     response_data,
@@ -1652,7 +1665,9 @@ class Browser(Filter):
                 )
 
             if False is self.__is_response_allowed(resp, response_data):
-                self.__catch_report_data('ignored', response_data[1], response_data[2], response_data[3])
+                self.__emit_passive_sniffer_findings(passive_sniffer_findings, resp)
+                if primary_suppressed is not True:
+                    self.__catch_report_data('ignored', response_data[1], response_data[2], response_data[3])
             else:
                 metadata = {}
                 if isinstance(waf_detection, dict):
@@ -1664,15 +1679,18 @@ class Browser(Filter):
                 if len(metadata) == 0:
                     metadata = None
 
-                self.__catch_report_data(
-                    response_data[0],
-                    response_data[1],
-                    response_data[2],
-                    response_data[3],
-                    metadata=metadata,
-                )
+                if primary_suppressed is not True:
+                    self.__catch_report_data(
+                        response_data[0],
+                        response_data[1],
+                        response_data[2],
+                        response_data[3],
+                        metadata=metadata,
+                    )
 
-                self.__enqueue_shadow_probes(response_data, resp)
+                self.__emit_passive_sniffer_findings(passive_sniffer_findings, resp)
+
+                self.__run_deferred_active_sniffers(response_data, resp)
 
                 if False is self.__should_suspend_recursive_expansion(response_data[0]):
                     if self.__should_expand_recursively(response_data[3], response_data[1], depth):
@@ -1684,6 +1702,228 @@ class Browser(Filter):
             raise BrowserError(error)
         finally:
             self.__finalize_processed_request(url, depth)
+
+    def __should_suppress_primary_response(self, response_object, response_data, passive_findings):
+        """
+        Decide whether the base response bucket should be suppressed.
+
+        Suppressor sniffers such as skipempty/skipsizes and soft404 collation
+        suppress only base reporting/progress. Additive security findings still
+        render and persist through their own buckets.
+
+        :param object response_object: raw response object
+        :param tuple response_data: legacy classified response tuple
+        :param list passive_findings: collected additive sniffer findings
+        :return: True when the base response should not be rendered or reported
+        :rtype: bool
+        """
+
+        try:
+            primary_bucket = str(response_data[0])
+            response_code = str(response_data[3])
+        except (TypeError, IndexError):
+            return False
+
+        if primary_bucket in self.BASE_SUPPRESSOR_BUCKETS:
+            return True
+
+        if self.__is_soft404_suppressor_response(response_object, primary_bucket, response_code):
+            return True
+
+        if primary_bucket in self.BASE_NORMAL_BUCKETS:
+            for finding in passive_findings or []:
+                if isinstance(finding, SnifferResult) and finding.suppress_normal is True:
+                    return True
+
+        return False
+
+    @staticmethod
+    def __is_soft404_suppressor_response(response_object, primary_bucket, response_code):
+        """
+        Return True when collation converted a 2xx response into a failed soft404.
+
+        The legacy collation plugin uses the public ``failed`` bucket. A real 404
+        should keep legacy behaviour, while a 2xx soft404 should act as a
+        suppressor for base reporting only.
+
+        :param object response_object: raw response object
+        :param str primary_bucket: legacy classified bucket
+        :param str response_code: normalized response code
+        :return: bool
+        """
+
+        if primary_bucket != 'failed':
+            return False
+
+        try:
+            status = int(response_code)
+        except (TypeError, ValueError):
+            try:
+                status = int(getattr(response_object, 'status', 0))
+            except (TypeError, ValueError):
+                return False
+
+        return 200 <= status < 300
+
+    def __collect_passive_sniffer_findings(self, response_object, response_data):
+        """
+        Collect additional additive sniffer findings without first-match conflicts.
+
+        The legacy response classifier still decides the primary bucket. This helper
+        only adds secondary additive findings for enabled sniffers that would have
+        been skipped by the legacy first-match chain.
+
+        :param object response_object: raw HTTP response object
+        :param tuple response_data: legacy classified response tuple
+        :return: list[SnifferResult]
+        """
+
+        if response_object is None or response_data is None:
+            return []
+
+        try:
+            primary_bucket = response_data[0]
+            request_url = response_data[1]
+            content_size = response_data[2]
+            response_code = response_data[3]
+        except (TypeError, IndexError):
+            return []
+
+        findings = []
+        seen_buckets = {primary_bucket}
+
+        for plugin in self.__passive_additive_plugins():
+            bucket = self.__plugin_bucket(plugin)
+            if bucket in seen_buckets:
+                continue
+
+            try:
+                detected_bucket = plugin.process(response_object)
+            except Exception:
+                continue
+
+            if detected_bucket != bucket:
+                continue
+
+            findings.append(SnifferResult(
+                bucket=bucket,
+                url=request_url,
+                code=response_code,
+                size=content_size,
+                metadata=self.__metadata_for_sniffer_bucket(bucket, response_object),
+                suppress_normal=True,
+                evidence_key=bucket,
+            ))
+            seen_buckets.add(bucket)
+
+        return findings
+
+    def __passive_additive_plugins(self):
+        """
+        Return enabled additive response plugins in deterministic engine order.
+
+        :return: list
+        """
+
+        plugins = list(getattr(self.__response, '_response_plugins', []) or [])
+        additive_order = {name: index for index, name in enumerate(self.ADDITIVE_SNIFFER_BUCKETS)}
+        selected = []
+
+        for plugin in plugins:
+            bucket = self.__plugin_bucket(plugin)
+            if bucket in additive_order:
+                selected.append(plugin)
+
+        return sorted(selected, key=lambda plugin: additive_order.get(self.__plugin_bucket(plugin), 100))
+
+    @staticmethod
+    def __plugin_bucket(plugin):
+        """
+        Return normalized response plugin bucket name.
+
+        :param object plugin: response plugin instance
+        :return: str
+        """
+
+        return str(getattr(plugin, 'RESPONSE_INDEX', '')).lower()
+
+    @staticmethod
+    def __metadata_for_sniffer_bucket(bucket, response_object):
+        """
+        Build report metadata for a passive sniffer finding.
+
+        :param str bucket: sniffer bucket name
+        :param object response_object: raw HTTP response object
+        :return: dict
+        """
+
+        if bucket == 'secret':
+            detection = getattr(response_object, 'opendoor_secret_detection', None)
+            if isinstance(detection, dict):
+                return {'secret_detection': dict(detection)}
+
+        if bucket == 'stacktrace':
+            detection = getattr(response_object, 'opendoor_stacktrace_detection', None)
+            if isinstance(detection, dict):
+                return {'stacktrace_detection': dict(detection)}
+
+        return {}
+
+    def __emit_passive_sniffer_findings(self, findings, response_object):
+        """
+        Render and persist collected passive sniffer findings.
+
+        :param list findings: SnifferResult values
+        :param object response_object: raw HTTP response object
+        :return: int
+        """
+
+        emitted = 0
+        for finding in findings or []:
+            if self.__emit_sniffer_finding(finding, response_object=response_object) is True:
+                emitted += 1
+            self.__catch_sniffer_finding(finding)
+
+        return emitted
+
+    def __run_inline_active_sniffers(self, url, response_data, response_object):
+        """
+        Run active sniffers that complete within the current request lifecycle.
+
+        Active sniffers are enabled through the sniffer catalog. This helper keeps
+        Browser orchestration independent from individual sniffer aliases and
+        gives future inline active sniffers one common entrypoint.
+
+        :param str url: original request URL
+        :param tuple response_data: legacy classified response tuple
+        :param object response_object: raw HTTP response object
+        :return: number of active findings emitted during this request
+        :rtype: int
+        """
+
+        emitted = 0
+
+        if self.__is_active_sniffer_enabled('openredirect') is True:
+            emitted += 1 if self.__probe_open_redirect(url) is True else 0
+
+        return emitted
+
+    def __run_deferred_active_sniffers(self, response_data, response_object):
+        """
+        Queue active sniffers that drain later in the scan lifecycle.
+
+        :param tuple response_data: legacy classified response tuple
+        :param object response_object: raw HTTP response object
+        :return: number of active probe jobs submitted
+        :rtype: int
+        """
+
+        submitted = 0
+
+        if self.__is_active_sniffer_enabled('shadow') is True:
+            submitted += self.__enqueue_shadow_probes(response_data, response_object)
+
+        return submitted
 
     def __enqueue_shadow_probes(self, response_data, response_object):
         """Queue active shadow postfix probes for eligible success responses."""
@@ -1723,37 +1963,16 @@ class Browser(Filter):
     def __handle_shadow_match(self, url, response_object, metadata):
         """Persist and render one confirmed shadow-copy finding."""
 
-        response_data = (
-            'shadow',
-            str(url),
-            self.__response._get_content_size(response_object),
-            str(getattr(response_object, 'status', '-'))
+        finding = SnifferResult(
+            bucket='shadow',
+            url=str(url),
+            code=str(getattr(response_object, 'status', '-')),
+            size=self.__response._get_content_size(response_object),
+            metadata=metadata,
         )
 
-        if isinstance(metadata, dict) and isinstance(metadata.get('shadow_detection'), dict):
-            try:
-                setattr(response_object, 'opendoor_shadow_detection', dict(metadata.get('shadow_detection')))
-            except (AttributeError, TypeError):
-                pass
-
-        debug_response_data = getattr(self.__response, 'debug_response_data', None)
-        if callable(debug_response_data):
-            self.__clear_filtered_progress()
-            debug_response_data(
-                response_data,
-                request_url=str(url),
-                items_size=self.__pool.items_size,
-                total_size=self.__pool.total_items_size,
-                response=response_object
-            )
-
-        self.__catch_report_data(
-            'shadow',
-            response_data[1],
-            response_data[2],
-            response_data[3],
-            metadata=metadata
-        )
+        self.__emit_sniffer_finding(finding, response_object=response_object)
+        self.__catch_sniffer_finding(finding)
         return True
 
     def __drain_shadow_probes(self):
@@ -2053,6 +2272,103 @@ class Browser(Filter):
             self.__pool.join()
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt
+
+    def __emit_sniffer_finding(self, finding, response_object=None):
+        """
+        Emit runtime output for one independent sniffer finding.
+
+        :param SnifferResult finding: sniffer finding to render
+        :param object | None response_object: optional raw response object
+        :return: bool
+        """
+
+        if not isinstance(finding, SnifferResult):
+            return False
+
+        self.__apply_sniffer_metadata(response_object, finding.metadata)
+
+        debug_response_data = getattr(self.__response, 'debug_response_data', None)
+        if not callable(debug_response_data):
+            return False
+
+        self.__clear_filtered_progress()
+        debug_response_data(
+            self.__sniffer_response_data(finding),
+            request_url=str(finding.url),
+            items_size=self.__pool.items_size,
+            total_size=self.__pool.total_items_size,
+            response=response_object,
+        )
+        return True
+
+    def __catch_sniffer_finding(self, finding):
+        """
+        Persist one independent sniffer finding.
+
+        :param SnifferResult finding: sniffer finding to persist
+        :return: bool
+        """
+
+        if not isinstance(finding, SnifferResult):
+            return False
+
+        response_data = self.__sniffer_response_data(finding)
+        self.__catch_report_data(
+            response_data[0],
+            response_data[1],
+            response_data[2],
+            response_data[3],
+            metadata=finding.metadata,
+        )
+        return True
+
+    @staticmethod
+    def __sniffer_response_data(finding):
+        """
+        Convert one sniffer finding to the legacy response tuple shape.
+
+        :param SnifferResult finding: sniffer finding
+        :return: tuple
+        """
+
+        return (
+            finding.bucket,
+            str(finding.url),
+            '0B' if finding.size is None else str(finding.size),
+            '-' if finding.code is None else str(finding.code),
+        )
+
+    @staticmethod
+    def __apply_sniffer_metadata(response_object, metadata):
+        """
+        Attach known sniffer metadata to a response object for existing debug renderers.
+
+        :param object | None response_object: raw response object
+        :param dict | None metadata: sniffer metadata
+        :return: bool
+        """
+
+        if response_object is None or not isinstance(metadata, dict):
+            return False
+
+        mappings = (
+            ('stacktrace_detection', 'opendoor_stacktrace_detection'),
+            ('secret_detection', 'opendoor_secret_detection'),
+            ('shadow_detection', 'opendoor_shadow_detection'),
+            ('openredirect_detection', 'opendoor_openredirect_detection'),
+        )
+
+        applied = False
+        for source_key, target_key in mappings:
+            if not isinstance(metadata.get(source_key), dict):
+                continue
+            try:
+                setattr(response_object, target_key, dict(metadata.get(source_key)))
+                applied = True
+            except (AttributeError, TypeError):
+                continue
+
+        return applied
 
     def __catch_report_data(self, status, url, size='0B', code='-', metadata=None):
         """

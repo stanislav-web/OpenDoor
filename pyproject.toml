@@ -13,10 +13,43 @@ build-backend = "setuptools.build_meta"
 line-length = 120
 target-version = "py312"
 src = ["src", "tests"]
+extend-exclude = [
+    ".venv",
+    "build",
+    "dist",
+    "htmlcov",
+]
 
 [tool.ruff.lint]
-select = ["E", "F"]
-ignore = ["E721", "E722", "F401", "F632"]
+select = [
+    "E",
+    "F",
+    "W",
+]
+ignore = [
+    "E721",
+    "E722",
+    "F632",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"src/**/__init__.py" = [
+    "F401", # package re-exports / legacy public aliases
+]
+"tests/**/*.py" = [
+    "F401",
+]
+".github/**/*.py" = [
+    "ARG001",
+    "ARG002",
+    "ARG005",
+]
+"benchmarks/**/*.py" = [
+    "B009",
+    "B010",
+    "RET501",
+    "SIM108",
+]
 
 [tool.ruff.format]
 docstring-code-format = true
