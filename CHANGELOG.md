@@ -20,6 +20,7 @@ v5.16.0 (11.05.2026)
 - (enhancement) added the `shadow` result bucket, red `Shadow` runtime marker, summary counter and `shadow_detection` metadata across standard, text, CSV, JSON, HTML, SQLite and SARIF reports.
 - (enhancement) preserves redacted Secret Sniffer metadata in standard, text, CSV, JSON, HTML, SQLite and SARIF reports without storing raw secret values.
 - (enhancement) added Mobirise site-builder detection to `--fingerprint` using generator, asset and markup signals common to Mobirise landing pages.
+- (enhancement) added QRATOR / Qrator Labs infrastructure detection using.
 - (dependencies) removed unused `six` and replaced `tabulate` in the STD summary reporter with a native psql-like table formatter.
 - (ux) reduced stdout Summary noise by hiding low-value diagnostic counters and detailed fingerprint/HSTS/privacy internals while preserving them in structured reports.
 - (dictionary) bundled `data/shadow-suffixes.dat` in source and wheel distributions so PyPI, Homebrew-style source builds and local installs include the built-in shadow suffix catalog by default.

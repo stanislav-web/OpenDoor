@@ -1185,6 +1185,68 @@ class Fingerprint(object):
         if re.search(r'(^|[^a-z0-9])apache(/|\s|$)', server):
             self._add_infrastructure_signal('Apache HTTP Server', 'header', server_signal, 8)
 
+
+    def _apply_qrator_infrastructure_rules(self, headers, cookies, body_lower, not_found_headers=None, not_found_body_lower=''):
+        """
+        Add Qrator Labs edge/security infrastructure signals.
+
+        Qrator Labs commonly appears as an HTTP reverse proxy / DDoS
+        protection / WAF / CDN edge. Keep these signals in the
+        infrastructure bucket so QRATOR does not overwrite application or
+        runtime fingerprints.
+
+        :param dict headers: normalized root response headers
+        :param list cookies: normalized root response cookie names
+        :param str body_lower: normalized root response body
+        :param dict|None not_found_headers: normalized 404 probe headers
+        :param str not_found_body_lower: normalized 404 probe body
+        :return: None
+        """
+
+        not_found_headers = not_found_headers or {}
+        server_header = str(headers.get('server', '') or '').strip()
+        server = server_header.lower()
+        not_found_server_header = str(not_found_headers.get('server', '') or '').strip()
+        not_found_server = not_found_server_header.lower()
+        qrator_header_names = (
+            'x-qrator-requestid',
+            'x-qrator-request-id',
+            'x-q-domid',
+            'x-qrator-ip-source',
+            'x-qrator-tcp-info',
+            'x-q-geoip',
+        )
+
+        if server == 'qrator':
+            self._add_infrastructure_signal('QRATOR', 'header', 'server={0}'.format(server_header), 18)
+        elif 'qrator' in server:
+            self._add_infrastructure_signal('QRATOR', 'header', 'server={0}'.format(server_header), 12)
+
+        if not_found_server == 'qrator':
+            self._add_infrastructure_signal('QRATOR', '404-header', 'server={0}'.format(not_found_server_header), 15)
+        elif 'qrator' in not_found_server:
+            self._add_infrastructure_signal('QRATOR', '404-header', 'server={0}'.format(not_found_server_header), 10)
+
+        for header_name in qrator_header_names:
+            if header_name in headers:
+                self._add_infrastructure_signal('QRATOR', 'header', header_name, 11)
+
+        for header_name in qrator_header_names:
+            if header_name in not_found_headers:
+                self._add_infrastructure_signal('QRATOR', '404-header', header_name, 9)
+
+        if 'qrator_jsid' in cookies:
+            self._add_infrastructure_signal('QRATOR', 'cookie', 'qrator_jsid', 11)
+
+        if '/qrerror/' in body_lower or '/qrerror/' in not_found_body_lower:
+            self._add_infrastructure_signal('QRATOR', 'error-page', '/qrerror/', 9)
+
+        if 'qrator_jsid' in body_lower or 'qrator_jsid' in not_found_body_lower:
+            self._add_infrastructure_signal('QRATOR', 'challenge', 'qrator_jsid', 8)
+
+        if 'qrator labs' in body_lower or 'qrator labs' in not_found_body_lower:
+            self._add_infrastructure_signal('QRATOR', 'body', 'Qrator Labs', 8)
+
     def _apply_extended_cms_catalog_rules(self, body_lower, headers, cookies, generator):
         """
         Apply extended catalog signals for CMSs not covered by dedicated rules.
@@ -2082,6 +2144,15 @@ class Fingerprint(object):
             self._add_signal('Phoenix', self.FRAMEWORK_CATEGORY, 'markup', '_csrf_token + phoenix', 7)
         if '_app_key' in cookies:
             self._add_signal('Phoenix', self.FRAMEWORK_CATEGORY, 'cookie', '_app_key', 5)
+
+        # Infrastructure: Qrator Labs security edge / reverse proxy
+        self._apply_qrator_infrastructure_rules(
+            headers=headers,
+            cookies=cookies,
+            body_lower=body_lower,
+            not_found_headers=not_found_headers,
+            not_found_body_lower=not_found_body_lower,
+        )
 
         # Infrastructure: AWS family
         if x_amz_cf_id or 'cloudfront' in via or 'cloudfront' in x_cache or 'cloudfront' in server:

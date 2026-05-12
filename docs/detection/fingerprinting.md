@@ -284,6 +284,7 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 - Microsoft Azure App Service
 - Netlify
 - OpenResty
+- QRATOR / Qrator Labs
 - Tencent Cloud
 - Vercel
 

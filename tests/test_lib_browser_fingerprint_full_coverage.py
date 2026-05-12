@@ -1108,6 +1108,19 @@ class TestFingerprintFullCoverage(unittest.TestCase):
                 },
             },
             {
+                'provider': 'QRATOR',
+                'headers': {
+                    'server': 'QRATOR',
+                },
+            },
+            {
+                'provider': 'QRATOR',
+                'headers': {
+                    'x-qrator-requestid': 'f4b16a6bf0bcc8bebc394a2824d5d569',
+                    'x-q-domid': '12345',
+                },
+            },
+            {
                 'provider': 'Vercel',
                 'headers': {
                     'server': 'Vercel',
@@ -1204,6 +1217,79 @@ class TestFingerprintFullCoverage(unittest.TestCase):
 
                 self.assertGreater(len(infra_candidates), 0)
                 self.assertEqual(infra_candidates[0]['provider'], case['provider'])
+
+    def test_qrator_keeps_application_detection_and_wins_exact_server_edge(self):
+        """
+        QRATOR should be classified as infrastructure without replacing CMS/runtime signals.
+
+        :return: None
+        """
+
+        candidates, infra_candidates = self.apply_case(
+            body='<html><script>window.BX = {};</script><a href="/bitrix/">Bitrix</a></html>',
+            headers={
+                'server': 'QRATOR',
+                'x-powered-cms': 'Bitrix Site Manager',
+            },
+            cookies=['bitrix_sessid'],
+            probes={'/bitrix/': 200},
+        )
+
+        self.assertGreater(len(candidates), 0)
+        self.assertEqual(candidates[0]['name'], 'Bitrix')
+        self.assertGreater(len(infra_candidates), 0)
+        self.assertEqual(infra_candidates[0]['provider'], 'QRATOR')
+
+    def test_qrator_supporting_headers_do_not_override_stronger_edge_provider(self):
+        """
+        Weak QRATOR support headers should not hide stronger edge infrastructure evidence.
+
+        :return: None
+        """
+
+        _, infra_candidates = self.apply_case(
+            headers={
+                'server': 'cloudflare',
+                'cf-ray': 'abc',
+                'cf-cache-status': 'HIT',
+                'x-qrator-requestid': 'f4b16a6bf0bcc8bebc394a2824d5d569',
+            },
+        )
+
+        self.assertGreater(len(infra_candidates), 1)
+        self.assertEqual(infra_candidates[0]['provider'], 'Cloudflare')
+        self.assertEqual(infra_candidates[1]['provider'], 'QRATOR')
+
+    def test_qrator_challenge_cookie_and_error_page_are_supporting_signals(self):
+        """
+        QRATOR bot-protection and error-page markers should identify the security edge.
+
+        :return: None
+        """
+
+        detector, _, _ = self.make_detector()
+        body = '<html><script>document.cookie="qrator_jsid=abc";</script><img src="/qrerror/logo.svg"></html>'
+        not_found_body = '<html><img src="/qrerror/blocked.svg">Qrator Labs</html>'
+
+        detector._apply_detection_rules(
+            body=body,
+            body_lower=body.lower(),
+            headers={},
+            cookies=['qrator_jsid'],
+            generator='',
+            probe_statuses={},
+            final_root_url='http://example.com/',
+            not_found_headers={'server': 'QRATOR'},
+            not_found_body=not_found_body,
+        )
+
+        infra_candidates = detector._build_infrastructure_candidates()
+        self.assertGreater(len(infra_candidates), 0)
+        self.assertEqual(infra_candidates[0]['provider'], 'QRATOR')
+        result = detector._build_infrastructure_result(infra_candidates)
+        signal_values = [item['value'] for item in result['signals']]
+        self.assertIn('qrator_jsid', signal_values)
+        self.assertIn('/qrerror/', signal_values)
 
     def test_collision_regressions_do_not_false_positive_on_generic_admin_routes(self):
         """
