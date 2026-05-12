@@ -80,6 +80,8 @@ class Config(object):
         'auth': 'Auth {url}',
         'blocked': 'WAF {url}',
         'waf_safe_mode_activated': 'WAF safe mode activated: {vendor} ({confidence}%), serialized requests, cooldown={delay}s, recursive expansion suspended for blocked responses',
+        'waf_guard_enabled': 'WAF guard enabled: after={after}, threshold={threshold}%',
+        'waf_guard_triggered': 'WAF guard triggered: block ratio is {ratio}% after {classified} classified responses. Stopping scan.',
         'header_bypass_enabled': 'Header bypass enabled: statuses={statuses}, limit={limit}, headers={headers}',
         'header_bypass_skipped': 'Header bypass skipped: status {status} is not in {statuses}',
         'header_bypass_probing': 'Header bypass probing: status={status}, variants={variants}',

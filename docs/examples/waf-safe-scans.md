@@ -54,6 +54,34 @@ opendoor \
 
 ---
 
+## WAF guard early stop
+
+Use WAF guard when a protected target returns WAF-blocked responses for almost every early path and a full wordlist scan would add little value.
+
+```shell
+opendoor \
+  --host https://example.com \
+  --waf-safe-mode \
+  --waf-guard \
+  --waf-guard-after 50 \
+  --waf-guard-threshold 0.95 \
+  --reports json,html
+```
+
+For short diagnostics, lower the sample size:
+
+```shell
+opendoor \
+  --host https://example.com \
+  --wordlist ./test.dat \
+  --waf-safe-mode \
+  --waf-guard \
+  --waf-guard-after 3 \
+  --waf-guard-threshold 0.95
+```
+
+---
+
 ## WAF-safe Header Injection Bypass scan
 
 ```shell
@@ -113,5 +141,7 @@ opendoor \
 WAF detection is for classification and safer authorized scanning.
 
 Header Injection Bypass is a separate opt-in validation feature for blocked resources. It records evidence only when a controlled probe changes the response into a meaningful result.
+
+WAF guard is a scan-control feature. It stops early only when primary scan responses are classified as overwhelmingly WAF-blocked. It does not treat plain origin `403` responses as WAF blocks by itself.
 
 Do not treat these examples as bypass guidance for third-party systems.

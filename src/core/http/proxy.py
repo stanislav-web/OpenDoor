@@ -20,8 +20,10 @@ import importlib
 import random
 import re
 import sys
+from urllib.parse import unquote, urlsplit, urlunsplit
 
 from urllib3 import ProxyManager, Timeout, disable_warnings
+from urllib3.util import make_headers
 from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown, ReadTimeoutError, InsecureRequestWarning
 
 from src.core import helper
@@ -61,6 +63,62 @@ class Proxy(RequestProvider, DebugProvider):
         except (TypeError, ValueError) as error:
             raise ProxyRequestError(error)
 
+    @classmethod
+    def __build_proxy_headers(cls, server):
+        """
+        Build proxy authentication headers for HTTP CONNECT proxies.
+
+        urllib3 does not reliably convert user-info in proxy URLs into
+        Proxy-Authorization for CONNECT tunnels, so authenticated HTTP proxies
+        must receive explicit proxy headers.
+
+        :param str server: normalized proxy server URL
+        :return: dict
+        """
+
+        parsed = urlsplit(server)
+        if not parsed.username or parsed.password is None:
+            return {}
+
+        credentials = '{0}:{1}'.format(unquote(parsed.username), unquote(parsed.password))
+        return make_headers(proxy_basic_auth=credentials)
+
+    @classmethod
+    def __mask_proxy_server(cls, server):
+        """
+        Mask proxy credentials for logs and terminal diagnostics.
+
+        :param str|None server: proxy server URL
+        :return: str
+        """
+
+        if not server:
+            return '-'
+
+        try:
+            parsed = urlsplit(server)
+        except (TypeError, ValueError):
+            return str(server)
+
+        if not parsed.username and parsed.password is None:
+            return server
+
+        host = parsed.hostname or ''
+        if ':' in host and not host.startswith('['):
+            host = '[{0}]'.format(host)
+
+        netloc = host
+        if parsed.port is not None:
+            netloc = '{0}:{1}'.format(netloc, parsed.port)
+
+        username = unquote(parsed.username or '')
+        if username:
+            netloc = '{0}:*****@{1}'.format(username, netloc)
+        else:
+            netloc = '*****@{0}'.format(netloc)
+
+        return urlunsplit((parsed.scheme, netloc, parsed.path, parsed.query, parsed.fragment))
+
     def __proxy_pool(self):
         """
         Create or reuse Proxy connection pool.
@@ -93,6 +151,7 @@ class Proxy(RequestProvider, DebugProvider):
                 pool = ProxyManager(
                     self.__server,
                     num_pools=self.__cfg.threads,
+                    proxy_headers=self.__build_proxy_headers(self.__server),
                     timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
                     block=True,
                 )
@@ -144,7 +203,11 @@ class Proxy(RequestProvider, DebugProvider):
         except MaxRetryError:
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__finish_active_terminal_line()
-                self.__tpl.warning(key='proxy_max_retry_error', url=helper.parse_url(url).path, proxy=self.__server)
+                self.__tpl.warning(
+                    key='proxy_max_retry_error',
+                    url=helper.parse_url(url).path,
+                    proxy=self.__mask_proxy_server(self.__server),
+                )
                 return self.__retry_after_max_retry(url, request_headers)
 
         except ReadTimeoutError:
@@ -181,7 +244,7 @@ class Proxy(RequestProvider, DebugProvider):
         """
 
         message = 'Proxy {0} unavailable after retry for {1}: {2}'.format(
-            self.__server or '-',
+            self.__mask_proxy_server(self.__server),
             helper.parse_url(url).path,
             self.__format_proxy_error(error),
         )

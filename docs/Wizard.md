@@ -175,6 +175,39 @@ Use it for authorized targets protected by CDN, WAF, or anti-bot infrastructure.
 
 ---
 
+## 🛡️ WAF guard
+
+Enable WAF guard when you want the wizard profile to stop a scan early if the first classified primary responses are overwhelmingly WAF-blocked:
+
+```ini
+waf_guard = True
+waf_guard_after = 50
+waf_guard_threshold = 0.95
+```
+
+`waf_guard_after` is the minimum number of classified primary scan responses before the guard can trigger.
+
+`waf_guard_threshold` is the WAF-blocked response ratio required to stop the scan. `0.95` means 95%.
+
+Example low-noise WAF profile:
+
+```ini
+fingerprint = True
+waf_safe_mode = True
+waf_guard = True
+waf_guard_after = 50
+waf_guard_threshold = 0.95
+threads = 1
+delay = 1
+timeout = 10
+```
+
+When triggered, OpenDoor stops gracefully and keeps generated reports for responses already processed. Plain origin `403 Forbidden` responses do not trigger WAF guard by themselves; responses must be classified as WAF / anti-bot blocked.
+
+`waf_guard` automatically enables WAF detection in runtime configuration, but it does not enable `waf_safe_mode`. Add both when you want cautious request timing plus early stop behavior.
+
+---
+
 ## 🧩 Header Injection Bypass
 
 Enable controlled header-bypass probes:

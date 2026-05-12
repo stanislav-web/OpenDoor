@@ -9,8 +9,10 @@ v5.16.0 (11.05.2026)
 - (fix) renamed `--sniff stacktrace` findings from the generic `debug` bucket to the dedicated `stacktrace` bucket across runtime output, summaries and reports.
 - (fix) made HTML report status tabs work as anchor-backed navigation with JavaScript filtering as progressive enhancement, improving large report responsiveness and browser compatibility.
 - (fix) `ResponseError: Unknown response status : 523` to avoid abort scans on unexpected HTTP status codes.
-- (fix) Fixed graceful handling for unavailable standalone SOCKS/HTTP proxies.
+- (fix) graceful handling for unavailable standalone SOCKS/HTTP proxies.
+- (fix) authenticated HTTP proxy support for HTTPS CONNECT requests and masked proxy credentials in debug, warning, and error output.
 - (fix) Cleaned WAF/header-bypass diagnostics: cookie accept debug now logs once, watchdog tracks long-running probe heartbeats, and piped logs no longer include ANSI clear-line sequences.
+- (feature) added `--waf-guard` with configurable `--waf-guard-after` and `--waf-guard-threshold` to stop scans early when initial classified responses are overwhelmingly WAF-blocked.
 - (feature) added `--diff` to compare exactly two previous/current OpenDoor SQLite or JSON reports and show added, removed and changed findings without running a new scan.
 - (feature) added `--sniff malware` to passively classify suspicious malware, webshell, injected script and obfuscated payload indicators into the `malware` bucket with structured metadata across runtime output and reports.
 - (feature) added `--sniff shadow` active Shadow Copy Detection to probe confirmed `200 OK` file-like hits for exposed backup/postfix copies such as `.bak`, `.old`  etc variants.

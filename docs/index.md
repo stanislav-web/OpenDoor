@@ -108,6 +108,12 @@ opendoor --host https://example.com --waf-safe-mode
 
 Safe mode enables a more cautious runtime profile after probable WAF or anti-bot behavior is detected.
 
+Use WAF guard when early classified responses are overwhelmingly WAF-blocked and you want OpenDoor to stop the scan before a long wordlist produces mostly blocked results.
+
+```shell
+opendoor --host https://example.com --waf-safe-mode --waf-guard
+```
+
 ---
 
 ## 🧩 Header Injection Bypass

@@ -564,6 +564,51 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
                 self.assertTrue(pool.is_started)
 
+    def test_should_format_active_task_with_detail_metadata(self):
+        """ThreadPool diagnostics should include active task detail metadata."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        setattr(pool, '_ThreadPool__workers', [type('ActiveWorker', (), {
+            'active_task': {
+                'label': 'https://example.test/admin',
+                'detail': 'header-bypass 3/8',
+                'started_at': 1.0,
+                'last_activity_at': 9.0,
+            },
+        })()])
+
+        rendered = getattr(pool, '_ThreadPool__format_active_tasks')(11.0)
+
+        self.assertIn('https://example.test/admin [header-bypass 3/8] (10s, idle 2s)', rendered)
+
+    def test_should_ignore_worker_heartbeat_without_active_task(self):
+        """Worker.touch_active_task() should be safe before a queued task starts."""
+
+        worker = Worker(Queue(1), num_threads=1, timeout=0)
+
+        worker.touch_active_task('probe 1/2')
+
+        self.assertIsNone(worker.active_task)
+
+    def test_should_update_worker_heartbeat_without_replacing_detail_when_none(self):
+        """Worker.touch_active_task() should preserve detail when no new detail is supplied."""
+
+        worker = Worker(Queue(1), num_threads=1, timeout=0)
+        setattr(worker, '_Worker__task_label', 'https://example.test/admin')
+        setattr(worker, '_Worker__task_started_at', 10.0)
+        setattr(worker, '_Worker__task_last_activity_at', 10.0)
+        setattr(worker, '_Worker__task_detail', 'header-bypass 1/8')
+
+        with patch('src.lib.browser.worker.time.monotonic', return_value=12.0):
+            worker.touch_active_task()
+
+        task = worker.active_task
+        self.assertEqual(task['last_activity_at'], 12.0)
+        self.assertEqual(task['detail'], 'header-bypass 1/8')
+
+
 
 if __name__ == '__main__':
     unittest.main()

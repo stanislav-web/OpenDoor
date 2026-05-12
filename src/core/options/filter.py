@@ -101,6 +101,21 @@ class Filter(object):
                     key='--session-autosave-items'
                 )
 
+            if args.get('waf_guard') is True:
+                filtered['waf_guard'] = True
+
+            if args.get('waf_guard_after') is not None:
+                filtered['waf_guard_after'] = Filter.positive_int(
+                    args.get('waf_guard_after'),
+                    key='--waf-guard-after'
+                )
+
+            if args.get('waf_guard_threshold') is not None:
+                filtered['waf_guard_threshold'] = Filter.ratio_float(
+                    args.get('waf_guard_threshold'),
+                    key='--waf-guard-threshold'
+                )
+
             if args.get('header_bypass') is True:
                 filtered['header_bypass'] = True
 
@@ -239,6 +254,10 @@ class Filter(object):
                 filtered[key] = Filter.bucket_values(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['debug']:
                 filtered[key] = Filter.debug_level(value, key='--debug')
+            elif key in ['waf_guard_after']:
+                filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
+            elif key in ['waf_guard_threshold']:
+                filtered[key] = Filter.ratio_float(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['header_bypass_profile']:
                 filtered[key] = Filter.header_bypass_profile(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['header_bypass_headers']:

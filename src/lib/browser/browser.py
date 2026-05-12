@@ -46,6 +46,10 @@ from .sniffers import SnifferEngine, SnifferResult
 from .threadpool import ThreadPool
 
 
+class _WafGuardStop(Exception):
+    """Internal sentinel used to stop wordlist streaming after WAF guard triggers."""
+
+
 class Browser(Filter):
     """ Browser class """
 
@@ -113,6 +117,10 @@ class Browser(Filter):
             self.__waf_safe_vendor = None
             self.__waf_safe_confidence = None
             self.__waf_safe_block_events = []
+            self.__waf_guard_lock = threading.RLock()
+            self.__waf_guard_classified = 0
+            self.__waf_guard_blocked = 0
+            self.__waf_guard_stopped = False
             self.__calibration = None
             self.__header_bypass = HeaderBypassProbe(self.__config)
             self.__active_sniffer_names = SnifferEngine.active_names_from_config(self.__config)
@@ -216,6 +224,7 @@ class Browser(Filter):
 
         self.__debug.debug_user_agents()
         self.__debug.debug_header_bypass()
+        getattr(self.__debug, 'debug_waf_guard', lambda: True)()
         self.__debug.debug_list(total_lines=self.__pool.total_items_size)
         self.__ensure_session_runtime_state()
 
@@ -247,6 +256,9 @@ class Browser(Filter):
                     },
                     loader=getattr(self, '_add_urls'.format())
                 )
+
+        except _WafGuardStop:
+            pass
 
         except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as error:
             raise BrowserError(error)
@@ -309,6 +321,9 @@ class Browser(Filter):
             return
 
         if submitted >= planned:
+            return
+
+        if True is getattr(self, '_Browser__waf_guard_stopped', False):
             return
 
         tpl.warning(
@@ -1396,6 +1411,88 @@ class Browser(Filter):
         if callable(touch):
             touch(detail=detail)
 
+    def __is_waf_guard_enabled(self):
+        """Return whether WAF guard should control scan submission.
+
+        :return: whether WAF guard is enabled
+        :rtype: bool
+        """
+
+        config = getattr(self, '_Browser__config', None)
+        return getattr(config, 'is_waf_guard', False) is True
+
+    def __waf_guard_window_size(self):
+        """Return the queue submission window used by WAF guard.
+
+        :return: positive window size
+        :rtype: int
+        """
+
+        try:
+            return max(1, int(getattr(self.__config, 'waf_guard_after', 50) or 50))
+        except (TypeError, ValueError):
+            return 50
+
+    def __is_waf_guard_triggered(self):
+        """Return whether WAF guard has already stopped this scan.
+
+        :return: whether WAF guard is triggered
+        :rtype: bool
+        """
+
+        with self.__waf_guard_lock:
+            return self.__waf_guard_stopped is True
+
+    def __record_waf_guard_response(self, response_data, waf_detection):
+        """Record one classified primary response and maybe trigger WAF guard.
+
+        WAF guard counts all primary classified responses as the denominator, but
+        only responses classified as the dedicated WAF ``blocked`` bucket with a
+        concrete WAF detection as the numerator. Plain origin 403 responses must
+        not stop the scan.
+
+        :param tuple response_data: classified response tuple
+        :param dict|None waf_detection: WAF detection metadata for the response
+        :return: whether this call triggered the guard
+        :rtype: bool
+        """
+
+        if self.__is_waf_guard_enabled() is not True:
+            return False
+
+        if response_data is None:
+            return False
+
+        with self.__waf_guard_lock:
+            if self.__waf_guard_stopped is True:
+                return True
+
+            self.__waf_guard_classified += 1
+
+            if response_data[0] == 'blocked' and isinstance(waf_detection, dict):
+                self.__waf_guard_blocked += 1
+
+            if self.__waf_guard_classified < self.__waf_guard_window_size():
+                return False
+
+            ratio = 0.0
+            if self.__waf_guard_classified > 0:
+                ratio = float(self.__waf_guard_blocked) / float(self.__waf_guard_classified)
+
+            threshold = float(getattr(self.__config, 'waf_guard_threshold', 0.95) or 0.95)
+            if ratio < threshold:
+                return False
+
+            self.__waf_guard_stopped = True
+
+        self.__finish_filtered_progress_line()
+        tpl.warning(
+            key='waf_guard_triggered',
+            ratio='{0:.1f}'.format(ratio * 100.0),
+            classified=self.__waf_guard_classified,
+        )
+        return True
+
     def __probe_header_bypass(self, url, base_response_data):
         """
         Run controlled header-injection bypass probes for blocked responses.
@@ -1663,7 +1760,9 @@ class Browser(Filter):
                 )
 
             self.__update_waf_safe_backoff(resp, response_data)
-            self.__probe_header_bypass(url, response_data)
+            waf_guard_triggered = self.__record_waf_guard_response(response_data, waf_detection)
+            if waf_guard_triggered is not True:
+                self.__probe_header_bypass(url, response_data)
             self.__run_inline_active_sniffers(url, response_data, resp)
 
             calibration_match = self.__match_calibrated_response(resp, response_data)
@@ -2289,6 +2388,10 @@ class Browser(Filter):
 
         self.__ensure_session_runtime_state()
 
+        if self.__is_waf_guard_enabled() is True:
+            self.__add_urls_with_waf_guard(urllist)
+            return
+
         try:
 
             for url in urllist:
@@ -2302,6 +2405,55 @@ class Browser(Filter):
                     self.__catch_report_data('ignored', url)
                     self.__emit_ignored_item_warning(url)
             self.__pool.join()
+        except (SystemExit, KeyboardInterrupt):
+            raise KeyboardInterrupt
+
+    def __add_urls_with_waf_guard(self, urllist):
+        """Add URLs in guard-sized windows so WAF guard can stop streaming early.
+
+        The normal batch submission path intentionally remains unchanged. This
+        windowed submission is used only when ``--waf-guard`` is enabled, so a
+        triggered guard does not wait for a large already-submitted reader batch
+        to drain before the scan stops.
+
+        :param list urllist: read dictionary batch
+        :raise KeyboardInterrupt:
+        :raise _WafGuardStop: when WAF guard stopped the scan
+        :return: None
+        """
+
+        window_size = self.__waf_guard_window_size()
+        window_submitted = 0
+
+        try:
+            if self.__is_waf_guard_triggered() is True:
+                raise _WafGuardStop
+
+            for url in urllist:
+                if self.__is_waf_guard_triggered() is True:
+                    raise _WafGuardStop
+
+                if self.__deduplicate_scan_url(url) is not True:
+                    continue
+
+                if False is self.__is_ignored(url):
+                    if self.__register_pending_request(url, 0):
+                        self.__pool.add(self.__http_request, url, 0)
+                        window_submitted += 1
+                else:
+                    self.__catch_report_data('ignored', url)
+                    self.__emit_ignored_item_warning(url)
+
+                if window_submitted >= window_size:
+                    self.__pool.join()
+                    window_submitted = 0
+                    if self.__is_waf_guard_triggered() is True:
+                        raise _WafGuardStop
+
+            if window_submitted > 0:
+                self.__pool.join()
+                if self.__is_waf_guard_triggered() is True:
+                    raise _WafGuardStop
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt
 
@@ -2606,6 +2758,11 @@ class Browser(Filter):
             'fingerprint': getattr(self.__config, 'is_fingerprint', False),
             'waf_detect': getattr(self.__config, 'is_waf_detect', False),
             'waf_safe_mode': getattr(self.__config, 'is_waf_safe_mode', False),
+            'waf_guard': getattr(self.__config, 'is_waf_guard', False),
+            'waf_guard_after': getattr(self.__config, 'waf_guard_after', None)
+            if getattr(self.__config, 'is_waf_guard', False) is True else None,
+            'waf_guard_threshold': getattr(self.__config, 'waf_guard_threshold', None)
+            if getattr(self.__config, 'is_waf_guard', False) is True else None,
             'wordlist': getattr(self.__config, 'wordlist', None),
             'reports': ','.join(self.__config.reports),
             'reports_dir': getattr(self.__config, 'reports_dir', None),

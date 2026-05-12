@@ -138,6 +138,18 @@ class TestBrowserDebug(unittest.TestCase):
             self.assertTrue(standalone_debug.debug_proxy_pool())
         debug_mock.assert_called_with(key='proxy_pool_standalone', server=standalone_cfg.proxy)
 
+        auth_cfg = Config({
+            'debug': 1,
+            'method': 'HEAD',
+            'proxy': 'http://user:pass@127.0.0.1:8080',
+            'reports': 'std',
+        })
+        with patch('sys.stdout', new=StringIO()):
+            auth_debug = Debug(auth_cfg)
+        with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
+            self.assertTrue(auth_debug.debug_proxy_pool())
+        debug_mock.assert_called_with(key='proxy_pool_standalone', server='http://user:*****@127.0.0.1:8080')
+
     def test_debug_request_does_not_mutate_input_dict(self):
         """Debug.debug_request() should not mutate the original request header mapping."""
 

@@ -21,6 +21,7 @@ nav:
   - Detection:
       - Fingerprinting: detection/fingerprinting.md
       - WAF detection and safe mode: detection/waf-detection.md
+      - WAF guard: detection/waf-guard.md
       - Header Injection Bypass: detection/header-bypass.md
       - Auto-calibration: detection/auto-calibration.md
   - Network transports:

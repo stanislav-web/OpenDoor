@@ -502,5 +502,25 @@ class TestBrowserConfigDefensiveCopies(unittest.TestCase):
         self.assertEqual(normalized, ['200', '403', '404'])
 
 
+class TestBrowserConfigCoverageOnly(unittest.TestCase):
+    """Coverage-only tests for config normalization edge branches."""
+
+    def test_should_normalize_scheme_without_slashes_and_false_retries(self):
+        """Config should normalize short schemes and explicit false retries."""
+
+        self.assertEqual(Config._normalize_scheme('http'), 'http://')
+        self.assertEqual(Config._normalize_scheme('https'), 'https://')
+        self.assertFalse(Config._normalize_retries(False))
+
+    def test_should_ignore_empty_range_tokens_and_normalize_integer_delay(self):
+        """Config should ignore empty range tokens and coerce whole-second delays."""
+
+        self.assertEqual(Config._expand_integer_ranges(['', '10-20', '  ']), [(10, 20)])
+
+        cfg = Config({'reports': 'std', 'delay': 1.5})
+
+        self.assertEqual(cfg.delay, 1)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -218,6 +218,33 @@ class Options(object):
             {
                 "group": "request",
                 "args": None,
+                "argl": "--waf-guard",
+                "default": False,
+                "action": "store_true",
+                "help": "Stop the scan early when initial classified responses are overwhelmingly WAF-blocked",
+                "type": bool
+            },
+            {
+                "group": "request",
+                "args": None,
+                "argl": "--waf-guard-after",
+                "default": None,
+                "action": "store",
+                "help": "Minimum number of classified responses before --waf-guard can stop the scan, default 50",
+                "type": int
+            },
+            {
+                "group": "request",
+                "args": None,
+                "argl": "--waf-guard-threshold",
+                "default": None,
+                "action": "store",
+                "help": "WAF-blocked response ratio required by --waf-guard, default 0.95",
+                "type": float
+            },
+            {
+                "group": "request",
+                "args": None,
                 "argl": "--header-bypass",
                 "default": False,
                 "action": "store_true",
@@ -771,7 +798,7 @@ class Options(object):
                         args[arg] = value
                 args = Filter.filter(args)
 
-                if args.get('waf_safe_mode') is True:
+                if args.get('waf_safe_mode') is True or args.get('waf_guard') is True:
                     args['waf_detect'] = True
 
             return args

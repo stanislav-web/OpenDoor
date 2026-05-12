@@ -99,6 +99,56 @@ class TestProxyExtra(unittest.TestCase):
         self.assertIs(cached, pool)
         proxy_manager_mock.assert_called_once()
 
+
+    def test_proxy_pool_passes_basic_auth_headers_for_authenticated_http_proxy(self):
+        """Proxy.__proxy_pool() should pass Proxy-Authorization headers for HTTP CONNECT proxies."""
+
+        cfg = self.make_cfg(is_standalone_proxy=True, proxy='http://user:pass@127.0.0.1:8080')
+        pool = MagicMock()
+        proxy = Proxy(cfg, self.make_debug(), tpl=MagicMock(), proxy_list=['http://unused'], agent_list=['UA'])
+
+        with patch('src.core.http.proxy.ProxyManager', return_value=pool) as proxy_manager_mock:
+            actual = getattr(proxy, '_Proxy__proxy_pool')()
+
+        self.assertIs(actual, pool)
+        proxy_headers = proxy_manager_mock.call_args.kwargs['proxy_headers']
+        self.assertEqual(proxy_headers['proxy-authorization'], 'Basic dXNlcjpwYXNz')
+
+    def test_proxy_pool_decodes_url_encoded_basic_auth_credentials(self):
+        """Proxy.__proxy_pool() should decode URL-encoded proxy credentials before Basic auth."""
+
+        cfg = self.make_cfg(is_standalone_proxy=True, proxy='http://user:p%40ss%3Aword@127.0.0.1:8080')
+        proxy = Proxy(cfg, self.make_debug(), tpl=MagicMock(), proxy_list=['http://unused'], agent_list=['UA'])
+
+        with patch('src.core.http.proxy.ProxyManager', return_value=MagicMock()) as proxy_manager_mock:
+            getattr(proxy, '_Proxy__proxy_pool')()
+
+        proxy_headers = proxy_manager_mock.call_args.kwargs['proxy_headers']
+        self.assertEqual(proxy_headers['proxy-authorization'], 'Basic dXNlcjpwQHNzOndvcmQ=')
+
+    def test_proxy_pool_uses_empty_proxy_headers_without_credentials(self):
+        """Proxy.__proxy_pool() should keep proxy headers empty when no credentials are present."""
+
+        cfg = self.make_cfg(is_standalone_proxy=True, proxy='http://127.0.0.1:8080')
+        proxy = Proxy(cfg, self.make_debug(), tpl=MagicMock(), proxy_list=['http://unused'], agent_list=['UA'])
+
+        with patch('src.core.http.proxy.ProxyManager', return_value=MagicMock()) as proxy_manager_mock:
+            getattr(proxy, '_Proxy__proxy_pool')()
+
+        self.assertEqual(proxy_manager_mock.call_args.kwargs['proxy_headers'], {})
+
+    def test_mask_proxy_server_hides_password_only(self):
+        """Proxy.__mask_proxy_server() should hide passwords in terminal diagnostics."""
+
+        mask = getattr(Proxy, '_Proxy__mask_proxy_server')
+
+        self.assertEqual(
+            mask('http://user:pass@127.0.0.1:8080'),
+            'http://user:*****@127.0.0.1:8080',
+        )
+        self.assertEqual(mask('http://127.0.0.1:8080'), 'http://127.0.0.1:8080')
+        self.assertEqual(mask(None), '-')
+
     def test_proxy_pool_uses_socks_manager_and_disables_warnings(self):
         """Proxy.__proxy_pool() should use the SOCKS manager and disable warnings for socks proxies."""
 

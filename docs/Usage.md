@@ -505,6 +505,36 @@ Safe mode automatically switches to a more cautious scan profile after WAF detec
 
 Use this mode when scanning authorized targets protected by WAF, CDN, or anti-bot infrastructure.
 
+### WAF guard
+
+```shell
+opendoor \
+  --host https://example.com \
+  --waf-guard \
+  --waf-guard-after 50 \
+  --waf-guard-threshold 0.95
+```
+
+`--waf-guard` stops the scan early when the initial classified primary responses are overwhelmingly WAF-blocked. It is useful when a WAF or edge protection layer returns the same block page for nearly every path and a long wordlist would produce mostly blocked results.
+
+Default values:
+
+| Option | Default | Meaning |
+|---|---:|---|
+| `--waf-guard` | disabled | Enable WAF-block ratio stop condition. |
+| `--waf-guard-after` | `50` | Minimum number of classified primary responses before WAF guard can trigger. |
+| `--waf-guard-threshold` | `0.95` | WAF-blocked ratio required to stop the scan. |
+
+When triggered, OpenDoor prints:
+
+```text
+WAF guard triggered: block ratio is 100.0% after 50 classified responses. Stopping scan.
+```
+
+WAF guard does not count fingerprint probes, auto-calibration probes, header-bypass subrequests, or plain origin `403` responses without WAF classification.
+
+Read more: [WAF guard](detection/waf-guard.md).
+
 ---
 
 ## 🧩 Header Injection Bypass
@@ -1095,6 +1125,17 @@ opendoor \
   --timeout 60 \
   --retries 5 \
   --delay 0.5
+```
+
+### WAF guard early stop
+
+```shell
+opendoor \
+  --host https://example.com \
+  --waf-safe-mode \
+  --waf-guard \
+  --waf-guard-after 50 \
+  --waf-guard-threshold 0.95
 ```
 
 ### Header-bypass scan

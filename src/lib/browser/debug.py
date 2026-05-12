@@ -15,6 +15,8 @@
 
     Development: Stanislav WEB
 """
+from urllib.parse import unquote, urlsplit, urlunsplit
+
 from src.core import helper
 from src.core import sys
 from src.core.http.providers.debug import DebugProvider
@@ -161,6 +163,49 @@ class Debug(DebugProvider):
 
         return True
 
+    def debug_waf_guard(self):
+        """Debug WAF guard configuration."""
+
+        if self.is_scan_debug() and getattr(self.__cfg, 'is_waf_guard', False) is True:
+            tpl.debug(
+                key='waf_guard_enabled',
+                after=self.__cfg.waf_guard_after,
+                threshold='{0:.1f}'.format(float(self.__cfg.waf_guard_threshold) * 100.0)
+            )
+
+        return True
+
+    @staticmethod
+    def __mask_proxy_server(server):
+        """Return proxy URL with masked password for debug output."""
+
+        if not server:
+            return server
+
+        try:
+            parsed = urlsplit(server)
+        except (TypeError, ValueError):
+            return str(server)
+
+        if not parsed.username and parsed.password is None:
+            return server
+
+        host = parsed.hostname or ''
+        if ':' in host and not host.startswith('['):
+            host = '[{0}]'.format(host)
+
+        netloc = host
+        if parsed.port is not None:
+            netloc = '{0}:{1}'.format(netloc, parsed.port)
+
+        username = unquote(parsed.username or '')
+        if username:
+            netloc = '{0}:*****@{1}'.format(username, netloc)
+        else:
+            netloc = '*****@{0}'.format(netloc)
+
+        return urlunsplit((parsed.scheme, netloc, parsed.path, parsed.query, parsed.fragment))
+
     def debug_proxy_pool(self):
         """Debug proxy pool message."""
 
@@ -170,7 +215,7 @@ class Debug(DebugProvider):
         if self.__cfg.is_external_proxy_list is True:
             tpl.debug(key='proxy_pool_external_start')
         elif self.__cfg.is_standalone_proxy is True:
-            tpl.debug(key='proxy_pool_standalone', server=self.__cfg.proxy)
+            tpl.debug(key='proxy_pool_standalone', server=self.__mask_proxy_server(self.__cfg.proxy))
         elif self.__cfg.is_builtin_proxy_pool is True:
             tpl.debug(key='proxy_pool_internal_start')
 
