@@ -12,6 +12,7 @@ class TestOutput(unittest.TestCase):
 
     def tearDown(self):
         Output._Output__is_windows = None
+        Output.clear_dynamic_line()
 
     def test_exit_raises_system_exit(self):
         """Output.exit() should raise SystemExit with the provided message."""
@@ -91,6 +92,30 @@ class TestOutput(unittest.TestCase):
 
         fake_stdout.write.assert_called_once_with('\rmessage')
         fake_stdout.flush.assert_not_called()
+
+    def test_finish_dynamic_line_should_add_newline_once(self):
+        """Output.finish_dynamic_line() should terminate an active rotating line once."""
+
+        fake_stdout = StringIO()
+
+        with patch('src.core.system.output.sys.stdout', fake_stdout):
+            Output.mark_dynamic_line(12)
+            Output.finish_dynamic_line()
+            Output.finish_dynamic_line()
+
+        self.assertEqual(fake_stdout.getvalue(), '\n')
+
+    def test_clear_dynamic_line_should_skip_finish_newline(self):
+        """Output.clear_dynamic_line() should suppress later line termination."""
+
+        fake_stdout = StringIO()
+
+        with patch('src.core.system.output.sys.stdout', fake_stdout):
+            Output.mark_dynamic_line(12)
+            Output.clear_dynamic_line()
+            Output.finish_dynamic_line()
+
+        self.assertEqual(fake_stdout.getvalue(), '')
 
 
 if __name__ == '__main__':

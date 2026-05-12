@@ -5,8 +5,6 @@ v5.16.0 (11.05.2026)
 - (fix) rendered fingerprint progress as a rotating single-line indicator and persisted only the final `done` state to reduce duplicate progress output.
 - (fix) made auto-calibrated rotating progress cross-platform by truncating suppressed-response lines to terminal width and clearing them before real findings.
 - (fix) diversified auto-calibration probe URL shapes so sites that return different soft-404/catch-all responses for root-level, application-like and static asset paths are calibrated more reliably.
-- (fix) compacted auto-calibration progress heartbeat output by removing verbose calibration reason lists and throttling suppressed-response progress by time.
-- (fix) renamed `--sniff stacktrace` findings from the generic `debug` bucket to the dedicated `stacktrace` bucket across runtime output, summaries and reports.
 - (fix) made HTML report status tabs work as anchor-backed navigation with JavaScript filtering as progressive enhancement, improving large report responsiveness and browser compatibility.
 - (fix) `ResponseError: Unknown response status : 523` to avoid abort scans on unexpected HTTP status codes.
 - (fix) graceful handling for unavailable standalone SOCKS/HTTP proxies.
@@ -16,6 +14,10 @@ v5.16.0 (11.05.2026)
 - (fix) wizard regex filters so comma-containing patterns are preserved safely.
 - (fix) reduced report noise by keeping filtered responses out of user-facing reports while preserving them in raw JSON/session data.
 - (fix) response-filter overrides for resumed sessions and precompiled regex filters for faster runtime checks.
+- (fix) proxy rotation console output so debug and warning messages no longer corrupt fingerprint, calibration, and scan progress lines.
+- (fix) reused initialized proxy request providers across pre-scan and scan phases to avoid redundant proxy-list initialization.
+- (fix) preserved direct scan provider refresh when scan targets are rewritten by runtime options.
+- (fix) reduced auto-calibration console noise by suppressing per-probe response output while keeping the calibration summary.
 - (feature) added `--waf-guard` with configurable `--waf-guard-after` and `--waf-guard-threshold` to stop scans early when initial classified responses are overwhelmingly WAF-blocked.
 - (feature) added `--diff` to compare exactly two previous/current OpenDoor SQLite or JSON reports and show added, removed and changed findings without running a new scan.
 - (feature) added `--sniff malware` to passively classify suspicious malware, webshell, injected script and obfuscated payload indicators into the `malware` bucket with structured metadata across runtime output and reports.

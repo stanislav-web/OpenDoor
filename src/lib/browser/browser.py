@@ -25,6 +25,7 @@ from .session import SessionManager, SessionError
 from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError
 from src.core import SocketError
 from src.core import helper
+from src.core import sys as output
 from src.core import request_http
 from src.core import request_proxy
 from src.core import request_https
@@ -247,7 +248,11 @@ class Browser(Filter):
 
             tpl.info(key='scanning', host=self.__config.host)
             self.__warn_filtered_progress_mode()
-            self.__start_request_provider()
+            if (
+                getattr(self.__config, 'is_proxy', False) is not True
+                or getattr(self, '_Browser__client', None) is None
+            ):
+                self.__start_request_provider()
 
             if self.__session_snapshot is not None and len(self.__pending_requests) > 0:
                 self.__resume_pending_requests()
@@ -399,6 +404,7 @@ class Browser(Filter):
 
             self.__fingerprint_progress_active = False
             self.__fingerprint_progress_last_length = 0
+            output.clear_dynamic_line()
             tpl.info(msg=progress_message)
             return
 
@@ -424,6 +430,7 @@ class Browser(Filter):
 
         self.__fingerprint_progress_last_length = len(message)
         self.__fingerprint_progress_active = True
+        output.mark_dynamic_line(len(message))
 
 
     @staticmethod
@@ -644,7 +651,8 @@ class Browser(Filter):
                         request_url=url,
                         items_size=0,
                         total_size=self.__config.calibration_samples,
-                        ignore_list=[]
+                        ignore_list=[],
+                        emit_debug=False
                     )
 
                     if response_data is None:
@@ -1606,6 +1614,7 @@ class Browser(Filter):
 
             self.__filtered_progress_active = False
             self.__filtered_progress_last_length = 0
+            output.clear_dynamic_line()
 
     def __finish_filtered_progress_line(self):
         """Terminate an active rotating progress line before normal logger output.
@@ -1629,6 +1638,7 @@ class Browser(Filter):
 
             self.__filtered_progress_active = False
             self.__filtered_progress_last_length = 0
+            output.clear_dynamic_line()
 
     def __emit_filtered_progress(self, bucket, response_data, metadata=None, request_url=None):
         """
@@ -1699,6 +1709,7 @@ class Browser(Filter):
 
             self.__filtered_progress_last_length = len(message)
             self.__filtered_progress_active = True
+            output.mark_dynamic_line(len(message))
 
         return True
 

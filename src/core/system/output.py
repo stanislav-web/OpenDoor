@@ -19,6 +19,7 @@
 import os
 import platform
 import sys
+import threading
 
 
 class Output(object):
@@ -26,6 +27,9 @@ class Output(object):
     """Output class"""
 
     __is_windows = None
+    __dynamic_line_active = False
+    __dynamic_line_last_length = 0
+    __dynamic_line_lock = threading.RLock()
 
     @staticmethod
     def exit(msg):
@@ -37,6 +41,57 @@ class Output(object):
         """
 
         sys.exit(msg)
+
+    @staticmethod
+    def mark_dynamic_line(length=0):
+        """Mark that stdout currently contains an active rotating line.
+
+        Persistent logger output must first terminate this line, otherwise the
+        next log record is appended to the same terminal row.
+
+        :param int length: length of the rendered rotating line
+        :return: None
+        """
+
+        try:
+            rendered_length = max(int(length or 0), 0)
+        except (TypeError, ValueError):
+            rendered_length = 0
+
+        with Output.__dynamic_line_lock:
+            Output.__dynamic_line_active = True
+            Output.__dynamic_line_last_length = rendered_length
+
+    @staticmethod
+    def clear_dynamic_line():
+        """Forget active rotating-line state after explicit cleanup.
+
+        :return: None
+        """
+
+        with Output.__dynamic_line_lock:
+            Output.__dynamic_line_active = False
+            Output.__dynamic_line_last_length = 0
+
+    @staticmethod
+    def finish_dynamic_line():
+        """Move persistent output to a clean line after rotating progress.
+
+        :return: None
+        """
+
+        with Output.__dynamic_line_lock:
+            if Output.__dynamic_line_active is not True:
+                return
+
+            try:
+                sys.stdout.write('\n')
+                sys.stdout.flush()
+            except (AttributeError, OSError, ValueError):
+                pass
+
+            Output.__dynamic_line_active = False
+            Output.__dynamic_line_last_length = 0
 
     @staticmethod
     def writels(msg, flush=True):

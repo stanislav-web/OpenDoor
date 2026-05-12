@@ -705,6 +705,75 @@ class TestBrowser(unittest.TestCase):
         reader.get_lines.assert_called_once()
         start_provider.assert_called_once_with()
 
+    def test_scan_restarts_existing_direct_request_provider_after_scan_target_rewrite(self):
+        """Browser.scan() should refresh direct clients after random-list scan target rewrites."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(
+            is_proxy=False,
+            is_random_list=True,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=True,
+            host='example.com',
+            port=80,
+            scheme='http://'
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+        reader.total_lines = 10
+        reader.count_active_lines.return_value = 10
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__client', object())
+
+        with patch.object(br, '_Browser__start_request_provider') as start_provider, \
+                patch('src.lib.browser.browser.tpl.info'):
+            br.scan()
+
+        self.assertEqual(config.scan, 'ignore_extensionlist')
+        reader.randomize_list.assert_called_once_with(target='ignore_extensionlist', output='tmplist')
+        reader.get_lines.assert_called_once()
+        start_provider.assert_called_once_with()
+
+    def test_scan_reuses_existing_proxy_request_provider(self):
+        """Browser.scan() should keep proxy pools initialized by fingerprint/calibration setup."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(
+            is_proxy=True,
+            is_random_list=False,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+            host='example.com',
+            port=80,
+            scheme='http://'
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+        reader.count_active_lines.return_value = 10
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__client', object())
+
+        with patch.object(br, '_Browser__start_request_provider') as start_provider, \
+                patch('src.lib.browser.browser.tpl.info'):
+            br.scan()
+
+        start_provider.assert_not_called()
+        reader.get_lines.assert_called_once()
+
     def test_scan_skips_loading_lines_when_pool_is_not_started(self):
         """Browser.scan() should not request lines when the thread pool is paused."""
 
@@ -1941,6 +2010,9 @@ class TestBrowser(unittest.TestCase):
         self.assertIsNotNone(actual)
         self.assertTrue(actual.is_enabled)
         self.assertEqual(len(actual.signatures), 2)
+        response_handler.handle.assert_called()
+        for call_args in response_handler.handle.call_args_list:
+            self.assertEqual(call_args.kwargs.get('emit_debug'), False)
 
     def test_calibrate_should_noop_when_auto_calibration_is_disabled(self):
         """Browser.calibrate() should do nothing when auto-calibration is disabled."""
