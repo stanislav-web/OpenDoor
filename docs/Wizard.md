@@ -295,11 +295,13 @@ Add a path prefix:
 prefix = admin/
 ```
 
-Force extensions:
+Filter by extensions:
 
 ```ini
 extensions = php,json,txt
 ```
+
+This keeps only wordlist entries that already have the selected extensions.
 
 Ignore extensions:
 

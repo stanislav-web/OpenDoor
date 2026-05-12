@@ -55,6 +55,8 @@ class Filter(object):
 
         filtered = {}
 
+        if Filter._split_csv(args.get('extensions')) and Filter._split_csv(args.get('ignore_extensions')):
+            raise FilterError('--extensions and --ignore-extensions cannot be used together')
 
         if args.get('diff') is not None:
             if args.get('host') or args.get('hostlist') or args.get('stdin') is True \

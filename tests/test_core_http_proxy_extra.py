@@ -537,5 +537,60 @@ class TestProxyExtra(unittest.TestCase):
         self.assertIn('http://dead:8080', proxy._Proxy__dead_proxies)
         self.assertNotIn('http://dead:8080', proxy._Proxy__proxy_pools)
 
+    def test_mask_proxy_server_covers_invalid_ipv6_and_username_only_urls(self):
+        """Proxy.__mask_proxy_server() should cover defensive URL parsing branches."""
+
+        mask = getattr(Proxy, '_Proxy__mask_proxy_server')
+
+        self.assertEqual(mask('http://[::1'), 'http://[::1')
+        self.assertEqual(
+            mask('http://user:pass@[2001:db8::1]/proxy'),
+            'http://user:*****@[2001:db8::1]/proxy',
+        )
+        self.assertEqual(
+            mask('http://:pass@proxy.example.com'),
+            'http://*****@proxy.example.com',
+        )
+
+    def test_mark_proxy_dead_noops_for_standalone_or_missing_server(self):
+        """Dead-proxy tracking should ignore standalone proxies and empty values."""
+
+        standalone = Proxy(
+            self.make_cfg(is_standalone_proxy=True),
+            self.make_debug(),
+            tpl=MagicMock(),
+            proxy_list=['http://unused'],
+            agent_list=['UA'],
+        )
+        rotating = Proxy(
+            self.make_cfg(is_standalone_proxy=False),
+            self.make_debug(),
+            tpl=MagicMock(),
+            proxy_list=['http://one:8080'],
+            agent_list=['UA'],
+        )
+
+        getattr(standalone, '_Proxy__mark_proxy_dead')('http://one:8080')
+        getattr(rotating, '_Proxy__mark_proxy_dead')(None)
+
+        self.assertEqual(getattr(standalone, '_Proxy__dead_proxies'), set())
+        self.assertEqual(getattr(rotating, '_Proxy__dead_proxies'), set())
+
+    def test_get_available_proxies_raises_when_all_rotating_proxies_are_dead(self):
+        """Rotating proxy mode should fail clearly when every proxy is quarantined."""
+
+        proxy = Proxy(
+            self.make_cfg(is_standalone_proxy=False),
+            self.make_debug(),
+            tpl=MagicMock(),
+            proxy_list=['http://one:8080'],
+            agent_list=['UA'],
+        )
+        getattr(proxy, '_Proxy__mark_proxy_dead')('http://one:8080')
+
+        with self.assertRaisesRegex(ProxyRequestError, 'All rotating proxies are unavailable'):
+            getattr(proxy, '_Proxy__get_available_proxies')()
+
+
 if __name__ == '__main__':
     unittest.main()

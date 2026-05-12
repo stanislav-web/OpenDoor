@@ -5,6 +5,7 @@ import os
 import sqlite3
 import tempfile
 import unittest
+import unittest.mock
 
 from src.lib.diff import DiffReportReader, DiffValidationError
 
@@ -245,6 +246,69 @@ class TestDiffReportReader(unittest.TestCase):
         })
 
         with self.assertRaisesRegex(DiffValidationError, 'url is required'):
+            DiffReportReader().read(path)
+
+    def test_read_rejects_unexpected_detected_format(self):
+        """DiffReportReader.read() should reject impossible internal format values defensively."""
+
+        path = self.write_json_report('report.json')
+        reader = DiffReportReader()
+
+        with unittest.mock.patch.object(reader, 'detect_format', return_value='xml'):
+            with self.assertRaisesRegex(DiffValidationError, 'Unsupported diff report format'):
+                reader.read(path)
+
+    def test_detect_format_rejects_non_string_paths(self):
+        """detect_format() should reject empty and non-string paths consistently."""
+
+        with self.assertRaisesRegex(DiffValidationError, 'path is empty'):
+            DiffReportReader.detect_format(None)
+
+    def test_sqlite_reader_falls_back_to_file_stem_without_target_metadata(self):
+        """SQLite reader should use the report filename when target metadata is missing."""
+
+        path = self.path('fallback.sqlite')
+        connection = sqlite3.connect(path)
+        try:
+            cursor = connection.cursor()
+            cursor.execute('CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)')
+            cursor.execute('CREATE TABLE items (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT, url TEXT, code TEXT, size TEXT)')
+            cursor.execute('INSERT INTO items(status, url, code, size) VALUES(?, ?, ?, ?)', (
+                'success',
+                'https://fallback.local/admin',
+                '200',
+                '12B',
+            ))
+            connection.commit()
+        finally:
+            connection.close()
+
+        report = DiffReportReader().read(path)
+
+        self.assertEqual(report.target, 'fallback')
+
+    def test_json_reader_wraps_read_errors_and_rejects_non_object_payload(self):
+        """JSON reader should report file read failures and invalid top-level payloads."""
+
+        path = self.write_json_report('array.json', payload=['not-object'])
+
+        with self.assertRaisesRegex(DiffValidationError, 'expected an object'):
+            DiffReportReader().read(path)
+
+        with unittest.mock.patch('builtins.open', side_effect=OSError('permission denied')):
+            with self.assertRaisesRegex(DiffValidationError, 'Cannot read JSON report'):
+                DiffReportReader().read(path)
+
+    def test_json_plain_items_rejects_non_list_buckets(self):
+        """Legacy JSON items buckets should still require list values."""
+
+        path = self.write_json_report('plain-bad-bucket.json', payload={
+            'items': {
+                'success': {'url': 'https://legacy.local/admin'},
+            },
+        })
+
+        with self.assertRaisesRegex(DiffValidationError, 'bucket success must contain a list'):
             DiffReportReader().read(path)
 
 

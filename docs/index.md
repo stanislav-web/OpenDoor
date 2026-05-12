@@ -51,7 +51,7 @@ You can use the built-in dictionaries or provide your own wordlists.
 
 ```shell
 opendoor --host https://example.com --wordlist ./paths.txt
-opendoor --host https://example.com --extensions php,json,txt
+opendoor --host https://example.com --extensions php,json,txt  # keep only matching wordlist extensions
 opendoor --host https://example.com --ignore-extensions aspx,jsp
 ```
 

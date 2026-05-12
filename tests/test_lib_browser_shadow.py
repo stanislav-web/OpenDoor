@@ -456,6 +456,43 @@ class TestBrowserShadowIntegration(unittest.TestCase):
         self.assertIn('OK', rendered_item)
         self.assertIn('Shadow', rendered_item)
 
+    def test_shadow_helpers_cover_empty_similarity_size_and_header_iteration_paths(self):
+        """Shadow helpers should cover empty signatures and header fallbacks."""
+
+        class HeaderPairsWithoutContentType(object):
+            """Iterable headers without Content-Type."""
+
+            def __iter__(self):
+                """Return unrelated header pairs."""
+
+                return iter([('Server', 'nginx')])
+
+        self.assertEqual(ShadowProbe.content_type(SimpleNamespace(headers=HeaderPairsWithoutContentType())), '')
+        self.assertEqual(ShadowProbe.similarity_ratio({'normalized': ''}, {'normalized': 'body'}), 0.0)
+        self.assertEqual(ShadowProbe.size_delta_ratio({'size': 0}, {'size': 10}), 1.0)
+
+    def test_shadow_process_task_handles_match_without_callback(self):
+        """ShadowProbe should count matches even when no match callback is configured."""
+
+        base_body = b'base stable body line\n' * 5
+        candidate_body = base_body + b'changed\n'
+        base_response = HTTPResponse(status=200, body=base_body, headers={'Content-Type': 'text/html'})
+        candidate_response = HTTPResponse(status=200, body=candidate_body, headers={'Content-Type': 'text/html'})
+        base_signature = ShadowProbe.response_signature(base_response)
+        probe = ShadowProbe(lambda _url: candidate_response, match_callback=None)
+
+        getattr(probe, '_ShadowProbe__process_task')(
+            (
+                'https://example.com/index.php',
+                base_signature,
+                'https://example.com/index.php.bak',
+                '.bak',
+                1,
+            )
+        )
+
+        self.assertEqual(probe.findings, 1)
+
 
 if __name__ == '__main__':
     unittest.main()

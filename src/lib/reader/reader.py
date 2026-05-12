@@ -98,7 +98,7 @@ class Reader(object):
 
         normalized = Reader._normalize_extensions(extensions)
         escaped = [re.escape(extension) for extension in normalized]
-        return r'.*\.({0})$'.format('|'.join(escaped))
+        return r'(?i).*\.({0})(?:[?#].*)?$'.format('|'.join(escaped))
 
     @staticmethod
     def _build_ignore_extension_pattern(extensions):
@@ -111,7 +111,7 @@ class Reader(object):
 
         normalized = Reader._normalize_extensions(extensions)
         escaped = [re.escape(extension) for extension in normalized]
-        return r'^(?!.*\.({0})$).*$'.format('|'.join(escaped))
+        return r'(?i)^(?!.*\.({0})(?:[?#].*)?$).*$'.format('|'.join(escaped))
 
     @staticmethod
     def _has_system_shuf():

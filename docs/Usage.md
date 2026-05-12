@@ -126,7 +126,9 @@ opendoor --host https://example.com --prefix admin/
 
 The prefix is appended to scanned paths.
 
-### Force extensions
+### Filter by extensions
+
+This keeps only wordlist entries that already have the selected extensions. It does not generate new extension variants.
 
 ```shell
 opendoor --host https://example.com --extensions php,json,txt

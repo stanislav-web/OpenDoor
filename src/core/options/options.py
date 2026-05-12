@@ -519,7 +519,7 @@ class Options(object):
                 "argl": "--extensions",
                 "default": None,
                 "action": "store",
-                "help": "Force selected extensions for the scan session, e.g. php,json",
+                "help": "Keep only wordlist entries with selected extensions, e.g. php,json",
                 "type": str
             },
             {

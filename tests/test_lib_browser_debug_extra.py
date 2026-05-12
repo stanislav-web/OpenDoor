@@ -393,6 +393,37 @@ class TestBrowserDebugCoverageOnly(unittest.TestCase):
         self.assertIn('Secret detection: type=api-key; redacted=sk-***; confidence=95; count=2', messages)
         self.assertIn('Malware detection: subtype=webshell; family=php; signal=eval; confidence=90; count=1', messages)
 
+    def test_proxy_mask_helper_covers_empty_invalid_ipv6_and_username_only_urls(self):
+        """Proxy mask helper should cover defensive URL parsing branches."""
+
+        mask = getattr(Debug, '_Debug__mask_proxy_server')
+
+        self.assertIsNone(mask(None))
+        self.assertEqual(mask('http://[::1'), 'http://[::1')
+        self.assertEqual(
+            mask('http://user:pass@[2001:db8::1]/proxy'),
+            'http://user:*****@[2001:db8::1]/proxy',
+        )
+        self.assertEqual(
+            mask('http://:pass@proxy.example.com'),
+            'http://*****@proxy.example.com',
+        )
+
+    def test_waf_guard_and_proxy_selected_noop_when_scan_debug_is_disabled(self):
+        """WAF guard and rotating proxy diagnostics should stay behind scan debug level."""
+
+        dbg = self.make_debug({
+            'debug': 0,
+            'reports': 'std',
+            'waf_guard': True,
+            'proxy_list': 'proxies.txt',
+        })
+
+        with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
+            self.assertTrue(dbg.debug_waf_guard())
+            self.assertTrue(dbg.debug_proxy_selected('http://user:pass@127.0.0.1:8080'))
+
+        debug_mock.assert_not_called()
 
 
 if __name__ == '__main__':

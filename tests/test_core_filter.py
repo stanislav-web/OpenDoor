@@ -1228,6 +1228,31 @@ class TestFilter(unittest.TestCase):
         with self.assertRaises(FilterError):
             Filter.session_file(None, key='--session-save')
 
+    def test_filter_rejects_extensions_and_ignore_extensions_together(self):
+        """Filter.filter() should reject conflicting extension filters."""
+
+        with self.assertRaisesRegex(FilterError, '--extensions and --ignore-extensions cannot be used together'):
+            Filter.filter({
+                'host': 'example.com',
+                'extensions': 'php,json',
+                'ignore_extensions': 'asp,jsp',
+            })
+
+    def test_filter_allows_single_extension_filter_mode(self):
+        """Filter.filter() should allow either extension filter by itself."""
+
+        with_extensions = Filter.filter({
+            'host': 'example.com',
+            'extensions': 'php,json',
+        })
+        with_ignore_extensions = Filter.filter({
+            'host': 'example.com',
+            'ignore_extensions': 'asp,jsp',
+        })
+
+        self.assertEqual(with_extensions['extensions'], 'php,json')
+        self.assertEqual(with_ignore_extensions['ignore_extensions'], 'asp,jsp')
+
     def test_filter_should_reject_proxy_transport_profiles(self):
         """Filter.validate_transport_options() should reject profile lists in proxy mode."""
 

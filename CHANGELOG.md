@@ -12,6 +12,7 @@ v5.16.0 (11.05.2026)
 - (fix) graceful handling for unavailable standalone SOCKS/HTTP proxies.
 - (fix) authenticated HTTP proxy support for HTTPS CONNECT requests and masked proxy credentials in debug, warning, and error output.
 - (fix) cleaned WAF/header-bypass diagnostics: cookie accept debug now logs once, watchdog tracks long-running probe heartbeats, and piped logs no longer include ANSI clear-line sequences.
+- (fix) extension filters: `--extensions` and `--ignore-extensions` are now mutually exclusive, extension matching handles query strings/fragments, matching is case-insensitive, and documentation now describes `--extensions` as a filter rather than generation.
 - (feature) added `--waf-guard` with configurable `--waf-guard-after` and `--waf-guard-threshold` to stop scans early when initial classified responses are overwhelmingly WAF-blocked.
 - (feature) added `--diff` to compare exactly two previous/current OpenDoor SQLite or JSON reports and show added, removed and changed findings without running a new scan.
 - (feature) added `--sniff malware` to passively classify suspicious malware, webshell, injected script and obfuscated payload indicators into the `malware` bucket with structured metadata across runtime output and reports.

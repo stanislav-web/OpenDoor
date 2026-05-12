@@ -141,6 +141,22 @@ class TestDiffStdoutFormatter(unittest.TestCase):
 
         self.assertIn('    location: /login -> -', output)
 
+    def test_formatter_includes_redirect_location_on_finding_lines(self):
+        """Formatter should append redirect locations when a finding carries one."""
+
+        redirect = finding(
+            'redirect',
+            'https://example.com/start',
+            status='302',
+            location='https://example.com/final',
+        )
+        output = DiffStdoutFormatter().format(compare([], [redirect]))
+
+        self.assertIn(
+            'Added:\n  [redirect] 302 1KB https://example.com/start -> https://example.com/final',
+            output,
+        )
+
 
 if __name__ == '__main__':
     unittest.main()
