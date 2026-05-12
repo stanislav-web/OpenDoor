@@ -68,6 +68,7 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - controlled header and path bypass probes for blocked `401` and `403` resources;
 - resumable scan sessions with checkpoint autosave for long term scans;
 - CI/CD fail-on result bucket rules;
+- differential report comparison for previous/current JSON or SQLite reports;
 - reports in terminal, text, JSON, CSV, HTML, SARIF and SQLite formats;
 - proxy, OpenVPN, and WireGuard transport profiles;
 - sequential per-target transport rotation for batch workflows;
@@ -93,6 +94,7 @@ OpenDoor focuses on **context-aware discovery** instead of blind enumeration.
 | **Transport-level workflows** | OpenDoor supports direct, proxy, OpenVPN, and WireGuard transport modes. It can also rotate transport profiles per target in authorized batch scans, which is not the same as manually starting a VPN before running a scanner. |
 | **Resumable long scans** | OpenDoor can save scan checkpoints and resume later. This matters when scans are interrupted by crashes, unstable networks, blocked routes, terminal disconnects, or long multi-target jobs. |
 | **Runtime pause/resume** | Press `Ctrl+C` once during a scan to pause workers, then choose `C` to continue or `E` to abort without involving session files. |
+| **Differential report comparison** | OpenDoor can compare a previous and current SQLite/JSON report with `--diff old:new`, showing added, removed, and changed findings without rescanning the target. This turns scan reports into release-to-release exposure regression checks. |
 | **CI/CD-ready results** | OpenDoor can return a failing exit code only when selected result buckets are found, making it usable as a release gate or exposure regression check without custom post-processing scripts. |
 | **Auditable engineering** | OpenDoor is maintained with multi-platform CI, coverage checks, package checks, documentation builds, and a large unittest suite, making it easier to audit, contribute to, and depend on. |
 
@@ -403,6 +405,17 @@ More examples:
 - [CI/CD examples](https://opendoor.readthedocs.io/examples/ci-cd/)
 
 ---
+
+### Differential report comparison
+
+OpenDoor can compare exactly two previous/current reports without running a new scan. Use this when you want to see what appeared, disappeared, or changed between two authorized scan results.
+
+Supported input pairs are SQLite-to-SQLite and JSON-to-JSON only. Mixed formats, missing files, invalid reports, and unsupported report types fail with a graceful validation error.
+
+```bash
+opendoor --diff reports/baseline/example.com.sqlite:reports/current/example.com.sqlite --reports std,json
+opendoor --diff reports/baseline/example.com.json:reports/current/example.com.json --reports std,json --reports-dir ./diff
+```
 
 ### SARIF reports for CI/CD
 

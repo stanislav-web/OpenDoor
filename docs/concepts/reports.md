@@ -121,6 +121,38 @@ Open Redirect Verification columns:
 
 ---
 
+## Differential report comparison
+
+`--diff` compares two existing OpenDoor reports and shows how the discovered surface changed between a previous and a current state. It is a local report-comparison command, not a scan mode against the target.
+
+Supported input pairs:
+
+| Input pair | Supported | Notes |
+|---|---:|---|
+| `old.sqlite:new.sqlite` | yes | Preferred for structured local report comparison |
+| `old.json:new.json` | yes | Useful for portable CI artifacts |
+| `old.sqlite:new.json` | no | Mixed formats are rejected |
+| TXT / CSV / HTML / SARIF | no | These are output/reporting formats, not diff inputs |
+
+Example:
+
+```shell
+opendoor --diff baseline.sqlite:current.sqlite --reports std,json --reports-dir ./diff
+```
+
+The terminal output includes:
+
+- `added` findings that exist only in the current report;
+- `removed` findings that exist only in the previous report;
+- `changed` findings where the same endpoint changed status, bucket, size or redirect location;
+- `unchanged` count for stable findings.
+
+When JSON output is requested, OpenDoor writes `opendoor-diff.json`. The JSON structure is deterministic and contains `summary`, `added`, `removed` and `changed` keys.
+
+Validation is strict by design. Diff mode accepts exactly two same-format reports. Missing files, directories, invalid JSON, invalid SQLite files, unsupported schemas and malformed `--diff` values return graceful errors. Diff mode does not send HTTP requests, does not require `--host`, does not run the scan engine and does not store comparison history.
+
+---
+
 ## SARIF
 
 ```shell

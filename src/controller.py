@@ -16,6 +16,9 @@
     Development: Stanislav WEB
 """
 
+import json
+import os
+
 from src.core.decorators import execution_time
 from src.lib import ArgumentsError
 from src.lib import BrowserError
@@ -28,6 +31,7 @@ from src.lib import events
 from src.lib import package
 from src.lib import reporter
 from src.lib import tpl
+from src.lib.diff import DiffReportComparator, DiffReportReader, DiffResultSerializer, DiffStdoutFormatter, DiffValidationError
 from src.lib.browser.session import SessionManager, SessionError
 from src.core.network import NetworkTransportManager, NetworkTransportError
 from .exceptions import SrcError
@@ -72,6 +76,9 @@ class Controller(object):
         try:
             tpl.message(package.banner())
 
+            if 'diff' in self.ioargs:
+                return getattr(self, 'diff_action')(self.ioargs) or 0
+
             if 'host' in self.ioargs or 'targets' in self.ioargs or 'wizard' in self.ioargs or 'session_load' in self.ioargs:
                 return getattr(self, 'scan_action')(self.ioargs) or 0
 
@@ -85,6 +92,80 @@ class Controller(object):
 
         except (SrcError, PackageError, BrowserError, AttributeError) as error:
             raise SrcError(tpl.error(error))
+
+    @classmethod
+    def diff_action(cls, params):
+        """
+        Compare two OpenDoor reports without running a scan.
+
+        :param dict params: console input args
+        :raise SrcError:
+        :return: int
+        """
+
+        try:
+            previous, current = DiffReportReader().read_pair(params.get('diff'))
+            result = DiffReportComparator().compare(previous, current)
+            tpl.message(DiffStdoutFormatter().format(result))
+
+            if cls._diff_should_write_json(params):
+                output_path = cls._write_diff_json(params, result)
+                tpl.info(msg='JsonDiffReport : {0}'.format(output_path))
+
+            return 0
+        except (DiffValidationError, OSError, TypeError, ValueError) as error:
+            raise SrcError(error)
+
+    @staticmethod
+    def _diff_should_write_json(params):
+        """
+        Check whether diff JSON output was requested.
+
+        :param dict params:
+        :return: bool
+        """
+
+        reports = params.get('reports') or 'std'
+        return 'json' in [item.strip().lower() for item in str(reports).split(',')]
+
+    @staticmethod
+    def _diff_reports_dir(params):
+        """
+        Resolve diff output directory.
+
+        :param dict params:
+        :return: str
+        """
+
+        reports_dir = params.get('reports_dir')
+        if isinstance(reports_dir, list):
+            reports_dir = reports_dir[0] if reports_dir else None
+
+        if reports_dir is None:
+            reports_dir = os.getcwd()
+
+        return os.path.abspath(str(reports_dir))
+
+    @classmethod
+    def _write_diff_json(cls, params, result):
+        """
+        Write deterministic JSON diff output.
+
+        :param dict params:
+        :param DiffResult result:
+        :raise OSError:
+        :return: str
+        """
+
+        output_dir = cls._diff_reports_dir(params)
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, 'opendoor-diff.json')
+
+        with open(output_path, 'w', encoding='utf-8') as handler:
+            json.dump(DiffResultSerializer().serialize(result), handler, indent=2, sort_keys=True)
+            handler.write('\n')
+
+        return output_path
 
     @staticmethod
     def examples_action():

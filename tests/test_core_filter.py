@@ -1219,5 +1219,41 @@ class TestFilter(unittest.TestCase):
         self.assertIn('--transport-profiles cannot be used with --transport proxy', str(ctx.exception))
 
 
+    def test_filter_accepts_diff_mode_with_std_and_json_reports(self):
+        """Filter.filter() should normalize diff mode without scan targets."""
+
+        actual = Filter.filter({
+            'diff': 'old.sqlite:new.sqlite',
+            'reports': 'std,json,json',
+            'reports_dir': ['/tmp/reports'],
+            'debug': 0,
+        })
+
+        self.assertEqual(actual, {
+            'diff': 'old.sqlite:new.sqlite',
+            'reports': 'std,json',
+            'reports_dir': '/tmp/reports',
+            'debug': 0,
+        })
+
+    def test_filter_rejects_diff_output_reports_outside_std_and_json(self):
+        """Filter.filter() should reject unsupported diff output reports."""
+
+        with self.assertRaisesRegex(FilterError, 'supports only'):
+            Filter.filter({'diff': 'old.sqlite:new.sqlite', 'reports': 'html'})
+
+    def test_filter_rejects_diff_with_scan_targets(self):
+        """Filter.filter() should keep diff mode isolated from scan target options."""
+
+        with self.assertRaisesRegex(FilterError, 'cannot be used together'):
+            Filter.filter({'diff': 'old.sqlite:new.sqlite', 'host': 'example.com'})
+
+    def test_diff_reports_requires_at_least_one_supported_report(self):
+        """Filter.diff_reports() should reject empty report selections."""
+
+        with self.assertRaisesRegex(FilterError, 'requires at least one report'):
+            Filter.diff_reports('')
+
+
 if __name__ == '__main__':
     unittest.main()

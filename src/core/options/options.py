@@ -46,6 +46,7 @@ class Options(object):
             'calibration': "Auto-calibration tools",
             'network': "Network transport tools",
             'ci': "CI/CD tools",
+            'diff': "Diff tools",
             'report': "Reports tools",
             'filter': "Response filters",
             'app': "Application tools"
@@ -440,6 +441,15 @@ class Options(object):
                 "type": str
             },
             {
+                "group": "diff",
+                "args": None,
+                "argl": "--diff",
+                "default": None,
+                "action": "store",
+                "help": "Compare two OpenDoor reports: old.sqlite:new.sqlite or old.json:new.json",
+                "type": str
+            },
+            {
                 "group": "report",
                 "args": None,
                 "argl": "--reports-dir",
@@ -741,6 +751,7 @@ class Options(object):
                     and True is not getattr(self.args, 'stdin', False) \
                     and not getattr(self.args, 'raw_request', None) \
                     and not getattr(self.args, 'session_load', None) \
+                    and not getattr(self.args, 'diff', None) \
                     and True is not self.args.version \
                     and True is not self.args.update \
                     and True is not self.args.docs \

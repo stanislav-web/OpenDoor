@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import os
+import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -7,6 +9,7 @@ from src import Controller, SrcError
 from src.core.logger.logger import Logger
 from src.lib import ArgumentsError, BrowserError, PackageError, ReporterError
 from src.core.network.exceptions import NetworkTransportError
+from src.lib.diff import DiffValidationError
 
 
 class TestController(unittest.TestCase):
@@ -1045,6 +1048,86 @@ class TestController(unittest.TestCase):
             'transport_timeout': 15,
             'transport_healthcheck_url': 'https://example.com/ip',
         })
+
+
+    def test_run_dispatches_to_diff_action_before_scan(self):
+        """Controller.run() should route diff mode without starting a scan."""
+
+        controller = self.make_controller({'diff': 'old.sqlite:new.sqlite', 'reports': 'std'})
+
+        with patch('src.controller.package.banner', return_value='banner'), \
+                patch('src.controller.tpl.message'), \
+                patch.object(Controller, 'diff_action', return_value=0) as diff_mock, \
+                patch.object(Controller, 'scan_action') as scan_mock, \
+                patch('src.controller.tpl.debug'):
+            actual = controller.run()
+
+        self.assertEqual(actual, 0)
+        diff_mock.assert_called_once_with(controller.ioargs)
+        scan_mock.assert_not_called()
+
+    def test_diff_action_prints_stdout_and_does_not_scan(self):
+        """Controller.diff_action() should compare reports locally and print stdout output."""
+
+        previous = MagicMock()
+        current = MagicMock()
+        result = MagicMock()
+
+        with patch('src.controller.DiffReportReader') as reader_cls, \
+                patch('src.controller.DiffReportComparator') as comparator_cls, \
+                patch('src.controller.DiffStdoutFormatter') as formatter_cls, \
+                patch('src.controller.tpl.message') as message_mock, \
+                patch('src.controller.browser') as browser_mock:
+            reader_cls.return_value.read_pair.return_value = (previous, current)
+            comparator_cls.return_value.compare.return_value = result
+            formatter_cls.return_value.format.return_value = 'diff output\n'
+
+            actual = Controller.diff_action({'diff': 'old.sqlite:new.sqlite', 'reports': 'std'})
+
+        self.assertEqual(actual, 0)
+        reader_cls.return_value.read_pair.assert_called_once_with('old.sqlite:new.sqlite')
+        comparator_cls.return_value.compare.assert_called_once_with(previous, current)
+        message_mock.assert_called_once_with('diff output\n')
+        browser_mock.assert_not_called()
+
+    def test_diff_action_writes_json_when_requested(self):
+        """Controller.diff_action() should write deterministic JSON when reports include json."""
+
+        previous = MagicMock()
+        current = MagicMock()
+        result = MagicMock()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch('src.controller.DiffReportReader') as reader_cls, \
+                    patch('src.controller.DiffReportComparator') as comparator_cls, \
+                    patch('src.controller.DiffStdoutFormatter') as formatter_cls, \
+                    patch('src.controller.DiffResultSerializer') as serializer_cls, \
+                    patch('src.controller.tpl.message'), \
+                    patch('src.controller.tpl.info') as info_mock:
+                reader_cls.return_value.read_pair.return_value = (previous, current)
+                comparator_cls.return_value.compare.return_value = result
+                formatter_cls.return_value.format.return_value = 'diff output\n'
+                serializer_cls.return_value.serialize.return_value = {'summary': {'added': 1}, 'added': [], 'removed': [], 'changed': []}
+
+                actual = Controller.diff_action({
+                    'diff': 'old.sqlite:new.sqlite',
+                    'reports': 'std,json',
+                    'reports_dir': tmpdir,
+                })
+
+            self.assertEqual(actual, 0)
+            output_path = os.path.join(tmpdir, 'opendoor-diff.json')
+            with open(output_path, encoding='utf-8') as handler:
+                self.assertIn('"added": 1', handler.read())
+            info_mock.assert_called_once_with(msg='JsonDiffReport : {0}'.format(output_path))
+
+    def test_diff_action_wraps_validation_errors(self):
+        """Controller.diff_action() should expose graceful diff validation errors."""
+
+        with patch('src.controller.DiffReportReader') as reader_cls:
+            reader_cls.return_value.read_pair.side_effect = DiffValidationError('bad diff')
+            with self.assertRaises(SrcError):
+                Controller.diff_action({'diff': 'bad', 'reports': 'std'})
 
 
 if __name__ == '__main__':

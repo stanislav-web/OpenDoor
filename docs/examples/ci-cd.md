@@ -72,6 +72,30 @@ opendoor \
 
 ---
 
+## Differential report comparison
+
+Use differential comparison when a pipeline already has a previous OpenDoor report artifact and a current report artifact. This command compares the two local files and does not send traffic to the target.
+
+```bash
+opendoor \
+  --diff reports/baseline/example.com.sqlite:reports/current/example.com.sqlite \
+  --reports std,json \
+  --reports-dir ./diff
+```
+
+The same workflow works with JSON-to-JSON reports:
+
+```bash
+opendoor \
+  --diff reports/baseline/example.com.json:reports/current/example.com.json \
+  --reports std,json \
+  --reports-dir ./diff
+```
+
+The diff output highlights new, removed and changed findings. Unsupported or mixed input formats are rejected gracefully, which keeps CI failures explicit and easy to diagnose.
+
+---
+
 ## GitHub Actions example
 
 ```yaml

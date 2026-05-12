@@ -909,6 +909,43 @@ Use SARIF when OpenDoor findings should be uploaded to GitHub Code Scanning or o
 opendoor --host https://example.com --reports json,html --reports-dir ./reports
 ```
 
+### Differential report comparison
+
+Use `--diff` to compare exactly two previous/current OpenDoor reports without running a new scan. This is useful for release checks, nightly exposure regression checks, hardening validation, and CI/CD artifact comparison.
+
+Supported input pairs:
+
+- SQLite to SQLite: `old.sqlite:new.sqlite`;
+- JSON to JSON: `old.json:new.json`.
+
+```shell
+opendoor --diff reports/baseline/example.com.sqlite:reports/current/example.com.sqlite --reports std,json
+opendoor --diff reports/baseline/example.com.json:reports/current/example.com.json --reports std,json --reports-dir ./diff
+```
+
+Diff mode does not require `--host`, does not send HTTP requests, does not start the scan engine, does not use sessions and does not store comparison history. It prints a terminal summary with `added`, `removed`, `changed` and `unchanged` counts. When `--reports json` is selected, OpenDoor writes `opendoor-diff.json` to the selected reports directory.
+
+```text
+Differential scan summary
+old_report: baseline.sqlite
+new_report: current.sqlite
+added: 2
+removed: 1
+changed: 1
+unchanged: 42
+
+Added:
+  [success] GET 200 512B https://example.com/debug
+
+Removed:
+  [forbidden] GET 403 128B https://example.com/admin
+
+Changed:
+  [success] GET 200 2KB https://example.com/admin
+    bucket: forbidden -> success
+    status: 403 -> 200
+```
+
 ---
 
 ## 🧪 CI/CD fail-on rules
