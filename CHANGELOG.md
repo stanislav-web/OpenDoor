@@ -22,6 +22,7 @@ v5.16.0 (11.05.2026)
 - (dependencies) removed unused `six` and replaced `tabulate` in the STD summary reporter with a native psql-like table formatter.
 - (dictionary) bundled `data/shadow-suffixes.dat` in source and wheel distributions so PyPI, Homebrew-style source builds and local installs include the built-in shadow suffix catalog by default.
 - (dictionary) cleaned and normalized inernal directories list
+- (build) added staged Ruff quality gates and advisory Vulture dead-code checks, with updated contributor rules and cleanup documentation.
 
 v5.15.3 (09.05.2026)
 ---------------------------

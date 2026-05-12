@@ -401,7 +401,7 @@ class Filter(object):
         :return: list[str]
         """
 
-        return [line for line in stream.readlines()]
+        return list(stream.readlines())
 
     @staticmethod
     def _clean_target(value):

@@ -51,7 +51,6 @@ class DebugProvider(object):
         :return: bool
         """
 
-        pass
 
     def debug_connection_pool(self, keymsg, pool, connection_type):
         """
@@ -62,7 +61,6 @@ class DebugProvider(object):
         :return: bool
         """
 
-        pass
 
     def debug_proxy_pool(self):
         """
@@ -70,7 +68,6 @@ class DebugProvider(object):
         :return: bool
         """
 
-        pass
 
     def debug_list(self, total_lines):
         """
@@ -79,7 +76,6 @@ class DebugProvider(object):
         :return: bool
         """
 
-        pass
 
     def debug_request(self, request_header, url, method):
         """
@@ -90,7 +86,6 @@ class DebugProvider(object):
         :return: bool
         """
 
-        pass
 
     def debug_response(self, response_header):
         """
@@ -99,7 +94,6 @@ class DebugProvider(object):
         :return: bool
         """
 
-        pass
 
     def debug_request_uri(self, status, request_uri, **kwargs):
         """
@@ -109,7 +103,6 @@ class DebugProvider(object):
         :return: bool
         """
 
-        pass
 
     def debug_load_sniffer_plugin(self, description):
         """
@@ -118,53 +111,42 @@ class DebugProvider(object):
         :return: bool
         """
 
-        pass
     def debug_cookie_accept_enabled(self):
         """Debug active cookie routing."""
 
-        pass
 
     def debug_cookie_accepted(self, cookies):
         """Debug accepted response cookies."""
 
-        pass
 
     def debug_cookie_attached(self, headers):
         """Debug attached request cookies."""
 
-        pass
 
     def debug_auto_calibration_enabled(self):
         """Debug auto-calibration configuration."""
 
-        pass
 
     def debug_header_bypass_skipped(self, status):
         """Debug skipped header-bypass probe."""
 
-        pass
 
     def debug_header_bypass_probing(self, status, variants):
         """Debug header-bypass probe start."""
 
-        pass
 
     def debug_header_bypass_candidate(self, metadata):
         """Debug promising header-bypass candidate."""
 
-        pass
 
     def debug_header_bypass_finished(self):
         """Debug header-bypass probe completion."""
 
-        pass
 
     def debug_recursive_expansion(self, parent_url, child_count, next_depth):
         """Debug recursive queue expansion."""
 
-        pass
 
     def debug_classification(self, status, **kwargs):
         """Debug response classification summary."""
 
-        pass

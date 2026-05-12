@@ -1406,7 +1406,7 @@ def _render_status_code(value):
 
     code = str(value)
 
-    if code.startswith('2') or code.startswith('3'):
+    if code.startswith(('2', '3')):
         badge_class = 'badge badge-success'
     elif code.startswith('4'):
         badge_class = 'badge badge-warning'
@@ -1581,7 +1581,7 @@ def _get_metadata(report_data):
     :rtype: dict
     """
 
-    excluded = set(['items', 'report_items', 'total'])
+    excluded = {'items', 'report_items', 'total'}
 
     return {
         key: value
@@ -1640,7 +1640,7 @@ def _is_http_url(value):
     if not isinstance(value, str):
         return False
 
-    return value.startswith('http://') or value.startswith('https://')
+    return value.startswith(('http://', 'https://'))
 
 
 def _escape(value):

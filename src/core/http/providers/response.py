@@ -1219,7 +1219,6 @@ class ResponseProvider(object):
         :return: dict
         """
 
-        pass
 
     @staticmethod
     def _get_content_size(response):

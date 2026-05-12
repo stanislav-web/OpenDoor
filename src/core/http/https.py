@@ -169,15 +169,12 @@ class HttpsRequest(RequestProvider, DebugProvider):
 
         except HostChangedError as error:
             self.__tpl.warning(key='host_changed_error', details=error)
-            pass
 
         except ReadTimeoutError:
             self.__tpl.warning(key='read_timeout_error', url=url)
-            pass
 
         except ConnectTimeoutError:
             self.__tpl.warning(key='connection_timeout_error', url=url)
-            pass
 
         except SSLError:
             if self.__cfg.DEFAULT_SCAN != self.__cfg.scan:

@@ -1279,7 +1279,7 @@ class TestBrowser(unittest.TestCase):
         setattr(br, '_Browser__reader', reader)
         pool = MagicMock()
         setattr(br, '_Browser__pool', pool)
-        setattr(br, '_Browser__queued_recursive', set(['http://example.com/api/users']))
+        setattr(br, '_Browser__queued_recursive', {'http://example.com/api/users'})
 
         self.assertIsNone(br._Browser__build_recursive_url('http://example.com/api', '   '))
         self.assertEqual(

@@ -981,12 +981,12 @@ class Fingerprint(object):
         if len(labels) < 2:
             return ''
 
-        two_level_public_suffixes = set([
+        two_level_public_suffixes = {
             'co.uk', 'org.uk', 'ac.uk', 'gov.uk',
             'com.ua', 'net.ua', 'org.ua', 'gov.ua',
             'com.au', 'net.au', 'org.au',
             'co.jp', 'com.br', 'com.tr',
-        ])
+        }
         suffix = '.'.join(labels[-2:])
         if suffix in two_level_public_suffixes and len(labels) >= 3:
             return '.'.join(labels[-3:])
@@ -1009,7 +1009,7 @@ class Fingerprint(object):
                 header_values = []
         else:
             header_values = [
-                value for key, value in getattr(raw_headers, 'items', lambda: [])()
+                value for key, value in getattr(raw_headers, 'items', list)()
                 if str(key).lower() == 'set-cookie'
             ]
 
@@ -1277,8 +1277,7 @@ class Fingerprint(object):
             return False
 
         return (
-            body_text.startswith('cannot get /')
-            or body_text.startswith('cannot post /')
+            body_text.startswith(('cannot get /', 'cannot post /'))
             or '<pre>cannot get /' in body_text
             or '<pre>cannot post /' in body_text
         )
@@ -1414,7 +1413,7 @@ class Fingerprint(object):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/wp-login.php', 4)
         if probe_statuses.get('/xmlrpc.php') in [200, 301, 302, 401, 403, 405]:
             self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/xmlrpc.php', 3)
-        if any(cookie.startswith('wordpress_') or cookie.startswith('wp-settings-') for cookie in cookies):
+        if any(cookie.startswith(('wordpress_', 'wp-settings-')) for cookie in cookies):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'cookie', 'wordpress_*', 5)
 
         # Drupal
@@ -1528,7 +1527,7 @@ class Fingerprint(object):
             self._add_signal('WooCommerce', self.ECOMMERCE_CATEGORY, 'markup', 'wc-ajax=', 6)
         if 'woocommerce-notices-wrapper' in body_lower or 'add_to_cart_button' in body_lower:
             self._add_signal('WooCommerce', self.ECOMMERCE_CATEGORY, 'markup', 'woocommerce-notices-wrapper|add_to_cart_button', 5)
-        if any(cookie.startswith('woocommerce_') or cookie.startswith('wp_woocommerce_session_') for cookie in cookies):
+        if any(cookie.startswith(('woocommerce_', 'wp_woocommerce_session_')) for cookie in cookies):
             self._add_signal('WooCommerce', self.ECOMMERCE_CATEGORY, 'cookie', 'woocommerce_*', 7)
 
         # OpenCart
@@ -1600,7 +1599,7 @@ class Fingerprint(object):
             self._add_signal('phpBB', self.CMS_CATEGORY, 'asset', '/styles/prosilver/|prosilver', 6)
         if 'viewtopic.php' in body_lower or 'viewforum.php' in body_lower:
             self._add_signal('phpBB', self.CMS_CATEGORY, 'markup', 'viewtopic.php|viewforum.php', 3)
-        if any(cookie.startswith('phpbb3_') or cookie.startswith('phpbb_') for cookie in cookies):
+        if any(cookie.startswith(('phpbb3_', 'phpbb_')) for cookie in cookies):
             self._add_signal('phpBB', self.CMS_CATEGORY, 'cookie', 'phpbb3_*|phpbb_*', 7)
 
         # Umbraco

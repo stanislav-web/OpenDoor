@@ -206,7 +206,6 @@ class PluginProvider(object):
         :return: mixed
         """
 
-        pass
 
     @classmethod
     def record(cls, dirname, filename, resultset, separator=''):

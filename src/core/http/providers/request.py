@@ -201,7 +201,6 @@ class RequestProvider(CookiesProvider, HeaderProvider, UserAgentHeaderProvider, 
         :return: None
         """
 
-        pass
 
     def cookies_middleware(self, is_accept, response):
         """

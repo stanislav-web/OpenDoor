@@ -306,7 +306,7 @@ class FileSystem(object):
                     current_lines = {}
                     current_lines_count = 0
                     current_chunk = order[:chunk_size]
-                    current_chunk_dict = dict((line_number, True) for line_number in current_chunk)
+                    current_chunk_dict = dict.fromkeys(current_chunk, True)
                     current_chunk_length = len(current_chunk)
                     order = order[chunk_size:]
 

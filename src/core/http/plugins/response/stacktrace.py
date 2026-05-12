@@ -182,7 +182,7 @@ class StacktraceResponsePlugin(ResponsePluginProvider):
         if content_type in self.TEXTUAL_CONTENT_TYPES:
             return True
 
-        if content_type.endswith('+json') or content_type.endswith('+xml'):
+        if content_type.endswith(('+json', '+xml')):
             return True
 
         return False

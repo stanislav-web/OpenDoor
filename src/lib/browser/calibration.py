@@ -594,7 +594,7 @@ class Calibration(object):
 
         value = str(body or '').lstrip().lower()
 
-        if value.startswith('{') or value.startswith('['):
+        if value.startswith(('{', '[')):
             return 'json'
 
         if '<html' in value or '<!doctype html' in value or re.search(r'<[a-z][^>]*>', value):

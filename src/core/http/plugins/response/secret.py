@@ -175,7 +175,7 @@ class SecretResponsePlugin(ResponsePluginProvider):
         """
 
         top = max(findings, key=lambda item: item.get('confidence', 0))
-        types = sorted(set([item.get('type') for item in findings if item.get('type')]))
+        types = sorted({item.get('type') for item in findings if item.get('type')})
 
         return {
             'type': top.get('type'),
@@ -253,7 +253,7 @@ class SecretResponsePlugin(ResponsePluginProvider):
         if content_type in cls.TEXTUAL_CONTENT_TYPES:
             return True
 
-        if content_type.endswith('+json') or content_type.endswith('+xml'):
+        if content_type.endswith(('+json', '+xml')):
             return True
 
         for item in cls.BINARY_CONTENT_TYPES:

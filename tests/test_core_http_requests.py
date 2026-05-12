@@ -19,21 +19,21 @@ class TestHttpRequest(unittest.TestCase):
     """TestHttpRequest class."""
 
     def make_cfg(self, **kwargs):
-        base = dict(
-            host='example.com',
-            port=80,
-            threads=1,
-            timeout=1,
-            keep_alive=False,
-            DEFAULT_SCAN='directories',
-            scan='directories',
-            retries=False,
-            accept_cookies=False,
-            method='HEAD',
-            scheme='http://',
-            is_random_user_agent=False,
-            user_agent='UA',
-        )
+        base = {
+            'host': 'example.com',
+            'port': 80,
+            'threads': 1,
+            'timeout': 1,
+            'keep_alive': False,
+            'DEFAULT_SCAN': 'directories',
+            'scan': 'directories',
+            'retries': False,
+            'accept_cookies': False,
+            'method': 'HEAD',
+            'scheme': 'http://',
+            'is_random_user_agent': False,
+            'user_agent': 'UA',
+        }
         base.update(kwargs)
         return SimpleNamespace(**base)
 
@@ -162,21 +162,21 @@ class TestHttpsRequest(unittest.TestCase):
     """TestHttpsRequest class."""
 
     def make_cfg(self, **kwargs):
-        base = dict(
-            host='example.com',
-            port=443,
-            threads=1,
-            timeout=1,
-            keep_alive=False,
-            DEFAULT_SCAN='directories',
-            scan='directories',
-            retries=False,
-            accept_cookies=False,
-            method='HEAD',
-            scheme='https://',
-            is_random_user_agent=False,
-            user_agent='UA',
-        )
+        base = {
+            'host': 'example.com',
+            'port': 443,
+            'threads': 1,
+            'timeout': 1,
+            'keep_alive': False,
+            'DEFAULT_SCAN': 'directories',
+            'scan': 'directories',
+            'retries': False,
+            'accept_cookies': False,
+            'method': 'HEAD',
+            'scheme': 'https://',
+            'is_random_user_agent': False,
+            'user_agent': 'UA',
+        }
         base.update(kwargs)
         return SimpleNamespace(**base)
 
@@ -308,24 +308,24 @@ class TestProxy(unittest.TestCase):
     """TestProxy class."""
 
     def make_cfg(self, **kwargs):
-        base = dict(
-            host='example.com',
-            port=80,
-            threads=1,
-            timeout=1,
-            keep_alive=False,
-            DEFAULT_SCAN='directories',
-            scan='directories',
-            retries=False,
-            accept_cookies=False,
-            method='HEAD',
-            scheme='http://',
-            is_random_user_agent=False,
-            user_agent='UA',
-            is_standalone_proxy=False,
-            proxy='',
-            is_proxy_pool=False,
-        )
+        base = {
+            'host': 'example.com',
+            'port': 80,
+            'threads': 1,
+            'timeout': 1,
+            'keep_alive': False,
+            'DEFAULT_SCAN': 'directories',
+            'scan': 'directories',
+            'retries': False,
+            'accept_cookies': False,
+            'method': 'HEAD',
+            'scheme': 'http://',
+            'is_random_user_agent': False,
+            'user_agent': 'UA',
+            'is_standalone_proxy': False,
+            'proxy': '',
+            'is_proxy_pool': False,
+        }
         base.update(kwargs)
         return SimpleNamespace(**base)
 

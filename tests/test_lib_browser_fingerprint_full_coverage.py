@@ -434,7 +434,6 @@ class TestFingerprintFullCoverage(unittest.TestCase):
         class HeadersWithoutItems(object):
             """Header object without items() to exercise the empty fallback branch."""
 
-            pass
 
         class BrokenHeaderBag(object):
             """Cookie bag with a failing getlist() implementation."""

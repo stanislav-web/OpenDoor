@@ -35,7 +35,6 @@ class TestBrowserThreadPool(unittest.TestCase):
         :param arg: Arbitrary argument.
         :return: None
         """
-        pass
 
     def setUp(self):
         """

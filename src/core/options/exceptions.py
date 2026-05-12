@@ -23,7 +23,6 @@ from argparse import ArgumentParser
 class ArgumentParserError(Exception):
 
     """ArgumentParserError class"""
-    pass
 
 
 class ThrowingArgumentParser(ArgumentParser):
