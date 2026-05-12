@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import io
 import unittest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch

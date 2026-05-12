@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from urllib.error import URLError
 
-from src.core import CoreSystemError, FileSystemError
+from src.core import FileSystemError
 from src.core.logger.logger import Logger
 from src.lib.package import Package, PackageError
 

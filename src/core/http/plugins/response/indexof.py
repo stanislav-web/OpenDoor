@@ -83,7 +83,7 @@ class IndexofResponsePlugin(ResponsePluginProvider):
     LINK_PATTERN = re.compile(r'href=["\']([^"\']+)["\']', re.IGNORECASE)
     LINK_SKIP_PREFIXES = ('#', '?', '/', '//', 'javascript:', 'mailto:', 'tel:', 'data:')
 
-    def __init__(self, void):
+    def __init__(self, _void):
         """
         ResponsePluginProvider constructor.
         """

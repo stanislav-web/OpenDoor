@@ -24,7 +24,7 @@ for _ in ['urllib3', 'importlib', 'packaging']:
     try:
         __import__(_)
     except ImportError as error:
-        sys.exit("""\t\t[!] Several dependencies wasn't installed! Please run pip3 install -r requirements.txt. 
+        sys.exit("""\t\t[!] Several dependencies wasn't installed! Please run pip3 install -r requirements.txt.
         Details : %s.""" % error)
 
 if __name__ == "__main__":

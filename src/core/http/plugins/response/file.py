@@ -63,7 +63,7 @@ class FileResponsePlugin(ResponsePluginProvider):
         'image/svg+xml',
     )
 
-    def __init__(self, void):
+    def __init__(self, _void):
         """
         ResponsePluginProvider constructor.
         """

@@ -15,31 +15,40 @@ target-version = "py312"
 src = ["src", "tests"]
 extend-exclude = [
     ".venv",
+    ".docs-venv",
     "build",
     "dist",
     "htmlcov",
+    "site",
 ]
 
 [tool.ruff.lint]
 select = [
-    "E",
-    "F",
-    "W",
+    "E",  # pycodestyle errors
+    "F",  # Pyflakes: undefined names, unused imports, unused variables
+    "W",  # pycodestyle warnings
+    "B",  # bugbear: likely bugs
 ]
 ignore = [
-    "E721",
-    "E722",
-    "F632",
+    "E501", # legacy line length debt; clean separately
+    "E721", # legacy type comparisons; clean separately
+    "E722", # legacy bare except; clean separately
+    "F632", # legacy literal comparison; clean separately
+
+    # Legacy bugbear/style debt; keep advisory for now.
+    "B009",
+    "B010",
+    "B017",
+    "B026",
+    "B904",
+    "B905",
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "src/**/__init__.py" = [
-    "F401", # package re-exports / legacy public aliases
+    "F401", # package-level re-exports / public aliases
 ]
 "tests/**/*.py" = [
-    "F401",
-]
-".github/**/*.py" = [
     "ARG001",
     "ARG002",
     "ARG005",
@@ -49,6 +58,11 @@ ignore = [
     "B010",
     "RET501",
     "SIM108",
+]
+".github/**/*.py" = [
+    "ARG001",
+    "ARG002",
+    "ARG005",
 ]
 
 [tool.ruff.format]

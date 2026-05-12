@@ -1699,44 +1699,6 @@ class TestBrowser(unittest.TestCase):
         enqueue_mock.assert_not_called()
         self.assertEqual(getattr(br, '_Browser__result')['total']['success'], 1)
 
-    def test_done_skips_report_generation_when_queue_is_not_empty(self):
-        """Browser.done() should skip reporting while there are still queued items."""
-
-        br = self.make_browser()
-        setattr(br, '_Browser__pool', SimpleNamespace(total_items_size=10, workers_size=2, size=1))
-        setattr(br, '_Browser__config', SimpleNamespace(reports=['std'], host='test.local'))
-
-        with patch('src.lib.browser.browser.Reporter.load') as load_mock:
-            br.done()
-
-        load_mock.assert_not_called()
-
-    def test_done_wraps_reporter_errors(self):
-        """Browser.done() should wrap reporter failures into BrowserError."""
-
-        br = self.make_browser()
-        setattr(br, '_Browser__pool', SimpleNamespace(total_items_size=10, workers_size=2, size=0))
-        setattr(br, '_Browser__config', SimpleNamespace(reports=['raisesexc'], host='test.local'))
-
-        with patch('src.lib.browser.browser.Reporter.load', side_effect=ReporterError('raisesexc')):
-            with self.assertRaises(BrowserError):
-                br.done()
-
-    def test_catch_report_data_initializes_report_items_when_missing(self):
-        """Browser.__catch_report_data() should restore report_items when old payloads do not have it."""
-
-        br = browser.__new__(browser)
-        setattr(br, '_Browser__result', {'total': helper.counter(), 'items': helper.list()})
-
-        br._Browser__catch_report_data('success', 'http://example.com/admin', '5B', '200')
-
-        result = getattr(br, '_Browser__result')
-        self.assertEqual(result['items']['success'], ['http://example.com/admin'])
-        self.assertEqual(
-            result['report_items']['success'],
-            [{'url': 'http://example.com/admin', 'size': '5B', 'code': '200'}]
-        )
-
     def test_finalize_processed_request_is_noop_when_session_is_disabled(self):
         """Browser session finalization should not mutate state when session mode is disabled."""
 

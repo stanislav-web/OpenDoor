@@ -21,7 +21,7 @@ class SecretResponsePlugin(ResponsePluginProvider):
     DESCRIPTION = 'Secret Leak (detect leaked API keys, JWTs, cloud keys and DB credentials)'
     RESPONSE_INDEX = 'secret'
 
-    def __init__(self, void):
+    def __init__(self, _void):
         """
         ResponsePluginProvider constructor.
 

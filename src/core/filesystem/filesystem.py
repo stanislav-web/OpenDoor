@@ -392,11 +392,8 @@ class FileSystem(object):
 
         filepath = FileSystem._resolve_readable_file(filename)
 
-        count = 0
         with open(filepath, 'r', encoding=FileSystem.text_encoding) as f_handler:
-            for count, _line in enumerate(f_handler, start=1):
-                pass
-        return count
+            return sum(1 for _line in f_handler)
 
     @staticmethod
     def readcfg(filename):

@@ -11,7 +11,7 @@ class OpenredirectResponsePlugin(ResponsePluginProvider):
     DESCRIPTION = 'Open Redirect (verify controlled external redirect targets)'
     RESPONSE_INDEX = 'openredirect'
 
-    def __init__(self, void):
+    def __init__(self, _void):
         """Create response plugin marker.
 
         :param mixed void: optional plugin value, unused

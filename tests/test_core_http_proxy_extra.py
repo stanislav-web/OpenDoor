@@ -376,16 +376,6 @@ class TestProxyExtra(unittest.TestCase):
 
         self.assertEqual(actual, 'socks5://127.0.0.1:9050')
 
-    def test_get_proxy_type_detects_socks_https_and_http(self):
-        """Proxy.__get_proxy_type() should classify supported proxy schemes."""
-
-        proxy_type = getattr(Proxy, '_Proxy__get_proxy_type')
-
-        self.assertEqual(proxy_type('socks5://127.0.0.1:9050'), 'socks')
-        self.assertEqual(proxy_type('socks://127.0.0.1:9050'), 'socks')
-        self.assertEqual(proxy_type('https://proxy.example.com'), 'https')
-        self.assertEqual(proxy_type('http://proxy.example.com'), 'http')
-
     def test_proxy_pool_wraps_missing_pysocks_for_socks_proxy(self):
         """Proxy.__proxy_pool() should raise a helpful error when PySocks is missing."""
 

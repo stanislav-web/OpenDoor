@@ -1300,7 +1300,8 @@ class TestFingerprint(unittest.TestCase):
             ('ASP.NET', '.NET', {'X-Powered-By': 'ASP.NET', 'X-AspNet-Version': '4.0', 'Set-Cookie': 'ASP.NET_SessionId=abc; Path=/'}, '<input name="__VIEWSTATE" value="x">'),
         ]
         for expected_name, expected_runtime, headers, body in cases:
-            config = FakeConfig(); base = 'http://example.com/'
+            config = FakeConfig()
+            base = 'http://example.com/'
             responses = {('GET', base): FakeResponse(200, body, headers), ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Cannot GET /.well-known/missing-resource.txt', headers)}
             result = Fingerprint(config=config, client=self._make_client(config, responses)).detect()
             self.assertEqual(result['name'], expected_name)

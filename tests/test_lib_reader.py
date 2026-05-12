@@ -20,7 +20,7 @@ import os
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from src.core.filesystem.exceptions import FileSystemError
 from src.core.logger.logger import Logger

@@ -11,7 +11,7 @@ class ShadowResponsePlugin(ResponsePluginProvider):
     DESCRIPTION = 'Shadow Copy (probe backups for 200 OK file hits)'
     RESPONSE_INDEX = 'shadow'
 
-    def __init__(self, void):
+    def __init__(self, _void):
         """
         ResponsePluginProvider constructor.
 

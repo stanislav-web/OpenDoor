@@ -124,7 +124,7 @@ class StacktraceResponsePlugin(ResponsePluginProvider):
         },
     )
 
-    def __init__(self, void):
+    def __init__(self, _void):
         """
         ResponsePluginProvider constructor.
 

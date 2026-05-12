@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 from src.lib.reporter.plugins.csv import CsvReportPlugin
-from src.lib.reporter.plugins.html import HtmlReportPlugin, render_html_report
+from src.lib.reporter.plugins.html import render_html_report
 from src.lib.reporter.plugins.json import JsonReportPlugin
 from src.lib.reporter.plugins.provider.provider import PluginProvider
 from src.lib.reporter.plugins.sarif import SarifReportPlugin

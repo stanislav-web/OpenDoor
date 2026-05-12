@@ -4,9 +4,7 @@ import unittest
 
 from src.lib.browser.sniffers import (
     SnifferCatalog,
-    SnifferContext,
     SnifferDescriptor,
-    SnifferEngine,
     SnifferResult,
 )
 

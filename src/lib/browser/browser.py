@@ -30,7 +30,6 @@ from src.core import request_proxy
 from src.core import request_https
 from src.core import response
 from src.core import socket
-from src.core import sys as output
 from src.lib.reader import Reader, ReaderError
 from src.lib.reporter import Reporter, ReporterError
 from src.lib.tpl import Tpl as tpl
