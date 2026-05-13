@@ -260,10 +260,12 @@ class TestBrowser(unittest.TestCase):
         setattr(br, '_Browser__config', self.browser_configuration({'reports': 'std', 'host': 'example.com', 'port': 80}))
 
         with patch('src.lib.browser.browser.socket.ping', return_value=None) as mock_ping, \
+                patch('src.lib.browser.browser.socket.get_ips_addresses', return_value='[127.0.0.1]') as mock_ips, \
                 patch('src.lib.browser.browser.socket.get_ip_address', return_value='127.0.0.1') as mock_ip:
             self.assertIs(br.ping(), None)
             mock_ping.assert_called_once()
-            mock_ip.assert_called_once_with('example.com')
+            mock_ips.assert_called_once_with('example.com')
+            mock_ip.assert_not_called()
 
     def test_ping_wraps_socket_errors(self):
         """Browser.ping() should wrap socket failures into BrowserError."""
@@ -274,6 +276,22 @@ class TestBrowser(unittest.TestCase):
         with patch('src.lib.browser.browser.socket.ping', side_effect=SocketError('offline')):
             with self.assertRaises(BrowserError):
                 br.ping()
+
+    def test_ping_debugs_preflight_failure_details(self):
+        """Browser.ping() should print actionable debug details for preflight failures."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({'reports': 'std', 'host': 'example.com', 'port': 80}))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
+
+        with patch('src.lib.browser.browser.socket.ping', side_effect=SocketError('offline details')), \
+                patch('src.lib.browser.browser.tpl.debug') as debug_mock:
+            with self.assertRaises(BrowserError):
+                br.ping()
+
+        messages = [call.kwargs.get('msg', '') for call in debug_mock.call_args_list]
+        self.assertTrue(any('Connection preflight: scheme=' in message for message in messages))
+        self.assertTrue(any('Connection preflight failed: offline details' in message for message in messages))
 
     def test_start_request_provider_uses_proxy_client(self):
         """Browser should choose proxy request provider when proxy mode is enabled."""

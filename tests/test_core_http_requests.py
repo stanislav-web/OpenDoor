@@ -412,11 +412,10 @@ class TestSocket(unittest.TestCase):
         """Socket helpers should ping and resolve IP addresses."""
 
         fake_socket = MagicMock()
-        with patch('src.core.http.socks.socket.socket', return_value=fake_socket):
+        with patch('src.core.http.socks.socket.create_connection', return_value=fake_socket) as connect_mock:
             Socket.ping('example.com', 80, timeout=1)
 
-        fake_socket.settimeout.assert_called_once_with(1)
-        fake_socket.connect.assert_called_once_with(('example.com', 80))
+        connect_mock.assert_called_once_with(('example.com', 80), timeout=1)
         fake_socket.close.assert_called_once()
 
         with patch('src.core.http.socks.socket.gethostbyname', return_value='127.0.0.1'):
@@ -428,12 +427,15 @@ class TestSocket(unittest.TestCase):
     def test_socket_wraps_errors(self):
         """Socket helpers should wrap low-level socket errors."""
 
-        fake_socket = MagicMock()
-        fake_socket.connect.side_effect = OSError('boom')
-
-        with patch('src.core.http.socks.socket.socket', return_value=fake_socket):
-            with self.assertRaises(SocketError):
+        with patch('src.core.http.socks.socket.create_connection', side_effect=OSError('boom')), \
+                patch('src.core.http.socks.socket.getaddrinfo', return_value=[
+                    (socket.AF_INET, socket.SOCK_STREAM, 6, '', ('127.0.0.1', 80)),
+                ]):
+            with self.assertRaises(SocketError) as context:
                 Socket.ping('example.com', 80)
+
+        self.assertIn('Unable to connect to example.com:80 within 10s', str(context.exception))
+        self.assertIn('127.0.0.1', str(context.exception))
 
         with patch('src.core.http.socks.socket.gethostbyname', side_effect=socket.gaierror('boom')):
             with self.assertRaises(SocketError):

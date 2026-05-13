@@ -214,11 +214,31 @@ class Browser(Filter):
 
         try:
             tpl.info(key='checking_connect', host=self.__config.host, port=self.__config.port)
-            socket.ping(self.__config.host, self.__config.port, self.__config.DEFAULT_SOCKET_TIMEOUT)
+
+            debugger = getattr(self, '_Browser__debug', None)
+            preflight_timeout = getattr(self.__config, 'timeout', self.__config.DEFAULT_SOCKET_TIMEOUT)
+            if getattr(debugger, 'is_scan_debug', lambda: False)() is True:
+                tpl.debug(
+                    msg=(
+                        'Connection preflight: scheme={scheme} host={host} port={port} '
+                        'timeout={timeout}s transport={transport}'
+                    ).format(
+                        scheme=self.__config.scheme,
+                        host=self.__config.host,
+                        port=self.__config.port,
+                        timeout=preflight_timeout,
+                        transport=getattr(self.__config, 'transport', 'direct'),
+                    )
+                )
+
+            socket.ping(self.__config.host, self.__config.port, preflight_timeout)
             tpl.info(key='online', host=self.__config.host, port=self.__config.port,
-                     ip=socket.get_ip_address(self.__config.host))
+                     ip=socket.get_ips_addresses(self.__config.host) or socket.get_ip_address(self.__config.host))
 
         except SocketError as error:
+            debugger = getattr(self, '_Browser__debug', None)
+            if getattr(debugger, 'is_scan_debug', lambda: False)() is True:
+                tpl.debug(msg='Connection preflight failed: {0}'.format(error))
             raise BrowserError(error)
 
     def scan(self):
