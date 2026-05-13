@@ -293,6 +293,214 @@ class TestBrowser(unittest.TestCase):
         self.assertTrue(any('Connection preflight: scheme=' in message for message in messages))
         self.assertTrue(any('Connection preflight failed: offline details' in message for message in messages))
 
+    def test_ping_proxy_mode_checks_proxy_without_direct_target_preflight(self):
+        """Browser.ping() should probe explicit proxy endpoint instead of target in proxy mode."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'target.local',
+            'port': 443,
+            'ssl': True,
+            'proxy': 'http://user:pass@127.0.0.1:8080',
+            'timeout': 5,
+        }))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
+
+        with patch('src.lib.browser.browser.socket.ping', return_value=None) as ping_mock, \
+                patch('src.lib.browser.browser.tpl.info') as info_mock, \
+                patch('src.lib.browser.browser.tpl.debug') as debug_mock:
+            self.assertIsNone(br.ping())
+
+        ping_mock.assert_called_once_with('127.0.0.1', 8080, 5.0)
+        self.assertTrue(any(
+            'Direct target preflight skipped' in call.kwargs.get('msg', '')
+            for call in info_mock.call_args_list
+        ))
+        self.assertTrue(any(
+            'proxy=http://user:*****@127.0.0.1:8080' in call.kwargs.get('msg', '')
+            for call in debug_mock.call_args_list
+        ))
+
+    def test_ping_proxy_mode_wraps_proxy_preflight_error(self):
+        """Browser.ping() should report proxy preflight failures with masked credentials."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'target.local',
+            'port': 443,
+            'ssl': True,
+            'proxy': 'http://user:pass@127.0.0.1:8080',
+            'timeout': 5,
+        }))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
+
+        with patch('src.lib.browser.browser.socket.ping', side_effect=SocketError('offline')), \
+                patch('src.lib.browser.browser.tpl.debug') as debug_mock:
+            with self.assertRaises(BrowserError) as context:
+                br.ping()
+
+        self.assertIn('Proxy preflight failed for http://user:*****@127.0.0.1:8080', str(context.exception))
+        self.assertNotIn('pass', str(context.exception))
+        self.assertTrue(any(
+            'Proxy preflight failed for http://user:*****@127.0.0.1:8080' in call.kwargs.get('msg', '')
+            for call in debug_mock.call_args_list
+        ))
+
+    def test_mask_proxy_url_should_preserve_plain_proxy_without_credentials(self):
+        """Browser should not rewrite proxy URLs when no credentials are present."""
+
+        mask_proxy_url = getattr(Browser, '_Browser__mask_proxy_url')
+
+        self.assertEqual(mask_proxy_url('http://proxy.local:8080'), 'http://proxy.local:8080')
+
+    def test_mask_proxy_url_should_mask_ipv6_and_password_only_credentials(self):
+        """Browser should mask proxy credentials for IPv6 and password-only URLs."""
+
+        mask_proxy_url = getattr(Browser, '_Browser__mask_proxy_url')
+
+        self.assertEqual(mask_proxy_url('http://user:pass@[::1]:8080'), 'http://user:*****@[::1]:8080')
+        self.assertEqual(mask_proxy_url('http://:pass@proxy.local:8080'), 'http://*****@proxy.local:8080')
+        self.assertEqual(mask_proxy_url('http://user:pass@proxy.local'), 'http://user:*****@proxy.local')
+
+    def test_proxy_endpoint_should_resolve_default_proxy_ports(self):
+        """Browser should resolve default proxy ports for schemes with omitted ports."""
+
+        proxy_endpoint = getattr(Browser, '_Browser__proxy_endpoint')
+
+        self.assertEqual(proxy_endpoint('http://user:pass@proxy.local'), ('proxy.local', 80, 'http://user:*****@proxy.local'))
+        self.assertEqual(proxy_endpoint('https://user:pass@proxy.local'), ('proxy.local', 443, 'https://user:*****@proxy.local'))
+        self.assertEqual(proxy_endpoint('socks5h://user:pass@proxy.local'), ('proxy.local', 80, 'socks5h://user:*****@proxy.local'))
+
+    def test_proxy_endpoint_should_reject_invalid_proxy_urls_without_leaking_passwords(self):
+        """Browser should reject invalid proxy URLs while keeping credentials masked."""
+
+        proxy_endpoint = getattr(Browser, '_Browser__proxy_endpoint')
+
+        with self.assertRaises(BrowserError) as invalid_port_context:
+            proxy_endpoint('http://user:pass@proxy.local:bad')
+
+        self.assertIn('http://user:*****@proxy.local', str(invalid_port_context.exception))
+        self.assertNotIn('pass', str(invalid_port_context.exception))
+
+        with self.assertRaises(BrowserError) as missing_host_context:
+            proxy_endpoint('http://user:pass@:8080')
+
+        self.assertIn('proxy host and port are required', str(missing_host_context.exception))
+        self.assertNotIn('pass', str(missing_host_context.exception))
+
+    def test_mask_proxy_url_fallback_should_mask_malformed_proxy_credentials(self):
+        """Browser should mask credentials even when URL parsing fails."""
+
+        mask_proxy_url = getattr(Browser, '_Browser__mask_proxy_url')
+
+        with patch('src.lib.browser.browser.urlsplit', side_effect=ValueError('bad proxy url')):
+            self.assertEqual(
+                mask_proxy_url('http://user:pass@proxy.local:8080'),
+                'http://user:*****@proxy.local:8080',
+            )
+            self.assertEqual(
+                mask_proxy_url('http://:pass@proxy.local:8080'),
+                'http://*****@proxy.local:8080',
+            )
+            self.assertEqual(mask_proxy_url('not-a-proxy-url'), 'not-a-proxy-url')
+
+    def test_proxy_endpoint_should_reject_parse_errors_without_leaking_passwords(self):
+        """Browser should keep proxy parse errors masked in preflight diagnostics."""
+
+        proxy_endpoint = getattr(Browser, '_Browser__proxy_endpoint')
+
+        with patch('src.lib.browser.browser.urlsplit', side_effect=ValueError('bad proxy url')):
+            with self.assertRaises(BrowserError) as context:
+                proxy_endpoint('http://user:pass@proxy.local:8080')
+
+        self.assertIn('Invalid proxy URL http://user:*****@proxy.local:8080', str(context.exception))
+        self.assertIn('bad proxy url', str(context.exception))
+        self.assertNotIn('pass', str(context.exception))
+
+    def test_proxy_endpoint_should_reject_unknown_scheme_without_default_port(self):
+        """Browser should reject proxy schemes without an explicit or default port."""
+
+        proxy_endpoint = getattr(Browser, '_Browser__proxy_endpoint')
+
+        with self.assertRaises(BrowserError) as context:
+            proxy_endpoint('ftp://user:pass@proxy.local')
+
+        self.assertIn('proxy host and port are required', str(context.exception))
+        self.assertIn('ftp://user:*****@proxy.local', str(context.exception))
+        self.assertNotIn('pass', str(context.exception))
+
+    def test_ping_proxy_mode_wraps_proxy_preflight_error_without_debug_output(self):
+        """Browser.ping() should wrap proxy preflight failures when debug output is disabled."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'target.local',
+            'port': 443,
+            'ssl': True,
+            'proxy': 'http://user:pass@127.0.0.1:8080',
+            'timeout': 5,
+            'debug': -1,
+        }))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: False))
+
+        with patch('src.lib.browser.browser.socket.ping', side_effect=SocketError('offline')), \
+                patch('src.lib.browser.browser.tpl.debug') as debug_mock:
+            with self.assertRaises(BrowserError) as context:
+                br.ping()
+
+        self.assertIn('Proxy preflight failed for http://user:*****@127.0.0.1:8080', str(context.exception))
+        self.assertNotIn('pass', str(context.exception))
+        debug_mock.assert_not_called()
+
+    def test_ping_proxy_pool_mode_skips_direct_target_preflight(self):
+        """Browser.ping() should skip direct target preflight for proxy pools."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'target.local',
+            'port': 443,
+            'ssl': True,
+            'proxy_pool': True,
+            'timeout': 5,
+        }))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
+
+        with patch('src.lib.browser.browser.socket.ping') as ping_mock, \
+                patch('src.lib.browser.browser.tpl.info') as info_mock:
+            self.assertIsNone(br.ping())
+
+        ping_mock.assert_not_called()
+        self.assertTrue(any(
+            'Direct target preflight skipped' in call.kwargs.get('msg', '')
+            for call in info_mock.call_args_list
+        ))
+
+    def test_ping_proxy_mode_checks_proxy_without_debug_output(self):
+        """Browser.ping() should support proxy preflight when scan debug is disabled."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'target.local',
+            'port': 443,
+            'ssl': True,
+            'proxy': 'http://user:pass@127.0.0.1:8080',
+            'timeout': 5,
+            'debug': -1,
+        }))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: False))
+
+        with patch('src.lib.browser.browser.socket.ping', return_value=None) as ping_mock, \
+                patch('src.lib.browser.browser.tpl.debug') as debug_mock:
+            self.assertIsNone(br.ping())
+
+        ping_mock.assert_called_once_with('127.0.0.1', 8080, 5.0)
+        debug_mock.assert_not_called()
+
     def test_start_request_provider_uses_proxy_client(self):
         """Browser should choose proxy request provider when proxy mode is enabled."""
 
@@ -370,6 +578,79 @@ class TestBrowser(unittest.TestCase):
         result = getattr(br, '_Browser__result')
         self.assertEqual(result['total']['ignored'], 1)
         self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
+
+    def test_http_request_records_transport_failure_without_bypassing_retries(self):
+        """Browser.__http_request() should track missing responses after provider retries are exhausted."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__http_request('http://example.com/admin')
+
+        client.request.assert_called_once_with('http://example.com/admin')
+        response_handler.handle.assert_not_called()
+        warning_mock.assert_called_once()
+        self.assertIn('Consecutive transport failures: 1/2', warning_mock.call_args.kwargs.get('msg', ''))
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['ignored'], 1)
+        self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
+
+    def test_http_request_aborts_after_consecutive_transport_failures(self):
+        """Browser.__http_request() should stop a scan after repeated exhausted transport failures."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+
+        with patch('src.lib.browser.browser.tpl.warning'):
+            br._Browser__http_request('http://example.com/first')
+
+        with self.assertRaises(BrowserError) as context:
+            br._Browser__http_request('http://example.com/second')
+
+        self.assertIn('Target transport appears unavailable', str(context.exception))
+        self.assertIn('configured --timeout and --retries', str(context.exception))
+        self.assertEqual(client.request.call_count, 2)
+        response_handler.handle.assert_not_called()
+
+    def test_http_request_resets_transport_failure_streak_after_success(self):
+        """Browser.__http_request() should not abort when transport recovers between failures."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.side_effect = [None, 'response', None]
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+        response_handler.handle.return_value = ('success', 'http://example.com/ok', '1B', '200')
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', MagicMock(get_ignored_list=MagicMock(return_value=[])))
+        setattr(br, '_Browser__response', response_handler)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__http_request('http://example.com/miss-1')
+            br._Browser__http_request('http://example.com/ok')
+            br._Browser__http_request('http://example.com/miss-2')
+
+        self.assertEqual(client.request.call_count, 3)
+        self.assertEqual(warning_mock.call_count, 2)
+        self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 1)
 
     def test_http_request_records_status_from_response_handler(self):
         """Browser.__http_request() should record the tuple returned by the response handler."""

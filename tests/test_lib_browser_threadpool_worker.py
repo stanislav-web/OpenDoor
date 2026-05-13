@@ -65,6 +65,30 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
             pool.add(lambda: None)
             put_mock.assert_not_called()
 
+    def test_threadpool_accepts_custom_stall_warning_interval(self):
+        """ThreadPool should allow Browser to tune stall visibility from request timeout."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0, stall_warning_interval=15)
+
+        self.assertEqual(getattr(pool, '_ThreadPool__stall_warning_interval'), 15.0)
+
+    def test_threadpool_uses_default_stall_warning_interval_for_invalid_values(self):
+        """ThreadPool should fall back to the default stall interval for invalid values."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            negative_pool = ThreadPool(num_threads=1, total_items=1, timeout=0, stall_warning_interval=-1)
+            invalid_pool = ThreadPool(num_threads=1, total_items=1, timeout=0, stall_warning_interval='bad')
+
+        self.assertEqual(
+            getattr(negative_pool, '_ThreadPool__stall_warning_interval'),
+            float(ThreadPool.JOIN_STALL_WARNING_SEC),
+        )
+        self.assertEqual(
+            getattr(invalid_pool, '_ThreadPool__stall_warning_interval'),
+            float(ThreadPool.JOIN_STALL_WARNING_SEC),
+        )
+
     def test_add_calls_pause_on_keyboard_interrupt(self):
         """ThreadPool.add() should open the pause menu when queue.put() is interrupted."""
 
@@ -547,6 +571,15 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         self.assertEqual(ThreadPool.normalize_runtime_pause_answer(None), '')
         self.assertEqual(ThreadPool.normalize_runtime_pause_answer('x'), 'x')
         self.assertEqual(ThreadPool.normalize_runtime_pause_answer('  x  '), 'x')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('   '), '')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('  e  '), 'E')
+
+    def test_runtime_pause_answer_should_use_first_normalized_character(self):
+        """Runtime pause answer normalization should use the first typed character."""
+
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('continue later'), 'C')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('quit now'), 'E')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('Zzz'), 'z')
 
     def test_pause_should_resume_on_repeated_or_cyrillic_continue_input(self):
         """ThreadPool.pause() should resume on repeated and Cyrillic continue answers."""

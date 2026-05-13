@@ -182,6 +182,20 @@ class Proxy(RequestProvider, DebugProvider):
         if True is self.__cfg.accept_cookies and True is self._is_cookie_fetched:
             getattr(self.__debug, 'debug_cookie_accepted', lambda *args, **kwargs: True)(self._push_cookies())
 
+    def __is_directory_like_scan(self):
+        """Return True for directory scans and their runtime filtered variants.
+
+        ``--random-list`` combined with extension filters mutates config.scan to
+        ``extensionlist`` or ``ignore_extensionlist`` before queue processing.
+        These modes still execute target-path dictionary requests and must keep
+        the same proxy timeout/retry diagnostics as the default directory scan.
+
+        :return: whether current scan mode is directory-like
+        :rtype: bool
+        """
+
+        return self.__cfg.scan in (self.__cfg.DEFAULT_SCAN, 'extensionlist', 'ignore_extensionlist')
+
     def request(self, url, extra_headers=None):
         """
         Client request using Proxy
@@ -205,7 +219,7 @@ class Proxy(RequestProvider, DebugProvider):
             return response
 
         except MaxRetryError:
-            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
+            if self.__is_directory_like_scan() is True:
                 self.__finish_active_terminal_line()
                 self.__tpl.warning(
                     key='proxy_max_retry_error',
@@ -215,7 +229,7 @@ class Proxy(RequestProvider, DebugProvider):
                 return self.__retry_after_max_retry(url, request_headers)
 
         except ReadTimeoutError:
-            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
+            if self.__is_directory_like_scan() is True:
                 self.__finish_active_terminal_line()
                 self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
 

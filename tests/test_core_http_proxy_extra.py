@@ -374,6 +374,21 @@ class TestProxyExtra(unittest.TestCase):
         self.assertEqual(len(message), 180)
         self.assertTrue(message.endswith('...'))
 
+    def test_request_retries_once_on_max_retry_for_ignore_extensionlist_scan(self):
+        """Proxy.request() should keep directory diagnostics for ignore-extension scans."""
+
+        cfg = self.make_cfg(scan='ignore_extensionlist')
+        tpl = MagicMock()
+        proxy = Proxy(cfg, self.make_debug(), tpl=tpl, proxy_list=['http://unused'], agent_list=['UA'])
+        proxy._Proxy__server = 'http://127.0.0.1:8080'
+        response = HTTPResponse(status=200, body=b'ok', headers={})
+
+        with patch.object(proxy, '_Proxy__pool_request', side_effect=[MaxRetryError(None, '/', None), response]):
+            actual = proxy.request('http://example.com/path')
+
+        self.assertEqual(actual.status, 200)
+        tpl.warning.assert_called_once()
+
     def test_request_suppresses_retry_warning_for_non_default_scan(self):
         """Proxy.request() should not warn or retry on MaxRetryError for non-default scan mode."""
 
@@ -390,6 +405,18 @@ class TestProxyExtra(unittest.TestCase):
         """Proxy.request() should warn on ReadTimeoutError for default scan mode."""
 
         cfg = self.make_cfg(scan='directories')
+        tpl = MagicMock()
+        proxy = Proxy(cfg, self.make_debug(), tpl=tpl, proxy_list=['http://unused'], agent_list=['UA'])
+
+        with patch.object(proxy, '_Proxy__pool_request', side_effect=ReadTimeoutError(None, '/', 'x')):
+            self.assertIsNone(proxy.request('http://example.com/path'))
+
+        tpl.warning.assert_called_once()
+
+    def test_request_warns_on_read_timeout_for_ignore_extensionlist_scan(self):
+        """Proxy.request() should warn on timeout for ignore-extension directory scans."""
+
+        cfg = self.make_cfg(scan='ignore_extensionlist')
         tpl = MagicMock()
         proxy = Proxy(cfg, self.make_debug(), tpl=tpl, proxy_list=['http://unused'], agent_list=['UA'])
 

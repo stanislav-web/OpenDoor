@@ -31,12 +31,13 @@ class ThreadPool(object):
     JOIN_POLL_INTERVAL_SEC = 1.0
     JOIN_STALL_WARNING_SEC = 60.0
 
-    def __init__(self, num_threads, total_items, timeout):
+    def __init__(self, num_threads, total_items, timeout, stall_warning_interval=None):
         """
         Initialize thread pool
         :param int num_threads: active workers
         :param int total_items: total items
         :param int timeout: delay between threads
+        :param int|float|None stall_warning_interval: worker stall warning interval
         """
 
         self.__queue = Queue()
@@ -44,6 +45,7 @@ class ThreadPool(object):
         self.__submitted = 0
         self.total_items_size = total_items
         self.is_started = True
+        self.__stall_warning_interval = self.__normalize_stall_warning_interval(stall_warning_interval)
 
         for _ in range(num_threads):
 
@@ -184,8 +186,8 @@ class ThreadPool(object):
                     continue
 
                 now = time.monotonic()
-                if (now - last_activity_at >= self.JOIN_STALL_WARNING_SEC
-                        and now - last_warning_at >= self.JOIN_STALL_WARNING_SEC):
+                if (now - last_activity_at >= self.__stall_warning_interval
+                        and now - last_warning_at >= self.__stall_warning_interval):
                     tpl.warning(
                         msg='Scan worker is still processing an active request for {0:.0f}s. '
                             'submitted={1}, completed={2}, queue={3}, active={4}'.format(
@@ -197,6 +199,26 @@ class ThreadPool(object):
                             )
                     )
                     last_warning_at = now
+
+    @classmethod
+    def __normalize_stall_warning_interval(cls, value):
+        """
+        Normalize worker stall warning interval.
+
+        :param int|float|None value: configured interval
+        :return: positive interval in seconds
+        :rtype: float
+        """
+
+        try:
+            interval = float(value)
+        except (TypeError, ValueError):
+            return float(cls.JOIN_STALL_WARNING_SEC)
+
+        if interval <= 0:
+            return float(cls.JOIN_STALL_WARNING_SEC)
+
+        return interval
 
     def __active_tasks_signature(self):
         """
@@ -278,13 +300,9 @@ class ThreadPool(object):
         if value in aliases:
             return aliases[value]
 
-        for char in value:
-            if char.isspace():
-                continue
+        first_char = value[0]
 
-            return aliases.get(char, char)
-
-        return ''
+        return aliases.get(first_char, first_char)
 
     def pause(self):
         """

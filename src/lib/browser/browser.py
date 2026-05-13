@@ -21,6 +21,7 @@ import socket as net_socket
 import threading
 import time
 import uuid
+from urllib.parse import unquote, urlsplit, urlunsplit
 from .session import SessionManager, SessionError
 from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError
 from src.core import SocketError
@@ -87,6 +88,7 @@ class Browser(Filter):
     WAF_SAFE_RATE_LIMIT_STATUSES = (429,)
     WAF_SAFE_RETRY_AFTER_STATUSES = (429, 503)
     WAF_SAFE_RETRY_AFTER_HEADER = 'retry-after'
+    TRANSPORT_FAILURE_ABORT_THRESHOLD = 2
     WAF_SAFE_RECOVERY_STATUSES = ('success', 'redirect', 'auth', 'forbidden', 'bad', 'certificate')
 
     def __init__(self, params):
@@ -122,6 +124,8 @@ class Browser(Filter):
             self.__waf_guard_classified = 0
             self.__waf_guard_blocked = 0
             self.__waf_guard_stopped = False
+            self.__transport_failure_lock = threading.RLock()
+            self.__transport_failure_streak = 0
             self.__calibration = None
             self.__header_bypass = HeaderBypassProbe(self.__config)
             self.__active_sniffer_names = SnifferEngine.active_names_from_config(self.__config)
@@ -173,8 +177,14 @@ class Browser(Filter):
 
             Filter.__init__(self, self.__config, self.__reader.total_lines)
 
-            self.__pool = ThreadPool(num_threads=self.__config.threads, total_items=self.__reader.total_lines,
-                                     timeout=self.__config.delay)
+            request_timeout = getattr(self.__config, 'timeout', getattr(self.__config, 'DEFAULT_SOCKET_TIMEOUT', 10))
+            stall_warning_interval = max(10.0, min(float(request_timeout) + 5.0, 60.0))
+            self.__pool = ThreadPool(
+                num_threads=self.__config.threads,
+                total_items=self.__reader.total_lines,
+                timeout=self.__config.delay,
+                stall_warning_interval=stall_warning_interval,
+            )
 
             self.__result = {
                 'total': helper.counter(),
@@ -207,10 +217,19 @@ class Browser(Filter):
 
     def ping(self):
         """
-        Check remote host for available
+        Check remote host or configured proxy for availability.
+
+        In proxy mode the target must not be probed directly before the scan.
+        Direct target preflight creates unnecessary traffic to the target and can
+        also hide the real failure source when the proxy is down or slow.
+
         :raise: BrowserError
         :return: None
         """
+
+        if True is getattr(self.__config, 'is_proxy', False):
+            self.__ping_proxy_transport()
+            return
 
         try:
             tpl.info(key='checking_connect', host=self.__config.host, port=self.__config.port)
@@ -240,6 +259,151 @@ class Browser(Filter):
             if getattr(debugger, 'is_scan_debug', lambda: False)() is True:
                 tpl.debug(msg='Connection preflight failed: {0}'.format(error))
             raise BrowserError(error)
+
+    @staticmethod
+    def __mask_proxy_url_fallback(proxy_url):
+        """Best-effort credential masking for malformed proxy URLs.
+
+        :param str proxy_url: raw proxy URL
+        :return: safe printable proxy URL
+        :rtype: str
+        """
+
+        value = str(proxy_url or '-')
+        if '@' not in value:
+            return value
+
+        prefix, suffix = value.rsplit('@', 1)
+        if '://' in prefix:
+            scheme, credentials = prefix.rsplit('://', 1)
+            prefix = '{0}://'.format(scheme)
+        else:
+            credentials = prefix
+            prefix = ''
+
+        username = credentials.split(':', 1)[0]
+        if username:
+            return '{0}{1}:*****@{2}'.format(prefix, username, suffix)
+
+        return '{0}*****@{1}'.format(prefix, suffix)
+
+    @staticmethod
+    def __mask_proxy_url(proxy_url):
+        """
+        Mask proxy credentials for terminal output.
+
+        :param str proxy_url: configured proxy URL
+        :return: safe printable proxy URL
+        :rtype: str
+        """
+
+        try:
+            parsed = urlsplit(str(proxy_url or ''))
+        except (TypeError, ValueError):
+            return Browser.__mask_proxy_url_fallback(proxy_url)
+
+        if not parsed.username and parsed.password is None:
+            return str(proxy_url or '-')
+
+        host = parsed.hostname or ''
+        if ':' in host and not host.startswith('['):
+            host = '[{0}]'.format(host)
+
+        netloc = host
+        try:
+            port = parsed.port
+        except ValueError:
+            port = None
+
+        if port is not None:
+            netloc = '{0}:{1}'.format(netloc, port)
+
+        username = unquote(parsed.username or '')
+        if username:
+            netloc = '{0}:*****@{1}'.format(username, netloc)
+        else:
+            netloc = '*****@{0}'.format(netloc)
+
+        return urlunsplit((parsed.scheme, netloc, parsed.path, parsed.query, parsed.fragment))
+
+    @classmethod
+    def __proxy_endpoint(cls, proxy_url):
+        """
+        Resolve proxy endpoint host and port for TCP preflight.
+
+        :param str proxy_url: configured proxy URL
+        :raise BrowserError: when proxy URL has no usable host or port
+        :return: tuple[str, int, str]
+        """
+
+        masked_proxy = cls.__mask_proxy_url(proxy_url)
+
+        try:
+            parsed = urlsplit(str(proxy_url or ''))
+        except (TypeError, ValueError) as error:
+            raise BrowserError('Invalid proxy URL {0}: {1}'.format(masked_proxy, error))
+
+        host = parsed.hostname
+        scheme = str(parsed.scheme or 'http').lower()
+
+        try:
+            port = parsed.port
+        except ValueError as error:
+            raise BrowserError('Invalid proxy URL {0}: {1}'.format(masked_proxy, error))
+
+        if port is None:
+            if scheme in ('http', 'socks', 'socks4', 'socks4a', 'socks5', 'socks5h'):
+                port = 80
+            elif scheme == 'https':
+                port = 443
+
+        if not host or port is None:
+            raise BrowserError('Invalid proxy URL {0}: proxy host and port are required'.format(masked_proxy))
+
+        return host, int(port), masked_proxy
+
+    def __ping_proxy_transport(self):
+        """
+        Check explicit proxy transport without directly probing the target host.
+
+        :raise BrowserError
+        :return: None
+        """
+
+        if True is not getattr(self.__config, 'is_standalone_proxy', False):
+            tpl.info(msg='Proxy mode enabled. Direct target preflight skipped.')
+            return
+
+        proxy_host, proxy_port, masked_proxy = self.__proxy_endpoint(self.__config.proxy)
+        preflight_timeout = getattr(self.__config, 'timeout', self.__config.DEFAULT_SOCKET_TIMEOUT)
+        debugger = getattr(self, '_Browser__debug', None)
+
+        try:
+            tpl.info(msg='Checking proxy connection -> {0} ...'.format(masked_proxy))
+
+            if getattr(debugger, 'is_scan_debug', lambda: False)() is True:
+                tpl.debug(
+                    msg=(
+                        'Connection preflight: proxy={proxy} host={host} port={port} '
+                        'timeout={timeout}s transport=proxy target={scheme}{target_host}:{target_port}'
+                    ).format(
+                        proxy=masked_proxy,
+                        host=proxy_host,
+                        port=proxy_port,
+                        timeout=preflight_timeout,
+                        scheme=self.__config.scheme,
+                        target_host=self.__config.host,
+                        target_port=self.__config.port,
+                    )
+                )
+
+            socket.ping(proxy_host, proxy_port, preflight_timeout)
+            tpl.info(msg='Proxy {0} is online. Direct target preflight skipped.'.format(masked_proxy))
+
+        except SocketError as error:
+            if getattr(debugger, 'is_scan_debug', lambda: False)() is True:
+                tpl.debug(msg='Proxy preflight failed for {0}: {1}'.format(masked_proxy, error))
+            raise BrowserError('Proxy preflight failed for {0}: {1}'.format(masked_proxy, error))
 
     def scan(self):
         """
@@ -1733,6 +1897,72 @@ class Browser(Filter):
 
         return True
 
+    def __transport_failure_threshold(self):
+        """
+        Return the consecutive exhausted-request threshold for aborting a scan.
+
+        A single missing response can still be a transient network issue or a
+        path-specific timeout. Multiple consecutive missing responses after the
+        request provider has already consumed its configured retry budget are a
+        strong signal that the target transport disappeared during the scan.
+
+        :return: abort threshold
+        :rtype: int
+        """
+
+        return max(1, int(self.TRANSPORT_FAILURE_ABORT_THRESHOLD))
+
+    def __reset_transport_failure_streak(self):
+        """
+        Reset consecutive transport failure accounting after a real response.
+
+        :return: None
+        """
+
+        with self.__transport_failure_lock:
+            self.__transport_failure_streak = 0
+
+    def __record_transport_failure(self, url):
+        """
+        Record one request that produced no response after configured retries.
+
+        Request providers already pass ``config.retries`` to urllib3. This
+        method is called only after that retry budget has been exhausted and the
+        provider returned ``None``. It must not short-circuit per-request retry
+        behavior; it only protects the scanner from silently walking the whole
+        dictionary after the target transport goes away.
+
+        :param str url: failed request URL
+        :raise BrowserError: when consecutive failures exceed the abort threshold
+        :return: None
+        """
+
+        with self.__transport_failure_lock:
+            self.__transport_failure_streak += 1
+            streak = self.__transport_failure_streak
+
+        threshold = self.__transport_failure_threshold()
+        path = helper.parse_url(url).path or str(url)
+
+        self.__finish_filtered_progress_line()
+
+        if streak < threshold:
+            tpl.warning(
+                msg=(
+                    'No response from target after configured timeout/retries: {path}. '
+                    'Consecutive transport failures: {streak}/{threshold}.'
+                ).format(path=path, streak=streak, threshold=threshold)
+            )
+            return
+
+        raise BrowserError(
+            (
+                'Target transport appears unavailable after {streak} consecutive request failure(s). '
+                'Aborting scan to avoid silently waiting on the remaining dictionary. '
+                'Last failed URL: {url}. Each failed request already used configured --timeout and --retries.'
+            ).format(streak=streak, url=url)
+        )
+
     def __http_request(self, url, depth=0):
         """
         Make HTTP request
@@ -1756,6 +1986,13 @@ class Browser(Filter):
                 return
 
             resp = self.__request_with_waf_safe_mode(url)
+
+            if resp is None:
+                self.__record_transport_failure(url)
+                self.__catch_report_data('ignored', url)
+                return
+
+            self.__reset_transport_failure_streak()
 
             response_data = self.__response.handle(
                 resp,
@@ -3039,6 +3276,12 @@ class Browser(Filter):
 
         if not hasattr(self, '_Browser__progress_output_lock'):
             self.__progress_output_lock = threading.RLock()
+
+        if not hasattr(self, '_Browser__transport_failure_lock'):
+            self.__transport_failure_lock = threading.RLock()
+
+        if not hasattr(self, '_Browser__transport_failure_streak'):
+            self.__transport_failure_streak = 0
 
         if not hasattr(self, '_Browser__waf_safe_active'):
             self.__waf_safe_active = False

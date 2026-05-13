@@ -165,6 +165,8 @@ yay -S opendoor
 
 ### Homebrew
 
+OpenDoor is also available in the Brew package manager:
+
 ```bash
 brew install opendoor
 ```
