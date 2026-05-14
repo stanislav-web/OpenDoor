@@ -288,9 +288,12 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         warning_mock.assert_called_once()
         message = warning_mock.call_args.kwargs.get('msg')
-        self.assertIn('Scan worker is still processing an active request', message)
+        self.assertIn('Network request is still waiting/retrying', message)
+        self.assertIn('without progress', message)
+        self.assertIn('queued=', message)
         self.assertIn('https://example.test/hang', message)
-        self.assertIn('idle', message)
+        self.assertIn('no-progress=', message)
+        self.assertNotIn('idle', message)
 
     def test_should_not_warn_when_active_task_heartbeat_advances(self):
         """ThreadPool.join() should not report a stall while subrequest heartbeat advances."""
@@ -474,8 +477,9 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         rendered = getattr(pool, '_ThreadPool__format_active_tasks')(11.0)
 
-        self.assertIn('u1 (10s, idle 10s)', rendered)
-        self.assertIn('unknown task (0s, idle 0s)', rendered)
+        self.assertIn('u1 (elapsed=10s, no-progress=10s)', rendered)
+        self.assertIn('unknown task (elapsed=0s, no-progress=0s)', rendered)
+        self.assertNotIn('idle', rendered)
         self.assertIn('+1 more', rendered)
 
     def test_threadpool_pause_prompts_even_from_main_thread(self):
@@ -614,7 +618,7 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         rendered = getattr(pool, '_ThreadPool__format_active_tasks')(11.0)
 
-        self.assertIn('https://example.test/admin [header-bypass 3/8] (10s, idle 2s)', rendered)
+        self.assertIn('https://example.test/admin [header-bypass 3/8] (elapsed=10s, no-progress=2s)', rendered)
 
     def test_should_ignore_worker_heartbeat_without_active_task(self):
         """Worker.touch_active_task() should be safe before a queued task starts."""

@@ -74,6 +74,10 @@ class Controller(object):
         """
 
         try:
+            if True is self.ioargs.get('update'):
+                getattr(self, 'update_action')()
+                return 0
+
             tpl.message(package.banner())
 
             if 'diff' in self.ioargs:

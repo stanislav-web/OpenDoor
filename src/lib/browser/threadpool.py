@@ -189,8 +189,8 @@ class ThreadPool(object):
                 if (now - last_activity_at >= self.__stall_warning_interval
                         and now - last_warning_at >= self.__stall_warning_interval):
                     tpl.warning(
-                        msg='Scan worker is still processing an active request for {0:.0f}s. '
-                            'submitted={1}, completed={2}, queue={3}, active={4}'.format(
+                        msg='Network request is still waiting/retrying for {0:.0f}s without progress. '
+                            'submitted={1}, completed={2}, queued={3}, active={4}'.format(
                                 now - last_activity_at,
                                 self.submitted_size,
                                 completed,
@@ -260,9 +260,9 @@ class ThreadPool(object):
             idle = max(0.0, now - last_activity_at)
 
             if detail:
-                items.append('{0} [{1}] ({2:.0f}s, idle {3:.0f}s)'.format(label, detail, age, idle))
+                items.append('{0} [{1}] (elapsed={2:.0f}s, no-progress={3:.0f}s)'.format(label, detail, age, idle))
             else:
-                items.append('{0} ({1:.0f}s, idle {2:.0f}s)'.format(label, age, idle))
+                items.append('{0} (elapsed={1:.0f}s, no-progress={2:.0f}s)'.format(label, age, idle))
 
         if len(tasks) > 3:
             items.append('+{0} more'.format(len(tasks) - 3))

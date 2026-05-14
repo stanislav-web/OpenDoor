@@ -1091,6 +1091,20 @@ opendoor --wizard
 opendoor --update
 ```
 
+This is a safe instruction-only command. It does not run `pip`, `pipx`, `brew`, `docker`, `pacman`, `apt`, or `git` for you. It prints update commands for the installation method you use, including a current-interpreter `python -m pip ...` command for the active Python environment.
+
+Use the same package manager that installed OpenDoor:
+
+| Installed with | Typical update command |
+|---|---|
+| pipx | `pipx upgrade opendoor` |
+| pip | `python -m pip install --upgrade opendoor` from the same environment |
+| Homebrew | `brew update && brew upgrade opendoor` |
+| Docker / GHCR | `docker pull ghcr.io/stanislav-web/opendoor:latest` |
+| Arch / BlackArch | `sudo pacman -Syu opendoor` |
+| Debian / Kali | `sudo apt update && sudo apt install --only-upgrade opendoor` |
+| Source checkout | `git pull --ff-only` and reinstall/editable-install if needed |
+
 ---
 
 ## ✅ Practical workflows

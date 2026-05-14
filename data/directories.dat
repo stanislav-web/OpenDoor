@@ -60587,140 +60587,9 @@ intruder
 intTimestamp
 intuit
 intuition.asp
-intxaurdi k.e.
 intxt1.php
 intxt2.php
 intxt.php
-inurl:1810 "Oracle Enterprise Manager"
-inurl:2000 intitle:RemotelyAnywhere -site:realvnc.com
-inurl:"631/admin" (inurl:"op=*") | (intitle:CUPS)
-inurl:"1220/parse_xml.cgi?"
-inurl:"/admin/configuration. php?" Mystore
-inurl:"/slxweb.dll/external?name=(custportal|webticketcust)"
-inurl:":10000" intext:webmin
-inurl:"Activex/default.htm" "Demo"
-inurl:"calendar.asp?action=login"
-inurl:"default/login.php" intitle:"kerio"
-inurl:"gs/adminlogin.aspx"
-inurl:"php121login.php"
-inurl:"suse/login.pl"
-inurl:"usysinfo?login=true"
-inurl:"utilities/TreeView.asp"
-inurl:"ViewerFrame?Mode="
-inurl:"vsadmin/login" | inurl:"vsadmin/admin" inurl:.php|.asp
-inurl:/admin/login.asp
-inurl:/careers-detail.asp?id=
-inurl:/CollectionContent.asp?id=
-inurl:/Content.asp?id=
-inurl:/dana-na/auth/welcome.html
-inurl:/Details.asp?id=
-inurl:/dosearch.asp?
-inurl:/eprise
-inurl:/gallery.asp?cid=
-inurl:/Merchant2/admin.mv | inurl:/Merchant2/admin.mvc | intitle:"Miva Merchant Administration Login" -inurl:cheap-malboro.net
-inurl:/publications.asp?type=
-inurl:/SUSAdmin intitle:"Microsoft Software upd?t? Services"
-inurl:/webedit.* intext:WebEdit Professional -html
-inurl::2082/frontend -demo
-inurl:act=
-inurl:action=
-inurl:administrator "welcome to mambo"
-inurl:API_HOME_DIR=
-inurl:board=
-inurl:cat=
-inurl:cgi-bin/ultimatebb.cgi?ubb=login
-inurl:channel_id=
-inurl:Citrix/MetaFrame/default/default.aspx
-inurl:clanek.php4?id=
-inurl:client_id=
-inurl:cmd=
-inurl:confixx inurl:login|anmeldung
-inurl:cont=
-inurl:coranto.cgi intitle:Login (Authorized Users Only)
-inurl:csCreatePro.cgi
-inurl:current_frame=
-inurl:date=
-inurl:default.asp intitle:"WebCommander"
-inurl:detail=
-inurl:dir=
-inurl:display=
-inurl:download=
-inurl:exchweb/bin/auth/owalogon.asp
-inurl:f=
-inurl:file=
-inurl:fileinclude=
-inurl:filename=
-inurl:firm_id=
-inurl:g=
-inurl:getdata=
-inurl:gnatsweb.pl
-inurl:go=
-inurl:HT=
-inurl:idd=
-inurl:ids5web
-inurl:inc=
-inurl:incfile=
-inurl:incl=
-inurl:include_file=
-inurl:include_path=
-inurl:index.cgi?aktion=shopview
-inurl:indexFrame.shtml Axis
-inurl:infile=
-inurl:info=
-inurl:ir=
-inurl:irc filetype:cgi cgi:irc
-inurl:item_id=
-inurl:kategorie.php4?id=
-inurl:lang=
-inurl:language=
-inurl:link=
-inurl:load=
-inurl:login filetype:swf swf
-inurl:login.asp
-inurl:login.cfm
-inurl:login.php
-inurl:main=
-inurl:mainspot=
-inurl:metaframexp/default/login.asp
-inurl:mewebmail
-inurl:msg=
-inurl:names.nsf?opendatabase
-inurl:newsid=
-inurl:num=
-inurl:ocw_login_username
-inurl:openfile=
-inurl:orasso.wwsso_app_admin.ls_login
-inurl:p=
-inurl:page=
-inurl:pageid=
-inurl:Pageid=
-inurl:pagina=
-inurl:path=
-inurl:path_to_calendar=
-inurl:pg=
-inurl:postfixadmin intitle:"postfix admin" ext:php
-inurl:qry_str=
-inurl:ruta=
-inurl:safehtml=
-inurl:search/admin.php
-inurl:section=
-inurl:sem.php3?id=
-inurl:showfile=
-inurl:side=
-inurl:site_id=
-inurl:skin=
-inurl:staff_id=
-inurl:static=
-inurl:str=
-inurl:strona=
-inurl:sub=
-inurl:textpattern/index.php
-inurl:tresc=
-inurl:url=
-inurl:user=
-inurl:WCP_USER
-inurl:webmail./index.pl "Interface"
-inurl:webvpn.html "login" "Please enter your"
 inv
 invalid
 invalid.html
@@ -117206,7 +117075,6 @@ yidx4cpf.php
 yii
 yii.bat
 yii/vendor/phpunit/phpunit/phpunit
-yii/vendor/phpunit/phpunitphpunit
 yijian
 yim
 yink

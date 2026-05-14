@@ -94,6 +94,20 @@ class TestController(unittest.TestCase):
 
         version_mock.assert_called_once_with()
 
+    def test_run_update_action_does_not_require_banner_assets(self):
+        """Controller.run() should execute --update without reading scanner data assets."""
+
+        controller = self.make_controller({'update': True})
+
+        with patch('src.controller.package.banner', side_effect=PackageError('missing data')) as banner_mock, \
+                patch.object(Controller, 'update_action') as update_mock, \
+                patch('src.controller.tpl.debug'):
+            result = controller.run()
+
+        self.assertEqual(result, 0)
+        banner_mock.assert_not_called()
+        update_mock.assert_called_once_with()
+
     def test_run_skips_non_callable_actions(self):
         """Controller.run() should ignore actions rejected by args.is_arg_callable()."""
 

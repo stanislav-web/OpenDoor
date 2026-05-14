@@ -172,29 +172,82 @@ class Package(object):
     @staticmethod
     def update():
         """
-        Return update instructions.
+        Return safe cross-platform update instructions.
+
+        The scanner must not execute package-manager commands by itself.
+        Different installation methods own different upgrade flows, so this
+        command prints an explicit matrix and lets the user choose the command
+        matching the way OpenDoor was installed.
 
         :raise PackageError:
         :return: str
         """
 
         try:
-            if False is sys().is_windows:
-                command = CoreConfig.get("command").get("cvsupdate")
-                status = (
-                    "Automatic in-place update is disabled. "
-                    "Update the installed package with: {0} "
-                    "or pull the latest source manually from the repository."
-                ).format(command)
-                upd_status = tpl.line(status, color="green")
-                msg = CoreConfig.get("update").format(status=upd_status)
-            else:
-                msg = CoreConfig.get("update").format(status=tpl.line(key="upd_win_stat"))
+            status = Package.__update_instructions()
+            upd_status = tpl.line(status, color="green")
+            return CoreConfig.get("update").format(status=upd_status)
 
-            return msg
-
-        except (AttributeError, CoreSystemError) as error:
+        except (AttributeError, CoreSystemError, TypeError) as error:
             raise PackageError(error)
+
+    @classmethod
+    def __update_instructions(cls):
+        """
+        Build update instructions for supported installation methods.
+
+        :return: cross-platform update instructions
+        :rtype: str
+        """
+
+        current_python = cls.__quote_command_arg(py_sys.executable or "python")
+        current_platform = "Windows" if sys().is_windows else "Unix-like"
+
+        return "\n".join([
+            "OpenDoor does not self-update from inside the scanner.",
+            "Use the same package manager that installed it.",
+            "Current platform: {0}.".format(current_platform),
+            "",
+            "pipx:",
+            "  pipx upgrade opendoor",
+            "",
+            "pip / current Python environment:",
+            "  {0} -m pip install --upgrade opendoor".format(current_python),
+            "",
+            "Windows Python launcher:",
+            "  py -m pip install --upgrade opendoor",
+            "",
+            "Homebrew:",
+            "  brew update && brew upgrade opendoor",
+            "",
+            "Docker:",
+            "  docker pull ghcr.io/stanislav-web/opendoor:latest",
+            "",
+            "Arch / BlackArch:",
+            "  sudo pacman -Syu opendoor",
+            "",
+            "Debian / Kali:",
+            "  sudo apt update",
+            "  sudo apt install --only-upgrade opendoor",
+            "",
+            "Source checkout:",
+            "  git pull --ff-only",
+            "  {0} -m pip install -e .".format(current_python),
+            "",
+            "Do not mix package managers for the same installation.",
+        ])
+
+    @staticmethod
+    def __quote_command_arg(value):
+        """
+        Quote a command argument for readable shell examples.
+
+        :param str value: command argument
+        :return: safely quoted argument
+        :rtype: str
+        """
+
+        return '"{0}"'.format(str(value).replace('\\', '\\\\').replace('\"', '\\"'))
 
     @staticmethod
     def local_version():

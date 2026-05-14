@@ -31,6 +31,14 @@ opendoor --version
 opendoor --help
 ```
 
+Show update instructions for your installation method:
+
+```shell
+opendoor --update
+```
+
+`--update` is instruction-only. It does not execute package-manager commands and should be used with the same package manager that installed OpenDoor.
+
 ---
 
 ## 🔎 Run a basic directory scan

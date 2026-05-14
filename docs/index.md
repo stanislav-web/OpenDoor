@@ -17,7 +17,7 @@ OpenDoor supports single-target and batch scanning, custom wordlists, response f
 | Page | Purpose |
 |---|---|
 | [Quickstart](quickstart.md) | Install OpenDoor and run common scans quickly. |
-| [Installation and update](Installation-and-update.md) | Install with Homebrew, pipx, pip, or from source. |
+| [Installation and update](Installation-and-update.md) | Install and update with Homebrew, pipx, pip, Docker, Linux packages, or source checkouts. |
 | [Usage](Usage.md) | Full CLI usage and option reference. |
 | [Sniffers](Sniffers.md) | Built-in response analysis and false-positive reduction. |
 | [Wizard](Wizard.md) | Interactive configuration workflow. |
