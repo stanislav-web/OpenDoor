@@ -117,6 +117,30 @@ If a change affects CLI arguments or runtime help, verify both:
 
 ---
 
+## Regression and impact analysis rules
+
+Before proposing or applying a code change, contributors and coding agents must evaluate the blast radius of the change.
+
+For every non-trivial patch, explicitly check and report:
+- which existing flows, CLI flags, report formats, transports, plugins, or packaging paths may be affected;
+- whether the change can alter user-visible output, scan behavior, filtering behavior, progress output, reports, or exit codes;
+- which existing tests cover the affected behavior;
+- which new or updated regression tests are needed to protect the change;
+- what manual validation commands should be run after applying the patch.
+
+When the change touches shared runtime paths, common helpers, output rendering, config parsing, session resume, reporting, transport/proxy logic, packaging, or CLI argument handling, assume that unrelated functionality may be affected until proven otherwise.
+
+Do not describe a patch as safe only because targeted tests pass. If full regression coverage was not executed, state clearly what was verified and what remains unverified.
+
+Prefer targeted regression tests that prove:
+- the fixed behavior works;
+- the previous working behavior remains unchanged;
+- adjacent modes still behave correctly.
+
+If a risk cannot be eliminated with deterministic tests, document it in the response and provide a concrete manual check.
+
+---
+
 ## Packaging rules
 
 - Keep `pyproject.toml` present and valid.
@@ -328,3 +352,5 @@ Contributors and agents should optimize for:
 - modern packaging
 - minimal surprise for end users
 - minimal friction for Linux distribution maintainers
+- clear regression-risk reporting
+- preserving adjacent functionality when fixing focused bugs

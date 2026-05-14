@@ -21475,6 +21475,7 @@ apiserver-aggregator.cert
 apiserver-aggregator.key
 apiserver-client.crt
 apiserver-key.pem
+apiserver.pem
 apisessions
 apisix/admin/consumers
 apisix/admin/global_rules
@@ -28612,8 +28613,10 @@ ca3de
 ca-bundle.pem
 ca-en
 ca-fr
+ca-key.pem
 ca.crt
 ca.html
+ca.key
 ca.kru
 ca.pem
 ca_email.asp
@@ -34532,6 +34535,7 @@ config.properties
 config.py
 config.rb
 config.ru
+config.seen
 config.sef.php
 config.server
 config.sh
@@ -45304,7 +45308,7 @@ email.php.bak
 email.phtml
 email.shtml
 email.txt
-email/unsubscribed?email=test@gmail.com%27\%22%3E%3Csvg/onload=alert(1337)%3E
+email/unsubscribed
 email_a_friend.asp
 email_a_friend.jsp
 email_a_friend.php
@@ -70660,8 +70664,7 @@ message.jspa
 Message.php
 message.php
 message.shtml
-message/comment_threads.asp?postID=
-message?title=x&msg=%26%23<svg/onload=alert(1337)>
+message/comment_threads.asp
 message_details
 message_list.php
 message_send.asp

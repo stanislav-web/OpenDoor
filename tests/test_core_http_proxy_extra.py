@@ -101,6 +101,41 @@ class TestProxyExtra(unittest.TestCase):
         proxy_manager_mock.assert_called_once()
 
 
+    def test_prepare_connection_pool_prewarms_rotating_proxy_once(self):
+        """Proxy.prepare_connection_pool() should pre-create the rotating proxy pool."""
+
+        cfg = self.make_cfg(is_standalone_proxy=False)
+        debug = self.make_debug()
+        pool = MagicMock()
+        proxy = Proxy(
+            cfg,
+            debug,
+            tpl=MagicMock(),
+            proxy_list=['socks5://127.0.0.1:9050'],
+            agent_list=['UA'],
+        )
+
+        with patch('src.core.http.proxy.random.randrange', return_value=0), \
+                patch('src.core.http.proxy.disable_warnings'), \
+                patch('src.core.http.proxy.importlib.import_module', return_value=SimpleNamespace(SOCKSProxyManager=MagicMock(return_value=pool))):
+            self.assertTrue(proxy.prepare_connection_pool())
+            self.assertTrue(proxy.prepare_connection_pool())
+
+        debug.debug_proxy_selected.assert_called_once_with('socks5://127.0.0.1:9050')
+
+    def test_prepare_connection_pool_skips_standalone_proxy(self):
+        """Proxy.prepare_connection_pool() should not pre-create standalone proxy pools."""
+
+        cfg = self.make_cfg(is_standalone_proxy=True, proxy='http://127.0.0.1:8080')
+        debug = self.make_debug()
+        proxy = Proxy(cfg, debug, tpl=MagicMock(), proxy_list=['http://unused'], agent_list=['UA'])
+
+        with patch.object(proxy, '_Proxy__proxy_pool') as pool_mock:
+            self.assertTrue(proxy.prepare_connection_pool())
+
+        pool_mock.assert_not_called()
+        debug.debug_proxy_selected.assert_not_called()
+
     def test_proxy_pool_passes_basic_auth_headers_for_authenticated_http_proxy(self):
         """Proxy.__proxy_pool() should pass Proxy-Authorization headers for HTTP CONNECT proxies."""
 
@@ -503,6 +538,31 @@ class TestProxyExtra(unittest.TestCase):
         proxy_headers = proxy_manager_mock.call_args.kwargs['proxy_headers']
         self.assertEqual(proxy_headers['proxy-authorization'], 'Basic dXNlcjpwYXNz')
         debug.debug_proxy_selected.assert_called_once_with('http://user:pass@127.0.0.1:8080')
+
+    def test_proxy_pool_logs_rotating_proxy_selection_only_for_new_pool(self):
+        """Proxy.__proxy_pool() should not spam selected-proxy debug for cached rotating pools."""
+
+        cfg = self.make_cfg(is_standalone_proxy=False)
+        debug = self.make_debug(level=1)
+        pool = MagicMock()
+        proxy = Proxy(
+            cfg,
+            debug,
+            tpl=MagicMock(),
+            proxy_list=['http://127.0.0.1:8080'],
+            agent_list=['UA'],
+        )
+
+        with patch('src.core.http.proxy.ProxyManager', return_value=pool) as proxy_manager_mock:
+            first = getattr(proxy, '_Proxy__proxy_pool')()
+            second = getattr(proxy, '_Proxy__proxy_pool')()
+            third = getattr(proxy, '_Proxy__proxy_pool')()
+
+        self.assertIs(first, pool)
+        self.assertIs(second, pool)
+        self.assertIs(third, pool)
+        proxy_manager_mock.assert_called_once()
+        debug.debug_proxy_selected.assert_called_once_with('http://127.0.0.1:8080')
 
     def test_dead_proxy_cache_skips_failed_rotating_proxy(self):
         """Proxy should skip rotating proxies marked dead during the current scan runtime."""

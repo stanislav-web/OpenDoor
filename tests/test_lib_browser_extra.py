@@ -171,6 +171,47 @@ class TestBrowserExtra(unittest.TestCase):
         self.assertEqual(client.request.call_count, 1)
         self.assertIn('connection refused', str(context.exception))
 
+    def test_prepare_fingerprint_transport_calls_optional_provider_hook(self):
+        """Browser.__prepare_fingerprint_transport() should call provider preflight hooks when present."""
+
+        browser = object.__new__(Browser)
+        prepare_mock = MagicMock()
+        setattr(browser, '_Browser__client', SimpleNamespace(prepare_connection_pool=prepare_mock))
+
+        browser._Browser__prepare_fingerprint_transport()
+
+        prepare_mock.assert_called_once_with()
+
+    def test_prepare_fingerprint_transport_skips_plain_providers(self):
+        """Browser.__prepare_fingerprint_transport() should leave plain HTTP providers unchanged."""
+
+        browser = object.__new__(Browser)
+        setattr(browser, '_Browser__client', SimpleNamespace())
+
+        browser._Browser__prepare_fingerprint_transport()
+
+    def test_fingerprint_prepares_transport_before_detector_starts_progress(self):
+        """Browser.fingerprint() should prewarm proxy diagnostics before fingerprint progress starts."""
+
+        browser = self.make_browser(is_fingerprint=True)
+        events = []
+        prepare_mock = MagicMock(side_effect=lambda: events.append('prepare'))
+        setattr(browser, '_Browser__client', SimpleNamespace(prepare_connection_pool=prepare_mock))
+
+        detector = MagicMock()
+        detector.detect.side_effect = lambda: events.append('detect') or {
+            'category': 'custom',
+            'name': 'Unknown custom stack',
+            'confidence': 35,
+            'signals': [],
+        }
+
+        with patch('src.lib.browser.browser.tpl.info'), \
+                patch('src.lib.browser.browser.Fingerprint', return_value=detector):
+            browser.fingerprint()
+
+        self.assertEqual(events, ['prepare', 'detect'])
+
     def test_fingerprint_progress_writes_line_without_final_newline(self):
         """Browser.__fingerprint_progress() should rotate intermediate progress in-place."""
 

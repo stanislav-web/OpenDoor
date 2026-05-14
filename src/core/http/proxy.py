@@ -132,11 +132,11 @@ class Proxy(RequestProvider, DebugProvider):
             server = self.__cfg.proxy if True is self.__cfg.is_standalone_proxy else self.__get_random_proxy()
             self.__server = self.__normalize_proxy_server(server)
 
-            if True is not self.__cfg.is_standalone_proxy:
-                getattr(self.__debug, 'debug_proxy_selected', lambda *args, **kwargs: True)(self.__server)
-
             if self.__server in self.__proxy_pools:
                 return self.__proxy_pools[self.__server]
+
+            if True is not self.__cfg.is_standalone_proxy:
+                getattr(self.__debug, 'debug_proxy_selected', lambda *args, **kwargs: True)(self.__server)
 
             if self.__get_proxy_type(self.__server) == 'socks':
                 disable_warnings(InsecureRequestWarning)
@@ -170,6 +170,26 @@ class Proxy(RequestProvider, DebugProvider):
                     'SOCKS proxy support requires PySocks. Install dependencies with pip install -r requirements.txt'
                 ) from error
             raise ProxyRequestError(error)
+
+    def prepare_connection_pool(self):
+        """Create the first rotating proxy pool before transient progress starts.
+
+        Fingerprinting renders an in-place progress line. If the first proxied
+        request creates a pool during that progress, the proxy-selection debug
+        line interrupts the progress row. Preparing the pool before the
+        fingerprint detector starts keeps both outputs readable while preserving
+        the normal lazy request path for scans without fingerprinting.
+
+        :raise ProxyRequestError: when proxy pool initialization fails
+        :return: True
+        :rtype: bool
+        """
+
+        if True is self.__cfg.is_standalone_proxy:
+            return True
+
+        self.__proxy_pool()
+        return True
 
     def __debug_cookie_middleware(self, response):
         """Route response cookies and emit request-level cookie diagnostics."""

@@ -764,6 +764,8 @@ class Browser(Filter):
             if self.__client is None:
                 self.__start_request_provider()
 
+            self.__prepare_fingerprint_transport()
+
             result = Fingerprint(
                 config=self.__config,
                 client=self.__client,
@@ -1094,6 +1096,22 @@ class Browser(Filter):
             setattr(self.__client, '_cookies', cookies)
         except AttributeError:
             pass
+
+    def __prepare_fingerprint_transport(self):
+        """Prepare transport diagnostics before fingerprint progress starts.
+
+        Rotating proxy pools emit a useful "Selected proxy server" debug line
+        when their first connection pool is created. Creating that pool before
+        fingerprint progress starts avoids interleaving persistent debug logs
+        with the transient progress row. Non-proxy providers do not implement
+        this hook and remain unchanged.
+
+        :return: None
+        """
+
+        prepare = getattr(self.__client, 'prepare_connection_pool', None)
+        if callable(prepare):
+            prepare()
 
     def __start_request_provider(self):
         """

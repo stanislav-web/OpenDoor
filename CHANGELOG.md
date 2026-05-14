@@ -19,6 +19,7 @@ v5.16.0 (11.05.2026)
 - (fix) reused initialized proxy request providers across pre-scan and scan phases to avoid redundant proxy-list initialization.
 - (fix) preserved direct scan provider refresh when scan targets are rewritten by runtime options.
 - (fix) reduced auto-calibration console noise by suppressing per-probe response output while keeping the calibration summary.
+- (fix) noisy debug output in `--proxy-pool` mode by logging proxy selection only when a new proxy pool is created.
 - (feature) added `--waf-guard` with configurable `--waf-guard-after` and `--waf-guard-threshold` to stop scans early when initial classified responses are overwhelmingly WAF-blocked.
 - (feature) added `--diff` to compare exactly two previous/current OpenDoor SQLite or JSON reports and show added, removed and changed findings without running a new scan.
 - (feature) added `--sniff malware` to passively classify suspicious malware, webshell, injected script and obfuscated payload indicators into the `malware` bucket with structured metadata across runtime output and reports.
