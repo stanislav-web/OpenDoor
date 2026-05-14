@@ -431,24 +431,29 @@ class Controller(object):
 
         brows = browser(target_params)
 
-        if True is reporter.is_reported(target_params.get('host')):
-            try:
-                tpl.prompt(key='logged')
-            except KeyboardInterrupt:
-                tpl.cancel(key='abort')
+        try:
+            if True is reporter.is_reported(target_params.get('host')):
+                try:
+                    tpl.prompt(key='logged')
+                except KeyboardInterrupt:
+                    tpl.cancel(key='abort')
 
-        brows.ping()
+            brows.ping()
 
-        if target_params.get('fingerprint') is True:
-            brows.fingerprint()
+            if target_params.get('fingerprint') is True:
+                brows.fingerprint()
 
-        if target_params.get('auto_calibrate') is True:
-            brows.calibrate()
+            if target_params.get('auto_calibrate') is True:
+                brows.calibrate()
 
-        brows.scan()
-        brows.done()
+            brows.scan()
+            brows.done()
 
-        return brows.result
+            return brows.result
+        finally:
+            close = getattr(brows, 'close', None)
+            if callable(close):
+                close()
 
     @staticmethod
     def _collect_response_filter_cli_overrides(params):

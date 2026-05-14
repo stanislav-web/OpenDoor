@@ -71,6 +71,7 @@ e2e-server.log
 # Local helper scripts are not needed in runtime image
 scripts
 release.sh
+debug.sh
 
 # Debian/Kali packaging build artifacts
 .pybuild

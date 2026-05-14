@@ -1194,6 +1194,110 @@ class TestBrowser(unittest.TestCase):
         warning_mock.assert_called_with(msg='Active scan list size mismatch: planned 93661 item(s), active runtime list has 4167. Aborting to avoid a partial scan.')
         reader.get_lines.assert_not_called()
 
+
+
+    def test_prepare_runtime_paths_skips_workspace_without_temp_outputs(self):
+        """Browser should not allocate a temp workspace when no runtime wordlist is generated."""
+
+        br = Browser.__new__(Browser)
+        config = SimpleNamespace(
+            is_random_list=False,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+        )
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__temp_workspace', None)
+
+        self.assertEqual(br._Browser__prepare_runtime_paths(), {})
+        self.assertIsNone(getattr(br, '_Browser__temp_workspace'))
+
+    def test_prepare_runtime_paths_allocates_workspace_for_random_scan(self):
+        """Browser should allocate a workspace before random-list generation."""
+
+        br = Browser.__new__(Browser)
+        workspace = MagicMock()
+        workspace.paths = {'tmplist': '/tmp/opendoor-scan-x/list.tmp'}
+        config = SimpleNamespace(
+            is_random_list=True,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+        )
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__temp_workspace', None)
+
+        with patch('src.lib.browser.browser.ScanTempWorkspace', return_value=workspace):
+            self.assertEqual(br._Browser__prepare_runtime_paths(), workspace.paths)
+
+        self.assertIs(getattr(br, '_Browser__temp_workspace'), workspace)
+
+    def test_scan_cleans_temp_workspace_on_success(self):
+        """Browser.scan() should cleanup its managed workspace after normal completion."""
+
+        br = self.make_browser()
+        workspace = MagicMock()
+        config = SimpleNamespace(
+            is_random_list=False,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+            host='example.com',
+            port=80,
+            scheme='http://',
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__temp_workspace', workspace)
+
+        with patch.object(br, '_Browser__start_request_provider'), \
+                patch('src.lib.browser.browser.tpl.info'):
+            br.scan()
+
+        workspace.cleanup.assert_called_once_with()
+        self.assertIsNone(getattr(br, '_Browser__temp_workspace'))
+
+    def test_scan_cleans_temp_workspace_on_browser_error(self):
+        """Browser.scan() should cleanup its managed workspace when scan startup fails."""
+
+        br = self.make_browser()
+        workspace = MagicMock()
+        config = SimpleNamespace(
+            is_random_list=True,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+            host='example.com',
+            port=80,
+            scheme='http://',
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+        reader.randomize_list.side_effect = ReaderError('bad list')
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__temp_workspace', workspace)
+
+        with self.assertRaises(BrowserError):
+            br.scan()
+
+        workspace.cleanup.assert_called_once_with()
+        self.assertIsNone(getattr(br, '_Browser__temp_workspace'))
+
     def test_done_warns_when_streaming_finishes_before_all_planned_items_are_submitted(self):
         """Browser.done() should explain early EOF instead of only printing the final summary."""
 

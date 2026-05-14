@@ -40,6 +40,7 @@ scripts/
 syslog/
 site/
 release.sh
+debug.sh
 debug.log
 
 # Local binaries / keys

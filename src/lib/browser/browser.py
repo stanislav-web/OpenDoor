@@ -24,6 +24,7 @@ import uuid
 from urllib.parse import unquote, urlsplit, urlunsplit
 from .session import SessionManager, SessionError
 from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError
+from src.core import FileSystemError
 from src.core import SocketError
 from src.core import helper
 from src.core import sys as output
@@ -46,6 +47,7 @@ from .open_redirect import OpenRedirectProbe
 from .shadow import ShadowProbe
 from .sniffers import SnifferEngine, SnifferResult
 from .threadpool import ThreadPool
+from .workspace import ScanTempWorkspace
 
 
 class _WafGuardStop(Exception):
@@ -101,6 +103,7 @@ class Browser(Filter):
         try:
             self.__client = None
             self.__shared_cookie_header = None
+            self.__temp_workspace = None
             self.__config = Config(params)
             self.__debug = Debug(self.__config)
             self.__session_lock = threading.RLock()
@@ -146,6 +149,7 @@ class Browser(Filter):
             self.__result = {'total': {}, 'items': {}, 'report_items': {}, 'filtered_items': []}
             self.__visited_recursive = set()
             self.__queued_recursive = set()
+            runtime_paths = self.__prepare_runtime_paths()
             self.__reader = Reader(browser_config={
                 'list': self.__config.scan,
                 'proxy_list': self.__config.proxy_list,
@@ -156,7 +160,8 @@ class Browser(Filter):
                 'wordlist': self.__config.wordlist,
                 'is_standalone_proxy': self.__config.is_standalone_proxy,
                 'is_external_proxy_list': self.__config.is_external_proxy_list,
-                'prefix': self.__config.prefix
+                'prefix': self.__config.prefix,
+                'runtime_paths': runtime_paths
             })
 
             if True is self.__config.is_external_reports_dir:
@@ -212,8 +217,62 @@ class Browser(Filter):
             if self.__session_snapshot is not None:
                 self.__restore_session_state(self.__session_snapshot)
 
-        except (ResponseError, ReaderError, ValueError) as error:
+        except (ResponseError, ReaderError, ValueError, FileSystemError) as error:
+            self.close()
             raise BrowserError(error)
+
+    def __prepare_runtime_paths(self):
+        """
+        Create per-scan temporary paths when runtime wordlists are needed.
+
+        :return: Runtime wordlist path mapping.
+        """
+
+        if self.__needs_temp_workspace() is not True:
+            return {}
+
+        self.__temp_workspace = ScanTempWorkspace()
+        return self.__temp_workspace.paths
+
+    def __needs_temp_workspace(self):
+        """
+        Return True when the current scan can generate temporary wordlists.
+
+        :return: bool
+        """
+
+        if True is self.__config.is_random_list:
+            return True
+
+        return (
+            self.__config.scan == self.__config.DEFAULT_SCAN
+            and (
+                True is self.__config.is_extension_filter
+                or True is self.__config.is_ignore_extension_filter
+            )
+        )
+
+    def close(self):
+        """
+        Cleanup managed runtime resources owned by this browser instance.
+
+        :return: None
+        """
+
+        workspace = getattr(self, '_Browser__temp_workspace', None)
+        if workspace is None:
+            return
+
+        workspace.cleanup()
+        self.__temp_workspace = None
+
+    def __del__(self):
+        """Best-effort cleanup for instances that never reach scan()."""
+
+        try:
+            self.close()
+        except Exception:
+            pass
 
     def ping(self):
         """
@@ -463,6 +522,9 @@ class Browser(Filter):
             except SessionError as error:
                 tpl.warning(msg='Session checkpoint failed during interruption: {0}'.format(error))
             raise
+
+        finally:
+            self.close()
 
     def __verify_active_scan_list_size(self):
         """
