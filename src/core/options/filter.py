@@ -44,6 +44,7 @@ class Filter(object):
     VPN_TRANSPORTS = ('openvpn', 'wireguard')
     HEADER_BYPASS_PROFILES = ('safe', 'offensive')
     DIFF_REPORTS = ('std', 'json')
+    PROXY_SCHEMES = ('http', 'https', 'socks4', 'socks5', 'socks5h')
 
     @staticmethod
     def filter(args):
@@ -806,7 +807,7 @@ class Filter(object):
 
         proxy = helper.parse_url(proxyaddress)
 
-        if proxy.scheme not in ['http', 'https', 'socks4', 'socks5'] or None is proxy.port:
+        if proxy.scheme not in Filter.PROXY_SCHEMES or None is proxy.port:
             raise FilterError("\"{0}\" is invalid proxy in --proxy. Use scheme:ip:port format".format(proxyaddress))
         return proxyaddress
 

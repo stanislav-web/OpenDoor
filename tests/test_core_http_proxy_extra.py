@@ -82,6 +82,7 @@ class TestProxyExtra(unittest.TestCase):
         proxy_type = getattr(Proxy, '_Proxy__get_proxy_type')
 
         self.assertEqual(proxy_type('socks5://127.0.0.1:9050'), 'socks')
+        self.assertEqual(proxy_type('socks5h://127.0.0.1:9050'), 'socks')
         self.assertEqual(proxy_type('https://proxy.example.com'), 'https')
         self.assertEqual(proxy_type('http://proxy.example.com'), 'http')
 
@@ -471,6 +472,23 @@ class TestProxyExtra(unittest.TestCase):
             self.assertIsNone(proxy.request('http://api.example.com'))
 
         tpl.warning.assert_not_called()
+
+    def test_get_random_proxy_preserves_socks5h_scheme(self):
+        """Proxy.__get_random_proxy() should keep socks5h proxy-list entries unchanged."""
+
+        cfg = self.make_cfg(is_standalone_proxy=False)
+        proxy = Proxy(
+            cfg,
+            self.make_debug(),
+            tpl=MagicMock(),
+            proxy_list=[' socks5h://127.0.0.1:9050 '],
+            agent_list=['UA'],
+        )
+
+        with patch('src.core.http.proxy.random.randrange', return_value=0):
+            actual = getattr(proxy, '_Proxy__get_random_proxy')()
+
+        self.assertEqual(actual, 'socks5h://127.0.0.1:9050')
 
     def test_get_random_proxy_normalizes_socks_alias(self):
         """Proxy.__get_random_proxy() should normalize socks:// aliases to socks5://."""

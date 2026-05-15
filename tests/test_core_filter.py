@@ -112,8 +112,17 @@ class TestFilter(unittest.TestCase):
     def test_proxy_accepts_supported_schemes(self):
         """Filter.proxy() should accept supported proxy schemes with a port."""
 
-        self.assertEqual(Filter.proxy('http://127.0.0.1:8080'), 'http://127.0.0.1:8080')
-        self.assertEqual(Filter.proxy('socks5://127.0.0.1:9050'), 'socks5://127.0.0.1:9050')
+        supported = [
+            'http://127.0.0.1:8080',
+            'https://127.0.0.1:8443',
+            'socks4://127.0.0.1:9050',
+            'socks5://127.0.0.1:9050',
+            'socks5h://127.0.0.1:9050',
+        ]
+
+        for proxy in supported:
+            with self.subTest(proxy=proxy):
+                self.assertEqual(Filter.proxy(proxy), proxy)
 
     def test_proxy_rejects_invalid_proxy_values(self):
         """Filter.proxy() should reject invalid proxy definitions."""

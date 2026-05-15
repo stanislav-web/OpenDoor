@@ -30,12 +30,13 @@ class Worker(threading.Thread):
 
     """Worker class"""
 
-    def __init__(self, queue, num_threads, timeout=0):
+    def __init__(self, queue, num_threads, timeout=0, error_callback=None):
         """
         Init thread worker
         :param Queue.Queue queue: simple queue object
         :param int num_threads: threads numbers
         :param int timeout: delay timeout
+        :param callable|None error_callback: optional fatal worker error callback
         """
 
         super(Worker, self).__init__()
@@ -45,6 +46,7 @@ class Worker(threading.Thread):
         self.__running = True
         self.__queue = queue
         self.__timeout = timeout
+        self.__error_callback = error_callback
         self.counter = 0
         self.completed = 0
         self.failed = 0
@@ -52,6 +54,16 @@ class Worker(threading.Thread):
         self.__task_started_at = None
         self.__task_last_activity_at = None
         self.__task_detail = None
+
+    def set_error_callback(self, error_callback):
+        """
+        Set fatal worker error callback.
+
+        :param callable|None error_callback: callback receiving the raised exception
+        :return: None
+        """
+
+        self.__error_callback = error_callback
 
     def pause(self):
         """
@@ -96,7 +108,11 @@ class Worker(threading.Thread):
                     self.__empty = True
 
         except Exception as error:
-            self.terminate(str(error))
+            self.__running = False
+            if callable(self.__error_callback):
+                self.__error_callback(error)
+            else:
+                self.terminate(str(error))
 
     @property
     def active_task(self):

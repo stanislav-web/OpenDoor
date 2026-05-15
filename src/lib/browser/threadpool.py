@@ -43,6 +43,7 @@ class ThreadPool(object):
         self.__queue = Queue()
         self.__workers = []
         self.__submitted = 0
+        self.__worker_error = None
         self.total_items_size = total_items
         self.is_started = True
         self.__stall_warning_interval = self.__normalize_stall_warning_interval(stall_warning_interval)
@@ -50,6 +51,8 @@ class ThreadPool(object):
         for _ in range(num_threads):
 
             worker = Worker(self.__queue, num_threads, timeout)
+            if hasattr(worker, 'set_error_callback'):
+                worker.set_error_callback(self.__record_worker_error)
             if False is worker.is_alive():
                 worker.daemon = True
                 worker.start()
@@ -154,8 +157,11 @@ class ThreadPool(object):
         """
         Join queue and periodically warn when workers stop making progress.
 
+        :raise Exception: first fatal exception reported by a worker
         :return: None
         """
+
+        self.__raise_worker_error_if_any()
 
         last_completed = self.completed_size
         last_queue_size = self.size
@@ -170,6 +176,8 @@ class ThreadPool(object):
                 except (SystemExit, KeyboardInterrupt):
                     self.pause()
                     continue
+
+                self.__raise_worker_error_if_any()
 
                 completed = self.completed_size
                 queue_size = self.__queue._qsize()
@@ -199,6 +207,34 @@ class ThreadPool(object):
                             )
                     )
                     last_warning_at = now
+
+        self.__raise_worker_error_if_any()
+
+    def __record_worker_error(self, error):
+        """
+        Store the first fatal worker exception for propagation on the main thread.
+
+        Worker threads must not terminate the whole process directly. The main
+        scan flow owns BrowserError handling, session checkpoints and final
+        process exit semantics.
+
+        :param Exception error: fatal worker exception
+        :return: None
+        """
+
+        if self.__worker_error is None:
+            self.__worker_error = error
+
+    def __raise_worker_error_if_any(self):
+        """
+        Raise the first fatal worker exception, if any.
+
+        :raise Exception: stored worker exception
+        :return: None
+        """
+
+        if self.__worker_error is not None:
+            raise self.__worker_error
 
     @classmethod
     def __normalize_stall_warning_interval(cls, value):

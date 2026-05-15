@@ -7007,8 +7007,6 @@
 /v3/api-docs
 /wp-content/debug.log
 /wp-content/uploads/dump.sql
-:2080
-:2082
 ?mode=phpinfo
 ?view=log
 ?view=phpinfo
@@ -10086,7 +10084,7 @@ addons.php
 Addons.php
 addons.txt
 addons/cms/comment
-addons/nkeditor/index/download?url=http:/www.baidu.com
+addons/nkeditor/index/download
 addons/theme/stv1/_static/jscore.js
 addonsnkeditor
 addorder.asp
@@ -12366,8 +12364,7 @@ admin/PMAindex.php
 admin/pmaindex.php
 admin/pol_log.txt
 admin/portal
-admin/portalcollect.php?f=http://xxx&t=js
-admin/portalcollect.php?f=http:/xxx&t=js
+admin/portalcollect.php
 admin/posts
 admin/pprof
 admin/preferences
@@ -19689,7 +19686,6 @@ apache/logsaccess.log
 apache/logsaccess_log
 apache/logserror.log
 apache/logserror_log
-apache::gallery
 apacheAccess.log
 apacheError.log
 apacheerrorsize.php
@@ -26777,7 +26773,6 @@ blog/wp-content/backup-db
 blog/wp-content/backups
 blog/wp-login
 blog/wp-login.php
-blog:cms
 blog_admin
 blog_admin.php
 blog_admin/auth.php
@@ -42307,11 +42302,6 @@ docomparing
 docomparing.js
 docomparing.jsp
 docomparing.php
-docpicker/common_proxy/http/www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http://example.com
-docpicker/common_proxy/http/www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http:/example.com
-docpicker/internal_proxy/http/127.0.0.1:9100aa
-docpicker/internal_proxy/https/127.0.0.1:9043/ibm/console
-docpicker/internal_proxy/https/127.0.0.1:9043/ibmconsole
 docpicker/internal_proxy/httpsexample.com
 docpile
 DocProject/buildhelp
@@ -46771,7 +46761,6 @@ error.log
 error.log.0
 error.php
 Error.php
-error.php2014-10-14 15:38  3.9K
 error.phtml
 error.rar
 error.seam
@@ -49017,7 +49006,6 @@ file/up.php
 file/upload.php
 file/uplod.php
 file/wso.php
-file::extattr
 file_6.php
 file_7.php
 file_8.php
@@ -56633,8 +56621,6 @@ hsxa1.jsp
 hsxa.jsp
 hsyx9g34.php
 ht
-ht://dig
-ht:/dig
 hta
 htaccess
 htaccess.backup
@@ -56709,8 +56695,6 @@ html/js/misc/swfupload/swfupload_f9.swf
 html/js/misc/swfuploadswfupload.swf
 html/js/misc/swfuploadswfupload_f9.swf
 html/scoutnew.asp?prodid=
-html::bbcode
-html::merge
 html_editor
 html_email
 html_emails
@@ -61774,7 +61758,6 @@ jmx
 jmx-console
 jmx-console.php
 jmx-console/HtmlAdaptor
-jmx-console/HtmlAdaptor?action=inspectMBean&name=jboss.system:type=ServerInfo
 jmx-console/images../.env
 jmx-console/images../.env.local
 jmx-console/images../.env.sample
@@ -61782,7 +61765,6 @@ jmx-console/images/.env
 jmx-console/images/.env.local
 jmx-console/images/.env.sample
 jmx-consoleHtmlAdaptor
-jmx-consoleHtmlAdaptor?action=inspectMBean&name=jboss.system:type=ServerInfo
 jmxproxy
 JMXSoapAdapter
 jnethack
@@ -62015,37 +61997,11 @@ jolasean.nsf
 jologs
 jolokia
 jolokia/exec/ch.qos.logback.classic
-jolokia/exec/com.sun.management:type=DiagnosticCommand/compilerDirectivesAdd/!/etc!/passwd
-jolokia/exec/com.sun.management:type=DiagnosticCommand/compilerDirectivesAdd/!/etc!passwd
-jolokia/exec/com.sun.management:type=DiagnosticCommand/help*
-jolokia/exec/com.sun.management:type=DiagnosticCommand/help/*
-jolokia/exec/com.sun.management:type=DiagnosticCommand/jfrStart/filename=!/tmp!/foo
-jolokia/exec/com.sun.management:type=DiagnosticCommand/jfrStart/filename=!/tmp!foo
-jolokia/exec/com.sun.management:type=DiagnosticCommand/jvmtiAgentLoad/!/etc!/passwd
-jolokia/exec/com.sun.management:type=DiagnosticCommand/jvmtiAgentLoad/!/etc!passwd
-jolokia/exec/com.sun.management:type=DiagnosticCommand/vmLog/disable
-jolokia/exec/com.sun.management:type=DiagnosticCommand/vmLog/output=!/tmp!/pwned
-jolokia/exec/com.sun.management:type=DiagnosticCommand/vmLog/output=!/tmp!pwned
-jolokia/exec/com.sun.management:type=DiagnosticCommand/vmLogdisable
-jolokia/exec/com.sun.management:type=DiagnosticCommand/vmSystemProperties
-jolokia/exec/com.sun.management:type=DiagnosticCommandvmSystemProperties
-jolokia/exec/java.lang:type=Memory/gc
-jolokia/exec/java.lang:type=Memorygc
 jolokia/execch.qos.logback.classic
 jolokia/list
-jolokia/list?maxObjects=100
 jolokia/read
-jolokia/read/java.lang:type=*/HeapMemoryUsage
-jolokia/read/java.lang:type=*HeapMemoryUsage
-jolokia/read/java.lang:type=Memory/HeapMemoryUsage/used
-jolokia/read/java.lang:type=Memory/HeapMemoryUsageused
-jolokia/search*:j2eeType=J2EEServer,*
-jolokia/search/*:j2eeType=J2EEServer,*
 jolokia/version
-jolokia/write/java.lang:type=Memory/Verbose/true
-jolokia/write/java.lang:type=Memory/Verbosetrue
 jolokialist
-jolokialist?maxObjects=100
 jolokiaversion
 jomar
 jombik
@@ -66559,7 +66515,6 @@ logout.jsp
 logout.jsp.bak
 logout.php
 logout.php3
-logout?service=http:/baidu.com
 logoutasp
 logoutp.php
 logoutphp
@@ -67734,7 +67689,7 @@ mailserver
 mailshot
 mailshots
 mailsite
-mailsms/s?func=ADMIN:appState&dumpConfig=
+mailsms
 mailsrv
 mailstory.php
 mailSubject
@@ -68515,13 +68470,11 @@ manager/invoices
 manager/ispmgr
 manager/jmxproxy
 manager/jmxproxy/?get=BEANNAME&att=MYATTRIBUTE&key=MYKEY
-manager/jmxproxy/?get=java.lang:type=Memory&att=HeapMemoryUsage
 manager/jmxproxy/?invoke=BEANNAME&op=METHODNAME&ps=COMMASEPARATEDPARAMETERS
 manager/jmxproxy/?invoke=Catalina%3Atype%3DService&op=findConnectors&ps=
 manager/jmxproxy/?qry=STUFF
 manager/jmxproxy/?set=BEANNAME&att=MYATTRIBUTE&val=NEWVALUE
 manager/jmxproxy?get=BEANNAME&att=MYATTRIBUTE&key=MYKEY
-manager/jmxproxy?get=java.lang:type=Memory&att=HeapMemoryUsage
 manager/jmxproxy?invoke=BEANNAME&op=METHODNAME&ps=COMMASEPARATEDPARAMETERS
 manager/jmxproxy?invoke=Catalina%3Atype%3DService&op=findConnectors&ps=
 manager/jmxproxy?qry=STUFF
@@ -82948,9 +82901,6 @@ plugins/fckeditor/filemanager/browser/defaultbrowser.html
 plugins/p_fckeditor/fckeditor/editor/filemanager/browser/defaultbrowser.html
 plugins/p_fckeditor/fckeditor/editor/filemanager/connectorsuploadtest.html
 plugins/servlet/gadgets/makeRequest
-plugins/servlet/gadgets/makeRequest?url=https
-plugins/servlet/gadgets/makeRequest?url=https://google.com
-plugins/servlet/gadgets/makeRequest?url=https:/google.com
 plugins/servlet/gadgetsmakeRequest
 plugins/servlet/oauth/users/icon
 plugins/servlet/oauth/usersicon
@@ -86540,9 +86490,6 @@ proxy.json
 proxy.pac
 proxy.php
 proxy.stream
-proxy.stream?origin=http
-proxy.stream?origin=https://google.com
-proxy.stream?origin=https:/google.com
 proxy.txt
 proxy.xml
 proxy_config.json
@@ -89777,7 +89724,6 @@ res
 res.htm
 res.html
 res.php
-res/url?url=file:///etcpasswd
 resa
 resale
 resamend.php
@@ -105524,7 +105470,6 @@ trace
 TRACE
 trace-results.html
 Trace.axd
-Trace.axd::$DATA
 trace.htm
 trace.json
 trace.log
@@ -112597,7 +112542,6 @@ web.config.temp
 web.config.tmp
 web.config.txt
 web.config.zip
-web.config::$DATA
 web.config_bak
 web.Debug.config
 web.htm
@@ -113566,7 +113510,6 @@ welcome.html
 welcome.jsp
 welcome.msg
 welcome.php
-welcome.php2008-06-23 14:54  2.1K
 welcome.phtml
 welcome.shtml
 welcome_ads
@@ -116028,22 +115971,12 @@ wpresources
 wpress
 wprobot.php
 wps
-wps/cmis_proxy/http/www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http://example.com
-wps/cmis_proxy/http/www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http:/example.com
-wps/common_proxy/http/www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http://example.com
-wps/common_proxy/http/www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http:/example.com
-wps/contenthandler/!ut/p/digest!8skKFbWr_TwcZcvoc9Dn3g/?uri=http://www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http://example.com
-wps/contenthandler/!ut/p/digest!8skKFbWr_TwcZcvoc9Dn3g/?uri=http://www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http:/example.com
-wps/myproxy/http/www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http://example.com
-wps/myproxy/http/www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http:/example.com
 wps/PA_WCM_Authoring_UI/proxy/http/example.com
 wps/PA_WCM_Authoring_UI/proxy/httpexample.com
 wps/PA_WCM_Authoring_UI/proxy/https/example.com
 wps/PA_WCM_Authoring_UI/proxy/httpsexample.com
 wps/portal/login
 wps/portal/login.php
-wps/proxy/http/www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http://example.com
-wps/proxy/http/www.redbooks.ibm.com/Redbooks.nsf/RedbookAbstracts/sg247798.html?Logout&RedirectTo=http:/example.com
 wpscripts
 wptest
 wptest4.xml
@@ -116320,7 +116253,7 @@ www.txuri-urdin.com
 www.web-teck.com
 www.zip
 www/.env
-www/delivery/afr.php?refresh=10000&\),10000000);alert(1337);setTimeout(alert(\
+www/delivery/afr.php
 www/phpMyAdmin/index.php
 www/phpMyAdminindex.php
 www_logs
@@ -117503,7 +117436,6 @@ zl.php
 zlk
 zlog
 zm
-zm/?view=log
 zmail
 zmodem
 zmusic-frontend/.env

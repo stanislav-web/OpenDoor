@@ -224,6 +224,42 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         terminate_mock.assert_called_once()
 
+    def test_worker_run_reports_error_to_callback_without_killing_process(self):
+        """Worker.run() should report task failures to ThreadPool instead of killing the process."""
+
+        errors = []
+        worker = Worker(Queue(1), num_threads=1, timeout=0, error_callback=errors.append)
+
+        with patch.object(worker, '_Worker__process', side_effect=RuntimeError('boom')), \
+                patch.object(worker, 'terminate') as terminate_mock, \
+                patch.object(getattr(worker, '_Worker__event'), 'wait', return_value=True), \
+                patch('src.lib.browser.worker.time.sleep'):
+            setattr(worker, '_Worker__running', True)
+            worker.run()
+
+        terminate_mock.assert_not_called()
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(str(errors[0]), 'boom')
+        self.assertFalse(getattr(worker, '_Worker__running'))
+
+    def test_threadpool_join_raises_worker_error_without_pause_prompt(self):
+        """ThreadPool.join() should propagate worker failures instead of opening a dead resume prompt."""
+
+        pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        def boom():
+            raise RuntimeError('transport down')
+
+        with patch.object(pool, 'JOIN_POLL_INTERVAL_SEC', 0.01), \
+                patch('src.lib.browser.threadpool.tpl.prompt') as prompt_mock, \
+                patch('src.lib.browser.worker.process.kill') as kill_mock:
+            pool.add(boom)
+            with self.assertRaisesRegex(RuntimeError, 'transport down'):
+                pool.join()
+
+        prompt_mock.assert_not_called()
+        kill_mock.assert_not_called()
+
     def test_worker_run_honors_timeout_before_processing(self):
         """Worker.run() should sleep for timeout-enabled workers before processing."""
 
