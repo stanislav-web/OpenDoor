@@ -182,6 +182,50 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
         self.assertIsNone(plugin.process(response))
         self.assertFalse(hasattr(response, 'opendoor_stacktrace_detection'))
 
+    def test_ignores_cscart_404_i18n_warning_and_notice_keys(self):
+        """Should not classify CS-Cart 404 localization keys as PHP diagnostics."""
+
+        plugin = StacktraceResponsePlugin(None)
+        body = (
+            '<!DOCTYPE html><html><head><title>Страница не найдена</title></head>'
+            '<body><div class="ty-exception"><div class="ty-exception__code">404</div>'
+            '<p>Запрашиваемая страница не найдена.</p></div>'
+            '<script type="text/javascript">_.tr({'
+            "notice: 'Оповещение', warning: 'Предупреждение', error: 'Ошибка', "
+            "error_validator_integer: 'Значение поля <b>[field]</b> неправильное.'"
+            '});</script></body></html>'
+        )
+        response = self.make_response(
+            status=404,
+            body=body.encode('utf-8'),
+            headers={'Content-Type': 'text/html; charset=utf-8'},
+        )
+
+        self.assertIsNone(plugin.process(response))
+        self.assertFalse(hasattr(response, 'opendoor_stacktrace_detection'))
+
+    def test_detects_php_warning_when_formatted_as_runtime_error(self):
+        """Should still detect real PHP Warning runtime diagnostics."""
+
+        self.assert_detection(
+            'Warning: include(config.php): failed to open stream in /var/www/html/index.php on line 7',
+            'php',
+            'php-error',
+            90,
+        )
+
+    def test_detects_html_formatted_php_warning(self):
+        """Should still detect HTML-formatted PHP runtime diagnostics."""
+
+        self.assert_detection(
+            '<br /><b>Warning</b>: require(config.php): failed to open stream '
+            'in <b>/var/www/html/index.php</b> on line <b>7</b><br />',
+            'php',
+            'php-error',
+            90,
+            headers={'Content-Type': 'text/html; charset=utf-8'},
+        )
+
     def test_ignores_binary_and_normal_responses(self):
         """Should avoid binary bodies and normal non-debug text."""
 

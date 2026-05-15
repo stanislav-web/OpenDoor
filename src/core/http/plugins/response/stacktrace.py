@@ -79,7 +79,21 @@ class StacktraceResponsePlugin(ResponsePluginProvider):
             'signal': 'php-error',
             'confidence': 90,
             'pattern': re.compile(
-                r'(?<![A-Za-z0-9_-])(?:PHP\s+)?(?:Fatal\s+error|Warning|Parse\s+error|Notice)\s*:',
+                r'(?<![A-Za-z0-9_-])(?:<b>\s*)?(?:PHP\s+)?'
+                r'(?:Fatal\s+error|Parse\s+error)(?:\s*</b>)?\s*:'
+                r'|(?<![A-Za-z0-9_-])(?:<b>\s*)?(?:PHP\s+)?'
+                r'(?:Warning|Notice|Deprecated)(?:\s*</b>)?\s*:\s*'
+                r'(?=.{0,360}(?:'
+                r'\b(?:Undefined\s+(?:index|variable|offset|array\s+key)|'
+                r'Trying\s+to\s+(?:access|get|read)|'
+                r'failed\s+to\s+open\s+stream|'
+                r'include(?:_once)?\s*\(|require(?:_once)?\s*\(|'
+                r'mysql|mysqli|PDO|expects\s+parameter|'
+                r'Use\s+of\s+undefined\s+constant|Division\s+by\s+zero|'
+                r'non-numeric\s+value)\b|'
+                r'\bin\s+(?:<b>\s*)?[^<\s]+\.php(?:\s*</b>)?'
+                r'\s+on\s+line\s+(?:<b>\s*)?\d+'
+                r'))',
                 re.IGNORECASE,
             ),
         },
