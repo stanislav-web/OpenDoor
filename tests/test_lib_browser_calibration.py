@@ -458,6 +458,129 @@ class TestCalibration(unittest.TestCase):
 
         self.assertFalse(Calibration._is_exact_shape_match(baseline, candidate))
 
+    def test_calibration_soft_200_shape_should_reject_non_success_bucket(self):
+        """Calibration._is_soft_200_shape_match() should reject non-success 200 buckets."""
+
+        baseline = {
+            'code': 200,
+            'bucket': 'redirect',
+            'content_kind': 'html',
+            'size': 4096,
+        }
+        candidate = {
+            'code': 200,
+            'bucket': 'success',
+            'content_kind': 'html',
+            'size': 4096,
+        }
+
+        self.assertFalse(Calibration._is_soft_200_shape_match(baseline, candidate))
+
+    def test_calibration_soft_200_shape_should_allow_missing_bucket_metadata(self):
+        """Calibration._is_soft_200_shape_match() should not require optional bucket metadata."""
+
+        baseline = {
+            'code': 200,
+            'content_kind': 'html',
+            'size': 4096,
+            'dom_tokens': ['html', 'body', 'main', 'p'],
+        }
+        candidate = {
+            'code': 200,
+            'content_kind': 'html',
+            'size': 4090,
+            'dom_tokens': ['html', 'body', 'main', 'p'],
+        }
+
+        self.assertTrue(Calibration._is_soft_200_shape_match(baseline, candidate))
+
+    def test_calibration_soft_200_shape_should_allow_missing_optional_numeric_fields(self):
+        """Calibration._is_soft_200_shape_match() should allow absent optional word/line/density fields."""
+
+        baseline = {
+            'code': 200,
+            'bucket': 'success',
+            'content_kind': 'html',
+            'size': 4096,
+            'dom_tokens': ['html', 'body', 'main', 'p'],
+        }
+        candidate = {
+            'code': 200,
+            'bucket': 'success',
+            'content_kind': 'html',
+            'size': 4090,
+            'dom_tokens': ['html', 'body', 'main', 'p'],
+        }
+
+        self.assertTrue(Calibration._is_soft_200_shape_match(baseline, candidate))
+
+    def test_calibration_soft_200_shape_should_reject_different_text_density(self):
+        """Calibration._is_soft_200_shape_match() should reject large text-density drift."""
+
+        baseline = {
+            'code': 200,
+            'bucket': 'success',
+            'content_kind': 'html',
+            'size': 4096,
+            'word_count': 100,
+            'line_count': 20,
+            'text_density': 0.10,
+        }
+        candidate = dict(baseline)
+        candidate['text_density'] = 0.30
+
+        self.assertFalse(Calibration._is_soft_200_shape_match(baseline, candidate))
+
+    def test_calibration_soft_200_shape_should_require_close_size_for_title_match(self):
+        """Calibration._is_soft_200_shape_match() should not trust title-only matches with size drift."""
+
+        baseline = {
+            'code': 200,
+            'bucket': 'success',
+            'content_kind': 'html',
+            'size': 4096,
+            'word_count': 100,
+            'line_count': 20,
+            'text_density': 0.20,
+            'title': 'not found',
+            'dom_tokens': ['html', 'body', 'main'],
+        }
+        candidate = dict(baseline)
+        candidate['size'] = 4050
+        candidate['dom_tokens'] = ['html', 'form', 'input']
+
+        self.assertFalse(Calibration._is_soft_200_shape_match(baseline, candidate))
+
+    def test_calibration_jaccard_similarity_should_handle_empty_union_guard(self):
+        """Calibration._jaccard_similarity() should handle a defensive empty-union guard."""
+
+        class EmptyUnion(object):
+            def __len__(self):
+                return 0
+
+        class TruthyEmptySet(object):
+            def __bool__(self):
+                return True
+
+            def __or__(self, _other):
+                return EmptyUnion()
+
+        with patch('src.lib.browser.calibration.set', side_effect=[TruthyEmptySet(), TruthyEmptySet()], create=True):
+            actual = Calibration._jaccard_similarity(['left'], ['right'])
+
+        self.assertEqual(actual, 0.0)
+
+    def test_calibration_header_similarity_should_handle_empty_truthy_mappings(self):
+        """Calibration._header_similarity() should handle empty truthy mapping-like inputs."""
+
+        class TruthyEmptyMapping(dict):
+            def __bool__(self):
+                return True
+
+        actual = Calibration._header_similarity(TruthyEmptyMapping(), {})
+
+        self.assertEqual(actual, 1.0)
+
     def test_calibration_should_match_semantic_soft_404_with_different_html_wrappers(self):
         """Calibration.match() should match semantically identical soft-404 templates."""
 
@@ -774,7 +897,6 @@ class TestCalibration(unittest.TestCase):
         candidate['dom_tokens'] = ['html', 'body', 'form', 'input']
 
         self.assertFalse(Calibration._is_soft_200_shape_match(baseline, candidate))
-
 
     def test_calibration_soft_200_numeric_helpers_should_cover_edges(self):
         """Soft-200 numeric helpers should cover invalid and zero-value edges."""

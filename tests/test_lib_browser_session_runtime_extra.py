@@ -294,6 +294,25 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
         getattr(br, '_Browser__reader').get_lines.assert_not_called()
         getattr(br, '_Browser__reader').count_active_lines.assert_not_called()
 
+    def test_scan_skips_dictionary_when_loaded_session_is_complete(self):
+        """Browser.scan() should not stream the wordlist again for completed session checkpoints."""
+
+        br = self.make_browser()
+        getattr(br, '_Browser__pool').total_items_size = 10
+        setattr(br, '_Browser__session_snapshot', {'createdAt': 1})
+        setattr(br, '_Browser__processed_offset', 10)
+        setattr(br, '_Browser__pending_requests', {})
+
+        with patch.object(br, '_Browser__start_request_provider') as start_mock, \
+                patch.object(br, '_Browser__resume_pending_requests') as resume_mock:
+            br.scan()
+
+        start_mock.assert_called_once()
+        resume_mock.assert_not_called()
+        getattr(br, '_Browser__reader').get_lines.assert_not_called()
+        getattr(br, '_Browser__reader').count_active_lines.assert_not_called()
+        getattr(br, '_Browser__pool').join.assert_not_called()
+
     def test_scan_interrupt_forces_session_save_and_warns_on_failure(self):
         """Browser.scan() should try a forced checkpoint when interrupted."""
 

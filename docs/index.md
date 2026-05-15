@@ -150,7 +150,7 @@ opendoor --host https://example.com --session-save scan.session
 opendoor --session-load scan.session
 ```
 
-Sessions are useful for large wordlists, unstable networks, batch scans, and transport-based workflows.
+Sessions are useful for large wordlists, unstable networks and transport-based workflows.
 
 ---
 

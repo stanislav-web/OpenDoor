@@ -500,6 +500,8 @@ class Browser(Filter):
             if self.__session_snapshot is not None and len(self.__pending_requests) > 0:
                 self.__resume_pending_requests()
                 self.__pool.join()
+            elif self.__session_snapshot is not None and self.__is_loaded_session_complete():
+                return
             elif True is self.__pool.is_started:
                 self.__reader.get_lines(
                     params={
@@ -3034,6 +3036,22 @@ class Browser(Filter):
                 raise BrowserError(error)
         else:
             pass
+
+    def __is_loaded_session_complete(self):
+        """Return True when a loaded checkpoint has no remaining work."""
+
+        if self.__session_snapshot is None:
+            return False
+        if len(self.__pending_requests) > 0:
+            return False
+
+        try:
+            processed = int(self.__processed_offset)
+            total = int(self.__pool.total_items_size)
+        except (AttributeError, TypeError, ValueError):
+            return False
+
+        return total > 0 and processed >= total
 
     def __task_key(self, url, depth):
         """Build stable request key for session tracking."""

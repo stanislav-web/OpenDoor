@@ -20,14 +20,14 @@ v5.16.0 (16.05.2026)
 - (fix) preserved direct scan provider refresh when scan targets are rewritten by runtime options.
 - (fix) reduced auto-calibration console noise by suppressing per-probe response output while keeping the calibration summary.
 - (fix) noisy debug output in `--proxy-pool` mode by logging proxy selection only when a new proxy pool is created.
-- (fix) scan runtime temp handling by moving generated wordlist artifacts into per-scan managed workspaces with cross-platform cleanup on normal exit, errors, and abort signals.
 - (feature) added `--waf-guard` with configurable `--waf-guard-after` and `--waf-guard-threshold` to stop scans early when initial classified responses are overwhelmingly WAF-blocked.
 - (feature) added `--diff` to compare exactly two previous/current OpenDoor SQLite or JSON reports and show added, removed and changed findings without running a new scan.
 - (feature) added `--sniff malware` to passively classify suspicious malware, webshell, injected script and obfuscated payload indicators into the `malware` bucket with structured metadata across runtime output and reports.
 - (feature) added `--sniff shadow` active Shadow Copy Detection to probe confirmed `200 OK` file-like hits for exposed backup/suffix copies such as `.bak`, `.old`, and similar variants.
 - (feature) added `--sniff secret` to classify successful textual responses with possible leaked API keys, tokens, private keys, JWTs and credential URLs into the `secret` bucket.
 - (feature) added `--sniff openredirect` for verified open redirect detection: OpenDoor now performs bounded active checks on discovered redirect-like query parameters, reports findings in the `openredirect` bucket, and preserves evidence across text, JSON, CSV, HTML, SQLite, and SARIF reports.
-- (enhancement) added `socks5h://` proxy URL support for standalone proxy and proxy-list flows.
+- (enhancement) scan runtime temp handling by moving generated wordlist artifacts into per-scan managed workspaces with cross-platform cleanup on normal exit, errors, and abort signals.
+- (enhancement) added `socks5h://` proxy URL support for standalone proxy and proxy-list flows without changing existing proxy debug output.
 - (enhancement) improved `--update` as a safe cross-platform helper: it no longer depends on scanner data assets, does not execute package-manager commands, and now prints update instructions for pipx, pip, Homebrew, Docker, Linux packages, Windows, and source checkout installs.
 - (enhancement) hardened response filter handling across CLI, wizard configuration, and session resume flows.
 - (enhancement) hardened proxy routing: `--proxy`, `--proxy-list`, and `--proxy-pool` are now mutually exclusive, rotating proxies skip dead entries during the current scan runtime, authenticated proxy-list entries support HTTPS CONNECT, and selected rotating proxies are shown in debug with credentials masked.
@@ -41,7 +41,7 @@ v5.16.0 (16.05.2026)
 - (ux) reduced stdout Summary noise by hiding low-value diagnostic counters and detailed fingerprint/HSTS/privacy internals while preserving them in structured reports.
 - (ux) improved connection preflight diagnostics for localhost/proxy transport checks.
 - (dictionary) bundled `data/shadow-suffixes.dat` in source and wheel distributions so PyPI, Homebrew-style source builds and local installs include the built-in shadow suffix catalog by default.
-- (dictionary) cleaned and normalized inernal directories list
+- (dictionary) cleaned and normalized internal directories list (+2133 potencial interesting paths).
 - (build) added staged Ruff quality gates and advisory Vulture dead-code checks, with updated contributor rules and cleanup documentation.
 
 v5.15.3 (09.05.2026)

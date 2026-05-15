@@ -1267,6 +1267,7 @@
 111.php
 112
 112.html
+112.php
 113
 113.html
 113.php
@@ -21369,6 +21370,7 @@ api/xml
 api_console
 api_docs
 api_error.php
+api_info.php
 API_insert_atividades.php
 api_jsonrpc.php
 api_log.txt
@@ -30774,6 +30776,7 @@ change_country.php
 change_lang.asp
 change_language.php
 change_log.txt
+change_login.php
 change_pass2.php
 change_pass.php
 change_password

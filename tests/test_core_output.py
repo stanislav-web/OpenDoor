@@ -105,6 +105,31 @@ class TestOutput(unittest.TestCase):
 
         self.assertEqual(fake_stdout.getvalue(), '\n')
 
+    def test_mark_dynamic_line_should_tolerate_invalid_length(self):
+        """Output.mark_dynamic_line() should normalize invalid lengths to zero."""
+
+        fake_stdout = StringIO()
+
+        with patch('src.core.system.output.sys.stdout', fake_stdout):
+            Output.mark_dynamic_line('bad')
+            Output.finish_dynamic_line()
+
+        self.assertEqual(fake_stdout.getvalue(), '\n')
+
+    def test_finish_dynamic_line_should_tolerate_stdout_errors(self):
+        """Output.finish_dynamic_line() should clear state even when stdout fails."""
+
+        fake_stdout = MagicMock()
+        fake_stdout.write.side_effect = OSError('closed')
+
+        with patch('src.core.system.output.sys.stdout', fake_stdout):
+            Output.mark_dynamic_line(12)
+            Output.finish_dynamic_line()
+            fake_stdout.write.side_effect = None
+            Output.finish_dynamic_line()
+
+        fake_stdout.write.assert_called_once_with('\n')
+
     def test_clear_dynamic_line_should_skip_finish_newline(self):
         """Output.clear_dynamic_line() should suppress later line termination."""
 

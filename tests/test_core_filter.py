@@ -605,6 +605,42 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(actual['session_autosave_sec'], 10)
         self.assertEqual(actual['session_autosave_items'], 50)
 
+    def test_filter_keeps_waf_guard_options_with_session_load(self):
+        """Filter.filter() should allow WAF guard CLI overrides when resuming a session."""
+
+        actual = Filter.filter({
+            'session_load': 'session.json',
+            'waf_guard': True,
+            'waf_guard_after': 12,
+            'waf_guard_threshold': 0.85,
+        })
+
+        self.assertTrue(actual['session_load'].endswith('session.json'))
+        self.assertTrue(actual['waf_guard'])
+        self.assertEqual(actual['waf_guard_after'], 12)
+        self.assertEqual(actual['waf_guard_threshold'], 0.85)
+
+    def test_filter_keeps_header_bypass_options_with_session_load(self):
+        """Filter.filter() should allow header-bypass CLI overrides when resuming a session."""
+
+        actual = Filter.filter({
+            'session_load': 'session.json',
+            'header_bypass': True,
+            'header_bypass_profile': 'offensive',
+            'header_bypass_headers': 'X-Forwarded-For,X-Real-IP',
+            'header_bypass_ips': '127.0.0.1,10.0.0.1',
+            'header_bypass_status': '401,403',
+            'header_bypass_limit': 5,
+        })
+
+        self.assertTrue(actual['session_load'].endswith('session.json'))
+        self.assertTrue(actual['header_bypass'])
+        self.assertEqual(actual['header_bypass_profile'], 'offensive')
+        self.assertEqual(actual['header_bypass_headers'], ['X-Forwarded-For', 'X-Real-IP'])
+        self.assertEqual(actual['header_bypass_ips'], ['127.0.0.1', '10.0.0.1'])
+        self.assertEqual(actual['header_bypass_status'], ['401', '403'])
+        self.assertEqual(actual['header_bypass_limit'], 5)
+
     def test_session_file_and_positive_int_helpers_cover_error_paths(self):
         """Filter session helpers should validate empty paths and non-positive thresholds."""
 

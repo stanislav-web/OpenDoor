@@ -8,7 +8,7 @@ from .provider import ResponsePluginProvider
 class ShadowResponsePlugin(ResponsePluginProvider):
     """Register the active shadow-copy sniffer alias."""
 
-    DESCRIPTION = 'Shadow Copy (probe backups for 200 OK file hits)'
+    DESCRIPTION = 'Shadow Copy (detect history and copies files hits)'
     RESPONSE_INDEX = 'shadow'
 
     def __init__(self, _void):

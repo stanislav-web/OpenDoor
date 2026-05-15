@@ -86,6 +86,39 @@ class TestProxyExtra(unittest.TestCase):
         self.assertEqual(proxy_type('https://proxy.example.com'), 'https')
         self.assertEqual(proxy_type('http://proxy.example.com'), 'http')
 
+    def test_http_proxy_request_passes_configured_retries_to_pool(self):
+        """Proxy.request() should pass cfg.retries to urllib3 for HTTP proxies."""
+
+        cfg = self.make_cfg(is_standalone_proxy=True, proxy='http://127.0.0.1:8080', retries=9)
+        pool = MagicMock()
+        pool.request.return_value = HTTPResponse(status=200, body=b'ok', headers={})
+        proxy = Proxy(cfg, self.make_debug(), tpl=MagicMock(), proxy_list=['http://unused'], agent_list=['UA'])
+
+        with patch('src.core.http.proxy.ProxyManager', return_value=pool):
+            actual = proxy.request('http://example.com/path')
+
+        self.assertEqual(actual.status, 200)
+        self.assertEqual(pool.request.call_args.kwargs['retries'], 9)
+
+    def test_socks5h_proxy_request_passes_configured_retries_to_pool(self):
+        """Proxy.request() should pass cfg.retries to urllib3 for socks5h proxies."""
+
+        cfg = self.make_cfg(is_standalone_proxy=True, proxy='socks5h://127.0.0.1:9050', retries=10)
+        pool = MagicMock()
+        pool.request.return_value = HTTPResponse(status=200, body=b'ok', headers={})
+        socks_manager = MagicMock(return_value=pool)
+        package_module = SimpleNamespace(SOCKSProxyManager=socks_manager)
+        proxy = Proxy(cfg, self.make_debug(), tpl=MagicMock(), proxy_list=['http://unused'], agent_list=['UA'])
+
+        with patch('src.core.http.proxy.disable_warnings'), \
+                patch('src.core.http.proxy.importlib.import_module', return_value=package_module):
+            actual = proxy.request('http://example.com/path')
+
+        self.assertEqual(actual.status, 200)
+        self.assertEqual(pool.request.call_args.kwargs['retries'], 10)
+        socks_manager.assert_called_once()
+        self.assertEqual(socks_manager.call_args.args[0], 'socks5h://127.0.0.1:9050')
+
     def test_proxy_pool_uses_proxy_manager_for_http_proxy(self):
         """Proxy.__proxy_pool() should use ProxyManager for non-socks proxies."""
 

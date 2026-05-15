@@ -733,7 +733,7 @@ Sessions are useful for:
 
 - large wordlists;
 - unstable networks;
-- batch scans;
+- single scans;
 - recursive scans;
 - transport-based workflows;
 - scans interrupted by terminal or system restarts.

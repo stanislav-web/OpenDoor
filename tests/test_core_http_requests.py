@@ -54,6 +54,33 @@ class TestHttpRequest(unittest.TestCase):
         self.assertEqual(out.status, 200)
         pool.request.assert_called_once()
 
+    def test_request_passes_configured_retries_to_directory_pool(self):
+        """HttpRequest.request() should pass cfg.retries to urllib3 for directory requests."""
+
+        cfg = self.make_cfg(retries=7)
+        req = HttpRequest(cfg, SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+        pool = MagicMock()
+        pool.request.return_value = HTTPResponse(status=200, body=b'ok', headers={})
+        req._HttpRequest__pool = pool
+
+        req.request('http://example.com/path')
+
+        self.assertEqual(pool.request.call_args.kwargs['retries'], 7)
+
+    def test_request_passes_configured_retries_to_poolmanager(self):
+        """HttpRequest.request() should pass cfg.retries to urllib3 for non-directory requests."""
+
+        cfg = self.make_cfg(scan='subdomains', retries=4)
+
+        with patch('src.core.http.http.PoolManager') as pm_cls:
+            pm = pm_cls.return_value
+            pm.request.return_value = HTTPResponse(status=200, body=b'ok', headers={})
+
+            req = HttpRequest(cfg, SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+            req.request('http://api.example.com')
+
+        self.assertEqual(pm.request.call_args.kwargs['retries'], 4)
+
     def test_request_refreshes_random_user_agent_for_each_http_request(self):
         """HttpRequest.request() should refresh managed random User-Agent before every request."""
 
@@ -187,6 +214,33 @@ class TestHttpsRequest(unittest.TestCase):
         response = req._provide_ssl_auth_required()
 
         self.assertEqual(response.status, 496)
+
+    def test_request_passes_configured_retries_to_directory_pool(self):
+        """HttpsRequest.request() should pass cfg.retries to urllib3 for directory requests."""
+
+        cfg = self.make_cfg(retries=8)
+        req = HttpsRequest(cfg, SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+        pool = MagicMock()
+        pool.request.return_value = HTTPResponse(status=200, body=b'ok', headers={})
+        req._HttpsRequest__pool = pool
+
+        req.request('https://example.com/path')
+
+        self.assertEqual(pool.request.call_args.kwargs['retries'], 8)
+
+    def test_request_passes_configured_retries_to_poolmanager(self):
+        """HttpsRequest.request() should pass cfg.retries to urllib3 for non-directory requests."""
+
+        cfg = self.make_cfg(scan='subdomains', retries=5)
+
+        with patch('src.core.http.https.PoolManager') as pm_cls:
+            pm = pm_cls.return_value
+            pm.request.return_value = HTTPResponse(status=200, body=b'ok', headers={})
+
+            req = HttpsRequest(cfg, SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+            req.request('https://api.example.com')
+
+        self.assertEqual(pm.request.call_args.kwargs['retries'], 5)
 
     def test_request_refreshes_random_user_agent_for_each_https_request(self):
         """HttpsRequest.request() should refresh managed random User-Agent before every request."""
