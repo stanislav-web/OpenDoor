@@ -89,3 +89,4 @@ debian/*.substvars
 *.changes
 *.dsc
 *.tar.xz
+/debug.sh
