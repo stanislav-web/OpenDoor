@@ -61,6 +61,8 @@ class Config(object):
             params.get('transport_timeout'))
         self._transport_healthcheck_url = params.get('transport_healthcheck_url')
         self._transport_bin = params.get('transport_bin')
+        self._is_tls_legacy = params.get('tls_legacy') is True
+        self._last_transport_error = None
         self._openvpn_auth = params.get('openvpn_auth')
         self._headers = params.get('header')
         self._cookies = params.get('cookie')
@@ -912,6 +914,25 @@ class Config(object):
         """Transport rotation mode."""
 
         return self._transport_rotate
+
+
+    @property
+    def is_tls_legacy(self):
+        """Whether opt-in legacy TLS compatibility is enabled."""
+
+        return self._is_tls_legacy
+
+    @property
+    def last_transport_error(self):
+        """Last actionable transport diagnostic recorded by a request provider."""
+
+        return self._last_transport_error
+
+    @last_transport_error.setter
+    def last_transport_error(self, value):
+        """Store the last actionable transport diagnostic."""
+
+        self._last_transport_error = value
 
     @property
     def transport_timeout(self):

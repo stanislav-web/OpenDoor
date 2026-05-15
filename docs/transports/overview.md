@@ -2,7 +2,7 @@
 
 OpenDoor supports direct, proxy, OpenVPN, and WireGuard transport modes.
 
-Transport options are useful when you need controlled network routing for authorized scanning workflows.
+Transport options are useful when you need controlled network routing for authorized scanning workflows. HTTPS targets also use the default Python/OpenSSL TLS policy unless `--tls-legacy` is explicitly enabled for weak-DH compatibility.
 
 ---
 
@@ -35,6 +35,21 @@ opendoor --host https://example.com --transport direct
 ```
 
 This is the default network path.
+
+---
+
+
+## TLS compatibility
+
+For most HTTPS targets, no TLS option is needed.
+
+When a legacy server fails TLS negotiation with `DH_KEY_TOO_SMALL`, use the explicit compatibility flag:
+
+```shell
+opendoor --host https://legacy.example.com --tls-legacy
+```
+
+See [TLS compatibility](tls.md) for diagnostic commands and session behavior.
 
 ---
 

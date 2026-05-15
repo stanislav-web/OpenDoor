@@ -164,6 +164,15 @@ class Options(object):
             {
                 "group": "request",
                 "args": None,
+                "argl": "--tls-legacy",
+                "default": False,
+                "action": "store_true",
+                "help": "Enable opt-in legacy TLS compatibility for hosts with weak DHE/DH parameters",
+                "type": bool
+            },
+            {
+                "group": "request",
+                "args": None,
                 "argl": "--header",
                 "default": None,
                 "action": "append",

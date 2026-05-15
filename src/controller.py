@@ -251,6 +251,7 @@ class Controller(object):
             cli_calibration_threshold = params.get('calibration_threshold')
             cli_response_filter_overrides = cls._collect_response_filter_cli_overrides(params)
             cli_transport_overrides = cls._collect_transport_cli_overrides(params)
+            cli_tls_legacy = params.get('tls_legacy')
 
             if 'wizard' in params:
                 tpl.info(key='load_wizard', config=params['wizard'])
@@ -267,6 +268,9 @@ class Controller(object):
 
                 if cli_calibration_threshold is not None:
                     params['calibration_threshold'] = cli_calibration_threshold
+
+                if cli_tls_legacy is True:
+                    params['tls_legacy'] = True
 
                 params.update(cli_response_filter_overrides)
                 params.update(cli_transport_overrides)
@@ -294,6 +298,9 @@ class Controller(object):
 
                 if cli_calibration_threshold is not None:
                     restored['calibration_threshold'] = cli_calibration_threshold
+
+                if cli_tls_legacy is True:
+                    restored['tls_legacy'] = True
 
                 restored.update(cli_response_filter_overrides)
                 restored.update(cli_transport_overrides)

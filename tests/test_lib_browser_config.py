@@ -190,6 +190,13 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(cfg.recursive_status, [])
         self.assertEqual(cfg.recursive_exclude, [])
 
+
+    def test_tls_legacy_defaults_to_disabled_and_can_be_enabled(self):
+        """Config should expose the opt-in legacy TLS mode."""
+
+        self.assertFalse(Config({'reports': 'std'}).is_tls_legacy)
+        self.assertTrue(Config({'reports': 'std', 'tls_legacy': True}).is_tls_legacy)
+
     def test_headers_are_normalized(self):
         """Config should normalize custom request headers."""
 

@@ -604,6 +604,27 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(result['total']['ignored'], 1)
         self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
 
+
+    def test_http_request_includes_tls_diagnostic_in_transport_failure(self):
+        """Browser transport-failure messages should include provider TLS diagnostics."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+        setattr(getattr(br, '_Browser__config'), 'last_transport_error', 'TLS handshake failed: DH_KEY_TOO_SMALL. Retry with --tls-legacy.')
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__http_request('https://example.com/admin')
+
+        self.assertIn('DH_KEY_TOO_SMALL', warning_mock.call_args.kwargs.get('msg', ''))
+        self.assertIn('--tls-legacy', warning_mock.call_args.kwargs.get('msg', ''))
+
     def test_http_request_aborts_after_consecutive_transport_failures(self):
         """Browser.__http_request() should stop a scan after repeated exhausted transport failures."""
 

@@ -2028,12 +2028,22 @@ class Browser(Filter):
 
         self.__finish_filtered_progress_line()
 
+        diagnostic = getattr(self.__config, 'last_transport_error', None)
+        diagnostic_suffix = ''
+        if diagnostic:
+            diagnostic_suffix = ' Last transport error: {0}'.format(diagnostic)
+
         if streak < threshold:
             tpl.warning(
                 msg=(
                     'No response from target after configured timeout/retries: {path}. '
-                    'Consecutive transport failures: {streak}/{threshold}.'
-                ).format(path=path, streak=streak, threshold=threshold)
+                    'Consecutive transport failures: {streak}/{threshold}.{diagnostic_suffix}'
+                ).format(
+                    path=path,
+                    streak=streak,
+                    threshold=threshold,
+                    diagnostic_suffix=diagnostic_suffix,
+                )
             )
             return
 
@@ -2042,7 +2052,8 @@ class Browser(Filter):
                 'Target transport appears unavailable after {streak} consecutive request failure(s). '
                 'Aborting scan to avoid silently waiting on the remaining dictionary. '
                 'Last failed URL: {url}. Each failed request already used configured --timeout and --retries.'
-            ).format(streak=streak, url=url)
+                '{diagnostic_suffix}'
+            ).format(streak=streak, url=url, diagnostic_suffix=diagnostic_suffix)
         )
 
     def __http_request(self, url, depth=0):
@@ -3149,6 +3160,7 @@ class Browser(Filter):
             'request_body': self.__config.request_body,
             'accept_cookies': self.__config.accept_cookies,
             'keep_alive': self.__config.keep_alive,
+            'tls_legacy': getattr(self.__config, 'is_tls_legacy', False),
             'fingerprint': getattr(self.__config, 'is_fingerprint', False),
             'waf_detect': getattr(self.__config, 'is_waf_detect', False),
             'waf_safe_mode': getattr(self.__config, 'is_waf_safe_mode', False),
@@ -3292,7 +3304,7 @@ class Browser(Filter):
         snapshot = self.__build_session_snapshot(reason=reason)
         self.__session.save(snapshot)
         self.__session_dirty = False
-        tpl.info(msg='Session checkpoint saved: {0}'.format(self.__session.path))
+        tpl.debug(msg='Session checkpoint saved: {0}'.format(self.__session.path))
 
     def __resume_pending_requests(self):
         """Re-enqueue restored pending requests."""

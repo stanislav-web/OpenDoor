@@ -260,6 +260,18 @@ opendoor --host https://example.com -t 20
 
 **Caution!** A large number of threads may trigger a WAF. Use `--waf-safe-mode` to avoid WAF-triggered scans.
 
+### Legacy TLS compatibility
+
+```shell
+opendoor --host https://legacy.example.com --tls-legacy
+```
+
+Use this only for legacy HTTPS targets that fail during TLS handshake with weak-DH errors such as `DH_KEY_TOO_SMALL`. The default TLS policy remains unchanged unless this flag is explicitly enabled.
+
+`--tls-legacy` is useful when a target opens in a browser but Python/OpenSSL-based scanners fail before receiving an HTTP status. Internally, OpenDoor excludes DHE cipher suites for the scan by using `DEFAULT:!DHE`.
+
+For details and diagnostic commands, see [TLS compatibility](transports/tls.md).
+
 ### Keep-alive
 
 ```shell
@@ -836,6 +848,18 @@ Supported rotation modes:
 opendoor --host https://example.com --transport-timeout 60
 ```
 
+
+
+### TLS compatibility
+
+Legacy TLS compatibility is independent from the selected network transport. It can be used with direct scans and with proxied HTTPS scans when the target server fails OpenSSL negotiation because of weak DHE/DH parameters.
+
+```shell
+opendoor --host https://legacy.example.com --tls-legacy
+opendoor --host https://legacy.example.com --transport proxy --proxy socks5://127.0.0.1:9050 --tls-legacy
+```
+
+See [TLS compatibility](transports/tls.md).
 
 ### Transport executable path
 

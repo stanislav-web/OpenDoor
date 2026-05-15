@@ -145,6 +145,19 @@ Fingerprinting attempts to identify probable CMS, frameworks, application stacks
 
 ---
 
+
+## 🔐 Scan a legacy HTTPS target
+
+Most HTTPS targets need no TLS-specific option. If a legacy server is reachable in a browser but OpenDoor reports a TLS handshake failure such as `DH_KEY_TOO_SMALL`, retry with explicit legacy TLS compatibility:
+
+```shell
+opendoor --host https://legacy.example.com --tls-legacy
+```
+
+Use this only for weak-DH compatibility. For details, see [TLS compatibility](transports/tls.md).
+
+---
+
 ## 🛡️ Detect WAF behavior
 
 ```shell

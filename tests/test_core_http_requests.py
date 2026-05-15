@@ -33,6 +33,7 @@ class TestHttpRequest(unittest.TestCase):
             'scheme': 'http://',
             'is_random_user_agent': False,
             'user_agent': 'UA',
+            'is_tls_legacy': False,
         }
         base.update(kwargs)
         return SimpleNamespace(**base)
@@ -203,6 +204,7 @@ class TestHttpsRequest(unittest.TestCase):
             'scheme': 'https://',
             'is_random_user_agent': False,
             'user_agent': 'UA',
+            'is_tls_legacy': False,
         }
         base.update(kwargs)
         return SimpleNamespace(**base)
@@ -301,6 +303,39 @@ class TestHttpsRequest(unittest.TestCase):
         self.assertEqual(captured_headers[1]['User-Agent'], 'Custom-UA')
         self.assertEqual(pool.request.call_count, 2)
 
+
+    def test_tls_legacy_builds_ssl_context_and_logs_policy(self):
+        """HttpsRequest should pass an opt-in legacy SSL context to urllib3."""
+
+        cfg = self.make_cfg(is_tls_legacy=True)
+        tpl = MagicMock()
+
+        with patch('src.core.http.https.HTTPSConnectionPool') as pool_cls:
+            HttpsRequest(cfg, SimpleNamespace(level=0), tpl=tpl, agent_list=['UA'])
+
+        kwargs = pool_cls.call_args.kwargs
+        self.assertIsNotNone(kwargs.get('ssl_context'))
+        tpl.debug.assert_called_once()
+        self.assertIn('DEFAULT:!DHE', tpl.debug.call_args.kwargs.get('msg', ''))
+
+    def test_tls_dh_key_error_is_reported_with_tls_legacy_hint(self):
+        """HttpsRequest should expose weak-DH TLS failures as actionable diagnostics."""
+
+        cfg = self.make_cfg()
+        tpl = MagicMock()
+        req = HttpsRequest(cfg, SimpleNamespace(level=0), tpl=tpl, agent_list=['UA'])
+        pool = MagicMock()
+        pool.request.side_effect = MaxRetryError(None, '/', SSLError('dh key too small'))
+        req._HttpsRequest__pool = pool
+
+        self.assertIsNone(req.request('https://example.com/x'))
+        self.assertIn('DH_KEY_TOO_SMALL', cfg.last_transport_error)
+        self.assertIn('--tls-legacy', cfg.last_transport_error)
+        self.assertTrue(any(
+            'DH_KEY_TOO_SMALL' in call.kwargs.get('msg', '')
+            for call in tpl.warning.call_args_list
+        ))
+
     def test_request_directory_and_subdomain(self):
         """HttpsRequest.request() should support both directory and subdomain modes."""
 
@@ -379,6 +414,7 @@ class TestProxy(unittest.TestCase):
             'is_standalone_proxy': False,
             'proxy': '',
             'is_proxy_pool': False,
+            'is_tls_legacy': False,
         }
         base.update(kwargs)
         return SimpleNamespace(**base)
@@ -401,6 +437,46 @@ class TestProxy(unittest.TestCase):
             out = proxy.request('http://example.com/x')
 
         self.assertEqual(out.status, 200)
+
+
+    def test_proxy_tls_legacy_passes_ssl_context_to_proxy_manager(self):
+        """Proxy should pass legacy TLS context to urllib3 when --tls-legacy is enabled."""
+
+        debug = SimpleNamespace(level=0, debug_proxy_pool=lambda: None)
+        tpl = MagicMock()
+        proxy = Proxy(
+            self.make_cfg(is_tls_legacy=True),
+            debug,
+            tpl=tpl,
+            proxy_list=['http://127.0.0.1:8080'],
+            agent_list=['UA'],
+        )
+
+        with patch('src.core.http.proxy.ProxyManager') as pm_cls:
+            pm_cls.return_value.request.return_value = HTTPResponse(status=200, body=b'ok', headers={})
+            proxy.request('https://example.com/x')
+
+        self.assertIsNotNone(pm_cls.call_args.kwargs.get('ssl_context'))
+        tpl.debug.assert_called_once()
+
+
+    def test_proxy_tls_error_records_legacy_hint(self):
+        """Proxy should expose weak-DH TLS failures as actionable diagnostics."""
+
+        debug = SimpleNamespace(level=0, debug_proxy_pool=lambda: None)
+        cfg = self.make_cfg()
+        tpl = MagicMock()
+        proxy = Proxy(cfg, debug, tpl=tpl, proxy_list=['http://127.0.0.1:8080'], agent_list=['UA'])
+
+        with patch('src.core.http.proxy.ProxyManager') as pm_cls:
+            pm_cls.return_value.request.side_effect = MaxRetryError(None, '/', SSLError('dh key too small'))
+            proxy.request('https://example.com/x')
+
+        self.assertIn('DH_KEY_TOO_SMALL', cfg.last_transport_error)
+        self.assertTrue(any(
+            'DH_KEY_TOO_SMALL' in call.kwargs.get('msg', '')
+            for call in tpl.warning.call_args_list
+        ))
 
     def test_proxy_pool_socks(self):
         """Proxy.request() should work with SOCKS proxies."""

@@ -161,6 +161,9 @@ class Filter(object):
             if args.get('debug') is not None:
                 filtered['debug'] = Filter.debug_level(args.get('debug'), key='--debug')
 
+            if args.get('tls_legacy') is True:
+                filtered['tls_legacy'] = True
+
             if args.get('auto_calibrate') is True:
                 filtered['auto_calibrate'] = True
 
@@ -240,6 +243,8 @@ class Filter(object):
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
             elif 'proxy' == key:
                 filtered[key] = Filter.proxy(value)
+            elif key in ['tls_legacy']:
+                filtered[key] = value is True
             elif 'scheme' == key:
                 filtered[key] = Filter.explicit_scheme(value, key='--scheme')
             elif key in ['include_status', 'exclude_status']:

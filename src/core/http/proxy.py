@@ -28,6 +28,7 @@ from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnkn
 
 from src.core import helper
 from .exceptions import ProxyRequestError
+from .tls import TLS_LEGACY_CIPHERS, describe_tls_transport_error, maybe_build_ssl_context
 from .providers import DebugProvider
 from .providers import RequestProvider
 
@@ -56,13 +57,52 @@ class Proxy(RequestProvider, DebugProvider):
             self.__dead_proxies = set()
             self.__cfg = config
             self.__debug = debug
+            self.__ssl_context = maybe_build_ssl_context(getattr(self.__cfg, 'is_tls_legacy', False))
             self.__debug.debug_proxy_pool()
+            self.__debug_tls_policy()
 
             if False is config.is_standalone_proxy and 0 == len(self.__proxylist):
                 raise TypeError('Proxy list empty or has invalid format')
 
         except (TypeError, ValueError) as error:
             raise ProxyRequestError(error)
+
+
+    def __debug_tls_policy(self):
+        """Emit debug output for opt-in legacy TLS compatibility."""
+
+        if getattr(self.__cfg, 'is_tls_legacy', False) is True:
+            getattr(self.__tpl, 'debug', lambda *args, **kwargs: True)(
+                msg='TLS legacy compatibility enabled: ciphers={0}'.format(TLS_LEGACY_CIPHERS)
+            )
+
+
+    def __pool_tls_kwargs(self):
+        """Return urllib3 TLS kwargs only when legacy mode is enabled.
+
+        :return: TLS keyword arguments for urllib3 proxy managers.
+        :rtype: dict
+        """
+
+        if self.__ssl_context is None:
+            return {}
+
+        return {'ssl_context': self.__ssl_context}
+
+    def __record_tls_transport_error(self, error):
+        """Store and print a helpful TLS transport diagnostic when possible.
+
+        :param Exception error: Source urllib3/OpenSSL exception.
+        :return: None
+        """
+
+        message = describe_tls_transport_error(error)
+        if not message:
+            return
+
+        setattr(self.__cfg, 'last_transport_error', message)
+        self.__finish_active_terminal_line()
+        self.__tpl.warning(msg=message)
 
     @classmethod
     def __build_proxy_headers(cls, server):
@@ -150,6 +190,7 @@ class Proxy(RequestProvider, DebugProvider):
                     num_pools=self.__cfg.threads,
                     timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
                     block=True,
+                    **self.__pool_tls_kwargs()
                 )
             else:
                 pool = ProxyManager(
@@ -158,6 +199,7 @@ class Proxy(RequestProvider, DebugProvider):
                     proxy_headers=self.__build_proxy_headers(self.__server),
                     timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
                     block=True,
+                    **self.__pool_tls_kwargs()
                 )
 
             self.__proxy_pools[self.__server] = pool
@@ -238,7 +280,8 @@ class Proxy(RequestProvider, DebugProvider):
             response = self.__pool_request(url, headers=request_headers)
             return response
 
-        except MaxRetryError:
+        except MaxRetryError as error:
+            self.__record_tls_transport_error(error)
             if self.__is_directory_like_scan() is True:
                 self.__finish_active_terminal_line()
                 self.__tpl.warning(
@@ -248,7 +291,8 @@ class Proxy(RequestProvider, DebugProvider):
                 )
                 return self.__retry_after_max_retry(url, request_headers)
 
-        except ReadTimeoutError:
+        except ReadTimeoutError as error:
+            self.__record_tls_transport_error(error)
             if self.__is_directory_like_scan() is True:
                 self.__finish_active_terminal_line()
                 self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
@@ -265,8 +309,10 @@ class Proxy(RequestProvider, DebugProvider):
         try:
             return self.__pool_request(url, headers=request_headers)
         except MaxRetryError as error:
+            self.__record_tls_transport_error(error)
             self.__warn_proxy_retry_failed(url, error)
         except ReadTimeoutError as error:
+            self.__record_tls_transport_error(error)
             self.__warn_proxy_retry_failed(url, error)
 
         return None
@@ -354,6 +400,7 @@ class Proxy(RequestProvider, DebugProvider):
             redirect=False,
         )
 
+        setattr(self.__cfg, 'last_transport_error', None)
         self.__mark_proxy_alive(self.__server)
         self._debug_response_received(self.__debug, response)
         self.__debug_cookie_middleware(response)

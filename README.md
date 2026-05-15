@@ -19,7 +19,6 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 
 [![Coverage](https://codecov.io/github/stanislav-web/OpenDoor/graph/badge.svg?token=dyBxutYBso)](https://codecov.io/github/stanislav-web/OpenDoor)
 [![CodeQL](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql)
-[![Dependency Review](https://github.com/stanislav-web/OpenDoor/actions/workflows/dependency-review.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/dependency-review.yml)
 [![Codacy Security Scan](https://github.com/stanislav-web/OpenDoor/actions/workflows/codacy.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/codacy.yml)
 
 ## 🧪 CI matrix

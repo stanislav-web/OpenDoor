@@ -26,6 +26,7 @@ nav:
       - Auto-calibration: detection/auto-calibration.md
   - Network transports:
       - Overview: transports/overview.md
+      - TLS compatibility: transports/tls.md
       - Proxy: transports/proxy.md
       - OpenVPN: transports/openvpn.md
       - WireGuard: transports/wireguard.md

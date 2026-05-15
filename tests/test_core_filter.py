@@ -1244,6 +1244,22 @@ class TestFilter(unittest.TestCase):
                 'transport_rotate': 'per-target',
             })
 
+
+    def test_filter_should_preserve_tls_legacy_in_scan_and_session_load_flows(self):
+        """Filter.filter() should keep --tls-legacy for new and resumed scans."""
+
+        scan = Filter.filter({
+            'host': 'https://example.com',
+            'tls_legacy': True,
+        })
+        self.assertTrue(scan['tls_legacy'])
+
+        session = Filter.filter({
+            'session_load': 'session.json',
+            'tls_legacy': True,
+        })
+        self.assertTrue(session['tls_legacy'])
+
     def test_filter_should_preserve_session_load_debug_fail_bucket_and_transport_bin(self):
         """Filter.filter() should preserve invocation-only flags in session-load flow."""
 
