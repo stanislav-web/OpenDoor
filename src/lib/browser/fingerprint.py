@@ -85,6 +85,10 @@ class Fingerprint(object):
 
     PROBES = (
         '/wp-json/',
+        '/wp-content/',
+        '/wp-content/plugins/',
+        '/wp-content/themes/',
+        '/wp-includes/',
         '/wp-login.php',
         '/xmlrpc.php',
         '/sites/default/files/',
@@ -1389,6 +1393,52 @@ class Fingerprint(object):
         return 'route get:' in body_text and 'not found' in body_text
 
     @staticmethod
+    def _is_distinct_probe_status(probe_status, not_found_status):
+        """
+        Return True when a fingerprint probe status differs from the 404 baseline.
+
+        This avoids counting catch-all/soft404 responses as endpoint evidence
+        when the missing-path probe returns the same successful-looking status.
+
+        :param int|None probe_status: probe HTTP status
+        :param int|None not_found_status: missing-path baseline HTTP status
+        :return: bool
+        """
+
+        try:
+            status = int(probe_status or 0)
+        except (TypeError, ValueError):
+            return False
+
+        if status <= 0:
+            return False
+
+        try:
+            baseline_status = int(not_found_status or 0)
+        except (TypeError, ValueError):
+            baseline_status = 0
+
+        if baseline_status in [200, 301, 302, 401, 403, 405] and status == baseline_status:
+            return False
+
+        return True
+
+    @classmethod
+    def _is_distinct_probe_up(cls, probe_statuses, path, allowed_statuses, not_found_status):
+        """
+        Return True when a probe path is reachable and not equal to soft404 baseline.
+
+        :param dict probe_statuses: collected probe statuses
+        :param str path: probe path
+        :param list[int] allowed_statuses: statuses that represent a useful hit
+        :param int|None not_found_status: missing-path baseline HTTP status
+        :return: bool
+        """
+
+        status = probe_statuses.get(path)
+        return status in allowed_statuses and cls._is_distinct_probe_status(status, not_found_status)
+
+    @staticmethod
     def _should_propagate_runtime_from_signal(signal_type):
         """
         Return True when an application signal is strong enough to infer runtime.
@@ -1469,12 +1519,23 @@ class Fingerprint(object):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'markup', '/wp-content/', 6)
         if '/wp-includes/' in body_lower:
             self._add_signal('WordPress', self.CMS_CATEGORY, 'markup', '/wp-includes/', 5)
-        if probe_statuses.get('/wp-json/') in [200, 401, 403]:
+
+        wordpress_static_probes = (
+            ('/wp-content/', 6),
+            ('/wp-includes/', 5),
+            ('/wp-content/plugins/', 4),
+            ('/wp-content/themes/', 4),
+        )
+        for probe_path, weight in wordpress_static_probes:
+            if self._is_distinct_probe_up(probe_statuses, probe_path, [200, 301, 302, 401, 403], not_found_status):
+                self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', probe_path, weight)
+
+        if self._is_distinct_probe_up(probe_statuses, '/wp-json/', [200, 401, 403], not_found_status):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/wp-json/', 5)
-        if probe_statuses.get('/wp-login.php') in [200, 301, 302, 401, 403]:
-            self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/wp-login.php', 4)
-        if probe_statuses.get('/xmlrpc.php') in [200, 301, 302, 401, 403, 405]:
-            self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/xmlrpc.php', 3)
+        if self._is_distinct_probe_up(probe_statuses, '/wp-login.php', [200, 301, 302, 401, 403], not_found_status):
+            self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/wp-login.php', 2)
+        if self._is_distinct_probe_up(probe_statuses, '/xmlrpc.php', [200, 301, 302, 401, 403, 405], not_found_status):
+            self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/xmlrpc.php', 2)
         if any(cookie.startswith(('wordpress_', 'wp-settings-')) for cookie in cookies):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'cookie', 'wordpress_*', 5)
 

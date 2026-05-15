@@ -34,6 +34,7 @@ v5.16.0 (16.05.2026)
 - (enhancement) refactored the internal sniffer architecture to support independent multi-finding detection, additive security findings, suppressor separation and shared active-sniffer orchestration while preserving existing `--sniff` CLI aliases and report buckets.
 - (enhancement) improved controlled 403 `header-bypass` probing with additional safe path-normalization variants, including encoded-dot, semicolon-prefix, dot-semicolon-prefix, double-slash semicolon, and dot-dot semicolon suffix checks for arbitrary protected paths discovered during scans.
 - (enhancement) hardened Stacktrace sniffer detection to avoid false positives from normal HTML/CSS source code such as `.*-warning`, `.*-error`, and similar style/class names.
+- (enhancement) hardened WordPress fingerprinting by adding static asset probes and preventing weak login/xmlrpc-only evidence from becoming a primary CMS match
 - (enhancement) preserves redacted Secret Sniffer metadata in standard, text, CSV, JSON, HTML, SQLite and SARIF reports without storing raw secret values.
 - (enhancement) added Mobirise site-builder detection to `--fingerprint` using generator, asset and markup signals common to Mobirise landing pages.
 - (enhancement) added QRATOR / Qrator Labs infrastructure detection to `--fingerprint`.
