@@ -9,6 +9,7 @@
 .tmp
 .temp
 ~
+_old
 .swp
 .swo
 .dist
@@ -16,4 +17,3 @@
 .1
 .2
 .txt
-.mine
