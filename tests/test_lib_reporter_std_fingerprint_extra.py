@@ -125,7 +125,7 @@ class TestStdReportPluginFingerprintExtra(unittest.TestCase):
         self.assertIn('fingerprint_runtime', rendered)
         self.assertIn('fingerprint_infra', rendered)
         self.assertIn('hsts', rendered)
-        self.assertIn('privacy_supercookie_risk', rendered)
+        self.assertIn('supercookie_risk', rendered)
 
         for hidden_row in (
             'calibrated',
@@ -141,7 +141,7 @@ class TestStdReportPluginFingerprintExtra(unittest.TestCase):
             'hsts_max_age',
             'hsts_include_subdomains',
             'hsts_preload_ready',
-            'privacy_supercookie_score',
+            'supercookie_score',
             'privacy_supercookie_hsts',
             'privacy_supercookie_etag',
             'privacy_supercookie_cache',

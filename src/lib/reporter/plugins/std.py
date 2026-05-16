@@ -110,7 +110,7 @@ class StdReportPlugin(PluginProvider):
 
             supercookie = fingerprint.get('privacy_risks', {}).get('supercookie', {})
             if isinstance(supercookie, dict) and len(supercookie) > 0:
-                data += [('privacy_supercookie_risk', supercookie.get('risk', 'none'))]
+                data += [('supercookie_risk', supercookie.get('risk', 'none'))]
 
                 warnings = supercookie.get('warnings')
                 if isinstance(warnings, (list, tuple)) and len(warnings) > 0:

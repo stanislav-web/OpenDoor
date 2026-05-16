@@ -138,14 +138,14 @@ class SqliteReportPlugin(PluginProvider):
                 'hsts_preload_ready INTEGER, '
                 'hsts_http_to_https_redirect INTEGER, '
                 'hsts_warnings TEXT, '
-                'privacy_supercookie_risk TEXT, '
-                'privacy_supercookie_score INTEGER, '
-                'privacy_supercookie_hsts_tracking_surface INTEGER, '
-                'privacy_supercookie_etag_tracking_surface INTEGER, '
-                'privacy_supercookie_cache_tracking_surface INTEGER, '
-                'privacy_supercookie_persistent_cookie_surface INTEGER, '
+                'supercookie_risk TEXT, '
+                'supercookie_score INTEGER, '
+                'supercookie_hsts_tracking_surface INTEGER, '
+                'supercookie_etag_tracking_surface INTEGER, '
+                'supercookie_cache_tracking_surface INTEGER, '
+                'supercookie_persistent_surface INTEGER, '
                 'privacy_supercookie_warnings TEXT, '
-                'privacy_supercookie_signals TEXT'
+                'supercookie_signals TEXT'
                 ')'
             )
             cursor.execute(
@@ -306,11 +306,11 @@ class SqliteReportPlugin(PluginProvider):
                     'id, category, name, confidence, runtime_name, runtime_confidence, '
                     'infrastructure_provider, infrastructure_confidence, hsts_present, hsts_grade, '
                     'hsts_max_age, hsts_include_subdomains, hsts_preload, hsts_preload_ready, '
-                    'hsts_http_to_https_redirect, hsts_warnings, privacy_supercookie_risk, '
-                    'privacy_supercookie_score, privacy_supercookie_hsts_tracking_surface, '
-                    'privacy_supercookie_etag_tracking_surface, privacy_supercookie_cache_tracking_surface, '
-                    'privacy_supercookie_persistent_cookie_surface, privacy_supercookie_warnings, '
-                    'privacy_supercookie_signals'
+                    'hsts_http_to_https_redirect, hsts_warnings, supercookie_risk, '
+                    'supercookie_score, supercookie_hsts_tracking_surface, '
+                    'supercookie_etag_tracking_surface, supercookie_cache_tracking_surface, '
+                    'supercookie_persistent_surface, privacy_supercookie_warnings, '
+                    'supercookie_signals'
                     ') VALUES(1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     (
                         str(fingerprint.get('category', 'custom')),

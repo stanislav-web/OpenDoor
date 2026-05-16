@@ -77,9 +77,9 @@ class TestReporterPrivacyRisks(unittest.TestCase):
 
         rendered = writeln_mock.call_args[0][0]
 
-        self.assertIn('privacy_supercookie_risk', rendered)
+        self.assertIn('supercookie_risk', rendered)
         self.assertIn('medium', rendered)
-        self.assertNotIn('privacy_supercookie_score', rendered)
+        self.assertNotIn('supercookie_score', rendered)
         self.assertNotIn('privacy_supercookie_etag', rendered)
 
     def test_text_report_writes_privacy_risk_summary(self):
@@ -94,8 +94,8 @@ class TestReporterPrivacyRisks(unittest.TestCase):
         fingerprint_call = next(call for call in record_mock.call_args_list if call.args[1] == 'fingerprint')
         rows = fingerprint_call.args[2]
 
-        self.assertIn('privacy_supercookie_risk: medium', rows)
-        self.assertIn('privacy_supercookie_score: 45', rows)
+        self.assertIn('supercookie_risk: medium', rows)
+        self.assertIn('supercookie_score: 45', rows)
         self.assertTrue(any(row.startswith('privacy_supercookie_warnings:') for row in rows))
 
     def test_csv_report_writes_privacy_risk_columns(self):
@@ -108,9 +108,9 @@ class TestReporterPrivacyRisks(unittest.TestCase):
         with open(report_file, 'r', encoding='utf-8') as handler:
             rows = list(csv.DictReader(handler))
 
-        self.assertEqual(rows[0]['privacy_supercookie_risk'], 'medium')
-        self.assertEqual(rows[0]['privacy_supercookie_score'], '45')
-        self.assertEqual(rows[0]['privacy_supercookie_etag_tracking_surface'], 'True')
+        self.assertEqual(rows[0]['supercookie_risk'], 'medium')
+        self.assertEqual(rows[0]['supercookie_score'], '45')
+        self.assertEqual(rows[0]['supercookie_etag_tracking_surface'], 'True')
         self.assertEqual(
             rows[0]['privacy_supercookie_warnings'],
             'persistent ETag/cache validator with long cache lifetime',
@@ -159,9 +159,9 @@ class TestReporterPrivacyRisks(unittest.TestCase):
         connection = sqlite3.connect(database_path)
         cursor = connection.cursor()
         row = cursor.execute(
-            'SELECT privacy_supercookie_risk, privacy_supercookie_score, '
-            'privacy_supercookie_etag_tracking_surface, privacy_supercookie_warnings, '
-            'privacy_supercookie_signals FROM fingerprint'
+            'SELECT supercookie_risk, supercookie_score, '
+            'supercookie_etag_tracking_surface, privacy_supercookie_warnings, '
+            'supercookie_signals FROM fingerprint'
         ).fetchone()
         connection.close()
 
