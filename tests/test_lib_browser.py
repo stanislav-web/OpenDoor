@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import threading
 import unittest
 from configparser import RawConfigParser
 from types import SimpleNamespace
@@ -592,13 +593,19 @@ class TestBrowser(unittest.TestCase):
         setattr(br, '_Browser__pool', pool)
         setattr(br, '_Browser__response', response_handler)
 
-        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+        debug_state = MagicMock()
+        debug_state.is_scan_debug.return_value = True
+        setattr(br, '_Browser__debug', debug_state)
+
+        with patch('src.lib.browser.browser.tpl.debug') as debug_mock, \
+                patch('src.lib.browser.browser.tpl.warning') as warning_mock:
             br._Browser__http_request('http://example.com/admin')
 
         client.request.assert_called_once_with('http://example.com/admin')
         response_handler.handle.assert_not_called()
-        warning_mock.assert_called_once()
-        self.assertIn('Consecutive transport failures: 1/2', warning_mock.call_args.kwargs.get('msg', ''))
+        warning_mock.assert_not_called()
+        debug_mock.assert_called_once()
+        self.assertIn('Consecutive transport failures: 1/2', debug_mock.call_args.kwargs.get('msg', ''))
 
         result = getattr(br, '_Browser__result')
         self.assertEqual(result['total']['ignored'], 1)
@@ -619,11 +626,17 @@ class TestBrowser(unittest.TestCase):
         setattr(br, '_Browser__response', response_handler)
         setattr(getattr(br, '_Browser__config'), 'last_transport_error', 'TLS handshake failed: DH_KEY_TOO_SMALL. Retry with --tls-legacy.')
 
-        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+        debug_state = MagicMock()
+        debug_state.is_scan_debug.return_value = True
+        setattr(br, '_Browser__debug', debug_state)
+
+        with patch('src.lib.browser.browser.tpl.debug') as debug_mock, \
+                patch('src.lib.browser.browser.tpl.warning') as warning_mock:
             br._Browser__http_request('https://example.com/admin')
 
-        self.assertIn('DH_KEY_TOO_SMALL', warning_mock.call_args.kwargs.get('msg', ''))
-        self.assertIn('--tls-legacy', warning_mock.call_args.kwargs.get('msg', ''))
+        warning_mock.assert_not_called()
+        self.assertIn('DH_KEY_TOO_SMALL', debug_mock.call_args.kwargs.get('msg', ''))
+        self.assertIn('--tls-legacy', debug_mock.call_args.kwargs.get('msg', ''))
 
     def test_http_request_aborts_after_consecutive_transport_failures(self):
         """Browser.__http_request() should stop a scan after repeated exhausted transport failures."""
@@ -637,6 +650,7 @@ class TestBrowser(unittest.TestCase):
         setattr(br, '_Browser__client', client)
         setattr(br, '_Browser__pool', pool)
         setattr(br, '_Browser__response', response_handler)
+        setattr(getattr(br, '_Browser__config'), '_host', 'example.com')
 
         with patch('src.lib.browser.browser.tpl.warning'):
             br._Browser__http_request('http://example.com/first')
@@ -646,8 +660,67 @@ class TestBrowser(unittest.TestCase):
 
         self.assertIn('Target transport appears unavailable', str(context.exception))
         self.assertIn('configured --timeout and --retries', str(context.exception))
-        self.assertEqual(client.request.call_count, 2)
+        self.assertEqual(client.request.call_count, 3)
+        client.request.assert_any_call('http://example.com/')
         response_handler.handle.assert_not_called()
+
+    def test_http_request_continues_when_healthcheck_confirms_path_specific_failures(self):
+        """Browser.__http_request() should keep scanning when only specific paths fail."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.side_effect = [None, None, 'response']
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+        setattr(getattr(br, '_Browser__config'), '_host', 'example.com')
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__http_request('http://example.com/.well')
+            br._Browser__http_request('http://example.com/.idea/dictionaries')
+
+        self.assertEqual(client.request.call_count, 3)
+        client.request.assert_any_call('http://example.com/')
+        response_handler.handle.assert_not_called()
+        self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 0)
+        self.assertEqual(warning_mock.call_count, 1)
+        self.assertIn('some paths trigger transport-level no-response failures', warning_mock.call_args.kwargs.get('msg', ''))
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['ignored'], 2)
+        self.assertEqual(
+            result['items']['ignored'],
+            ['http://example.com/.well', 'http://example.com/.idea/dictionaries']
+        )
+
+
+    def test_http_request_warns_once_for_path_specific_transport_failures(self):
+        """Browser.__http_request() should avoid repeated health-check warning spam."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.side_effect = [None, None, 'response', None, None, 'response']
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+        setattr(getattr(br, '_Browser__config'), '_host', 'example.com')
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__http_request('http://example.com/.well')
+            br._Browser__http_request('http://example.com/.git/config')
+            br._Browser__http_request('http://example.com/.env')
+            br._Browser__http_request('http://example.com/.docker/ca.pem')
+
+        self.assertEqual(client.request.call_count, 6)
+        self.assertEqual(warning_mock.call_count, 1)
+        self.assertIn('summarized at the end', warning_mock.call_args.kwargs.get('msg', ''))
+        self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 0)
 
     def test_http_request_resets_transport_failure_streak_after_success(self):
         """Browser.__http_request() should not abort when transport recovers between failures."""
@@ -670,8 +743,25 @@ class TestBrowser(unittest.TestCase):
             br._Browser__http_request('http://example.com/miss-2')
 
         self.assertEqual(client.request.call_count, 3)
-        self.assertEqual(warning_mock.call_count, 2)
+        warning_mock.assert_not_called()
         self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 1)
+
+    def test_transport_failure_summary_reports_skipped_path_specific_failures(self):
+        """Browser should summarize skipped path-specific transport failures once."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__transport_failure_lock', threading.RLock())
+        setattr(br, '_Browser__transport_failures_skipped', 3)
+        setattr(br, '_Browser__transport_failure_summary_emitted', False)
+
+        with patch('src.lib.browser.browser.tpl.info') as info_mock:
+            br._Browser__emit_transport_failure_summary()
+            br._Browser__emit_transport_failure_summary()
+
+        info_mock.assert_called_once()
+        message = info_mock.call_args.kwargs.get('msg', '')
+        self.assertIn('Transport failures skipped: 3 path-specific request(s)', message)
+        self.assertIn('Target remained reachable; scan continued.', message)
 
     def test_http_request_records_status_from_response_handler(self):
         """Browser.__http_request() should record the tuple returned by the response handler."""

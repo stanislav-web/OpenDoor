@@ -129,6 +129,9 @@ class Browser(Filter):
             self.__waf_guard_stopped = False
             self.__transport_failure_lock = threading.RLock()
             self.__transport_failure_streak = 0
+            self.__transport_failures_skipped = 0
+            self.__transport_failure_summary_emitted = False
+            self.__path_specific_transport_warning_emitted = False
             self.__calibration = None
             self.__header_bypass = HeaderBypassProbe(self.__config)
             self.__active_sniffer_names = SnifferEngine.active_names_from_config(self.__config)
@@ -1995,6 +1998,38 @@ class Browser(Filter):
 
         return max(1, int(self.TRANSPORT_FAILURE_ABORT_THRESHOLD))
 
+    def __transport_failures_skipped_count(self):
+        """Return the number of skipped requests that produced no HTTP response.
+
+        :return: skipped transport failure count
+        :rtype: int
+        """
+
+        with self.__transport_failure_lock:
+            return int(getattr(self, '_Browser__transport_failures_skipped', 0))
+
+    def __emit_transport_failure_summary(self):
+        """Print a compact summary for skipped path-specific transport failures.
+
+        :return: None
+        """
+
+        if getattr(self, '_Browser__transport_failure_summary_emitted', False) is True:
+            return
+
+        skipped = self.__transport_failures_skipped_count()
+        if skipped <= 0:
+            return
+
+        self.__finish_filtered_progress_line()
+        tpl.info(
+            msg=(
+                'Transport failures skipped: {0} path-specific request(s) without HTTP response. '
+                'Target remained reachable; scan continued.'
+            ).format(skipped)
+        )
+        self.__transport_failure_summary_emitted = True
+
     def __reset_transport_failure_streak(self):
         """
         Reset consecutive transport failure accounting after a real response.
@@ -2004,6 +2039,96 @@ class Browser(Filter):
 
         with self.__transport_failure_lock:
             self.__transport_failure_streak = 0
+
+
+    def __is_scan_debug_enabled(self):
+        """Return whether scan debug logging is enabled.
+
+        :return: True when debug scan output is enabled
+        :rtype: bool
+        """
+
+        debug = getattr(self, '_Browser__debug', None)
+        return getattr(debug, 'is_scan_debug', lambda: False)() is True
+
+    def __debug_transport_failure(self, message):
+        """Print a transport failure debug message only in scan debug mode.
+
+        :param str message: debug message
+        :return: None
+        """
+
+        if self.__is_scan_debug_enabled() is True:
+            tpl.debug(msg=message)
+
+    def __emit_path_specific_transport_warning_once(self):
+        """Warn once when path-specific transport failures are detected.
+
+        :return: None
+        """
+
+        with self.__transport_failure_lock:
+            if getattr(self, '_Browser__path_specific_transport_warning_emitted', False) is True:
+                return
+            self.__path_specific_transport_warning_emitted = True
+
+        tpl.warning(
+            msg=(
+                'Target is reachable, but some paths trigger transport-level no-response failures. '
+                'These requests will be skipped and summarized at the end.'
+            )
+        )
+
+    def __transport_healthcheck_url(self):
+        """Return a lightweight target URL used to confirm transport health.
+
+        Some targets deliberately close or break specific suspicious paths while
+        the site itself remains available. Before aborting the whole scan after
+        consecutive exhausted request failures, verify that a neutral target URL
+        is also unavailable.
+
+        :return: health-check URL
+        :rtype: str
+        """
+
+        configured = str(getattr(self.__config, 'transport_healthcheck_url', '') or '').strip()
+        if configured:
+            return configured
+
+        port = self.__config.port
+        port_suffix = ''
+
+        if self.__config.scheme == 'http://' and port not in [None, 80]:
+            port_suffix = ':{0}'.format(port)
+
+        if self.__config.scheme == 'https://' and port not in [None, 443]:
+            port_suffix = ':{0}'.format(port)
+
+        return '{0}{1}{2}/'.format(self.__config.scheme, self.__config.host, port_suffix)
+
+    def __is_transport_still_healthy(self, failed_url):
+        """Probe the target itself before treating path failures as global outage.
+
+        :param str failed_url: request URL that triggered the threshold
+        :return: True when the target still answers a neutral request
+        :rtype: bool
+        """
+
+        health_url = self.__transport_healthcheck_url()
+
+        if health_url == failed_url:
+            return False
+
+        self.__finish_filtered_progress_line()
+        debug = getattr(self, '_Browser__debug', None)
+        getattr(debug, 'debug_transport_healthcheck', lambda *args, **kwargs: True)(health_url)
+
+        response = self.__request_with_waf_safe_mode(health_url)
+        if response is None:
+            return False
+
+        self.__sync_shared_cookies_from_client()
+        return True
 
     def __record_transport_failure(self, url):
         """
@@ -2022,6 +2147,7 @@ class Browser(Filter):
 
         with self.__transport_failure_lock:
             self.__transport_failure_streak += 1
+            self.__transport_failures_skipped += 1
             streak = self.__transport_failure_streak
 
         threshold = self.__transport_failure_threshold()
@@ -2035,8 +2161,8 @@ class Browser(Filter):
             diagnostic_suffix = ' Last transport error: {0}'.format(diagnostic)
 
         if streak < threshold:
-            tpl.warning(
-                msg=(
+            self.__debug_transport_failure(
+                (
                     'No response from target after configured timeout/retries: {path}. '
                     'Consecutive transport failures: {streak}/{threshold}.{diagnostic_suffix}'
                 ).format(
@@ -2045,6 +2171,18 @@ class Browser(Filter):
                     threshold=threshold,
                     diagnostic_suffix=diagnostic_suffix,
                 )
+            )
+            return
+
+        if self.__is_transport_still_healthy(url) is True:
+            self.__reset_transport_failure_streak()
+            self.__emit_path_specific_transport_warning_once()
+            self.__debug_transport_failure(
+                (
+                    'No response from target after configured timeout/retries: {path}. '
+                    'Target health check succeeded; treating this as a path-specific transport failure '
+                    'and continuing the scan.{diagnostic_suffix}'
+                ).format(path=path, diagnostic_suffix=diagnostic_suffix)
             )
             return
 
@@ -3044,6 +3182,7 @@ class Browser(Filter):
 
             try:
                 self.__warn_if_scan_finished_early()
+                self.__emit_transport_failure_summary()
                 self.__save_session(reason='finish', force=True)
 
                 for rtype in self.__config.reports:
@@ -3398,6 +3537,15 @@ class Browser(Filter):
 
         if not hasattr(self, '_Browser__transport_failure_streak'):
             self.__transport_failure_streak = 0
+
+        if not hasattr(self, '_Browser__transport_failures_skipped'):
+            self.__transport_failures_skipped = 0
+
+        if not hasattr(self, '_Browser__transport_failure_summary_emitted'):
+            self.__transport_failure_summary_emitted = False
+
+        if not hasattr(self, '_Browser__path_specific_transport_warning_emitted'):
+            self.__path_specific_transport_warning_emitted = False
 
         if not hasattr(self, '_Browser__waf_safe_active'):
             self.__waf_safe_active = False
