@@ -1,0 +1,30 @@
+Source: opendoor
+Section: net
+Priority: optional
+Maintainer: Stanislav WEB <stanislav.menshykh@paypilot.org>
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-python,
+ pybuild-plugin-pyproject,
+ python3-all,
+ python3-setuptools,
+ python3-wheel
+Standards-Version: 4.7.3
+Homepage: https://github.com/stanislav-web/OpenDoor
+Vcs-Browser: https://github.com/stanislav-web/OpenDoor
+Vcs-Git: https://github.com/stanislav-web/OpenDoor.git
+Rules-Requires-Root: no
+
+Package: opendoor
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-packaging,
+ python3-urllib3,
+ python3-socks
+Description: OWASP-oriented web directory and subdomain scanner
+ OpenDoor is a terminal-based web reconnaissance tool for authorized
+ security testing. It supports directory discovery, subdomain enumeration,
+ fingerprinting, WAF detection, proxy and tunnel-aware scans, and multiple
+ report formats.

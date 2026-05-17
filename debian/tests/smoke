@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+opendoor --version | grep '5.16.0'
+opendoor --help >/dev/null
+
+python3 - <<'PY'
+import importlib.metadata as metadata
+
+assert metadata.version("opendoor") == "5.16.0"
+PY

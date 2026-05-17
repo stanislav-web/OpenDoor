@@ -1,0 +1,5 @@
+opendoor (5.16.0+ds-1parrot1) echo; urgency=medium
+
+  * Initial ParrotOS package.
+
+ -- Stanislav WEB <stanislav.menshykh@paypilot.org>  Sun, 17 May 2026 20:45:00 +0300

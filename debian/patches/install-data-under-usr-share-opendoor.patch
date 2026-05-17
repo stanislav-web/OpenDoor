@@ -1,0 +1,53 @@
+Description: Install bundled data under /usr/share/opendoor
+ Place OpenDoor bundled configuration and wordlists under the standard
+ /usr/share/opendoor directory for Debian/Parrot packages, and keep runtime
+ lookup compatible with both source checkouts and older install layouts.
+Author: Stanislav WEB <stanislav.menshykh@paypilot.org>
+Forwarded: not-needed
+Last-Update: 2026-05-17
+
+diff --git a/setup.py b/setup.py
+index 0942021..d33f5d5 100644
+--- a/setup.py
++++ b/setup.py
+@@ -72,9 +72,9 @@ setup(
+     packages=find_packages(exclude=('tests', 'tests.*')),
+     include_package_data=True,
+     data_files=[
+-        ('.', ['opendoor.conf']),
++        ('share/opendoor', ['opendoor.conf']),
+         (
+-            'data',
++            'share/opendoor/data',
+             [
+                 'data/directories.dat',
+                 'data/ignored.dat',
+@@ -85,13 +85,13 @@ setup(
+             ],
+         ),
+         (
+-            'data/openvpn-profiles',
++            'share/opendoor/data/openvpn-profiles',
+             [
+                 'data/openvpn-profiles/example.ovpn',
+             ],
+         ),
+         (
+-            'data/wireguard-profiles',
++            'share/opendoor/data/wireguard-profiles',
+             [
+                 'data/wireguard-profiles/example.conf',
+             ],
+diff --git a/src/core/core.py b/src/core/core.py
+index 36dbeac..549c4e9 100644
+--- a/src/core/core.py
++++ b/src/core/core.py
+@@ -57,6 +57,8 @@ def resolve_data_root() -> Path:
+ 
+     candidates = [
+         PROJECT_ROOT / 'data',
++        Path(py_sys.prefix) / 'share' / 'opendoor' / 'data',
++        Path(py_sys.base_prefix) / 'share' / 'opendoor' / 'data',
+         Path(py_sys.prefix) / 'data',
+         Path(py_sys.base_prefix) / 'data',
+     ]

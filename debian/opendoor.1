@@ -1,0 +1,22 @@
+.TH OPENDOOR 1 "May 2026" "OpenDoor 5.16.0" "User Commands"
+.SH NAME
+opendoor \- web directory and subdomain scanner
+.SH SYNOPSIS
+.B opendoor
+.RI [ options ]
+.SH DESCRIPTION
+OpenDoor is a terminal-based web reconnaissance tool for authorized security testing.
+It supports directory discovery, subdomain enumeration, fingerprinting, WAF detection,
+proxy-aware scans, response sniffers, session workflows, and multiple report formats.
+.SH OPTIONS
+Run
+.B opendoor --help
+to view the full command-line reference.
+.SH EXAMPLES
+.B opendoor --host https://example.com --scan directories
+.PP
+.B opendoor --host https://example.com --fingerprint --waf-detect
+.SH AUTHOR
+Stanislav WEB
+.SH SEE ALSO
+Project documentation: https://opendoor.readthedocs.io

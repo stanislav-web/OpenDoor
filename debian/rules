@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME=opendoor
+export PYBUILD_SYSTEM=pyproject
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_test:
+	@echo "Skipping upstream unittest suite during Debian package build; upstream release checks are run from the source checkout."
+
+override_dh_fixperms:
+	dh_fixperms
+	find debian/opendoor/usr/share/opendoor -type f -exec chmod 0644 {} +
