@@ -271,8 +271,8 @@ class Browser(Filter):
 
         try:
             self.close()
-        except Exception:
-            pass
+        except Exception as error:
+            setattr(self, '_Browser__cleanup_error', str(error))
 
     def ping(self):
         """
@@ -2291,22 +2291,27 @@ class Browser(Filter):
 
             try:
                 detected_bucket = plugin.process(response_object)
-            except Exception:
-                continue
+            except Exception as error:
+                debugger = getattr(self, '_Browser__debug', None)
+                if getattr(debugger, 'is_scan_debug', lambda: False)() is True:
+                    tpl.debug(msg='Additive sniffer plugin failed: {0}: {1}'.format(
+                        plugin.__class__.__name__,
+                        error,
+                    ))
+            else:
+                if detected_bucket != bucket:
+                    continue
 
-            if detected_bucket != bucket:
-                continue
-
-            findings.append(SnifferResult(
-                bucket=bucket,
-                url=request_url,
-                code=response_code,
-                size=content_size,
-                metadata=self.__metadata_for_sniffer_bucket(bucket, response_object),
-                suppress_normal=True,
-                evidence_key=bucket,
-            ))
-            seen_buckets.add(bucket)
+                findings.append(SnifferResult(
+                    bucket=bucket,
+                    url=request_url,
+                    code=response_code,
+                    size=content_size,
+                    metadata=self.__metadata_for_sniffer_bucket(bucket, response_object),
+                    suppress_normal=True,
+                    evidence_key=bucket,
+                ))
+                seen_buckets.add(bucket)
 
         return findings
 

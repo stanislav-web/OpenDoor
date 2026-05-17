@@ -287,7 +287,7 @@ Useful sniffers include:
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 | `indexof`           | Detect directory listing pages.                                                                                                     |
 | `file`              | Detect known sensitive file exposure patterns.                                                                                      |
-| `collation`         | Detect database collation / SQL error responses.                                                                                    |
+| `collation`         | Detects repeated or redirect-like fallback responses that can create false positives.                                               |
 | `skipempty`         | Skip empty responses.                                                                                                               |
 | `skipsizes=46`      | Skip responses with exact known noisy sizes.                                                                                        |
 | `skipsizes=46:1024` | Skip responses inside a noisy size range.                                                                                           |

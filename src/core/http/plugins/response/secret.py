@@ -82,16 +82,21 @@ class SecretResponsePlugin(ResponsePluginProvider):
         r'\s*[:=]\s*[\'"]([^\'"\s]{12,})[\'"]'
     )
 
+    DETECTION_TYPE_JWT = 'jwt'  # nosec B105 - detector type id, not a credential.
+    DETECTION_TYPE_GENERIC_ASSIGNMENT = (
+        'generic_assignment'  # nosec B105 - detector type id, not a credential.
+    )
+
     SECRET_RULES = (
         ('aws_access_key', AWS_ACCESS_KEY_RE, 95),
-        ('jwt', JWT_RE, 90),
+        (DETECTION_TYPE_JWT, JWT_RE, 90),
         ('private_key', PRIVATE_KEY_RE, 98),
         ('google_api_key', GOOGLE_API_KEY_RE, 90),
         ('github_token', GITHUB_TOKEN_RE, 95),
         ('slack_token', SLACK_TOKEN_RE, 95),
         ('stripe_key', STRIPE_KEY_RE, 95),
         ('database_url', DB_URL_RE, 92),
-        ('generic_assignment', ASSIGNMENT_RE, 70),
+        (DETECTION_TYPE_GENERIC_ASSIGNMENT, ASSIGNMENT_RE, 70),
     )
 
     @classmethod
@@ -140,7 +145,11 @@ class SecretResponsePlugin(ResponsePluginProvider):
 
         for secret_type, pattern, confidence in cls.SECRET_RULES:
             for match in pattern.finditer(str(text or '')):
-                value = match.group(1) if secret_type == 'generic_assignment' and match.groups() else match.group(0)
+                value = (
+                    match.group(1)
+                    if secret_type == cls.DETECTION_TYPE_GENERIC_ASSIGNMENT and match.groups()
+                    else match.group(0)
+                )
                 if cls._is_probable_false_positive(secret_type, value):
                     continue
 
@@ -328,10 +337,10 @@ class SecretResponsePlugin(ResponsePluginProvider):
         if any(marker in normalized for marker in false_markers):
             return True
 
-        if secret_type == 'jwt':
+        if secret_type == cls.DETECTION_TYPE_JWT:
             return cls._looks_like_unsigned_or_placeholder_jwt(value)
 
-        if secret_type == 'generic_assignment':
+        if secret_type == cls.DETECTION_TYPE_GENERIC_ASSIGNMENT:
             if len(set(str(value))) <= 4:
                 return True
 

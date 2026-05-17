@@ -457,7 +457,7 @@ class Proxy(RequestProvider, DebugProvider):
         """
 
         proxy_list = self.__get_available_proxies()
-        index = random.randrange(0, len(proxy_list))
+        index = random.randrange(0, len(proxy_list))  # nosec B311
         server = proxy_list[index]
         return self.__normalize_proxy_server(server)
 
