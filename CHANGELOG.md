@@ -1,6 +1,10 @@
 CHANGELOG
 =======
-v5.16.0 (16.05.2026)
+v5.16.1 (xx.05.2026)
+---------------------------
+- (fix) reduced malware sniffer false positives by ignoring legitimate Google Tag Manager noscript hidden iframes while preserving detection for non-GTM hidden iframe injections.
+
+v5.16.0 (17.05.2026)
 ---------------------------
 - (fix) rendered fingerprint progress as a rotating single-line indicator and persisted only the final `done` state to reduce duplicate progress output.
 - (fix) proxy and transport-loss handling: proxy scans now validate the proxy without directly probing the target, filtered proxy timeouts remain visible, and direct scans abort cleanly after repeated exhausted transport failures when a target goes offline mid-scan.
