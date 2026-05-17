@@ -221,11 +221,15 @@ class Debug(DebugProvider):
 
         return True
 
-    def debug_proxy_selected(self, server):
+    def debug_proxy_selected(self, server, rotation=None):
         """Debug selected proxy for rotating proxy modes."""
 
         if self.is_scan_debug():
-            tpl.debug(key='proxy_pool_selected', server=self.__mask_proxy_server(server))
+            masked_server = self.__mask_proxy_server(server)
+            if rotation:
+                masked_server = '{0} ({1})'.format(masked_server, rotation)
+
+            tpl.debug(key='proxy_pool_selected', server=masked_server)
 
         return True
 

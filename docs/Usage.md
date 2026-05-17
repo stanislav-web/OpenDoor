@@ -788,6 +788,21 @@ opendoor --host https://example.com --proxy-pool
 opendoor --host https://example.com --proxy-list proxies.txt
 ```
 
+By default, OpenDoor uses random rotation for custom proxy lists. Use `--proxy-rotation sequential` when you need deterministic file-order rotation for debugging or reproducible checks:
+
+```shell
+opendoor --host https://example.com --proxy-list proxies.txt --proxy-rotation sequential
+```
+
+Supported proxy-list rotation policies:
+
+| Policy | Behavior |
+|---|---|
+| `random` | Default. Selects an available proxy randomly from the live proxy pool. |
+| `sequential` | Uses proxies in file order and skips runtime-dead entries. |
+
+`--proxy-rotation` works only with `--proxy-list`. It is intentionally not accepted with `--proxy`, `--proxy-pool`, or direct scans.
+
 ### Transport mode
 
 ```shell

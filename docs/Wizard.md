@@ -417,6 +417,15 @@ Use a custom proxy list:
 proxy_list = ./proxies.txt
 ```
 
+Custom proxy lists rotate randomly by default. To make proxy usage deterministic during debugging, set sequential rotation:
+
+```ini
+proxy_list = ./proxies.txt
+proxy_rotation = sequential
+```
+
+Allowed values are `random` and `sequential`. `proxy_rotation` is valid only when `proxy_list` is configured.
+
 ### Network transport
 
 Direct mode:

@@ -51,6 +51,20 @@ socks5h://127.0.0.1:9050
 http://127.0.0.1:8080
 ```
 
+Custom proxy lists rotate randomly by default, which preserves the existing behavior:
+
+```shell
+opendoor --host https://example.com --proxy-list proxies.txt --proxy-rotation random
+```
+
+Use sequential rotation when you want each request to follow the proxy file order. Runtime-dead proxies are skipped for the current scan:
+
+```shell
+opendoor --host https://example.com --proxy-list proxies.txt --proxy-rotation sequential
+```
+
+`--proxy-rotation` is valid only with `--proxy-list`. It does not apply to `--proxy`, `--proxy-pool`, VPN transports, or direct scans.
+
 ---
 
 ## Proxy with reports

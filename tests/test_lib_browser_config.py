@@ -129,6 +129,10 @@ class TestBrowserConfig(unittest.TestCase):
         external = Config({'reports': 'std', 'proxy_list': 'proxy-list.txt'})
         self.assertTrue(external.is_proxy)
         self.assertTrue(external.is_external_proxy_list)
+        self.assertEqual(external.proxy_rotation, 'random')
+
+        sequential = Config({'reports': 'std', 'proxy_list': 'proxy-list.txt', 'proxy_rotation': 'sequential'})
+        self.assertEqual(sequential.proxy_rotation, 'sequential')
 
         internal = Config({'reports': 'std', 'proxy_pool': True})
         self.assertTrue(internal.is_proxy)

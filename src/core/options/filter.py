@@ -41,6 +41,7 @@ class Filter(object):
 
     TRANSPORTS = ('direct', 'proxy', 'openvpn', 'wireguard')
     TRANSPORT_ROTATES = ('none', 'per-target')
+    PROXY_ROTATIONS = ('random', 'sequential')
     VPN_TRANSPORTS = ('openvpn', 'wireguard')
     HEADER_BYPASS_PROFILES = ('safe', 'offensive')
     DIFF_REPORTS = ('std', 'json')
@@ -243,6 +244,8 @@ class Filter(object):
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
             elif 'proxy' == key:
                 filtered[key] = Filter.proxy(value)
+            elif key in ['proxy_rotation']:
+                filtered[key] = Filter.proxy_rotation(value, key='--proxy-rotation')
             elif key in ['tls_legacy']:
                 filtered[key] = value is True
             elif 'scheme' == key:
@@ -817,6 +820,27 @@ class Filter(object):
         return proxyaddress
 
     @staticmethod
+    def proxy_rotation(value, key='--proxy-rotation'):
+        """Validate proxy-list rotation policy.
+
+        :param value: input proxy rotation value
+        :param str key: CLI option name
+        :raise FilterError:
+        :return: normalized proxy rotation policy
+        :rtype: str
+        """
+
+        value = 'random' if value is None else str(value).strip().lower()
+
+        if value in ['', 'null']:
+            value = 'random'
+
+        if value not in Filter.PROXY_ROTATIONS:
+            raise FilterError('{0} must be one of: {1}'.format(key, ', '.join(Filter.PROXY_ROTATIONS)))
+
+        return value
+
+    @staticmethod
     def scan(choose):
         """
         Input `scan` type filter
@@ -1238,6 +1262,9 @@ class Filter(object):
             raise FilterError('{0} cannot be used together. Select exactly one proxy source.'.format(
                 ', '.join(selected)
             ))
+
+        if filtered.get('proxy_rotation') is not None and not filtered.get('proxy_list'):
+            raise FilterError('--proxy-rotation can be used only with --proxy-list')
 
     @staticmethod
     def validate_transport_options(filtered):

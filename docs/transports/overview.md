@@ -62,6 +62,17 @@ opendoor \
   --proxy socks5://127.0.0.1:9050
 ```
 
+Custom proxy lists can use explicit rotation policy control:
+
+```shell
+opendoor \
+  --host https://example.com \
+  --proxy-list proxies.txt \
+  --proxy-rotation sequential
+```
+
+`random` is the default policy. `sequential` follows file order and skips runtime-dead proxies.
+
 ---
 
 ## OpenVPN mode

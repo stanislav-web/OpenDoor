@@ -113,6 +113,7 @@ class Config(object):
         self._debug = self.DEFAULT_DEBUG_LEVEL if params.get('debug') is None else params.get('debug')
         self._is_proxy_pool = params.get('proxy_pool') is True
         self._proxy_list = '' if 'proxy_list' not in params or params.get('proxy_list') is None else params.get('proxy_list')
+        self._proxy_rotation = 'random' if params.get('proxy_rotation') is None else params.get('proxy_rotation')
         self._is_random_user_agent = params.get('random_agent')
         self._sniff = self._normalize_csv(params.get('sniff'))
         self._is_random_list = params.get('random_list') is True
@@ -824,6 +825,12 @@ class Config(object):
         """Proxy list property."""
 
         return self._proxy_list
+
+    @property
+    def proxy_rotation(self):
+        """Proxy-list rotation policy."""
+
+        return self._proxy_rotation
 
     @property
     def is_external_wordlist(self):

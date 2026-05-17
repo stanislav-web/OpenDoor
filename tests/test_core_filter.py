@@ -54,6 +54,58 @@ class TestFilter(unittest.TestCase):
         self.assertIsNone(Filter.validate_proxy_options({'proxy': 'http://127.0.0.1:8080'}))
         self.assertIsNone(Filter.validate_proxy_options({'proxy_list': 'proxies.txt'}))
         self.assertIsNone(Filter.validate_proxy_options({'proxy_pool': True}))
+        self.assertIsNone(Filter.validate_proxy_options({'proxy_list': 'proxies.txt', 'proxy_rotation': 'sequential'}))
+
+    def test_filter_accepts_proxy_rotation_with_proxy_list(self):
+        """Filter.filter() should accept proxy rotation only for proxy-list scans."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'proxy_list': 'proxies.txt',
+            'proxy_rotation': 'sequential',
+        })
+
+        self.assertEqual(actual['proxy_list'], 'proxies.txt')
+        self.assertEqual(actual['proxy_rotation'], 'sequential')
+
+    def test_filter_normalizes_empty_proxy_rotation_to_random(self):
+        """Filter.filter() should keep blank proxy rotation values on the default random policy."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'proxy_list': 'proxies.txt',
+            'proxy_rotation': ' null ',
+        })
+
+        self.assertEqual(actual['proxy_rotation'], 'random')
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'proxy_list': 'proxies.txt',
+            'proxy_rotation': '',
+        })
+
+        self.assertEqual(actual['proxy_rotation'], 'random')
+
+    def test_filter_rejects_invalid_proxy_rotation(self):
+        """Filter.filter() should reject unknown proxy rotation policies."""
+
+        with self.assertRaises(FilterError) as context:
+            Filter.filter({
+                'host': 'example.com',
+                'proxy_list': 'proxies.txt',
+                'proxy_rotation': 'round-robin',
+            })
+
+        self.assertIn('--proxy-rotation must be one of: random, sequential', str(context.exception))
+
+    def test_filter_rejects_proxy_rotation_without_proxy_list(self):
+        """Filter.filter() should reject proxy rotation without --proxy-list."""
+
+        with self.assertRaises(FilterError) as context:
+            Filter.filter({'host': 'example.com', 'proxy_rotation': 'sequential'})
+
+        self.assertIn('--proxy-rotation can be used only with --proxy-list', str(context.exception))
 
     def test_scheme_defaults_to_http(self):
         """Filter.scheme() should default to HTTP when scheme is missing."""
@@ -719,7 +771,7 @@ class TestFilter(unittest.TestCase):
     def test_bucket_values_should_ignore_empty_items_and_reject_empty_lists(self):
         """Filter.bucket_values() should skip empty CSV items and reject empty results."""
 
-        self.assertEqual(Filter.bucket_values('success,, blocked,'), ['success', 'blocked'])
+        self.assertEqual(Filter.bucket_values(',success,, blocked,'), ['success', 'blocked'])
 
         with self.assertRaises(FilterError):
             Filter.bucket_values(' , , ', key='--fail-on-bucket')
@@ -1192,6 +1244,7 @@ class TestFilter(unittest.TestCase):
         self.assertIsNone(Filter.optional_text(''))
         self.assertIsNone(Filter.optional_text('   '))
         self.assertIsNone(Filter.optional_text('null'))
+        self.assertIsNone(Filter.optional_text([]))
         self.assertIsNone(Filter.optional_path(None))
         self.assertIsNone(Filter.optional_path('None'))
 

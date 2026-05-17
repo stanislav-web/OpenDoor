@@ -335,6 +335,15 @@ class Options(object):
             {
                 "group": "request",
                 "args": None,
+                "argl": "--proxy-rotation",
+                "default": None,
+                "action": "store",
+                "help": "Proxy-list rotation policy: random keeps current behavior, sequential uses file order (default random)",
+                "type": str
+            },
+            {
+                "group": "request",
+                "args": None,
                 "argl": "--proxy",
                 "default": None,
                 "action": "store",

@@ -76,6 +76,42 @@ class TestProxyExtra(unittest.TestCase):
 
         self.assertEqual(actual, 'https://two:8443')
 
+    def test_get_sequential_proxy_returns_stable_file_order(self):
+        """Proxy.__get_sequential_proxy() should rotate in stable proxy-list order."""
+
+        cfg = self.make_cfg(is_standalone_proxy=False, proxy_rotation='sequential')
+        proxy = Proxy(
+            cfg,
+            self.make_debug(),
+            tpl=MagicMock(),
+            proxy_list=['http://one:8080', 'http://two:8080'],
+            agent_list=['UA'],
+        )
+
+        next_proxy = getattr(proxy, '_Proxy__get_next_proxy')
+
+        self.assertEqual(next_proxy(), 'http://one:8080')
+        self.assertEqual(next_proxy(), 'http://two:8080')
+        self.assertEqual(next_proxy(), 'http://one:8080')
+
+    def test_get_sequential_proxy_skips_runtime_dead_entries(self):
+        """Sequential rotation should skip proxies marked dead during the scan."""
+
+        cfg = self.make_cfg(is_standalone_proxy=False, proxy_rotation='sequential')
+        proxy = Proxy(
+            cfg,
+            self.make_debug(),
+            tpl=MagicMock(),
+            proxy_list=['http://one:8080', 'http://two:8080', 'http://three:8080'],
+            agent_list=['UA'],
+        )
+
+        self.assertEqual(getattr(proxy, '_Proxy__get_next_proxy')(), 'http://one:8080')
+        getattr(proxy, '_Proxy__mark_proxy_dead')('http://two:8080')
+
+        self.assertEqual(getattr(proxy, '_Proxy__get_next_proxy')(), 'http://three:8080')
+        self.assertEqual(getattr(proxy, '_Proxy__get_next_proxy')(), 'http://one:8080')
+
     def test_get_proxy_type_detects_socks_https_and_http(self):
         """Proxy.__get_proxy_type() should classify supported proxy schemes."""
 
@@ -155,7 +191,7 @@ class TestProxyExtra(unittest.TestCase):
             self.assertTrue(proxy.prepare_connection_pool())
             self.assertTrue(proxy.prepare_connection_pool())
 
-        debug.debug_proxy_selected.assert_called_once_with('socks5://127.0.0.1:9050')
+        debug.debug_proxy_selected.assert_called_once_with('socks5://127.0.0.1:9050', 'random')
 
     def test_prepare_connection_pool_skips_standalone_proxy(self):
         """Proxy.prepare_connection_pool() should not pre-create standalone proxy pools."""
@@ -588,7 +624,7 @@ class TestProxyExtra(unittest.TestCase):
         self.assertIs(actual, pool)
         proxy_headers = proxy_manager_mock.call_args.kwargs['proxy_headers']
         self.assertEqual(proxy_headers['proxy-authorization'], 'Basic dXNlcjpwYXNz')
-        debug.debug_proxy_selected.assert_called_once_with('http://user:pass@127.0.0.1:8080')
+        debug.debug_proxy_selected.assert_called_once_with('http://user:pass@127.0.0.1:8080', 'random')
 
     def test_proxy_pool_logs_rotating_proxy_selection_only_for_new_pool(self):
         """Proxy.__proxy_pool() should not spam selected-proxy debug for cached rotating pools."""
@@ -613,7 +649,7 @@ class TestProxyExtra(unittest.TestCase):
         self.assertIs(second, pool)
         self.assertIs(third, pool)
         proxy_manager_mock.assert_called_once()
-        debug.debug_proxy_selected.assert_called_once_with('http://127.0.0.1:8080')
+        debug.debug_proxy_selected.assert_called_once_with('http://127.0.0.1:8080', 'random')
 
     def test_dead_proxy_cache_skips_failed_rotating_proxy(self):
         """Proxy should skip rotating proxies marked dead during the current scan runtime."""
@@ -633,6 +669,45 @@ class TestProxyExtra(unittest.TestCase):
             actual = getattr(proxy, '_Proxy__get_random_proxy')()
 
         self.assertEqual(actual, 'http://alive:8080')
+
+    def test_get_sequential_proxy_raises_when_all_rotating_proxies_are_dead(self):
+        """Sequential rotation should fail when every proxy is runtime-dead."""
+
+        cfg = self.make_cfg(is_standalone_proxy=False, proxy_rotation='sequential')
+        proxy = Proxy(
+            cfg,
+            self.make_debug(),
+            tpl=MagicMock(),
+            proxy_list=['http://dead:8080'],
+            agent_list=['UA'],
+        )
+
+        getattr(proxy, '_Proxy__mark_proxy_dead')('http://dead:8080')
+
+        with self.assertRaises(ProxyRequestError) as context:
+            getattr(proxy, '_Proxy__get_next_proxy')()
+
+        self.assertIn('All rotating proxies are unavailable', str(context.exception))
+
+    def test_get_sequential_proxy_raises_if_dead_cache_changes_after_availability_check(self):
+        """Sequential rotation should still fail if every proxy becomes dead after availability check."""
+
+        cfg = self.make_cfg(is_standalone_proxy=False, proxy_rotation='sequential')
+        proxy = Proxy(
+            cfg,
+            self.make_debug(),
+            tpl=MagicMock(),
+            proxy_list=['http://dead:8080'],
+            agent_list=['UA'],
+        )
+
+        getattr(proxy, '_Proxy__mark_proxy_dead')('http://dead:8080')
+
+        with patch.object(proxy, '_Proxy__get_available_proxies', return_value=['http://dead:8080']):
+            with self.assertRaises(ProxyRequestError) as context:
+                getattr(proxy, '_Proxy__get_next_proxy')()
+
+        self.assertIn('All rotating proxies are unavailable', str(context.exception))
 
     def test_dead_proxy_cache_raises_when_all_rotating_proxies_are_dead(self):
         """Proxy should fail clearly when every rotating proxy is unavailable."""
