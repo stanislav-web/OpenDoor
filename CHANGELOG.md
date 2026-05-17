@@ -6,7 +6,7 @@ v5.16.1 (xx.05.2026)
 - (fix) kept scans running when individual paths trigger transport-level no-response failures while the target remains reachable, and summarized skipped path-specific transport failures without noisy per-path warnings.
 - (enhancement) added remote HTTP(S) wordlist support through `--wordlist`, a 500 MB safety limit, streaming download progress.
 - (enhancement) added `--proxy-rotation random|sequential` to control existing `--proxy-list` rotation, preserving random rotation as the default and adding deterministic file-order sequential mode.
-- (dictionary) cleaned and normalized the internal directories list.
+- (dictionary) cleaned and normalized internal directories list.
 
 v5.16.0 (17.05.2026)
 ---------------------------
