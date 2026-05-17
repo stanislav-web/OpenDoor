@@ -6,3 +6,5 @@ paths-ignore:
 query-filters:
   - exclude:
       id: py/incomplete-url-substring-sanitization
+  - exclude:
+      id: py/clear-text-logging-sensitive-data

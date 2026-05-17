@@ -46,6 +46,7 @@ class Reader(object):
         self.__proxies = []
         self.__ignored = []
         self.__counter = 0
+        self.__runtime_paths = dict(browser_config.get('runtime_paths') or {})
 
     @staticmethod
     def _is_default_port(port):
@@ -98,7 +99,7 @@ class Reader(object):
 
         normalized = Reader._normalize_extensions(extensions)
         escaped = [re.escape(extension) for extension in normalized]
-        return r'.*\.({0})$'.format('|'.join(escaped))
+        return r'(?i).*\.({0})(?:[?#].*)?$'.format('|'.join(escaped))
 
     @staticmethod
     def _build_ignore_extension_pattern(extensions):
@@ -111,7 +112,7 @@ class Reader(object):
 
         normalized = Reader._normalize_extensions(extensions)
         escaped = [re.escape(extension) for extension in normalized]
-        return r'^(?!.*\.({0})$).*$'.format('|'.join(escaped))
+        return r'(?i)^(?!.*\.({0})(?:[?#].*)?$).*$'.format('|'.join(escaped))
 
     @staticmethod
     def _has_system_shuf():
@@ -146,6 +147,16 @@ class Reader(object):
         except (OSError, subprocess.SubprocessError) as error:
             raise CoreSystemError(error)
 
+    def _get_runtime_path(self, name):
+        """
+        Resolve a runtime-generated wordlist path.
+
+        :param str name: Runtime path key.
+        :return: str
+        """
+
+        return self.__runtime_paths.get(name) or self.__config.get(name)
+
     def _get_base_wordlist_path(self, target=None):
         """
         Resolve the primary wordlist source before runtime transformations.
@@ -170,10 +181,10 @@ class Reader(object):
         """
 
         if True is self.__browser_config.get('use_extensions') and 'directories' == self.__browser_config.get('list'):
-            return self.__config.get('extensionlist')
+            return self._get_runtime_path('extensionlist')
 
         if True is self.__browser_config.get('use_ignore_extensions') and 'directories' == self.__browser_config.get('list'):
-            return self.__config.get('ignore_extensionlist')
+            return self._get_runtime_path('ignore_extensionlist')
 
         return self._get_base_wordlist_path(target)
 
@@ -185,7 +196,7 @@ class Reader(object):
         """
 
         if True is self.__browser_config.get('use_random'):
-            return self.__config.get('tmplist')
+            return self._get_runtime_path('tmplist')
 
         return self._get_filtered_wordlist_path()
 
@@ -348,7 +359,7 @@ class Reader(object):
 
         try:
             target_file = self._get_filtered_wordlist_path(target)
-            tmp_file = self.__config.get(output)
+            tmp_file = self._get_runtime_path(output)
             output_file = filesystem.makefile(tmp_file)
 
             if 0 == self.__counter:
@@ -418,7 +429,7 @@ class Reader(object):
 
         try:
             target_file = self._get_base_wordlist_path(target)
-            output_file = self.__config.get(output)
+            output_file = self._get_runtime_path(output)
 
             dirlist = filesystem.read(target_file)
             dirlist = [item.strip() for item in dirlist]
@@ -447,7 +458,7 @@ class Reader(object):
 
         try:
             target_file = self._get_base_wordlist_path(target)
-            output_file = self.__config.get(output)
+            output_file = self._get_runtime_path(output)
             dirlist = filesystem.read(target_file)
             dirlist = [item.strip() for item in dirlist]
             pattern = self._build_ignore_extension_pattern(extensions)

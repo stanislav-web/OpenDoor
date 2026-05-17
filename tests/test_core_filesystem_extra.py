@@ -83,6 +83,8 @@ class TestFileSystemExtra(unittest.TestCase):
         home_target = os.path.join('/home/user', target)
 
         def fake_makedirs(path, mode=0o777, exist_ok=True):
+
+            _ = exist_ok
             return None
 
         def fake_access(path, mode):

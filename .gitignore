@@ -39,8 +39,9 @@ reports/
 scripts/
 syslog/
 site/
-data/test.dat
 release.sh
+debug.sh
+debug.log
 
 # Local binaries / keys
 opendoor
@@ -57,6 +58,8 @@ results.sarif
 
 # Misc
 TODO
+ROADMAP.md
+
 # Local transport profiles may contain secrets.
 data/wireguard-profiles/*.conf
 !data/wireguard-profiles/example.conf
@@ -86,3 +89,4 @@ debian/*.substvars
 *.changes
 *.dsc
 *.tar.xz
+/debug.sh

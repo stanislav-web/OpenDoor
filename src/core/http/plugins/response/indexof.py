@@ -83,7 +83,7 @@ class IndexofResponsePlugin(ResponsePluginProvider):
     LINK_PATTERN = re.compile(r'href=["\']([^"\']+)["\']', re.IGNORECASE)
     LINK_SKIP_PREFIXES = ('#', '?', '/', '//', 'javascript:', 'mailto:', 'tel:', 'data:')
 
-    def __init__(self, void):
+    def __init__(self, _void):
         """
         ResponsePluginProvider constructor.
         """
@@ -129,13 +129,13 @@ class IndexofResponsePlugin(ResponsePluginProvider):
                 continue
             if link.startswith(self.LINK_SKIP_PREFIXES):
                 continue
-            if link.startswith('http://') or link.startswith('https://'):
+            if link.startswith(('http://', 'https://')):
                 continue
             if '?' in link or '#' in link:
                 continue
             if link in ('.', './', '..', '../'):
                 continue
-            if link.startswith('logout') or link.startswith('login'):
+            if link.startswith(('logout', 'login')):
                 continue
 
             links.append(link)

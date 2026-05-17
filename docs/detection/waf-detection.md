@@ -123,6 +123,31 @@ opendoor \
 
 ---
 
+## WAF guard early stop
+
+Use WAF guard when the first classified responses are overwhelmingly WAF-blocked and continuing a large wordlist would produce mostly low-value blocked results.
+
+```shell
+opendoor \
+  --host https://example.com \
+  --waf-safe-mode \
+  --waf-guard \
+  --waf-guard-after 50 \
+  --waf-guard-threshold 0.95
+```
+
+When the configured condition is reached, OpenDoor stops the scan gracefully:
+
+```text
+WAF guard triggered: block ratio is 100.0% after 50 classified responses. Stopping scan.
+```
+
+`--waf-guard` counts only primary scan responses classified as WAF-blocked. Plain origin `403 Forbidden` responses do not trigger it by themselves.
+
+For details, see [WAF guard](waf-guard.md).
+
+---
+
 ## WAF-safe scan with Header Injection Bypass
 
 For authorized blocked-resource validation, Header Injection Bypass can be enabled as a separate opt-in feature.

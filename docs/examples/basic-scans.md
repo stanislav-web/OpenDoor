@@ -40,11 +40,13 @@ Use custom wordlists when the target stack or application naming patterns are kn
 
 ---
 
-## Add extensions
+## Filter by extensions
 
 ```shell
 opendoor --host https://example.com --extensions php,json,txt
 ```
+
+This keeps only wordlist entries that already end with the selected extensions.
 
 Short form:
 

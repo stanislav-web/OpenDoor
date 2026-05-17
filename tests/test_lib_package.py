@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from urllib.error import URLError
 
-from src.core import CoreSystemError, FileSystemError
+from src.core import FileSystemError
 from src.core.logger.logger import Logger
 from src.lib.package import Package, PackageError
 
@@ -133,34 +133,53 @@ class TestPackage(unittest.TestCase):
         self.assertTrue(result)
         open_mock.assert_called_once_with('https://docs')
 
-    def test_update_returns_unix_message(self):
-        """Package.update() should format the Unix update instructions."""
+    def test_update_returns_cross_platform_message_on_unix(self):
+        """Package.update() should format a safe cross-platform update matrix on Unix-like systems."""
 
-        with patch.dict(
-            'src.lib.package.package.CoreConfig',
-            {
-                'command': {'cvsupdate': '/usr/bin/env python3 -m pip install --upgrade opendoor'},
-                'update': 'STATUS: {status}',
-            },
-            clear=False,
-        ), \
+        with patch.dict('src.lib.package.package.CoreConfig', {'update': 'STATUS: {status}'}, clear=False), \
                 patch('src.lib.package.package.sys', return_value=SimpleNamespace(is_windows=False)), \
+                patch('src.lib.package.package.py_sys.executable', '/opt/opendoor venv/bin/python'), \
                 patch('src.lib.package.package.tpl.line', side_effect=lambda msg='', **kwargs: msg):
             message = Package.update()
 
-        self.assertIn('Automatic in-place update is disabled.', message)
-        self.assertIn('/usr/bin/env python3 -m pip install --upgrade opendoor', message)
+        self.assertIn('OpenDoor does not self-update from inside the scanner.', message)
+        self.assertIn('Use the same package manager that installed it.', message)
+        self.assertIn('Current platform: Unix-like.', message)
+        self.assertIn('pipx upgrade opendoor', message)
+        self.assertIn('"/opt/opendoor venv/bin/python" -m pip install --upgrade opendoor', message)
+        self.assertIn('brew update && brew upgrade opendoor', message)
+        self.assertIn('docker pull ghcr.io/stanislav-web/opendoor:latest', message)
+        self.assertIn('sudo pacman -Syu opendoor', message)
+        self.assertIn('sudo apt install --only-upgrade opendoor', message)
+        self.assertIn('git pull --ff-only', message)
+        self.assertIn('"/opt/opendoor venv/bin/python" -m pip install -e .', message)
+        self.assertNotIn('setup.py install', message)
 
-    def test_update_returns_windows_message(self):
-        """Package.update() should use the Windows status template on Windows."""
+    def test_update_returns_windows_compatible_message(self):
+        """Package.update() should include Windows-compatible instructions."""
 
         with patch.dict('src.lib.package.package.CoreConfig', {'update': 'STATUS: {status}'}, clear=False), \
                 patch('src.lib.package.package.sys', return_value=SimpleNamespace(is_windows=True)), \
-                patch('src.lib.package.package.tpl.line', return_value='WINDOWS-STATUS') as line_mock:
+                patch('src.lib.package.package.py_sys.executable', 'C:\\Python314\\python.exe'), \
+                patch('src.lib.package.package.tpl.line', side_effect=lambda msg='', **kwargs: msg):
             message = Package.update()
 
-        self.assertEqual(message, 'STATUS: WINDOWS-STATUS')
-        line_mock.assert_called_once_with(key='upd_win_stat')
+        self.assertIn('Current platform: Windows.', message)
+        self.assertIn('py -m pip install --upgrade opendoor', message)
+        self.assertIn('"C:\\\\Python314\\\\python.exe" -m pip install --upgrade opendoor', message)
+        self.assertNotIn('Win OS does not support', message)
+
+    def test_update_does_not_execute_package_manager_commands(self):
+        """Package.update() should only print instructions, never run package managers."""
+
+        with patch.dict('src.lib.package.package.CoreConfig', {'update': 'STATUS: {status}'}, clear=False), \
+                patch('src.lib.package.package.sys', return_value=SimpleNamespace(is_windows=False)), \
+                patch('src.lib.package.package.tpl.line', side_effect=lambda msg='', **kwargs: msg), \
+                patch('src.lib.package.package.os.system') as os_system_mock:
+            message = Package.update()
+
+        os_system_mock.assert_not_called()
+        self.assertIn('pipx upgrade opendoor', message)
 
     def test_update_wraps_core_system_errors(self):
         """Package.update() should wrap core system errors into PackageError."""

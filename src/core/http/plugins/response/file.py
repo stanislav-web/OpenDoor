@@ -59,10 +59,11 @@ class FileResponsePlugin(ResponsePluginProvider):
         'application/xml',
         'text/xml',
         'application/xhtml+xml',
+        'application/x-shockwave-flash',
         'image/svg+xml',
     )
 
-    def __init__(self, void):
+    def __init__(self, _void):
         """
         ResponsePluginProvider constructor.
         """

@@ -126,7 +126,9 @@ opendoor --host https://example.com --prefix admin/
 
 The prefix is appended to scanned paths.
 
-### Force extensions
+### Filter by extensions
+
+This keeps only wordlist entries that already have the selected extensions. It does not generate new extension variants.
 
 ```shell
 opendoor --host https://example.com --extensions php,json,txt
@@ -257,6 +259,18 @@ opendoor --host https://example.com -t 20
 ```
 
 **Caution!** A large number of threads may trigger a WAF. Use `--waf-safe-mode` to avoid WAF-triggered scans.
+
+### Legacy TLS compatibility
+
+```shell
+opendoor --host https://legacy.example.com --tls-legacy
+```
+
+Use this only for legacy HTTPS targets that fail during TLS handshake with weak-DH errors such as `DH_KEY_TOO_SMALL`. The default TLS policy remains unchanged unless this flag is explicitly enabled.
+
+`--tls-legacy` is useful when a target opens in a browser but Python/OpenSSL-based scanners fail before receiving an HTTP status. Internally, OpenDoor excludes DHE cipher suites for the scan by using `DEFAULT:!DHE`.
+
+For details and diagnostic commands, see [TLS compatibility](transports/tls.md).
 
 ### Keep-alive
 
@@ -505,6 +519,36 @@ Safe mode automatically switches to a more cautious scan profile after WAF detec
 
 Use this mode when scanning authorized targets protected by WAF, CDN, or anti-bot infrastructure.
 
+### WAF guard
+
+```shell
+opendoor \
+  --host https://example.com \
+  --waf-guard \
+  --waf-guard-after 50 \
+  --waf-guard-threshold 0.95
+```
+
+`--waf-guard` stops the scan early when the initial classified primary responses are overwhelmingly WAF-blocked. It is useful when a WAF or edge protection layer returns the same block page for nearly every path and a long wordlist would produce mostly blocked results.
+
+Default values:
+
+| Option | Default | Meaning |
+|---|---:|---|
+| `--waf-guard` | disabled | Enable WAF-block ratio stop condition. |
+| `--waf-guard-after` | `50` | Minimum number of classified primary responses before WAF guard can trigger. |
+| `--waf-guard-threshold` | `0.95` | WAF-blocked ratio required to stop the scan. |
+
+When triggered, OpenDoor prints:
+
+```text
+WAF guard triggered: block ratio is 100.0% after 50 classified responses. Stopping scan.
+```
+
+WAF guard does not count fingerprint probes, auto-calibration probes, header-bypass subrequests, or plain origin `403` responses without WAF classification.
+
+Read more: [WAF guard](detection/waf-guard.md).
+
 ---
 
 ## 🧩 Header Injection Bypass
@@ -701,7 +745,7 @@ Sessions are useful for:
 
 - large wordlists;
 - unstable networks;
-- batch scans;
+- single scans;
 - recursive scans;
 - transport-based workflows;
 - scans interrupted by terminal or system restarts.
@@ -804,6 +848,18 @@ Supported rotation modes:
 opendoor --host https://example.com --transport-timeout 60
 ```
 
+
+
+### TLS compatibility
+
+Legacy TLS compatibility is independent from the selected network transport. It can be used with direct scans and with proxied HTTPS scans when the target server fails OpenSSL negotiation because of weak DHE/DH parameters.
+
+```shell
+opendoor --host https://legacy.example.com --tls-legacy
+opendoor --host https://legacy.example.com --transport proxy --proxy socks5://127.0.0.1:9050 --tls-legacy
+```
+
+See [TLS compatibility](transports/tls.md).
 
 ### Transport executable path
 
@@ -909,6 +965,43 @@ Use SARIF when OpenDoor findings should be uploaded to GitHub Code Scanning or o
 opendoor --host https://example.com --reports json,html --reports-dir ./reports
 ```
 
+### Differential report comparison
+
+Use `--diff` to compare exactly two previous/current OpenDoor reports without running a new scan. This is useful for release checks, nightly exposure regression checks, hardening validation, and CI/CD artifact comparison.
+
+Supported input pairs:
+
+- SQLite to SQLite: `old.sqlite:new.sqlite`;
+- JSON to JSON: `old.json:new.json`.
+
+```shell
+opendoor --diff reports/baseline/example.com.sqlite:reports/current/example.com.sqlite --reports std,json
+opendoor --diff reports/baseline/example.com.json:reports/current/example.com.json --reports std,json --reports-dir ./diff
+```
+
+Diff mode does not require `--host`, does not send HTTP requests, does not start the scan engine, does not use sessions and does not store comparison history. It prints a terminal summary with `added`, `removed`, `changed` and `unchanged` counts. When `--reports json` is selected, OpenDoor writes `opendoor-diff.json` to the selected reports directory.
+
+```text
+Differential scan summary
+old_report: baseline.sqlite
+new_report: current.sqlite
+added: 2
+removed: 1
+changed: 1
+unchanged: 42
+
+Added:
+  [success] GET 200 512B https://example.com/debug
+
+Removed:
+  [forbidden] GET 403 128B https://example.com/admin
+
+Changed:
+  [success] GET 200 2KB https://example.com/admin
+    bucket: forbidden -> success
+    status: 403 -> 200
+```
+
 ---
 
 ## 🧪 CI/CD fail-on rules
@@ -921,7 +1014,7 @@ opendoor --host https://example.com --fail-on-bucket success,auth,forbidden,bloc
 
 When selected buckets are found, OpenDoor exits with code `1`.
 
-The `bypass` bucket can be used as a CI/CD signal when header-bypass candidates should fail the pipeline.
+The `bypass` bucket can be used as a CI/CD signal when header-bypass candidates should fail the pipeline. The `openredirect` bucket can fail a pipeline when controlled open redirect verification confirms a vulnerable endpoint.
 
 This is useful for:
 
@@ -937,7 +1030,7 @@ Example:
 opendoor \
   --host https://example.com \
   --reports json,sqlite \
-  --fail-on-bucket success,auth,forbidden,bypass
+  --fail-on-bucket success,auth,forbidden,bypass,openredirect
 ```
 
 ---
@@ -951,12 +1044,15 @@ opendoor --host https://example.com --sniff indexof
 opendoor --host https://example.com --sniff skipempty
 opendoor --host https://example.com --sniff skipsizes=24:41:50
 opendoor --host https://example.com --sniff stacktrace
+opendoor --host https://example.com --sniff secret
+opendoor --host https://example.com --sniff shadow
+opendoor --host https://example.com --sniff openredirect
 ```
 
 Multiple sniffers can be combined:
 
 ```shell
-opendoor --host https://example.com --sniff stacktrace,skipempty,file,collation,indexof,skipsizes=24:41:50
+opendoor --host https://example.com --sniff secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof,skipsizes=24:41:50
 ```
 
 For details, see [Sniffers](Sniffers.md).
@@ -1019,6 +1115,20 @@ opendoor --wizard
 opendoor --update
 ```
 
+This is a safe instruction-only command. It does not run `pip`, `pipx`, `brew`, `docker`, `pacman`, `apt`, or `git` for you. It prints update commands for the installation method you use, including a current-interpreter `python -m pip ...` command for the active Python environment.
+
+Use the same package manager that installed OpenDoor:
+
+| Installed with | Typical update command |
+|---|---|
+| pipx | `pipx upgrade opendoor` |
+| pip | `python -m pip install --upgrade opendoor` from the same environment |
+| Homebrew | `brew update && brew upgrade opendoor` |
+| Docker / GHCR | `docker pull ghcr.io/stanislav-web/opendoor:latest` |
+| Arch / BlackArch | `sudo pacman -Syu opendoor` |
+| Debian / Kali | `sudo apt update && sudo apt install --only-upgrade opendoor` |
+| Source checkout | `git pull --ff-only` and reinstall/editable-install if needed |
+
 ---
 
 ## ✅ Practical workflows
@@ -1055,6 +1165,17 @@ opendoor \
   --timeout 60 \
   --retries 5 \
   --delay 0.5
+```
+
+### WAF guard early stop
+
+```shell
+opendoor \
+  --host https://example.com \
+  --waf-safe-mode \
+  --waf-guard \
+  --waf-guard-after 50 \
+  --waf-guard-threshold 0.95
 ```
 
 ### Header-bypass scan

@@ -235,29 +235,32 @@ class TestRequestProviderDebugCoverage(unittest.TestCase):
 class TestSocketExtra(unittest.TestCase):
     """TestSocketExtra class."""
 
-    def test_ping_success_sets_timeout_connects_and_closes_socket(self):
-        """Socket.ping() should set timeout, connect, and close the socket."""
+    def test_ping_success_uses_create_connection_and_closes_socket(self):
+        """Socket.ping() should use dual-stack connection helper and close the socket."""
 
         sock = MagicMock()
 
-        with patch('src.core.http.socks.socket.socket', return_value=sock):
+        with patch('src.core.http.socks.socket.create_connection', return_value=sock) as connect_mock:
             Socket.ping('example.com', 80, timeout=5)
 
-        sock.settimeout.assert_called_once_with(5)
-        sock.connect.assert_called_once_with(('example.com', 80))
+        connect_mock.assert_called_once_with(('example.com', 80), timeout=5)
         sock.close.assert_called_once()
 
-    def test_ping_wraps_socket_errors_and_still_closes_socket(self):
-        """Socket.ping() should wrap socket-level errors and still close the socket."""
+    def test_ping_wraps_socket_errors_with_connect_details(self):
+        """Socket.ping() should wrap socket errors with host, port, timeout and resolved addresses."""
 
-        sock = MagicMock()
-        sock.connect.side_effect = py_socket.timeout('boom')
-
-        with patch('src.core.http.socks.socket.socket', return_value=sock):
-            with self.assertRaises(SocketError):
+        with patch('src.core.http.socks.socket.create_connection', side_effect=py_socket.timeout('boom')), \
+                patch('src.core.http.socks.socket.getaddrinfo', return_value=[
+                    (py_socket.AF_INET, py_socket.SOCK_STREAM, 6, '', ('127.0.0.1', 80)),
+                    (py_socket.AF_INET6, py_socket.SOCK_STREAM, 6, '', ('::1', 80, 0, 0)),
+                ]):
+            with self.assertRaises(SocketError) as context:
                 Socket.ping('example.com', 80, timeout=5)
 
-        sock.close.assert_called_once()
+        message = str(context.exception)
+        self.assertIn('Unable to connect to example.com:80 within 5s', message)
+        self.assertIn('127.0.0.1, ::1', message)
+        self.assertIn('boom', message)
 
     def test_get_ip_address_wraps_gaierror(self):
         """Socket.get_ip_address() should wrap name-resolution failures."""

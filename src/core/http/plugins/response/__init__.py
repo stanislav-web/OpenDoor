@@ -28,3 +28,16 @@ from .file import FileResponsePlugin as file
 from .skipsizes import SkipSizesResponsePlugin as skipsizes
 # noinspection PyPep8Naming
 from .stacktrace import StacktraceResponsePlugin as stacktrace
+
+
+# noinspection PyPep8Naming
+from .secret import SecretResponsePlugin as secret
+
+# noinspection PyPep8Naming
+from .shadow import ShadowResponsePlugin as shadow
+
+# noinspection PyPep8Naming
+from .openredirect import OpenredirectResponsePlugin as openredirect
+
+# noinspection PyPep8Naming
+from .malware import MalwareResponsePlugin as malware

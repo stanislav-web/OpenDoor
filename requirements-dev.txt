@@ -2,9 +2,9 @@
 build==1.5.0
 ddt==1.7.2
 packaging==26.2
-six==1.17.0
-tabulate==0.10.0
 urllib3==2.7.0
 PySocks==1.7.1
 ruff==0.15.12
 coverage==7.14.0
+vulture==2.16
+twine==6.2.0

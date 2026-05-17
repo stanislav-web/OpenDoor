@@ -1,5 +1,50 @@
 CHANGELOG
 =======
+v5.16.0 (16.05.2026)
+---------------------------
+- (fix) rendered fingerprint progress as a rotating single-line indicator and persisted only the final `done` state to reduce duplicate progress output.
+- (fix) proxy and transport-loss handling: proxy scans now validate the proxy without directly probing the target, filtered proxy timeouts remain visible, and direct scans abort cleanly after repeated exhausted transport failures when a target goes offline mid-scan.
+- (fix) made auto-calibrated rotating progress cross-platform by truncating suppressed-response lines to terminal width and clearing them before real findings.
+- (fix) diversified auto-calibration probe URL shapes so sites that return different soft-404/catch-all responses for root-level, application-like and static asset paths are calibrated more reliably.
+- (fix) made HTML report status tabs work as anchor-backed navigation with JavaScript filtering as progressive enhancement, improving large report responsiveness and browser compatibility.
+- (fix) handled `ResponseError: Unknown response status : 523` so scans no longer abort on unexpected HTTP status codes.
+- (fix) graceful handling for unavailable standalone SOCKS/HTTP proxies.
+- (fix) authenticated HTTP proxy support for HTTPS CONNECT requests and masked proxy credentials in debug, warning, and error output.
+- (fix) cleaned WAF/header-bypass diagnostics: cookie accept debug now logs once, watchdog tracks long-running probe heartbeats, and piped logs no longer include ANSI clear-line sequences.
+- (fix) extension filters: `--extensions` and `--ignore-extensions` are now mutually exclusive, extension matching handles query strings/fragments, matching is case-insensitive, and documentation now describes `--extensions` as a filter rather than generation.
+- (fix) wizard regex filters so comma-containing patterns are preserved safely.
+- (fix) reduced report noise by keeping filtered responses out of user-facing reports while preserving them in raw JSON/session data.
+- (fix) response-filter overrides for resumed sessions and precompiled regex filters for faster runtime checks.
+- (fix) proxy rotation console output so debug and warning messages no longer corrupt fingerprint, calibration, and scan progress lines.
+- (fix) reused initialized proxy request providers across pre-scan and scan phases to avoid redundant proxy-list initialization.
+- (fix) preserved direct scan provider refresh when scan targets are rewritten by runtime options.
+- (fix) reduced auto-calibration console noise by suppressing per-probe response output while keeping the calibration summary.
+- (fix) noisy debug output in `--proxy-pool` mode by logging proxy selection only when a new proxy pool is created.
+- (feature) added `--waf-guard` with configurable `--waf-guard-after` and `--waf-guard-threshold` to stop scans early when initial classified responses are overwhelmingly WAF-blocked.
+- (feature) added `--diff` to compare exactly two previous/current OpenDoor SQLite or JSON reports and show added, removed and changed findings without running a new scan.
+- (feature) added `--sniff malware` to passively classify suspicious malware, webshell, injected script and obfuscated payload indicators into the `malware` bucket with structured metadata across runtime output and reports.
+- (feature) added `--sniff shadow` active Shadow Copy Detection to probe confirmed `200 OK` file-like hits for exposed backup/suffix copies such as `.bak`, `.old`, and similar variants.
+- (feature) added `--sniff secret` to classify successful textual responses with possible leaked API keys, tokens, private keys, JWTs and credential URLs into the `secret` bucket.
+- (feature) added `--sniff openredirect` for verified open redirect detection: OpenDoor now performs bounded active checks on discovered redirect-like query parameters, reports findings in the `openredirect` bucket, and preserves evidence across text, JSON, CSV, HTML, SQLite, and SARIF reports.
+- (feature) added opt-in `--tls-legacy` mode for weak-DH HTTPS targets and improved TLS handshake diagnostics with `DH_KEY_TOO_SMALL` guidance.
+- (enhancement) scan runtime temp handling by moving generated wordlist artifacts into per-scan managed workspaces with cross-platform cleanup on normal exit, errors, and abort signals.
+- (enhancement) added `socks5h://` proxy URL support for standalone proxy and proxy-list flows without changing existing proxy debug output.
+- (enhancement) improved `--update` as a safe cross-platform helper: it no longer depends on scanner data assets, does not execute package-manager commands, and now prints update instructions for pipx, pip, Homebrew, Docker, Linux packages, Windows, and source checkout installs.
+- (enhancement) hardened response filter handling across CLI, wizard configuration, and session resume flows.
+- (enhancement) hardened proxy routing: `--proxy`, `--proxy-list`, and `--proxy-pool` are now mutually exclusive, rotating proxies skip dead entries during the current scan runtime, authenticated proxy-list entries support HTTPS CONNECT, and selected rotating proxies are shown in debug with credentials masked.
+- (enhancement) refactored the internal sniffer architecture to support independent multi-finding detection, additive security findings, suppressor separation and shared active-sniffer orchestration while preserving existing `--sniff` CLI aliases and report buckets.
+- (enhancement) improved controlled 403 `header-bypass` probing with additional safe path-normalization variants, including encoded-dot, semicolon-prefix, dot-semicolon-prefix, double-slash semicolon, and dot-dot semicolon suffix checks for arbitrary protected paths discovered during scans.
+- (enhancement) hardened Stacktrace sniffer detection to avoid false positives from normal HTML/CSS source code such as `.*-warning`, `.*-error`, and similar style/class names.
+- (enhancement) hardened WordPress fingerprinting by adding static asset probes and preventing weak login/xmlrpc-only evidence from becoming a primary CMS match
+- (enhancement) preserves redacted Secret Sniffer metadata in standard, text, CSV, JSON, HTML, SQLite and SARIF reports without storing raw secret values.
+- (enhancement) added Mobirise site-builder detection to `--fingerprint` using generator, asset and markup signals common to Mobirise landing pages.
+- (enhancement) added QRATOR / Qrator Labs infrastructure detection to `--fingerprint`.
+- (dependencies) removed unused `six` and replaced `tabulate` in the STD summary reporter with a native psql-like table formatter.
+- (ux) reduced stdout Summary noise by hiding low-value diagnostic counters and detailed fingerprint/HSTS/privacy internals while preserving them in structured reports.
+- (ux) improved connection preflight diagnostics for localhost/proxy transport checks.
+- (dictionary) bundled `data/shadow-suffixes.dat` in source and wheel distributions so PyPI, Homebrew-style source builds and local installs include the built-in shadow suffix catalog by default.
+- (dictionary) cleaned and normalized internal directories list (+2133 potencial interesting paths).
+- (build) added staged Ruff quality gates and advisory Vulture dead-code checks, with updated contributor rules and cleanup documentation.
 
 v5.15.3 (09.05.2026)
 ---------------------------

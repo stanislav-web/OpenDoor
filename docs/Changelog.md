@@ -67,14 +67,17 @@ Use releases for:
 
 ## 📦 Package manager updates
 
-Depending on your installation method, update OpenDoor with the same package manager that installed it.
+Depending on your installation method, update OpenDoor with the same package manager that installed it. The `opendoor --update` command is a safe helper that prints update instructions; it does not execute package-manager commands or self-update the scanner.
 
 | Installed with | Update command |
 |---|---|
 | Homebrew | `brew update && brew upgrade opendoor` |
 | pipx | `pipx upgrade opendoor` |
-| pip | `python3 -m pip install --upgrade opendoor` |
-| Source checkout | `git pull` |
+| pip | `python -m pip install --upgrade opendoor` from the same Python environment |
+| Docker / GHCR | `docker pull ghcr.io/stanislav-web/opendoor:latest` |
+| Arch / BlackArch | `sudo pacman -Syu opendoor` |
+| Debian / Kali | `sudo apt update && sudo apt install --only-upgrade opendoor` |
+| Source checkout | `git pull --ff-only` |
 
 For details, see [Installation and update](Installation-and-update.md).
 
@@ -112,9 +115,9 @@ OpenDoor follows semantic versioning conventions:
 Examples:
 
 ```text
-5.12.x  Patch updates within the 5.12 line
-5.13.0  New feature release
-6.0.0   Major platform or compatibility release
+1.1.x  Patch updates within the 1.1 line
+1.x.0  New feature release
+x.0.0   Major platform or compatibility release
 ```
 
 ---

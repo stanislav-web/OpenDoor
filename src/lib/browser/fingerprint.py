@@ -85,6 +85,10 @@ class Fingerprint(object):
 
     PROBES = (
         '/wp-json/',
+        '/wp-content/',
+        '/wp-content/plugins/',
+        '/wp-content/themes/',
+        '/wp-includes/',
         '/wp-login.php',
         '/xmlrpc.php',
         '/sites/default/files/',
@@ -175,6 +179,7 @@ class Fingerprint(object):
         ('InstantCMS', CMS_CATEGORY, ('instantcms', 'instant cms')),
         ('ImpressPages CMS', CMS_CATEGORY, ('impresspages', 'impresspages cms')),
         ('Jimdo', SITE_BUILDER_CATEGORY, ('jimdo',)),
+        ('Mobirise', SITE_BUILDER_CATEGORY, ('mobirise', 'mobirise website builder')),
         ('Kooboo CMS', CMS_CATEGORY, ('kooboo', 'kooboo cms')),
         ('Liferay', CMS_CATEGORY, ('liferay', 'liferay portal')),
         ('Microsoft SharePoint', CMS_CATEGORY, ('microsoft sharepoint', 'sharepoint')),
@@ -245,6 +250,19 @@ class Fingerprint(object):
         ('InstantCMS', CMS_CATEGORY, ('instantcms', 'icms-', '/templates/default/')),
         ('ImpressPages CMS', CMS_CATEGORY, ('impresspages', 'ip_themes/', 'ip_content')),
         ('Jimdo', SITE_BUILDER_CATEGORY, ('jimcdn.com', 'jimdo_layout_css', 'jimdo.com')),
+        (
+            'Mobirise',
+            SITE_BUILDER_CATEGORY,
+            (
+                '/assets/mobirise/',
+                '/assets/web/assets/mobirise-icons',
+                'mobirise-icons.css',
+                'mbr-additional.css',
+                'mbr-section-title',
+                'mbr-section-btn',
+                'mbr-fonts-style',
+            ),
+        ),
         ('Liferay', CMS_CATEGORY, ('liferay', '/o/frontend-js-', 'portlet-boundary')),
         (
             'Microsoft SharePoint',
@@ -967,12 +985,12 @@ class Fingerprint(object):
         if len(labels) < 2:
             return ''
 
-        two_level_public_suffixes = set([
+        two_level_public_suffixes = {
             'co.uk', 'org.uk', 'ac.uk', 'gov.uk',
             'com.ua', 'net.ua', 'org.ua', 'gov.ua',
             'com.au', 'net.au', 'org.au',
             'co.jp', 'com.br', 'com.tr',
-        ])
+        }
         suffix = '.'.join(labels[-2:])
         if suffix in two_level_public_suffixes and len(labels) >= 3:
             return '.'.join(labels[-3:])
@@ -995,7 +1013,7 @@ class Fingerprint(object):
                 header_values = []
         else:
             header_values = [
-                value for key, value in getattr(raw_headers, 'items', lambda: [])()
+                value for key, value in getattr(raw_headers, 'items', list)()
                 if str(key).lower() == 'set-cookie'
             ]
 
@@ -1171,6 +1189,68 @@ class Fingerprint(object):
         if re.search(r'(^|[^a-z0-9])apache(/|\s|$)', server):
             self._add_infrastructure_signal('Apache HTTP Server', 'header', server_signal, 8)
 
+
+    def _apply_qrator_infrastructure_rules(self, headers, cookies, body_lower, not_found_headers=None, not_found_body_lower=''):
+        """
+        Add Qrator Labs edge/security infrastructure signals.
+
+        Qrator Labs commonly appears as an HTTP reverse proxy / DDoS
+        protection / WAF / CDN edge. Keep these signals in the
+        infrastructure bucket so QRATOR does not overwrite application or
+        runtime fingerprints.
+
+        :param dict headers: normalized root response headers
+        :param list cookies: normalized root response cookie names
+        :param str body_lower: normalized root response body
+        :param dict|None not_found_headers: normalized 404 probe headers
+        :param str not_found_body_lower: normalized 404 probe body
+        :return: None
+        """
+
+        not_found_headers = not_found_headers or {}
+        server_header = str(headers.get('server', '') or '').strip()
+        server = server_header.lower()
+        not_found_server_header = str(not_found_headers.get('server', '') or '').strip()
+        not_found_server = not_found_server_header.lower()
+        qrator_header_names = (
+            'x-qrator-requestid',
+            'x-qrator-request-id',
+            'x-q-domid',
+            'x-qrator-ip-source',
+            'x-qrator-tcp-info',
+            'x-q-geoip',
+        )
+
+        if server == 'qrator':
+            self._add_infrastructure_signal('QRATOR', 'header', 'server={0}'.format(server_header), 18)
+        elif 'qrator' in server:
+            self._add_infrastructure_signal('QRATOR', 'header', 'server={0}'.format(server_header), 12)
+
+        if not_found_server == 'qrator':
+            self._add_infrastructure_signal('QRATOR', '404-header', 'server={0}'.format(not_found_server_header), 15)
+        elif 'qrator' in not_found_server:
+            self._add_infrastructure_signal('QRATOR', '404-header', 'server={0}'.format(not_found_server_header), 10)
+
+        for header_name in qrator_header_names:
+            if header_name in headers:
+                self._add_infrastructure_signal('QRATOR', 'header', header_name, 11)
+
+        for header_name in qrator_header_names:
+            if header_name in not_found_headers:
+                self._add_infrastructure_signal('QRATOR', '404-header', header_name, 9)
+
+        if 'qrator_jsid' in cookies:
+            self._add_infrastructure_signal('QRATOR', 'cookie', 'qrator_jsid', 11)
+
+        if '/qrerror/' in body_lower or '/qrerror/' in not_found_body_lower:
+            self._add_infrastructure_signal('QRATOR', 'error-page', '/qrerror/', 9)
+
+        if 'qrator_jsid' in body_lower or 'qrator_jsid' in not_found_body_lower:
+            self._add_infrastructure_signal('QRATOR', 'challenge', 'qrator_jsid', 8)
+
+        if 'qrator labs' in body_lower or 'qrator labs' in not_found_body_lower:
+            self._add_infrastructure_signal('QRATOR', 'body', 'Qrator Labs', 8)
+
     def _apply_extended_cms_catalog_rules(self, body_lower, headers, cookies, generator):
         """
         Apply extended catalog signals for CMSs not covered by dedicated rules.
@@ -1263,8 +1343,7 @@ class Fingerprint(object):
             return False
 
         return (
-            body_text.startswith('cannot get /')
-            or body_text.startswith('cannot post /')
+            body_text.startswith(('cannot get /', 'cannot post /'))
             or '<pre>cannot get /' in body_text
             or '<pre>cannot post /' in body_text
         )
@@ -1312,6 +1391,52 @@ class Fingerprint(object):
             return False
 
         return 'route get:' in body_text and 'not found' in body_text
+
+    @staticmethod
+    def _is_distinct_probe_status(probe_status, not_found_status):
+        """
+        Return True when a fingerprint probe status differs from the 404 baseline.
+
+        This avoids counting catch-all/soft404 responses as endpoint evidence
+        when the missing-path probe returns the same successful-looking status.
+
+        :param int|None probe_status: probe HTTP status
+        :param int|None not_found_status: missing-path baseline HTTP status
+        :return: bool
+        """
+
+        try:
+            status = int(probe_status or 0)
+        except (TypeError, ValueError):
+            return False
+
+        if status <= 0:
+            return False
+
+        try:
+            baseline_status = int(not_found_status or 0)
+        except (TypeError, ValueError):
+            baseline_status = 0
+
+        if baseline_status in [200, 301, 302, 401, 403, 405] and status == baseline_status:
+            return False
+
+        return True
+
+    @classmethod
+    def _is_distinct_probe_up(cls, probe_statuses, path, allowed_statuses, not_found_status):
+        """
+        Return True when a probe path is reachable and not equal to soft404 baseline.
+
+        :param dict probe_statuses: collected probe statuses
+        :param str path: probe path
+        :param list[int] allowed_statuses: statuses that represent a useful hit
+        :param int|None not_found_status: missing-path baseline HTTP status
+        :return: bool
+        """
+
+        status = probe_statuses.get(path)
+        return status in allowed_statuses and cls._is_distinct_probe_status(status, not_found_status)
 
     @staticmethod
     def _should_propagate_runtime_from_signal(signal_type):
@@ -1394,13 +1519,24 @@ class Fingerprint(object):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'markup', '/wp-content/', 6)
         if '/wp-includes/' in body_lower:
             self._add_signal('WordPress', self.CMS_CATEGORY, 'markup', '/wp-includes/', 5)
-        if probe_statuses.get('/wp-json/') in [200, 401, 403]:
+
+        wordpress_static_probes = (
+            ('/wp-content/', 6),
+            ('/wp-includes/', 5),
+            ('/wp-content/plugins/', 4),
+            ('/wp-content/themes/', 4),
+        )
+        for probe_path, weight in wordpress_static_probes:
+            if self._is_distinct_probe_up(probe_statuses, probe_path, [200, 301, 302, 401, 403], not_found_status):
+                self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', probe_path, weight)
+
+        if self._is_distinct_probe_up(probe_statuses, '/wp-json/', [200, 401, 403], not_found_status):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/wp-json/', 5)
-        if probe_statuses.get('/wp-login.php') in [200, 301, 302, 401, 403]:
-            self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/wp-login.php', 4)
-        if probe_statuses.get('/xmlrpc.php') in [200, 301, 302, 401, 403, 405]:
-            self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/xmlrpc.php', 3)
-        if any(cookie.startswith('wordpress_') or cookie.startswith('wp-settings-') for cookie in cookies):
+        if self._is_distinct_probe_up(probe_statuses, '/wp-login.php', [200, 301, 302, 401, 403], not_found_status):
+            self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/wp-login.php', 2)
+        if self._is_distinct_probe_up(probe_statuses, '/xmlrpc.php', [200, 301, 302, 401, 403, 405], not_found_status):
+            self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/xmlrpc.php', 2)
+        if any(cookie.startswith(('wordpress_', 'wp-settings-')) for cookie in cookies):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'cookie', 'wordpress_*', 5)
 
         # Drupal
@@ -1471,6 +1607,16 @@ class Fingerprint(object):
         if 'tilda-pub-' in body_lower:
             self._add_signal('Tilda', self.SITE_BUILDER_CATEGORY, 'markup', 'tilda-pub-', 4)
 
+        # Mobirise
+        if 'mobirise' in generator_lower:
+            self._add_signal('Mobirise', self.SITE_BUILDER_CATEGORY, 'meta', 'generator={0}'.format(generator), 8)
+        if '/assets/mobirise/' in body_lower or '/assets/web/assets/mobirise-icons' in body_lower \
+                or 'mobirise-icons.css' in body_lower:
+            self._add_signal('Mobirise', self.SITE_BUILDER_CATEGORY, 'asset', 'assets/mobirise|mobirise-icons', 7)
+        if 'mbr-additional.css' in body_lower or 'mbr-section-title' in body_lower \
+                or 'mbr-section-btn' in body_lower or 'mbr-fonts-style' in body_lower:
+            self._add_signal('Mobirise', self.SITE_BUILDER_CATEGORY, 'markup', 'mbr-*', 5)
+
         # Webflow
         if 'webflow' in generator_lower:
             self._add_signal('Webflow', self.SITE_BUILDER_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
@@ -1504,7 +1650,7 @@ class Fingerprint(object):
             self._add_signal('WooCommerce', self.ECOMMERCE_CATEGORY, 'markup', 'wc-ajax=', 6)
         if 'woocommerce-notices-wrapper' in body_lower or 'add_to_cart_button' in body_lower:
             self._add_signal('WooCommerce', self.ECOMMERCE_CATEGORY, 'markup', 'woocommerce-notices-wrapper|add_to_cart_button', 5)
-        if any(cookie.startswith('woocommerce_') or cookie.startswith('wp_woocommerce_session_') for cookie in cookies):
+        if any(cookie.startswith(('woocommerce_', 'wp_woocommerce_session_')) for cookie in cookies):
             self._add_signal('WooCommerce', self.ECOMMERCE_CATEGORY, 'cookie', 'woocommerce_*', 7)
 
         # OpenCart
@@ -1576,7 +1722,7 @@ class Fingerprint(object):
             self._add_signal('phpBB', self.CMS_CATEGORY, 'asset', '/styles/prosilver/|prosilver', 6)
         if 'viewtopic.php' in body_lower or 'viewforum.php' in body_lower:
             self._add_signal('phpBB', self.CMS_CATEGORY, 'markup', 'viewtopic.php|viewforum.php', 3)
-        if any(cookie.startswith('phpbb3_') or cookie.startswith('phpbb_') for cookie in cookies):
+        if any(cookie.startswith(('phpbb3_', 'phpbb_')) for cookie in cookies):
             self._add_signal('phpBB', self.CMS_CATEGORY, 'cookie', 'phpbb3_*|phpbb_*', 7)
 
         # Umbraco
@@ -2059,6 +2205,15 @@ class Fingerprint(object):
             self._add_signal('Phoenix', self.FRAMEWORK_CATEGORY, 'markup', '_csrf_token + phoenix', 7)
         if '_app_key' in cookies:
             self._add_signal('Phoenix', self.FRAMEWORK_CATEGORY, 'cookie', '_app_key', 5)
+
+        # Infrastructure: Qrator Labs security edge / reverse proxy
+        self._apply_qrator_infrastructure_rules(
+            headers=headers,
+            cookies=cookies,
+            body_lower=body_lower,
+            not_found_headers=not_found_headers,
+            not_found_body_lower=not_found_body_lower,
+        )
 
         # Infrastructure: AWS family
         if x_amz_cf_id or 'cloudfront' in via or 'cloudfront' in x_cache or 'cloudfront' in server:

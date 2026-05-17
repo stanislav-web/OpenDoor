@@ -185,8 +185,7 @@ class TestReporter(unittest.TestCase):
             self.assertIsNone(plugin.process())
 
         rendered = writeln_mock.call_args[0][0]
-        self.assertIn('fingerprint_category', rendered)
-        self.assertIn('cms', rendered)
+        self.assertNotIn('fingerprint_category', rendered)
         self.assertIn('fingerprint_name', rendered)
         self.assertIn('WordPress', rendered)
         self.assertIn('fingerprint_confidence', rendered)
@@ -195,8 +194,7 @@ class TestReporter(unittest.TestCase):
         self.assertIn('PHP', rendered)
         self.assertIn('fingerprint_infra', rendered)
         self.assertIn('Cloudflare', rendered)
-        self.assertIn('fingerprint_infra_confidence', rendered)
-        self.assertIn('90%', rendered)
+        self.assertNotIn('fingerprint_infra_confidence', rendered)
 
     def test_text_plugin_init_wraps_makedir_errors(self):
         """TextReportPlugin.__init__() should wrap directory creation failures."""
@@ -313,7 +311,7 @@ class TestReporter(unittest.TestCase):
             plugin.process()
 
         rendered = writeln_mock.call_args[0][0]
-        self.assertIn('fingerprint_category', rendered)
+        self.assertNotIn('fingerprint_category', rendered)
         self.assertIn('Next.js', rendered)
         self.assertIn('fingerprint_infra', rendered)
         self.assertIn('AWS CloudFront', rendered)
@@ -343,8 +341,8 @@ class TestReporter(unittest.TestCase):
 
         rendered = writeln_mock.call_args[0][0]
 
-        self.assertIn('fingerprint_category', rendered)
-        self.assertIn('framework', rendered)
+        self.assertNotIn('fingerprint_category', rendered)
+        self.assertNotIn('framework', rendered)
         self.assertIn('fingerprint_name', rendered)
         self.assertIn('Next.js', rendered)
         self.assertIn('fingerprint_confidence', rendered)

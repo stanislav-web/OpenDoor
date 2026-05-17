@@ -31,23 +31,28 @@ class ThreadPool(object):
     JOIN_POLL_INTERVAL_SEC = 1.0
     JOIN_STALL_WARNING_SEC = 60.0
 
-    def __init__(self, num_threads, total_items, timeout):
+    def __init__(self, num_threads, total_items, timeout, stall_warning_interval=None):
         """
         Initialize thread pool
         :param int num_threads: active workers
         :param int total_items: total items
         :param int timeout: delay between threads
+        :param int|float|None stall_warning_interval: worker stall warning interval
         """
 
         self.__queue = Queue()
         self.__workers = []
         self.__submitted = 0
+        self.__worker_error = None
         self.total_items_size = total_items
         self.is_started = True
+        self.__stall_warning_interval = self.__normalize_stall_warning_interval(stall_warning_interval)
 
         for _ in range(num_threads):
 
             worker = Worker(self.__queue, num_threads, timeout)
+            if hasattr(worker, 'set_error_callback'):
+                worker.set_error_callback(self.__record_worker_error)
             if False is worker.is_alive():
                 worker.daemon = True
                 worker.start()
@@ -152,13 +157,17 @@ class ThreadPool(object):
         """
         Join queue and periodically warn when workers stop making progress.
 
+        :raise Exception: first fatal exception reported by a worker
         :return: None
         """
+
+        self.__raise_worker_error_if_any()
 
         last_completed = self.completed_size
         last_queue_size = self.size
         last_activity_at = time.monotonic()
         last_warning_at = last_activity_at
+        last_active_signature = self.__active_tasks_signature()
 
         with self.__queue.all_tasks_done:
             while int(getattr(self.__queue, 'unfinished_tasks', 0) or 0) > 0:
@@ -168,20 +177,28 @@ class ThreadPool(object):
                     self.pause()
                     continue
 
+                self.__raise_worker_error_if_any()
+
                 completed = self.completed_size
                 queue_size = self.__queue._qsize()
-                if completed != last_completed or queue_size != last_queue_size:
+                active_signature = self.__active_tasks_signature()
+                if (
+                    completed != last_completed
+                    or queue_size != last_queue_size
+                    or active_signature != last_active_signature
+                ):
                     last_completed = completed
                     last_queue_size = queue_size
+                    last_active_signature = active_signature
                     last_activity_at = time.monotonic()
                     continue
 
                 now = time.monotonic()
-                if (now - last_activity_at >= self.JOIN_STALL_WARNING_SEC
-                        and now - last_warning_at >= self.JOIN_STALL_WARNING_SEC):
+                if (now - last_activity_at >= self.__stall_warning_interval
+                        and now - last_warning_at >= self.__stall_warning_interval):
                     tpl.warning(
-                        msg='Scan worker has not completed a request for {0:.0f}s. '
-                            'submitted={1}, completed={2}, queue={3}, active={4}'.format(
+                        msg='Network request is still waiting/retrying for {0:.0f}s without progress. '
+                            'submitted={1}, completed={2}, queued={3}, active={4}'.format(
                                 now - last_activity_at,
                                 self.submitted_size,
                                 completed,
@@ -190,6 +207,72 @@ class ThreadPool(object):
                             )
                     )
                     last_warning_at = now
+
+        self.__raise_worker_error_if_any()
+
+    def __record_worker_error(self, error):
+        """
+        Store the first fatal worker exception for propagation on the main thread.
+
+        Worker threads must not terminate the whole process directly. The main
+        scan flow owns BrowserError handling, session checkpoints and final
+        process exit semantics.
+
+        :param Exception error: fatal worker exception
+        :return: None
+        """
+
+        if self.__worker_error is None:
+            self.__worker_error = error
+
+    def __raise_worker_error_if_any(self):
+        """
+        Raise the first fatal worker exception, if any.
+
+        :raise Exception: stored worker exception
+        :return: None
+        """
+
+        if self.__worker_error is not None:
+            raise self.__worker_error
+
+    @classmethod
+    def __normalize_stall_warning_interval(cls, value):
+        """
+        Normalize worker stall warning interval.
+
+        :param int|float|None value: configured interval
+        :return: positive interval in seconds
+        :rtype: float
+        """
+
+        try:
+            interval = float(value)
+        except (TypeError, ValueError):
+            return float(cls.JOIN_STALL_WARNING_SEC)
+
+        if interval <= 0:
+            return float(cls.JOIN_STALL_WARNING_SEC)
+
+        return interval
+
+    def __active_tasks_signature(self):
+        """
+        Return a stable signature for active task heartbeat changes.
+
+        :return: tuple describing active task progress
+        :rtype: tuple
+        """
+
+        signature = []
+        for task in self.active_tasks:
+            signature.append((
+                str(task.get('label') or ''),
+                str(task.get('detail') or ''),
+                float(task.get('last_activity_at') or task.get('started_at') or 0.0),
+            ))
+
+        return tuple(signature)
 
     def __format_active_tasks(self, now):
         """
@@ -206,9 +289,16 @@ class ThreadPool(object):
         items = []
         for task in tasks[:3]:
             label = str(task.get('label') or 'unknown task')
+            detail = str(task.get('detail') or '').strip()
             started_at = float(task.get('started_at') or now)
+            last_activity_at = float(task.get('last_activity_at') or started_at)
             age = max(0.0, now - started_at)
-            items.append('{0} ({1:.0f}s)'.format(label, age))
+            idle = max(0.0, now - last_activity_at)
+
+            if detail:
+                items.append('{0} [{1}] (elapsed={2:.0f}s, no-progress={3:.0f}s)'.format(label, detail, age, idle))
+            else:
+                items.append('{0} (elapsed={1:.0f}s, no-progress={2:.0f}s)'.format(label, age, idle))
 
         if len(tasks) > 3:
             items.append('+{0} more'.format(len(tasks) - 3))
@@ -246,13 +336,9 @@ class ThreadPool(object):
         if value in aliases:
             return aliases[value]
 
-        for char in value:
-            if char.isspace():
-                continue
+        first_char = value[0]
 
-            return aliases.get(char, char)
-
-        return ''
+        return aliases.get(first_char, first_char)
 
     def pause(self):
         """

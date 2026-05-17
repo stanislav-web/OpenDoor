@@ -80,7 +80,7 @@ class CookiesProvider(object):
                 return values
 
         values = []
-        for key, value in getattr(headers, 'items', lambda: [])():
+        for key, value in getattr(headers, 'items', list)():
             if str(key).lower() == 'set-cookie':
                 values.append(value)
 

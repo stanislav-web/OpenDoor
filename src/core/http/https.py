@@ -21,6 +21,7 @@ from urllib3.exceptions import MaxRetryError, ReadTimeoutError, ConnectTimeoutEr
     HostChangedError, SSLError, InsecureRequestWarning
 from src.core import helper
 from .exceptions import HttpsRequestError
+from .tls import TLS_LEGACY_CIPHERS, describe_tls_transport_error, maybe_build_ssl_context
 from .providers import DebugProvider
 from .providers import RequestProvider
 
@@ -51,11 +52,49 @@ class HttpsRequest(RequestProvider, DebugProvider):
         self.__cfg = config
         self.__debug = debug
         self.__manager = None
+        self.__ssl_context = maybe_build_ssl_context(getattr(self.__cfg, 'is_tls_legacy', False))
+        self.__debug_tls_policy()
 
         if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
             self.__pool = self.__https_pool()
         else:
             self.__manager = self.__pool_manager()
+
+
+    def __debug_tls_policy(self):
+        """Emit debug output for opt-in legacy TLS compatibility."""
+
+        if getattr(self.__cfg, 'is_tls_legacy', False) is True:
+            getattr(self.__tpl, 'debug', lambda *args, **kwargs: True)(
+                msg='TLS legacy compatibility enabled: ciphers={0}'.format(TLS_LEGACY_CIPHERS)
+            )
+
+
+    def __pool_tls_kwargs(self):
+        """Return urllib3 TLS kwargs only when legacy mode is enabled.
+
+        :return: TLS keyword arguments for urllib3 pool constructors.
+        :rtype: dict
+        """
+
+        if self.__ssl_context is None:
+            return {}
+
+        return {'ssl_context': self.__ssl_context}
+
+    def __record_tls_transport_error(self, error):
+        """Store and print a helpful TLS transport diagnostic when possible.
+
+        :param Exception error: Source urllib3/OpenSSL exception.
+        :return: None
+        """
+
+        message = describe_tls_transport_error(error)
+        if not message:
+            return
+
+        setattr(self.__cfg, 'last_transport_error', message)
+        self.__tpl.warning(msg=message)
 
     def _provide_ssl_auth_required(self):
         """
@@ -83,6 +122,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
                 timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
                 cert_reqs='CERT_NONE',
                 block=True,
+                **self.__pool_tls_kwargs()
             )
             getattr(self.__debug, 'debug_connection_pool', lambda *args, **kwargs: True)(
                 'https_pool_start', pool, self.__connection_header)
@@ -106,6 +146,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
                 timeout=Timeout(connect=self.__cfg.timeout, read=self.__cfg.timeout),
                 block=True,
                 cert_reqs='CERT_NONE',
+                **self.__pool_tls_kwargs()
             )
         except Exception as error:
             raise HttpsRequestError(str(error))
@@ -159,26 +200,26 @@ class HttpsRequest(RequestProvider, DebugProvider):
                                                   retries=self.__cfg.retries,
                                                   assert_same_host=False,
                                                   redirect=False)
+            setattr(self.__cfg, 'last_transport_error', None)
             self._debug_response_received(self.__debug, response)
             self.__debug_cookie_middleware(response)
             return response
 
-        except MaxRetryError:
+        except MaxRetryError as error:
+            self.__record_tls_transport_error(error)
             if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
                 self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
 
         except HostChangedError as error:
             self.__tpl.warning(key='host_changed_error', details=error)
-            pass
 
         except ReadTimeoutError:
             self.__tpl.warning(key='read_timeout_error', url=url)
-            pass
 
         except ConnectTimeoutError:
             self.__tpl.warning(key='connection_timeout_error', url=url)
-            pass
 
-        except SSLError:
+        except SSLError as error:
+            self.__record_tls_transport_error(error)
             if self.__cfg.DEFAULT_SCAN != self.__cfg.scan:
                 return self._provide_ssl_auth_required()

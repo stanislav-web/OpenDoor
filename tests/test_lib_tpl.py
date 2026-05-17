@@ -21,6 +21,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from src.core.logger.logger import Logger
+from src.core.system.output import Output
 from src.lib.tpl import Tpl, TplError
 
 
@@ -37,6 +38,8 @@ class TestTpl(unittest.TestCase):
 
         for handler in list(log_instance.handlers):
             log_instance.removeHandler(handler)
+
+        Output.clear_dynamic_line()
 
     def prompt_answer(self):
         """
@@ -320,6 +323,20 @@ class TestTpl(unittest.TestCase):
 
         self.assertTrue(undefined in str(context.exception))
         self.assertTrue(TplError == context.expected)
+
+    def test_debug_should_finish_active_dynamic_line_before_logging(self):
+        """Tpl.debug() should not glue persistent logs to rotating progress output."""
+
+        with patch('src.lib.tpl.tpl.sys.finish_dynamic_line') as finish_mock, \
+                patch('src.lib.tpl.tpl.logger.log') as log_mock:
+            logger_instance = MagicMock()
+            log_mock.return_value = logger_instance
+
+            Tpl.debug('debug_message')
+
+        finish_mock.assert_called_once_with()
+        logger_instance.debug.assert_called_once_with('debug_message')
+
 
 
 if __name__ == "__main__":

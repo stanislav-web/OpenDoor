@@ -21,11 +21,11 @@ import sys
 from .controller import Controller
 from .exceptions import SrcError
 
-for _ in ['urllib3', 'tabulate', 'importlib', 'packaging']:
+for _ in ['urllib3', 'importlib', 'packaging']:
     try:
         __import__(_)
     except ImportError as error:
-        sys.exit("""\t\t[!] Several dependencies wasn't installed! Please run pip install -r requirements.txt. 
+        sys.exit("""\t\t[!] Several dependencies wasn't installed! Please run pip install -r requirements.txt.
         Details : %s.""" % error)
 
 

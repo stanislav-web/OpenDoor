@@ -87,10 +87,37 @@ class SqliteReportPlugin(PluginProvider):
                 'bypass_to_code TEXT, '
                 'bypass_score INTEGER, '
                 'bypass_reasons TEXT, '
-                'debug_detection TEXT, '
-                'debug_runtime TEXT, '
-                'debug_signal TEXT, '
-                'debug_confidence INTEGER'
+                'stacktrace_detection TEXT, '
+                'stacktrace_runtime TEXT, '
+                'stacktrace_signal TEXT, '
+                'stacktrace_confidence INTEGER, '
+                'secret_detection TEXT, '
+                'secret_redacted TEXT, '
+                'secret_confidence INTEGER, '
+                'secret_count INTEGER, '
+                'secret_types TEXT, '
+                'malware_detection TEXT, '
+                'malware_subtype TEXT, '
+                'malware_family TEXT, '
+                'malware_signal TEXT, '
+                'malware_confidence INTEGER, '
+                'malware_count INTEGER, '
+                'malware_signals TEXT, '
+                'shadow_detection TEXT, '
+                'shadow_confidence INTEGER, '
+                'shadow_reason TEXT, '
+                'shadow_base_url TEXT, '
+                'shadow_variant TEXT, '
+                'shadow_similarity REAL, '
+                'shadow_base_size INTEGER, '
+                'shadow_size INTEGER, '
+                'openredirect_detection TEXT, '
+                'openredirect_confidence INTEGER, '
+                'openredirect_parameter TEXT, '
+                'openredirect_variant TEXT, '
+                'openredirect_payload TEXT, '
+                'openredirect_location TEXT, '
+                'openredirect_source_url TEXT'
                 ')'
             )
             cursor.execute(
@@ -111,14 +138,14 @@ class SqliteReportPlugin(PluginProvider):
                 'hsts_preload_ready INTEGER, '
                 'hsts_http_to_https_redirect INTEGER, '
                 'hsts_warnings TEXT, '
-                'privacy_supercookie_risk TEXT, '
-                'privacy_supercookie_score INTEGER, '
-                'privacy_supercookie_hsts_tracking_surface INTEGER, '
-                'privacy_supercookie_etag_tracking_surface INTEGER, '
-                'privacy_supercookie_cache_tracking_surface INTEGER, '
-                'privacy_supercookie_persistent_cookie_surface INTEGER, '
+                'supercookie_risk TEXT, '
+                'supercookie_score INTEGER, '
+                'supercookie_hsts_tracking_surface INTEGER, '
+                'supercookie_etag_tracking_surface INTEGER, '
+                'supercookie_cache_tracking_surface INTEGER, '
+                'supercookie_persistent_surface INTEGER, '
                 'privacy_supercookie_warnings TEXT, '
-                'privacy_supercookie_signals TEXT'
+                'supercookie_signals TEXT'
                 ')'
             )
             cursor.execute(
@@ -155,9 +182,21 @@ class SqliteReportPlugin(PluginProvider):
             rows = []
             for status in self._data.get('items', {}).keys():
                 for item in self.get_report_items(status):
-                    debug_detection = item.get('debug_detection')
-                    if not isinstance(debug_detection, dict):
-                        debug_detection = {}
+                    stacktrace_detection = item.get('stacktrace_detection')
+                    if not isinstance(stacktrace_detection, dict):
+                        stacktrace_detection = {}
+                    secret_detection = item.get('secret_detection')
+                    if not isinstance(secret_detection, dict):
+                        secret_detection = {}
+                    malware_detection = item.get('malware_detection')
+                    if not isinstance(malware_detection, dict):
+                        malware_detection = {}
+                    shadow_detection = item.get('shadow_detection')
+                    if not isinstance(shadow_detection, dict):
+                        shadow_detection = {}
+                    openredirect_detection = item.get('openredirect_detection')
+                    if not isinstance(openredirect_detection, dict):
+                        openredirect_detection = {}
 
                     rows.append(
                         (
@@ -179,10 +218,41 @@ class SqliteReportPlugin(PluginProvider):
                             None if item.get('bypass_reasons') is None else ';'.join([
                                 str(reason) for reason in item.get('bypass_reasons', [])
                             ]),
-                            None if debug_detection.get('type') is None else str(debug_detection.get('type')),
-                            None if debug_detection.get('runtime') is None else str(debug_detection.get('runtime')),
-                            None if debug_detection.get('signal') is None else str(debug_detection.get('signal')),
-                            None if debug_detection.get('confidence') is None else int(debug_detection.get('confidence')),
+                            None if stacktrace_detection.get('type') is None else str(stacktrace_detection.get('type')),
+                            None if stacktrace_detection.get('runtime') is None else str(stacktrace_detection.get('runtime')),
+                            None if stacktrace_detection.get('signal') is None else str(stacktrace_detection.get('signal')),
+                            None if stacktrace_detection.get('confidence') is None else int(stacktrace_detection.get('confidence')),
+                            None if secret_detection.get('type') is None else str(secret_detection.get('type')),
+                            None if secret_detection.get('redacted') is None else str(secret_detection.get('redacted')),
+                            None if secret_detection.get('confidence') is None else int(secret_detection.get('confidence')),
+                            None if secret_detection.get('count') is None else int(secret_detection.get('count')),
+                            None if secret_detection.get('types') is None else ';'.join([
+                                str(secret_type) for secret_type in secret_detection.get('types', [])
+                            ]),
+                            None if malware_detection.get('type') is None else str(malware_detection.get('type')),
+                            None if malware_detection.get('subtype') is None else str(malware_detection.get('subtype')),
+                            None if malware_detection.get('family') is None else str(malware_detection.get('family')),
+                            None if malware_detection.get('signal') is None else str(malware_detection.get('signal')),
+                            None if malware_detection.get('confidence') is None else int(malware_detection.get('confidence')),
+                            None if malware_detection.get('count') is None else int(malware_detection.get('count')),
+                            None if malware_detection.get('signals') is None else ';'.join([
+                                str(signal) for signal in malware_detection.get('signals', [])
+                            ]),
+                            None if shadow_detection.get('type') is None else str(shadow_detection.get('type')),
+                            None if shadow_detection.get('confidence') is None else int(shadow_detection.get('confidence')),
+                            None if shadow_detection.get('reason') is None else str(shadow_detection.get('reason')),
+                            None if shadow_detection.get('base_url') is None else str(shadow_detection.get('base_url')),
+                            None if shadow_detection.get('variant') is None else str(shadow_detection.get('variant')),
+                            None if shadow_detection.get('similarity') is None else float(shadow_detection.get('similarity')),
+                            None if shadow_detection.get('base_size') is None else int(shadow_detection.get('base_size')),
+                            None if shadow_detection.get('shadow_size') is None else int(shadow_detection.get('shadow_size')),
+                            None if openredirect_detection.get('type') is None else str(openredirect_detection.get('type')),
+                            None if openredirect_detection.get('confidence') is None else int(openredirect_detection.get('confidence')),
+                            None if openredirect_detection.get('parameter') is None else str(openredirect_detection.get('parameter')),
+                            None if openredirect_detection.get('variant') is None else str(openredirect_detection.get('variant')),
+                            None if openredirect_detection.get('payload') is None else str(openredirect_detection.get('payload')),
+                            None if openredirect_detection.get('location') is None else str(openredirect_detection.get('location')),
+                            None if openredirect_detection.get('source_url') is None else str(openredirect_detection.get('source_url')),
                         )
                     )
 
@@ -192,8 +262,14 @@ class SqliteReportPlugin(PluginProvider):
                     'status, url, code, size, '
                     'bypass, bypass_profile, bypass_header, bypass_value, bypass_variant, bypass_url, '
                     'bypass_from_status, bypass_to_status, bypass_from_code, bypass_to_code, '
-                    'bypass_score, bypass_reasons, debug_detection, debug_runtime, debug_signal, debug_confidence'
-                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    'bypass_score, bypass_reasons, stacktrace_detection, stacktrace_runtime, stacktrace_signal, '
+                    'stacktrace_confidence, secret_detection, secret_redacted, secret_confidence, secret_count, secret_types, '
+                    'malware_detection, malware_subtype, malware_family, malware_signal, malware_confidence, '
+                    'malware_count, malware_signals, shadow_detection, shadow_confidence, shadow_reason, shadow_base_url, shadow_variant, '
+                    'shadow_similarity, shadow_base_size, shadow_size, openredirect_detection, '
+                    'openredirect_confidence, openredirect_parameter, openredirect_variant, openredirect_payload, '
+                    'openredirect_location, openredirect_source_url'
+                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     rows
                 )
 
@@ -230,11 +306,11 @@ class SqliteReportPlugin(PluginProvider):
                     'id, category, name, confidence, runtime_name, runtime_confidence, '
                     'infrastructure_provider, infrastructure_confidence, hsts_present, hsts_grade, '
                     'hsts_max_age, hsts_include_subdomains, hsts_preload, hsts_preload_ready, '
-                    'hsts_http_to_https_redirect, hsts_warnings, privacy_supercookie_risk, '
-                    'privacy_supercookie_score, privacy_supercookie_hsts_tracking_surface, '
-                    'privacy_supercookie_etag_tracking_surface, privacy_supercookie_cache_tracking_surface, '
-                    'privacy_supercookie_persistent_cookie_surface, privacy_supercookie_warnings, '
-                    'privacy_supercookie_signals'
+                    'hsts_http_to_https_redirect, hsts_warnings, supercookie_risk, '
+                    'supercookie_score, supercookie_hsts_tracking_surface, '
+                    'supercookie_etag_tracking_surface, supercookie_cache_tracking_surface, '
+                    'supercookie_persistent_surface, privacy_supercookie_warnings, '
+                    'supercookie_signals'
                     ') VALUES(1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     (
                         str(fingerprint.get('category', 'custom')),

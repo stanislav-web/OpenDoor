@@ -175,6 +175,39 @@ Use it for authorized targets protected by CDN, WAF, or anti-bot infrastructure.
 
 ---
 
+## 🛡️ WAF guard
+
+Enable WAF guard when you want the wizard profile to stop a scan early if the first classified primary responses are overwhelmingly WAF-blocked:
+
+```ini
+waf_guard = True
+waf_guard_after = 50
+waf_guard_threshold = 0.95
+```
+
+`waf_guard_after` is the minimum number of classified primary scan responses before the guard can trigger.
+
+`waf_guard_threshold` is the WAF-blocked response ratio required to stop the scan. `0.95` means 95%.
+
+Example low-noise WAF profile:
+
+```ini
+fingerprint = True
+waf_safe_mode = True
+waf_guard = True
+waf_guard_after = 50
+waf_guard_threshold = 0.95
+threads = 1
+delay = 1
+timeout = 10
+```
+
+When triggered, OpenDoor stops gracefully and keeps generated reports for responses already processed. Plain origin `403 Forbidden` responses do not trigger WAF guard by themselves; responses must be classified as WAF / anti-bot blocked.
+
+`waf_guard` automatically enables WAF detection in runtime configuration, but it does not enable `waf_safe_mode`. Add both when you want cautious request timing plus early stop behavior.
+
+---
+
 ## 🧩 Header Injection Bypass
 
 Enable controlled header-bypass probes:
@@ -262,11 +295,13 @@ Add a path prefix:
 prefix = admin/
 ```
 
-Force extensions:
+Filter by extensions:
 
 ```ini
 extensions = php,json,txt
 ```
+
+This keeps only wordlist entries that already have the selected extensions.
 
 Ignore extensions:
 
@@ -298,7 +333,7 @@ Keep recursion depth controlled to avoid overly large scans.
 Sniffers are built-in response analysis plugins.
 
 ```ini
-sniff = skipempty,collation,indexof,file
+sniff = skipempty,collation,indexof,file,openredirect
 ```
 
 Known false-positive response sizes:
@@ -316,6 +351,7 @@ Common values:
 | `indexof` | Detect directory listings |
 | `file` | Detect downloadable or interesting files |
 | `collation` | Detect repeated fallback responses |
+| `openredirect` | Verify redirect-like parameters for confirmed open redirect issues |
 
 For details, see [Sniffers](Sniffers.md).
 
@@ -426,7 +462,7 @@ Never commit real OpenVPN profiles, WireGuard private keys, auth files, or produ
 Configure report formats:
 
 ```ini
-reports = std,json,html,sqlite,csv
+reports = std,json,html,sqlite,csv,sarif
 ```
 
 Custom reports directory:
@@ -445,6 +481,7 @@ Common formats:
 | `html`   | Human-readable report                         |
 | `csv`    | Column-separated report                       |
 | `sqlite` | Structured local database for post-processing |
+| `sarif`  | SARIF 2.1.0 output for CI/CD code scanning |
 
 Header-bypass metadata is preserved in reports when `header_bypass = True` finds a candidate. CSV and SQLite expose dedicated bypass fields, while JSON and HTML preserve full `report_items` metadata.
 
@@ -481,12 +518,12 @@ Sessions are useful for large scans, unstable networks, recursive discovery, and
 Enable CI/CD fail-on behavior by selected result buckets:
 
 ```ini
-fail_on_bucket = success,auth,forbidden,blocked,bypass
+fail_on_bucket = success,auth,forbidden,blocked,bypass,openredirect
 ```
 
 When at least one selected bucket is found, OpenDoor exits with code `1`.
 
-Use the `bypass` bucket when header-bypass candidates should fail the pipeline.
+Use the `bypass` bucket when header-bypass candidates should fail the pipeline. Use the `openredirect` bucket when confirmed open redirect vulnerabilities should fail the pipeline.
 
 This is useful for:
 

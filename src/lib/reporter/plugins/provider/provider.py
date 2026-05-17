@@ -126,18 +126,101 @@ class PluginProvider(object):
 
             value = '{0} | {1}'.format(value, ', '.join(details))
 
-        debug_detection = item.get('debug_detection')
-        if isinstance(debug_detection, dict):
-            details = ['debug={0}'.format(debug_detection.get('type', 'debug'))]
+        stacktrace_detection = item.get('stacktrace_detection')
+        if isinstance(stacktrace_detection, dict):
+            details = ['stacktrace={0}'.format(stacktrace_detection.get('type', 'stacktrace'))]
 
-            if debug_detection.get('runtime'):
-                details.append('runtime={0}'.format(debug_detection.get('runtime')))
+            if stacktrace_detection.get('runtime'):
+                details.append('runtime={0}'.format(stacktrace_detection.get('runtime')))
 
-            if debug_detection.get('signal'):
-                details.append('signal={0}'.format(debug_detection.get('signal')))
+            if stacktrace_detection.get('signal'):
+                details.append('signal={0}'.format(stacktrace_detection.get('signal')))
 
-            if debug_detection.get('confidence') is not None:
-                details.append('confidence={0}%'.format(debug_detection.get('confidence')))
+            if stacktrace_detection.get('confidence') is not None:
+                details.append('confidence={0}%'.format(stacktrace_detection.get('confidence')))
+
+            value = '{0} | {1}'.format(value, ', '.join(details))
+
+        secret_detection = item.get('secret_detection')
+        if isinstance(secret_detection, dict):
+            details = ['secret={0}'.format(secret_detection.get('type', 'secret'))]
+
+            if secret_detection.get('redacted'):
+                details.append('redacted={0}'.format(secret_detection.get('redacted')))
+
+            if secret_detection.get('confidence') is not None:
+                details.append('confidence={0}%'.format(secret_detection.get('confidence')))
+
+            if secret_detection.get('count') is not None:
+                details.append('count={0}'.format(secret_detection.get('count')))
+
+            if secret_detection.get('types'):
+                details.append('types={0}'.format(';'.join([
+                    str(secret_type) for secret_type in secret_detection.get('types', [])
+                ])))
+
+            value = '{0} | {1}'.format(value, ', '.join(details))
+
+        malware_detection = item.get('malware_detection')
+        if isinstance(malware_detection, dict):
+            details = ['malware={0}'.format(malware_detection.get('type', 'malware'))]
+
+            if malware_detection.get('subtype'):
+                details.append('subtype={0}'.format(malware_detection.get('subtype')))
+
+            if malware_detection.get('family'):
+                details.append('family={0}'.format(malware_detection.get('family')))
+
+            if malware_detection.get('signal'):
+                details.append('signal={0}'.format(malware_detection.get('signal')))
+
+            if malware_detection.get('confidence') is not None:
+                details.append('confidence={0}%'.format(malware_detection.get('confidence')))
+
+            if malware_detection.get('count') is not None:
+                details.append('count={0}'.format(malware_detection.get('count')))
+
+            if malware_detection.get('signals'):
+                details.append('signals={0}'.format(';'.join([
+                    str(signal) for signal in malware_detection.get('signals', [])
+                ])))
+
+            value = '{0} | {1}'.format(value, ', '.join(details))
+
+        shadow_detection = item.get('shadow_detection')
+        if isinstance(shadow_detection, dict):
+            details = ['shadow={0}'.format(shadow_detection.get('type', 'backup_copy'))]
+
+            if shadow_detection.get('variant'):
+                details.append('variant={0}'.format(shadow_detection.get('variant')))
+
+            if shadow_detection.get('base_url'):
+                details.append('base={0}'.format(shadow_detection.get('base_url')))
+
+            if shadow_detection.get('confidence') is not None:
+                details.append('confidence={0}%'.format(shadow_detection.get('confidence')))
+
+            if shadow_detection.get('similarity') is not None:
+                details.append('similarity={0}'.format(shadow_detection.get('similarity')))
+
+            value = '{0} | {1}'.format(value, ', '.join(details))
+
+
+        openredirect_detection = item.get('openredirect_detection')
+        if isinstance(openredirect_detection, dict):
+            details = ['openredirect={0}'.format(openredirect_detection.get('type', 'open_redirect'))]
+
+            if openredirect_detection.get('parameter'):
+                details.append('param={0}'.format(openredirect_detection.get('parameter')))
+
+            if openredirect_detection.get('variant'):
+                details.append('variant={0}'.format(openredirect_detection.get('variant')))
+
+            if openredirect_detection.get('location'):
+                details.append('location={0}'.format(openredirect_detection.get('location')))
+
+            if openredirect_detection.get('confidence') is not None:
+                details.append('confidence={0}%'.format(openredirect_detection.get('confidence')))
 
             value = '{0} | {1}'.format(value, ', '.join(details))
 
@@ -149,7 +232,6 @@ class PluginProvider(object):
         :return: mixed
         """
 
-        pass
 
     @classmethod
     def record(cls, dirname, filename, resultset, separator=''):

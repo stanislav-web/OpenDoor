@@ -190,6 +190,13 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(cfg.recursive_status, [])
         self.assertEqual(cfg.recursive_exclude, [])
 
+
+    def test_tls_legacy_defaults_to_disabled_and_can_be_enabled(self):
+        """Config should expose the opt-in legacy TLS mode."""
+
+        self.assertFalse(Config({'reports': 'std'}).is_tls_legacy)
+        self.assertTrue(Config({'reports': 'std', 'tls_legacy': True}).is_tls_legacy)
+
     def test_headers_are_normalized(self):
         """Config should normalize custom request headers."""
 
@@ -256,6 +263,43 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(cfg.max_response_length, 50)
         self.assertTrue(cfg.is_response_filtering)
         self.assertTrue(cfg.is_body_required_response_filtering)
+
+
+    def test_wizard_regex_filter_should_preserve_commas_and_precompile(self):
+        """Config should treat wizard regex values as one pattern even when they contain commas."""
+
+        cfg = Config({
+            'reports': 'std',
+            'method': 'HEAD',
+            'match_regex': '[a-z]{1,3}',
+            'exclude_regex': 'error,{critical}',
+        })
+
+        self.assertEqual(cfg.match_regex, ['[a-z]{1,3}'])
+        self.assertEqual(cfg.exclude_regex, ['error,{critical}'])
+        self.assertEqual(len(cfg.match_regex_compiled), 1)
+        self.assertEqual(len(cfg.exclude_regex_compiled), 1)
+        self.assertEqual(cfg.method, 'GET')
+
+    def test_config_rejects_invalid_wizard_response_filters_early(self):
+        """Config should reject invalid response filters from wizard/session params."""
+
+        invalid_cases = [
+            {'include_status': '99'},
+            {'exclude_status': '600'},
+            {'exclude_size': 'abc'},
+            {'exclude_size_range': '200-100'},
+            {'match_regex': '['},
+            {'min_response_length': -1},
+            {'min_response_length': 10, 'max_response_length': 1},
+        ]
+
+        for params in invalid_cases:
+            with self.subTest(params=params):
+                payload = {'reports': 'std'}
+                payload.update(params)
+                with self.assertRaises(ValueError):
+                    Config(payload)
 
     def test_method_override_items_merge_filters_and_sniffers_without_duplicates(self):
         """Config should merge body-required sniffers and filters into one override list."""
@@ -500,6 +544,26 @@ class TestBrowserConfigDefensiveCopies(unittest.TestCase):
 
         self.assertEqual(source, ['200', '403'])
         self.assertEqual(normalized, ['200', '403', '404'])
+
+
+class TestBrowserConfigCoverageOnly(unittest.TestCase):
+    """Coverage-only tests for config normalization edge branches."""
+
+    def test_should_normalize_scheme_without_slashes_and_false_retries(self):
+        """Config should normalize short schemes and explicit false retries."""
+
+        self.assertEqual(Config._normalize_scheme('http'), 'http://')
+        self.assertEqual(Config._normalize_scheme('https'), 'https://')
+        self.assertFalse(Config._normalize_retries(False))
+
+    def test_should_ignore_empty_range_tokens_and_normalize_integer_delay(self):
+        """Config should ignore empty range tokens and coerce whole-second delays."""
+
+        self.assertEqual(Config._expand_integer_ranges(['', '10-20', '  ']), [(10, 20)])
+
+        cfg = Config({'reports': 'std', 'delay': 1.5})
+
+        self.assertEqual(cfg.delay, 1)
 
 
 if __name__ == '__main__':

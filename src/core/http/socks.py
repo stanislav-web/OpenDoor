@@ -25,27 +25,88 @@ class Socket(object):
     """Socket class"""
 
     @staticmethod
+    def _resolve_connect_addresses(host, port):
+        """
+        Resolve TCP connect candidates for diagnostics.
+
+        :param str host: target host
+        :param int port: target port
+        :return: unique address list
+        """
+
+        try:
+            addr_info = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+        except (socket.gaierror, socket.error, TypeError, ValueError):
+            return []
+
+        addresses = []
+        for item in addr_info:
+            try:
+                address = item[4][0]
+            except (IndexError, TypeError):
+                continue
+
+            if address not in addresses:
+                addresses.append(address)
+
+        return addresses
+
+    @staticmethod
+    def _format_connect_addresses(addresses):
+        """
+        Format resolved addresses for error output.
+
+        :param list addresses: resolved addresses
+        :return: printable address list
+        """
+
+        if not addresses:
+            return 'unresolved'
+
+        return ', '.join([str(address) for address in addresses])
+
+    @classmethod
+    def _format_connect_error(cls, host, port, timeout, error):
+        """
+        Build an actionable preflight connection error.
+
+        :param str host: target host
+        :param int port: target port
+        :param int|float timeout: connection timeout
+        :param Exception error: original socket error
+        :return: formatted error message
+        """
+
+        addresses = cls._format_connect_addresses(cls._resolve_connect_addresses(host, port))
+        return (
+            'Unable to connect to {host}:{port} within {timeout}s. '
+            'Resolved addresses: {addresses}. Socket error: {error}'
+        ).format(host=host, port=port, timeout=timeout, addresses=addresses, error=error)
+
+    @staticmethod
     def ping(host, port, timeout=10):
         """
-        Ping remote host
-        :param str host: target  host
+        Ping remote host.
+
+        Uses socket.create_connection() instead of a raw AF_INET socket so
+        localhost and dual-stack targets work with both IPv4 and IPv6 bindings.
+
+        :param str host: target host
         :param int port: target port
         :param int timeout: connection timeout
         :raise SocketError
         :return: None
         """
 
-        sock = socket.socket()
+        sock = None
 
         try:
-
-            sock.settimeout(timeout)
-            sock.connect((host, port))
-
-        except (socket.gaierror, socket.error, socket.timeout, SocketError) as error:
-            raise SocketError(error)
+            sock = socket.create_connection((host, int(port)), timeout=timeout)
+        except (socket.gaierror, socket.error, socket.timeout, OSError, ValueError) as error:
+            raise SocketError(Socket._format_connect_error(host, port, timeout, error))
         finally:
-            sock.close()
+            if sock is not None:
+                sock.close()
 
     @staticmethod
     def get_ip_address(host):

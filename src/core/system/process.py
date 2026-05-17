@@ -120,4 +120,3 @@ class Term(metaclass=Process):
     """Term class"""
 
     __metaclass__ = None
-    pass

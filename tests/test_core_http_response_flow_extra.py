@@ -75,6 +75,7 @@ class TestResponseFlowExtra(unittest.TestCase):
             debug_load_sniffer_plugin=MagicMock(),
             debug_response=MagicMock(),
             debug_request_uri=MagicMock(),
+            debug_classification=MagicMock(),
         )
 
     @staticmethod
@@ -95,6 +96,65 @@ class TestResponseFlowExtra(unittest.TestCase):
         self.assertEqual((status, url, size, code), ('success', 'http://example.com/path', '2B', '200'))
         self.assertEqual(response.headers.get('Status'), '200')
         debug.debug_response.assert_not_called()
+
+    def test_debug_response_data_renders_existing_classification_once(self):
+        """Response.debug_response_data() should render an already classified response."""
+
+        debug = self.make_debug(level=3)
+        response_handler = Response(self.make_config(scan='directories'), debug, tpl=MagicMock())
+
+        actual = response_handler.debug_response_data(
+            ('success', 'http://example.com/path', '2B', '200'),
+            'http://example.com/path',
+            1,
+            2,
+        )
+
+        self.assertTrue(actual)
+        debug.debug_request_uri.assert_called_once_with(
+            status='success',
+            request_uri='http://example.com/path',
+            redirect_uri=None,
+            items_size=1,
+            total_size=2,
+            content_size='2B',
+            response_code='200',
+            waf_name=None,
+            waf_confidence=None,
+            stacktrace_detection=None,
+            secret_detection=None,
+        )
+        debug.debug_classification.assert_called_once_with(
+            status='success',
+            code='200',
+            size='2B',
+            waf_name=None,
+            waf_confidence=None,
+            signals=None,
+            redirect_uri=None,
+            stacktrace_detection=None,
+            secret_detection=None,
+        )
+
+    def test_handle_can_classify_without_runtime_debug_output(self):
+        """Response.handle() should support silent classification before calibration."""
+
+        debug = self.make_debug(level=3)
+        response_handler = Response(self.make_config(scan='directories'), debug, tpl=MagicMock())
+        response = self.make_response(status=200, body=b'ok', headers={'Content-Length': '2'})
+
+        actual = response_handler.handle(
+            response,
+            'http://example.com/path',
+            1,
+            2,
+            [],
+            emit_debug=False,
+        )
+
+        self.assertEqual(actual, ('success', 'http://example.com/path', '2B', '200'))
+        debug.debug_request_uri.assert_not_called()
+        debug.debug_classification.assert_not_called()
 
     def test_handle_redirect_in_subdomain_scan_appends_ips_and_applies_ignore_list(self):
         """Response.handle() should downgrade ignored redirects and append IPs for subdomain scan."""

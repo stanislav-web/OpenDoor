@@ -46,6 +46,7 @@ class Options(object):
             'calibration': "Auto-calibration tools",
             'network': "Network transport tools",
             'ci': "CI/CD tools",
+            'diff': "Diff tools",
             'report': "Reports tools",
             'filter': "Response filters",
             'app': "Application tools"
@@ -163,6 +164,15 @@ class Options(object):
             {
                 "group": "request",
                 "args": None,
+                "argl": "--tls-legacy",
+                "default": False,
+                "action": "store_true",
+                "help": "Enable opt-in legacy TLS compatibility for hosts with weak DHE/DH parameters",
+                "type": bool
+            },
+            {
+                "group": "request",
+                "args": None,
                 "argl": "--header",
                 "default": None,
                 "action": "append",
@@ -213,6 +223,33 @@ class Options(object):
                 "action": "store_true",
                 "help": "Automatically switch to a cautious scan profile after WAF detection",
                 "type": bool
+            },
+            {
+                "group": "request",
+                "args": None,
+                "argl": "--waf-guard",
+                "default": False,
+                "action": "store_true",
+                "help": "Stop the scan early when initial classified responses are overwhelmingly WAF-blocked",
+                "type": bool
+            },
+            {
+                "group": "request",
+                "args": None,
+                "argl": "--waf-guard-after",
+                "default": None,
+                "action": "store",
+                "help": "Minimum number of classified responses before --waf-guard can stop the scan, default 50",
+                "type": int
+            },
+            {
+                "group": "request",
+                "args": None,
+                "argl": "--waf-guard-threshold",
+                "default": None,
+                "action": "store",
+                "help": "WAF-blocked response ratio required by --waf-guard, default 0.95",
+                "type": float
             },
             {
                 "group": "request",
@@ -440,6 +477,15 @@ class Options(object):
                 "type": str
             },
             {
+                "group": "diff",
+                "args": None,
+                "argl": "--diff",
+                "default": None,
+                "action": "store",
+                "help": "Compare two OpenDoor reports: old.sqlite:new.sqlite or old.json:new.json",
+                "type": str
+            },
+            {
                 "group": "report",
                 "args": None,
                 "argl": "--reports-dir",
@@ -482,7 +528,7 @@ class Options(object):
                 "argl": "--extensions",
                 "default": None,
                 "action": "store",
-                "help": "Force selected extensions for the scan session, e.g. php,json",
+                "help": "Keep only wordlist entries with selected extensions, e.g. php,json",
                 "type": str
             },
             {
@@ -536,7 +582,7 @@ class Options(object):
                 "argl": "--sniff",
                 "default": None,
                 "action": "store",
-                "help": "Response sniff plugins (indexof,collation,file,skipempty,skipsizes=NUM:NUM...)",
+                "help": "Response sniff plugins (shadow,secret,stacktrace,indexof,collation,file,skipempty,skipsizes=NUM:NUM...)",
                 "type": str
             },
             {
@@ -741,6 +787,7 @@ class Options(object):
                     and True is not getattr(self.args, 'stdin', False) \
                     and not getattr(self.args, 'raw_request', None) \
                     and not getattr(self.args, 'session_load', None) \
+                    and not getattr(self.args, 'diff', None) \
                     and True is not self.args.version \
                     and True is not self.args.update \
                     and True is not self.args.docs \
@@ -760,7 +807,7 @@ class Options(object):
                         args[arg] = value
                 args = Filter.filter(args)
 
-                if args.get('waf_safe_mode') is True:
+                if args.get('waf_safe_mode') is True or args.get('waf_guard') is True:
                     args['waf_detect'] = True
 
             return args

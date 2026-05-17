@@ -24,26 +24,26 @@ class TestHttpExtraHeaders(unittest.TestCase):
         :return: types.SimpleNamespace
         """
 
-        base = dict(
-            host='example.com',
-            port=80,
-            threads=1,
-            timeout=1,
-            keep_alive=False,
-            DEFAULT_SCAN='directories',
-            scan='directories',
-            retries=False,
-            accept_cookies=False,
-            method='HEAD',
-            scheme='http://',
-            is_random_user_agent=False,
-            user_agent='UA',
-            headers=None,
-            header=None,
-            cookies=None,
-            cookie=None,
-            request_body=None,
-        )
+        base = {
+            'host': 'example.com',
+            'port': 80,
+            'threads': 1,
+            'timeout': 1,
+            'keep_alive': False,
+            'DEFAULT_SCAN': 'directories',
+            'scan': 'directories',
+            'retries': False,
+            'accept_cookies': False,
+            'method': 'HEAD',
+            'scheme': 'http://',
+            'is_random_user_agent': False,
+            'user_agent': 'UA',
+            'headers': None,
+            'header': None,
+            'cookies': None,
+            'cookie': None,
+            'request_body': None,
+        }
         base.update(kwargs)
         return SimpleNamespace(**base)
 

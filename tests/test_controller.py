@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import os
+import io
+import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -7,6 +10,7 @@ from src import Controller, SrcError
 from src.core.logger.logger import Logger
 from src.lib import ArgumentsError, BrowserError, PackageError, ReporterError
 from src.core.network.exceptions import NetworkTransportError
+from src.lib.diff import DiffValidationError
 
 
 class TestController(unittest.TestCase):
@@ -89,6 +93,20 @@ class TestController(unittest.TestCase):
             controller.run()
 
         version_mock.assert_called_once_with()
+
+    def test_run_update_action_does_not_require_banner_assets(self):
+        """Controller.run() should execute --update without reading scanner data assets."""
+
+        controller = self.make_controller({'update': True})
+
+        with patch('src.controller.package.banner', side_effect=PackageError('missing data')) as banner_mock, \
+                patch.object(Controller, 'update_action') as update_mock, \
+                patch('src.controller.tpl.debug'):
+            result = controller.run()
+
+        self.assertEqual(result, 0)
+        banner_mock.assert_not_called()
+        update_mock.assert_called_once_with()
 
     def test_run_skips_non_callable_actions(self):
         """Controller.run() should ignore actions rejected by args.is_arg_callable()."""
@@ -1046,6 +1064,147 @@ class TestController(unittest.TestCase):
             'transport_healthcheck_url': 'https://example.com/ip',
         })
 
+
+    def test_run_dispatches_to_diff_action_before_scan(self):
+        """Controller.run() should route diff mode without starting a scan."""
+
+        controller = self.make_controller({'diff': 'old.sqlite:new.sqlite', 'reports': 'std'})
+
+        with patch('src.controller.package.banner', return_value='banner'), \
+                patch('src.controller.tpl.message'), \
+                patch.object(Controller, 'diff_action', return_value=0) as diff_mock, \
+                patch.object(Controller, 'scan_action') as scan_mock, \
+                patch('src.controller.tpl.debug'):
+            actual = controller.run()
+
+        self.assertEqual(actual, 0)
+        diff_mock.assert_called_once_with(controller.ioargs)
+        scan_mock.assert_not_called()
+
+    def test_diff_action_prints_stdout_and_does_not_scan(self):
+        """Controller.diff_action() should compare reports locally and print stdout output."""
+
+        previous = MagicMock()
+        current = MagicMock()
+        result = MagicMock()
+
+        with patch('src.controller.DiffReportReader') as reader_cls, \
+                patch('src.controller.DiffReportComparator') as comparator_cls, \
+                patch('src.controller.DiffStdoutFormatter') as formatter_cls, \
+                patch('src.controller.tpl.message') as message_mock, \
+                patch('src.controller.browser') as browser_mock:
+            reader_cls.return_value.read_pair.return_value = (previous, current)
+            comparator_cls.return_value.compare.return_value = result
+            formatter_cls.return_value.format.return_value = 'diff output\n'
+
+            actual = Controller.diff_action({'diff': 'old.sqlite:new.sqlite', 'reports': 'std'})
+
+        self.assertEqual(actual, 0)
+        reader_cls.return_value.read_pair.assert_called_once_with('old.sqlite:new.sqlite')
+        comparator_cls.return_value.compare.assert_called_once_with(previous, current)
+        message_mock.assert_called_once_with('diff output\n')
+        browser_mock.assert_not_called()
+
+    def test_diff_action_writes_json_when_requested(self):
+        """Controller.diff_action() should write deterministic JSON when reports include json."""
+
+        previous = MagicMock()
+        current = MagicMock()
+        result = MagicMock()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch('src.controller.DiffReportReader') as reader_cls, \
+                    patch('src.controller.DiffReportComparator') as comparator_cls, \
+                    patch('src.controller.DiffStdoutFormatter') as formatter_cls, \
+                    patch('src.controller.DiffResultSerializer') as serializer_cls, \
+                    patch('src.controller.tpl.message'), \
+                    patch('src.controller.tpl.info') as info_mock:
+                reader_cls.return_value.read_pair.return_value = (previous, current)
+                comparator_cls.return_value.compare.return_value = result
+                formatter_cls.return_value.format.return_value = 'diff output\n'
+                serializer_cls.return_value.serialize.return_value = {'summary': {'added': 1}, 'added': [], 'removed': [], 'changed': []}
+
+                actual = Controller.diff_action({
+                    'diff': 'old.sqlite:new.sqlite',
+                    'reports': 'std,json',
+                    'reports_dir': tmpdir,
+                })
+
+            self.assertEqual(actual, 0)
+            output_path = os.path.join(tmpdir, 'opendoor-diff.json')
+            with open(output_path, encoding='utf-8') as handler:
+                self.assertIn('"added": 1', handler.read())
+            info_mock.assert_called_once_with(msg='JsonDiffReport : {0}'.format(output_path))
+
+    def test_diff_action_wraps_validation_errors(self):
+        """Controller.diff_action() should expose graceful diff validation errors."""
+
+        with patch('src.controller.DiffReportReader') as reader_cls:
+            reader_cls.return_value.read_pair.side_effect = DiffValidationError('bad diff')
+            with self.assertRaises(SrcError):
+                Controller.diff_action({'diff': 'bad', 'reports': 'std'})
+
+    def test_controller_should_scan_targets_from_stdin_cli_flow(self):
+        """CLI --stdin should read mixed targets from STDIN and scan each target."""
+
+        controller = Controller.__new__(Controller)
+
+        browser_first = MagicMock()
+        browser_second = MagicMock()
+
+        with patch('src.controller.package.check_interpreter', return_value=True), \
+                patch('src.controller.events.terminate'), \
+                patch('src.core.options.options.sys.argv', ['opendoor.py', '--stdin', '--reports', 'std']), \
+                patch('src.core.options.filter.sys.stdin', io.StringIO('example.com\nhttps://secure.example.com\n')), \
+                patch('src.controller.package.banner', return_value='banner'), \
+                patch('src.controller.tpl.message'), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.browser', side_effect=[browser_first, browser_second]) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.__init__(controller)
+            actual = controller.run()
+
+        self.assertEqual(actual, 0)
+        self.assertEqual(browser_mock.call_count, 2)
+
+        first_params = browser_mock.call_args_list[0].args[0]
+        second_params = browser_mock.call_args_list[1].args[0]
+
+        expected_targets = [
+            {
+                'host': 'example.com',
+                'scheme': 'http://',
+                'ssl': False,
+                'source': 'example.com',
+            },
+            {
+                'host': 'secure.example.com',
+                'scheme': 'https://',
+                'ssl': True,
+                'source': 'https://secure.example.com',
+            },
+        ]
+
+        self.assertEqual(first_params['targets'], expected_targets)
+        self.assertEqual(first_params['host'], 'example.com')
+        self.assertEqual(first_params['scheme'], 'http://')
+        self.assertFalse(first_params['ssl'])
+        self.assertEqual(first_params['source'], 'example.com')
+
+        self.assertEqual(second_params['targets'], expected_targets)
+        self.assertEqual(second_params['host'], 'secure.example.com')
+        self.assertEqual(second_params['scheme'], 'https://')
+        self.assertTrue(second_params['ssl'])
+        self.assertEqual(second_params['source'], 'https://secure.example.com')
+
+        browser_first.ping.assert_called_once_with()
+        browser_first.scan.assert_called_once_with()
+        browser_first.done.assert_called_once_with()
+
+        browser_second.ping.assert_called_once_with()
+        browser_second.scan.assert_called_once_with()
+        browser_second.done.assert_called_once_with()
 
 if __name__ == '__main__':
     unittest.main()

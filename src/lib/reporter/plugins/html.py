@@ -382,6 +382,7 @@ h3 {
 .status-block {
   padding: 18px 20px 20px;
   border-top: 1px solid var(--border);
+  scroll-margin-top: 110px;
 }
 
 .status-block:first-of-type {
@@ -636,6 +637,7 @@ def _get_report_js():
   var copyStatus = document.querySelector('[data-copy-status]');
   var emptyMessage = findings.querySelector('[data-search-empty]');
   var activeStatus = 'all';
+  var hasRowLevelFilter = false;
 
   function normalize(value) {
     return String(value || '').toLowerCase().replace(/\\s+/g, ' ').trim();
@@ -709,30 +711,78 @@ def _get_report_js():
     return normalize(row.getAttribute('data-row-search') || row.innerText || row.textContent);
   }
 
-  function scrollToActiveGroup() {
-    var target = activeStatus === 'all'
+  function getGroupCount(group) {
+    var explicit = parseInt(group.getAttribute('data-report-count') || '0', 10);
+
+    if (!isNaN(explicit)) {
+      return explicit;
+    }
+
+    return group.querySelectorAll('[data-report-row]').length;
+  }
+
+  function getActiveTarget() {
+    return activeStatus === 'all'
       ? findings
       : findings.querySelector('[data-report-status="' + activeStatus.replace(/"/g, '\\"') + '"]');
+  }
 
-    if (target && target.scrollIntoView) {
+  function updateLocationHash(target) {
+    if (!target || !target.id) {
+      return;
+    }
+
+    try {
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', '#' + target.id);
+        return;
+      }
+    } catch (error) {
+      // Fall back to location.hash for browsers that restrict file:// history updates.
+    }
+
+    window.location.hash = target.id;
+  }
+
+  function scrollToActiveGroup() {
+    var target = getActiveTarget();
+
+    updateLocationHash(target);
+
+    if (!target || !target.scrollIntoView) {
+      return;
+    }
+
+    try {
       target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    } catch (error) {
+      target.scrollIntoView(true);
     }
   }
 
   function applyFilters() {
     var query = normalize(searchInput ? searchInput.value : '');
     var visibleTotal = 0;
+    var shouldTouchRows = !!query || hasRowLevelFilter;
 
     getGroups().forEach(function (group) {
       var status = group.getAttribute('data-report-status');
       var statusMatches = activeStatus === 'all' || status === activeStatus;
-      var rows = Array.prototype.slice.call(group.querySelectorAll('[data-report-row]'));
+      var rows;
       var visibleRows = 0;
 
       if (!statusMatches) {
         group.hidden = true;
         return;
       }
+
+      if (!shouldTouchRows) {
+        group.hidden = false;
+        visibleTotal += getGroupCount(group);
+        return;
+      }
+
+      rows = Array.prototype.slice.call(group.querySelectorAll('[data-report-row]'));
 
       rows.forEach(function (row) {
         var rowMatches = !query || getRowSearchText(row).indexOf(query) !== -1;
@@ -747,13 +797,18 @@ def _get_report_js():
       group.hidden = rows.length > 0 && visibleRows === 0;
     });
 
+    hasRowLevelFilter = !!query;
     updateEmptyMessage(visibleTotal);
     updateCopyButton();
     setCopyStatus('');
   }
 
   statusButtons.forEach(function (button) {
-    button.addEventListener('click', function () {
+    button.addEventListener('click', function (event) {
+      if (event && event.preventDefault) {
+        event.preventDefault();
+      }
+
       activeStatus = button.getAttribute('data-status-filter') || 'all';
 
       statusButtons.forEach(function (item) {
@@ -899,9 +954,9 @@ def _render_status_filter_buttons(report_items):
 
     total_count = _get_total_finding_count(report_items)
     buttons = [
-        '<button class="status-tab is-active" type="button" data-status-filter="all" '
+        '<a class="status-tab is-active" href="#findings" data-status-filter="all" '
         'role="tab" aria-selected="true" aria-controls="findings">'
-        'All <span class="badge">{0}</span></button>'.format(
+        'All <span class="badge">{0}</span></a>'.format(
             _escape(total_count),
         )
     ]
@@ -910,9 +965,9 @@ def _render_status_filter_buttons(report_items):
         items = report_items.get(status) or []
         count = len(items) if isinstance(items, list) else 0
         buttons.append(
-            '<button class="status-tab" type="button" data-status-filter="{0}" '
+            '<a class="status-tab" href="#{1}" data-status-filter="{0}" '
             'role="tab" aria-selected="false" aria-controls="{1}">'
-            '{2} <span class="{3}">{4}</span></button>'.format(
+            '{2} <span class="{3}">{4}</span></a>'.format(
                 _escape(status),
                 _get_status_dom_id(status),
                 _escape(status),
@@ -1060,7 +1115,7 @@ def _render_status_items(status, items):
         table = _render_plain_list(items)
 
     return (
-        '<div class="status-block" id="{5}" data-report-status="{4}">'
+        '<div class="status-block" id="{5}" data-report-status="{4}" data-report-count="{6}">'
         '<div class="status-title">'
         '<h3>{0}</h3>'
         '<span class="{1}">{2}</span>'
@@ -1074,6 +1129,7 @@ def _render_status_items(status, items):
         table,
         _escape(status),
         _get_status_dom_id(status),
+        _escape(count),
     )
 
 
@@ -1350,7 +1406,7 @@ def _render_status_code(value):
 
     code = str(value)
 
-    if code.startswith('2') or code.startswith('3'):
+    if code.startswith(('2', '3')):
         badge_class = 'badge badge-success'
     elif code.startswith('4'):
         badge_class = 'badge badge-warning'
@@ -1407,7 +1463,10 @@ def _get_columns(items):
         'bypass_to_code',
         'bypass_score',
         'bypass_reasons',
-        'debug_detection',
+        'stacktrace_detection',
+        'secret_detection',
+        'malware_detection',
+        'shadow_detection',
     ]
 
     existing = []
@@ -1523,7 +1582,7 @@ def _get_metadata(report_data):
     :rtype: dict
     """
 
-    excluded = set(['items', 'report_items', 'total'])
+    excluded = {'items', 'report_items', 'total', 'filtered_items'}
 
     return {
         key: value
@@ -1582,7 +1641,7 @@ def _is_http_url(value):
     if not isinstance(value, str):
         return False
 
-    return value.startswith('http://') or value.startswith('https://')
+    return value.startswith(('http://', 'https://'))
 
 
 def _escape(value):

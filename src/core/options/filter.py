@@ -43,6 +43,8 @@ class Filter(object):
     TRANSPORT_ROTATES = ('none', 'per-target')
     VPN_TRANSPORTS = ('openvpn', 'wireguard')
     HEADER_BYPASS_PROFILES = ('safe', 'offensive')
+    DIFF_REPORTS = ('std', 'json')
+    PROXY_SCHEMES = ('http', 'https', 'socks4', 'socks5', 'socks5h')
 
     @staticmethod
     def filter(args):
@@ -53,6 +55,31 @@ class Filter(object):
         """
 
         filtered = {}
+
+        if Filter._split_csv(args.get('extensions')) and Filter._split_csv(args.get('ignore_extensions')):
+            raise FilterError('--extensions and --ignore-extensions cannot be used together')
+
+        if args.get('diff') is not None:
+            if args.get('host') or args.get('hostlist') or args.get('stdin') is True \
+                    or args.get('raw_request') or args.get('session_load'):
+                raise FilterError('--diff cannot be used together with scan target or session options')
+
+            diff_value = Filter.optional_text(args.get('diff'), key='--diff')
+            if diff_value is None:
+                raise FilterError('--diff requires old.sqlite:new.sqlite or old.json:new.json')
+
+            filtered = {'diff': diff_value}
+
+            if args.get('reports') is not None:
+                filtered['reports'] = Filter.diff_reports(args.get('reports'), key='--reports')
+
+            if args.get('reports_dir') is not None:
+                filtered['reports_dir'] = Filter.optional_path(args.get('reports_dir'), key='--reports-dir')
+
+            if args.get('debug') is not None:
+                filtered['debug'] = Filter.debug_level(args.get('debug'), key='--debug')
+
+            return filtered
 
         if args.get('session_load') is not None:
             if args.get('raw_request') is not None:
@@ -75,6 +102,21 @@ class Filter(object):
                 filtered['session_autosave_items'] = Filter.positive_int(
                     args.get('session_autosave_items'),
                     key='--session-autosave-items'
+                )
+
+            if args.get('waf_guard') is True:
+                filtered['waf_guard'] = True
+
+            if args.get('waf_guard_after') is not None:
+                filtered['waf_guard_after'] = Filter.positive_int(
+                    args.get('waf_guard_after'),
+                    key='--waf-guard-after'
+                )
+
+            if args.get('waf_guard_threshold') is not None:
+                filtered['waf_guard_threshold'] = Filter.ratio_float(
+                    args.get('waf_guard_threshold'),
+                    key='--waf-guard-threshold'
                 )
 
             if args.get('header_bypass') is True:
@@ -118,6 +160,9 @@ class Filter(object):
 
             if args.get('debug') is not None:
                 filtered['debug'] = Filter.debug_level(args.get('debug'), key='--debug')
+
+            if args.get('tls_legacy') is True:
+                filtered['tls_legacy'] = True
 
             if args.get('auto_calibrate') is True:
                 filtered['auto_calibrate'] = True
@@ -179,6 +224,7 @@ class Filter(object):
                     key='--openvpn-auth'
                 )
 
+            Filter.validate_proxy_options(filtered)
             Filter.validate_transport_options(filtered)
 
             return filtered
@@ -197,6 +243,8 @@ class Filter(object):
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
             elif 'proxy' == key:
                 filtered[key] = Filter.proxy(value)
+            elif key in ['tls_legacy']:
+                filtered[key] = value is True
             elif 'scheme' == key:
                 filtered[key] = Filter.explicit_scheme(value, key='--scheme')
             elif key in ['include_status', 'exclude_status']:
@@ -215,6 +263,10 @@ class Filter(object):
                 filtered[key] = Filter.bucket_values(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['debug']:
                 filtered[key] = Filter.debug_level(value, key='--debug')
+            elif key in ['waf_guard_after']:
+                filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
+            elif key in ['waf_guard_threshold']:
+                filtered[key] = Filter.ratio_float(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['header_bypass_profile']:
                 filtered[key] = Filter.header_bypass_profile(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['header_bypass_headers']:
@@ -285,6 +337,7 @@ class Filter(object):
         if raw_request is not None and len(targets) <= 0:
             raise FilterError('Unable to resolve target from --raw-request. Provide a Host header or use --host/--hostlist/--stdin')
 
+        Filter.validate_proxy_options(filtered)
         Filter.validate_transport_options(filtered)
 
         return filtered
@@ -401,7 +454,7 @@ class Filter(object):
         :return: list[str]
         """
 
-        return [line for line in stream.readlines()]
+        return list(stream.readlines())
 
     @staticmethod
     def _clean_target(value):
@@ -759,7 +812,7 @@ class Filter(object):
 
         proxy = helper.parse_url(proxyaddress)
 
-        if proxy.scheme not in ['http', 'https', 'socks4', 'socks5'] or None is proxy.port:
+        if proxy.scheme not in Filter.PROXY_SCHEMES or None is proxy.port:
             raise FilterError("\"{0}\" is invalid proxy in --proxy. Use scheme:ip:port format".format(proxyaddress))
         return proxyaddress
 
@@ -873,6 +926,35 @@ class Filter(object):
             raise FilterError('{0} requires at least one bucket'.format(key))
 
         return buckets
+
+    @staticmethod
+    def diff_reports(value, key='--reports'):
+        """Normalize diff output reports."""
+
+        reports = []
+        seen = set()
+
+        for item in Filter._split_csv(value):
+            report = str(item).strip().lower()
+            if report not in Filter.DIFF_REPORTS:
+                raise FilterError('{0} for --diff supports only: {1}'.format(
+                    key,
+                    ', '.join(Filter.DIFF_REPORTS),
+                ))
+
+            if report in seen:
+                continue
+
+            reports.append(report)
+            seen.add(report)
+
+        if len(reports) <= 0:
+            raise FilterError('{0} requires at least one report: {1}'.format(
+                key,
+                ', '.join(Filter.DIFF_REPORTS),
+            ))
+
+        return ','.join(reports)
 
     @staticmethod
     def status_ranges(value, key='--status'):
@@ -1064,6 +1146,11 @@ class Filter(object):
         if value is None:
             return None
 
+        if isinstance(value, list):
+            if len(value) <= 0:
+                return None
+            value = value[0]
+
         value = str(value).strip()
         if value.lower() in ['', 'none', 'null']:
             return None
@@ -1125,6 +1212,32 @@ class Filter(object):
             raise FilterError('{0} must be one of: {1}'.format(key, ', '.join(Filter.TRANSPORT_ROTATES)))
 
         return value
+
+
+    @staticmethod
+    def validate_proxy_options(filtered):
+        """Validate that only one proxy routing source is selected.
+
+        :param dict filtered: filtered CLI options
+        :raise FilterError:
+        :return: None
+        """
+
+        selected = []
+
+        if filtered.get('proxy'):
+            selected.append('--proxy')
+
+        if filtered.get('proxy_list'):
+            selected.append('--proxy-list')
+
+        if filtered.get('proxy_pool') is True:
+            selected.append('--proxy-pool')
+
+        if len(selected) > 1:
+            raise FilterError('{0} cannot be used together. Select exactly one proxy source.'.format(
+                ', '.join(selected)
+            ))
 
     @staticmethod
     def validate_transport_options(filtered):

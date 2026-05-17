@@ -16,14 +16,56 @@
     Development: Stanislav WEB
 """
 
-from tabulate import tabulate
-
 from .provider import PluginProvider
 from src.core import sys
 
 
 class StdReportPlugin(PluginProvider):
     """ StdReportPlugin class"""
+
+    @staticmethod
+    def format_summary_table(rows, headers):
+        """
+        Render a small psql-like summary table without external dependencies.
+
+        :param list[tuple] rows: summary rows
+        :param list[str] headers: table headers
+        :return: formatted table
+        :rtype: str
+        """
+
+        safe_headers = [str(value) for value in headers]
+        safe_rows = [(str(key), str(value)) for key, value in rows]
+
+        first_width = max([len(safe_headers[0])] + [len(row[0]) for row in safe_rows])
+        second_width = max([len(safe_headers[1])] + [len(row[1]) for row in safe_rows])
+
+        border = '+-{0}-+-{1}-+'.format('-' * first_width, '-' * second_width)
+
+        def render_row(first, second):
+            """
+            Render a padded summary row.
+
+            :param str first: first column value
+            :param str second: second column value
+            :return: formatted row
+            :rtype: str
+            """
+
+            return '| {0} | {1} |'.format(first.ljust(first_width), second.ljust(second_width))
+
+        lines = [
+            border,
+            render_row(safe_headers[0], safe_headers[1]),
+            border,
+        ]
+
+        for row in safe_rows:
+            lines.append(render_row(row[0], row[1]))
+
+        lines.append(border)
+
+        return '\n'.join(lines)
 
     def __init__(self, target, data, directory=None):
         """
@@ -44,61 +86,35 @@ class StdReportPlugin(PluginProvider):
         total = self._data.get('total')
         if not isinstance(total, dict):
             total = {}
-        data = list(total.items())
+
+        hidden_summary_keys = {'calibrated', 'ignored', 'bad', 'skip'}
+        data = [(key, value) for key, value in total.items() if key not in hidden_summary_keys]
         fingerprint = self._data.get('fingerprint')
 
         if isinstance(fingerprint, dict) and len(fingerprint) > 0:
             data += [
-                ('fingerprint_category', fingerprint.get('category', 'custom')),
                 ('fingerprint_name', fingerprint.get('name', 'Unknown custom stack')),
                 ('fingerprint_confidence', '{0}%'.format(fingerprint.get('confidence', 0))),
             ]
-
-
-            fingerprint_signals = fingerprint.get('signals')
-            if isinstance(fingerprint_signals, (list, tuple)) and len(fingerprint_signals) > 0:
-                data += [('fingerprint_signals', len(fingerprint_signals))]
             runtime = fingerprint.get('runtime')
             if isinstance(runtime, dict) and len(runtime) > 0:
-                data += [('fingerprint_runtime', runtime.get('name', 'unknown')), ('fingerprint_runtime_confidence', '{0}%'.format(runtime.get('confidence', 0)))]
-                runtime_signals = runtime.get('signals')
-                if isinstance(runtime_signals, (list, tuple)) and len(runtime_signals) > 0:
-                    data += [('fingerprint_runtime_signals', len(runtime_signals))]
+                data += [('fingerprint_runtime', runtime.get('name', 'unknown'))]
 
             infrastructure = fingerprint.get('infrastructure')
             if isinstance(infrastructure, dict) and len(infrastructure) > 0:
-                data += [
-                    ('fingerprint_infra', infrastructure.get('provider', 'unknown')),
-                    ('fingerprint_infra_confidence', '{0}%'.format(infrastructure.get('confidence', 0))),
-                ]
-
-                infrastructure_signals = infrastructure.get('signals')
-                if isinstance(infrastructure_signals, (list, tuple)) and len(infrastructure_signals) > 0:
-                    data += [('fingerprint_infra_signals', len(infrastructure_signals))]
+                data += [('fingerprint_infra', infrastructure.get('provider', 'unknown'))]
 
             hsts = fingerprint.get('security_headers', {}).get('hsts', {})
             if isinstance(hsts, dict) and len(hsts) > 0:
-                data += [
-                    ('hsts', hsts.get('grade', 'missing')),
-                    ('hsts_max_age', '-' if hsts.get('max_age') is None else hsts.get('max_age')),
-                    ('hsts_include_subdomains', hsts.get('include_subdomains', False)),
-                    ('hsts_preload_ready', hsts.get('preload_ready', False)),
-                ]
+                data += [('hsts', hsts.get('grade', 'missing'))]
 
             supercookie = fingerprint.get('privacy_risks', {}).get('supercookie', {})
             if isinstance(supercookie, dict) and len(supercookie) > 0:
-                data += [
-                    ('privacy_supercookie_risk', supercookie.get('risk', 'none')),
-                    ('privacy_supercookie_score', supercookie.get('score', 0)),
-                    ('privacy_supercookie_hsts', supercookie.get('hsts_tracking_surface', False)),
-                    ('privacy_supercookie_etag', supercookie.get('etag_tracking_surface', False)),
-                    ('privacy_supercookie_cache', supercookie.get('cache_tracking_surface', False)),
-                    ('privacy_supercookie_cookie', supercookie.get('persistent_cookie_surface', False)),
-                ]
+                data += [('supercookie_risk', supercookie.get('risk', 'none'))]
 
                 warnings = supercookie.get('warnings')
                 if isinstance(warnings, (list, tuple)) and len(warnings) > 0:
                     data += [('privacy_supercookie_warnings', len(warnings))]
 
         title = 'Statistics ({0})'.format(self._target)
-        sys.writeln(tabulate(data, headers=[title, 'Summary'], tablefmt="psql"))
+        sys.writeln(self.format_summary_table(data, [title, 'Summary']))

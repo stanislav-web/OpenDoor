@@ -68,7 +68,7 @@ class SkipemptyResponsePlugin(ResponsePluginProvider):
     TAG_RE = re.compile(r'<[^>]+>')
     MULTISPACE_RE = re.compile(r'\s+')
 
-    def __init__(self, void):
+    def __init__(self, _void):
         """
         ResponsePluginProvider constructor.
         """

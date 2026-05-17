@@ -25,7 +25,7 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
 
     def assert_detection(self, body, runtime, signal, confidence=80, headers=None):
         """
-        Assert that a response body is classified as debug stacktrace.
+        Assert that a response body is classified as stacktrace.
 
         :param str body: response body
         :param str runtime: expected runtime family
@@ -41,8 +41,8 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
             headers=headers or {'Content-Type': 'text/plain; charset=utf-8'},
         )
 
-        self.assertEqual(plugin.process(response), 'debug')
-        detection = getattr(response, 'opendoor_debug_detection')
+        self.assertEqual(plugin.process(response), 'stacktrace')
+        detection = getattr(response, 'opendoor_stacktrace_detection')
         self.assertEqual(detection['type'], 'stacktrace')
         self.assertEqual(detection['runtime'], runtime)
         self.assertEqual(detection['signal'], signal)
@@ -105,6 +105,127 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
             headers={'Content-Type': 'application/problem+json'},
         )
 
+
+    def test_ignores_standard_404_body_with_notice_like_path(self):
+        """Should not classify a normal nginx/apache-style 404 page as a PHP notice."""
+
+        plugin = StacktraceResponsePlugin(None)
+        body = (
+            '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">\n'
+            '<html><head><title>404 Not Found</title></head><body>\n'
+            '<h1>Not Found</h1>\n'
+            '<p>The requested URL /noticeware was not found on this server.</p>\n'
+            '</body></html>'
+        )
+        response = self.make_response(
+            status=404,
+            body=body.encode('utf-8'),
+            headers={
+                'Content-Type': 'text/html; charset=iso-8859-1',
+                'Server': 'nginx/1.12.1',
+            },
+        )
+
+        self.assertIsNone(plugin.process(response))
+        self.assertFalse(hasattr(response, 'opendoor_stacktrace_detection'))
+
+    def test_detects_php_notice_when_formatted_as_runtime_error(self):
+        """Should still detect real PHP Notice runtime diagnostics."""
+
+        self.assert_detection(
+            'Notice: Undefined index: user_id in /var/www/html/index.php on line 12',
+            'php',
+            'php-error',
+            90,
+        )
+
+    def test_ignores_standard_404_body_with_warning_like_path(self):
+        """Should not classify ordinary 404 pages whose URL contains warning-like text."""
+
+        plugin = StacktraceResponsePlugin(None)
+        body = (
+            '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">'
+            '<html><head><title>404 Not Found</title></head><body>'
+            '<h1>Not Found</h1>'
+            '<p>The requested URL /errorswarnings was not found on this server.</p>'
+            '</body></html>'
+        )
+        response = self.make_response(
+            status=404,
+            body=body.encode('utf-8'),
+            headers={
+                'Content-Type': 'text/html; charset=iso-8859-1',
+                'Server': 'nginx/1.12.1',
+            },
+        )
+
+        self.assertIsNone(plugin.process(response))
+        self.assertFalse(hasattr(response, 'opendoor_stacktrace_detection'))
+
+
+    def test_ignores_html_css_warning_and_error_tokens(self):
+        """Should not classify ordinary CSS warning/error class names as PHP diagnostics."""
+
+        plugin = StacktraceResponsePlugin(None)
+        body = (
+            '<!DOCTYPE html><html><head><style>'
+            '.btn-warning:active,.alert-warning:hover,.has-error .form-control{background:#fff}'
+            '.ion-alert:before{content:"\f101"}'
+            '</style></head><body><article>normal page source</article></body></html>'
+        )
+        response = self.make_response(
+            status=200,
+            body=body.encode('utf-8'),
+            headers={'Content-Type': 'text/html; charset=utf-8'},
+        )
+
+        self.assertIsNone(plugin.process(response))
+        self.assertFalse(hasattr(response, 'opendoor_stacktrace_detection'))
+
+    def test_ignores_cscart_404_i18n_warning_and_notice_keys(self):
+        """Should not classify CS-Cart 404 localization keys as PHP diagnostics."""
+
+        plugin = StacktraceResponsePlugin(None)
+        body = (
+            '<!DOCTYPE html><html><head><title>Страница не найдена</title></head>'
+            '<body><div class="ty-exception"><div class="ty-exception__code">404</div>'
+            '<p>Запрашиваемая страница не найдена.</p></div>'
+            '<script type="text/javascript">_.tr({'
+            "notice: 'Оповещение', warning: 'Предупреждение', error: 'Ошибка', "
+            "error_validator_integer: 'Значение поля <b>[field]</b> неправильное.'"
+            '});</script></body></html>'
+        )
+        response = self.make_response(
+            status=404,
+            body=body.encode('utf-8'),
+            headers={'Content-Type': 'text/html; charset=utf-8'},
+        )
+
+        self.assertIsNone(plugin.process(response))
+        self.assertFalse(hasattr(response, 'opendoor_stacktrace_detection'))
+
+    def test_detects_php_warning_when_formatted_as_runtime_error(self):
+        """Should still detect real PHP Warning runtime diagnostics."""
+
+        self.assert_detection(
+            'Warning: include(config.php): failed to open stream in /var/www/html/index.php on line 7',
+            'php',
+            'php-error',
+            90,
+        )
+
+    def test_detects_html_formatted_php_warning(self):
+        """Should still detect HTML-formatted PHP runtime diagnostics."""
+
+        self.assert_detection(
+            '<br /><b>Warning</b>: require(config.php): failed to open stream '
+            'in <b>/var/www/html/index.php</b> on line <b>7</b><br />',
+            'php',
+            'php-error',
+            90,
+            headers={'Content-Type': 'text/html; charset=utf-8'},
+        )
+
     def test_ignores_binary_and_normal_responses(self):
         """Should avoid binary bodies and normal non-debug text."""
 
@@ -113,9 +234,9 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
         normal = self.make_response(body=b'<html><body>Server error</body></html>', headers={'Content-Type': 'text/html'})
 
         self.assertIsNone(plugin.process(binary))
-        self.assertFalse(hasattr(binary, 'opendoor_debug_detection'))
+        self.assertFalse(hasattr(binary, 'opendoor_stacktrace_detection'))
         self.assertIsNone(plugin.process(normal))
-        self.assertFalse(hasattr(normal, 'opendoor_debug_detection'))
+        self.assertFalse(hasattr(normal, 'opendoor_stacktrace_detection'))
 
     def test_ignores_empty_or_statusless_responses(self):
         """Should ignore empty responses and malformed response objects."""
@@ -135,14 +256,14 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
             'headers': {'content-type': 'text/plain; charset=utf-8'},
         })()
 
-        self.assertEqual(plugin.process(response), 'debug')
-        self.assertEqual(getattr(response, 'opendoor_debug_detection')['runtime'], 'python')
+        self.assertEqual(plugin.process(response), 'stacktrace')
+        self.assertEqual(getattr(response, 'opendoor_stacktrace_detection')['runtime'], 'python')
 
         plugin = StacktraceResponsePlugin(None)
         response = self.make_response(body=b'Traceback (most recent call last):', headers={})
 
-        self.assertEqual(plugin.process(response), 'debug')
-        self.assertEqual(getattr(response, 'opendoor_debug_detection')['runtime'], 'python')
+        self.assertEqual(plugin.process(response), 'stacktrace')
+        self.assertEqual(getattr(response, 'opendoor_stacktrace_detection')['runtime'], 'python')
 
     def test_accepts_vendor_json_and_xml_suffix_content_types(self):
         """Should inspect vendor structured content types ending with +json or +xml."""
@@ -170,4 +291,4 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
         )
 
         self.assertIsNone(plugin.process(response))
-        self.assertFalse(hasattr(response, 'opendoor_debug_detection'))
+        self.assertFalse(hasattr(response, 'opendoor_stacktrace_detection'))

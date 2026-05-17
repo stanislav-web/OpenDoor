@@ -41,6 +41,7 @@ class Tpl(object):
         try:
             if key:
                 msg = Tpl.__format_message(key, args=args)
+            Tpl.__finish_dynamic_line()
             sys.exit(logger.log().warning(msg))
         except (AttributeError, TplError) as error:
             raise TplError(error)
@@ -128,6 +129,15 @@ class Tpl(object):
         sys.writeln(msg)
 
     @staticmethod
+    def __finish_dynamic_line():
+        """Terminate active rotating terminal output before persistent logs.
+
+        :return: None
+        """
+
+        getattr(sys, 'finish_dynamic_line', lambda: None)()
+
+    @staticmethod
     def error(msg='', key='', **args):
         """
         Error log message
@@ -143,6 +153,7 @@ class Tpl(object):
         try:
             if key:
                 msg = Tpl.__format_message(key, args=args)
+            Tpl.__finish_dynamic_line()
             logger.log('error').error(msg)
         except (AttributeError, TplError) as error:
             raise TplError(error)
@@ -163,6 +174,7 @@ class Tpl(object):
         try:
             if key:
                 msg = Tpl.__format_message(key, args=args)
+            Tpl.__finish_dynamic_line()
             logger.log('warning').warning(msg)
         except (AttributeError, TplError) as error:
             raise TplError(error)
@@ -186,6 +198,7 @@ class Tpl(object):
                 msg = Tpl.__format_message(key, args=args)
             if True is clear:
                 sys.writels("")
+            Tpl.__finish_dynamic_line()
             logger.log('info').info(msg)
         except (AttributeError, TplError) as error:
             raise TplError(error)
@@ -206,6 +219,7 @@ class Tpl(object):
         try:
             if key:
                 msg = Tpl.__format_message(key, args=args)
+            Tpl.__finish_dynamic_line()
             logger.log('debug').debug(msg)
         except (AttributeError, TplError) as error:
             raise TplError(error)

@@ -444,5 +444,62 @@ class TestReaderExtra(unittest.TestCase):
 
         count_mock.assert_called_once_with('/tmp/extensionlist.txt')
 
+    def test_runtime_paths_override_core_temp_paths(self):
+        """Reader should resolve generated wordlists from per-scan runtime paths."""
+
+        reader = self.make_reader({
+            'list': 'directories',
+            'proxy_list': 'external-proxy.txt',
+            'use_random': False,
+            'use_extensions': True,
+            'use_ignore_extensions': False,
+            'is_external_wordlist': False,
+            'wordlist': '/tmp/external.txt',
+            'is_standalone_proxy': False,
+            'is_external_proxy_list': False,
+            'prefix': '',
+            'runtime_paths': {
+                'tmplist': '/tmp/opendoor-scan-1/list.tmp',
+                'extensionlist': '/tmp/opendoor-scan-1/extensionlist.tmp',
+                'ignore_extensionlist': '/tmp/opendoor-scan-1/ignore_extensionlist.tmp',
+            },
+        })
+
+        self.assertEqual(reader._get_filtered_wordlist_path(), '/tmp/opendoor-scan-1/extensionlist.tmp')
+
+    def test_randomize_list_writes_to_runtime_path_when_configured(self):
+        """Reader.randomize_list() should write generated output inside the runtime workspace."""
+
+        reader = self.make_reader({
+            'list': 'directories',
+            'proxy_list': 'external-proxy.txt',
+            'use_random': True,
+            'use_extensions': False,
+            'use_ignore_extensions': False,
+            'is_external_wordlist': False,
+            'wordlist': '/tmp/external.txt',
+            'is_standalone_proxy': False,
+            'is_external_proxy_list': False,
+            'prefix': '',
+            'runtime_paths': {
+                'tmplist': '/tmp/opendoor-scan-1/list.tmp',
+            },
+        })
+
+        with patch('src.lib.reader.reader.filesystem.makefile', return_value='/tmp/opendoor-scan-1/list.tmp') as makefile_mock, \
+                patch('src.lib.reader.reader.filesystem.count_lines', side_effect=[2, 2, 2]), \
+                patch.object(reader, '_has_system_shuf', return_value=False), \
+                patch('src.lib.reader.reader.filesystem.shuffle') as shuffle_mock, \
+                patch('src.lib.reader.reader.sys', return_value=SimpleNamespace(is_windows=True)):
+            reader.randomize_list(target='directories', output='tmplist')
+
+        makefile_mock.assert_called_once_with('/tmp/opendoor-scan-1/list.tmp')
+        shuffle_mock.assert_called_once_with(
+            target='/tmp/directories.txt',
+            output='/tmp/opendoor-scan-1/list.tmp',
+            total=2,
+        )
+
+
 if __name__ == '__main__':
     unittest.main()

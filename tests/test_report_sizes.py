@@ -22,7 +22,7 @@ class TestResponseAndBrowser(unittest.TestCase):
 
     @staticmethod
     def make_cfg(**kwargs):
-        base = dict(is_sniff=False, sniffers=[], SUBDOMAINS_SCAN='subdomains', scan='directories')
+        base = {'is_sniff': False, 'sniffers': [], 'SUBDOMAINS_SCAN': 'subdomains', 'scan': 'directories'}
         base.update(kwargs)
         return SimpleNamespace(**base)
 

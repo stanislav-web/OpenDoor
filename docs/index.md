@@ -17,7 +17,7 @@ OpenDoor supports single-target and batch scanning, custom wordlists, response f
 | Page | Purpose |
 |---|---|
 | [Quickstart](quickstart.md) | Install OpenDoor and run common scans quickly. |
-| [Installation and update](Installation-and-update.md) | Install with Homebrew, pipx, pip, or from source. |
+| [Installation and update](Installation-and-update.md) | Install and update with Homebrew, pipx, pip, Docker, Linux packages, or source checkouts. |
 | [Usage](Usage.md) | Full CLI usage and option reference. |
 | [Sniffers](Sniffers.md) | Built-in response analysis and false-positive reduction. |
 | [Wizard](Wizard.md) | Interactive configuration workflow. |
@@ -51,7 +51,7 @@ You can use the built-in dictionaries or provide your own wordlists.
 
 ```shell
 opendoor --host https://example.com --wordlist ./paths.txt
-opendoor --host https://example.com --extensions php,json,txt
+opendoor --host https://example.com --extensions php,json,txt  # keep only matching wordlist extensions
 opendoor --host https://example.com --ignore-extensions aspx,jsp
 ```
 
@@ -108,6 +108,12 @@ opendoor --host https://example.com --waf-safe-mode
 
 Safe mode enables a more cautious runtime profile after probable WAF or anti-bot behavior is detected.
 
+Use WAF guard when early classified responses are overwhelmingly WAF-blocked and you want OpenDoor to stop the scan before a long wordlist produces mostly blocked results.
+
+```shell
+opendoor --host https://example.com --waf-safe-mode --waf-guard
+```
+
 ---
 
 ## 🧩 Header Injection Bypass
@@ -144,7 +150,7 @@ opendoor --host https://example.com --session-save scan.session
 opendoor --session-load scan.session
 ```
 
-Sessions are useful for large wordlists, unstable networks, batch scans, and transport-based workflows.
+Sessions are useful for large wordlists, unstable networks and transport-based workflows.
 
 ---
 

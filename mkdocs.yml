@@ -2,13 +2,13 @@
 site_name: OpenDoor
 site_url: https://opendoor.readthedocs.io/
 repo_url: https://github.com/stanislav-web/OpenDoor
-repo_name: stanislav-web/OpenDoor
+repo_name: GitHub
 site_description: Open-source CLI scanner for authorized web reconnaissance, directory discovery, and exposure assessment.
 site_author: OpenDoor contributors
-copyright: Copyright © 2017-2026 OpenDoor contributors
+copyright: Copyright © 2016-2026 OpenDoor contributors
 
 extra:
-  homepage: https://github.com/stanislav-web/OpenDoor
+  homepage: OpenDoor
 
 nav:
   - Home: index.md
@@ -21,10 +21,12 @@ nav:
   - Detection:
       - Fingerprinting: detection/fingerprinting.md
       - WAF detection and safe mode: detection/waf-detection.md
+      - WAF guard: detection/waf-guard.md
       - Header Injection Bypass: detection/header-bypass.md
       - Auto-calibration: detection/auto-calibration.md
   - Network transports:
       - Overview: transports/overview.md
+      - TLS compatibility: transports/tls.md
       - Proxy: transports/proxy.md
       - OpenVPN: transports/openvpn.md
       - WireGuard: transports/wireguard.md
@@ -44,5 +46,16 @@ nav:
       - Changelog: Changelog.md
       - License: License.md
 
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
 theme:
   name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - shell
+  sticky_navigation: true

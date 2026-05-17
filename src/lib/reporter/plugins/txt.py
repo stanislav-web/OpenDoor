@@ -130,18 +130,18 @@ class TextReportPlugin(PluginProvider):
         supercookie = fingerprint.get('privacy_risks', {}).get('supercookie', {})
         if isinstance(supercookie, dict) and len(supercookie) > 0:
             rows.extend([
-                'privacy_supercookie_risk: {0}'.format(supercookie.get('risk', 'none')),
-                'privacy_supercookie_score: {0}'.format(supercookie.get('score', 0)),
-                'privacy_supercookie_hsts_tracking_surface: {0}'.format(
+                'supercookie_risk: {0}'.format(supercookie.get('risk', 'none')),
+                'supercookie_score: {0}'.format(supercookie.get('score', 0)),
+                'supercookie_hsts_tracking_surface: {0}'.format(
                     supercookie.get('hsts_tracking_surface', False)
                 ),
-                'privacy_supercookie_etag_tracking_surface: {0}'.format(
+                'supercookie_etag_tracking_surface: {0}'.format(
                     supercookie.get('etag_tracking_surface', False)
                 ),
-                'privacy_supercookie_cache_tracking_surface: {0}'.format(
+                'supercookie_cache_tracking_surface: {0}'.format(
                     supercookie.get('cache_tracking_surface', False)
                 ),
-                'privacy_supercookie_persistent_cookie_surface: {0}'.format(
+                'supercookie_persistent_surface: {0}'.format(
                     supercookie.get('persistent_cookie_surface', False)
                 ),
             ])
@@ -150,7 +150,7 @@ class TextReportPlugin(PluginProvider):
                 rows.append('privacy_supercookie_warnings: {0}'.format(supercookie_warnings))
             supercookie_signals = self.__format_signal_list(supercookie.get('signals'))
             if supercookie_signals:
-                rows.append('privacy_supercookie_signals: {0}'.format(supercookie_signals))
+                rows.append('supercookie_signals: {0}'.format(supercookie_signals))
         return rows
 
     def process(self):

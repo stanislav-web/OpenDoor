@@ -260,6 +260,8 @@ class TestBrowserDebugCoverageOnly(unittest.TestCase):
 
         with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
             dbg.debug_cookie_accept_enabled()
+            dbg.debug_cookie_accept_enabled()
+            dbg.debug_cookie_accept_enabled()
             dbg.debug_cookie_accepted('sid=1')
             dbg.debug_cookie_attached({'Cookie': 'sid=1'})
             dbg.debug_cookie_attached({'X-Test': '1'})
@@ -290,6 +292,138 @@ class TestBrowserDebugCoverageOnly(unittest.TestCase):
         self.assertTrue(any('Classification: blocked' in message for message in messages))
         self.assertTrue(any('redirect=https://test.local/login' in message for message in messages))
         self.assertTrue(any('WAF signals: header:cf-ray' in message for message in messages))
+
+
+    def test_debug_classification_should_log_stacktrace_detection_metadata(self):
+        """Debug classification should accept and log stacktrace metadata."""
+
+        debug = self.make_debug({'debug': 3, 'reports': 'std'})
+        detection = {
+            'type': 'stacktrace',
+            'runtime': 'PHP',
+            'signal': 'Fatal error',
+            'confidence': 95,
+        }
+
+        with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
+            result = debug.debug_classification(
+                'stacktrace',
+                code=200,
+                size='796B',
+                stacktrace_detection=detection,
+            )
+
+        self.assertTrue(result)
+        messages = [
+            call.kwargs.get('msg')
+            for call in debug_mock.call_args_list
+            if call.kwargs.get('msg')
+        ]
+
+        self.assertIn('Classification: stacktrace; code=200; size=796B', messages)
+        self.assertIn('StackTrace detection: runtime=PHP; signal=Fatal error; confidence=95', messages)
+
+    def test_should_log_waf_guard_configuration_at_scan_debug_level(self):
+        """Debug.debug_waf_guard() should emit WAF guard configuration once enabled."""
+
+        dbg = self.make_debug({
+            'debug': 1,
+            'reports': 'std',
+            'waf_guard': True,
+            'waf_guard_after': 7,
+            'waf_guard_threshold': 0.8,
+        })
+
+        with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
+            self.assertTrue(dbg.debug_waf_guard())
+
+        debug_mock.assert_called_once_with(key='waf_guard_enabled', after=7, threshold='80.0')
+
+    def test_should_render_malware_stacktrace_shadow_and_openredirect_progress(self):
+        """Debug.debug_request_uri() should render special finding buckets."""
+
+        dbg = self.make_debug({'debug': 1, 'reports': 'std'})
+
+        with patch('src.lib.browser.debug.tpl.info') as info_mock, \
+                patch('src.lib.browser.debug.tpl.line', side_effect=lambda *args, **kwargs: kwargs.get('msg') or kwargs.get('url') or 'line'), \
+                patch('src.lib.browser.debug.sys.writels'):
+            for status in ('malware', 'stacktrace', 'shadow', 'openredirect'):
+                self.assertTrue(dbg.debug_request_uri(
+                    status,
+                    'http://test.local/path',
+                    items_size=1,
+                    total_size=4,
+                    content_size='1KB',
+                    response_code='200',
+                ))
+
+        self.assertEqual(info_mock.call_count, 4)
+        rendered = ' '.join(str(call.kwargs.get('item')) for call in info_mock.call_args_list)
+        self.assertIn('Malware', rendered)
+        self.assertIn('StackTrace', rendered)
+        self.assertIn('Shadow', rendered)
+        self.assertIn('OpenRedirect', rendered)
+
+    def test_should_log_secret_and_malware_classification_metadata(self):
+        """Debug.debug_classification() should emit secret and malware metadata when present."""
+
+        dbg = self.make_debug({'debug': 3, 'reports': 'std'})
+
+        with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
+            self.assertTrue(dbg.debug_classification(
+                'malware',
+                code=200,
+                size='2KB',
+                secret_detection={
+                    'type': 'api-key',
+                    'redacted': 'sk-***',
+                    'confidence': 95,
+                    'count': 2,
+                },
+                malware_detection={
+                    'subtype': 'webshell',
+                    'family': 'php',
+                    'signal': 'eval',
+                    'confidence': 90,
+                    'count': 1,
+                },
+            ))
+
+        messages = [call.kwargs.get('msg', '') for call in debug_mock.call_args_list]
+        self.assertIn('Secret detection: type=api-key; redacted=sk-***; confidence=95; count=2', messages)
+        self.assertIn('Malware detection: subtype=webshell; family=php; signal=eval; confidence=90; count=1', messages)
+
+    def test_proxy_mask_helper_covers_empty_invalid_ipv6_and_username_only_urls(self):
+        """Proxy mask helper should cover defensive URL parsing branches."""
+
+        mask = getattr(Debug, '_Debug__mask_proxy_server')
+
+        self.assertIsNone(mask(None))
+        self.assertEqual(mask('http://[::1'), 'http://[::1')
+        self.assertEqual(
+            mask('http://user:pass@[2001:db8::1]/proxy'),
+            'http://user:*****@[2001:db8::1]/proxy',
+        )
+        self.assertEqual(
+            mask('http://:pass@proxy.example.com'),
+            'http://*****@proxy.example.com',
+        )
+
+    def test_waf_guard_and_proxy_selected_noop_when_scan_debug_is_disabled(self):
+        """WAF guard and rotating proxy diagnostics should stay behind scan debug level."""
+
+        dbg = self.make_debug({
+            'debug': 0,
+            'reports': 'std',
+            'waf_guard': True,
+            'proxy_list': 'proxies.txt',
+        })
+
+        with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
+            self.assertTrue(dbg.debug_waf_guard())
+            self.assertTrue(dbg.debug_proxy_selected('http://user:pass@127.0.0.1:8080'))
+
+        debug_mock.assert_not_called()
 
 
 if __name__ == '__main__':

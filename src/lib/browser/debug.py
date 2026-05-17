@@ -15,6 +15,8 @@
 
     Development: Stanislav WEB
 """
+from urllib.parse import unquote, urlsplit, urlunsplit
+
 from src.core import helper
 from src.core import sys
 from src.core.http.providers.debug import DebugProvider
@@ -35,6 +37,7 @@ class Debug(DebugProvider):
         self.__clear = False
         self.__cfg = Config
         self.__level = self.__cfg.debug
+        self.__cookie_accept_enabled_logged = False
 
         if self.is_scan_debug():
             tpl.debug(key='debug', level=self.__cfg.debug, method=self.__cfg.method)
@@ -160,6 +163,49 @@ class Debug(DebugProvider):
 
         return True
 
+    def debug_waf_guard(self):
+        """Debug WAF guard configuration."""
+
+        if self.is_scan_debug() and getattr(self.__cfg, 'is_waf_guard', False) is True:
+            tpl.debug(
+                key='waf_guard_enabled',
+                after=self.__cfg.waf_guard_after,
+                threshold='{0:.1f}'.format(float(self.__cfg.waf_guard_threshold) * 100.0)
+            )
+
+        return True
+
+    @staticmethod
+    def __mask_proxy_server(server):
+        """Return proxy URL with masked password for debug output."""
+
+        if not server:
+            return server
+
+        try:
+            parsed = urlsplit(server)
+        except (TypeError, ValueError):
+            return str(server)
+
+        if not parsed.username and parsed.password is None:
+            return server
+
+        host = parsed.hostname or ''
+        if ':' in host and not host.startswith('['):
+            host = '[{0}]'.format(host)
+
+        netloc = host
+        if parsed.port is not None:
+            netloc = '{0}:{1}'.format(netloc, parsed.port)
+
+        username = unquote(parsed.username or '')
+        if username:
+            netloc = '{0}:*****@{1}'.format(username, netloc)
+        else:
+            netloc = '*****@{0}'.format(netloc)
+
+        return urlunsplit((parsed.scheme, netloc, parsed.path, parsed.query, parsed.fragment))
+
     def debug_proxy_pool(self):
         """Debug proxy pool message."""
 
@@ -169,9 +215,17 @@ class Debug(DebugProvider):
         if self.__cfg.is_external_proxy_list is True:
             tpl.debug(key='proxy_pool_external_start')
         elif self.__cfg.is_standalone_proxy is True:
-            tpl.debug(key='proxy_pool_standalone', server=self.__cfg.proxy)
+            tpl.debug(key='proxy_pool_standalone', server=self.__mask_proxy_server(self.__cfg.proxy))
         elif self.__cfg.is_builtin_proxy_pool is True:
             tpl.debug(key='proxy_pool_internal_start')
+
+        return True
+
+    def debug_proxy_selected(self, server):
+        """Debug selected proxy for rotating proxy modes."""
+
+        if self.is_scan_debug():
+            tpl.debug(key='proxy_pool_selected', server=self.__mask_proxy_server(server))
 
         return True
 
@@ -215,6 +269,32 @@ class Debug(DebugProvider):
 
         if status in ['success', 'file', 'indexof', 'certificate', 'auth']:
             request_uri = tpl.line(key=status, color='green', url=urlpath)
+        elif status in ['malware']:
+            request_uri = '{0} ({1}) {2}'.format(
+                tpl.line(msg='OK', color='green'),
+                tpl.line(msg='Malware', color='red'),
+                tpl.line(msg=urlpath, color='green')
+            )
+        elif status in ['stacktrace']:
+            request_uri = '{0} ({1}) {2}'.format(
+                tpl.line(msg='OK', color='green'),
+                tpl.line(msg='StackTrace', color='red'),
+                tpl.line(msg=urlpath, color='green')
+            )
+        elif status in ['shadow']:
+            request_uri = '{0} ({1}) {2}'.format(
+                tpl.line(msg='OK', color='green'),
+                tpl.line(msg='Shadow', color='red'),
+                tpl.line(msg=urlpath, color='green')
+            )
+        elif status in ['openredirect']:
+            openredirect_detection = kwargs.get('openredirect_detection') or {}
+            request_uri = '{0} ({1}) {2} -> {3}'.format(
+                tpl.line(msg='R', color='blue'),
+                tpl.line(msg='OpenRedirect', color='red'),
+                tpl.line(msg=urlpath, color='green'),
+                tpl.line(msg=openredirect_detection.get('location') or '-', color='blue')
+            )
         elif status in ['bad', 'forbidden']:
             request_uri = tpl.line(key='forbidden', color='yellow', url=urlpath)
         elif status in ['redirect']:
@@ -233,7 +313,7 @@ class Debug(DebugProvider):
 
         self.__clear = True if self.__catched else False
 
-        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'blocked', 'indexof', 'certificate', 'auth']:
+        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'blocked', 'indexof', 'certificate', 'auth', 'stacktrace', 'malware', 'shadow', 'openredirect']:
             sys.writels('', flush=True)
             tpl.info(
                 key='get_item',
@@ -278,10 +358,11 @@ class Debug(DebugProvider):
         return True
 
     def debug_cookie_accept_enabled(self):
-        """Debug active response cookie routing."""
+        """Debug active response cookie routing once per scan."""
 
-        if self.is_request_debug():
+        if self.is_request_debug() and self.__cookie_accept_enabled_logged is False:
             tpl.debug(key='accept_cookies_enabled')
+            self.__cookie_accept_enabled_logged = True
 
         return True
 
@@ -385,7 +466,12 @@ class Debug(DebugProvider):
             waf_name=None,
             waf_confidence=None,
             signals=None,
-            redirect_uri=None
+            redirect_uri=None,
+            stacktrace_detection=None,
+            secret_detection=None,
+            shadow_detection=None,
+            openredirect_detection=None,
+            malware_detection=None
     ):
         """Debug response classification summary."""
 
@@ -409,5 +495,54 @@ class Debug(DebugProvider):
 
         if signals:
             tpl.debug(msg='WAF signals: {0}'.format(', '.join([str(signal) for signal in signals])))
+
+        if secret_detection:
+            tpl.debug(
+                msg='Secret detection: type={0}; redacted={1}; confidence={2}; count={3}'.format(
+                    secret_detection.get('type') or '-',
+                    secret_detection.get('redacted') or '-',
+                    secret_detection.get('confidence') or '-',
+                    secret_detection.get('count') or '-',
+                )
+            )
+
+        if malware_detection:
+            tpl.debug(
+                msg='Malware detection: subtype={0}; family={1}; signal={2}; confidence={3}; count={4}'.format(
+                    malware_detection.get('subtype') or '-',
+                    malware_detection.get('family') or '-',
+                    malware_detection.get('signal') or '-',
+                    malware_detection.get('confidence') or '-',
+                    malware_detection.get('count') or '-',
+                )
+            )
+
+        if stacktrace_detection:
+            tpl.debug(
+                msg='StackTrace detection: runtime={0}; signal={1}; confidence={2}'.format(
+                    stacktrace_detection.get('runtime') or '-',
+                    stacktrace_detection.get('signal') or '-',
+                    stacktrace_detection.get('confidence') or '-'
+                )
+            )
+
+        if shadow_detection:
+            tpl.debug(
+                msg='Shadow detection: base={0}; variant={1}; confidence={2}'.format(
+                    shadow_detection.get('base_url') or '-',
+                    shadow_detection.get('variant') or '-',
+                    shadow_detection.get('confidence') or '-'
+                )
+            )
+
+        if openredirect_detection:
+            tpl.debug(
+                msg='OpenRedirect detection: param={0}; variant={1}; location={2}; confidence={3}'.format(
+                    openredirect_detection.get('parameter') or '-',
+                    openredirect_detection.get('variant') or '-',
+                    openredirect_detection.get('location') or '-',
+                    openredirect_detection.get('confidence') or '-'
+                )
+            )
 
         return True

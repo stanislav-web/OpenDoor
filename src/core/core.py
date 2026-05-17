@@ -91,6 +91,7 @@ CoreConfig = {
         'proxies': str(DATA_ROOT / 'proxies.dat'),
         'subdomains': str(DATA_ROOT / 'subdomains.dat'),
         'useragents': str(DATA_ROOT / 'useragents.dat'),
+        'shadow_suffixes': str(DATA_ROOT / 'shadow-suffixes.dat'),
         'tmplist': str(RUNTIME_ROOT / 'tmp' / 'list.tmp'),
         'extensionlist': str(RUNTIME_ROOT / 'tmp' / 'extensionlist.tmp'),
         'ignore_extensionlist': str(RUNTIME_ROOT / 'tmp' / 'ignore_extensionlist.tmp'),

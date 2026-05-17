@@ -47,6 +47,80 @@ class Response(ResponseProvider):
             except ResponsePluginError as error:
                 raise ResponseError(str(error))
 
+    def debug_response_data(self, response_data, request_url, items_size, total_size, response=None):
+        """
+        Emit runtime/debug output for an already classified response.
+
+        This keeps response classification single-pass while allowing callers to
+        defer visible runtime rendering until after auto-calibration and filters.
+
+        :param tuple response_data: classified response tuple
+        :param str request_url: original request URL
+        :param int items_size: processed item count
+        :param int total_size: total item count
+        :param object response: optional raw response object
+        :return: True
+        :rtype: bool
+        """
+
+        status, rendered_url, content_size, response_code = response_data
+        redirect_uri = rendered_url if status == 'redirect' else None
+        waf_detection = self.waf_detection if status == self.DEFAULT_WAF_STATUS else None
+        stacktrace_detection = None
+        secret_detection = None
+        shadow_detection = None
+        openredirect_detection = None
+        malware_detection = None
+
+        if response is not None and status == 'stacktrace':
+            stacktrace_detection = getattr(response, 'opendoor_stacktrace_detection', None)
+        if response is not None and status == 'secret':
+            secret_detection = getattr(response, 'opendoor_secret_detection', None)
+        if response is not None and status == 'shadow':
+            shadow_detection = getattr(response, 'opendoor_shadow_detection', None)
+        if response is not None and status == 'openredirect':
+            openredirect_detection = getattr(response, 'opendoor_openredirect_detection', None)
+        if response is not None and status == 'malware':
+            malware_detection = getattr(response, 'opendoor_malware_detection', None)
+
+        self.__debug.debug_request_uri(
+            status=status,
+            request_uri=request_url,
+            redirect_uri=redirect_uri,
+            items_size=items_size,
+            total_size=total_size,
+            content_size=content_size,
+            response_code=response_code,
+            waf_name=waf_detection.get('name') if waf_detection else None,
+            waf_confidence=waf_detection.get('confidence') if waf_detection else None,
+            stacktrace_detection=stacktrace_detection,
+            secret_detection=secret_detection,
+            **dict(
+                ({'shadow_detection': shadow_detection} if shadow_detection is not None else {}),
+                **({'openredirect_detection': openredirect_detection} if openredirect_detection is not None else {}),
+                **({'malware_detection': malware_detection} if malware_detection is not None else {})
+            )
+        )
+        getattr(self.__debug, 'debug_classification', lambda *args, **kwargs: True)(
+            status=status,
+            code=response_code,
+            size=content_size,
+            waf_name=waf_detection.get('name') if waf_detection else None,
+            waf_confidence=waf_detection.get('confidence') if waf_detection else None,
+            signals=waf_detection.get('signals') if waf_detection else None,
+            redirect_uri=redirect_uri,
+            stacktrace_detection=stacktrace_detection,
+            secret_detection=secret_detection,
+            **dict(
+                ({'shadow_detection': shadow_detection} if shadow_detection is not None else {}),
+                **({'openredirect_detection': openredirect_detection} if openredirect_detection is not None else {}),
+                **({'malware_detection': malware_detection} if malware_detection is not None else {})
+            )
+        )
+
+        return True
+
+
     def load_sniffers_plugins(self, plugins):
         """
 
@@ -84,7 +158,7 @@ class Response(ResponseProvider):
 
         return self.__subdomain_ip_cache.get(hostname, '')
 
-    def handle(self, response, request_url, items_size, total_size, ignore_list):
+    def handle(self, response, request_url, items_size, total_size, ignore_list, emit_debug=True):
         """
         Response handler
         :param urllib3.response.HTTPResponse response: response object
@@ -92,6 +166,7 @@ class Response(ResponseProvider):
         :param int items_size: current items sizes
         :param int total_size: response object
         :param list ignore_list: ignore list
+        :param bool emit_debug: whether runtime/debug output should be emitted
         :raise ResponseError
         :return: tuple
         """
@@ -105,6 +180,11 @@ class Response(ResponseProvider):
                 content_size = ResponseProvider._get_content_size(response)
                 response_code = str(response.status)
                 waf_detection = self.waf_detection if status == self.DEFAULT_WAF_STATUS else None
+                stacktrace_detection = getattr(response, 'opendoor_stacktrace_detection', None) if status == 'stacktrace' else None
+                secret_detection = getattr(response, 'opendoor_secret_detection', None) if status == 'secret' else None
+                malware_detection = getattr(response, 'opendoor_malware_detection', None) if status == 'malware' else None
+                shadow_detection = getattr(response, 'opendoor_shadow_detection', None) if status == 'shadow' else None
+                openredirect_detection = getattr(response, 'opendoor_openredirect_detection', None) if status == 'openredirect' else None
 
                 if status in ['redirect']:
                     redirect_uri = self._get_redirect_url(request_url, response)
@@ -123,26 +203,41 @@ class Response(ResponseProvider):
                     else:
                         url = request_url
 
-                self.__debug.debug_request_uri(
-                    status=status,
-                    request_uri=request_url,
-                    redirect_uri=redirect_uri,
-                    items_size=items_size,
-                    total_size=total_size,
-                    content_size=content_size,
-                    response_code=response_code,
-                    waf_name=waf_detection.get('name') if waf_detection else None,
-                    waf_confidence=waf_detection.get('confidence') if waf_detection else None,
-                )
-                getattr(self.__debug, 'debug_classification', lambda *args, **kwargs: True)(
-                    status=status,
-                    code=response_code,
-                    size=content_size,
-                    waf_name=waf_detection.get('name') if waf_detection else None,
-                    waf_confidence=waf_detection.get('confidence') if waf_detection else None,
-                    signals=waf_detection.get('signals') if waf_detection else None,
-                    redirect_uri=redirect_uri
-                )
+                if emit_debug is True:
+                    self.__debug.debug_request_uri(
+                        status=status,
+                        request_uri=request_url,
+                        redirect_uri=redirect_uri,
+                        items_size=items_size,
+                        total_size=total_size,
+                        content_size=content_size,
+                        response_code=response_code,
+                        waf_name=waf_detection.get('name') if waf_detection else None,
+                        waf_confidence=waf_detection.get('confidence') if waf_detection else None,
+                        stacktrace_detection=stacktrace_detection,
+                        secret_detection=secret_detection,
+                        **dict(
+                            ({'shadow_detection': shadow_detection} if shadow_detection is not None else {}),
+                            **({'openredirect_detection': openredirect_detection} if openredirect_detection is not None else {}),
+                            **({'malware_detection': malware_detection} if malware_detection is not None else {})
+                        )
+                    )
+                    getattr(self.__debug, 'debug_classification', lambda *args, **kwargs: True)(
+                        status=status,
+                        code=response_code,
+                        size=content_size,
+                        waf_name=waf_detection.get('name') if waf_detection else None,
+                        waf_confidence=waf_detection.get('confidence') if waf_detection else None,
+                        signals=waf_detection.get('signals') if waf_detection else None,
+                        redirect_uri=redirect_uri,
+                        stacktrace_detection=stacktrace_detection,
+                        secret_detection=secret_detection,
+                        **dict(
+                            ({'shadow_detection': shadow_detection} if shadow_detection is not None else {}),
+                            **({'openredirect_detection': openredirect_detection} if openredirect_detection is not None else {}),
+                            **({'malware_detection': malware_detection} if malware_detection is not None else {})
+                        )
+                    )
 
                 return status, url, content_size, response_code
 

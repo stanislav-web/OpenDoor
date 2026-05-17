@@ -11,7 +11,6 @@ from src.core.filesystem.exceptions import FileSystemError
 from src.core.decorators.timer import execution_time
 from src.core.http.exceptions import ProxyRequestError
 from src.core.http.proxy import Proxy
-from src.core.network.exceptions import NetworkTransportError
 from src.lib import BrowserError
 from src.lib.package import Package, PackageError
 
@@ -123,6 +122,8 @@ class TestPackageTargetedCoverage(unittest.TestCase):
                 return self
 
             def __exit__(self, exc_type, exc, traceback):
+
+                _ = (exc_type, traceback)
                 """Do not suppress exceptions."""
 
                 return False

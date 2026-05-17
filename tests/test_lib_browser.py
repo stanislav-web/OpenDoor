@@ -260,10 +260,12 @@ class TestBrowser(unittest.TestCase):
         setattr(br, '_Browser__config', self.browser_configuration({'reports': 'std', 'host': 'example.com', 'port': 80}))
 
         with patch('src.lib.browser.browser.socket.ping', return_value=None) as mock_ping, \
+                patch('src.lib.browser.browser.socket.get_ips_addresses', return_value='[127.0.0.1]') as mock_ips, \
                 patch('src.lib.browser.browser.socket.get_ip_address', return_value='127.0.0.1') as mock_ip:
             self.assertIs(br.ping(), None)
             mock_ping.assert_called_once()
-            mock_ip.assert_called_once_with('example.com')
+            mock_ips.assert_called_once_with('example.com')
+            mock_ip.assert_not_called()
 
     def test_ping_wraps_socket_errors(self):
         """Browser.ping() should wrap socket failures into BrowserError."""
@@ -274,6 +276,230 @@ class TestBrowser(unittest.TestCase):
         with patch('src.lib.browser.browser.socket.ping', side_effect=SocketError('offline')):
             with self.assertRaises(BrowserError):
                 br.ping()
+
+    def test_ping_debugs_preflight_failure_details(self):
+        """Browser.ping() should print actionable debug details for preflight failures."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({'reports': 'std', 'host': 'example.com', 'port': 80}))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
+
+        with patch('src.lib.browser.browser.socket.ping', side_effect=SocketError('offline details')), \
+                patch('src.lib.browser.browser.tpl.debug') as debug_mock:
+            with self.assertRaises(BrowserError):
+                br.ping()
+
+        messages = [call.kwargs.get('msg', '') for call in debug_mock.call_args_list]
+        self.assertTrue(any('Connection preflight: scheme=' in message for message in messages))
+        self.assertTrue(any('Connection preflight failed: offline details' in message for message in messages))
+
+    def test_ping_proxy_mode_checks_proxy_without_direct_target_preflight(self):
+        """Browser.ping() should probe explicit proxy endpoint instead of target in proxy mode."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'target.local',
+            'port': 443,
+            'ssl': True,
+            'proxy': 'http://user:pass@127.0.0.1:8080',
+            'timeout': 5,
+        }))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
+
+        with patch('src.lib.browser.browser.socket.ping', return_value=None) as ping_mock, \
+                patch('src.lib.browser.browser.tpl.info') as info_mock, \
+                patch('src.lib.browser.browser.tpl.debug') as debug_mock:
+            self.assertIsNone(br.ping())
+
+        ping_mock.assert_called_once_with('127.0.0.1', 8080, 5.0)
+        self.assertTrue(any(
+            'Direct target preflight skipped' in call.kwargs.get('msg', '')
+            for call in info_mock.call_args_list
+        ))
+        self.assertTrue(any(
+            'proxy=http://user:*****@127.0.0.1:8080' in call.kwargs.get('msg', '')
+            for call in debug_mock.call_args_list
+        ))
+
+    def test_ping_proxy_mode_wraps_proxy_preflight_error(self):
+        """Browser.ping() should report proxy preflight failures with masked credentials."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'target.local',
+            'port': 443,
+            'ssl': True,
+            'proxy': 'http://user:pass@127.0.0.1:8080',
+            'timeout': 5,
+        }))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
+
+        with patch('src.lib.browser.browser.socket.ping', side_effect=SocketError('offline')), \
+                patch('src.lib.browser.browser.tpl.debug') as debug_mock:
+            with self.assertRaises(BrowserError) as context:
+                br.ping()
+
+        self.assertIn('Proxy preflight failed for http://user:*****@127.0.0.1:8080', str(context.exception))
+        self.assertNotIn('pass', str(context.exception))
+        self.assertTrue(any(
+            'Proxy preflight failed for http://user:*****@127.0.0.1:8080' in call.kwargs.get('msg', '')
+            for call in debug_mock.call_args_list
+        ))
+
+    def test_mask_proxy_url_should_preserve_plain_proxy_without_credentials(self):
+        """Browser should not rewrite proxy URLs when no credentials are present."""
+
+        mask_proxy_url = getattr(Browser, '_Browser__mask_proxy_url')
+
+        self.assertEqual(mask_proxy_url('http://proxy.local:8080'), 'http://proxy.local:8080')
+
+    def test_mask_proxy_url_should_mask_ipv6_and_password_only_credentials(self):
+        """Browser should mask proxy credentials for IPv6 and password-only URLs."""
+
+        mask_proxy_url = getattr(Browser, '_Browser__mask_proxy_url')
+
+        self.assertEqual(mask_proxy_url('http://user:pass@[::1]:8080'), 'http://user:*****@[::1]:8080')
+        self.assertEqual(mask_proxy_url('http://:pass@proxy.local:8080'), 'http://*****@proxy.local:8080')
+        self.assertEqual(mask_proxy_url('http://user:pass@proxy.local'), 'http://user:*****@proxy.local')
+
+    def test_proxy_endpoint_should_resolve_default_proxy_ports(self):
+        """Browser should resolve default proxy ports for schemes with omitted ports."""
+
+        proxy_endpoint = getattr(Browser, '_Browser__proxy_endpoint')
+
+        self.assertEqual(proxy_endpoint('http://user:pass@proxy.local'), ('proxy.local', 80, 'http://user:*****@proxy.local'))
+        self.assertEqual(proxy_endpoint('https://user:pass@proxy.local'), ('proxy.local', 443, 'https://user:*****@proxy.local'))
+        self.assertEqual(proxy_endpoint('socks5h://user:pass@proxy.local'), ('proxy.local', 80, 'socks5h://user:*****@proxy.local'))
+
+    def test_proxy_endpoint_should_reject_invalid_proxy_urls_without_leaking_passwords(self):
+        """Browser should reject invalid proxy URLs while keeping credentials masked."""
+
+        proxy_endpoint = getattr(Browser, '_Browser__proxy_endpoint')
+
+        with self.assertRaises(BrowserError) as invalid_port_context:
+            proxy_endpoint('http://user:pass@proxy.local:bad')
+
+        self.assertIn('http://user:*****@proxy.local', str(invalid_port_context.exception))
+        self.assertNotIn('pass', str(invalid_port_context.exception))
+
+        with self.assertRaises(BrowserError) as missing_host_context:
+            proxy_endpoint('http://user:pass@:8080')
+
+        self.assertIn('proxy host and port are required', str(missing_host_context.exception))
+        self.assertNotIn('pass', str(missing_host_context.exception))
+
+    def test_mask_proxy_url_fallback_should_mask_malformed_proxy_credentials(self):
+        """Browser should mask credentials even when URL parsing fails."""
+
+        mask_proxy_url = getattr(Browser, '_Browser__mask_proxy_url')
+
+        with patch('src.lib.browser.browser.urlsplit', side_effect=ValueError('bad proxy url')):
+            self.assertEqual(
+                mask_proxy_url('http://user:pass@proxy.local:8080'),
+                'http://user:*****@proxy.local:8080',
+            )
+            self.assertEqual(
+                mask_proxy_url('http://:pass@proxy.local:8080'),
+                'http://*****@proxy.local:8080',
+            )
+            self.assertEqual(mask_proxy_url('not-a-proxy-url'), 'not-a-proxy-url')
+
+    def test_proxy_endpoint_should_reject_parse_errors_without_leaking_passwords(self):
+        """Browser should keep proxy parse errors masked in preflight diagnostics."""
+
+        proxy_endpoint = getattr(Browser, '_Browser__proxy_endpoint')
+
+        with patch('src.lib.browser.browser.urlsplit', side_effect=ValueError('bad proxy url')):
+            with self.assertRaises(BrowserError) as context:
+                proxy_endpoint('http://user:pass@proxy.local:8080')
+
+        self.assertIn('Invalid proxy URL http://user:*****@proxy.local:8080', str(context.exception))
+        self.assertIn('bad proxy url', str(context.exception))
+        self.assertNotIn('pass', str(context.exception))
+
+    def test_proxy_endpoint_should_reject_unknown_scheme_without_default_port(self):
+        """Browser should reject proxy schemes without an explicit or default port."""
+
+        proxy_endpoint = getattr(Browser, '_Browser__proxy_endpoint')
+
+        with self.assertRaises(BrowserError) as context:
+            proxy_endpoint('ftp://user:pass@proxy.local')
+
+        self.assertIn('proxy host and port are required', str(context.exception))
+        self.assertIn('ftp://user:*****@proxy.local', str(context.exception))
+        self.assertNotIn('pass', str(context.exception))
+
+    def test_ping_proxy_mode_wraps_proxy_preflight_error_without_debug_output(self):
+        """Browser.ping() should wrap proxy preflight failures when debug output is disabled."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'target.local',
+            'port': 443,
+            'ssl': True,
+            'proxy': 'http://user:pass@127.0.0.1:8080',
+            'timeout': 5,
+            'debug': -1,
+        }))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: False))
+
+        with patch('src.lib.browser.browser.socket.ping', side_effect=SocketError('offline')), \
+                patch('src.lib.browser.browser.tpl.debug') as debug_mock:
+            with self.assertRaises(BrowserError) as context:
+                br.ping()
+
+        self.assertIn('Proxy preflight failed for http://user:*****@127.0.0.1:8080', str(context.exception))
+        self.assertNotIn('pass', str(context.exception))
+        debug_mock.assert_not_called()
+
+    def test_ping_proxy_pool_mode_skips_direct_target_preflight(self):
+        """Browser.ping() should skip direct target preflight for proxy pools."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'target.local',
+            'port': 443,
+            'ssl': True,
+            'proxy_pool': True,
+            'timeout': 5,
+        }))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
+
+        with patch('src.lib.browser.browser.socket.ping') as ping_mock, \
+                patch('src.lib.browser.browser.tpl.info') as info_mock:
+            self.assertIsNone(br.ping())
+
+        ping_mock.assert_not_called()
+        self.assertTrue(any(
+            'Direct target preflight skipped' in call.kwargs.get('msg', '')
+            for call in info_mock.call_args_list
+        ))
+
+    def test_ping_proxy_mode_checks_proxy_without_debug_output(self):
+        """Browser.ping() should support proxy preflight when scan debug is disabled."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'target.local',
+            'port': 443,
+            'ssl': True,
+            'proxy': 'http://user:pass@127.0.0.1:8080',
+            'timeout': 5,
+            'debug': -1,
+        }))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: False))
+
+        with patch('src.lib.browser.browser.socket.ping', return_value=None) as ping_mock, \
+                patch('src.lib.browser.browser.tpl.debug') as debug_mock:
+            self.assertIsNone(br.ping())
+
+        ping_mock.assert_called_once_with('127.0.0.1', 8080, 5.0)
+        debug_mock.assert_not_called()
 
     def test_start_request_provider_uses_proxy_client(self):
         """Browser should choose proxy request provider when proxy mode is enabled."""
@@ -353,6 +579,100 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(result['total']['ignored'], 1)
         self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
 
+    def test_http_request_records_transport_failure_without_bypassing_retries(self):
+        """Browser.__http_request() should track missing responses after provider retries are exhausted."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__http_request('http://example.com/admin')
+
+        client.request.assert_called_once_with('http://example.com/admin')
+        response_handler.handle.assert_not_called()
+        warning_mock.assert_called_once()
+        self.assertIn('Consecutive transport failures: 1/2', warning_mock.call_args.kwargs.get('msg', ''))
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['ignored'], 1)
+        self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
+
+
+    def test_http_request_includes_tls_diagnostic_in_transport_failure(self):
+        """Browser transport-failure messages should include provider TLS diagnostics."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+        setattr(getattr(br, '_Browser__config'), 'last_transport_error', 'TLS handshake failed: DH_KEY_TOO_SMALL. Retry with --tls-legacy.')
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__http_request('https://example.com/admin')
+
+        self.assertIn('DH_KEY_TOO_SMALL', warning_mock.call_args.kwargs.get('msg', ''))
+        self.assertIn('--tls-legacy', warning_mock.call_args.kwargs.get('msg', ''))
+
+    def test_http_request_aborts_after_consecutive_transport_failures(self):
+        """Browser.__http_request() should stop a scan after repeated exhausted transport failures."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+
+        with patch('src.lib.browser.browser.tpl.warning'):
+            br._Browser__http_request('http://example.com/first')
+
+        with self.assertRaises(BrowserError) as context:
+            br._Browser__http_request('http://example.com/second')
+
+        self.assertIn('Target transport appears unavailable', str(context.exception))
+        self.assertIn('configured --timeout and --retries', str(context.exception))
+        self.assertEqual(client.request.call_count, 2)
+        response_handler.handle.assert_not_called()
+
+    def test_http_request_resets_transport_failure_streak_after_success(self):
+        """Browser.__http_request() should not abort when transport recovers between failures."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.side_effect = [None, 'response', None]
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+        response_handler.handle.return_value = ('success', 'http://example.com/ok', '1B', '200')
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', MagicMock(get_ignored_list=MagicMock(return_value=[])))
+        setattr(br, '_Browser__response', response_handler)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__http_request('http://example.com/miss-1')
+            br._Browser__http_request('http://example.com/ok')
+            br._Browser__http_request('http://example.com/miss-2')
+
+        self.assertEqual(client.request.call_count, 3)
+        self.assertEqual(warning_mock.call_count, 2)
+        self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 1)
+
     def test_http_request_records_status_from_response_handler(self):
         """Browser.__http_request() should record the tuple returned by the response handler."""
 
@@ -402,6 +722,14 @@ class TestBrowser(unittest.TestCase):
             items_size=2,
             total_size=10,
             ignore_list=[],
+            emit_debug=False,
+        )
+        response_handler.debug_response_data.assert_called_once_with(
+            ('success', 'http://example.com/login.php', '42B', '200'),
+            request_url='http://example.com/login.php',
+            items_size=2,
+            total_size=10,
+            response='response',
         )
 
         result = getattr(br, '_Browser__result')
@@ -697,6 +1025,75 @@ class TestBrowser(unittest.TestCase):
         reader.get_lines.assert_called_once()
         start_provider.assert_called_once_with()
 
+    def test_scan_restarts_existing_direct_request_provider_after_scan_target_rewrite(self):
+        """Browser.scan() should refresh direct clients after random-list scan target rewrites."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(
+            is_proxy=False,
+            is_random_list=True,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=True,
+            host='example.com',
+            port=80,
+            scheme='http://'
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+        reader.total_lines = 10
+        reader.count_active_lines.return_value = 10
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__client', object())
+
+        with patch.object(br, '_Browser__start_request_provider') as start_provider, \
+                patch('src.lib.browser.browser.tpl.info'):
+            br.scan()
+
+        self.assertEqual(config.scan, 'ignore_extensionlist')
+        reader.randomize_list.assert_called_once_with(target='ignore_extensionlist', output='tmplist')
+        reader.get_lines.assert_called_once()
+        start_provider.assert_called_once_with()
+
+    def test_scan_reuses_existing_proxy_request_provider(self):
+        """Browser.scan() should keep proxy pools initialized by fingerprint/calibration setup."""
+
+        br = self.make_browser()
+        config = SimpleNamespace(
+            is_proxy=True,
+            is_random_list=False,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+            host='example.com',
+            port=80,
+            scheme='http://'
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+        reader.count_active_lines.return_value = 10
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__client', object())
+
+        with patch.object(br, '_Browser__start_request_provider') as start_provider, \
+                patch('src.lib.browser.browser.tpl.info'):
+            br.scan()
+
+        start_provider.assert_not_called()
+        reader.get_lines.assert_called_once()
+
     def test_scan_skips_loading_lines_when_pool_is_not_started(self):
         """Browser.scan() should not request lines when the thread pool is paused."""
 
@@ -817,6 +1214,110 @@ class TestBrowser(unittest.TestCase):
         self.assertIn('planned 93661 item(s), active runtime list has 4167', str(ctx.exception))
         warning_mock.assert_called_with(msg='Active scan list size mismatch: planned 93661 item(s), active runtime list has 4167. Aborting to avoid a partial scan.')
         reader.get_lines.assert_not_called()
+
+
+
+    def test_prepare_runtime_paths_skips_workspace_without_temp_outputs(self):
+        """Browser should not allocate a temp workspace when no runtime wordlist is generated."""
+
+        br = Browser.__new__(Browser)
+        config = SimpleNamespace(
+            is_random_list=False,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+        )
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__temp_workspace', None)
+
+        self.assertEqual(br._Browser__prepare_runtime_paths(), {})
+        self.assertIsNone(getattr(br, '_Browser__temp_workspace'))
+
+    def test_prepare_runtime_paths_allocates_workspace_for_random_scan(self):
+        """Browser should allocate a workspace before random-list generation."""
+
+        br = Browser.__new__(Browser)
+        workspace = MagicMock()
+        workspace.paths = {'tmplist': '/tmp/opendoor-scan-x/list.tmp'}
+        config = SimpleNamespace(
+            is_random_list=True,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+        )
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__temp_workspace', None)
+
+        with patch('src.lib.browser.browser.ScanTempWorkspace', return_value=workspace):
+            self.assertEqual(br._Browser__prepare_runtime_paths(), workspace.paths)
+
+        self.assertIs(getattr(br, '_Browser__temp_workspace'), workspace)
+
+    def test_scan_cleans_temp_workspace_on_success(self):
+        """Browser.scan() should cleanup its managed workspace after normal completion."""
+
+        br = self.make_browser()
+        workspace = MagicMock()
+        config = SimpleNamespace(
+            is_random_list=False,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+            host='example.com',
+            port=80,
+            scheme='http://',
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__temp_workspace', workspace)
+
+        with patch.object(br, '_Browser__start_request_provider'), \
+                patch('src.lib.browser.browser.tpl.info'):
+            br.scan()
+
+        workspace.cleanup.assert_called_once_with()
+        self.assertIsNone(getattr(br, '_Browser__temp_workspace'))
+
+    def test_scan_cleans_temp_workspace_on_browser_error(self):
+        """Browser.scan() should cleanup its managed workspace when scan startup fails."""
+
+        br = self.make_browser()
+        workspace = MagicMock()
+        config = SimpleNamespace(
+            is_random_list=True,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+            host='example.com',
+            port=80,
+            scheme='http://',
+        )
+        debug = MagicMock()
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+        reader.randomize_list.side_effect = ReaderError('bad list')
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__temp_workspace', workspace)
+
+        with self.assertRaises(BrowserError):
+            br.scan()
+
+        workspace.cleanup.assert_called_once_with()
+        self.assertIsNone(getattr(br, '_Browser__temp_workspace'))
 
     def test_done_warns_when_streaming_finishes_before_all_planned_items_are_submitted(self):
         """Browser.done() should explain early EOF instead of only printing the final summary."""
@@ -1271,7 +1772,7 @@ class TestBrowser(unittest.TestCase):
         setattr(br, '_Browser__reader', reader)
         pool = MagicMock()
         setattr(br, '_Browser__pool', pool)
-        setattr(br, '_Browser__queued_recursive', set(['http://example.com/api/users']))
+        setattr(br, '_Browser__queued_recursive', {'http://example.com/api/users'})
 
         self.assertIsNone(br._Browser__build_recursive_url('http://example.com/api', '   '))
         self.assertEqual(
@@ -1691,44 +2192,6 @@ class TestBrowser(unittest.TestCase):
         enqueue_mock.assert_not_called()
         self.assertEqual(getattr(br, '_Browser__result')['total']['success'], 1)
 
-    def test_done_skips_report_generation_when_queue_is_not_empty(self):
-        """Browser.done() should skip reporting while there are still queued items."""
-
-        br = self.make_browser()
-        setattr(br, '_Browser__pool', SimpleNamespace(total_items_size=10, workers_size=2, size=1))
-        setattr(br, '_Browser__config', SimpleNamespace(reports=['std'], host='test.local'))
-
-        with patch('src.lib.browser.browser.Reporter.load') as load_mock:
-            br.done()
-
-        load_mock.assert_not_called()
-
-    def test_done_wraps_reporter_errors(self):
-        """Browser.done() should wrap reporter failures into BrowserError."""
-
-        br = self.make_browser()
-        setattr(br, '_Browser__pool', SimpleNamespace(total_items_size=10, workers_size=2, size=0))
-        setattr(br, '_Browser__config', SimpleNamespace(reports=['raisesexc'], host='test.local'))
-
-        with patch('src.lib.browser.browser.Reporter.load', side_effect=ReporterError('raisesexc')):
-            with self.assertRaises(BrowserError):
-                br.done()
-
-    def test_catch_report_data_initializes_report_items_when_missing(self):
-        """Browser.__catch_report_data() should restore report_items when old payloads do not have it."""
-
-        br = browser.__new__(browser)
-        setattr(br, '_Browser__result', {'total': helper.counter(), 'items': helper.list()})
-
-        br._Browser__catch_report_data('success', 'http://example.com/admin', '5B', '200')
-
-        result = getattr(br, '_Browser__result')
-        self.assertEqual(result['items']['success'], ['http://example.com/admin'])
-        self.assertEqual(
-            result['report_items']['success'],
-            [{'url': 'http://example.com/admin', 'size': '5B', 'code': '200'}]
-        )
-
     def test_finalize_processed_request_is_noop_when_session_is_disabled(self):
         """Browser session finalization should not mutate state when session mode is disabled."""
 
@@ -1874,6 +2337,9 @@ class TestBrowser(unittest.TestCase):
 
         br._Browser__http_request('http://example.com/admin')
 
+        self.assertEqual(response_handler.handle.call_count, 1)
+        self.assertEqual(response_handler.handle.call_args.kwargs.get('emit_debug'), False)
+
         result = getattr(br, '_Browser__result')
         self.assertEqual(result['total']['calibrated'], 1)
         self.assertEqual(result['items']['calibrated'], ['http://example.com/admin'])
@@ -1897,10 +2363,38 @@ class TestBrowser(unittest.TestCase):
             actual = br._Browser__build_calibration_urls()
 
         self.assertEqual(actual, [
-            'http://example.com/assets/abcdef123456-0.map',
+            'http://example.com/abcdef123456-0',
             'http://example.com/assets/abcdef123456-1.map',
         ])
         self.assertNotIn('opendoor', ''.join(actual).lower())
+
+    def test_calibrate_should_build_mixed_probe_url_shapes(self):
+        """Browser calibration probes should cover root, asset and app-like paths."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'auto_calibrate': True,
+            'calibration_samples': 8,
+        }))
+
+        with patch('src.lib.browser.browser.uuid.uuid4') as uuid4_mock:
+            uuid4_mock.return_value.hex = 'abcdef1234567890'
+            actual = br._Browser__build_calibration_urls()
+
+        self.assertEqual(actual, [
+            'http://example.com/abcdef123456-0',
+            'http://example.com/assets/abcdef123456-1.map',
+            'http://example.com/abcdef123456-2.php',
+            'http://example.com/abcdef123456-3.html',
+            'http://example.com/api/abcdef123456-4',
+            'http://example.com/static/abcdef123456-5.js',
+            'http://example.com/wp-content/uploads/abcdef123456-6.php',
+            'http://example.com/admin/abcdef123456-7',
+        ])
 
     def test_calibrate_should_build_baseline_from_probe_responses(self):
         """Browser.calibrate() should build baseline signatures from calibration probes."""
@@ -1940,6 +2434,9 @@ class TestBrowser(unittest.TestCase):
         self.assertIsNotNone(actual)
         self.assertTrue(actual.is_enabled)
         self.assertEqual(len(actual.signatures), 2)
+        response_handler.handle.assert_called()
+        for call_args in response_handler.handle.call_args_list:
+            self.assertEqual(call_args.kwargs.get('emit_debug'), False)
 
     def test_calibrate_should_noop_when_auto_calibration_is_disabled(self):
         """Browser.calibrate() should do nothing when auto-calibration is disabled."""

@@ -202,6 +202,42 @@ class TestOptions(unittest.TestCase):
         with self.assertRaises(OptionsError):
             option.get_arg_values()
 
+
+    def test_init_should_parse_tls_legacy_flag(self):
+        """Options.__init__() should parse the opt-in TLS legacy flag."""
+
+        with patch('src.core.options.options.sys.argv', [
+            'opendoor.py',
+            '--host',
+            'https://example.com',
+            '--tls-legacy',
+        ]):
+            option = Options()
+
+        self.assertTrue(option.args.tls_legacy)
+
+    def test_get_arg_values_should_pass_tls_legacy_through_filter(self):
+        """Options.get_arg_values() should preserve --tls-legacy when enabled."""
+
+        namespace = Namespace(
+            host='https://example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            tls_legacy=True,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'tls_legacy': True}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'tls_legacy': True})
+        self.assertEqual(filter_mock.call_args[0][0]['tls_legacy'], True)
+
     def test_init_should_parse_recursive_arguments(self):
         """Options.__init__() should parse recursive scan arguments."""
 
@@ -955,6 +991,32 @@ class TestOptions(unittest.TestCase):
             'transport_bin': 'openvpn',
             'openvpn_auth': './auth.txt',
         })
+
+    def test_get_arg_values_allows_diff_without_target(self):
+        """Options.get_arg_values() should allow diff mode without scan targets."""
+
+        namespace = Namespace(
+            host='',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            diff='old.sqlite:new.sqlite',
+            reports='std,json',
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'diff': 'old.sqlite:new.sqlite', 'reports': 'std,json'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'diff': 'old.sqlite:new.sqlite', 'reports': 'std,json'})
+        filter_mock.assert_called_once_with({'diff': 'old.sqlite:new.sqlite', 'reports': 'std,json'})
+
 
 if __name__ == '__main__':
     unittest.main()

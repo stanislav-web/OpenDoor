@@ -31,6 +31,14 @@ opendoor --version
 opendoor --help
 ```
 
+Show update instructions for your installation method:
+
+```shell
+opendoor --update
+```
+
+`--update` is instruction-only. It does not execute package-manager commands and should be used with the same package manager that installed OpenDoor.
+
 ---
 
 ## 🔎 Run a basic directory scan
@@ -134,6 +142,19 @@ opendoor --host https://example.com --fingerprint
 ```
 
 Fingerprinting attempts to identify probable CMS, frameworks, application stacks, and infrastructure providers.
+
+---
+
+
+## 🔐 Scan a legacy HTTPS target
+
+Most HTTPS targets need no TLS-specific option. If a legacy server is reachable in a browser but OpenDoor reports a TLS handshake failure such as `DH_KEY_TOO_SMALL`, retry with explicit legacy TLS compatibility:
+
+```shell
+opendoor --host https://legacy.example.com --tls-legacy
+```
+
+Use this only for weak-DH compatibility. For details, see [TLS compatibility](transports/tls.md).
 
 ---
 

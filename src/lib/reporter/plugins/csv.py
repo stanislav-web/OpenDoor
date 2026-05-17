@@ -52,10 +52,37 @@ class CsvReportPlugin(PluginProvider):
         'bypass_to_code',
         'bypass_score',
         'bypass_reasons',
-        'debug_detection',
-        'debug_runtime',
-        'debug_signal',
-        'debug_confidence',
+        'stacktrace_detection',
+        'stacktrace_runtime',
+        'stacktrace_signal',
+        'stacktrace_confidence',
+        'secret_detection',
+        'secret_redacted',
+        'secret_confidence',
+        'secret_count',
+        'secret_types',
+        'malware_detection',
+        'malware_subtype',
+        'malware_family',
+        'malware_signal',
+        'malware_confidence',
+        'malware_count',
+        'malware_signals',
+        'shadow_detection',
+        'shadow_confidence',
+        'shadow_reason',
+        'shadow_base_url',
+        'shadow_variant',
+        'shadow_similarity',
+        'shadow_base_size',
+        'shadow_size',
+        'openredirect_detection',
+        'openredirect_confidence',
+        'openredirect_parameter',
+        'openredirect_variant',
+        'openredirect_payload',
+        'openredirect_location',
+        'openredirect_source_url',
         'fingerprint_category',
         'fingerprint_name',
         'fingerprint_confidence',
@@ -71,14 +98,14 @@ class CsvReportPlugin(PluginProvider):
         'hsts_preload_ready',
         'hsts_http_to_https_redirect',
         'hsts_warnings',
-        'privacy_supercookie_risk',
-        'privacy_supercookie_score',
-        'privacy_supercookie_hsts_tracking_surface',
-        'privacy_supercookie_etag_tracking_surface',
-        'privacy_supercookie_cache_tracking_surface',
-        'privacy_supercookie_persistent_cookie_surface',
+        'supercookie_risk',
+        'supercookie_score',
+        'supercookie_hsts_tracking_surface',
+        'supercookie_etag_tracking_surface',
+        'supercookie_cache_tracking_surface',
+        'supercookie_persistent_surface',
         'privacy_supercookie_warnings',
-        'privacy_supercookie_signals',
+        'supercookie_signals',
     ]
 
     def __init__(self, target, data, directory=None):
@@ -139,14 +166,14 @@ class CsvReportPlugin(PluginProvider):
                 'hsts_preload_ready': '',
                 'hsts_http_to_https_redirect': '',
                 'hsts_warnings': '',
-                'privacy_supercookie_risk': '',
-                'privacy_supercookie_score': '',
-                'privacy_supercookie_hsts_tracking_surface': '',
-                'privacy_supercookie_etag_tracking_surface': '',
-                'privacy_supercookie_cache_tracking_surface': '',
-                'privacy_supercookie_persistent_cookie_surface': '',
+                'supercookie_risk': '',
+                'supercookie_score': '',
+                'supercookie_hsts_tracking_surface': '',
+                'supercookie_etag_tracking_surface': '',
+                'supercookie_cache_tracking_surface': '',
+                'supercookie_persistent_surface': '',
                 'privacy_supercookie_warnings': '',
-                'privacy_supercookie_signals': '',
+                'supercookie_signals': '',
             }
 
         runtime = fingerprint.get('runtime')
@@ -187,14 +214,14 @@ class CsvReportPlugin(PluginProvider):
             'hsts_preload_ready': str(hsts.get('preload_ready', '')),
             'hsts_http_to_https_redirect': str(hsts.get('http_to_https_redirect', '')),
             'hsts_warnings': self.__format_list(hsts.get('warnings', [])),
-            'privacy_supercookie_risk': str(supercookie.get('risk', '')),
-            'privacy_supercookie_score': '' if supercookie.get('score') is None else str(supercookie.get('score')),
-            'privacy_supercookie_hsts_tracking_surface': str(supercookie.get('hsts_tracking_surface', '')),
-            'privacy_supercookie_etag_tracking_surface': str(supercookie.get('etag_tracking_surface', '')),
-            'privacy_supercookie_cache_tracking_surface': str(supercookie.get('cache_tracking_surface', '')),
-            'privacy_supercookie_persistent_cookie_surface': str(supercookie.get('persistent_cookie_surface', '')),
+            'supercookie_risk': str(supercookie.get('risk', '')),
+            'supercookie_score': '' if supercookie.get('score') is None else str(supercookie.get('score')),
+            'supercookie_hsts_tracking_surface': str(supercookie.get('hsts_tracking_surface', '')),
+            'supercookie_etag_tracking_surface': str(supercookie.get('etag_tracking_surface', '')),
+            'supercookie_cache_tracking_surface': str(supercookie.get('cache_tracking_surface', '')),
+            'supercookie_persistent_surface': str(supercookie.get('persistent_cookie_surface', '')),
             'privacy_supercookie_warnings': self.__format_list(supercookie.get('warnings', [])),
-            'privacy_supercookie_signals': self.__format_list(supercookie.get('signals', [])),
+            'supercookie_signals': self.__format_list(supercookie.get('signals', [])),
         }
 
     def __build_rows(self):
@@ -238,20 +265,106 @@ class CsvReportPlugin(PluginProvider):
                     'bypass_to_code': '' if item.get('bypass_to_code') is None else str(item.get('bypass_to_code')),
                     'bypass_score': '' if item.get('bypass_score') is None else str(item.get('bypass_score')),
                     'bypass_reasons': self.__format_list(item.get('bypass_reasons', [])),
-                    'debug_detection': '',
-                    'debug_runtime': '',
-                    'debug_signal': '',
-                    'debug_confidence': '',
+                    'stacktrace_detection': '',
+                    'stacktrace_runtime': '',
+                    'stacktrace_signal': '',
+                    'stacktrace_confidence': '',
+                    'secret_detection': '',
+                    'secret_redacted': '',
+                    'secret_confidence': '',
+                    'secret_count': '',
+                    'secret_types': '',
+                    'malware_detection': '',
+                    'malware_subtype': '',
+                    'malware_family': '',
+                    'malware_signal': '',
+                    'malware_confidence': '',
+                    'malware_count': '',
+                    'malware_signals': '',
+                    'shadow_detection': '',
+                    'shadow_confidence': '',
+                    'shadow_reason': '',
+                    'shadow_base_url': '',
+                    'shadow_variant': '',
+                    'shadow_similarity': '',
+                    'shadow_base_size': '',
+                    'shadow_size': '',
+                    'openredirect_detection': '',
+                    'openredirect_confidence': '',
+                    'openredirect_parameter': '',
+                    'openredirect_variant': '',
+                    'openredirect_payload': '',
+                    'openredirect_location': '',
+                    'openredirect_source_url': '',
                 }
-                debug_detection = item.get('debug_detection')
-                if isinstance(debug_detection, dict):
+                stacktrace_detection = item.get('stacktrace_detection')
+                if isinstance(stacktrace_detection, dict):
                     row.update({
-                        'debug_detection': str(debug_detection.get('type', '')),
-                        'debug_runtime': str(debug_detection.get('runtime', '')),
-                        'debug_signal': str(debug_detection.get('signal', '')),
-                        'debug_confidence': '' if debug_detection.get('confidence') is None else str(
-                            debug_detection.get('confidence')
+                        'stacktrace_detection': str(stacktrace_detection.get('type', '')),
+                        'stacktrace_runtime': str(stacktrace_detection.get('runtime', '')),
+                        'stacktrace_signal': str(stacktrace_detection.get('signal', '')),
+                        'stacktrace_confidence': '' if stacktrace_detection.get('confidence') is None else str(
+                            stacktrace_detection.get('confidence')
                         ),
+                    })
+                secret_detection = item.get('secret_detection')
+                if isinstance(secret_detection, dict):
+                    row.update({
+                        'secret_detection': str(secret_detection.get('type', '')),
+                        'secret_redacted': str(secret_detection.get('redacted', '')),
+                        'secret_confidence': '' if secret_detection.get('confidence') is None else str(
+                            secret_detection.get('confidence')
+                        ),
+                        'secret_count': '' if secret_detection.get('count') is None else str(secret_detection.get('count')),
+                        'secret_types': self.__format_list(secret_detection.get('types', [])),
+                    })
+                malware_detection = item.get('malware_detection')
+                if isinstance(malware_detection, dict):
+                    row.update({
+                        'malware_detection': str(malware_detection.get('type', '')),
+                        'malware_subtype': str(malware_detection.get('subtype', '')),
+                        'malware_family': str(malware_detection.get('family', '')),
+                        'malware_signal': str(malware_detection.get('signal', '')),
+                        'malware_confidence': '' if malware_detection.get('confidence') is None else str(
+                            malware_detection.get('confidence')
+                        ),
+                        'malware_count': '' if malware_detection.get('count') is None else str(
+                            malware_detection.get('count')
+                        ),
+                        'malware_signals': self.__format_list(malware_detection.get('signals', [])),
+                    })
+                shadow_detection = item.get('shadow_detection')
+                if isinstance(shadow_detection, dict):
+                    row.update({
+                        'shadow_detection': str(shadow_detection.get('type', '')),
+                        'shadow_confidence': '' if shadow_detection.get('confidence') is None else str(
+                            shadow_detection.get('confidence')
+                        ),
+                        'shadow_reason': str(shadow_detection.get('reason', '')),
+                        'shadow_base_url': str(shadow_detection.get('base_url', '')),
+                        'shadow_variant': str(shadow_detection.get('variant', '')),
+                        'shadow_similarity': '' if shadow_detection.get('similarity') is None else str(
+                            shadow_detection.get('similarity')
+                        ),
+                        'shadow_base_size': '' if shadow_detection.get('base_size') is None else str(
+                            shadow_detection.get('base_size')
+                        ),
+                        'shadow_size': '' if shadow_detection.get('shadow_size') is None else str(
+                            shadow_detection.get('shadow_size')
+                        ),
+                    })
+                openredirect_detection = item.get('openredirect_detection')
+                if isinstance(openredirect_detection, dict):
+                    row.update({
+                        'openredirect_detection': str(openredirect_detection.get('type', '')),
+                        'openredirect_confidence': '' if openredirect_detection.get('confidence') is None else str(
+                            openredirect_detection.get('confidence')
+                        ),
+                        'openredirect_parameter': str(openredirect_detection.get('parameter', '')),
+                        'openredirect_variant': str(openredirect_detection.get('variant', '')),
+                        'openredirect_payload': str(openredirect_detection.get('payload', '')),
+                        'openredirect_location': str(openredirect_detection.get('location', '')),
+                        'openredirect_source_url': str(openredirect_detection.get('source_url', '')),
                     })
                 row.update(fingerprint_fields)
                 rows.append(row)

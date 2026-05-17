@@ -1,5 +1,5 @@
 """
-Validate OpenDoor GitHub Actions E2E reports against v5.15.2 report shape.
+Validate OpenDoor GitHub Actions E2E reports against current filtered report shape.
 """
 
 import json
@@ -18,7 +18,7 @@ EXPECTED_SUCCESS_PATHS = {
     "/login",
 }
 
-EXPECTED_IGNORED_404_PATHS = {
+EXPECTED_FILTERED_404_PATHS = {
     "/nonexistent",
     "/ghost",
     "/random-miss",
@@ -62,22 +62,6 @@ def item_urls(report: dict, bucket: str) -> list[str]:
     ]
 
 
-def item_details(report: dict, bucket: str) -> list[dict]:
-    details = report.get("report_items", {}).get(bucket)
-
-    if isinstance(details, list):
-        return [
-            item
-            for item in details
-            if isinstance(item, dict)
-        ]
-
-    return [
-        {"url": str(item), "code": "-"}
-        for item in report.get("items", {}).get(bucket, [])
-    ]
-
-
 def has_path(urls: list[str], path: str) -> bool:
     return any(url.endswith(path) or path in url for url in urls)
 
@@ -90,7 +74,10 @@ def validate_json_report() -> None:
     assert_true(total.get("forbidden") == 1, "JSON: forbidden bucket has exactly 1 hit")
     assert_true(total.get("auth") == 1, "JSON: auth bucket has exactly 1 hit")
     assert_true(total.get("redirect") == 1, "JSON: redirect bucket has exactly 1 hit")
-    assert_true(total.get("ignored") == 4, "JSON: ignored bucket has exactly 4 filtered misses")
+    assert_true(
+        total.get("ignored") in (None, 0),
+        "JSON: ignored bucket is absent or empty for filtered misses",
+    )
 
     success_urls = item_urls(report, "success")
 
@@ -107,16 +94,12 @@ def validate_json_report() -> None:
         "JSON: /auth-required is in auth bucket",
     )
 
-    ignored_items = item_details(report, "ignored")
+    ignored_urls = item_urls(report, "ignored")
 
-    for path in sorted(EXPECTED_IGNORED_404_PATHS):
+    for path in sorted(EXPECTED_FILTERED_404_PATHS):
         assert_true(
-            any(
-                has_path([str(item.get("url", ""))], path)
-                and str(item.get("code")) == "404"
-                for item in ignored_items
-            ),
-            f"JSON: {path} is preserved as ignored 404",
+            not has_path(ignored_urls, path),
+            f"JSON: {path} is not preserved as an ignored report item",
         )
 
     active_buckets = ("success", "forbidden", "auth", "redirect")
@@ -126,7 +109,7 @@ def validate_json_report() -> None:
         for url in item_urls(report, bucket)
     ]
 
-    for path in sorted(EXPECTED_IGNORED_404_PATHS):
+    for path in sorted(EXPECTED_FILTERED_404_PATHS):
         assert_true(
             not has_path(active_urls, path),
             f"JSON: {path} is not in active finding buckets",
@@ -190,10 +173,15 @@ def validate_sarif_report() -> None:
         "SARIF: redirect bucket has status 301",
     )
 
-    for path in sorted(EXPECTED_IGNORED_404_PATHS):
+    assert_true(
+        not result_matches("opendoor.finding.ignored"),
+        "SARIF: ignored filtered misses are not reported as findings",
+    )
+
+    for path in sorted(EXPECTED_FILTERED_404_PATHS):
         assert_true(
-            result_matches("opendoor.finding.ignored", path, 404),
-            f"SARIF: {path} is ignored/404",
+            not result_matches("opendoor.finding.ignored", path, 404),
+            f"SARIF: {path} is not reported as ignored/404",
         )
 
 

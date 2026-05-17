@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import io
 import unittest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from src.core import helper
+from src.core import ProxyRequestError, helper
 from src.lib.browser.browser import Browser
+from src.lib.browser.exceptions import BrowserError
 
 
 class TestBrowserExtra(unittest.TestCase):
@@ -103,6 +105,7 @@ class TestBrowserExtra(unittest.TestCase):
             'total': helper.counter(),
             'items': helper.list(),
             'report_items': helper.list(),
+            'filtered_items': [],
         })
         setattr(br, '_Browser__session_lock', __import__('threading').RLock())
         setattr(br, '_Browser__session', None)
@@ -129,42 +132,126 @@ class TestBrowserExtra(unittest.TestCase):
         self.assertEqual(Browser._Browser__render_fingerprint_bar(9, 4, width=4), '[####] 100.0%')
         self.assertEqual(Browser._Browser__render_fingerprint_bar(-1, 0, width=4), '[----] 0.0%')
 
-    def test_fingerprint_progress_writes_line_without_final_newline(self):
-        """Browser fingerprint progress should update the inline console line."""
+    def test_fingerprint_should_abort_on_standalone_proxy_error(self):
+        """Browser.fingerprint() should fail fast when the explicit proxy is unavailable."""
 
-        browser = self.make_browser()
-
-        with patch('src.lib.browser.browser.tpl.line_log') as line_log_mock, patch(
-            'src.lib.browser.browser.output.writeln'
-        ) as writeln_mock:
-            browser._Browser__fingerprint_progress(1, 4, 'root')
-
-        line_log_mock.assert_called_once_with(
-            key='fingerprint_progress',
-            status='debug',
-            bar='[######------------------] 25.0%',
-            stage='root',
+        br = self.make_browser(is_fingerprint=True, is_standalone_proxy=True)
+        detector = MagicMock()
+        detector.detect.side_effect = ProxyRequestError(
+            'Proxy socks5://127.0.0.1:9050 unavailable after retry for /: connection refused'
         )
-        writeln_mock.assert_not_called()
+
+        with patch('src.lib.browser.browser.Fingerprint', return_value=detector), \
+                patch('src.lib.browser.browser.tpl.info'):
+            with self.assertRaises(BrowserError) as context:
+                br.fingerprint()
+
+        self.assertIn('connection refused', str(context.exception))
+
+    def test_calibrate_should_abort_on_standalone_proxy_error(self):
+        """Browser.calibrate() should not keep probing when the explicit proxy is unavailable."""
+
+        br = self.make_browser(
+            is_auto_calibrate=True,
+            is_standalone_proxy=True,
+            calibration_samples=1,
+            calibration_threshold=0.85,
+            SUBDOMAINS_SCAN='subdomains',
+        )
+        client = MagicMock()
+        client.request.side_effect = ProxyRequestError(
+            'Proxy socks5://127.0.0.1:9050 unavailable after retry for /: connection refused'
+        )
+        setattr(br, '_Browser__client', client)
+
+        with patch('src.lib.browser.browser.tpl.info'):
+            with self.assertRaises(BrowserError) as context:
+                br.calibrate()
+
+        self.assertEqual(client.request.call_count, 1)
+        self.assertIn('connection refused', str(context.exception))
+
+    def test_prepare_fingerprint_transport_calls_optional_provider_hook(self):
+        """Browser.__prepare_fingerprint_transport() should call provider preflight hooks when present."""
+
+        browser = object.__new__(Browser)
+        prepare_mock = MagicMock()
+        setattr(browser, '_Browser__client', SimpleNamespace(prepare_connection_pool=prepare_mock))
+
+        browser._Browser__prepare_fingerprint_transport()
+
+        prepare_mock.assert_called_once_with()
+
+    def test_prepare_fingerprint_transport_skips_plain_providers(self):
+        """Browser.__prepare_fingerprint_transport() should leave plain HTTP providers unchanged."""
+
+        browser = object.__new__(Browser)
+        setattr(browser, '_Browser__client', SimpleNamespace())
+
+        browser._Browser__prepare_fingerprint_transport()
+
+    def test_fingerprint_prepares_transport_before_detector_starts_progress(self):
+        """Browser.fingerprint() should prewarm proxy diagnostics before fingerprint progress starts."""
+
+        browser = self.make_browser(is_fingerprint=True)
+        events = []
+        prepare_mock = MagicMock(side_effect=lambda: events.append('prepare'))
+        setattr(browser, '_Browser__client', SimpleNamespace(prepare_connection_pool=prepare_mock))
+
+        detector = MagicMock()
+        detector.detect.side_effect = lambda: events.append('detect') or {
+            'category': 'custom',
+            'name': 'Unknown custom stack',
+            'confidence': 35,
+            'signals': [],
+        }
+
+        with patch('src.lib.browser.browser.tpl.info'), \
+                patch('src.lib.browser.browser.Fingerprint', return_value=detector):
+            browser.fingerprint()
+
+        self.assertEqual(events, ['prepare', 'detect'])
+
+    def test_fingerprint_progress_writes_line_without_final_newline(self):
+        """Browser.__fingerprint_progress() should rotate intermediate progress in-place."""
+
+        browser = object.__new__(Browser)
+        stdout = io.StringIO()
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=120)):
+                browser._Browser__fingerprint_progress(1, 4, 'root')
+
+        output = stdout.getvalue()
+
+        self.assertIn(chr(13), output)
+        self.assertIn('Fingerprint [', output)
+        self.assertIn('25.0%', output)
+        self.assertIn('root', output)
+        self.assertNotIn(chr(10), output)
+        self.assertTrue(getattr(browser, '_Browser__fingerprint_progress_active'))
+        self.assertGreater(getattr(browser, '_Browser__fingerprint_progress_last_length'), 0)
 
     def test_fingerprint_progress_writes_final_newline(self):
-        """Browser fingerprint progress should finish the dynamic line on completion."""
+        """Browser.__fingerprint_progress() should persist only the final done line."""
 
-        browser = self.make_browser()
+        browser = object.__new__(Browser)
+        stdout = io.StringIO()
 
-        with patch('src.lib.browser.browser.tpl.line_log') as line_log_mock, patch(
-            'src.lib.browser.browser.output.writeln'
-        ) as writeln_mock:
-            browser._Browser__fingerprint_progress(4, 4, 'done')
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=120)):
+                with patch('src.lib.browser.browser.tpl.info') as info_mock:
+                    browser._Browser__fingerprint_progress(3, 4, 'analyze')
+                    browser._Browser__fingerprint_progress(4, 4, 'done')
 
-        line_log_mock.assert_called_once_with(
-            key='fingerprint_progress',
-            status='debug',
-            bar='[########################] 100.0%',
-            stage='done',
-        )
-        writeln_mock.assert_called_once_with('')
+        self.assertFalse(getattr(browser, '_Browser__fingerprint_progress_active'))
+        self.assertEqual(getattr(browser, '_Browser__fingerprint_progress_last_length'), 0)
 
+        info_mock.assert_called_once()
+        message = info_mock.call_args.kwargs.get('msg')
+        self.assertIn('Fingerprint [', message)
+        self.assertIn('100.0%', message)
+        self.assertIn('done', message)
     def test_render_fingerprint_summary_lines_includes_stack_and_security_posture(self):
         """Browser should build compact post-fingerprint summary lines."""
 
@@ -255,8 +342,8 @@ class TestBrowserExtra(unittest.TestCase):
         self.assertEqual(len(br._Browser__waf_safe_block_events), 1)
         warning_mock.assert_not_called()
 
-    def test_http_request_records_ignored_when_response_is_filtered_out(self):
-        """Browser should classify filtered responses as ignored."""
+    def test_http_request_records_filtered_response_without_report_bucket_noise(self):
+        """Browser should store filtered responses only in the raw filtered_items list."""
 
         br = self.make_browser(is_response_filtering=True)
         br._Browser__client.request.return_value = SimpleNamespace(data=b'body', headers={})
@@ -265,7 +352,18 @@ class TestBrowserExtra(unittest.TestCase):
         with patch.object(Browser, '_Browser__is_response_allowed', return_value=False):
             br._Browser__http_request('http://example.com/admin', depth=0)
 
-        self.assertEqual(br._Browser__result['items']['ignored'], ['http://example.com/admin'])
+        self.assertEqual(br._Browser__result['items']['ignored'], [])
+        self.assertEqual(
+            br._Browser__result['filtered_items'],
+            [
+                {
+                    'url': 'http://example.com/admin',
+                    'size': '10B',
+                    'code': '200',
+                    'reason': 'response_filter',
+                }
+            ]
+        )
 
     def test_is_response_allowed_rejects_excluded_status(self):
         """Browser should reject statuses from exclude-status filters."""
@@ -562,13 +660,13 @@ class TestBrowserExtra(unittest.TestCase):
         self.assertIsNone(br._Browser__match_dns_wildcard_response('not-a-url'))
         br._Browser__calibration.match_dns_wildcard.assert_not_called()
 
-    def test_calibration_match_skips_debug_bucket(self):
-        """Auto-calibration should never suppress high-value debug findings."""
+    def test_calibration_match_skips_stacktrace_bucket(self):
+        """Auto-calibration should never suppress high-value stacktrace findings."""
 
         br = self.make_browser(is_auto_calibrate=True)
         br._Browser__calibration = SimpleNamespace(match=MagicMock(return_value={'score': 1.0}))
 
-        actual = br._Browser__match_calibrated_response(object(), ('debug', 'http://example.com/error', '1KB', '500'))
+        actual = br._Browser__match_calibrated_response(object(), ('stacktrace', 'http://example.com/error', '1KB', '500'))
 
         self.assertIsNone(actual)
         br._Browser__calibration.match.assert_not_called()
@@ -583,14 +681,14 @@ class TestBrowserExtra(unittest.TestCase):
 
         br._Browser__debug.debug_header_bypass_skipped.assert_called_once_with(403)
 
-    def test_http_request_merges_debug_detection_metadata_into_report_item(self):
-        """HTTP request flow should keep stacktrace metadata on accepted debug findings."""
+    def test_http_request_merges_stacktrace_detection_metadata_into_report_item(self):
+        """HTTP request flow should keep stacktrace metadata on accepted stacktrace findings."""
 
         br = self.make_browser(is_recursive=False)
         response = SimpleNamespace(
             data=b'Traceback (most recent call last):',
             headers={'Content-Type': 'text/plain'},
-            opendoor_debug_detection={
+            opendoor_stacktrace_detection={
                 'type': 'stacktrace',
                 'runtime': 'python',
                 'signal': 'python-traceback',
@@ -598,16 +696,136 @@ class TestBrowserExtra(unittest.TestCase):
             },
         )
         br._Browser__client.request.return_value = response
-        br._Browser__response.handle.return_value = ('debug', 'http://example.com/error', '1KB', '500')
+        br._Browser__response.handle.return_value = ('stacktrace', 'http://example.com/error', '1KB', '500')
         br._Browser__header_bypass = SimpleNamespace(should_probe=MagicMock(return_value=False))
         br._Browser__calibration = None
 
         br._Browser__http_request('http://example.com/error')
 
         self.assertEqual(
-            br._Browser__result['report_items']['debug'][0]['debug_detection'],
-            response.opendoor_debug_detection,
+            br._Browser__result['report_items']['stacktrace'][0]['stacktrace_detection'],
+            response.opendoor_stacktrace_detection,
         )
+
+
+    def test_fingerprint_progress_should_cover_invalid_values_and_terminal_fallback(self):
+        """Browser.__fingerprint_progress() should handle invalid values and terminal fallback."""
+
+        browser = object.__new__(Browser)
+        stdout = io.StringIO()
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', side_effect=OSError):
+                browser._Browser__fingerprint_progress('bad', object(), 'metadata-' + ('x' * 200))
+
+        output = stdout.getvalue()
+
+        self.assertIn(chr(13), output)
+        self.assertIn('Fingerprint [', output)
+        self.assertIn('0.0%', output)
+        self.assertTrue(output.split(chr(13))[-1].endswith('...'))
+        self.assertTrue(getattr(browser, '_Browser__fingerprint_progress_active'))
+        self.assertGreater(getattr(browser, '_Browser__fingerprint_progress_last_length'), 0)
+
+    def test_fingerprint_progress_done_should_cover_active_zero_length_clear(self):
+        """Browser.__fingerprint_progress() done branch should tolerate active zero-length state."""
+
+        browser = object.__new__(Browser)
+        setattr(browser, '_Browser__fingerprint_progress_active', True)
+        setattr(browser, '_Browser__fingerprint_progress_last_length', 0)
+
+        stdout = io.StringIO()
+
+        with patch('sys.stdout', stdout):
+            with patch('src.lib.browser.browser.tpl.info') as info_mock:
+                browser._Browser__fingerprint_progress(1, 0, 'done')
+
+        self.assertFalse(getattr(browser, '_Browser__fingerprint_progress_active'))
+        self.assertEqual(getattr(browser, '_Browser__fingerprint_progress_last_length'), 0)
+
+        info_mock.assert_called_once()
+        message = info_mock.call_args.kwargs.get('msg')
+        self.assertIn('Fingerprint [', message)
+        self.assertIn('0.0%', message)
+        self.assertIn('done', message)
+
+    def test_clear_filtered_progress_should_ignore_inactive_state(self):
+        """Browser.__clear_filtered_progress() should be a no-op without active progress."""
+
+        browser = object.__new__(Browser)
+        setattr(browser, '_Browser__filtered_progress_active', False)
+
+        stdout = io.StringIO()
+
+        with patch('sys.stdout', stdout):
+            browser._Browser__clear_filtered_progress()
+
+        self.assertEqual(stdout.getvalue(), '')
+
+    def test_clear_filtered_progress_should_cover_active_zero_length_state(self):
+        """Browser.__clear_filtered_progress() should clear active zero-length progress state."""
+
+        browser = object.__new__(Browser)
+        setattr(browser, '_Browser__filtered_progress_active', True)
+        setattr(browser, '_Browser__filtered_progress_last_length', 0)
+
+        stdout = io.StringIO()
+
+        with patch('sys.stdout', stdout):
+            browser._Browser__clear_filtered_progress()
+
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertFalse(getattr(browser, '_Browser__filtered_progress_active'))
+        self.assertEqual(getattr(browser, '_Browser__filtered_progress_last_length'), 0)
+
+    def test_emit_filtered_progress_should_cover_terminal_fallback_and_no_metadata(self):
+        """Browser.__emit_filtered_progress() should cover terminal fallback and missing metadata."""
+
+        browser = object.__new__(Browser)
+        setattr(browser, '_Browser__pool', SimpleNamespace(items_size=0, total_items_size=0))
+
+        stdout = io.StringIO()
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', side_effect=ValueError):
+                result = browser._Browser__emit_filtered_progress(
+                    'calibrated',
+                    ('success', 'https://example.com/' + ('long/' * 80), '1KB', '200'),
+                    None,
+                )
+
+        output = stdout.getvalue()
+
+        self.assertTrue(result)
+        self.assertIn(chr(13), output)
+        self.assertIn('0.0%', output)
+        self.assertIn('calibrated - 200 - 1KB', output)
+        self.assertNotIn('score=', output)
+        self.assertTrue(output.split(chr(13))[-1].endswith('...'))
+
+    def test_emit_filtered_progress_should_cover_string_score(self):
+        """Browser.__emit_filtered_progress() should render non-numeric scores."""
+
+        browser = object.__new__(Browser)
+        setattr(browser, '_Browser__pool', SimpleNamespace(items_size=7, total_items_size=10))
+
+        stdout = io.StringIO()
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=160)):
+                result = browser._Browser__emit_filtered_progress(
+                    'calibrated',
+                    ('success', 'https://example.com/deep', '158KB', '200'),
+                    {'calibration_score': 'manual'},
+                )
+
+        output = stdout.getvalue()
+        rendered = output.split(chr(13))[-1]
+
+        self.assertTrue(result)
+        self.assertLessEqual(len(rendered), 159)
+        self.assertIn('score=manual', output)
+        self.assertFalse(rendered.endswith('...'))
 
 
 class TestBrowserInitExtra(unittest.TestCase):

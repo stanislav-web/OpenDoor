@@ -38,7 +38,6 @@ class ResponsePlugin(object):
             plugin_name, plugin_value = plugin.split('=')
         except ValueError:
             plugin_name = plugin
-            pass
         try:
             package_module = importlib.import_module('src.core.http.plugins.response')
 

@@ -24,15 +24,15 @@ from queue import Queue
 
 class TestBrowserWorker(unittest.TestCase):
     """TestBrowserWorker class"""
-    
+
     THREADS = 1
-    
+
     def _kill_waiting_thread(self):
         exit()
-        
+
     def setUp(self):
         self._worker = Worker(Queue(self.THREADS), num_threads=self.THREADS, timeout=0)
-    
+
     def tearDown(self):
         with self.assertRaises(SystemExit):
             self._kill_waiting_thread()
@@ -40,7 +40,7 @@ class TestBrowserWorker(unittest.TestCase):
 
     def test_pause(self):
         """ Worker.pause() test """
-        
+
         self.assertEqual(self._worker.pause(), None)
         self.assertFalse(getattr(self._worker, '_Worker__event').is_set())
         self.assertTrue(getattr(self._worker, '_Worker__running', False))

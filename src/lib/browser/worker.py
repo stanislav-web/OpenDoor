@@ -30,12 +30,13 @@ class Worker(threading.Thread):
 
     """Worker class"""
 
-    def __init__(self, queue, num_threads, timeout=0):
+    def __init__(self, queue, num_threads, timeout=0, error_callback=None):
         """
         Init thread worker
         :param Queue.Queue queue: simple queue object
         :param int num_threads: threads numbers
         :param int timeout: delay timeout
+        :param callable|None error_callback: optional fatal worker error callback
         """
 
         super(Worker, self).__init__()
@@ -45,11 +46,24 @@ class Worker(threading.Thread):
         self.__running = True
         self.__queue = queue
         self.__timeout = timeout
+        self.__error_callback = error_callback
         self.counter = 0
         self.completed = 0
         self.failed = 0
         self.__task_label = None
         self.__task_started_at = None
+        self.__task_last_activity_at = None
+        self.__task_detail = None
+
+    def set_error_callback(self, error_callback):
+        """
+        Set fatal worker error callback.
+
+        :param callable|None error_callback: callback receiving the raised exception
+        :return: None
+        """
+
+        self.__error_callback = error_callback
 
     def pause(self):
         """
@@ -94,7 +108,11 @@ class Worker(threading.Thread):
                     self.__empty = True
 
         except Exception as error:
-            self.terminate(str(error))
+            self.__running = False
+            if callable(self.__error_callback):
+                self.__error_callback(error)
+            else:
+                self.terminate(str(error))
 
     @property
     def active_task(self):
@@ -110,7 +128,28 @@ class Worker(threading.Thread):
         return {
             'label': self.__task_label,
             'started_at': self.__task_started_at,
+            'last_activity_at': self.__task_last_activity_at or self.__task_started_at,
+            'detail': self.__task_detail,
         }
+
+    def touch_active_task(self, detail=None):
+        """
+        Mark progress inside a long-running queued task.
+
+        Header-bypass and active sniffer probes can perform many subrequests while
+        the queue item itself is still active. The pool watchdog uses this heartbeat
+        to avoid reporting false stalls.
+
+        :param str|None detail: optional human-readable sub-step label
+        :return: None
+        """
+
+        if self.__task_label is None:
+            return
+
+        self.__task_last_activity_at = time.monotonic()
+        if detail is not None:
+            self.__task_detail = str(detail)
 
     @staticmethod
     def __build_task_label(args, kargs):
@@ -141,6 +180,8 @@ class Worker(threading.Thread):
         self.counter += 1
         self.__task_label = self.__build_task_label(args, kargs)
         self.__task_started_at = time.monotonic()
+        self.__task_last_activity_at = self.__task_started_at
+        self.__task_detail = None
 
         try:
             func(*args, **kargs)
@@ -151,6 +192,8 @@ class Worker(threading.Thread):
         finally:
             self.__task_label = None
             self.__task_started_at = None
+            self.__task_last_activity_at = None
+            self.__task_detail = None
             self.__queue.task_done()
 
     @classmethod

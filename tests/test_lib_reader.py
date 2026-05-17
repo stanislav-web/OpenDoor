@@ -20,7 +20,7 @@ import os
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from src.core.filesystem.exceptions import FileSystemError
 from src.core.logger.logger import Logger
@@ -427,6 +427,30 @@ class TestReader(unittest.TestCase):
         self.assertTrue(lines)
         self.assertTrue(all(line.endswith(('.php', '.html')) for line in lines))
 
+    def test_filter_by_extension_matches_query_fragment_and_uppercase(self):
+        """Reader.filter_by_extension() should inspect the path before query/fragment case-insensitively."""
+
+        reader = self.create_reader(browser_config={})
+        output = os.path.join(self.base_dir, 'extensions-query.txt')
+        self.config['extension_output'] = output
+
+        sample_lines = [
+            'admin.PHP\n',
+            'read.php?id=1\n',
+            'api.JSON#schema\n',
+            'order.asp?item_ID=\n',
+            'static/app.js\n',
+        ]
+
+        with patch('src.lib.reader.reader.filesystem.read', return_value=sample_lines):
+            reader.filter_by_extension('directories', 'extension_output', ['php', 'json'])
+
+        with open(output, 'r', encoding='utf-8') as handler:
+            lines = handler.read().splitlines()
+
+        self.assertEqual(lines, ['admin.PHP', 'read.php?id=1', 'api.JSON#schema'])
+        self.assertEqual(reader.total_lines, 3)
+
     def test_filter_by_extension_uses_fast_full_read_path(self):
         """Reader.filter_by_extension() should use the fast in-memory read path."""
 
@@ -476,6 +500,31 @@ class TestReader(unittest.TestCase):
         self.assertEqual(reader.total_lines, len(lines))
         self.assertTrue(lines)
         self.assertTrue(all(not line.endswith(('.php', '.html')) for line in lines))
+
+    def test_filter_by_ignore_extension_matches_query_fragment_and_uppercase(self):
+        """Reader.filter_by_ignore_extension() should ignore selected extensions before query/fragment case-insensitively."""
+
+        reader = self.create_reader(browser_config={})
+        output = os.path.join(self.base_dir, 'ignored-query.txt')
+        self.config['ignored_output'] = output
+
+        sample_lines = [
+            'admin.PHP\n',
+            'read.php?id=1\n',
+            'api.JSON#schema\n',
+            'order.asp?item_ID=\n',
+            'static/app.js\n',
+            'health\n',
+        ]
+
+        with patch('src.lib.reader.reader.filesystem.read', return_value=sample_lines):
+            reader.filter_by_ignore_extension('directories', 'ignored_output', ['php', 'asp', 'js'])
+
+        with open(output, 'r', encoding='utf-8') as handler:
+            lines = handler.read().splitlines()
+
+        self.assertEqual(lines, ['api.JSON#schema', 'health'])
+        self.assertEqual(reader.total_lines, 2)
 
     def test_filter_by_ignore_extension_uses_fast_full_read_path(self):
         """Reader.filter_by_ignore_extension() should use the fast in-memory read path."""

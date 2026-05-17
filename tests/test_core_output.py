@@ -2,7 +2,7 @@
 
 import unittest
 from io import StringIO
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from src.core.system.output import Output
 
@@ -12,6 +12,7 @@ class TestOutput(unittest.TestCase):
 
     def tearDown(self):
         Output._Output__is_windows = None
+        Output.clear_dynamic_line()
 
     def test_exit_raises_system_exit(self):
         """Output.exit() should raise SystemExit with the provided message."""
@@ -22,13 +23,37 @@ class TestOutput(unittest.TestCase):
         self.assertEqual(str(context.exception), 'abort')
 
     def test_writels_writes_and_flushes(self):
-        """Output.writels() should write a dynamic line and flush by default."""
+        """Output.writels() should write a plain dynamic line for piped output."""
 
         fake_stdout = StringIO()
         with patch('src.core.system.output.sys.stdout', fake_stdout):
             Output.writels('message')
 
-        self.assertEqual(fake_stdout.getvalue(), '\r\x1b[Kmessage')
+        self.assertEqual(fake_stdout.getvalue(), '\rmessage')
+
+    def test_should_keep_ansi_clear_line_only_for_interactive_tty(self):
+        """Output.writels() should keep ANSI clear-line only for interactive TTY output."""
+
+        fake_stdout = MagicMock()
+        fake_stdout.isatty.return_value = True
+
+        with patch('src.core.system.output.sys.stdout', fake_stdout), \
+                patch.dict('src.core.system.output.os.environ', {}, clear=True):
+            Output.writels('message')
+
+        fake_stdout.write.assert_called_once_with('\r\x1b[Kmessage')
+
+    def test_should_not_write_ansi_clear_line_when_cli_color_is_disabled(self):
+        """Output.writels() should keep log files clean when CLI_COLOR=0."""
+
+        fake_stdout = MagicMock()
+        fake_stdout.isatty.return_value = True
+
+        with patch('src.core.system.output.sys.stdout', fake_stdout), \
+                patch.dict('src.core.system.output.os.environ', {'CLI_COLOR': '0'}, clear=True):
+            Output.writels('message')
+
+        fake_stdout.write.assert_called_once_with('\rmessage')
 
     def test_writeln_writes_line_break(self):
         """Output.writeln() should append a trailing newline."""
@@ -61,11 +86,61 @@ class TestOutput(unittest.TestCase):
         """Output.writels() should not flush stdout when flush is disabled."""
 
         fake_stdout = unittest.mock.MagicMock()
+        fake_stdout.isatty.return_value = False
         with patch('src.core.system.output.sys.stdout', fake_stdout):
             Output.writels('message', flush=False)
 
-        fake_stdout.write.assert_called_once_with('\r\x1b[Kmessage')
+        fake_stdout.write.assert_called_once_with('\rmessage')
         fake_stdout.flush.assert_not_called()
+
+    def test_finish_dynamic_line_should_add_newline_once(self):
+        """Output.finish_dynamic_line() should terminate an active rotating line once."""
+
+        fake_stdout = StringIO()
+
+        with patch('src.core.system.output.sys.stdout', fake_stdout):
+            Output.mark_dynamic_line(12)
+            Output.finish_dynamic_line()
+            Output.finish_dynamic_line()
+
+        self.assertEqual(fake_stdout.getvalue(), '\n')
+
+    def test_mark_dynamic_line_should_tolerate_invalid_length(self):
+        """Output.mark_dynamic_line() should normalize invalid lengths to zero."""
+
+        fake_stdout = StringIO()
+
+        with patch('src.core.system.output.sys.stdout', fake_stdout):
+            Output.mark_dynamic_line('bad')
+            Output.finish_dynamic_line()
+
+        self.assertEqual(fake_stdout.getvalue(), '\n')
+
+    def test_finish_dynamic_line_should_tolerate_stdout_errors(self):
+        """Output.finish_dynamic_line() should clear state even when stdout fails."""
+
+        fake_stdout = MagicMock()
+        fake_stdout.write.side_effect = OSError('closed')
+
+        with patch('src.core.system.output.sys.stdout', fake_stdout):
+            Output.mark_dynamic_line(12)
+            Output.finish_dynamic_line()
+            fake_stdout.write.side_effect = None
+            Output.finish_dynamic_line()
+
+        fake_stdout.write.assert_called_once_with('\n')
+
+    def test_clear_dynamic_line_should_skip_finish_newline(self):
+        """Output.clear_dynamic_line() should suppress later line termination."""
+
+        fake_stdout = StringIO()
+
+        with patch('src.core.system.output.sys.stdout', fake_stdout):
+            Output.mark_dynamic_line(12)
+            Output.clear_dynamic_line()
+            Output.finish_dynamic_line()
+
+        self.assertEqual(fake_stdout.getvalue(), '')
 
 
 if __name__ == '__main__':

@@ -107,6 +107,88 @@ class TestFingerprint(unittest.TestCase):
         self.assertEqual(result['name'], 'WordPress')
         self.assertGreaterEqual(result['confidence'], 90)
 
+    def test_detects_wordpress_from_static_asset_endpoint_probes(self):
+        """Fingerprint should detect WordPress from distinctive static directory probes."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(200, '<html><body>plain site</body></html>', {}),
+            ('HEAD', 'http://example.com/wp-content/'): FakeResponse(403, '', {}),
+            ('HEAD', 'http://example.com/wp-includes/'): FakeResponse(403, '', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'WordPress')
+        self.assertIn('/wp-content/', [signal['value'] for signal in result['signals']])
+        self.assertIn('/wp-includes/', [signal['value'] for signal in result['signals']])
+
+    def test_does_not_promote_wordpress_from_weak_login_and_xmlrpc_only(self):
+        """Fingerprint should keep login/xmlrpc-only WordPress evidence as weak candidates."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(200, '<html><body>plain site</body></html>', {}),
+            ('HEAD', 'http://example.com/wp-login.php'): FakeResponse(200, '', {}),
+            ('HEAD', 'http://example.com/xmlrpc.php'): FakeResponse(405, '', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertEqual(result['candidates'][0]['name'], 'WordPress')
+        self.assertLess(result['candidates'][0]['score'], 7)
+
+    def test_does_not_count_wordpress_probes_when_they_match_soft404_baseline(self):
+        """Fingerprint should not count WordPress probes that match a catch-all 200 baseline."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        catch_all_body = '<html><body>same catch-all page</body></html>'
+        responses = {
+            ('GET', base): FakeResponse(200, '<html><body>plain site</body></html>', {}),
+            ('HEAD', 'http://example.com/wp-content/'): FakeResponse(200, '', {}),
+            ('HEAD', 'http://example.com/wp-includes/'): FakeResponse(200, '', {}),
+            ('HEAD', 'http://example.com/wp-login.php'): FakeResponse(200, '', {}),
+            ('HEAD', 'http://example.com/xmlrpc.php'): FakeResponse(200, '', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                200,
+                catch_all_body,
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'WordPress' for candidate in result['candidates']))
+
+    def test_distinct_probe_status_handles_invalid_and_zero_values(self):
+        """Fingerprint probe-baseline comparison should reject invalid probe statuses safely."""
+
+        self.assertFalse(Fingerprint._is_distinct_probe_status('bad-status', 404))
+        self.assertFalse(Fingerprint._is_distinct_probe_status(0, 404))
+        self.assertTrue(Fingerprint._is_distinct_probe_status(200, 'bad-baseline'))
+        self.assertFalse(Fingerprint._is_distinct_probe_up({'/wp-content/': 200}, '/wp-content/', [403], 404))
+
     def test_detects_nextjs(self):
         """Fingerprint should detect Next.js from __NEXT_DATA__ and _next assets."""
 
@@ -174,6 +256,51 @@ class TestFingerprint(unittest.TestCase):
 
         self.assertEqual(result['category'], 'sitebuilder')
         self.assertEqual(result['name'], 'Webflow')
+
+    def test_detects_mobirise_from_generator_and_assets(self):
+        """Fingerprint should detect Mobirise landing-page builder output."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><meta name="generator" content="Mobirise Website Builder v5.9.18">'
+                '<link rel="stylesheet" href="assets/web/assets/mobirise-icons/mobirise-icons.css">'
+                '<link rel="stylesheet" href="assets/mobirise/css/mbr-additional.css"></head>'
+                '<body><section class="mbr-section-title mbr-fonts-style">Landing</section>'
+                '<div class="mbr-section-btn"></div></body></html>',
+                {}
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'sitebuilder')
+        self.assertEqual(result['name'], 'Mobirise')
+        self.assertGreaterEqual(result['confidence'], 80)
+
+    def test_does_not_detect_mobirise_from_plain_text_only(self):
+        """Fingerprint should not classify pages that only mention Mobirise as text."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><p>We can rebuild landing pages made with Mobirise.</p></body></html>',
+                {}
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
 
     def test_detects_5145_regional_cms_and_sitebuilder_catalog(self):
         """Fingerprint should detect regional CMS and site-builder catalog additions."""
@@ -1255,7 +1382,8 @@ class TestFingerprint(unittest.TestCase):
             ('ASP.NET', '.NET', {'X-Powered-By': 'ASP.NET', 'X-AspNet-Version': '4.0', 'Set-Cookie': 'ASP.NET_SessionId=abc; Path=/'}, '<input name="__VIEWSTATE" value="x">'),
         ]
         for expected_name, expected_runtime, headers, body in cases:
-            config = FakeConfig(); base = 'http://example.com/'
+            config = FakeConfig()
+            base = 'http://example.com/'
             responses = {('GET', base): FakeResponse(200, body, headers), ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Cannot GET /.well-known/missing-resource.txt', headers)}
             result = Fingerprint(config=config, client=self._make_client(config, responses)).detect()
             self.assertEqual(result['name'], expected_name)

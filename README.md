@@ -2,7 +2,7 @@
 
 ![OpenDoor](https://github.com/stanislav-web/OpenDoor/raw/master/logo.png)
 
-**OpenDoor** is an open-source CLI Recon Platform for authorized web reconnaissance, directory discovery, subdomain enumeration, fingerprint detection, WAF detection, controlled header-bypass probing, response filtering, reporting, and transport-based scanning workflows.
+**OpenDoor** is an open-source CLI Recon Platform for authorized web reconnaissance, directory discovery, subdomain enumeration, fingerprint detection, WAF detection, controlled header-bypass probing, response filtering, reporting, verified open-redirect checks, and transport-based scanning workflows.
 
 It helps security researchers, penetration testers, bug bounty hunters, DevSecOps engineers, and developers identify exposed paths, login panels, directory listings, restricted resources, backup files, web shells, subdomains, and other potentially sensitive web assets.
 
@@ -19,7 +19,6 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 
 [![Coverage](https://codecov.io/github/stanislav-web/OpenDoor/graph/badge.svg?token=dyBxutYBso)](https://codecov.io/github/stanislav-web/OpenDoor)
 [![CodeQL](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/stanislav-web/OpenDoor/actions/workflows/github-code-scanning/codeql)
-[![Dependency Review](https://github.com/stanislav-web/OpenDoor/actions/workflows/dependency-review.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/dependency-review.yml)
 [![Codacy Security Scan](https://github.com/stanislav-web/OpenDoor/actions/workflows/codacy.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/codacy.yml)
 
 ## 🧪 CI matrix
@@ -60,19 +59,21 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - custom wordlists, prefixes, shuffling to break scan patterns and extension filters;
 - custom request headers, cookies forwarding, and raw HTTP request templates;
 - response filters by status, size, text, regex, and body length;
-- response sniffers for detecting directory listings, empty responses, known file exposures, collation, errors and exposed debug stack traces;
+- response sniffers for detecting directory listings, empty responses, known file exposures, active shadow-copy probes, collation, possible exposed secrets, errors, exposed debug stack traces, and verified open redirect vulnerabilities;
 - smart auto-calibration for soft-404, wildcard, catch-all, semantic response-diff, and DNS wildcard cases;
 - technology fingerprint detection for CMS, ecommerce platforms, frameworks, runtime stacks, infrastructure, and HSTS posture;
-- passive privacy-risk checks in `--fingerprint`, including possible HSTS, ETag/cache, and persistent-cookie supercookie surfaces.
+- passive privacy-risk checks in `--fingerprint`, including possible HSTS, ETag/cache, and supercookie surfaces.
 - passive WAF detection and bypass in secure scanning mode;
+- WAF guard stop condition for ending low-value scans when initial classified responses are overwhelmingly WAF-blocked;
 - controlled header and path bypass probes for blocked `401` and `403` resources;
 - resumable scan sessions with checkpoint autosave for long term scans;
 - CI/CD fail-on result bucket rules;
+- differential report comparison for previous/current JSON or SQLite reports;
 - reports in terminal, text, JSON, CSV, HTML, SARIF and SQLite formats;
 - proxy, OpenVPN, and WireGuard transport profiles;
 - sequential per-target transport rotation for batch workflows;
-- configuration wizard for repeatable scan profiles.
-- built-in wordlists (upd. 2026-05);
+- configuration wizard for repeatable scan profiles;
+- built-in wordlists (upd. 2026-05)
 
 ---
 
@@ -88,11 +89,15 @@ OpenDoor focuses on **context-aware discovery** instead of blind enumeration.
 |---|---|
 | **Fingerprint-first scanning** | OpenDoor can identify probable CMS platforms, frameworks, infrastructure providers, and WAF signals before deeper discovery. This helps you scan with context instead of blindly throwing a generic wordlist at the target. |
 | **WAF-aware behavior** | OpenDoor can detect probable WAF / anti-bot behavior and switch to a safer runtime profile with `--waf-safe-mode`, reducing noisy blocked scans and making defensive responses easier to understand. |
+| **WAF guard stop condition** | OpenDoor can stop a scan early when the initial classified responses are overwhelmingly WAF-blocked. This avoids spending long runs on wordlists that only produce repeated edge/WAF block pages. |
 | **Controlled bypass evidence** | OpenDoor can optionally probe blocked `401` and `403` resources with controlled header-injection and path-manipulation variants. It records exact evidence such as bypass type, header or path variant, probe value, original status code, and resulting status code without mutating global scan headers. |
 | **Multi-signal auto-calibration** | OpenDoor does not rely only on status code or response size. It compares multiple response signals such as body hashes, visible text, semantic soft-404 phrases, DOM-token structure, titles, redirects, stable headers, word count, line count, text density, normalized dynamic tokens, and DNS wildcard baselines to reduce soft-404 and wildcard false positives. |
+| **Heuristic sniffer plugin system** | OpenDoor includes a pluggable response-analysis layer for heuristic sniffers such as secrets, stack traces, directory listings, malware indicators, shadow copies, suspicious files, open redirects, and repeated soft-error templates. This lets scans surface meaningful evidence from response bodies instead of reporting only status codes and sizes. |
 | **Transport-level workflows** | OpenDoor supports direct, proxy, OpenVPN, and WireGuard transport modes. It can also rotate transport profiles per target in authorized batch scans, which is not the same as manually starting a VPN before running a scanner. |
+| **Proxy pool support** | OpenDoor can use proxy pools through `--proxy-list`, validate available proxies before scanning, rotate requests across the live pool. This helps long authorized scans survive unreliable routes without hardcoding a single proxy endpoint. |
 | **Resumable long scans** | OpenDoor can save scan checkpoints and resume later. This matters when scans are interrupted by crashes, unstable networks, blocked routes, terminal disconnects, or long multi-target jobs. |
 | **Runtime pause/resume** | Press `Ctrl+C` once during a scan to pause workers, then choose `C` to continue or `E` to abort without involving session files. |
+| **Differential report comparison** | OpenDoor can compare a previous and current SQLite/JSON report with `--diff old:new`, showing added, removed, and changed findings without rescanning the target. This turns scan reports into release-to-release exposure regression checks. |
 | **CI/CD-ready results** | OpenDoor can return a failing exit code only when selected result buckets are found, making it usable as a release gate or exposure regression check without custom post-processing scripts. |
 | **Auditable engineering** | OpenDoor is maintained with multi-platform CI, coverage checks, package checks, documentation builds, and a large unittest suite, making it easier to audit, contribute to, and depend on. |
 
@@ -161,6 +166,8 @@ yay -S opendoor
 
 ### Homebrew
 
+OpenDoor is also available in the Brew package manager:
+
 ```bash
 brew install opendoor
 ```
@@ -171,7 +178,7 @@ OpenDoor is available as an official project Docker image via GitHub Container R
 
 ```bash
 docker pull ghcr.io/stanislav-web/opendoor:latest
-docker run --rm ghcr.io/stanislav-web/opendoor:latest --version
+docker run --rm -it ghcr.io/stanislav-web/opendoor:latest --version
 ```
 
 Run a scan and write reports to the host:
@@ -258,7 +265,7 @@ opendoor \
   --include-status 200-299,301,302,403 \
   --exclude-status 404,429,500-599 \
   --exclude-size-range 0-256 \
-  --sniff skipempty,collation,indexof,file,stacktrace \
+  --sniff secret,shadow,openredirect,malware,skipempty,collation,indexof,file,stacktrace \
   --reports std,json,csv,sarif
 ```
 
@@ -270,21 +277,25 @@ Response sniffers classify interesting response bodies during discovery. They ar
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff stacktrace,indexof,file,collation \
+  --sniff secret,shadow,openredirect,malware,stacktrace,indexof,file,collation \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
 Useful sniffers include:
 
-| Sniffer | Purpose |
-|---|---|
-| `stacktrace` | Detect exposed debug/runtime stack traces and internal error details. Findings are reported under the `debug` bucket with `debug_detection` metadata. |
-| `indexof` | Detect directory listing pages. |
-| `file` | Detect known sensitive file exposure patterns. |
-| `collation` | Detect database collation / SQL error responses. |
-| `skipempty` | Skip empty responses. |
-| `skipsizes=46` | Skip responses with exact known noisy sizes. |
-| `skipsizes=46:1024` | Skip responses inside a noisy size range. |
+| Sniffer             | Purpose                                                                                                                             |
+|---------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| `indexof`           | Detect directory listing pages.                                                                                                     |
+| `file`              | Detect known sensitive file exposure patterns.                                                                                      |
+| `collation`         | Detects repeated or redirect-like fallback responses that can create false positives.                                               |
+| `skipempty`         | Skip empty responses.                                                                                                               |
+| `skipsizes=46`      | Skip responses with exact known noisy sizes.                                                                                        |
+| `skipsizes=46:1024` | Skip responses inside a noisy size range.                                                                                           |
+| `stacktrace`        | Detect exposed debug/runtime stack traces and internal error details.                                                               |
+| `secret`            | Detect possible exposed API keys, tokens, private keys and credentials with redacted report metadata.                               |
+| `shadow`            | Actively probe confirmed `200 OK` file-like hits for exposed backup/shadow copies such as `.bak`, `.old` etc variants.              |
+| `openredirect`      | Actively verify redirect-like query parameters with controlled marker URLs and report only confirmed open redirect vulnerabilities. |
+| `malware`           | Detect possible malicious content, webshell markers, injected scripts or obfuscated payloads.                                       |
 
 Body-dependent sniffers automatically force `GET` internally when the configured method is `HEAD`.
 
@@ -400,6 +411,17 @@ More examples:
 
 ---
 
+### Differential report comparison
+
+OpenDoor can compare exactly two previous/current reports without running a new scan. Use this when you want to see what appeared, disappeared, or changed between two authorized scan results.
+
+Supported input pairs are SQLite-to-SQLite and JSON-to-JSON only. Mixed formats, missing files, invalid reports, and unsupported report types fail with a graceful validation error.
+
+```bash
+opendoor --diff reports/baseline/example.com.sqlite:reports/current/example.com.sqlite --reports std,json
+opendoor --diff reports/baseline/example.com.json:reports/current/example.com.json --reports std,json --reports-dir ./diff
+```
+
 ### SARIF reports for CI/CD
 
 OpenDoor can export findings as SARIF 2.1.0 for GitHub Code Scanning and SARIF-compatible security pipelines.
@@ -434,6 +456,7 @@ The full documentation is available on ReadTheDocs:
 - [Reports](https://opendoor.readthedocs.io/concepts/reports/)
 - [Fingerprinting](https://opendoor.readthedocs.io/detection/fingerprinting/)
 - [WAF detection and safe mode](https://opendoor.readthedocs.io/detection/waf-detection/)
+- [WAF guard](https://opendoor.readthedocs.io/detection/waf-guard/)
 - [Header Injection Bypass](https://opendoor.readthedocs.io/detection/header-bypass/)
 - [Auto-calibration](https://opendoor.readthedocs.io/detection/auto-calibration/)
 - [Network transports](https://opendoor.readthedocs.io/transports/overview/)

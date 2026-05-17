@@ -51,4 +51,3 @@ class ResponsePluginProvider(object):
         self._headers = response.headers
         self.__set_body(response.data)
 
-        pass

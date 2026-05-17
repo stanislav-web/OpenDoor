@@ -44,6 +44,7 @@ reports
 syslog
 site
 *.log
+debug.log
 
 # Local binaries / keys
 opendoor
@@ -66,11 +67,11 @@ benchmarks
 docs
 tests
 e2e-server.log
-data/test.dat
 
 # Local helper scripts are not needed in runtime image
 scripts
 release.sh
+debug.sh
 
 # Debian/Kali packaging build artifacts
 .pybuild
@@ -92,3 +93,4 @@ debian/*.substvars
 
 # Misc
 TODO
+ROADMAP.md

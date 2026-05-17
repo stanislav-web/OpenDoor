@@ -32,6 +32,7 @@ class TestControllerFingerprintExtra(unittest.TestCase):
                 call.fingerprint(),
                 call.scan(),
                 call.done(),
+                call.close(),
             ]
         )
 

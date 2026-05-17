@@ -65,6 +65,30 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
             pool.add(lambda: None)
             put_mock.assert_not_called()
 
+    def test_threadpool_accepts_custom_stall_warning_interval(self):
+        """ThreadPool should allow Browser to tune stall visibility from request timeout."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0, stall_warning_interval=15)
+
+        self.assertEqual(getattr(pool, '_ThreadPool__stall_warning_interval'), 15.0)
+
+    def test_threadpool_uses_default_stall_warning_interval_for_invalid_values(self):
+        """ThreadPool should fall back to the default stall interval for invalid values."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            negative_pool = ThreadPool(num_threads=1, total_items=1, timeout=0, stall_warning_interval=-1)
+            invalid_pool = ThreadPool(num_threads=1, total_items=1, timeout=0, stall_warning_interval='bad')
+
+        self.assertEqual(
+            getattr(negative_pool, '_ThreadPool__stall_warning_interval'),
+            float(ThreadPool.JOIN_STALL_WARNING_SEC),
+        )
+        self.assertEqual(
+            getattr(invalid_pool, '_ThreadPool__stall_warning_interval'),
+            float(ThreadPool.JOIN_STALL_WARNING_SEC),
+        )
+
     def test_add_calls_pause_on_keyboard_interrupt(self):
         """ThreadPool.add() should open the pause menu when queue.put() is interrupted."""
 
@@ -200,6 +224,42 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         terminate_mock.assert_called_once()
 
+    def test_worker_run_reports_error_to_callback_without_killing_process(self):
+        """Worker.run() should report task failures to ThreadPool instead of killing the process."""
+
+        errors = []
+        worker = Worker(Queue(1), num_threads=1, timeout=0, error_callback=errors.append)
+
+        with patch.object(worker, '_Worker__process', side_effect=RuntimeError('boom')), \
+                patch.object(worker, 'terminate') as terminate_mock, \
+                patch.object(getattr(worker, '_Worker__event'), 'wait', return_value=True), \
+                patch('src.lib.browser.worker.time.sleep'):
+            setattr(worker, '_Worker__running', True)
+            worker.run()
+
+        terminate_mock.assert_not_called()
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(str(errors[0]), 'boom')
+        self.assertFalse(getattr(worker, '_Worker__running'))
+
+    def test_threadpool_join_raises_worker_error_without_pause_prompt(self):
+        """ThreadPool.join() should propagate worker failures instead of opening a dead resume prompt."""
+
+        pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        def boom():
+            raise RuntimeError('transport down')
+
+        with patch.object(pool, 'JOIN_POLL_INTERVAL_SEC', 0.01), \
+                patch('src.lib.browser.threadpool.tpl.prompt') as prompt_mock, \
+                patch('src.lib.browser.worker.process.kill') as kill_mock:
+            pool.add(boom)
+            with self.assertRaisesRegex(RuntimeError, 'transport down'):
+                pool.join()
+
+        prompt_mock.assert_not_called()
+        kill_mock.assert_not_called()
+
     def test_worker_run_honors_timeout_before_processing(self):
         """Worker.run() should sleep for timeout-enabled workers before processing."""
 
@@ -263,9 +323,57 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
             pool.join()
 
         warning_mock.assert_called_once()
-        self.assertIn('Scan worker has not completed a request', warning_mock.call_args.kwargs.get('msg'))
-        self.assertIn('https://example.test/hang', warning_mock.call_args.kwargs.get('msg'))
+        message = warning_mock.call_args.kwargs.get('msg')
+        self.assertIn('Network request is still waiting/retrying', message)
+        self.assertIn('without progress', message)
+        self.assertIn('queued=', message)
+        self.assertIn('https://example.test/hang', message)
+        self.assertIn('no-progress=', message)
+        self.assertNotIn('idle', message)
 
+    def test_should_not_warn_when_active_task_heartbeat_advances(self):
+        """ThreadPool.join() should not report a stall while subrequest heartbeat advances."""
+
+        class HeartbeatWorker:
+            completed = 0
+
+            def __init__(self):
+                self.heartbeat = 1.0
+
+            @property
+            def active_task(self):
+                current = self.heartbeat
+                self.heartbeat += 1.0
+                return {
+                    'label': 'https://example.test/admin',
+                    'started_at': 1.0,
+                    'last_activity_at': current,
+                    'detail': 'header-bypass probe',
+                }
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        queue = getattr(pool, '_ThreadPool__queue')
+        queue.put((lambda: None, ('https://example.test/admin',), {}))
+        setattr(pool, '_ThreadPool__submitted', 1)
+        setattr(pool, '_ThreadPool__workers', [HeartbeatWorker()])
+
+        waits = {'count': 0}
+
+        def release_after_two_waits(timeout=None):
+            waits['count'] += 1
+            if waits['count'] >= 2:
+                queue.unfinished_tasks = 0
+            return True
+
+        with patch.object(pool, 'JOIN_STALL_WARNING_SEC', 0.0), \
+                patch.object(queue.all_tasks_done, 'wait', side_effect=release_after_two_waits), \
+                patch('src.lib.browser.threadpool.time.monotonic', side_effect=[1.0, 2.0, 3.0]), \
+                patch('src.lib.browser.threadpool.tpl.warning') as warning_mock:
+            pool.join()
+
+        warning_mock.assert_not_called()
 
     def test_worker_active_task_returns_metadata_when_processing(self):
         """Worker.active_task should expose current task metadata."""
@@ -277,6 +385,26 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         self.assertEqual(worker.active_task, {
             'label': 'https://example.test/active',
             'started_at': 12.5,
+            'last_activity_at': 12.5,
+            'detail': None,
+        })
+
+    def test_should_update_active_task_heartbeat_metadata(self):
+        """Worker.touch_active_task() should expose long-running substep progress."""
+
+        worker = Worker(Queue(1), num_threads=1, timeout=0)
+        setattr(worker, '_Worker__task_label', 'https://example.test/active')
+        setattr(worker, '_Worker__task_started_at', 12.5)
+        setattr(worker, '_Worker__task_last_activity_at', 12.5)
+
+        with patch('src.lib.browser.worker.time.monotonic', return_value=14.0):
+            worker.touch_active_task('header-bypass 2/8')
+
+        self.assertEqual(worker.active_task, {
+            'label': 'https://example.test/active',
+            'started_at': 12.5,
+            'last_activity_at': 14.0,
+            'detail': 'header-bypass 2/8',
         })
 
     def test_worker_build_task_label_uses_keyword_arguments_and_fallback(self):
@@ -385,8 +513,9 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         rendered = getattr(pool, '_ThreadPool__format_active_tasks')(11.0)
 
-        self.assertIn('u1 (10s)', rendered)
-        self.assertIn('unknown task (0s)', rendered)
+        self.assertIn('u1 (elapsed=10s, no-progress=10s)', rendered)
+        self.assertIn('unknown task (elapsed=0s, no-progress=0s)', rendered)
+        self.assertNotIn('idle', rendered)
         self.assertIn('+1 more', rendered)
 
     def test_threadpool_pause_prompts_even_from_main_thread(self):
@@ -482,6 +611,15 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         self.assertEqual(ThreadPool.normalize_runtime_pause_answer(None), '')
         self.assertEqual(ThreadPool.normalize_runtime_pause_answer('x'), 'x')
         self.assertEqual(ThreadPool.normalize_runtime_pause_answer('  x  '), 'x')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('   '), '')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('  e  '), 'E')
+
+    def test_runtime_pause_answer_should_use_first_normalized_character(self):
+        """Runtime pause answer normalization should use the first typed character."""
+
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('continue later'), 'C')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('quit now'), 'E')
+        self.assertEqual(ThreadPool.normalize_runtime_pause_answer('Zzz'), 'z')
 
     def test_pause_should_resume_on_repeated_or_cyrillic_continue_input(self):
         """ThreadPool.pause() should resume on repeated and Cyrillic continue answers."""
@@ -498,6 +636,51 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
                     pool.pause()
 
                 self.assertTrue(pool.is_started)
+
+    def test_should_format_active_task_with_detail_metadata(self):
+        """ThreadPool diagnostics should include active task detail metadata."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        setattr(pool, '_ThreadPool__workers', [type('ActiveWorker', (), {
+            'active_task': {
+                'label': 'https://example.test/admin',
+                'detail': 'header-bypass 3/8',
+                'started_at': 1.0,
+                'last_activity_at': 9.0,
+            },
+        })()])
+
+        rendered = getattr(pool, '_ThreadPool__format_active_tasks')(11.0)
+
+        self.assertIn('https://example.test/admin [header-bypass 3/8] (elapsed=10s, no-progress=2s)', rendered)
+
+    def test_should_ignore_worker_heartbeat_without_active_task(self):
+        """Worker.touch_active_task() should be safe before a queued task starts."""
+
+        worker = Worker(Queue(1), num_threads=1, timeout=0)
+
+        worker.touch_active_task('probe 1/2')
+
+        self.assertIsNone(worker.active_task)
+
+    def test_should_update_worker_heartbeat_without_replacing_detail_when_none(self):
+        """Worker.touch_active_task() should preserve detail when no new detail is supplied."""
+
+        worker = Worker(Queue(1), num_threads=1, timeout=0)
+        setattr(worker, '_Worker__task_label', 'https://example.test/admin')
+        setattr(worker, '_Worker__task_started_at', 10.0)
+        setattr(worker, '_Worker__task_last_activity_at', 10.0)
+        setattr(worker, '_Worker__task_detail', 'header-bypass 1/8')
+
+        with patch('src.lib.browser.worker.time.monotonic', return_value=12.0):
+            worker.touch_active_task()
+
+        task = worker.active_task
+        self.assertEqual(task['last_activity_at'], 12.0)
+        self.assertEqual(task['detail'], 'header-bypass 1/8')
+
 
 
 if __name__ == '__main__':

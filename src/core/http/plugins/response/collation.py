@@ -75,7 +75,7 @@ class CollationResponsePlugin(ResponsePluginProvider):
     TEMPLATE_THRESHOLD = 3
     BODY_SAMPLE_SIZE = 512
 
-    def __init__(self, void):
+    def __init__(self, _void):
         """
         ResponsePluginProvider constructor.
         """

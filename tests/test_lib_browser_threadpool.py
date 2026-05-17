@@ -35,7 +35,6 @@ class TestBrowserThreadPool(unittest.TestCase):
         :param arg: Arbitrary argument.
         :return: None
         """
-        pass
 
     def setUp(self):
         """
@@ -124,6 +123,23 @@ class TestBrowserThreadPool(unittest.TestCase):
 
         self._pool.is_started = False
         self.assertIs(self._pool.resume(), None)
+
+
+    def test_pause_should_resume_on_uppercase_continue(self):
+        """ThreadPool.pause() should accept uppercase continue answer."""
+
+        with patch('src.lib.browser.threadpool.tpl.prompt', return_value='C'):
+            with patch('src.lib.browser.threadpool.tpl.info') as info_mock:
+                self.assertIsNone(self._pool.pause())
+
+        info_mock.assert_called_with(key='resume_threads')
+
+    def test_pause_should_abort_on_uppercase_exit(self):
+        """ThreadPool.pause() should accept uppercase exit answer."""
+
+        with patch('src.lib.browser.threadpool.tpl.prompt', return_value='E'):
+            with self.assertRaises(KeyboardInterrupt):
+                self._pool.pause()
 
 
 if __name__ == "__main__":

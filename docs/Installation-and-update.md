@@ -134,7 +134,7 @@ docker pull ghcr.io/stanislav-web/opendoor:latest
 Verify the image:
 
 ```shell
-docker run --rm ghcr.io/stanislav-web/opendoor:latest --version
+docker run --rm -it ghcr.io/stanislav-web/opendoor:latest --version
 docker run --rm ghcr.io/stanislav-web/opendoor:latest --help
 ```
 
@@ -169,8 +169,8 @@ docker run --rm \
 Use a pinned release tag for reproducible runs:
 
 ```shell
-docker pull ghcr.io/stanislav-web/opendoor:5.14.0
-docker run --rm ghcr.io/stanislav-web/opendoor:5.14.0 --version
+docker pull ghcr.io/stanislav-web/opendoor:latest
+docker run --rm ghcr.io/stanislav-web/opendoor:latest --version
 ```
 
 ---
@@ -403,18 +403,42 @@ Transport profile examples are examples only. Never distribute real OpenVPN or W
 
 ## 🔄 Update strategy
 
-Use the same package manager that installed OpenDoor.
+Use the same package manager that installed OpenDoor. Do not mix package managers for the same installation. For example, do not update a Homebrew or system package with `pip`.
+
+OpenDoor also provides a safe helper command:
+
+```shell
+opendoor --update
+```
+
+`--update` does not self-update the scanner, execute package-manager commands, or contact the network. It prints update instructions for common installation types and includes the current Python interpreter path for the active environment. That interpreter-specific command is intentional: it helps avoid updating the wrong virtual environment.
 
 | Installed with | Update command |
 |---|---|
 | AUR helper | `yay -Syu opendoor` |
 | Manual AUR build | `git pull && makepkg -si` |
 | BlackArch / pacman | `sudo pacman -Syu opendoor` |
+| Debian / Kali package | `sudo apt update && sudo apt install --only-upgrade opendoor` |
 | Homebrew | `brew update && brew upgrade opendoor` |
 | Docker / GHCR | `docker pull ghcr.io/stanislav-web/opendoor:latest` |
 | pipx | `pipx upgrade opendoor` |
-| pip | `python3 -m pip install --upgrade opendoor` |
-| Source checkout | `git pull` and reinstall dependencies if needed |
+| pip | `python -m pip install --upgrade opendoor` from the same Python environment |
+| Windows pip | `py -m pip install --upgrade opendoor` |
+| Source checkout | `git pull --ff-only` and reinstall/editable-install if needed |
+
+For source checkouts used as editable installs, refresh the checkout and reinstall in the current environment:
+
+```shell
+git pull --ff-only
+python -m pip install -e .
+```
+
+For Windows PowerShell source checkouts:
+
+```powershell
+git pull --ff-only
+python -m pip install -e .
+```
 
 ---
 
