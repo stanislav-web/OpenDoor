@@ -72,6 +72,7 @@ class Config(object):
         self._keep_alive = params.get('keep_alive') is True
         self._port = params.get('port')
         self._wordlist = params.get('wordlist')
+        self._wordlist_resolved_path = params.get('wordlist_resolved_path') or params.get('resolved_wordlist')
         self._reports_dir = params.get('reports_dir')
         self._prefix = '' if params.get('prefix') is None else params.get('prefix')
         self._reports = self._normalize_csv(params.get('reports'))
@@ -847,6 +848,12 @@ class Config(object):
         """Get external wordlist."""
 
         return self._wordlist
+
+    @property
+    def wordlist_resolved_path(self):
+        """Get resolved runtime local wordlist path."""
+
+        return self._wordlist_resolved_path
 
     @property
     def extensions(self):

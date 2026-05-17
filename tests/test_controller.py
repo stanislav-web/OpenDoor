@@ -11,7 +11,7 @@ from src.core.logger.logger import Logger
 from src.lib import ArgumentsError, BrowserError, PackageError, ReporterError
 from src.core.network.exceptions import NetworkTransportError
 from src.lib.diff import DiffValidationError
-
+from src.lib.reader import RemoteWordlistError
 
 class TestController(unittest.TestCase):
     """TestController class."""
@@ -69,14 +69,15 @@ class TestController(unittest.TestCase):
 
         controller = self.make_controller({'host': 'http://example.com'})
 
-        with patch('src.controller.package.banner', return_value='banner'), \
+        with patch('src.controller.package.banner', return_value='banner') as banner_mock, \
                 patch('src.controller.tpl.message') as message_mock, \
                 patch.object(Controller, 'scan_action') as scan_mock, \
                 patch('src.controller.tpl.debug'):
             controller.run()
 
-        message_mock.assert_called_once_with('banner')
-        scan_mock.assert_called_once_with({'host': 'http://example.com'})
+        banner_mock.assert_not_called()
+        message_mock.assert_not_called()
+        scan_mock.assert_called_once_with({'host': 'http://example.com'}, show_banner=True)
 
     def test_run_dispatches_to_named_action(self):
         """Controller.run() should call the first matching action handler."""
@@ -291,7 +292,6 @@ class TestController(unittest.TestCase):
 
         cancel_mock.assert_called_once_with(key='abort')
 
-
     def test_run_calls_scan_action_when_targets_are_present(self):
         """Controller.run() should treat target lists as a scan action."""
 
@@ -300,7 +300,7 @@ class TestController(unittest.TestCase):
         with patch('src.controller.package.banner', return_value='banner'),                 patch('src.controller.tpl.message'),                 patch.object(Controller, 'scan_action') as scan_mock,                 patch('src.controller.tpl.debug'):
             controller.run()
 
-        scan_mock.assert_called_once_with(controller.ioargs)
+        scan_mock.assert_called_once_with(controller.ioargs, show_banner=True)
 
     def test_scan_action_runs_browser_flow_for_each_target(self):
         """Controller.scan_action() should scan each normalized target sequentially."""
@@ -411,11 +411,12 @@ class TestController(unittest.TestCase):
 
         with patch('src.controller.package.banner', return_value='banner'), \
                 patch('src.controller.tpl.message'), \
-                patch.object(Controller, 'scan_action', return_value=1), \
+                patch.object(Controller, 'scan_action', return_value=1) as scan_mock, \
                 patch('src.controller.tpl.debug'):
             actual = controller.run()
 
         self.assertEqual(actual, 1)
+        scan_mock.assert_called_once_with({'host': 'http://example.com'}, show_banner=True)
 
     def test_scan_action_returns_one_when_fail_on_bucket_matches(self):
         """Controller.scan_action() should return 1 when selected CI bucket is found."""
@@ -934,7 +935,6 @@ class TestController(unittest.TestCase):
         self.assertEqual(passed_params['transport_bin'], '/usr/bin/openvpn')
         self.assertEqual(passed_params['openvpn_auth'], '/tmp/auth.txt')
 
-
     def test_scan_action_should_emit_transport_debug_when_enabled(self):
         """Controller.scan_action() should expose transport lifecycle in debug mode."""
 
@@ -1063,7 +1063,6 @@ class TestController(unittest.TestCase):
             'transport_timeout': 15,
             'transport_healthcheck_url': 'https://example.com/ip',
         })
-
 
     def test_run_dispatches_to_diff_action_before_scan(self):
         """Controller.run() should route diff mode without starting a scan."""
@@ -1205,6 +1204,276 @@ class TestController(unittest.TestCase):
         browser_second.ping.assert_called_once_with()
         browser_second.scan.assert_called_once_with()
         browser_second.done.assert_called_once_with()
+
+    def test_prepare_remote_wordlist_downloads_into_managed_workspace(self):
+        """Remote --wordlist should be resolved to a local runtime path before scanning."""
+
+        workspace = MagicMock()
+        workspace.get.return_value = '/tmp/opendoor-scan/remote-wordlist.tmp'
+        result = MagicMock()
+        result.path = '/tmp/opendoor-scan/remote-wordlist.tmp'
+        result.bytes_downloaded = 12
+        result.status = 200
+        result.content_type = 'text/plain'
+        downloader = MagicMock()
+        downloader.download.return_value = result
+
+        with patch('src.controller.ScanTempWorkspace', return_value=workspace), \
+                patch('src.controller.RemoteWordlistDownloader', return_value=downloader), \
+                patch('src.controller.tpl.info'):
+            updated, returned_workspace = Controller._prepare_remote_wordlist({
+                'scan': 'directories',
+                'wordlist': 'https://example.test/list.txt',
+                'timeout': 3,
+            })
+
+        self.assertIs(returned_workspace, workspace)
+        workspace.get.assert_called_once_with('remote_wordlist')
+        downloader.download.assert_called_once_with(
+            'https://example.test/list.txt',
+            '/tmp/opendoor-scan/remote-wordlist.tmp',
+            timeout=3,
+        )
+        self.assertEqual(updated['wordlist'], 'https://example.test/list.txt')
+        self.assertEqual(updated['wordlist_resolved_path'], '/tmp/opendoor-scan/remote-wordlist.tmp')
+        self.assertEqual(updated['remote_wordlist_bytes'], 12)
+        self.assertEqual(updated['remote_wordlist_status'], 200)
+        self.assertEqual(updated['remote_wordlist_content_type'], 'text/plain')
+
+    def test_prepare_remote_wordlist_debug_logs_are_debug_only(self):
+        """Remote wordlist source/path diagnostics should only appear when debug is enabled."""
+
+        workspace = MagicMock()
+        workspace.get.return_value = '/tmp/opendoor-scan/remote-wordlist.tmp'
+        result = MagicMock()
+        result.path = '/tmp/opendoor-scan/remote-wordlist.tmp'
+        result.bytes_downloaded = 12
+        result.status = 200
+        result.content_type = 'text/plain'
+        downloader = MagicMock()
+        downloader.download.return_value = result
+
+        with patch('src.controller.ScanTempWorkspace', return_value=workspace), \
+                patch('src.controller.RemoteWordlistDownloader', return_value=downloader) as downloader_cls, \
+                patch('src.controller.tpl.debug') as debug_mock, \
+                patch('src.controller.tpl.info') as info_mock:
+            downloader_cls._format_bytes.return_value = '12B'
+            Controller._prepare_remote_wordlist({
+                'scan': 'directories',
+                'wordlist': 'https://example.test/list.txt',
+                'debug': 1,
+            })
+
+        messages = [call.kwargs.get('msg') for call in debug_mock.call_args_list]
+        self.assertIn('Downloading remote wordlist: https://example.test/list.txt', messages)
+        self.assertIn('Remote wordlist loaded: /tmp/opendoor-scan/remote-wordlist.tmp (12B)', messages)
+        info_mock.assert_not_called()
+
+    def test_prepare_remote_wordlist_skips_debug_logs_when_debug_disabled(self):
+        """Remote wordlist diagnostics should not be printed as debug when debug=0."""
+
+        workspace = MagicMock()
+        workspace.get.return_value = '/tmp/opendoor-scan/remote-wordlist.tmp'
+        result = MagicMock()
+        result.path = '/tmp/opendoor-scan/remote-wordlist.tmp'
+        result.bytes_downloaded = 12
+        result.status = 200
+        result.content_type = 'text/plain'
+        downloader = MagicMock()
+        downloader.download.return_value = result
+
+        with patch('src.controller.ScanTempWorkspace', return_value=workspace), \
+                patch('src.controller.RemoteWordlistDownloader', return_value=downloader), \
+                patch('src.controller.tpl.debug') as debug_mock, \
+                patch('src.controller.tpl.info') as info_mock:
+            Controller._prepare_remote_wordlist({
+                'scan': 'directories',
+                'wordlist': 'https://example.test/list.txt',
+                'debug': 0,
+            })
+
+        debug_mock.assert_not_called()
+        info_mock.assert_not_called()
+
+    def test_remote_wordlist_progress_renders_single_line_until_done(self):
+        """Remote wordlist progress should rotate in-place and persist only the final info row."""
+
+        Controller._remote_wordlist_progress_active = False
+        Controller._remote_wordlist_progress_last_length = 0
+
+        with patch('src.controller.output.writels') as writels_mock, \
+                patch('src.controller.output.mark_dynamic_line') as mark_mock, \
+                patch('src.controller.output.clear_dynamic_line') as clear_mock, \
+                patch('src.controller.tpl.info') as info_mock, \
+                patch('sys.stdout') as stdout_mock:
+            Controller._remote_wordlist_progress(50, total_bytes=100, done=False)
+            Controller._remote_wordlist_progress(100, total_bytes=100, done=True)
+
+        writels_mock.assert_called_once()
+        rendered = writels_mock.call_args.args[0]
+        self.assertIn('info:', rendered)
+        self.assertIn('Wordlist download [############------------] 50.0% 50B/100B', rendered)
+        mark_mock.assert_called_once_with(len(rendered))
+        stdout_mock.write.assert_called_once_with('\r{0}\r'.format(' ' * len(rendered)))
+        clear_mock.assert_called_once_with()
+        info_mock.assert_called_once_with(msg='Wordlist download [########################] 100.0% 100B/100B done')
+
+    def test_prepare_remote_wordlist_cleans_workspace_on_download_error(self):
+        """Failed remote downloads should not leave the managed workspace behind."""
+
+        workspace = MagicMock()
+        workspace.get.return_value = '/tmp/opendoor-scan/remote-wordlist.tmp'
+        downloader = MagicMock()
+        downloader.download.side_effect = RemoteWordlistError('too large')
+
+        with patch('src.controller.ScanTempWorkspace', return_value=workspace), \
+                patch('src.controller.RemoteWordlistDownloader', return_value=downloader), \
+                patch('src.controller.tpl.info'):
+            with self.assertRaises(BrowserError):
+                Controller._prepare_remote_wordlist({
+                    'scan': 'directories',
+                    'wordlist': 'https://example.test/huge.txt',
+                })
+
+        workspace.cleanup.assert_called_once_with()
+
+    def test_prepare_remote_wordlist_skips_local_wordlist(self):
+        """Local wordlists should not allocate remote download workspace."""
+
+        params = {'scan': 'directories', 'wordlist': '/tmp/local.txt'}
+
+        with patch('src.controller.ScanTempWorkspace') as workspace_mock:
+            updated, workspace = Controller._prepare_remote_wordlist(params)
+
+        self.assertIs(updated, params)
+        self.assertIsNone(workspace)
+        workspace_mock.assert_not_called()
+
+    def test_scan_action_prints_banner_after_remote_wordlist_resolution(self):
+        """Scan banner should receive params with the resolved remote wordlist path."""
+
+        browser_instance = MagicMock()
+        resolved = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'reports': 'txt',
+            'wordlist': 'https://example.test/list.txt',
+            'wordlist_resolved_path': '/tmp/opendoor-scan/remote-wordlist.tmp',
+        }
+
+        with patch.object(Controller, '_prepare_remote_wordlist', return_value=(resolved, None)) as prepare_mock, \
+                patch('src.controller.package.banner', return_value='banner') as banner_mock, \
+                patch('src.controller.tpl.message') as message_mock, \
+                patch('src.controller.browser', return_value=browser_instance), \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'host': 'example.com',
+                'scheme': 'http://',
+                'ssl': False,
+                'reports': 'txt',
+                'wordlist': 'https://example.test/list.txt',
+            }, show_banner=True)
+
+        prepare_mock.assert_called_once()
+        banner_mock.assert_called_once_with(resolved)
+        message_mock.assert_called_once_with('banner')
+        browser_instance.scan.assert_called_once_with()
+
+    def test_prepare_remote_wordlist_skips_already_resolved_remote_wordlist(self):
+        """Already resolved remote wordlists should not allocate a second workspace."""
+
+        params = {
+            'scan': 'directories',
+            'wordlist': 'https://example.test/list.txt',
+            'wordlist_resolved_path': '/tmp/opendoor-scan/remote-wordlist.tmp',
+        }
+
+        with patch('src.controller.ScanTempWorkspace') as workspace_mock:
+            updated, workspace = Controller._prepare_remote_wordlist(params)
+
+        self.assertIs(updated, params)
+        self.assertIsNone(workspace)
+        workspace_mock.assert_not_called()
+
+    def test_cleanup_remote_wordlist_workspace_ignores_missing_workspace(self):
+        """Cleanup helper should be a no-op when no remote workspace exists."""
+
+        Controller._cleanup_remote_wordlist_workspace(None)
+
+    def test_cleanup_remote_wordlist_workspace_delegates_to_workspace(self):
+        """Cleanup helper should remove remote wordlist workspace after scan."""
+
+        workspace = MagicMock()
+
+        Controller._cleanup_remote_wordlist_workspace(workspace)
+
+        workspace.cleanup.assert_called_once_with()
+
+    def test_remote_wordlist_progress_handles_invalid_values_without_total(self):
+        """Progress renderer should tolerate defensive invalid values and unknown totals."""
+
+        Controller._remote_wordlist_progress_active = False
+        Controller._remote_wordlist_progress_last_length = 0
+
+        with patch('src.controller.output.writels') as writels_mock, \
+                patch('src.controller.output.mark_dynamic_line') as mark_mock:
+            Controller._remote_wordlist_progress('bad', total_bytes='bad', done=False)
+
+        rendered = writels_mock.call_args.args[0]
+        self.assertIn('Wordlist download 0B', rendered)
+        mark_mock.assert_called_once_with(len(rendered))
+
+    def test_clear_remote_wordlist_progress_line_ignores_inactive_state(self):
+        """Clearing progress should not touch stdout when no dynamic row is active."""
+
+        Controller._remote_wordlist_progress_active = False
+        Controller._remote_wordlist_progress_last_length = 10
+
+        with patch('sys.stdout') as stdout_mock:
+            Controller._clear_remote_wordlist_progress_line()
+
+        stdout_mock.write.assert_not_called()
+
+    def test_clear_remote_wordlist_progress_line_tolerates_stdout_errors(self):
+        """Stdout cleanup errors should not break remote wordlist resolution."""
+
+        Controller._remote_wordlist_progress_active = True
+        Controller._remote_wordlist_progress_last_length = 10
+
+        with patch('sys.stdout') as stdout_mock:
+            stdout_mock.write.side_effect = ValueError('closed')
+            Controller._clear_remote_wordlist_progress_line()
+
+        self.assertFalse(Controller._remote_wordlist_progress_active)
+        self.assertEqual(Controller._remote_wordlist_progress_last_length, 0)
+
+    def test_clear_remote_wordlist_progress_line_resets_active_row_without_last_length(self):
+        """Progress cleanup should reset state even when there is no recorded line length."""
+
+        Controller._remote_wordlist_progress_active = True
+        Controller._remote_wordlist_progress_last_length = 0
+
+        with patch('sys.stdout') as stdout_mock:
+            Controller._clear_remote_wordlist_progress_line()
+
+        stdout_mock.write.assert_not_called()
+        self.assertFalse(Controller._remote_wordlist_progress_active)
+        self.assertEqual(Controller._remote_wordlist_progress_last_length, 0)
+
+    def test_remote_wordlist_progress_done_without_active_row(self):
+        """Final progress row should still be printed when no transient row was active."""
+
+        Controller._remote_wordlist_progress_active = False
+        Controller._remote_wordlist_progress_last_length = 0
+
+        with patch('src.controller.output.clear_dynamic_line') as clear_mock, \
+                patch('src.controller.tpl.info') as info_mock:
+            Controller._remote_wordlist_progress(5, total_bytes=None, done=True)
+
+        clear_mock.assert_called_once_with()
+        info_mock.assert_called_once_with(msg='Wordlist download 5B done')
 
 if __name__ == '__main__':
     unittest.main()

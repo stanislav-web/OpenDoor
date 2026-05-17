@@ -19589,8 +19589,6 @@ antichat shell v1.3.php
 Antichat Shell v1.3.php
 antichat shell.php
 Antichat Shell.php
-antichat socks5 server.php
-Antichat Socks5 Server.php
 antichat.php
 Antichat_Shell.php
 antichat_shell_v1.3.php
@@ -92883,7 +92881,7 @@ search_text.php
 search_tips
 search_tips.htm
 search_user _role.php
-search_user history.php
+search_user_history.php
 search_user.php
 search_user_role.php
 search_vacancy.php

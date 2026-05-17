@@ -29,6 +29,7 @@ from src.core import sys
 
 # noinspection PyPep8Naming
 from src.lib.tpl import Tpl as tpl
+from src.lib.reader import WordlistSource
 from .exceptions import PackageError
 
 
@@ -83,18 +84,19 @@ class Package(object):
         return CoreConfig.get("examples")
 
     @staticmethod
-    def banner():
+    def banner(params=None):
         """
         Build the application banner with fixed-width lines.
 
+        :param dict | None params: CLI params for active scan wordlist markers.
         :raise PackageError:
         :return: str
         """
 
         try:
             info_lines = [
-                "Directories: {0}".format(Package.__directories_count()),
-                "Subdomains: {0}".format(Package.__subdomains_count()),
+                Package.__wordlist_banner_line('Directories', 'directories', Package.__directories_count, params),
+                Package.__wordlist_banner_line('Subdomains', 'subdomains', Package.__subdomains_count, params),
                 "Browsers: {0}".format(Package.__browsers_count()),
                 "Proxies: {0}".format(Package.__proxies_count()),
                 Package.__license(),
@@ -104,6 +106,49 @@ class Package(object):
 
         except (FileSystemError, CoreSystemError, PackageError) as error:
             raise PackageError(error)
+
+    @staticmethod
+    def __wordlist_banner_line(label, list_name, default_counter, params=None):
+        """
+        Build a banner row for a scan wordlist.
+
+        :param str label: User-facing row label.
+        :param str list_name: Scan list name.
+        :param callable default_counter: Counter for bundled OpenDoor data.
+        :param dict | None params: CLI params.
+        :return: Banner row.
+        :rtype: str
+        """
+
+        source = WordlistSource.from_scan_params(params, list_name)
+        count = Package.__wordlist_count(source, default_counter)
+
+        return "{0}: {1} ({2})".format(label, count, source.marker)
+
+    @staticmethod
+    def __wordlist_count(source, default_counter):
+        """
+        Count a banner wordlist source without changing scan counters.
+
+        Bundled sources use the existing package counters. Local external
+        sources use the configured local file. Remote sources are counted only
+        after a future resolver provides a runtime local path.
+
+        :param WordlistSource source: Wordlist source metadata.
+        :param callable default_counter: Counter for bundled OpenDoor data.
+        :return: Line count.
+        :rtype: int
+        """
+
+        if source.is_bundled:
+            return default_counter()
+
+        runtime_path = source.runtime_path
+
+        if runtime_path is None:
+            return default_counter()
+
+        return filesystem.count_lines(runtime_path)
 
     @staticmethod
     def version():

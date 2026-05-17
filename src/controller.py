@@ -31,9 +31,13 @@ from src.lib import events
 from src.lib import package
 from src.lib import reporter
 from src.lib import tpl
+from src.lib.browser.workspace import ScanTempWorkspace
+from src.lib.reader import RemoteWordlistDownloader, RemoteWordlistError, WordlistSource
 from src.lib.diff import DiffReportComparator, DiffReportReader, DiffResultSerializer, DiffStdoutFormatter, DiffValidationError
 from src.lib.browser.session import SessionManager, SessionError
 from src.core.network import NetworkTransportManager, NetworkTransportError
+from src.core import helper
+from src.core import sys as output
 from .exceptions import SrcError
 
 
@@ -78,13 +82,13 @@ class Controller(object):
                 getattr(self, 'update_action')()
                 return 0
 
-            tpl.message(package.banner())
+            if 'host' in self.ioargs or 'targets' in self.ioargs or 'wizard' in self.ioargs or 'session_load' in self.ioargs:
+                return getattr(self, 'scan_action')(self.ioargs, show_banner=True) or 0
+
+            tpl.message(package.banner(self.ioargs))
 
             if 'diff' in self.ioargs:
                 return getattr(self, 'diff_action')(self.ioargs) or 0
-
-            if 'host' in self.ioargs or 'targets' in self.ioargs or 'wizard' in self.ioargs or 'session_load' in self.ioargs:
-                return getattr(self, 'scan_action')(self.ioargs) or 0
 
             for action in self.ioargs.keys():
                 if hasattr(self, '{0}_action'.format(action)) \
@@ -236,13 +240,16 @@ class Controller(object):
             raise SrcError(error)
 
     @classmethod
-    def scan_action(cls, params):
+    def scan_action(cls, params, show_banner=False):
         """
         URL scan action
         :param dict params: console input args
+        :param bool show_banner: print banner after runtime scan inputs are resolved
         :raise SrcError
         :return: int
         """
+
+        remote_workspace = None
 
         try:
             cli_fail_on_bucket = params.get('fail_on_bucket')
@@ -308,6 +315,11 @@ class Controller(object):
                 params = restored
                 tpl.info(msg='Loaded session checkpoint from {0}'.format(
                     snapshot.get('_loaded_from', restored['session_save'])))
+
+            params, remote_workspace = cls._prepare_remote_wordlist(params)
+
+            if show_banner is True:
+                tpl.message(package.banner(params))
 
             targets = cls._resolve_scan_targets(params)
 
@@ -425,6 +437,168 @@ class Controller(object):
         except (KeyboardInterrupt, SystemExit):
             tpl.cancel(key='abort')
             return 0
+        finally:
+            cls._cleanup_remote_wordlist_workspace(remote_workspace)
+
+    @classmethod
+    def _prepare_remote_wordlist(cls, params):
+        """Download remote HTTP(S) wordlist into a managed local file.
+
+        The original ``wordlist`` value is preserved for session/reproducibility.
+        The scan engine reads ``wordlist_resolved_path`` like any other local
+        external wordlist.
+
+        :param dict params: Effective scan params after wizard/session resolution.
+        :raise BrowserError: When the remote source cannot be resolved safely.
+        :return: Updated params and optional workspace.
+        :rtype: tuple[dict, ScanTempWorkspace | None]
+        """
+
+        source = WordlistSource.from_value(
+            params.get('wordlist'),
+            resolved_value=params.get('wordlist_resolved_path') or params.get('resolved_wordlist'),
+        )
+
+        if source.is_remote is not True:
+            return params, None
+
+        if source.runtime_path is not None:
+            return params, None
+
+        workspace = ScanTempWorkspace()
+        output_path = workspace.get('remote_wordlist')
+        downloader = RemoteWordlistDownloader(progress_callback=cls._remote_wordlist_progress)
+
+        try:
+            if cls._is_debug_enabled(params):
+                tpl.debug(msg='Downloading remote wordlist: {0}'.format(source.value))
+            result = downloader.download(source.value, output_path, timeout=params.get('timeout'))
+            updated = dict(params)
+            updated['wordlist_resolved_path'] = result.path
+            updated['remote_wordlist_bytes'] = result.bytes_downloaded
+            updated['remote_wordlist_status'] = result.status
+            updated['remote_wordlist_content_type'] = result.content_type
+            if cls._is_debug_enabled(params):
+                tpl.debug(
+                    msg='Remote wordlist loaded: {0} ({1})'.format(
+                        result.path,
+                        RemoteWordlistDownloader._format_bytes(result.bytes_downloaded),
+                    )
+                )
+            return updated, workspace
+        except RemoteWordlistError as error:
+            workspace.cleanup()
+            raise BrowserError(error)
+
+    @classmethod
+    def _cleanup_remote_wordlist_workspace(cls, workspace):
+        """Cleanup remote wordlist temporary workspace.
+
+        :param ScanTempWorkspace | None workspace: Workspace to cleanup.
+        :return: None
+        """
+
+        if workspace is None:
+            return
+
+        workspace.cleanup()
+
+    @classmethod
+    def _remote_wordlist_progress(cls, downloaded, total_bytes=None, done=False):
+        """Render remote wordlist download progress as a dynamic CLI row.
+
+        :param int downloaded: Downloaded bytes.
+        :param int | None total_bytes: Total bytes if known.
+        :param bool done: Whether download has finished.
+        :return: None
+        """
+
+        try:
+            downloaded = int(downloaded or 0)
+        except (TypeError, ValueError):
+            downloaded = 0
+
+        try:
+            total = int(total_bytes or 0)
+        except (TypeError, ValueError):
+            total = 0
+
+        if total > 0:
+            bar = cls._render_progress_bar(downloaded, total)
+            message = 'Wordlist download {0} {1}/{2}'.format(
+                bar,
+                RemoteWordlistDownloader._format_bytes(downloaded),
+                RemoteWordlistDownloader._format_bytes(total),
+            )
+        else:
+            message = 'Wordlist download {0}'.format(
+                RemoteWordlistDownloader._format_bytes(downloaded)
+            )
+
+        if done is True:
+            cls._clear_remote_wordlist_progress_line()
+            output.clear_dynamic_line()
+            tpl.info(msg=message + ' done')
+            return
+
+        rendered = cls._format_dynamic_info(message)
+        output.writels(rendered)
+        output.mark_dynamic_line(len(rendered))
+        cls._remote_wordlist_progress_active = True
+        cls._remote_wordlist_progress_last_length = len(rendered)
+
+    @classmethod
+    def _clear_remote_wordlist_progress_line(cls):
+        """Clear the transient remote-wordlist progress row before final output.
+
+        :return: None
+        """
+
+        import sys
+
+        if getattr(cls, '_remote_wordlist_progress_active', False) is not True:
+            return
+
+        last_length = getattr(cls, '_remote_wordlist_progress_last_length', 0)
+        if last_length > 0:
+            try:
+                sys.stdout.write('\r{0}\r'.format(' ' * last_length))
+                sys.stdout.flush()
+            except (AttributeError, OSError, ValueError):
+                pass
+
+        cls._remote_wordlist_progress_active = False
+        cls._remote_wordlist_progress_last_length = 0
+
+    @staticmethod
+    def _render_progress_bar(current, total, width=24):
+        """Render a simple ASCII progress bar.
+
+        :param int current: Current byte count.
+        :param int total: Total byte count.
+        :param int width: Bar width.
+        :return: Progress bar.
+        :rtype: str
+        """
+
+        safe_total = max(int(total or 1), 1)
+        safe_current = min(max(int(current or 0), 0), safe_total)
+        filled = int(round(width * safe_current / float(safe_total)))
+        empty = max(width - filled, 0)
+        return '[{0}{1}] {2}'.format('#' * filled, '-' * empty, helper.percent(safe_current, safe_total))
+
+    @staticmethod
+    def _format_dynamic_info(message):
+        """Format a dynamic info line like regular logger output.
+
+        :param str message: Message body.
+        :return: Rendered row.
+        :rtype: str
+        """
+
+        from datetime import datetime
+
+        return '[{0}] info:    {1}'.format(datetime.now().strftime('%H:%M:%S'), message)
 
     @classmethod
     def _scan_target(cls, target_params):

@@ -24,7 +24,7 @@ class TestScanTempWorkspace(unittest.TestCase):
             self.assertTrue(os.path.basename(workspace.path).startswith('opendoor-test-'))
 
             paths = workspace.paths
-            self.assertEqual(set(paths.keys()), {'tmplist', 'extensionlist', 'ignore_extensionlist'})
+            self.assertEqual(set(paths.keys()), {'tmplist', 'extensionlist', 'ignore_extensionlist', 'remote_wordlist'})
 
             for path in paths.values():
                 self.assertEqual(os.path.dirname(path), workspace.path)

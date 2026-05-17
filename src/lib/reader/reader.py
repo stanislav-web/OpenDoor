@@ -169,7 +169,7 @@ class Reader(object):
         """
 
         if True is self.__browser_config.get('is_external_wordlist'):
-            return self.__browser_config.get('wordlist')
+            return self.__browser_config.get('wordlist_resolved_path') or self.__browser_config.get('wordlist')
 
         return self.__config.get(target or self.__browser_config.get('list'))
 

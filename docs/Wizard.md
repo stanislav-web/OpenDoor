@@ -277,11 +277,19 @@ calibration_threshold = 0.85
 
 ## 📚 Wordlists and extensions
 
-Use a custom wordlist:
+Use a custom local wordlist:
 
 ```ini
 wordlist = ./wordlists/custom.txt
 ```
+
+Use a remote HTTP(S) wordlist:
+
+```ini
+wordlist = https://example.com/wordlists/custom.txt
+```
+
+Bundled OpenDoor dictionaries are treated as `internal`. Any value configured through `wordlist` is treated as `external`; remote files are downloaded before scan start and are limited to 500 MB.
 
 Shuffle scan order:
 

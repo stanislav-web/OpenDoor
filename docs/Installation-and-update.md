@@ -151,7 +151,7 @@ docker run --rm \
   --reports-dir reports
 ```
 
-Run with a custom wordlist:
+Run with a custom local wordlist:
 
 ```shell
 mkdir -p reports
@@ -165,6 +165,22 @@ docker run --rm \
   --reports json,html \
   --reports-dir reports
 ```
+
+Run with a remote HTTP(S) wordlist without mounting a wordlist directory:
+
+```shell
+mkdir -p reports
+
+docker run --rm \
+  -v "$PWD/reports:/work/reports" \
+  ghcr.io/stanislav-web/opendoor:latest \
+  --host https://example.com \
+  --wordlist https://example.com/wordlists/custom.txt \
+  --reports json,html \
+  --reports-dir reports
+```
+
+Remote wordlists are downloaded into OpenDoor's managed temporary workspace before scan start and are limited to 500 MB.
 
 Use a pinned release tag for reproducible runs:
 

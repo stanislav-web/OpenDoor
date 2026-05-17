@@ -428,7 +428,7 @@ class Options(object):
                 "argl": "--wordlist",
                 "default": None,
                 "action": "store",
-                "help": "Path to custom wordlist",
+                "help": "Path or HTTP(S) URL to custom wordlist",
                 "type": str
             },
             {

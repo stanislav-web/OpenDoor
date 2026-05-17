@@ -102,13 +102,27 @@ Use a domain name instead of a full path when scanning subdomains.
 
 ## 📚 Wordlists and extensions
 
-### Custom wordlist
+### Custom local wordlist
 
 ```shell
 opendoor --host https://example.com --wordlist ./wordlist.txt
 ```
 
-A custom wordlist is useful when testing a specific technology stack, application, CMS, or organization-specific naming pattern.
+A custom local wordlist is useful when testing a specific technology stack, application, CMS, or organization-specific naming pattern.
+
+OpenDoor marks bundled `data/*.dat` dictionaries as `internal` in the startup banner. Any wordlist passed with `--wordlist` is marked as `external`, including local files and remote HTTP(S) files.
+
+### Remote HTTP(S) wordlist
+
+```shell
+opendoor --host https://example.com --wordlist https://example.com/wordlists/admin.txt
+```
+
+Remote wordlists are downloaded before the scan starts, stored in the managed per-scan temporary workspace, and then processed with the same parsing, filtering, shuffling, extension handling, and scan counters as local wordlists. The scan itself does not use a separate remote-wordlist mode.
+
+Only `http://` and `https://` sources are supported. Remote wordlists are limited to 500 MB. If a remote wordlist is larger, download it separately, review it, and pass the local file path with `--wordlist`.
+
+OpenDoor shows a single-line download progress bar for remote wordlists. With `--debug`, it also prints the remote source URL and the temporary runtime file path after download. Wordlist contents are not printed.
 
 ### Shuffle scan list
 

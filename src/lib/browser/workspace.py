@@ -36,6 +36,7 @@ class ScanTempWorkspace(object):
         'tmplist': 'list.tmp',
         'extensionlist': 'extensionlist.tmp',
         'ignore_extensionlist': 'ignore_extensionlist.tmp',
+        'remote_wordlist': 'remote-wordlist.tmp',
     }
     _active = weakref.WeakSet()
     _active_lock = threading.RLock()

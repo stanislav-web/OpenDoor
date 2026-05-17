@@ -63,9 +63,19 @@ Use a domain name for subdomain discovery.
 
 ## 📚 Use a custom wordlist
 
+Use a local file:
+
 ```shell
 opendoor --host https://example.com --wordlist ./wordlist.txt
 ```
+
+Use a remote HTTP(S) wordlist:
+
+```shell
+opendoor --host https://example.com --wordlist https://example.com/wordlists/admin.txt
+```
+
+Remote wordlists are downloaded before the scan starts and then behave like local wordlists. They are marked as `external` in the startup banner and are limited to 500 MB.
 
 ---
 

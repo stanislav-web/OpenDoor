@@ -65,6 +65,51 @@ class TestPackage(unittest.TestCase):
         self.assertNotIn('scan through the open door', banner)
         self.assertFalse(banner.startswith('#'))
 
+    def test_banner_marks_bundled_wordlists_as_internal(self):
+        """Package.banner() should mark bundled OpenDoor wordlists as internal."""
+
+        with patch('src.lib.package.package.Package._Package__directories_count', return_value=10), \
+                patch('src.lib.package.package.Package._Package__subdomains_count', return_value=20), \
+                patch('src.lib.package.package.Package._Package__browsers_count', return_value=30), \
+                patch('src.lib.package.package.Package._Package__proxies_count', return_value=40), \
+                patch('src.lib.package.package.Package._Package__license', return_value='License: GPL'):
+            banner = Package.banner({'scan': 'directories'})
+
+        self.assertIn('Directories: 10 (internal)', banner)
+        self.assertIn('Subdomains: 20 (internal)', banner)
+        self.assertIn('Browsers: 30', banner)
+        self.assertIn('Proxies: 40', banner)
+
+    def test_banner_marks_active_local_wordlist_as_external(self):
+        """Package.banner() should mark the active custom wordlist row as external."""
+
+        with patch('src.lib.package.package.Package._Package__subdomains_count', return_value=20), \
+                patch('src.lib.package.package.Package._Package__browsers_count', return_value=30), \
+                patch('src.lib.package.package.Package._Package__proxies_count', return_value=40), \
+                patch('src.lib.package.package.Package._Package__license', return_value='License: GPL'), \
+                patch('src.lib.package.package.filesystem.count_lines', return_value=3):
+            banner = Package.banner({'scan': 'directories', 'wordlist': '/tmp/custom.txt'})
+
+        self.assertIn('Directories: 3 (external)', banner)
+        self.assertIn('Subdomains: 20 (internal)', banner)
+
+    def test_banner_counts_resolved_remote_wordlist_as_external(self):
+        """Package.banner() should count a resolved remote runtime wordlist as external."""
+
+        with patch('src.lib.package.package.Package._Package__directories_count', return_value=10), \
+                patch('src.lib.package.package.Package._Package__browsers_count', return_value=30), \
+                patch('src.lib.package.package.Package._Package__proxies_count', return_value=40), \
+                patch('src.lib.package.package.Package._Package__license', return_value='License: GPL'), \
+                patch('src.lib.package.package.filesystem.count_lines', return_value=5):
+            banner = Package.banner({
+                'scan': 'subdomains',
+                'wordlist': 'https://example.test/subdomains.txt',
+                'resolved_wordlist': '/tmp/opendoor/subdomains.txt',
+            })
+
+        self.assertIn('Directories: 10 (internal)', banner)
+        self.assertIn('Subdomains: 5 (external)', banner)
+
     def test_banner_wraps_internal_errors(self):
         """Package.banner() should wrap package/file errors into PackageError."""
 

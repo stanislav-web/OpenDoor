@@ -158,6 +158,7 @@ class Browser(Filter):
                 'use_ignore_extensions': self.__config.is_ignore_extension_filter,
                 'is_external_wordlist': self.__config.is_external_wordlist,
                 'wordlist': self.__config.wordlist,
+                'wordlist_resolved_path': getattr(self.__config, 'wordlist_resolved_path', None),
                 'is_standalone_proxy': self.__config.is_standalone_proxy,
                 'is_external_proxy_list': self.__config.is_external_proxy_list,
                 'prefix': self.__config.prefix,

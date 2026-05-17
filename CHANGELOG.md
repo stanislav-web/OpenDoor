@@ -3,6 +3,8 @@ CHANGELOG
 v5.16.1 (xx.05.2026)
 ---------------------------
 - (fix) reduced malware sniffer false positives by ignoring legitimate Google Tag Manager noscript hidden iframes while preserving detection for non-GTM hidden iframe injections.
+- (feature) added remote HTTP(S) wordlist support through `--wordlist`, a 500 MB safety limit, streaming download progress.
+- (dictionary) cleaned and normalized the internal directories list.
 
 v5.16.0 (17.05.2026)
 ---------------------------
