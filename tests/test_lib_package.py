@@ -93,6 +93,25 @@ class TestPackage(unittest.TestCase):
         self.assertIn('Directories: 3 (external)', banner)
         self.assertIn('Subdomains: 20 (internal)', banner)
 
+    def test_banner_marks_unresolved_remote_wordlist_as_external_without_counting_it(self):
+        """Package.banner() should not download or count unresolved remote wordlists."""
+
+        with patch('src.lib.package.package.Package._Package__subdomains_count', return_value=20), \
+                patch('src.lib.package.package.Package._Package__browsers_count', return_value=30), \
+                patch('src.lib.package.package.Package._Package__proxies_count', return_value=40), \
+                patch('src.lib.package.package.Package._Package__license', return_value='License: GPL'), \
+                patch('src.lib.package.package.Package._Package__directories_count') as directories_count_mock, \
+                patch('src.lib.package.package.filesystem.count_lines') as count_lines_mock:
+            banner = Package.banner({
+                'scan': 'directories',
+                'wordlist': 'https://example.test/directories.txt',
+            })
+
+        self.assertIn('Directories: remote (external)', banner)
+        self.assertIn('Subdomains: 20 (internal)', banner)
+        directories_count_mock.assert_not_called()
+        count_lines_mock.assert_not_called()
+
     def test_banner_counts_resolved_remote_wordlist_as_external(self):
         """Package.banner() should count a resolved remote runtime wordlist as external."""
 

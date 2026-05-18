@@ -935,6 +935,33 @@ class TestController(unittest.TestCase):
         self.assertEqual(passed_params['transport_bin'], '/usr/bin/openvpn')
         self.assertEqual(passed_params['openvpn_auth'], '/tmp/auth.txt')
 
+    def test_scan_action_should_preserve_header_cli_overrides_for_wizard(self):
+        """Controller.scan_action() should preserve explicit --header overrides for wizard flow."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+
+        wizard_params = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'reports': 'std',
+            'header': ['X-Wizard: old'],
+        }
+
+        with patch('src.controller.package.wizard', return_value=wizard_params), \
+                patch('src.controller.browser', return_value=browser_instance) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'wizard': 'opendoor.conf',
+                'header': ['X-CLI: yes'],
+            })
+
+        passed_params = browser_mock.call_args[0][0]
+        self.assertEqual(passed_params['header'], ['X-CLI: yes'])
+
     def test_scan_action_should_preserve_proxy_list_cli_overrides_for_wizard(self):
         """Controller.scan_action() should preserve explicit proxy-list CLI overrides for wizard flow."""
 
@@ -1074,6 +1101,36 @@ class TestController(unittest.TestCase):
         self.assertIs(passed_params.get('proxy_pool'), True)
         self.assertIsNone(passed_params.get('proxy_list'))
         self.assertIsNone(passed_params.get('proxy_rotation'))
+
+    def test_scan_action_should_preserve_header_cli_overrides_for_session_load(self):
+        """Controller.scan_action() should preserve explicit --header overrides for session resume."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+
+        snapshot = {
+            'params': {
+                'host': 'example.com',
+                'scheme': 'http://',
+                'ssl': False,
+                'port': 80,
+                'reports': 'std',
+                'header': ['X-Session: old'],
+            }
+        }
+
+        with patch('src.controller.SessionManager.load', return_value=snapshot), \
+                patch('src.controller.browser', return_value=browser_instance) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'session_load': '/tmp/session.json',
+                'header': ['X-Resume: yes'],
+            })
+
+        passed_params = browser_mock.call_args[0][0]
+        self.assertEqual(passed_params['header'], ['X-Resume: yes'])
 
     def test_scan_action_should_preserve_proxy_list_cli_overrides_for_session_load(self):
         """Controller.scan_action() should preserve explicit proxy-list CLI overrides for session resume."""
@@ -1417,6 +1474,33 @@ class TestController(unittest.TestCase):
         self.assertEqual(updated['remote_wordlist_status'], 200)
         self.assertEqual(updated['remote_wordlist_content_type'], 'text/plain')
 
+    def test_prepare_remote_wordlist_logs_loaded_entry_count(self):
+        """Remote --wordlist should log effective loaded entry count after download."""
+
+        workspace = MagicMock()
+        workspace.get.return_value = '/tmp/opendoor-scan/remote-wordlist.tmp'
+        result = MagicMock()
+        result.path = '/tmp/opendoor-scan/remote-wordlist.tmp'
+        result.bytes_downloaded = 12
+        result.status = 200
+        result.content_type = 'text/plain'
+        downloader = MagicMock()
+        downloader.download.return_value = result
+
+        with patch('src.controller.ScanTempWorkspace', return_value=workspace), \
+                patch('src.controller.RemoteWordlistDownloader', return_value=downloader), \
+                patch('src.controller.filesystem.count_lines', return_value=3), \
+                patch('src.controller.tpl.info') as info_mock:
+            Controller._prepare_remote_wordlist({
+                'scan': 'directories',
+                'wordlist': 'https://example.test/list.txt',
+            })
+
+        self.assertIn(
+            unittest.mock.call(msg='Wordlist entries loaded: 3 (external)'),
+            info_mock.call_args_list,
+        )
+
     def test_prepare_remote_wordlist_debug_logs_are_debug_only(self):
         """Remote wordlist source/path diagnostics should only appear when debug is enabled."""
 
@@ -1526,9 +1610,10 @@ class TestController(unittest.TestCase):
         self.assertIsNone(workspace)
         workspace_mock.assert_not_called()
 
-    def test_scan_action_prints_banner_after_remote_wordlist_resolution(self):
-        """Scan banner should receive params with the resolved remote wordlist path."""
+    def test_scan_action_prints_banner_before_remote_wordlist_resolution(self):
+        """Scan banner should be printed before remote wordlist download progress."""
 
+        events = []
         browser_instance = MagicMock()
         resolved = {
             'host': 'example.com',
@@ -1538,24 +1623,34 @@ class TestController(unittest.TestCase):
             'wordlist': 'https://example.test/list.txt',
             'wordlist_resolved_path': '/tmp/opendoor-scan/remote-wordlist.tmp',
         }
+        params = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'reports': 'txt',
+            'wordlist': 'https://example.test/list.txt',
+        }
 
-        with patch.object(Controller, '_prepare_remote_wordlist', return_value=(resolved, None)) as prepare_mock, \
-                patch('src.controller.package.banner', return_value='banner') as banner_mock, \
+        def render_banner(received):
+            events.append(('banner', dict(received)))
+            return 'banner'
+
+        def prepare_wordlist(received):
+            events.append(('prepare', dict(received)))
+            return resolved, None
+
+        with patch.object(Controller, '_prepare_remote_wordlist', side_effect=prepare_wordlist) as prepare_mock, \
+                patch('src.controller.package.banner', side_effect=render_banner) as banner_mock, \
                 patch('src.controller.tpl.message') as message_mock, \
                 patch('src.controller.browser', return_value=browser_instance), \
                 patch('src.controller.reporter.is_reported', return_value=False), \
                 patch('src.controller.reporter.default', 'std'):
-            Controller.scan_action({
-                'host': 'example.com',
-                'scheme': 'http://',
-                'ssl': False,
-                'reports': 'txt',
-                'wordlist': 'https://example.test/list.txt',
-            }, show_banner=True)
+            Controller.scan_action(params, show_banner=True)
 
         prepare_mock.assert_called_once()
-        banner_mock.assert_called_once_with(resolved)
+        banner_mock.assert_called_once_with(params)
         message_mock.assert_called_once_with('banner')
+        self.assertEqual([name for name, _payload in events], ['banner', 'prepare'])
         browser_instance.scan.assert_called_once_with()
 
     def test_prepare_remote_wordlist_skips_already_resolved_remote_wordlist(self):

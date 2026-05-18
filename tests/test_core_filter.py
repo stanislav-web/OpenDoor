@@ -488,6 +488,50 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(actual['header'], ['X-Test: 1'])
         self.assertNotIn('port', actual['targets'][0])
 
+    def test_filter_should_normalize_custom_request_headers(self):
+        """Filter.filter() should normalize custom --header values before runtime."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'header': [' X-Test :  1 ', 'Authorization: Bearer test'],
+        })
+
+        self.assertEqual(actual['header'], ['X-Test: 1', 'Authorization: Bearer test'])
+
+    def test_filter_should_reject_malformed_custom_request_header(self):
+        """Filter.filter() should fail early when --header has no separator."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'header': ['Broken']})
+
+    def test_filter_should_reject_invalid_custom_request_header_name(self):
+        """Filter.filter() should fail early when --header has an invalid name."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'header': ['Bad Header: 1']})
+
+    def test_filter_should_reject_custom_request_header_injection(self):
+        """Filter.filter() should reject CR/LF injection in --header."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'header': ['X-Test: 1\r\nX-Evil: yes']})
+
+    def test_filter_should_reject_empty_custom_request_header_value(self):
+        """Filter.filter() should fail early when --header value is empty."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'header': ['X-Test: ']})
+
+    def test_filter_should_validate_custom_request_header_with_session_load(self):
+        """Filter.filter() should preserve validated --header values for session resume."""
+
+        actual = Filter.filter({
+            'session_load': '/tmp/session.json',
+            'header': [' X-Resume : yes '],
+        })
+
+        self.assertEqual(actual['header'], ['X-Resume: yes'])
+
     def test_filter_should_merge_raw_request_headers_and_cli_overrides(self):
         """Filter.filter() should merge raw-request values with CLI overrides."""
 

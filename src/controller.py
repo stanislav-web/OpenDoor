@@ -36,6 +36,8 @@ from src.lib.reader import RemoteWordlistDownloader, RemoteWordlistError, Wordli
 from src.lib.diff import DiffReportComparator, DiffReportReader, DiffResultSerializer, DiffStdoutFormatter, DiffValidationError
 from src.lib.browser.session import SessionManager, SessionError
 from src.core.network import NetworkTransportManager, NetworkTransportError
+from src.core import FileSystemError
+from src.core import filesystem
 from src.core import helper
 from src.core import sys as output
 from .exceptions import SrcError
@@ -259,6 +261,7 @@ class Controller(object):
             cli_response_filter_overrides = cls._collect_response_filter_cli_overrides(params)
             cli_transport_overrides = cls._collect_transport_cli_overrides(params)
             cli_proxy_overrides = cls._collect_proxy_cli_overrides(params)
+            cli_header_overrides = cls._collect_header_cli_overrides(params)
             cli_tls_legacy = params.get('tls_legacy')
 
             if 'wizard' in params:
@@ -283,6 +286,7 @@ class Controller(object):
                 params.update(cli_response_filter_overrides)
                 params.update(cli_transport_overrides)
                 params.update(cli_proxy_overrides)
+                params.update(cli_header_overrides)
 
             if params.get('session_load'):
                 snapshot = SessionManager.load(params.get('session_load'))
@@ -314,15 +318,16 @@ class Controller(object):
                 restored.update(cli_response_filter_overrides)
                 restored.update(cli_transport_overrides)
                 restored.update(cli_proxy_overrides)
+                restored.update(cli_header_overrides)
 
                 params = restored
                 tpl.info(msg='Loaded session checkpoint from {0}'.format(
                     snapshot.get('_loaded_from', restored['session_save'])))
 
-            params, remote_workspace = cls._prepare_remote_wordlist(params)
-
             if show_banner is True:
                 tpl.message(package.banner(params))
+
+            params, remote_workspace = cls._prepare_remote_wordlist(params)
 
             targets = cls._resolve_scan_targets(params)
 
@@ -481,6 +486,7 @@ class Controller(object):
             updated['remote_wordlist_bytes'] = result.bytes_downloaded
             updated['remote_wordlist_status'] = result.status
             updated['remote_wordlist_content_type'] = result.content_type
+            cls._log_remote_wordlist_loaded(result.path)
             if cls._is_debug_enabled(params):
                 tpl.debug(
                     msg='Remote wordlist loaded: {0} ({1})'.format(
@@ -492,6 +498,21 @@ class Controller(object):
         except RemoteWordlistError as error:
             workspace.cleanup()
             raise BrowserError(error)
+
+    @classmethod
+    def _log_remote_wordlist_loaded(cls, path):
+        """Log the effective remote wordlist entry count after download.
+
+        :param str path: Downloaded runtime wordlist path.
+        :return: None
+        """
+
+        try:
+            entries = filesystem.count_lines(path)
+        except (FileSystemError, OSError, TypeError, ValueError):
+            return
+
+        tpl.info(msg='Wordlist entries loaded: {0} (external)'.format(entries))
 
     @classmethod
     def _cleanup_remote_wordlist_workspace(cls, workspace):
@@ -714,6 +735,19 @@ class Controller(object):
                 overrides['transport_rotate'] = params.get('transport_rotate')
 
         return overrides
+
+    @staticmethod
+    def _collect_header_cli_overrides(params):
+        """Collect explicit request-header options for wizard/session overrides.
+
+        :param dict params: filtered CLI params
+        :return: dict
+        """
+
+        if params.get('header') is None:
+            return {}
+
+        return {'header': params.get('header')}
 
     @staticmethod
     def _collect_proxy_cli_overrides(params):

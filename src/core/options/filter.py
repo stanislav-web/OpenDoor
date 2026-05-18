@@ -162,6 +162,9 @@ class Filter(object):
             if args.get('debug') is not None:
                 filtered['debug'] = Filter.debug_level(args.get('debug'), key='--debug')
 
+            if args.get('header') is not None:
+                filtered['header'] = Filter.request_headers(args.get('header'), key='--header')
+
             if args.get('tls_legacy') is True:
                 filtered['tls_legacy'] = True
 
@@ -240,6 +243,8 @@ class Filter(object):
                 continue
             elif key in ['session_save']:
                 filtered[key] = Filter.session_file(value, key='--{0}'.format(key.replace('_', '-')))
+            elif key in ['header']:
+                filtered[key] = Filter.request_headers(value, key='--header')
             elif key in ['session_autosave_sec', 'session_autosave_items']:
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
             elif 'proxy' == key:
@@ -853,6 +858,58 @@ class Filter(object):
         if choose not in ['directories', 'subdomains']:
             choose = 'directories'
         return choose
+
+    @staticmethod
+    def request_headers(value, key='--header'):
+        """Validate and normalize one or more custom HTTP request headers.
+
+        :param value: Header value or list of header values in "Name: value" format
+        :param str key: CLI option name
+        :raise FilterError:
+        :return: normalized header list
+        :rtype: list[str]
+        """
+
+        if value is None:
+            return []
+
+        raw_headers = value if isinstance(value, list) else [value]
+        headers = []
+
+        for raw_header in raw_headers:
+            header = str(raw_header).strip()
+
+            if not header:
+                raise FilterError('{0} requires a non-empty HTTP header in "Name: value" format'.format(key))
+
+            if '\r' in header or '\n' in header:
+                raise FilterError('"{0}" is invalid value in {1}. Header injection is not allowed'.format(
+                    raw_header,
+                    key,
+                ))
+
+            if ':' not in header:
+                raise FilterError('"{0}" is invalid value in {1}. Use "Name: value" format'.format(
+                    raw_header,
+                    key,
+                ))
+
+            header_name, header_value = header.split(':', 1)
+            header_name = header_name.strip()
+            header_value = header_value.strip()
+
+            if not header_name or not Filter.HEADER_NAME_REGEX.match(header_name):
+                raise FilterError('"{0}" is invalid header name in {1}'.format(header_name, key))
+
+            if not header_value:
+                raise FilterError('"{0}" is invalid value in {1}. Header value cannot be empty'.format(
+                    raw_header,
+                    key,
+                ))
+
+            headers.append('{0}: {1}'.format(header_name, header_value))
+
+        return headers
 
     @staticmethod
     def header_bypass_profile(value, key='--header-bypass-profile'):

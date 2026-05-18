@@ -131,8 +131,8 @@ class Package(object):
         Count a banner wordlist source without changing scan counters.
 
         Bundled sources use the existing package counters. Local external
-        sources use the configured local file. Remote sources are counted only
-        after a future resolver provides a runtime local path.
+        sources use the configured local file. Unresolved remote sources are shown as remote until the download resolver
+        provides a runtime local path that can be counted.
 
         :param WordlistSource source: Wordlist source metadata.
         :param callable default_counter: Counter for bundled OpenDoor data.
@@ -146,7 +146,7 @@ class Package(object):
         runtime_path = source.runtime_path
 
         if runtime_path is None:
-            return default_counter()
+            return 'remote'
 
         return filesystem.count_lines(runtime_path)
 
