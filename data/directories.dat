@@ -18477,8 +18477,7 @@ ajax_main.php
 ajax_nick.php
 ajax_nickauto.php
 ajax_photos.php
-ajax_php command shell.php
-Ajax_PHP Command Shell.php
+ajax_php_command_shell.php
 Ajax_PHP_Command_Shell.php
 ajax_quick_view.php
 ajax_quote.php
@@ -33740,7 +33739,11 @@ comm.php
 comm_links.php
 Command
 command
+command.js
 command.php
+command.py
+command.txt
+command_shell.php
 commandclasses
 commande
 commande.asp
@@ -61059,7 +61062,6 @@ itBO
 itc
 ITDynamic.php
 item
-item 4.pdf
 item-based-copy.php
 item-based.php
 item-db.htm
@@ -73576,9 +73578,6 @@ mysql
 MYSQL
 MySQL
 mysql4.php
-mysql interface v1.0.php
-Mysql interface v1.0.php
-mysql tuoku.php
 mysql-admin
 mysql-admin.php
 mysql-admin/index.php
@@ -73642,6 +73641,7 @@ mysql_connect-hubspotAPI.php
 mysql_connect.inc.php
 mysql_connect.php
 mysql_debug.sql
+mysql_interface.php
 mysql_pulsechck
 mysql_shell.php
 mysql_structure.php
@@ -75852,10 +75852,9 @@ nsearch
 nsearch.aspx
 nsearchadv.aspx
 nsf
-nshell (1).php
-Nshell (1).php
 nshell-encoded.php
 nshell.php
+Nshell.php
 nsis.php
 nslookup.txt
 nsort.asp
@@ -75890,9 +75889,8 @@ ntadmin.php
 ntaps.php
 ntbbs.exe
 ntc
-ntdaddy v1.9.php
-NTDaddy v1.9.php
 ntdaddy.asp
+ntdaddy_v1.9.php
 NTDaddy_v1.9.php
 ntlm_sasl_client.php
 ntlmaps
@@ -81388,8 +81386,6 @@ php121
 php168
 php backdoor connect.pl.php
 PHP Backdoor Connect.pl.php
-php shell.php
-PHP Shell.php
 php-address
 php-admin
 php-agtc
@@ -81533,6 +81529,7 @@ php_news
 php_paypal
 php_pfpro.php
 php_scripts
+php_shell.php
 PHP_Shell.php
 php_speedy
 php_test
@@ -89237,8 +89234,8 @@ relogin.php
 relogin.phtml
 relpage
 rem
-rem view.php
-Rem View.php
+rem_view.php
+Rem_View.php
 remano_xanario.php
 remark
 remark.aspx
@@ -92871,8 +92868,8 @@ search_text.php
 search_tips
 search_tips.htm
 search_user _role.php
-search_user_history.php
 search_user.php
+search_user_history.php
 search_user_role.php
 search_vacancy.php
 search_xml.php
@@ -93121,18 +93118,6 @@ secring.pgp
 secring.skr
 sect_inc.php
 section
-section 4.pdf
-section 6.pdf
-section 8.pdf
-section 12.pdf
-section 13.pdf
-section 15.pdf
-section 16.pdf
-section 17.pdf
-section 20.pdf
-section 21.pdf
-section 22.pdf
-section 23.pdf
 section-16.jsf
 section-detail
 section.asp

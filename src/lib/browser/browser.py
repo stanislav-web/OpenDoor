@@ -2792,15 +2792,80 @@ class Browser(Filter):
         self.__seen_scan_urls.add(key)
         return True
 
+    @staticmethod
+    def __safe_progress_int(value, default=0):
+        """Return an integer progress value without coercing mock objects."""
+
+        if isinstance(value, bool):
+            return int(value)
+
+        if isinstance(value, int):
+            return value
+
+        if isinstance(value, float):
+            return int(value)
+
+        if isinstance(value, str):
+            try:
+                return int(value.strip())
+            except ValueError:
+                return default
+
+        return default
+
+    def __progress_total_items(self):
+        """Return the best available scan total for progress output."""
+
+        reader_total = self.__safe_progress_int(getattr(getattr(self, '_Browser__reader', None), 'total_lines', 0))
+        if reader_total > 0:
+            return reader_total
+
+        return self.__safe_progress_int(getattr(getattr(self, '_Browser__pool', None), 'total_items_size', 0))
+
+    def __current_scan_progress_items(self):
+        """Return the best available current scan position for persistent warnings."""
+
+        self.__ensure_session_runtime_state()
+
+        pool = getattr(self, '_Browser__pool', None)
+        offset = self.__safe_progress_int(getattr(self, '_Browser__processed_offset', 0))
+        streamed = self.__safe_progress_int(getattr(self, '_Browser__streamed_items_count', 0))
+        candidates = [streamed]
+
+        for attr in ('items_size', 'completed_size', 'submitted_size'):
+            value = self.__safe_progress_int(getattr(pool, attr, 0))
+            candidates.append(offset + value)
+
+        total = self.__progress_total_items()
+        current = max(candidates)
+        if total > 0:
+            current = min(current, total)
+
+        return max(current, 0)
+
+    def __mark_streamed_scan_item(self):
+        """Track dictionary items consumed by the streaming loader, including ignored paths."""
+
+        self.__ensure_session_runtime_state()
+        total = self.__progress_total_items()
+        current = self.__safe_progress_int(getattr(self, '_Browser__streamed_items_count', 0)) + 1
+        if total > 0:
+            current = min(current, total)
+
+        self.__streamed_items_count = current
+
     def __emit_ignored_item_warning(self, url):
         """Emit an ignored-item warning without gluing it to rotating progress."""
+
+        total = self.__progress_total_items()
+        width = len(str(abs(total))) if total else 1
 
         with self.__get_progress_output_lock():
             self.__finish_filtered_progress_line()
             tpl.warning(
                 key='ignored_item',
-                current='{0:0{l}d}'.format(0, l=len(str(abs(self.__reader.total_lines)))),
-                total=self.__reader.total_lines,
+                current='{0:0{l}d}'.format(self.__current_scan_progress_items(), l=width),
+                total=total,
                 item=helper.parse_url(url).path
             )
 
@@ -2823,6 +2888,8 @@ class Browser(Filter):
             for url in urllist:
                 if self.__deduplicate_scan_url(url) is not True:
                     continue
+
+                self.__mark_streamed_scan_item()
 
                 if False is self.__is_ignored(url):
                     if self.__register_pending_request(url, 0):
@@ -2861,6 +2928,8 @@ class Browser(Filter):
 
                 if self.__deduplicate_scan_url(url) is not True:
                     continue
+
+                self.__mark_streamed_scan_item()
 
                 if False is self.__is_ignored(url):
                     if self.__register_pending_request(url, 0):
@@ -3462,6 +3531,9 @@ class Browser(Filter):
 
         if not hasattr(self, '_Browser__transport_failure_summary_emitted'):
             self.__transport_failure_summary_emitted = False
+
+        if not hasattr(self, '_Browser__streamed_items_count'):
+            self.__streamed_items_count = 0
 
         if not hasattr(self, '_Browser__waf_safe_active'):
             self.__waf_safe_active = False

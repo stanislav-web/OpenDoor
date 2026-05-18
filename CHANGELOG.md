@@ -4,9 +4,10 @@ v5.16.1 (xx.05.2026)
 ---------------------------
 - (fix) reduced malware sniffer false positives by ignoring legitimate Google Tag Manager noscript hidden iframes while preserving detection for non-GTM hidden iframe injections.
 - (fix) kept scans running when individual paths trigger transport-level no-response failures while the target remains reachable, and summarized skipped path-specific transport failures without noisy per-path warnings.
+- (fix) ignored-path progress output so `skip [...]` shows the current scan position instead of `00000`.
 - (enhancement) added remote HTTP(S) wordlist support through `--wordlist`, a 500 MB safety limit, streaming download progress.
 - (enhancement) added `--proxy-rotation random|sequential` to control existing `--proxy-list` rotation, preserving random rotation as the default and adding deterministic file-order sequential mode.
-- (enhancement) added DotCMS fingerprinting.
+- (enhancement) added DotCMS detection to `--fingerprint`.
 - (enhancement) added configurable `--retries-fail-streak` to control aborts after consecutive exhausted retry paths (default 10).
 - (dictionary) cleaned and normalized internal directories list.
 

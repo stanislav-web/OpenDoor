@@ -204,6 +204,63 @@ class TestBrowserFilteredProgress(unittest.TestCase):
         self.assertIn('accounts/sellers\n', output)
         self.assertFalse(getattr(browser, '_Browser__filtered_progress_active'))
 
+    def test_ignored_item_warning_should_use_current_scan_progress(self):
+        """Ignored-item warnings should render the current scan counter, not zero."""
+
+        browser = self.make_browser(items_size=47083, total_items_size=95052)
+        browser._Browser__reader = SimpleNamespace(total_lines=95052)
+        stdout = io.StringIO()
+
+        for handler in list(Logger.log('warning').handlers):
+            Logger.log('warning').removeHandler(handler)
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=220)):
+                browser._Browser__emit_ignored_item_warning('https://kipkomplekt.ru/error.php')
+
+        output = stdout.getvalue()
+
+        self.assertIn('skip [47083/95052] - Ignored /error.php', output)
+        self.assertNotIn('skip [00000/95052]', output)
+
+    def test_add_urls_should_count_streamed_ignored_items_in_progress(self):
+        """Ignored dictionary entries should advance the displayed scan position."""
+
+        browser = self.make_browser(items_size=0, total_items_size=3)
+        browser._Browser__reader = SimpleNamespace(
+            total_lines=3,
+            get_ignored_list=lambda: ['index.php'],
+        )
+        browser._Browser__deduplicate_scan_url = lambda url: True
+        browser._Browser__register_pending_request = lambda url, depth: True
+        browser._Browser__catch_report_data = lambda *args, **kwargs: None
+
+        browser._Browser__pool = SimpleNamespace(
+            items_size=0,
+            completed_size=0,
+            submitted_size=0,
+            total_items_size=3,
+            add=lambda *_args, **_kwargs: None,
+            join=lambda: None,
+        )
+        stdout = io.StringIO()
+
+        for handler in list(Logger.log('warning').handlers):
+            Logger.log('warning').removeHandler(handler)
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=220)):
+                browser._add_urls([
+                    'https://localhost/admin',
+                    'https://localhost/index.php',
+                    'https://localhost/health',
+                ])
+
+        output = stdout.getvalue()
+
+        self.assertIn('skip [2/3] - Ignored /index.php', output)
+        self.assertNotIn('skip [0/3]', output)
+
     def test_waf_safe_mode_warning_should_clear_filtered_progress_first(self):
         """WAF activation warning should not glue to a rotating calibration line."""
 
