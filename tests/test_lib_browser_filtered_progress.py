@@ -61,7 +61,7 @@ class TestBrowserFilteredProgress(unittest.TestCase):
 
         self.assertTrue(result)
         self.assertTrue(output.startswith('\r'))
-        self.assertIn('1.0% [000001/100] - calibrated - 200 - 158KB', output)
+        self.assertIn('1.0% [001/100] - calibrated - 200 - 158KB', output)
         self.assertIn('score=0.91', output)
         self.assertIn('https://example.com/missing', output)
         self.assertNotIn('soft-200-shape', output)
@@ -335,7 +335,7 @@ class TestBrowserFilteredProgress(unittest.TestCase):
         output = stdout.getvalue()
         last_visual_line = output.split('\n')[-1].split('\r')[-1]
 
-        self.assertIn('[000074/95067]', last_visual_line)
+        self.assertIn('[00074/95067]', last_visual_line)
         self.assertIn('https://localhost/next-page.php', last_visual_line)
         self.assertNotIn('https://localhost/pers.csp', last_visual_line)
         self.assertTrue(getattr(browser, '_Browser__filtered_progress_active'))
@@ -360,9 +360,30 @@ class TestBrowserFilteredProgress(unittest.TestCase):
         rendered = output.split('\r')[-1]
 
         self.assertTrue(result)
-        self.assertIn('[000074/95067]', rendered)
+        self.assertIn('[00074/95067]', rendered)
         self.assertIn('https://localhost/CMS.h', rendered)
         self.assertNotIn('https://localhost/ ', rendered)
+
+    def test_emit_filtered_progress_should_use_total_width_for_large_wordlists(self):
+        """Filtered progress should align with regular finding progress width."""
+
+        browser = self.make_browser(items_size=2048, total_items_size=94736)
+        stdout = io.StringIO()
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=220)):
+                result = browser._Browser__emit_filtered_progress(
+                    'calibrated',
+                    ('success', 'https://localhost/dashboard/sso', '41KB', '302'),
+                    {'calibration_score': 1.0}
+                )
+
+        output = stdout.getvalue()
+        rendered = output.split('\r')[-1]
+
+        self.assertTrue(result)
+        self.assertIn('[02048/94736]', rendered)
+        self.assertNotIn('[002048/94736]', rendered)
 
     def test_emit_filtered_progress_should_keep_rendered_url_without_request_url(self):
         """Direct helper usage should remain backward-compatible without request URL."""
@@ -382,7 +403,7 @@ class TestBrowserFilteredProgress(unittest.TestCase):
         rendered = output.split('\r')[-1]
 
         self.assertTrue(result)
-        self.assertIn('[000074/95067]', rendered)
+        self.assertIn('[00074/95067]', rendered)
         self.assertIn('https://localhost/', rendered)
 
     def test_clear_filtered_progress_should_clear_active_rotating_line(self):

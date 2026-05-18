@@ -1929,8 +1929,13 @@ class Browser(Filter):
         import sys
         from datetime import datetime
 
-        items_size = getattr(self.__pool, 'items_size', 0)
-        total_size = getattr(self.__pool, 'total_items_size', 0)
+        items_size = int(getattr(self.__pool, 'items_size', 0) or 0)
+        total_size = int(getattr(self.__pool, 'total_items_size', 0) or 0)
+        progress_width = max(
+            1,
+            len(str(abs(items_size))),
+            len(str(abs(total_size))),
+        )
 
         percent = 0.0
         if total_size:
@@ -1948,10 +1953,11 @@ class Browser(Filter):
                     '{0:.2f}'.format(float(score)) if isinstance(score, (int, float)) else score
                 )
 
-        message = '[{0}] info:    {1:.1f}% [{2:06d}/{3}] - {4} - {5} - {6}{7} {8}'.format(
+        message = '[{0}] info:    {1:.1f}% [{2:0{3}d}/{4}] - {5} - {6} - {7}{8} {9}'.format(
             datetime.now().strftime('%H:%M:%S'),
             percent,
             items_size,
+            progress_width,
             total_size,
             bucket,
             response_code,
