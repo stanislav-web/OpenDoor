@@ -108,6 +108,7 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 - Craft CMS
 - Directus
 - Discourse
+- DotCMS
 - Drupal
 - Ghost
 - GravCMS

@@ -5643,8 +5643,6 @@
 .github/workflowsmaven.yml
 .github/workflowsnodejs.yml
 .github/workflowspublish.yml
-.githubISSUE_TEMPLATE.md
-.githubPULL_REQUEST_TEMPLATE.md
 .gitignore
 .gitignore.bak
 .gitignore.orig
@@ -11497,7 +11495,6 @@ admin.html
 ADMIN.html
 Admin.html
 admin.html.php
-admin.html?s=admin/api.Update/get/encode/34392q302x2r1b37382p382x2r1b1a1a1b1a1a1b1a1a1b1a1a1b1a1a1b1a1a1b1a1a1b1a1a1b1a1a1b2t382r1b342p37373b2s
 admin.inc
 admin.inc.asp
 admin.inc.php
@@ -61082,7 +61079,6 @@ item.asp?sub_id=
 item.aspx
 item.html
 item.php
-item/wpa-storefront-the-ultimate-wpecommerce-theme/discussion/61891?page=
 item_add2.php
 item_add.php
 item_book.asp?CAT=
@@ -62254,7 +62250,7 @@ js/fckeditor/editor/filemanager/browser/defaultbrowser.html
 js/fckeditor/editor/filemanager/connectors
 js/fckeditor/editor/images/anchor
 js/fckeditor/editorfckdialog.html
-js/prepod.js
+js/preprod.js
 js/prod.js
 js/qa.js
 js/routing
@@ -65759,8 +65755,6 @@ loader.php
 loader.swf
 loader_frame.html
 loaders
-loaderz web shell.php
-Loaderz WEB Shell.php
 Loaderz_WEB_Shell.php
 loadfile.aspx
 loading
@@ -106935,18 +106929,6 @@ update2.php
 update012.php
 update021.php
 update025.php
-Update and rename simple-backdoor.php to simple-php-backdoor.php
-Update bypass529.php
-Update k2ll33d.php
-Update php-include-w-shell.php
-Update php-reverse-shell.php
-Update pws.php
-Update qsd-php-backdoor.php
-Update rootshell.php
-Update ru24_post_sh.php
-Update s72 Shell v1.1 Coding.php
-Update safe0ver.php
-Update simattacker.php
 update-core.php
 update-crawler-site.php
 update-links.php
