@@ -95,6 +95,29 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
         self.assert_detection('SQLSTATE[42S02]: Base table or view not found', 'sql', 'sqlstate-error', 85)
         self.assert_detection('ORA-00942: table or view does not exist', 'oracle', 'oracle-error', 85)
 
+    def test_detects_database_connection_disclosure_with_user_and_host(self):
+        """Should detect exposed database connection identity details."""
+
+        self.assert_detection(
+            'Error: Could not make a database connection using h19429_admin@www.podshipnik-rf.ru',
+            'database',
+            'database-connection-disclosure',
+            85,
+        )
+
+    def test_ignores_generic_database_connection_error_without_identity(self):
+        """Should not classify generic database connection text without disclosed identity."""
+
+        plugin = StacktraceResponsePlugin(None)
+        response = self.make_response(
+            status=500,
+            body=b'Error: Could not make a database connection. Please try again later.',
+            headers={'Content-Type': 'text/plain; charset=utf-8'},
+        )
+
+        self.assertIsNone(plugin.process(response))
+        self.assertFalse(hasattr(response, 'opendoor_stacktrace_detection'))
+
     def test_accepts_json_problem_content_type(self):
         """Should inspect structured textual error content types."""
 

@@ -766,6 +766,43 @@ class Browser(Filter):
             'Security posture: {0}'.format(cls.__build_fingerprint_security_summary(fingerprint)),
         ]
 
+    @staticmethod
+    def __fingerprint_evidence_values(signals, limit=4):
+        """
+        Return unique fingerprint evidence values for concise terminal output.
+
+        The fingerprint engine may keep multiple signal sources with the same
+        evidence value, for example markup and endpoint probes. Keep those
+        signals in structured results, but avoid repeating the same value in
+        stdout.
+
+        :param list signals: fingerprint signal dictionaries
+        :param int limit: maximum number of evidence values to return
+        :return: unique evidence values in original signal order
+        :rtype: list[str]
+        """
+
+        result = []
+        seen = set()
+
+        for signal in signals or []:
+            if isinstance(signal, dict):
+                value = signal.get('value', '')
+            else:
+                value = signal
+
+            value = str(value).strip()
+            if not value or value in seen:
+                continue
+
+            seen.add(value)
+            result.append(value)
+
+            if len(result) >= int(limit or 0):
+                break
+
+        return result
+
     @classmethod
     def __print_fingerprint_summary(cls, fingerprint):
         """
@@ -851,9 +888,9 @@ class Browser(Filter):
             self.__print_fingerprint_summary(result)
             self.__print_privacy_risk_warnings(result)
 
-            if result.get('signals'):
-                evidence = ', '.join([signal.get('value', '') for signal in result.get('signals', [])[:4]])
-                tpl.info(msg='Fingerprint evidence: {0}'.format(evidence))
+            evidence_values = self.__fingerprint_evidence_values(result.get('signals', []))
+            if evidence_values:
+                tpl.info(msg='Fingerprint evidence: {0}'.format(', '.join(evidence_values)))
 
             return result
 

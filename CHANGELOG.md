@@ -7,6 +7,8 @@ v5.16.1 (xx.05.2026)
 - (fix) ignored-path progress output so `skip [...]` shows the current scan position instead of `00000`.
 - (fix) proxy CLI overrides for wizard and session resume flows so explicit `--proxy`, `--proxy-pool`, and `--proxy-list --proxy-rotation` selections replace restored proxy settings correctly.
 - (fix) filtered/calibrated progress counters to use the same dynamic width as regular scan findings.
+- (fix) fingerprint evidence output to avoid repeating identical evidence values when the same marker is confirmed by multiple signal sources.
+- (enhancement) improved the stacktrace sniffer to detect exposed database connection identity errors like `Could not make ... user@host` while avoiding generic connection-error false positives.
 - (enhancement) hardened `--header` validation/normalization with wizard/session CLI overrides.
 - (enhancement) added remote HTTP(S) wordlist support through `--wordlist`, a 500 MB safety limit, streaming download progress.
 - (enhancement) added `--proxy-rotation random|sequential` to control existing `--proxy-list` rotation, preserving random rotation as the default and adding deterministic file-order sequential mode.

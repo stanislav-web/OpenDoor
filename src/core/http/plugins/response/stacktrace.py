@@ -110,6 +110,17 @@ class StacktraceResponsePlugin(ResponsePluginProvider):
             ),
         },
         {
+            'runtime': 'database',
+            'signal': 'database-connection-disclosure',
+            'confidence': 85,
+            'pattern': re.compile(
+                r'(?<![A-Za-z0-9_-])Error\s*:\s*'
+                r'Could\s+not\s+make\s+a\s+database\s+connection\s+using\s+'
+                r'[^\s<>\"\']+@[^\s<>\"\']+',
+                re.IGNORECASE,
+            ),
+        },
+        {
             'runtime': 'pdo',
             'signal': 'pdo-exception',
             'confidence': 90,
