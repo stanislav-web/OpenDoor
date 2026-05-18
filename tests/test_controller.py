@@ -935,6 +935,183 @@ class TestController(unittest.TestCase):
         self.assertEqual(passed_params['transport_bin'], '/usr/bin/openvpn')
         self.assertEqual(passed_params['openvpn_auth'], '/tmp/auth.txt')
 
+    def test_scan_action_should_preserve_proxy_list_cli_overrides_for_wizard(self):
+        """Controller.scan_action() should preserve explicit proxy-list CLI overrides for wizard flow."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+
+        wizard_params = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'reports': 'std',
+            'proxy': 'http://wizard-proxy:8080',
+            'proxy_pool': True,
+            'proxy_list': None,
+            'proxy_rotation': 'random',
+        }
+
+        with patch('src.controller.package.wizard', return_value=wizard_params), \
+                patch('src.controller.browser', return_value=browser_instance) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'wizard': 'opendoor.conf',
+                'proxy_list': '/tmp/cli-proxies.txt',
+                'proxy_rotation': 'sequential',
+            })
+
+        passed_params = browser_mock.call_args[0][0]
+        self.assertIsNone(passed_params.get('proxy'))
+        self.assertIsNot(passed_params.get('proxy_pool'), True)
+        self.assertEqual(passed_params['proxy_list'], '/tmp/cli-proxies.txt')
+        self.assertEqual(passed_params['proxy_rotation'], 'sequential')
+
+    def test_scan_action_should_not_override_wizard_proxy_with_default_values(self):
+        """Controller.scan_action() should not clear wizard proxy settings with CLI defaults."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+
+        wizard_params = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'reports': 'std',
+            'proxy': 'socks5h://127.0.0.1:9050',
+            'proxy_pool': False,
+            'proxy_list': None,
+            'proxy_rotation': 'random',
+        }
+
+        with patch('src.controller.package.wizard', return_value=wizard_params), \
+                patch('src.controller.browser', return_value=browser_instance) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'wizard': 'opendoor.conf',
+                'proxy_pool': False,
+                'proxy_rotation': None,
+            })
+
+        passed_params = browser_mock.call_args[0][0]
+        self.assertEqual(passed_params['proxy'], 'socks5h://127.0.0.1:9050')
+        self.assertIs(passed_params.get('proxy_pool'), False)
+        self.assertIsNone(passed_params.get('proxy_list'))
+        self.assertEqual(passed_params['proxy_rotation'], 'random')
+
+    def test_scan_action_should_preserve_standalone_proxy_cli_overrides_for_session_load(self):
+        """Controller.scan_action() should preserve explicit standalone proxy CLI overrides for session resume."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+
+        snapshot = {
+            'params': {
+                'host': 'example.com',
+                'scheme': 'http://',
+                'ssl': False,
+                'port': 80,
+                'reports': 'std',
+                'proxy': None,
+                'proxy_pool': True,
+                'proxy_list': '/tmp/session-proxies.txt',
+                'proxy_rotation': 'sequential',
+            }
+        }
+
+        with patch('src.controller.SessionManager.load', return_value=snapshot), \
+                patch('src.controller.browser', return_value=browser_instance) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'session_load': '/tmp/session.json',
+                'proxy': 'socks5h://127.0.0.1:9050',
+            })
+
+        passed_params = browser_mock.call_args[0][0]
+        self.assertEqual(passed_params['proxy'], 'socks5h://127.0.0.1:9050')
+        self.assertIsNot(passed_params.get('proxy_pool'), True)
+        self.assertIsNone(passed_params.get('proxy_list'))
+        self.assertIsNone(passed_params.get('proxy_rotation'))
+
+    def test_scan_action_should_preserve_proxy_pool_cli_overrides_for_session_load(self):
+        """Controller.scan_action() should preserve explicit built-in proxy-pool CLI overrides for session resume."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+
+        snapshot = {
+            'params': {
+                'host': 'example.com',
+                'scheme': 'http://',
+                'ssl': False,
+                'port': 80,
+                'reports': 'std',
+                'proxy': 'http://session-proxy:8080',
+                'proxy_pool': False,
+                'proxy_list': '/tmp/session-proxies.txt',
+                'proxy_rotation': 'sequential',
+            }
+        }
+
+        with patch('src.controller.SessionManager.load', return_value=snapshot), \
+                patch('src.controller.browser', return_value=browser_instance) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'session_load': '/tmp/session.json',
+                'proxy_pool': True,
+            })
+
+        passed_params = browser_mock.call_args[0][0]
+        self.assertIsNone(passed_params.get('proxy'))
+        self.assertIs(passed_params.get('proxy_pool'), True)
+        self.assertIsNone(passed_params.get('proxy_list'))
+        self.assertIsNone(passed_params.get('proxy_rotation'))
+
+    def test_scan_action_should_preserve_proxy_list_cli_overrides_for_session_load(self):
+        """Controller.scan_action() should preserve explicit proxy-list CLI overrides for session resume."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+
+        snapshot = {
+            'params': {
+                'host': 'example.com',
+                'scheme': 'http://',
+                'ssl': False,
+                'port': 80,
+                'reports': 'std',
+                'proxy': 'http://session-proxy:8080',
+                'proxy_pool': True,
+                'proxy_list': None,
+                'proxy_rotation': 'random',
+            }
+        }
+
+        with patch('src.controller.SessionManager.load', return_value=snapshot), \
+                patch('src.controller.browser', return_value=browser_instance) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'session_load': '/tmp/session.json',
+                'proxy_list': '/tmp/cli-proxies.txt',
+                'proxy_rotation': 'sequential',
+            })
+
+        passed_params = browser_mock.call_args[0][0]
+        self.assertIsNone(passed_params.get('proxy'))
+        self.assertIsNot(passed_params.get('proxy_pool'), True)
+        self.assertEqual(passed_params['proxy_list'], '/tmp/cli-proxies.txt')
+        self.assertEqual(passed_params['proxy_rotation'], 'sequential')
+
     def test_scan_action_should_emit_transport_debug_when_enabled(self):
         """Controller.scan_action() should expose transport lifecycle in debug mode."""
 

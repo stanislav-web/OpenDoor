@@ -24315,6 +24315,7 @@ backdoor5.php
 backdoor.asp
 backdoor.aspx
 backdoor.htm
+backdoor.json
 backdoor.jsp
 backdoor.php
 backdoor_6.jsp
@@ -24331,6 +24332,7 @@ backdoor_14.php
 backdoor_15.php
 backdoor_16.jsp
 backdoor_16.php
+backdoor_connect.php
 backdoor_shell2.php
 backdoor_shell3.php
 backdoor_shell4.php
@@ -38325,13 +38327,12 @@ cy1470.html
 cy_GB
 cya.cgi
 cyber
-cyber shell (v 1.0).php
-Cyber Shell (v 1.0).php
 cyber-ark
 cyber-cats
 cyber.asp
 cyber.html
 cyber.phtml
+cyber_shell.php
 cyberbrau
 cybercash
 cyberdelia
@@ -45035,7 +45036,6 @@ ekw_admin
 ekw_admin.php
 ekx
 el
-el cangrejo s.d.r.
 el.html
 el_GR
 el_GR.php
@@ -58983,6 +58983,7 @@ index.php?ac=link_more
 index.php?m=admin
 index.php?q=user
 index.php?r=students/guardians/create
+index.php?route=account/login
 index.php?s=captcha
 index.php_
 index.php_bak
@@ -71549,6 +71550,7 @@ mockup
 mockups
 mod
 mod-auth-shadow
+mod-p.php
 mod.php
 mod_access_referer
 mod_acymailing.php
@@ -81384,8 +81386,6 @@ php50x.php
 php51x.php
 php121
 php168
-php backdoor connect.pl.php
-PHP Backdoor Connect.pl.php
 php-address
 php-admin
 php-agtc
@@ -117170,6 +117170,7 @@ zahlungsarten.php
 zahlungsdynamik.htm
 zahlungsweise.php
 ZAinput_requests.log
+zak-p.php
 zakaria05
 zakaz
 zakaz.asp

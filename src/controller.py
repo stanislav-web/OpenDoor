@@ -258,6 +258,7 @@ class Controller(object):
             cli_calibration_threshold = params.get('calibration_threshold')
             cli_response_filter_overrides = cls._collect_response_filter_cli_overrides(params)
             cli_transport_overrides = cls._collect_transport_cli_overrides(params)
+            cli_proxy_overrides = cls._collect_proxy_cli_overrides(params)
             cli_tls_legacy = params.get('tls_legacy')
 
             if 'wizard' in params:
@@ -281,6 +282,7 @@ class Controller(object):
 
                 params.update(cli_response_filter_overrides)
                 params.update(cli_transport_overrides)
+                params.update(cli_proxy_overrides)
 
             if params.get('session_load'):
                 snapshot = SessionManager.load(params.get('session_load'))
@@ -311,6 +313,7 @@ class Controller(object):
 
                 restored.update(cli_response_filter_overrides)
                 restored.update(cli_transport_overrides)
+                restored.update(cli_proxy_overrides)
 
                 params = restored
                 tpl.info(msg='Loaded session checkpoint from {0}'.format(
@@ -711,6 +714,51 @@ class Controller(object):
                 overrides['transport_rotate'] = params.get('transport_rotate')
 
         return overrides
+
+    @staticmethod
+    def _collect_proxy_cli_overrides(params):
+        """
+        Collect explicit proxy options that should override wizard/session params.
+
+        Wizard and session restore can contain a different proxy source than the
+        one selected on the command line. Proxy sources are mutually exclusive,
+        so an explicit CLI proxy source must also clear the restored alternatives.
+        Default parser values, such as proxy_pool=False or proxy_rotation=None,
+        must not clear wizard/session proxy configuration.
+
+        :param dict params:
+        :return: dict
+        """
+
+        if params.get('proxy') is not None:
+            return {
+                'proxy': params.get('proxy'),
+                'proxy_pool': False,
+                'proxy_list': None,
+                'proxy_rotation': None,
+            }
+
+        if params.get('proxy_list') is not None:
+            overrides = {
+                'proxy': None,
+                'proxy_pool': False,
+                'proxy_list': params.get('proxy_list'),
+            }
+
+            if params.get('proxy_rotation') is not None:
+                overrides['proxy_rotation'] = params.get('proxy_rotation')
+
+            return overrides
+
+        if params.get('proxy_pool') is True:
+            return {
+                'proxy': None,
+                'proxy_pool': True,
+                'proxy_list': None,
+                'proxy_rotation': None,
+            }
+
+        return {}
 
     @staticmethod
     def _match_fail_on_buckets(host, result, buckets):
