@@ -120,6 +120,7 @@ method = HEAD
 delay = 0
 timeout = 30
 retries = 3
+retries_fail_streak = 10
 threads = 10
 keep_alive = None
 accept_cookies = None
@@ -130,6 +131,7 @@ Notes:
 - `HEAD` is faster for status/size-oriented discovery.
 - `GET` is better when body-based filters or body-oriented sniffers are required.
 - `timeout` and `retries` should be increased for slow or unstable targets.
+- `retries_fail_streak` aborts the scan only after this many consecutive paths exhaust retries.
 - `delay` can be used to reduce request pressure.
 - `threads` controls concurrency (1 ~ 50).
 
@@ -625,6 +627,7 @@ threads = 3
 delay = 1
 timeout = 60
 retries = 5
+retries_fail_streak = 10
 
 waf_safe_mode = True
 auto_calibrate = True
@@ -659,6 +662,7 @@ threads = 3
 delay = 1
 timeout = 60
 retries = 5
+retries_fail_streak = 10
 
 waf_detect = True
 waf_safe_mode = True

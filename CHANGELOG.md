@@ -7,6 +7,7 @@ v5.16.1 (xx.05.2026)
 - (enhancement) added remote HTTP(S) wordlist support through `--wordlist`, a 500 MB safety limit, streaming download progress.
 - (enhancement) added `--proxy-rotation random|sequential` to control existing `--proxy-list` rotation, preserving random rotation as the default and adding deterministic file-order sequential mode.
 - (enhancement) added DotCMS fingerprinting.
+- (enhancement) added configurable `--retries-fail-streak` to control aborts after consecutive exhausted retry paths (default 10).
 - (dictionary) cleaned and normalized internal directories list.
 
 v5.16.0 (17.05.2026)

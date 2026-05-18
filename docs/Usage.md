@@ -260,6 +260,30 @@ Short form:
 opendoor --host https://example.com -r 5
 ```
 
+`--retries` controls retry attempts inside one path request.
+
+### Consecutive retry failures
+
+```shell
+opendoor --host https://example.com --retries 5 --retries-fail-streak 10
+```
+
+`--retries-fail-streak` controls how many consecutive paths may exhaust the configured retry budget before OpenDoor aborts the scan.
+
+Default: `10`.
+
+Use this to avoid spending a full wordlist on a target that became unavailable, while still tolerating occasional path-specific `Max retries exceeded` responses. Any normally processed response resets the streak. Paths that exhaust retries are still recorded as skipped/ignored before the abort threshold is evaluated.
+
+Examples:
+
+```shell
+# Fail faster when the target is expected to be stable
+opendoor --host https://example.com --retries-fail-streak 3
+
+# Tolerate unstable or WAF-sensitive targets
+opendoor --host https://example.com --retries-fail-streak 25
+```
+
 ### Threads (1 ~ 50)
 
 ```shell
@@ -1193,6 +1217,7 @@ opendoor \
   --waf-safe-mode \
   --timeout 60 \
   --retries 5 \
+  --retries-fail-streak 10 \
   --delay 0.5
 ```
 

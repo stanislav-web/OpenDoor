@@ -2498,7 +2498,6 @@
 943.php
 944.html
 947.html
-951 road ext.pdf
 960.php
 964.html
 968.html
@@ -4818,7 +4817,6 @@
 ..%5c..%5cetc/passwd
 ..%5cetc/passwd
 ..%252F..%252F..%252F..%252F..%252F..%252F..%252F..%252F..%252F..%252F..%252Fetc%252Fpasswd%23foo/development
-......
 ../../../../../../.env
 ../../../../../../etc/passwd
 ../../../../../../home/ubuntu/.env

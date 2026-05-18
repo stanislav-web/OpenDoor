@@ -59,6 +59,7 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
             'delay': 0,
             'timeout': 10,
             'retries': 3,
+            'retries_fail_streak': 10,
             'debug': 1,
             'is_builtin_proxy_pool': False,
             'is_external_proxy_list': False,
@@ -162,6 +163,7 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
         self.assertEqual(params['session_save'], '/tmp/opendoor-session.json')
         self.assertTrue(params['fingerprint'])
         self.assertTrue(params['waf_detect'])
+        self.assertEqual(params['retries_fail_streak'], 10)
 
     def test_build_session_snapshot_exports_all_selected_sniffers(self):
         """Browser session checkpoint should preserve every selected sniffer alias."""

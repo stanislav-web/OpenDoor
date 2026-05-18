@@ -36,6 +36,7 @@ class Config(object):
     DEFAULT_SSL_PORT = 443
     DEFAULT_HTTP_METHOD = 'HEAD'
     DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
+    DEFAULT_RETRIES_FAIL_STREAK = 10
 
     def __init__(self, params):
         """
@@ -107,6 +108,7 @@ class Config(object):
         self._recursive_status = self._normalize_csv(params.get('recursive_status'))
         self._recursive_exclude = self._normalize_csv(params.get('recursive_exclude'))
         self._retries = self._normalize_retries(params.get('retries'))
+        self._retries_fail_streak = self._normalize_retries_fail_streak(params.get('retries_fail_streak'))
         self._method = params.get('method')
         self._delay = params.get('delay')
         self._timeout = self.DEFAULT_SOCKET_TIMEOUT if params.get('timeout') is None else float(params.get('timeout'))
@@ -188,6 +190,23 @@ class Config(object):
             raise ValueError('retries must be a non-negative integer')
 
         return retries
+
+    @classmethod
+    def _normalize_retries_fail_streak(cls, value):
+        """Normalize the scan abort threshold for consecutive exhausted retry paths.
+
+        :param int|str|None value: Consecutive path failure threshold.
+        :return: Positive threshold.
+        """
+
+        if value is None:
+            return cls.DEFAULT_RETRIES_FAIL_STREAK
+
+        threshold = int(value)
+        if threshold <= 0:
+            raise ValueError('retries_fail_streak must be a positive integer')
+
+        return threshold
 
     @staticmethod
     def _normalize_csv(value):
@@ -596,6 +615,12 @@ class Config(object):
         """Retries property."""
 
         return self._retries
+
+    @property
+    def retries_fail_streak(self):
+        """Consecutive exhausted-retry path failures before aborting the scan."""
+
+        return self._retries_fail_streak
 
     @property
     def debug(self):

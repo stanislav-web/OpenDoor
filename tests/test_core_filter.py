@@ -205,6 +205,20 @@ class TestFilter(unittest.TestCase):
             Filter.filter({'host': 'example.com', 'retries': 'abc'})
 
 
+    def test_filter_validates_retries_fail_streak_as_positive_integer(self):
+        """Filter.filter() should normalize consecutive max-retry path abort threshold."""
+
+        self.assertEqual(
+            Filter.filter({'host': 'example.com', 'retries_fail_streak': '10'})['retries_fail_streak'],
+            10
+        )
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'retries_fail_streak': '0'})
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'retries_fail_streak': 'abc'})
+
     def test_filter_builds_single_target_list_for_host(self):
         """Filter.filter() should expose a single normalized target for --host."""
 

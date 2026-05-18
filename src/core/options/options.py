@@ -155,6 +155,15 @@ class Options(object):
             {
                 "group": "request",
                 "args": None,
+                "argl": "--retries-fail-streak",
+                "default": 10,
+                "action": "store",
+                "help": "Abort after N consecutive paths exhaust --retries, default 10",
+                "type": int
+            },
+            {
+                "group": "request",
+                "args": None,
                 "argl": "--keep-alive",
                 "default": False,
                 "action": "store_true",

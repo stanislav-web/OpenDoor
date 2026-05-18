@@ -155,6 +155,18 @@ class TestBrowserConfig(unittest.TestCase):
         with self.assertRaises(ValueError):
             Config({'reports': 'std', 'retries': '-1'})
 
+    def test_retries_fail_streak_defaults_and_validates_positive_integer(self):
+        """Config should expose the consecutive max-retry path abort threshold."""
+
+        self.assertEqual(Config({'reports': 'std'}).retries_fail_streak, 10)
+        self.assertEqual(Config({'reports': 'std', 'retries_fail_streak': '25'}).retries_fail_streak, 25)
+
+        with self.assertRaises(ValueError):
+            Config({'reports': 'std', 'retries_fail_streak': '0'})
+
+        with self.assertRaises(ValueError):
+            Config({'reports': 'std', 'retries_fail_streak': '-1'})
+
     def test_threads_and_prefix_mutators_work(self):
         """Config should expose configurable threads and normalized prefixes."""
 

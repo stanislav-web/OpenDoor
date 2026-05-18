@@ -910,6 +910,57 @@ class TestOptions(unittest.TestCase):
             'fail_on_bucket': 'success,auth',
         })
 
+    def test_init_should_parse_retries_fail_streak_argument(self):
+        """Options.__init__() should parse the consecutive max-retry path threshold."""
+
+        with patch(
+                'src.core.options.options.sys.argv',
+                [
+                    'opendoor.py',
+                    '--host',
+                    'example.com',
+                    '--retries-fail-streak',
+                    '25',
+                ]
+        ):
+            option = Options()
+
+        self.assertEqual(option.args.retries_fail_streak, 25)
+
+    def test_get_arg_values_should_pass_retries_fail_streak_through_filter(self):
+        """Options.get_arg_values() should pass --retries-fail-streak through Filter.filter()."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            retries_fail_streak=25,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'retries_fail_streak': 25,
+        }
+
+        with patch('src.core.options.options.Filter.filter', return_value=filtered) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, filtered)
+        filter_mock.assert_called_once_with({
+            'host': 'example.com',
+            'retries_fail_streak': 25,
+        })
+
     def test_init_should_parse_network_transport_arguments(self):
         """Options.__init__() should parse network transport arguments."""
 
