@@ -263,6 +263,7 @@ class Controller(object):
             cli_proxy_overrides = cls._collect_proxy_cli_overrides(params)
             cli_header_overrides = cls._collect_header_cli_overrides(params)
             cli_recursive_overrides = cls._collect_recursive_cli_overrides(params)
+            cli_report_overrides = cls._collect_report_cli_overrides(params)
             cli_delay = params.get('delay')
             cli_port = params.get('port')
             cli_method = params.get('method')
@@ -301,6 +302,7 @@ class Controller(object):
                 params.update(cli_proxy_overrides)
                 params.update(cli_header_overrides)
                 params.update(cli_recursive_overrides)
+                params.update(cli_report_overrides)
 
             if params.get('session_load'):
                 snapshot = SessionManager.load(params.get('session_load'))
@@ -343,6 +345,7 @@ class Controller(object):
                 restored.update(cli_proxy_overrides)
                 restored.update(cli_header_overrides)
                 restored.update(cli_recursive_overrides)
+                restored.update(cli_report_overrides)
 
                 params = restored
                 tpl.info(msg='Loaded session checkpoint from {0}'.format(
@@ -772,6 +775,24 @@ class Controller(object):
             return {}
 
         return {'header': params.get('header')}
+
+    @staticmethod
+    def _collect_report_cli_overrides(params):
+        """Collect explicit report output options for wizard/session overrides.
+
+        :param dict params: filtered CLI params
+        :return: dict
+        """
+
+        overrides = {}
+
+        if params.get('reports') is not None:
+            overrides['reports'] = params.get('reports')
+
+        if params.get('reports_dir') is not None:
+            overrides['reports_dir'] = params.get('reports_dir')
+
+        return overrides
 
     @staticmethod
     def _collect_recursive_cli_overrides(params):

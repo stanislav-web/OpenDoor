@@ -16,6 +16,7 @@
     Development: Stanislav WEB
 """
 
+import os
 import re
 
 
@@ -43,6 +44,7 @@ class Config(object):
         'woff', 'woff2', 'ttf', 'map', 'pdf', 'zip', 'gz', 'tar',
     )
     RECURSIVE_EXTENSION_REGEX = re.compile(r'^[A-Za-z0-9][A-Za-z0-9+_-]*$')
+    SCAN_REPORTS = ('json', 'std', 'txt', 'csv', 'html', 'sqlite', 'sarif')
 
     def __init__(self, params):
         """
@@ -80,9 +82,9 @@ class Config(object):
         self._port = self._normalize_port(params.get('port'))
         self._wordlist = params.get('wordlist')
         self._wordlist_resolved_path = params.get('wordlist_resolved_path') or params.get('resolved_wordlist')
-        self._reports_dir = params.get('reports_dir')
+        self._reports_dir = self._normalize_optional_path(params.get('reports_dir'))
         self._prefix = '' if params.get('prefix') is None else params.get('prefix')
-        self._reports = self._normalize_csv(params.get('reports'))
+        self._reports = self._normalize_scan_reports(params.get('reports'))
         self._is_fingerprint = params.get('fingerprint') is True
         self._is_waf_safe_mode = params.get('waf_safe_mode') is True
         self._is_waf_guard = params.get('waf_guard') is True
@@ -303,6 +305,58 @@ class Config(object):
         if isinstance(value, list):
             return list(value)
         return [item.strip() for item in str(value).split(',') if item.strip()]
+
+    @classmethod
+    def _normalize_scan_reports(cls, value):
+        """Normalize scan report plugin names from CLI, wizard or session params."""
+
+        if value is None:
+            return None
+
+        if isinstance(value, list):
+            raw_items = value
+        else:
+            text = str(value).strip()
+            if text.lower() in ['', 'none', 'null']:
+                return None
+            raw_items = text.split(',')
+
+        reports = []
+        seen = set()
+
+        for item in raw_items:
+            report = str(item).strip().lower()
+            if not report or report in ['none', 'null']:
+                continue
+
+            if report not in cls.SCAN_REPORTS:
+                raise ValueError('reports supports only: {0}'.format(', '.join(cls.SCAN_REPORTS)))
+
+            if report in seen:
+                continue
+
+            reports.append(report)
+            seen.add(report)
+
+        return reports or None
+
+    @staticmethod
+    def _normalize_optional_path(value):
+        """Normalize optional filesystem path values from CLI, wizard or session params."""
+
+        if value is None:
+            return None
+
+        if isinstance(value, list):
+            if len(value) <= 0:
+                return None
+            value = value[0]
+
+        path = str(value).strip()
+        if path.lower() in ['', 'none', 'null']:
+            return None
+
+        return os.path.abspath(path)
 
     @staticmethod
     def _normalize_text_filter_values(value):

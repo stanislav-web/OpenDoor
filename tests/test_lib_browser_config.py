@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import unittest
 
 from src.lib.browser.config import Config
@@ -120,6 +121,34 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(cfg.reports, ['json', 'html', 'std'])
         self.assertEqual(cfg.extensions, ['php', 'html'])
         self.assertEqual(cfg.ignore_extensions, ['jpg', 'png'])
+
+    def test_reports_default_to_std_when_missing(self):
+        """Config.reports should default to std when reports are missing or disabled."""
+
+        self.assertEqual(Config({}).reports, ['std'])
+        self.assertEqual(Config({'reports': 'None'}).reports, ['std'])
+
+    def test_reports_are_normalized_and_deduped(self):
+        """Config.reports should normalize report names and avoid duplicates."""
+
+        self.assertEqual(Config({'reports': 'HTML,csv,csv,std'}).reports, ['html', 'csv', 'std'])
+        self.assertEqual(Config({'reports': ['json', 'csv', 'json']}).reports, ['json', 'csv', 'std'])
+
+    def test_reports_reject_unknown_values(self):
+        """Config.reports should reject unsupported wizard/session report plugins."""
+
+        for value in ['xml', 'std,xml', ['json', 'bad']]:
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    Config({'reports': value})
+
+    def test_reports_dir_normalizes_none_and_paths(self):
+        """Config.reports_dir should normalize None-like values and filesystem paths."""
+
+        self.assertIsNone(Config({'reports_dir': None}).reports_dir)
+        self.assertIsNone(Config({'reports_dir': 'None'}).reports_dir)
+        self.assertEqual(Config({'reports_dir': ['./reports']}).reports_dir, os.path.abspath('./reports'))
+        self.assertEqual(Config({'reports_dir': './reports'}).reports_dir, os.path.abspath('./reports'))
 
     def test_random_list_flag_requires_true_value(self):
         """Config should not enable random list mode from explicit False or missing values."""

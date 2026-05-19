@@ -490,6 +490,75 @@ class TestOptions(unittest.TestCase):
         self.assertEqual(actual, {'host': 'example.com'})
         filter_mock.assert_called_once_with({'host': 'example.com', 'recursive_depth': 0})
 
+    def test_get_arg_values_should_not_emit_default_reports(self):
+        """Options.get_arg_values() should not pass report defaults when unset."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            reports=None,
+            reports_dir=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com'})
+
+    def test_get_arg_values_should_pass_explicit_reports(self):
+        """Options.get_arg_values() should pass explicit --reports values to Filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            reports='csv,html',
+            reports_dir=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'reports': 'csv,html'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'reports': 'csv,html'})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'reports': 'csv,html'})
+
+    def test_get_arg_values_should_pass_reports_dir_as_string(self):
+        """Options.get_arg_values() should pass --reports-dir as a string path."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            reports=None,
+            reports_dir='./reports',
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'reports_dir': './reports'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'reports_dir': './reports'})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'reports_dir': './reports'})
+
     def test_init_should_parse_multiple_header_arguments(self):
         """Options.__init__() should parse multiple custom request headers."""
 

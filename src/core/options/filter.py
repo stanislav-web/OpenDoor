@@ -46,6 +46,7 @@ class Filter(object):
     METHODS = ('HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS')
     VPN_TRANSPORTS = ('openvpn', 'wireguard')
     HEADER_BYPASS_PROFILES = ('safe', 'offensive')
+    SCAN_REPORTS = ('json', 'std', 'txt', 'csv', 'html', 'sqlite', 'sarif')
     DIFF_REPORTS = ('std', 'json')
     PROXY_SCHEMES = ('http', 'https', 'socks4', 'socks5', 'socks5h')
 
@@ -164,6 +165,12 @@ class Filter(object):
             if args.get('debug') is not None:
                 filtered['debug'] = Filter.debug_level(args.get('debug'), key='--debug')
 
+            if args.get('reports') is not None:
+                filtered['reports'] = Filter.scan_reports(args.get('reports'), key='--reports')
+
+            if args.get('reports_dir') is not None:
+                filtered['reports_dir'] = Filter.optional_path(args.get('reports_dir'), key='--reports-dir')
+
             if args.get('delay') is not None:
                 filtered['delay'] = Filter.non_negative_float(args.get('delay'), key='--delay')
 
@@ -275,6 +282,10 @@ class Filter(object):
                 continue
             elif key in ['session_save']:
                 filtered[key] = Filter.session_file(value, key='--{0}'.format(key.replace('_', '-')))
+            elif key in ['reports']:
+                filtered[key] = Filter.scan_reports(value, key='--reports')
+            elif key in ['reports_dir']:
+                filtered[key] = Filter.optional_path(value, key='--reports-dir')
             elif key in ['header']:
                 filtered[key] = Filter.request_headers(value, key='--header')
             elif key in ['method']:
@@ -1095,6 +1106,39 @@ class Filter(object):
             raise FilterError('{0} requires at least one bucket'.format(key))
 
         return buckets
+
+    @staticmethod
+    def scan_reports(value, key='--reports'):
+        """Normalize scan output reports."""
+
+        if value is None:
+            return None
+
+        reports = []
+        seen = set()
+
+        for item in Filter._split_csv(value):
+            report = str(item).strip().lower()
+
+            if report in ['', 'none', 'null']:
+                continue
+
+            if report not in Filter.SCAN_REPORTS:
+                raise FilterError('{0} supports only: {1}'.format(
+                    key,
+                    ', '.join(Filter.SCAN_REPORTS),
+                ))
+
+            if report in seen:
+                continue
+
+            reports.append(report)
+            seen.add(report)
+
+        if len(reports) <= 0:
+            return None
+
+        return ','.join(reports)
 
     @staticmethod
     def diff_reports(value, key='--reports'):

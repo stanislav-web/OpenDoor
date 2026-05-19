@@ -2,6 +2,7 @@ CHANGELOG
 =======
 v5.16.1 (xx.05.2026)
 ---------------------------
+- (fix) validated scan report selections, normalized `--reports-dir`, and preserved explicit report output overrides for wizard/session resume flows.
 - (fix) validated recursive scan options, preserved explicit recursive CLI overrides for wizard/session resume flows, and kept recursive defaults stable at runtime.
 - (fix) validated `--method` values, preserved explicit method overrides for wizard/session resume flows, and kept raw-request method handling deterministic.
 - (fix) validated `--port` values as TCP ports, preserved explicit port overrides for wizard/session resume flows, and rejected invalid raw-request Host ports early.

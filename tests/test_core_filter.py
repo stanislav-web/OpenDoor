@@ -609,6 +609,61 @@ class TestFilter(unittest.TestCase):
         with self.assertRaises(FilterError):
             Filter.filter({'session_load': '/tmp/session.json', 'recursive_status': '200-299'})
 
+    def test_scan_reports_should_accept_supported_reports(self):
+        """Filter.scan_reports() should normalize supported scan report plugins."""
+
+        self.assertEqual(Filter.scan_reports('std,csv,HTML'), 'std,csv,html')
+        self.assertIsNone(Filter.scan_reports(None))
+        self.assertIsNone(Filter.scan_reports('None'))
+
+    def test_scan_reports_should_reject_unknown_reports(self):
+        """Filter.scan_reports() should fail early on unsupported report plugins."""
+
+        for value in ['xml', 'std,xml', 'bad']:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.scan_reports(value, key='--reports')
+
+    def test_scan_reports_should_dedupe_preserving_order(self):
+        """Filter.scan_reports() should avoid duplicate reporter execution."""
+
+        self.assertEqual(Filter.scan_reports('std,csv,csv,json,std'), 'std,csv,json')
+
+    def test_filter_should_validate_reports_in_normal_flow(self):
+        """Filter.filter() should validate scan reports during regular scans."""
+
+        actual = Filter.filter({'host': 'example.com', 'reports': 'csv,html,CSV'})
+
+        self.assertEqual(actual['reports'], 'csv,html')
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'reports': 'xml'})
+
+    def test_filter_should_validate_reports_with_session_load(self):
+        """Filter.filter() should preserve report CLI overrides for session resume."""
+
+        actual = Filter.filter({'session_load': '/tmp/session.json', 'reports': 'json,csv'})
+
+        self.assertEqual(actual['session_load'], '/tmp/session.json')
+        self.assertEqual(actual['reports'], 'json,csv')
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'reports': 'xml'})
+
+    def test_filter_should_normalize_reports_dir_in_normal_flow(self):
+        """Filter.filter() should normalize --reports-dir during regular scans."""
+
+        actual = Filter.filter({'host': 'example.com', 'reports_dir': './reports'})
+
+        self.assertEqual(actual['reports_dir'], os.path.abspath('./reports'))
+
+    def test_filter_should_normalize_reports_dir_with_session_load(self):
+        """Filter.filter() should normalize --reports-dir for session resume."""
+
+        actual = Filter.filter({'session_load': '/tmp/session.json', 'reports_dir': './reports'})
+
+        self.assertEqual(actual['reports_dir'], os.path.abspath('./reports'))
+
     def test_status_ranges_reject_upper_out_of_range_code(self):
         """Filter.status_ranges() should reject status codes above 599."""
 

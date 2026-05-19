@@ -489,7 +489,7 @@ class Options(object):
                 "group": "report",
                 "args": None,
                 "argl": "--reports",
-                "default": "std",
+                "default": None,
                 "action": "store",
                 "help": "Scan reports (json,std,txt,csv,html,sqlite,sarif)",
                 "type": str
@@ -510,7 +510,6 @@ class Options(object):
                 "default": None,
                 "action": "store",
                 "help": "Path to custom reports directory",
-                "nargs": 1,
                 "type": str
             },
             {
@@ -827,6 +826,7 @@ class Options(object):
                             or (arg == 'port' and value is not None) \
                             or (arg == 'method' and value is not None) \
                             or (arg in ['recursive_depth', 'recursive_status', 'recursive_exclude'] and value is not None) \
+                            or (arg in ['reports', 'reports_dir'] and value is not None) \
                             or (arg == 'header_bypass_limit' and value == 0):
                         args[arg] = value
                 args = Filter.filter(args)

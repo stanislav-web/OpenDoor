@@ -1948,6 +1948,60 @@ class TestController(unittest.TestCase):
         self.assertEqual(passed_params['method'], 'OPTIONS')
 
 
+    def test_scan_action_should_preserve_report_cli_overrides_for_wizard(self):
+        """Controller.scan_action() should preserve explicit report CLI overrides for wizard flow."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+        wizard_params = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'port': 80,
+            'reports': 'html',
+            'reports_dir': '/wizard/reports',
+        }
+
+        with patch('src.controller.package.wizard', return_value=wizard_params),                 patch('src.controller.browser', return_value=browser_instance) as browser_mock,                 patch('src.controller.reporter.is_reported', return_value=False),                 patch('src.controller.tpl.info'),                 patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'wizard': 'opendoor.conf',
+                'reports': 'csv,json',
+                'reports_dir': '/cli/reports',
+            })
+
+        browser_mock.assert_called_once()
+        passed_params = browser_mock.call_args[0][0]
+        self.assertEqual(passed_params['reports'], 'csv,json')
+        self.assertEqual(passed_params['reports_dir'], '/cli/reports')
+
+    def test_scan_action_should_preserve_report_cli_overrides_for_session_load(self):
+        """Controller.scan_action() should preserve explicit report CLI overrides for session resume."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+        snapshot = {
+            'params': {
+                'host': 'example.com',
+                'scheme': 'http://',
+                'ssl': False,
+                'port': 80,
+                'reports': 'html',
+                'reports_dir': '/session/reports',
+            }
+        }
+
+        with patch('src.controller.SessionManager.load', return_value=snapshot),                 patch('src.controller.browser', return_value=browser_instance) as browser_mock,                 patch('src.controller.reporter.is_reported', return_value=False),                 patch('src.controller.tpl.info'),                 patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'session_load': '/tmp/session.json',
+                'reports': 'sqlite,sarif',
+                'reports_dir': '/cli/reports',
+            })
+
+        browser_mock.assert_called_once()
+        passed_params = browser_mock.call_args[0][0]
+        self.assertEqual(passed_params['reports'], 'sqlite,sarif')
+        self.assertEqual(passed_params['reports_dir'], '/cli/reports')
+
     def test_scan_action_should_preserve_recursive_cli_overrides_for_wizard(self):
         """Controller.scan_action() should preserve explicit recursive CLI overrides for wizard flow."""
 
