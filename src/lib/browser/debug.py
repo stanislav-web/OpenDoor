@@ -271,8 +271,14 @@ class Debug(DebugProvider):
         else:
             urlpath = request_uri
 
-        if status in ['success', 'file', 'indexof', 'certificate', 'auth']:
+        if status in ['success', 'file', 'certificate', 'auth']:
             request_uri = tpl.line(key=status, color='green', url=urlpath)
+        elif status in ['indexof']:
+            request_uri = '{0} ({1}) {2}'.format(
+                tpl.line(msg='OK', color='green'),
+                tpl.line(msg='IndexOf', color='red'),
+                tpl.line(msg=urlpath, color='green')
+            )
         elif status in ['malware']:
             request_uri = '{0} ({1}) {2}'.format(
                 tpl.line(msg='OK', color='green'),

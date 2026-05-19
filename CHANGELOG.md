@@ -2,6 +2,7 @@ CHANGELOG
 =======
 v5.16.1 (xx.05.2026)
 ---------------------------
+- (fix) aligned `indexof` runtime progress output with other sniffer findings by rendering it as `OK (IndexOf)` without changing detection or report semantics.
 - (fix) preserved managed runtime wordlist workspaces across interactive `Ctrl+C` pause/resume while keeping cleanup for aborts, process termination and normal scan completion.
 - (fix) normalized `--fingerprint` handling across CLI, wizard and session resume flows while keeping fingerprinting opt-in and cached session results reusable.
 - (fix) normalized WAF detection flags across CLI, wizard and session resume flows while preserving `waf_safe_mode` as an opt-in runtime profile that enables passive WAF detection.
