@@ -172,6 +172,8 @@
 1.txt
 1.xml
 1.zip
+1/admin
+1/login
 01_02.html
 1_anmeldung.html
 1_credits.tpl.php
@@ -323,6 +325,7 @@
 2.txt
 2.xml
 2.zip
+2/admin
 2/issue/createmeta
 2/issuecreatemeta
 2_adressen.html
@@ -400,6 +403,7 @@
 3.swf
 3.xml
 3.zip
+3/admin
 3_files
 3_kasse.html
 3b.html
@@ -4550,7 +4554,6 @@
 20615.html
 20648.html
 20655.html
-020800 defrib.htm
 21832.html
 022001.htm
 22414.html
@@ -6753,6 +6756,7 @@
 .well-known/acme-challenge
 .well-known/acme-challenge/dtfy
 .well-known/acme-challengedtfy
+.well-known/admin
 .well-known/ai-plugin.json
 .well-known/apple-app-site-association
 .well-known/apple-developer-merchant-domain-association
@@ -7005,6 +7009,7 @@
 /wp-content/debug.log
 /wp-content/uploads/dump.sql
 ?mode=phpinfo
+?rest_route=/wp/v2/users
 ?view=log
 ?view=phpinfo
 \..\..\..\..\..\..\..\..\..\etc\passwd
@@ -7073,6 +7078,7 @@ __utm.js
 __utm.js.aspx
 __we_thumbs__
 __web_console
+__webpack_hmr
 _a
 _ablage
 _actions
@@ -7363,6 +7369,7 @@ _dbadmin.php
 _dbconnect.php
 _de
 _debug
+_debug.php
 _debug_toolbar
 _debugbar
 _debugbar/assets/javascript
@@ -7383,6 +7390,7 @@ _design
 _designs
 _details.php
 _dev
+_dev.php
 _development
 _disc
 _disc1
@@ -8564,6 +8572,12 @@ access-denied
 access-denied.aspx
 access-log
 access-log.1
+access-log.bak
+access-log.log
+access-log.old
+access-log.out
+access-log.txt
+access-log.xml
 access-logs
 access-manager.php
 access-panel.php
@@ -8573,6 +8587,7 @@ access-staff.php
 access.1
 access.asp
 access.aspx
+access.bak
 access.cnf
 access.dat
 access.htm
@@ -8581,6 +8596,8 @@ access.ini
 access.json
 access.jsp
 access.log
+access.old
+access.out
 access.php
 access.phtml
 access.txt
@@ -8621,6 +8638,12 @@ access_db
 access_denied.html
 access_log
 access_log.1
+access_log.bak
+access_log.log
+access_log.old
+access_log.out
+access_log.txt
+access_log.xml
 access_logs
 access_stats
 access_token.php
@@ -8742,6 +8765,7 @@ account/account.php
 account/accounts
 account/accounts.php
 account/activity
+account/admin
 account/admin.php
 account/aml
 account/analytics
@@ -9008,6 +9032,7 @@ accounts/account.php
 accounts/accounts
 accounts/accounts.php
 accounts/activity
+accounts/admin
 accounts/admin.php
 accounts/aml
 accounts/analytics
@@ -9415,6 +9440,7 @@ ActiveDataFeed
 ActiveDirectoryRemoteAdminScripts
 activedit
 activemq
+activemq/admin
 activepost
 activepower2.php
 activepower3.php
@@ -10600,6 +10626,8 @@ admin3
 Admin3
 admin3.
 admin3.php
+admin3/index.php
+admin3/login.php
 admin4
 Admin4
 admin4.
@@ -10631,8 +10659,8 @@ admin88.php
 admin99
 admin99.php
 admin123
-admin123#
 admin123/inc
+admin123/index.php
 admin123/Login
 admin150
 admin150.php
@@ -10669,7 +10697,6 @@ admin7788.jsp
 admin7788.php
 admin112233.php
 admin123456
-admin123456#
 admin334455.php
 admin445566.php
 admin556677.php
@@ -10719,22 +10746,32 @@ admin-area/account.php
 admin-area/accounts.php
 admin-area/admin.php
 admin-area/api
+admin-area/auth
+admin-area/backup
 admin-area/billing
+admin-area/config
 admin-area/console
 admin-area/console.php
+admin-area/control
 admin-area/control.php
 admin-area/dashboard
 admin-area/dashboard.php
+admin-area/home
 admin-area/home.php
+admin-area/index
 admin-area/index.php
 admin-area/init.php
+admin-area/log
 admin-area/login
 admin-area/login.php
+admin-area/logs
+admin-area/main
 admin-area/main.php
 admin-area/manage.php
 admin-area/manager.php
 admin-area/member.php
 admin-area/members.php
+admin-area/old
 admin-area/orders
 admin-area/overview.php
 admin-area/panel
@@ -10749,7 +10786,9 @@ admin-area/reports
 admin-area/roles.php
 admin-area/secure
 admin-area/settings
+admin-area/signin
 admin-area/start.php
+admin-area/stats
 admin-area/support
 admin-area/tools
 admin-area/user.php
@@ -11065,10 +11104,20 @@ admin-cp-tools
 admin-cp-users
 admin-cp/account
 admin-cp/api
+admin-cp/auth
+admin-cp/backup
 admin-cp/billing
+admin-cp/config
 admin-cp/console
+admin-cp/control
 admin-cp/dashboard
+admin-cp/home
+admin-cp/index
+admin-cp/log
 admin-cp/login
+admin-cp/logs
+admin-cp/main
+admin-cp/old
 admin-cp/orders
 admin-cp/panel
 admin-cp/portal
@@ -11077,6 +11126,8 @@ admin-cp/profile
 admin-cp/reports
 admin-cp/secure
 admin-cp/settings
+admin-cp/signin
+admin-cp/stats
 admin-cp/support
 admin-cp/tools
 admin-cp/users
@@ -11129,6 +11180,7 @@ Admin-Login.aspx
 admin-login.brf
 admin-login.cfm
 admin-login.cgi
+admin-login.htm
 admin-login.html
 Admin-login.html
 admin-login.js
@@ -11176,7 +11228,9 @@ admin-panel-settings
 admin-panel-support
 admin-panel-tools
 admin-panel-users
+admin-panel.htm
 admin-panel.php
+admin-panel.phtml
 admin-panel/2fa
 admin-panel/about
 admin-panel/access
@@ -11231,6 +11285,7 @@ admin-panel/configuration.php
 admin-panel/console
 admin-panel/console.php
 admin-panel/content
+admin-panel/control
 admin-panel/control.php
 admin-panel/controlpanel.php
 admin-panel/cp.php
@@ -11241,6 +11296,7 @@ admin-panel/dashboard.php
 admin-panel/database
 admin-panel/db
 admin-panel/debug
+admin-panel/debug.php
 admin-panel/deploy
 admin-panel/deposits
 admin-panel/devops
@@ -11272,6 +11328,7 @@ admin-panel/imports
 admin-panel/index
 admin-panel/index.php
 admin-panel/info
+admin-panel/info.php
 admin-panel/init.php
 admin-panel/install.php
 admin-panel/installer.php
@@ -11283,6 +11340,7 @@ admin-panel/keys
 admin-panel/kyc
 admin-panel/languages
 admin-panel/localization
+admin-panel/log
 admin-panel/login
 admin-panel/login-check.php
 admin-panel/login.php
@@ -11291,6 +11349,7 @@ admin-panel/logincheck.php
 admin-panel/logout
 admin-panel/logout.php
 admin-panel/logs
+admin-panel/logs.php
 admin-panel/mail
 admin-panel/main
 admin-panel/main.php
@@ -11312,6 +11371,7 @@ admin-panel/modules
 admin-panel/monitoring
 admin-panel/notifications
 admin-panel/oauth
+admin-panel/old
 admin-panel/operator.php
 admin-panel/orders
 admin-panel/overview.php
@@ -11347,6 +11407,7 @@ admin-panel/registration.php
 admin-panel/release
 admin-panel/releases
 admin-panel/reports
+admin-panel/reports.php
 admin-panel/reset-password
 admin-panel/reset-password.php
 admin-panel/reset.php
@@ -11377,6 +11438,8 @@ admin-panel/signup.php
 admin-panel/sso
 admin-panel/staff.php
 admin-panel/start.php
+admin-panel/stats
+admin-panel/stats.php
 admin-panel/status
 admin-panel/subscriptions
 admin-panel/support
@@ -11457,6 +11520,8 @@ admin.asp
 Admin.asp
 admin.aspx
 admin.back
+admin.backup
+admin.bak
 admin.banners.php
 admin.brf
 admin.cache.html.php
@@ -11479,12 +11544,14 @@ Admin.dat
 admin.dat
 admin.dll
 admin.do
+admin.dump
 admin.epc
 admin.ex
 Admin.exe
 admin.exe
 admin.extplorer.php
 admin.frontpage.php
+admin.gz
 admin.htaccess
 Admin.htm
 admin.htm
@@ -11515,6 +11582,7 @@ admin.modules.php
 admin.mvc
 admin.newsfeeds.php
 admin.old
+admin.out
 admin.passwd
 admin.ph
 admin.php
@@ -11551,6 +11619,7 @@ admin.txt
 admin.webc
 admin.woa
 admin.xhtml
+admin.xml
 admin.zip
 admin/2fa
 admin/10_system_support_accounts/index.php
@@ -11875,6 +11944,7 @@ admin/cp.phtml
 admin/cpanel
 admin/cpanel.php
 admin/CPhome.php
+admin/create.php
 admin/cron
 admin/css/imagespineapp.ico
 admin/customers
@@ -11922,13 +11992,16 @@ admin/data/autosuggest
 admin/dataautosuggest
 admin/Databackup
 admin/database
+admin/database.php
 admin/db
 admin/db.dat
+admin/db.php
 admin/db.sql
 admin/db.tar.gz
 admin/db.zip
 admin/db_login.php
 admin/debug
+admin/debug.php
 admin/decrypt.php
 admin/default
 admin/default.asp
@@ -11938,6 +12011,7 @@ admin/default/admin.asp
 admin/default/login.asp
 admin/defaultadmin.asp
 admin/defaultlogin.asp
+admin/delete.php
 admin/deploy
 admin/deposits
 admin/devops
@@ -12086,6 +12160,7 @@ admin/index.brf
 admin/index.cfm
 admin/index.cfm?fuseaction=cLogin.main
 admin/index.cgi
+admin/index.htm
 admin/index.html
 Admin/index.html
 admin/index.js
@@ -12094,6 +12169,7 @@ Admin/index.php
 admin/index.phtml
 admin/index_ref.php
 admin/info
+admin/info.php
 admin/information
 admin/init
 admin/init.php
@@ -12270,6 +12346,7 @@ admin/manageadmin.asp
 admin/ManageAdmin.php
 admin/manageImages.php
 admin/managelogin.asp
+admin/management
 admin/manager
 admin/manager.php
 admin/media
@@ -12286,6 +12363,7 @@ admin/mod.php
 admin/moderator.php
 admin/module/aut
 admin/modules
+admin/monitor
 admin/monitoring
 admin/my_account.php
 admin/myaccount.php
@@ -12298,6 +12376,7 @@ admin/news/eWebEditor
 admin/notifications
 admin/oauth
 admin/oauth.php
+admin/old
 admin/Oledit
 admin/operator.php
 admin/orders
@@ -12415,7 +12494,10 @@ admin/release.dat
 admin/releases
 admin/releases.dat
 admin/releases.txt
+admin/report
+admin/report.php
 admin/reports
+admin/reports.php
 admin/reset-password
 admin/reset-password.php
 admin/reset.php
@@ -12439,6 +12521,7 @@ admin/scripts/fckeditor.js
 admin/scriptsfckeditor
 admin/scriptsfckeditor.js
 admin/search
+admin/search.php
 admin/secure
 admin/secure.php
 admin/secure/admin.aspx
@@ -12483,6 +12566,7 @@ admin/settings/start.php
 admin/settings/user.php
 admin/settings/users.php
 admin/settings/welcome.php
+admin/setup
 admin/setup.php
 admin/shop/account.php
 admin/shop/accounts.php
@@ -12523,6 +12607,8 @@ admin/slider.php
 admin/sndfile.asp
 admin/special.html
 admin/specializations.php
+admin/sql
+admin/sql.php
 admin/sql.rar
 admin/sql.sql
 admin/sql.tar.gz
@@ -12534,6 +12620,7 @@ admin/staff.php
 admin/start
 admin/start.php
 admin/stats
+admin/stats.php
 admin/status
 admin/store/account.php
 admin/store/accounts.php
@@ -12590,7 +12677,9 @@ admin/transfers
 admin/translations
 admin/uhome.html
 admin/up
+admin/update.php
 admin/upfile.asp
+admin/upload
 admin/upload.asp
 admin/upload.php
 admin/uploadfaceok.asp
@@ -12633,10 +12722,14 @@ admin/users/user.php
 admin/users/users.php
 admin/users/welcome.php
 admin/v1
+admin/v1/dashboard
+admin/v1/login
 admin/v2/broker-stats/topics
 admin/v2/brokers
 admin/v2/clusters
+admin/v2/dashboard
 admin/v2/functions
+admin/v2/login
 admin/v2/namespaces
 admin/v2/persistent
 admin/v2/tenants
@@ -12645,6 +12738,7 @@ admin/vendors
 admin/verification
 admin/verify.php
 admin/version
+admin/view.php
 admin/viewblog.php
 admin/viewmembers.php
 admin/views/ajax/autocomplete/user/a
@@ -12774,7 +12868,9 @@ admin_area-settings
 admin_area-support
 admin_area-tools
 admin_area-users
+admin_area.htm
 admin_area.php
+admin_area.phtml
 admin_area.xml
 admin_area/acceso.asp
 admin_area/acceso.aspx
@@ -12800,31 +12896,37 @@ admin_area/admincp.php
 admin_area/administrator.php
 admin_area/adminlogin.php
 admin_area/api
+admin_area/auth
 admin_area/auth.php
 admin_area/authentication.php
 admin_area/authorization.php
 admin_area/authorize.php
 admin_area/backend.php
 admin_area/backoffice.php
+admin_area/backup
 admin_area/billing
 admin_area/check-login.php
 admin_area/check_login.php
 admin_area/checklogin.php
+admin_area/config
 admin_area/config.php
 admin_area/configuration.php
 admin_area/console
 admin_area/console.php
+admin_area/control
 admin_area/control.php
 admin_area/controlpanel.php
 admin_area/cp.php
 admin_area/dashboard
 admin_area/dashboard.php
+admin_area/debug.php
 admin_area/do-login.php
 admin_area/do_login.php
 admin_area/entry.php
 admin_area/forgot-password.php
 admin_area/forgot.php
 admin_area/forgot_password.php
+admin_area/home
 admin_area/home.php
 admin_area/index
 admin_area/index.asp
@@ -12837,9 +12939,11 @@ admin_area/index.js
 admin_area/index.php
 Admin_area/index.php
 admin_area/index.xml
+admin_area/info.php
 admin_area/init.php
 admin_area/install.php
 admin_area/installer.php
+admin_area/log
 admin_area/logi
 admin_area/login
 admin_area/login-check.php
@@ -12856,6 +12960,9 @@ admin_area/login.phtml
 admin_area/login_check.php
 admin_area/logincheck.php
 admin_area/logout.php
+admin_area/logs
+admin_area/logs.php
+admin_area/main
 admin_area/main.php
 admin_area/manage.php
 admin_area/manager.php
@@ -12863,6 +12970,7 @@ admin_area/member.php
 admin_area/members.php
 admin_area/mod.php
 admin_area/moderator.php
+admin_area/old
 admin_area/operator.php
 admin_area/orders
 admin_area/overview.php
@@ -12883,6 +12991,7 @@ admin_area/recovery.php
 admin_area/register.php
 admin_area/registration.php
 admin_area/reports
+admin_area/reports.php
 admin_area/reset-password.php
 admin_area/reset.php
 admin_area/reset_password.php
@@ -12894,11 +13003,14 @@ admin_area/session.php
 admin_area/settings
 admin_area/settings.php
 admin_area/setup.php
+admin_area/signin
 admin_area/signin.php
 admin_area/signout.php
 admin_area/signup.php
 admin_area/staff.php
 admin_area/start.php
+admin_area/stats
+admin_area/stats.php
 admin_area/support
 admin_area/system.php
 admin_area/token.php
@@ -12986,6 +13098,7 @@ admin_backup.php
 admin_badword.asp
 admin_badword.html
 admin_badword.php
+admin_bak
 admin_banner
 admin_banner.asp
 admin_banner.html
@@ -13314,10 +13427,24 @@ admin_cp-dashboard
 admin_cp-login
 admin_cp-panel
 admin_cp.php
+admin_cp/auth
+admin_cp/config
+admin_cp/console
+admin_cp/control
 admin_cp/dashboard
+admin_cp/home
+admin_cp/index
+admin_cp/log
 admin_cp/login
+admin_cp/logs
+admin_cp/main
 admin_cp/panel
 admin_cp/portal
+admin_cp/reports
+admin_cp/settings
+admin_cp/signin
+admin_cp/stats
+admin_cp/users
 admin_cp_dashboard
 admin_cp_login
 admin_cp_panel
@@ -13452,12 +13579,14 @@ admin_login.aspx
 admin_login.brf
 admin_login.cfm
 admin_login.cgi
+admin_login.htm
 admin_login.html
 Admin_login.html
 admin_login.js
 Admin_login.php
 admin_login.php
 admin_login.php]
+admin_login.phtml
 admin_login/acceso.asp
 admin_login/acceso.aspx
 admin_login/acceso.php
@@ -13517,6 +13646,7 @@ admin_neu
 admin_neu.php
 admin_new
 admin_new.php
+admin_new/index.php
 admin_news
 admin_news.asp
 admin_news.aspx
@@ -13532,6 +13662,7 @@ admin_nonssl
 admin_nonssl.php
 admin_old
 admin_old.php
+admin_old/index.php
 admin_online
 admin_online.php
 admin_options.asp
@@ -13615,6 +13746,7 @@ admin_panel/configuration.php
 admin_panel/console
 admin_panel/console.php
 admin_panel/content
+admin_panel/control
 admin_panel/control.php
 admin_panel/controlpanel.php
 admin_panel/cp.php
@@ -13667,6 +13799,7 @@ admin_panel/keys
 admin_panel/kyc
 admin_panel/languages
 admin_panel/localization
+admin_panel/log
 admin_panel/login
 admin_panel/login-check.php
 admin_panel/login.php
@@ -13696,6 +13829,7 @@ admin_panel/modules
 admin_panel/monitoring
 admin_panel/notifications
 admin_panel/oauth
+admin_panel/old
 admin_panel/operator.php
 admin_panel/orders
 admin_panel/overview.php
@@ -13761,6 +13895,7 @@ admin_panel/signup.php
 admin_panel/sso
 admin_panel/staff.php
 admin_panel/start.php
+admin_panel/stats
 admin_panel/status
 admin_panel/subscriptions
 admin_panel/support
@@ -14112,20 +14247,24 @@ adminarea/admincp.php
 adminarea/administrator.php
 adminarea/adminlogin.php
 adminarea/api
+adminarea/auth
 adminarea/auth.php
 adminarea/authentication.php
 adminarea/authorization.php
 adminarea/authorize.php
 adminarea/backend.php
 adminarea/backoffice.php
+adminarea/backup
 adminarea/billing
 adminarea/check-login.php
 adminarea/check_login.php
 adminarea/checklogin.php
+adminarea/config
 adminarea/config.php
 adminarea/configuration.php
 adminarea/console
 adminarea/console.php
+adminarea/control
 adminarea/control.php
 adminarea/controlpanel.php
 adminarea/cp.php
@@ -14137,6 +14276,7 @@ adminarea/entry.php
 adminarea/forgot-password.php
 adminarea/forgot.php
 adminarea/forgot_password.php
+adminarea/home
 adminarea/home.php
 adminarea/index
 adminarea/index.asp
@@ -14150,6 +14290,7 @@ adminarea/index.php
 Adminarea/index.php
 adminarea/install.php
 adminarea/installer.php
+adminarea/log
 adminarea/login
 adminarea/login-check.php
 adminarea/login.asp
@@ -14164,6 +14305,8 @@ Adminarea/login.php
 adminarea/login_check.php
 adminarea/logincheck.php
 adminarea/logout.php
+adminarea/logs
+adminarea/main
 adminarea/main.php
 adminarea/manage.php
 adminarea/manager.php
@@ -14171,6 +14314,7 @@ adminarea/member.php
 adminarea/members.php
 adminarea/mod.php
 adminarea/moderator.php
+adminarea/old
 adminarea/operator.php
 adminarea/orders
 adminarea/panel
@@ -14198,11 +14342,13 @@ adminarea/session.php
 adminarea/settings
 adminarea/settings.php
 adminarea/setup.php
+adminarea/signin
 adminarea/signin.php
 adminarea/signout.php
 adminarea/signup.php
 adminarea/staff.php
 adminarea/start.php
+adminarea/stats
 adminarea/support
 adminarea/system.php
 adminarea/token.php
@@ -14450,6 +14596,7 @@ admincp-users
 admincp.asp
 admincp.cfm
 admincp.cgi
+admincp.htm
 admincp.html
 Admincp.html
 admincp.js
@@ -14510,6 +14657,7 @@ admincp/configuration.php
 admincp/console
 admincp/console.php
 admincp/content
+admincp/control
 admincp/control.php
 admincp/controlpanel.php
 admincp/cp.php
@@ -14565,6 +14713,7 @@ admincp/keys
 admincp/kyc
 admincp/languages
 admincp/localization
+admincp/log
 admincp/login
 admincp/login-check.php
 admincp/login.asp
@@ -14595,6 +14744,7 @@ admincp/modules
 admincp/monitoring
 admincp/notifications
 admincp/oauth
+admincp/old
 admincp/operator.php
 admincp/orders
 admincp/pages
@@ -14656,6 +14806,7 @@ admincp/signup.php
 admincp/sso
 admincp/staff.php
 admincp/start.php
+admincp/stats
 admincp/status
 admincp/subscriptions
 admincp/support
@@ -14763,6 +14914,7 @@ Adminenter.php
 adminenter.php
 adminer
 adminer1.php
+adminer2.php
 adminer-3.0.0-cs.php
 adminer-3.0.0-de.php
 adminer-3.0.0-en.php
@@ -15605,6 +15757,7 @@ adminHome.php
 adminhome.phtml
 adminhtml
 adminhtml.php
+adminhtml/index.php
 admini
 admini.html
 admini.php
@@ -16009,10 +16162,14 @@ administrator-users
 administrator.asp
 Administrator.asp
 administrator.aspx
+administrator.backup
+administrator.bak
 administrator.brf
 administrator.cfm
 administrator.cgi
 administrator.do
+administrator.dump
+administrator.gz
 administrator.htaccess
 Administrator.htm
 administrator.htm
@@ -16021,6 +16178,9 @@ Administrator.html
 administrator.js
 administrator.jsp
 Administrator.jsp
+administrator.log
+administrator.old
+administrator.out
 administrator.php
 Administrator.php
 administrator.phtml
@@ -16029,6 +16189,10 @@ Administrator.py
 administrator.rb
 Administrator.shtml
 administrator.shtml
+administrator.sql
+administrator.tar.gz
+administrator.txt
+administrator.xml
 administrator/2fa
 administrator/.env
 administrator/.htaccess
@@ -16106,6 +16270,7 @@ administrator/compliance
 administrator/components
 administrator/components/com_k2/install.mysql.sql
 administrator/components/com_k2/uninstall.mysql.sql
+administrator/components/com_users/views
 administrator/config
 administrator/config.php
 administrator/configuration.php
@@ -16114,6 +16279,7 @@ administrator/connect.php
 administrator/console
 administrator/console.php
 administrator/content
+administrator/control
 administrator/control.php
 administrator/controlpanel.php
 administrator/cp.php
@@ -16130,6 +16296,7 @@ administrator/data.zip
 administrator/database
 administrator/db
 administrator/debug
+administrator/debug.php
 administrator/deploy
 administrator/deposits
 administrator/devops
@@ -16173,6 +16340,7 @@ administrator/index.php
 Administrator/index.php
 administrator/index.phtml
 administrator/info
+administrator/info.php
 administrator/init.php
 administrator/install.php
 administrator/installer.php
@@ -16185,6 +16353,7 @@ administrator/kyc
 administrator/language
 administrator/languages
 administrator/localization
+administrator/log
 administrator/log-in
 administrator/log-in.php
 administrator/log-on
@@ -16233,6 +16402,7 @@ administrator/monitoring
 administrator/notifications
 administrator/oauth
 administrator/oauth.php
+administrator/old
 administrator/operator.php
 administrator/orders
 administrator/overview.php
@@ -16272,6 +16442,7 @@ administrator/registration.php
 administrator/release
 administrator/releases
 administrator/reports
+administrator/reports.php
 administrator/reset-password
 administrator/reset-password.php
 administrator/reset.php
@@ -16308,6 +16479,8 @@ administrator/sso
 administrator/sso.php
 administrator/staff.php
 administrator/start.php
+administrator/stats
+administrator/stats.php
 administrator/status
 administrator/subscriptions
 administrator/support
@@ -16639,15 +16812,24 @@ adminpanel-support
 adminpanel-tools
 adminpanel-users
 adminpanel.asp
+adminpanel.backup
+adminpanel.bak
 adminpanel.brf
 adminpanel.cfm
 adminpanel.cgi
+adminpanel.dump
+adminpanel.gz
+adminpanel.htm
 adminpanel.html
 Adminpanel.html
 adminpanel.js
+adminpanel.old
 Adminpanel.php
 adminPanel.php
 adminpanel.php
+adminpanel.phtml
+adminpanel.sql
+adminpanel.tar.gz
 adminpanel/2fa
 adminpanel/about
 adminpanel/access
@@ -16702,6 +16884,7 @@ adminpanel/configuration.php
 adminpanel/console
 adminpanel/console.php
 adminpanel/content
+adminpanel/control
 adminpanel/control.php
 adminpanel/controlpanel.php
 adminpanel/cp.php
@@ -16712,6 +16895,7 @@ adminpanel/dashboard.php
 adminpanel/database
 adminpanel/db
 adminpanel/debug
+adminpanel/debug.php
 adminpanel/deploy
 adminpanel/deposits
 adminpanel/devops
@@ -16743,6 +16927,7 @@ adminpanel/imports
 adminpanel/index
 adminpanel/index.php
 adminpanel/info
+adminpanel/info.php
 adminpanel/install.php
 adminpanel/installer.php
 adminpanel/integrations
@@ -16753,6 +16938,7 @@ adminpanel/keys
 adminpanel/kyc
 adminpanel/languages
 adminpanel/localization
+adminpanel/log
 adminpanel/login
 adminpanel/login-check.php
 adminpanel/login.php
@@ -16761,6 +16947,7 @@ adminpanel/logincheck.php
 adminpanel/logout
 adminpanel/logout.php
 adminpanel/logs
+adminpanel/logs.php
 adminpanel/mail
 adminpanel/main
 adminpanel/main.php
@@ -16782,6 +16969,7 @@ adminpanel/modules
 adminpanel/monitoring
 adminpanel/notifications
 adminpanel/oauth
+adminpanel/old
 adminpanel/operator.php
 adminpanel/orders
 adminpanel/pages
@@ -16814,6 +17002,7 @@ adminpanel/registration.php
 adminpanel/release
 adminpanel/releases
 adminpanel/reports
+adminpanel/reports.php
 adminpanel/reset-password
 adminpanel/reset-password.php
 adminpanel/reset.php
@@ -16843,6 +17032,8 @@ adminpanel/signup.php
 adminpanel/sso
 adminpanel/staff.php
 adminpanel/start.php
+adminpanel/stats
+adminpanel/stats.php
 adminpanel/status
 adminpanel/subscriptions
 adminpanel/support
@@ -16994,6 +17185,7 @@ admins/compliance
 admins/config
 admins/console
 admins/content
+admins/control
 admins/cron
 admins/customers
 admins/dashboard
@@ -17037,6 +17229,7 @@ admins/keys
 admins/kyc
 admins/languages
 admins/localization
+admins/log
 admins/log.txt
 admins/login
 admins/logout
@@ -17055,6 +17248,7 @@ admins/modules
 admins/monitoring
 admins/notifications
 admins/oauth
+admins/old
 admins/orders
 admins/pages
 admins/panel
@@ -17092,6 +17286,7 @@ admins/sessions
 admins/settings
 admins/signin
 admins/sso
+admins/stats
 admins/status
 admins/subscriptions
 admins/support
@@ -18644,8 +18839,8 @@ albinator
 albis_ok.php
 albmgr.php
 album
-album 3.swf
-album 4.swf
+album3.swf
+album4.swf
 album-picture.php
 album.asp
 album.aspx
@@ -19137,7 +19332,7 @@ ambassador_titus_erker.php
 ambassadors.php
 ambeo
 amber
-amber show.swf
+amber_show.swf
 ambicom
 ambience
 ambiente
@@ -19267,6 +19462,9 @@ analytics
 analytics.html
 analytics.php
 analytics.txt
+analytics/admin
+analytics/dashboard
+analytics/login
 analytics/saw.dll?bieehome&startPage=1#grabautologincookies
 analytics/saw.dll?getPreviewImage&previewFilePath=/etc/passwd
 analytics/saw.dll?getPreviewImage&previewFilePath=/etcpasswd
@@ -19578,11 +19776,10 @@ antibot_image.php
 antibotadntibot.php
 antibotimage.ashx
 antic
-antichat shell v1.3.php
-Antichat Shell v1.3.php
-antichat shell.php
-Antichat Shell.php
 antichat.php
+antichat_shell v1.3.php
+Antichat_Shell v1.3.php
+antichat_shell.php
 Antichat_Shell.php
 antichat_shell_v1.3.php
 Antichat_Shell_v1.3.php
@@ -19765,6 +19962,7 @@ api-gateway/.env.dev
 api-gateway/.env.local
 api-gateway/.env.production
 api-gateway/.env.staging
+api-keys.txt
 api-v12.php
 api.admin.mars.com-web.log
 api.aspx
@@ -19817,11 +20015,13 @@ api/activity/slot_card_sell/entry
 api/activity/valentine_2025/code/submit
 api/adm
 api/admin
+api/admin.php
 api/admin/account.php
 api/admin/accounts.php
 api/admin/admin.php
 api/admin/api-tokens
 api/admin/auth
+api/admin/config
 api/admin/console.php
 api/admin/control.php
 api/admin/dashboard.php
@@ -19829,6 +20029,7 @@ api/admin/features
 api/admin/home.php
 api/admin/index.php
 api/admin/init.php
+api/admin/login
 api/admin/login.php
 api/admin/main.php
 api/admin/manage.php
@@ -19858,6 +20059,7 @@ api/admin/user.php
 api/admin/user/id
 api/admin/user/password
 api/admin/user/status
+api/admin/users
 api/admin/users.php
 api/admin/welcome.php
 api/admins
@@ -20317,6 +20519,7 @@ api/incident/update_task_order
 api/incidentsevents
 api/incidentsopen
 api/index.html
+api/index.php
 api/index/life/lycx
 api/info
 api/instance
@@ -20458,6 +20661,7 @@ api/recommend/buy/volume
 api/recommend/list
 api/recommend/single/list
 api/recommend/tab
+api/refresh
 api/refresh_access_token
 api/register
 api/relation/character/fan/list
@@ -20839,6 +21043,7 @@ api/themes
 api/third/videodetail
 api/timelion/run
 api/timelionrun
+api/token
 api/tokens/search
 api/top
 api/traces
@@ -20984,6 +21189,7 @@ api/v1/common/notifications
 api/v1/common/preferences
 api/v1/common/users/password
 api/v1/complicance_store
+api/v1/config
 api/v1/config/keys.yaml
 api/v1/config/secrets.yaml
 api/v1/configmaps
@@ -21004,6 +21210,7 @@ api/v1/digitalone-cnl-facebook/post-token
 api/v1/directory
 api/v1/discovery
 api/v1/dns/nameservers
+api/v1/docs
 api/v1/employees
 api/v1/endpoints
 api/v1/event-sources
@@ -21043,12 +21250,14 @@ api/v1/label/<label_name>/values
 api/v1/label/__name__/values
 api/v1/label/job/values
 api/v1/licenses.get
+api/v1/login
 api/v1/logs/search
 api/v1/machine
 api/v1/me
 api/v1/meta/bases
 api/v1/meta/tables
 api/v1/metadata
+api/v1/metrics
 api/v1/monitoring/accounts
 api/v1/monitoring/address-check
 api/v1/namespace
@@ -21128,6 +21337,7 @@ api/v1/settings/api
 api/v1/setup-keys
 api/v1/sms-sender
 api/v1/statistics
+api/v1/stats
 api/v1/status/active_queries
 api/v1/status/config
 api/v1/status/label/<label_name>
@@ -21153,6 +21363,7 @@ api/v1/targets
 api/v1/teams
 api/v1/timelapse
 api/v1/todo-task
+api/v1/token
 api/v1/tokens
 api/v1/uac/bot
 api/v1/upload
@@ -21233,6 +21444,7 @@ api/v2/current_user
 api/v2/current_user/owner
 api/v2/dashboard
 api/v2/dashboards
+api/v2/docs
 api/v2/explore/tab
 api/v2/feed
 api/v2/graphiql
@@ -21273,6 +21485,7 @@ api/v2/system/stock
 api/v2/tasks
 api/v2/teams
 api/v2/templates
+api/v2/token
 api/v2/tokens
 api/v2/user
 api/v2/user/apps/appDefinitions
@@ -21557,6 +21770,7 @@ app.js
 app.log
 app.old
 app.orig
+app.out
 app.php
 app.php.bak
 app.php.old
@@ -21574,6 +21788,7 @@ app.temp
 app.tgz
 app.tmp
 app.txt
+app.xml
 app.yaml
 app.yml
 app.zip
@@ -21627,6 +21842,7 @@ app/config/databases.yml
 app/config/dev/.env
 app/config/global.json
 app/config/parameters.ini
+app/config/parameters.php
 app/config/parameters.yml
 app/config/parameters.yml.dist
 app/config/pimcore/google-api-private-key.json
@@ -21656,7 +21872,9 @@ app/dev
 app/dev.php
 app/docs
 app/docs.html
+app/etc/config.php
 app/etc/config.xml
+app/etc/di.xml
 app/etc/enterprise.xml
 app/etc/env.php
 app/etc/fpc.xml
@@ -21685,6 +21903,7 @@ app/etclocal.xml.vmachine
 app/etclocal.xml.vmachine.rm
 app/frontend/.env
 app/google-services.json
+app/Http/Controllers/AdminController.php
 app/images
 app/images/components
 app/images/scripts/components
@@ -21874,6 +22093,7 @@ application.js.php
 application.log
 application.old
 application.orig
+application.out
 application.pdf
 application.php
 application.php3
@@ -21899,6 +22119,7 @@ application.tmp
 application.txt
 application.wadl
 application.wadl?detail=true
+application.xml
 application.yaml.bak
 application.yml
 application.yml.bak
@@ -21907,14 +22128,21 @@ application/.env
 application/cache
 application/config/config.php
 application/config/database.php
+application/config/routes.php
 application/configs/application.ini
 application/configsapplication.ini
 application/controllers
+application/controllers/Admin.php
+application/controllers/Auth.php
+application/controllers/Welcome.php
 application/logs
 application/logs/access.log
 application/logs/admin.log
 application/logs/application.log
+application/logs/debug.log
 application/logs/default.log
+application/logs/error.log
+application/logs/log.txt
 application/logs/site.log
 application/models
 Application/Runtime/LogsHome
@@ -21922,6 +22150,7 @@ application/views
 application/web
 application_new.cfm
 application_top.php
+applicationContext.xml
 applicationlist
 ApplicationProfileSample
 ApplicationProfileSample.aspx
@@ -21987,7 +22216,7 @@ apppage_t5_r2.htm
 apppage_t5_r3.htm
 apppage_t5_r5.htm
 AppParam.php
-APPPATH/bootstrap.php [ 94 ]
+APPPATH/bootstrap.php
 appphpunit.xml
 approval
 approval.html
@@ -22183,8 +22412,10 @@ archive.tgz
 archive.zip
 Archive.zip
 archive/.env
+archive/admin
 archive/db_config.bak
 archive/get.asp?message_id=
+archive/login
 archive_tar
 Archive_Tar.php
 archived
@@ -22538,6 +22769,7 @@ artikkel.asp
 artikkel_print.asp
 artis.nsf
 artisan
+artisan.php
 artisoft
 Artist
 artist
@@ -22617,7 +22849,7 @@ asd.php
 asd_contact2.asp
 asdasd
 asdf
-Asdf13579#
+Asdf13579
 asdf.php
 asdfasdf
 asdfg
@@ -23258,6 +23490,7 @@ auth
 Auth
 auth.asp
 auth.aspx
+auth.bak
 auth.cgi
 auth.dat
 auth.htm
@@ -23267,12 +23500,16 @@ auth.inc.php
 auth.json
 auth.jsp
 auth.log
+auth.old
+auth.out
 auth.php
 Auth.php
+auth.phtml
 auth.pl
 auth.py
 auth.rb
 auth.tar.gz
+auth.txt
 auth.xml
 auth.zip
 auth/.env
@@ -23357,7 +23594,9 @@ authenticate
 authenticate.asp
 authenticate.aspx
 authenticate.cfm
+authenticate.htm
 authenticate.php
+authenticate.phtml
 authenticated
 authenticated.php
 authenticatedy
@@ -24016,6 +24255,7 @@ back-office/assets
 back-office/audit
 back-office/audit-log
 back-office/auth
+back-office/auth.php
 back-office/backup
 back-office/backups
 back-office/billing
@@ -24030,14 +24270,17 @@ back-office/clients
 back-office/comments
 back-office/compliance
 back-office/config
+back-office/config.php
 back-office/console
 back-office/content
 back-office/cron
 back-office/customers
 back-office/dashboard
+back-office/dashboard.php
 back-office/database
 back-office/db
 back-office/debug
+back-office/debug.php
 back-office/deploy
 back-office/deposits
 back-office/devops
@@ -24057,10 +24300,13 @@ back-office/groups
 back-office/health
 back-office/history
 back-office/home
+back-office/home.php
 back-office/import
 back-office/imports
 back-office/index
+back-office/index.php
 back-office/info
+back-office/info.php
 back-office/integrations
 back-office/inventory
 back-office/invoices
@@ -24070,10 +24316,13 @@ back-office/kyc
 back-office/languages
 back-office/localization
 back-office/login
+back-office/login.php
 back-office/logout
 back-office/logs
+back-office/logs.php
 back-office/mail
 back-office/main
+back-office/main.php
 back-office/maintenance
 back-office/media
 back-office/member
@@ -24089,6 +24338,7 @@ back-office/oauth
 back-office/orders
 back-office/pages
 back-office/panel
+back-office/panel.php
 back-office/partners
 back-office/password
 back-office/payments
@@ -24105,6 +24355,7 @@ back-office/redis
 back-office/release
 back-office/releases
 back-office/reports
+back-office/reports.php
 back-office/reset-password
 back-office/restore
 back-office/reviews
@@ -24118,8 +24369,11 @@ back-office/security
 back-office/sellers
 back-office/sessions
 back-office/settings
+back-office/settings.php
 back-office/signin
+back-office/signin.php
 back-office/sso
+back-office/stats.php
 back-office/status
 back-office/subscriptions
 back-office/system
@@ -24134,12 +24388,14 @@ back-office/translations
 back-office/uploads
 back-office/user
 back-office/users
+back-office/users.php
 back-office/vendors
 back-office/verification
 back-office/version
 back-office/webhooks
 back-office/withdrawals
 back-office/workers
+back-panel
 back-up
 back-up.php
 back-up.phtml
@@ -24345,8 +24601,17 @@ BACKEND
 backend-admin
 backend-search.php
 backend.asp
+backend.backup
+backend.bak
+backend.dump
+backend.gz
+backend.htm
 backend.html
+backend.old
 backend.php
+backend.phtml
+backend.sql
+backend.tar.gz
 backend.tf
 backend/2fa
 backend/.env
@@ -24373,6 +24638,7 @@ backend/accounts
 backend/activity
 backend/admin
 backend/admin/eWebEditor
+backend/admin/index
 backend/aml
 backend/analytics
 backend/api-keys
@@ -24383,6 +24649,7 @@ backend/assets
 backend/audit
 backend/audit-log
 backend/auth
+backend/auth.php
 backend/backup
 backend/backups
 backend/billing
@@ -24397,6 +24664,7 @@ backend/clients
 backend/comments
 backend/compliance
 backend/config
+backend/config.php
 backend/console
 backend/content
 backend/core/info.xml
@@ -24404,9 +24672,11 @@ backend/coreinfo.xml
 backend/cron
 backend/customers
 backend/dashboard
+backend/dashboard.php
 backend/database
 backend/db
 backend/debug
+backend/debug.php
 backend/deploy
 backend/deposits
 backend/devops
@@ -24427,10 +24697,13 @@ backend/groups
 backend/health
 backend/history
 backend/home
+backend/home.php
 backend/import
 backend/imports
 backend/index
+backend/index.php
 backend/info
+backend/info.php
 backend/integrations
 backend/inventory
 backend/invoices
@@ -24440,10 +24713,13 @@ backend/kyc
 backend/languages
 backend/localization
 backend/login
+backend/login.php
 backend/logout
 backend/logs
+backend/logs.php
 backend/mail
 backend/main
+backend/main.php
 backend/maintenance
 backend/media
 backend/member
@@ -24459,6 +24735,7 @@ backend/oauth
 backend/orders
 backend/pages
 backend/panel
+backend/panel.php
 backend/partners
 backend/password
 backend/payments
@@ -24475,6 +24752,7 @@ backend/redis
 backend/release
 backend/releases
 backend/reports
+backend/reports.php
 backend/reset-password
 backend/restore
 backend/reviews
@@ -24488,9 +24766,12 @@ backend/security
 backend/sellers
 backend/sessions
 backend/settings
+backend/settings.php
 backend/signin
+backend/signin.php
 backend/src/.env
 backend/sso
+backend/stats.php
 backend/status
 backend/subscriptions
 backend/system
@@ -24505,6 +24786,7 @@ backend/translations
 backend/uploads
 backend/user
 backend/users
+backend/users.php
 backend/vendors
 backend/verification
 backend/version
@@ -24541,13 +24823,16 @@ backlog
 backlog.php
 backoffice
 BackOffice
+backoffice.htm
 backoffice.php
+backoffice.phtml
 backoffice/2fa
 backoffice/about
 backoffice/access
 backoffice/account
 backoffice/accounts
 backoffice/activity
+backoffice/admin
 backoffice/aml
 backoffice/analytics
 backoffice/api-keys
@@ -24558,6 +24843,7 @@ backoffice/assets
 backoffice/audit
 backoffice/audit-log
 backoffice/auth
+backoffice/auth.php
 backoffice/backup
 backoffice/backups
 backoffice/billing
@@ -24572,14 +24858,17 @@ backoffice/clients
 backoffice/comments
 backoffice/compliance
 backoffice/config
+backoffice/config.php
 backoffice/console
 backoffice/content
 backoffice/cron
 backoffice/customers
 backoffice/dashboard
+backoffice/dashboard.php
 backoffice/database
 backoffice/db
 backoffice/debug
+backoffice/debug.php
 backoffice/deploy
 backoffice/deposits
 backoffice/devops
@@ -24599,10 +24888,13 @@ backoffice/groups
 backoffice/health
 backoffice/history
 backoffice/home
+backoffice/home.php
 backoffice/import
 backoffice/imports
 backoffice/index
+backoffice/index.php
 backoffice/info
+backoffice/info.php
 backoffice/integrations
 backoffice/inventory
 backoffice/invoices
@@ -24612,10 +24904,13 @@ backoffice/kyc
 backoffice/languages
 backoffice/localization
 backoffice/login
+backoffice/login.php
 backoffice/logout
 backoffice/logs
+backoffice/logs.php
 backoffice/mail
 backoffice/main
+backoffice/main.php
 backoffice/maintenance
 backoffice/media
 backoffice/member
@@ -24631,6 +24926,7 @@ backoffice/oauth
 backoffice/orders
 backoffice/pages
 backoffice/panel
+backoffice/panel.php
 backoffice/partners
 backoffice/password
 backoffice/payments
@@ -24647,6 +24943,7 @@ backoffice/redis
 backoffice/release
 backoffice/releases
 backoffice/reports
+backoffice/reports.php
 backoffice/reset-password
 backoffice/restore
 backoffice/reviews
@@ -24660,8 +24957,11 @@ backoffice/security
 backoffice/sellers
 backoffice/sessions
 backoffice/settings
+backoffice/settings.php
 backoffice/signin
+backoffice/signin.php
 backoffice/sso
+backoffice/stats.php
 backoffice/status
 backoffice/subscriptions
 backoffice/system
@@ -24676,6 +24976,7 @@ backoffice/translations
 backoffice/uploads
 backoffice/user
 backoffice/users
+backoffice/users.php
 backoffice/v1/ui
 backoffice/v1ui
 backoffice/vendors
@@ -24688,6 +24989,7 @@ backofficelite
 backofficeplus
 backorder.aspx
 backorderitems.asp
+backpanel
 backroom
 backs
 backspace
@@ -24784,11 +25086,18 @@ backup/.env.production
 backup/.env.save
 backup/.env.staging
 backup/.env~
+backup/admin
 backup/backup.bak
 backup/backup.mmdb
+backup/backup.sql
 backup/bk.db
 backup/database
+backup/database.sql
+backup/db.sql
+backup/dump.sql
+backup/login
 backup/mysql/.env
+backup/panel
 backup/res/.env
 backup/vendor/phpunit/phpunit
 backup/vendor/phpunit/phpunit/phpunit
@@ -24954,6 +25263,11 @@ bak
 bak-up
 bak.index.html
 BAK.index.php
+bak/admin
+bak/config.php
+bak/database.sql
+bak/login
+bak/panel
 bakbone
 baker
 bakersfield
@@ -27451,11 +27765,14 @@ bootsie
 Bootstrap
 bootstrap
 Bootstrap.php
+bootstrap.php
 bootstrap.properties
 bootstrap.yml
 bootstrap/.env
 bootstrap/autoload.php
 bootstrap/cache
+bootstrap/cache/config.php
+bootstrap/cache/routes.php
 bootstrap/data
 bootstrap/start.php
 bootstrap/tmp
@@ -28187,6 +28504,7 @@ burn
 burner
 burningwhee1s
 burnwave,
+burp
 burst
 burst.html
 burtchen
@@ -28456,7 +28774,6 @@ c
 C
 c0de
 c0de.phtml
-c0derz shell [csh] v. 0.1.1 release.php
 c1
 c1.htm
 c1.php
@@ -28539,6 +28856,7 @@ c-note
 c-oranjefoto
 c-orc
 C-panel
+c-panel
 c-rootsite
 c-sureroute.txt
 c-tesco
@@ -28578,6 +28896,7 @@ c_news_letter.php
 c_news_show
 c_option.asp
 c_order
+c_panel
 c_popup.php
 c_product.php
 c_products_show
@@ -29725,9 +30044,9 @@ castro
 castrol
 casus15.php
 Casus15.php
-casus 1.5.php
-CasuS 1.5.php
 CasuS-1.5.php
+casus_1.5.php
+CasuS_1.5.php
 cat
 cat2.htm
 cat2groupperm.php
@@ -29736,9 +30055,6 @@ cat4.htm
 cat7777
 cat-db.htm
 cat.asp
-cat.asp?cat=
-cat.asp?iCat=
-cat.asp?id=
 cat.cgi
 cat.htm
 cat.html
@@ -30279,7 +30595,6 @@ center6
 center7
 center8
 center9
-Center and crop thumbnails.php
 center.asp
 center.aspx
 center.php
@@ -31651,6 +31966,7 @@ ci.php
 ci/config/.env
 ci/distelli-manifest.yml
 ci/distelli.yml
+ci/login
 ci/phpci.yml
 ci/pipeline.yml
 ci/push_ssh_keys.yml
@@ -31846,6 +32162,7 @@ ckeditornotexist_path.md
 ckey.asp
 ckfinder
 ckfinder/ckfinder.html
+ckfinder/ckfinder.php
 ckfinder/help/enindex.html
 ckfinderckfinder.html
 CKFinderCommand
@@ -32016,6 +32333,7 @@ classes.txt
 classes.zip
 classes.zip,
 classes/cookie.txt
+classes/db/DbPDO.php
 classes/gladius/README.TXT
 classes/gladiusREADME.TXT
 classes/SiteMap.php
@@ -32214,6 +32532,7 @@ clicks.cgi
 clicks.js
 clicks.php
 clicks.txt
+clickstats
 clicktale
 clicktalecache.ashx
 clickthrough.asp
@@ -34162,6 +34481,7 @@ components/com_foxcontact/up.php
 components/com_foxcontact/upload.php
 components/com_hdflvplayer/hdflvplayer/download.php
 components/com_hdflvplayer/hdflvplayer/unduh.php
+components/com_users/views
 components/login
 components/login.ascx
 components/login.php
@@ -34391,6 +34711,7 @@ conf_global-bak.php
 conf_global.php
 conf_mime_types.php
 conf_reach.aspx
+conf_simp
 confarc
 confCatalina
 confcatalina.policy
@@ -34462,6 +34783,7 @@ config.functions.php
 config.guess
 config.h.in
 config.hash
+config.htm
 config.html
 config.image.php
 config.inc
@@ -34498,6 +34820,7 @@ config.log
 config.new.php
 config.nsf
 config.old
+config.orig
 config.php
 Config.php
 config.php-backup
@@ -34518,11 +34841,13 @@ config.php.swp
 config.php.txt
 config.php.zip
 config.php~
+config.phtml
 config.prod.php
 config.properties
 config.py
 config.rb
 config.ru
+config.save
 config.seen
 config.sef.php
 config.server
@@ -34555,10 +34880,14 @@ config/autoload
 config/aws.yml
 config/banned_words.txt
 config/cable.yml
+config/cache.php
 config/config.inc
 config/config.ini
+config/config.yml
 config/configuration.yml
 config/cucumber.yml
+config/database.php
+config/database.yaml
 config/database.yml
 config/database.yml.enc
 config/database.yml.pgsql
@@ -34581,6 +34910,7 @@ config/locales/en.yml
 config/locales/ja.yml
 config/locales/simple_form.en.yml
 config/log4j2.properties
+config/mail.php
 config/mailgun.env
 config/master.key
 config/monkcheckout.ini
@@ -34589,6 +34919,7 @@ config/monkid.ini
 config/newrelic.yml
 config/nexmo.env
 config/packages
+config/packages/framework.yaml
 config/packages/security.yaml
 config/parameters.yml
 config/postProcessing/testNaming
@@ -34601,6 +34932,7 @@ config/routes.yml
 config/s3.yml
 config/secrets.yml
 config/security.yml
+config/services.php
 config/services.yaml
 config/settings.inc
 config/settings.ini
@@ -34725,6 +35057,7 @@ configuracion.php
 configuration
 Configuration
 configuration1.php
+configuration.htm
 configuration.inc.php~
 configuration.ini
 configuration.nx.php
@@ -34954,9 +35287,11 @@ consider.php
 consola
 console
 Console
+console.htm
 console.html
 console.log
 console.php
+console.phtml
 console/2fa
 console/.env.aws
 console/about
@@ -34964,6 +35299,7 @@ console/access
 console/account
 console/accounts
 console/activity
+console/admin
 console/aml
 console/analytics
 console/api-keys
@@ -34982,6 +35318,7 @@ console/assets
 console/audit
 console/audit-log
 console/auth
+console/auth.php
 console/backup
 console/backups
 console/base/config.json
@@ -35003,6 +35340,7 @@ console/content
 console/cron
 console/customers
 console/dashboard
+console/dashboard.php
 console/database
 console/db
 console/debug
@@ -35025,9 +35363,11 @@ console/groups
 console/health
 console/history
 console/home
+console/home.php
 console/import
 console/imports
 console/index
+console/index.php
 console/info
 console/integrations
 console/inventory
@@ -35040,12 +35380,14 @@ console/languages
 console/localization
 Console/login
 console/login
+console/login.php
 console/login/LoginForm.jsp
 console/loginLoginForm.jsp
 console/logout
 console/logs
 console/mail
 console/main
+console/main.php
 console/maintenance
 console/media
 console/member
@@ -35061,6 +35403,7 @@ console/oauth
 console/orders
 console/pages
 console/panel
+console/panel.php
 console/partners
 console/password
 console/payments
@@ -35092,7 +35435,9 @@ console/security
 console/sellers
 console/sessions
 console/settings
+console/settings.php
 console/signin
+console/signin.php
 console/sso
 console/status
 console/subscriptions
@@ -35108,6 +35453,7 @@ console/translations
 console/uploads
 console/user
 console/users
+console/users.php
 console/vendors
 console/verification
 console/version
@@ -35152,6 +35498,7 @@ construction.php
 construtor
 consuelo
 consul
+consul/ui
 consult
 consult.htm
 consulta
@@ -35838,6 +36185,7 @@ control-panel/workers
 control.asp
 control.aspx
 control.dat
+control.htm
 control.html
 control.ini
 control.json
@@ -35854,6 +36202,7 @@ control/access
 control/account
 control/accounts
 control/activity
+control/admin
 control/aml
 control/analytics
 control/api-keys
@@ -35864,6 +36213,7 @@ control/assets
 control/audit
 control/audit-log
 control/auth
+control/auth.php
 control/backup
 control/backups
 control/billing
@@ -35878,14 +36228,17 @@ control/clients
 control/comments
 control/compliance
 control/config
+control/config.php
 control/console
 control/content
 control/cron
 control/customers
 control/dashboard
+control/dashboard.php
 control/database
 control/db
 control/debug
+control/debug.php
 control/deploy
 control/deposits
 control/devops
@@ -35905,10 +36258,13 @@ control/groups
 control/health
 control/history
 control/home
+control/home.php
 control/import
 control/imports
 control/index
+control/index.php
 control/info
+control/info.php
 control/integrations
 control/inventory
 control/invoices
@@ -35918,10 +36274,13 @@ control/kyc
 control/languages
 control/localization
 control/login
+control/login.php
 control/logout
 control/logs
+control/logs.php
 control/mail
 control/main
+control/main.php
 control/maintenance
 control/media
 control/member
@@ -35955,6 +36314,7 @@ control/redis
 control/release
 control/releases
 control/reports
+control/reports.php
 control/reset-password
 control/restore
 control/reviews
@@ -35968,8 +36328,11 @@ control/security
 control/sellers
 control/sessions
 control/settings
+control/settings.php
 control/signin
+control/signin.php
 control/sso
+control/stats.php
 control/status
 control/stream
 control/subscriptions
@@ -35985,6 +36348,7 @@ control/translations
 control/uploads
 control/user
 control/users
+control/users.php
 control/vendors
 control/verification
 control/version
@@ -36052,6 +36416,7 @@ Controlpanel.html
 controlpanel.js
 Controlpanel.php
 controlpanel.php
+controlpanel.phtml
 controlpanel.shtml
 controlpanel/2fa
 controlpanel/about
@@ -36071,6 +36436,7 @@ controlpanel/assets
 controlpanel/audit
 controlpanel/audit-log
 controlpanel/auth
+controlpanel/auth.php
 controlpanel/backup
 controlpanel/backups
 controlpanel/billing
@@ -36085,14 +36451,17 @@ controlpanel/clients
 controlpanel/comments
 controlpanel/compliance
 controlpanel/config
+controlpanel/config.php
 controlpanel/console
 controlpanel/content
 controlpanel/cron
 controlpanel/customers
 controlpanel/dashboard
+controlpanel/dashboard.php
 controlpanel/database
 controlpanel/db
 controlpanel/debug
+controlpanel/debug.php
 controlpanel/deploy
 controlpanel/deposits
 controlpanel/devops
@@ -36113,10 +36482,13 @@ controlpanel/groups
 controlpanel/health
 controlpanel/history
 controlpanel/home
+controlpanel/home.php
 controlpanel/import
 controlpanel/imports
 controlpanel/index
+controlpanel/index.php
 controlpanel/info
+controlpanel/info.php
 controlpanel/integrations
 controlpanel/inventory
 controlpanel/invoices
@@ -36132,8 +36504,10 @@ controlpanel/login.php
 controlpanel/login.phtml
 controlpanel/logout
 controlpanel/logs
+controlpanel/logs.php
 controlpanel/mail
 controlpanel/main
+controlpanel/main.php
 controlpanel/maintenance
 controlpanel/media
 controlpanel/member
@@ -36149,6 +36523,7 @@ controlpanel/oauth
 controlpanel/orders
 controlpanel/pages
 controlpanel/panel
+controlpanel/panel.php
 controlpanel/partners
 controlpanel/password
 controlpanel/payments
@@ -36165,6 +36540,7 @@ controlpanel/redis
 controlpanel/release
 controlpanel/releases
 controlpanel/reports
+controlpanel/reports.php
 controlpanel/reset-password
 controlpanel/restore
 controlpanel/reviews
@@ -36178,10 +36554,12 @@ controlpanel/security
 controlpanel/sellers
 controlpanel/sessions
 controlpanel/settings
+controlpanel/settings.php
 controlpanel/sign.php
 controlpanel/signin
 controlpanel/signin.php
 controlpanel/sso
+controlpanel/stats.php
 controlpanel/status
 controlpanel/subscriptions
 controlpanel/system
@@ -36199,6 +36577,7 @@ controlpanel/user.asp
 controlpanel/user.aspx
 controlpanel/user.php
 controlpanel/users
+controlpanel/users.php
 controlpanel/vendors
 controlpanel/verification
 controlpanel/version
@@ -36254,6 +36633,7 @@ conversion.asp
 conversion.htm
 conversion.html
 conversion.php
+conversions
 convert
 convert-uulib
 convert.php
@@ -36453,10 +36833,12 @@ core/.env.smtp
 core/.env.token
 core/.env.wiliwio
 core/app/.env
+core/authorize.php
 core/config/databases.yml
 core/Datavase/.env
 core/fragments/moduleInfo.phtml
 core/fragmentsmoduleInfo.phtml
+core/install.php
 core/INSTALL.txt
 core/latest/swagger-ui/index.html
 core/latest/swagger-uiindex.html
@@ -36787,6 +37169,7 @@ cp.brf
 cp.category.php
 cp.cfm
 cp.cgi
+cp.htm
 cp.html
 Cp.html
 cp.js
@@ -36802,10 +37185,24 @@ cp/auth
 cp/auth.php
 cp/authorization
 cp/authorization.php
+cp/config.php
+cp/dashboard.php
+cp/debug.php
+cp/home.php
+cp/index.php
+cp/info.php
 cp/login
 cp/login.php
 cp/logon
+cp/logs.php
+cp/main.php
+cp/panel.php
+cp/reports.php
+cp/settings.php
 cp/Shares?user=&protocol=webaccess&v=2.3
+cp/signin.php
+cp/stats.php
+cp/users.php
 cp_functions.php
 cp_header.php
 cp_view.asp
@@ -37244,6 +37641,7 @@ criteria
 criteria.php
 criteria_jsk.php
 critical
+critical.log
 critiques
 crl
 Crm
@@ -37259,7 +37657,9 @@ crm/.env
 crm/.env.local
 crm/.env.production
 crm/.env.staging
+crm/admin
 crm/config.env
+crm/dashboard
 crm/login
 crms
 cro
@@ -37828,6 +38228,7 @@ customer/access
 customer/account
 customer/accounts
 customer/activity
+customer/admin
 customer/aml
 customer/analytics
 customer/api-keys
@@ -38468,6 +38869,7 @@ dadmin
 dadmin.php
 dados
 daemon
+daemon.php
 daffodil
 dagit
 dagit/graphql
@@ -38611,8 +39013,10 @@ dashboard-data.php
 dashboard.asp
 dashboard.aspx
 dashboard.config
+dashboard.htm
 dashboard.html
 dashboard.php
+dashboard.phtml
 dashboard/2fa
 dashboard/.env
 dashboard/about
@@ -38622,6 +39026,7 @@ dashboard/accounts
 dashboard/activity
 dashboard/adlog
 dashboard/adm.php
+dashboard/admin
 dashboard/admin.html
 dashboard/admin.php
 dashboard/administrator.php
@@ -38635,6 +39040,7 @@ dashboard/assets
 dashboard/audit
 dashboard/audit-log
 dashboard/auth
+dashboard/auth.php
 dashboard/backup
 dashboard/backups
 dashboard/billing
@@ -38649,14 +39055,17 @@ dashboard/clients
 dashboard/comments
 dashboard/compliance
 dashboard/config
+dashboard/config.php
 dashboard/console
 dashboard/content
 dashboard/cron
 dashboard/customers
 dashboard/dashboard
+dashboard/dashboard.php
 dashboard/database
 dashboard/db
 dashboard/debug
+dashboard/debug.php
 dashboard/deploy
 dashboard/deposits
 dashboard/devops
@@ -38677,11 +39086,14 @@ dashboard/groups
 dashboard/health
 dashboard/history
 dashboard/home
+dashboard/home.php
 dashboard/howto.html
 dashboard/import
 dashboard/imports
 dashboard/index
+dashboard/index.php
 dashboard/info
+dashboard/info.php
 dashboard/integrations
 dashboard/inventory
 dashboard/invoices
@@ -38691,10 +39103,13 @@ dashboard/kyc
 dashboard/languages
 dashboard/localization
 dashboard/login
+dashboard/login.php
 dashboard/logout
 dashboard/logs
+dashboard/logs.php
 dashboard/mail
 dashboard/main
+dashboard/main.php
 dashboard/maintenance
 dashboard/media
 dashboard/member
@@ -38710,6 +39125,7 @@ dashboard/oauth
 dashboard/orders
 dashboard/pages
 dashboard/panel
+dashboard/panel.php
 dashboard/partners
 dashboard/password
 dashboard/payments
@@ -38728,6 +39144,7 @@ dashboard/redis
 dashboard/release
 dashboard/releases
 dashboard/reports
+dashboard/reports.php
 dashboard/reset-password
 dashboard/restore
 dashboard/reviews
@@ -38742,8 +39159,12 @@ dashboard/security
 dashboard/sellers
 dashboard/sessions
 dashboard/settings
+dashboard/settings.php
 dashboard/signin
+dashboard/signin.php
 dashboard/sso
+dashboard/stats
+dashboard/stats.php
 dashboard/status
 dashboard/subscriptions
 dashboard/system
@@ -38759,6 +39180,7 @@ dashboard/uploads
 dashboard/user
 dashboard/UserControl/CMS/Page/Telerik.Web.UI.DialogHandler.aspx/Desktopmodules/Admin/dnnWerk.Users/DialogHandler.aspx?dp=1
 dashboard/users
+dashboard/users.php
 dashboard/vendors
 dashboard/verification
 dashboard/version
@@ -39042,6 +39464,8 @@ data/files
 data/logh.dtb
 data/login.json
 data/logs
+data/logs/access.log
+data/logs/error.log
 data/module81323e93cd52ecce9f175b6aa46f5cfd-readme.php
 data/modulenotexist_path.php
 data/password.dat
@@ -39282,6 +39706,7 @@ database222.php
 database520.asp
 database520.aspx
 database520.php
+database-admin
 database-connect.php
 database.asp
 database.cfg
@@ -39304,6 +39729,7 @@ database.tar.gz
 database.tgz
 database.txt
 database.xml
+database.yaml
 database.yml
 database.yml.pgsql
 database.yml.sqlite3
@@ -39315,11 +39741,14 @@ database/backup
 database/database
 database/databasecmd.asp
 database/databasecmd.php
+database/index.php
+database/migrations
 database/phpMyAdmin
 database/phpmyadmin
 database/phpMyAdmin2
 database/phpmyadmin2
 database/schema.rb
+database/seeds/DatabaseSeeder.php
 database/web/Base
 database_admin
 database_admin.php
@@ -40217,8 +40646,8 @@ dbutils
 dbview
 dbweb
 dc
-dC3 Security Crew Shell PRiV.php
-dc3 security crew shell priv.php
+dc3.js
+dc3.php
 dC3_Security.php
 dc.asp
 dc.html
@@ -40381,8 +40810,15 @@ debt.htm
 debt_adjusters.xls
 debtmanual1.asp
 debug
+debug-log.bak
+debug-log.log
+debug-log.old
+debug-log.out
+debug-log.txt
+debug-log.xml
 debug-output.txt
 debug.asp
+debug.bak
 debug.cfm
 debug.cgi
 debug.htm
@@ -40390,6 +40826,8 @@ debug.html
 debug.inc
 debug.log
 debug.nsf
+debug.old
+debug.out
 debug.php
 debug.py
 debug.seam
@@ -40397,15 +40835,19 @@ debug.txt
 debug.xml
 debug/authorizationz
 debug/caroots
+debug/config
 debug/config_dump
 debug/configz
 debug/connections
 debug/default/view
 debug/default/view.html
 debug/endpointz
+debug/env
 debug/featurez
 debug/health
+debug/info
 debug/log
+debug/logs
 debug/meshconfig
 debug/mysql_debug/pprof
 debug/mysql_debug/vars
@@ -40429,6 +40871,7 @@ debug/pprofgoroutine?debug=1
 debug/pprofheap
 debug/pprofprofile
 debug/pproftrace
+debug/queries
 debug/queryz
 debug/registryz
 debug/requests
@@ -40446,6 +40889,12 @@ debug/vars
 debug/vschema
 debug_error.jsp
 debug_log
+debug_log.bak
+debug_log.log
+debug_log.old
+debug_log.out
+debug_log.txt
+debug_log.xml
 debuglocalhost
 debugpprof
 debut_fileput.php
@@ -40882,6 +41331,7 @@ demo/.env
 demo/.env.local
 demo/.env.production
 demo/.env.staging
+demo/admin
 demo/admin/fckeditor/editor/filemanager
 demo/ejb/index.html
 demo/ejbindex.html
@@ -41298,7 +41748,9 @@ dev/.env.staging
 dev/.env_1.bak
 dev/admin
 dev/admin.php
+dev/login
 dev/mailbox
+dev/panel
 dev_new
 dev_portal
 dev_site
@@ -41343,11 +41795,14 @@ development.config
 development.esproj
 development.html
 development.log
+development.php
 development/.env
 development/.env%20
 development/.env.local
 development/.env.production
 development/.env.staging
+development/admin
+development/login
 developments
 developpeurs
 devels
@@ -41406,6 +41861,7 @@ dex/keys
 dex/token
 dexter
 df
+df18
 df.php
 df_main.sql
 dfa
@@ -42238,6 +42694,9 @@ doc/enchanges.html
 doc/html/index.html
 doc/htmlindex.html
 doc/page/login.asp
+doc/README_ch.txt
+doc/README_en.txt
+doc/README_ru.txt
 doc/script/common.js
 doc/stable.version
 doc_eng_user.jsp
@@ -42302,10 +42761,9 @@ DocProject/Help/html
 DocProject/Help/Html2
 DocProject/Helphtml
 DocProject/HelpHtml2
-docREADME_en.txt
 docrepository
 docroot
-DOCROOT/index.php [ 105 ]
+DOCROOT/index.php
 Docs
 docs
 docs0
@@ -42827,6 +43285,7 @@ downloader.php
 Downloader.php
 downloader/cache.cfg
 downloader/connect.cfg
+downloader/index.php
 downloadercache.cfg
 downloaderconnect.cfg
 downloadfile.aspx
@@ -43108,6 +43567,7 @@ drupal-4.7.2
 drupal-4.7.5
 drupal-6.14
 drupal-6.19
+drupal-admin
 Drupal.php
 drupal.php
 drupal/admin
@@ -44925,7 +45385,6 @@ eggblog
 egghead
 eggheads
 eggs
-egia c.c.
 egmainhq/adm_stat
 ego
 egov
@@ -46610,6 +47069,7 @@ erotic
 eroticos.zip
 erotika
 erp
+erp/admin
 erp/login
 erp_api.php
 erp_client.php
@@ -46722,8 +47182,13 @@ error-docs
 error-espanol
 error-espanol.shtml
 error-log
+error-log.bak
 error-log.dat
+error-log.log
+error-log.old
+error-log.out
 error-log.txt
+error-log.xml
 error-notfound.aspx
 error-occured.aspx
 error-page.asp
@@ -46738,6 +47203,7 @@ error.2021-04-07.log
 error.asp
 error.aspx
 error.aspx.cs
+error.bak
 error.cfm
 error.cgi
 error.cpp
@@ -46749,6 +47215,8 @@ error.json
 error.jsp
 error.log
 error.log.0
+error.old
+error.out
 error.php
 Error.php
 error.phtml
@@ -46784,9 +47252,14 @@ error_handler.php
 error_import
 error_kicker.cfm
 error_log
+error_log.bak
 error_log.gz
+error_log.log
+error_log.old
+error_log.out
 error_log.php
 error_log.txt
+error_log.xml
 error_logs
 error_message
 error_message.cfm
@@ -47219,6 +47692,7 @@ ev.php
 eva.php
 eval
 eval.html
+eval.php
 evalchecki.mvc
 evalcheckp.mvc
 evalform.aspx
@@ -47535,6 +48009,7 @@ exceptionlog.txt
 exceptionpage.aspx
 exceptions
 Exceptions.lib.php
+exceptions.log
 excerpt
 excerpts.xml
 exch
@@ -49113,6 +49588,7 @@ filemanager.jsp
 filemanager.php
 filemanager.phtml
 filemanager/dialog.php
+filemanager/index.php
 filemanager/upload.php
 filemanager/uploads/IndoXploit.php.fla
 filemanager/uploads/Shell.php.fla
@@ -50016,6 +50492,7 @@ flughafenausbau
 fluidgames
 fluke
 flush
+flush.php
 flush_cache.php
 flushcache.php
 flushcms
@@ -51735,6 +52212,7 @@ ga.aspx
 ga.html
 ga.js
 ga.php
+ga/admin
 ga_52_esp.pdf
 ga_52_port.pdf
 ga_IE
@@ -51955,8 +52433,7 @@ gamespy
 gamessearch
 gaming
 gamma
-gamma web shell.php
-Gamma Web Shell.php
+gamma_web_shell.php
 Gamma_Web_Shell.php
 gamsoft
 GANDALF
@@ -53060,6 +53537,7 @@ github-cache
 github-connect/.env
 github-recovery-codes.txt
 gitlab
+gitlab/admin
 gitlog
 gitlog.dat
 gitpull.php
@@ -54395,6 +54873,7 @@ grafana/api/org
 grafana/api/search
 grafana/api/serviceaccounts
 grafana/api/users
+grafana/login
 graffiti-admin
 graffiti-admin.php
 graffiti.htmls
@@ -55011,7 +55490,7 @@ h2console
 h2opolo
 h4.php
 h4ck
-h4ck door.asp
+h4ck_door.asp
 h4cker.inc
 h4cker.php
 h4cker.phtml
@@ -55436,6 +55915,7 @@ headstones.php
 healingsessions.asp
 health
 Health
+health-check
 health-pulse.asp
 health-tips.htm
 health.asp
@@ -55478,6 +55958,7 @@ heat.html
 heather
 heating-system.html
 heatmap
+heatmaps
 heaven.html
 heavenly
 heb
@@ -55779,9 +56260,12 @@ hidc_update.php
 hidccfg.php
 hidden
 hidden1.php
+hidden-admin
 hidden.html
 hidden.php
 hidden.phtml
+hidden/admin
+hidden/login
 hiddenselect.php
 hiddenuploader.phtml
 hide
@@ -56245,6 +56729,7 @@ horde
 horde/.env
 horiz.php
 horizon
+horizon/dashboard
 horizontal
 horms
 hornet
@@ -56518,6 +57003,7 @@ howto.html
 howto.php
 howtobuy
 howtoget.php
+howtojoin
 howtoorder.htm
 hoyer
 hp
@@ -56569,6 +57055,8 @@ href.php
 href.txt
 hrefs.htm
 hri
+hrm
+hrm/admin
 hrmrpl
 hrotm
 hrs
@@ -56954,7 +57442,6 @@ i18nctxSample
 i18nctxSample.php
 i18nctxSample/docs
 i227j03i.php
-i love you
 i-admin
 i-admin.php
 i-data
@@ -56997,6 +57484,7 @@ i_admin.php
 i_footer.asp
 i_header.asp
 i_index.php
+i_love_you
 i_nsadecode.asp
 i_sendmail.asp
 ia
@@ -58735,7 +59223,6 @@ index12345.php
 index11111111.php
 index11111111.php.bak
 index21052020.php
-index copy.php
 index-0.html
 index-1.aspx
 index-1.htm
@@ -58928,7 +59415,6 @@ index.php2
 index.php3
 index.php4
 index.php5
-index.php OLD
 index.php-bak
 index.php-sample
 index.php.
@@ -58944,6 +59430,7 @@ index.php.gz
 index.php.hacked
 index.php.initial
 index.php.moved-by-noc
+index.php.OLD
 index.php.old
 index.php.old.delete
 index.php.oldjoomla
@@ -60059,6 +60546,7 @@ install.php3
 install.php-back
 install.php.bak
 install.php?profile=default
+install.phtml
 install.prop
 install.rdf
 install.rokcandy.php
@@ -60327,6 +60815,7 @@ internal/access
 internal/account
 internal/accounts
 internal/activity
+internal/admin
 internal/aml
 internal/analytics
 internal/api-keys
@@ -60541,6 +61030,9 @@ intranet2
 intranet-server
 intranet.html
 intranet.php
+intranet/admin
+intranet/dashboard
+intranet/login
 intranetapp
 intranetlogin.asp
 intranett
@@ -61403,7 +61895,6 @@ java
 Java
 java5.php
 java17
-java shell.jsp
 java-plugin
 java-print.htm
 java-script
@@ -61416,6 +61907,7 @@ java_classes
 java_main.js.php
 java_script
 java_scripts
+java_shell.jsp
 javac
 javachat.php
 javadir
@@ -61571,6 +62063,8 @@ jenkins/credentials/store/system/domain/_
 jenkins/descriptorByName/AuditTrailPlugin/regexCheck?value=*j%3Ch1%3Esample
 jenkins/descriptorByName/org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SecureGroovyScript/checkScript
 jenkins/env-vars.html
+jenkins/j_acegi_security_check
+jenkins/login
 jenkins/script
 Jenkinsfile
 jenkinsscript
@@ -62022,6 +62516,7 @@ joomla1.5
 joomla2
 joomla15
 joomla16
+joomla-admin
 joomla.7z
 joomla.backup
 joomla.backup.rar
@@ -62405,7 +62900,7 @@ jsptest.jsp
 jspui/password-login
 jspui/password-login.php
 jspuipassword-login.php
-jspwebshell 1.2.jsp
+jspwebshell_1.2.jsp
 JspWebshell_1.2.php
 jspwiki
 jsp菜刀一句话木马.jsp
@@ -62663,6 +63158,7 @@ kaffee
 kaffeine
 kafka
 kafka-manager
+kafka-ui
 kafka-ui/api/clusters
 kafka/v3/clusters
 kafka/v3/clusters/-/brokers
@@ -62931,6 +63427,7 @@ kerio
 kermit
 kernel
 kernel.js
+kernel.php
 kerri
 kerrie
 kerro.shtml
@@ -63042,6 +63539,7 @@ kibana
 kibana/.env
 kibana/api/saved_objects
 kibana/api/status
+kibana/app
 kibana/app/kibana
 kibanalogin.asp
 kibanalogin.jsp
@@ -63398,6 +63896,8 @@ kp
 kpa
 kpanel
 kphone
+kpi
+kpis
 kplaylist
 kpn
 kpopexciting
@@ -63931,7 +64431,6 @@ largescale
 larisa
 larissa
 larkin
-larramendi k.e.
 larry
 larry1
 lars
@@ -64666,6 +65165,7 @@ libraries.asp
 libraries.aspx
 libraries.php
 libraries/joomla/database
+libraries/joomla/version.php
 libraries/phpmailer
 libraries/simplepie/idnReadMe.txt
 libraries/simplepieLICENSE.txt
@@ -65765,7 +66265,7 @@ loadphoto.php
 loads
 loadsign.aspx
 loadtaguchitest.js
-loadtextfile.htm#programinfo
+loadtextfile.htm
 loadtree1.asp
 loadtree.asp
 loadurl.asp
@@ -66002,8 +66502,12 @@ log/.env
 log/access.dat
 log/access.log
 log/access_log
+log/admin.log
 log/app.log
+log/audit.log
+log/auth.log
 log/authorizenet.log
+log/cron.log
 log/debug.log
 log/development.dat
 log/development.log
@@ -66024,6 +66528,7 @@ log/payment.log
 log/payment_authorizenet.log
 log/payment_paypal_express.log
 log/production.log
+log/security.log
 log/server.log
 log/system.log
 log/test.log
@@ -66184,6 +66689,7 @@ login.aspx
 login.aspx.bak
 login.aspx.cs
 login.aspx.vb
+login.bak
 login.brf
 login.cfm
 Login.cgi
@@ -66203,6 +66709,9 @@ login.json
 login.jsp
 Login.jsp
 login.jsp.bak
+login.log
+login.old
+login.out
 login.pgp
 login.php
 LogIn.php
@@ -66226,6 +66735,7 @@ login.vm
 login.wdm%2e
 login.wdm%20
 login.xhtml
+login.xml
 login.zip
 login/.env
 login/admin
@@ -66456,6 +66966,7 @@ logon.html
 logon.jsp
 logon.php
 Logon.php
+logon.phtml
 logon.py
 logon.rb
 logon.txt
@@ -66541,35 +67052,80 @@ logs.pl
 logs.sqlite
 logs.txt
 logs.zip
+logs/access-log.log
+logs/access-log.txt
 logs/access.dat
 logs/access.log
+logs/access.log.gz
+logs/access.txt
 logs/access_log
+logs/access_log.log
+logs/access_log.txt
 logs/admin
 logs/admin.aspx
 logs/admin.log
 logs/admin.php
+logs/admin.txt
+logs/administrator.log
+logs/administrator.txt
 logs/app.log
+logs/app.txt
+logs/application.log
+logs/application.txt
+logs/audit.log
+logs/audit.txt
 logs/auth.log
+logs/auth.txt
 logs/awstats.pl
 logs/catalina.out
+logs/cron.log
 logs/data.dat
 logs/data.txt
+logs/database.log
+logs/db.log
+logs/debug-log.log
+logs/debug-log.txt
 logs/debug.dat
 logs/debug.log
+logs/debug.txt
+logs/debug_log.log
+logs/debug_log.txt
 logs/development.log
+logs/email.log
 logs/err_log.xml
+logs/error-log.log
+logs/error-log.txt
 logs/error.dat
 logs/error.log
+logs/error.log.gz
+logs/error.txt
 logs/error_log
+logs/error_log.log
+logs/error_log.txt
 logs/errors.log
+logs/events.log
+logs/events.txt
+logs/install.log
 logs/liferay.log
+logs/login.log
+logs/login.txt
 logs/mail.log
+logs/migration.log
+logs/payment.log
 logs/PerfOrgWebLog.log
 logs/production.log
 logs/proxy_access_ssl_log
 logs/proxy_error_log
+logs/query.log
+logs/security.log
+logs/security.txt
+logs/server.log
+logs/stats
 logs/system.log
+logs/transaction.log
+logs/upgrade.log
 logs/user.log
+logs/web.log
 logs/wsadmin.traceout
 logs/www-error.log
 logs_6.php
@@ -67399,11 +67955,13 @@ magazines/adult_magazine_full_year.asp?magid=
 magazines/adult_magazine_single_page.asp?magid=
 magdalena
 magdeburg.html
+mage
 mage118
 mage-files
 magellan.php
 magento
 magento2
+magento-admin
 magento-check.php
 magento-cleanup.php
 magento/admin
@@ -67488,6 +68046,7 @@ mail/adm
 mail/adm.php
 mail/admin
 mail/admin.php
+mail/login
 mail/mail.dat
 mail/mails.dat
 Mail/smtp/Admin/smadv.asp
@@ -67750,6 +68309,7 @@ main.nsf
 main.php
 main.php3
 main.php.bak
+main.phtml
 main.py
 main.ru.html
 main.shtml
@@ -68017,6 +68577,7 @@ manage.htm
 manage.html
 manage.jsp
 manage.php
+manage.phtml
 manage.py
 manage/2fa
 manage/about
@@ -68028,6 +68589,7 @@ manage/adm/adm.php
 manage/adm/admin.php
 manage/admadm.php
 manage/admadmin.php
+manage/admin
 manage/admin.asp
 manage/admin/admin
 manage/aml
@@ -68040,6 +68602,7 @@ manage/assets
 manage/audit
 manage/audit-log
 manage/auth
+manage/auth.php
 manage/backup
 manage/backups
 manage/billing
@@ -68055,14 +68618,17 @@ manage/clients
 manage/comments
 manage/compliance
 manage/config
+manage/config.php
 manage/console
 manage/content
 manage/cron
 manage/customers
 manage/dashboard
+manage/dashboard.php
 manage/database
 manage/db
 manage/debug
+manage/debug.php
 manage/deploy
 manage/deposits
 manage/devops
@@ -68085,10 +68651,13 @@ manage/groups
 manage/health
 manage/history
 manage/home
+manage/home.php
 manage/import
 manage/imports
 manage/index
+manage/index.php
 manage/info
+manage/info.php
 manage/integrations
 manage/inventory
 manage/invoices
@@ -68100,10 +68669,13 @@ manage/localization
 manage/log
 manage/login
 manage/login.asp
+manage/login.php
 manage/logout
 manage/logs
+manage/logs.php
 manage/mail
 manage/main
+manage/main.php
 manage/maintenance
 manage/media
 manage/member
@@ -68119,6 +68691,7 @@ manage/oauth
 manage/orders
 manage/pages
 manage/panel
+manage/panel.php
 manage/partners
 manage/password
 manage/payments
@@ -68135,6 +68708,7 @@ manage/redis
 manage/release
 manage/releases
 manage/reports
+manage/reports.php
 manage/reset-password
 manage/restore
 manage/reviews
@@ -68148,8 +68722,11 @@ manage/security
 manage/sellers
 manage/sessions
 manage/settings
+manage/settings.php
 manage/signin
+manage/signin.php
 manage/sso
+manage/stats.php
 manage/status
 manage/subscriptions
 manage/system
@@ -68164,6 +68741,7 @@ manage/translations
 manage/uploads
 manage/user
 manage/users
+manage/users.php
 manage/vendors
 manage/verification
 manage/version
@@ -68177,6 +68755,7 @@ manage_admin
 Manage_Admin
 manage_admin.php
 manage_backup.asp
+manage_db.php
 manage_index
 manage_index.php
 manage_login.asp
@@ -68379,6 +68958,7 @@ manager4.php
 manager5.php
 manager.bak
 manager.cgi
+manager.htm
 manager.html
 Manager.php
 manager.php
@@ -68416,15 +68996,18 @@ manager/clients
 manager/comments
 manager/compliance
 manager/config
+manager/config.php
 manager/configuration
 manager/console
 manager/content
 manager/cron
 manager/customers
 manager/dashboard
+manager/dashboard.php
 manager/database
 manager/db
 manager/debug
+manager/debug.php
 manager/deploy
 manager/deposits
 manager/devops
@@ -68446,6 +69029,7 @@ manager/groups
 manager/health
 manager/history
 manager/home
+manager/home.php
 manager/html
 manager/html.php
 manager/import
@@ -68453,6 +69037,7 @@ manager/imports
 manager/index
 manager/index.php
 manager/info
+manager/info.php
 manager/integrations
 manager/inventory
 manager/invoices
@@ -68478,9 +69063,11 @@ manager/login.asp
 manager/login.php
 manager/logout
 manager/logs
+manager/logs.php
 manager/logs/summary
 manager/mail
 manager/main
+manager/main.php
 manager/maintenance
 manager/media
 manager/member
@@ -68496,6 +69083,7 @@ manager/oauth
 manager/orders
 manager/pages
 manager/panel
+manager/panel.php
 manager/partners
 manager/password
 manager/payments
@@ -68512,6 +69100,7 @@ manager/redis
 manager/release
 manager/releases
 manager/reports
+manager/reports.php
 manager/reset-password
 manager/restore
 manager/reviews
@@ -68525,12 +69114,14 @@ manager/security
 manager/sellers
 manager/sessions
 manager/settings
+manager/settings.php
 manager/sign
 manager/sign.php
 manager/signin
 manager/signin.php
 manager/sso
 manager/stats
+manager/stats.php
 manager/status
 manager/status/all
 manager/statusall
@@ -68547,6 +69138,7 @@ manager/translations
 manager/uploads
 manager/user
 manager/users
+manager/users.php
 manager/vendors
 manager/verification
 manager/VERSION
@@ -69025,6 +69617,8 @@ master.tar.bz2
 master.tar.gz
 master.zip
 master/.env
+master/login
+master/panel
 master/portquotes_new/admin.log
 master/portquotes_newadmin.log
 master_admin
@@ -69112,7 +69706,10 @@ matija
 matilda
 matilde
 matlab.php
+matomo
+matomo/index.php
 matomo/index.php?module=API&method=API.getMatomoVersion
+matomo/login
 matriks
 matrikzgb
 matrix
@@ -69832,6 +70429,7 @@ members/access
 members/account
 members/accounts
 members/activity
+members/admin
 members/aml
 members/analytics
 members/api-keys
@@ -70116,6 +70714,7 @@ menu.pdf
 menu.pgt
 menu.php
 menu.php3
+menu.phtml
 menu.shtml
 menu.swf
 menu.txt
@@ -71004,6 +71603,7 @@ mig
 mightysite
 mightysite2
 migrate
+migrate.php
 migrated
 migration
 migration.log
@@ -71543,6 +72143,8 @@ mod
 mod-auth-shadow
 mod-p.php
 mod.php
+mod/login
+mod/panel
 mod_access_referer
 mod_acymailing.php
 mod_archive
@@ -71896,11 +72498,13 @@ moderator.asp
 moderator.brf
 moderator.cfm
 moderator.cgi
+moderator.htm
 moderator.html
 Moderator.html
 moderator.js
 Moderator.php
 moderator.php
+moderator.phtml
 moderator/2fa
 moderator/about
 moderator/access
@@ -72382,6 +72986,7 @@ monitorconfig
 monitoring
 monitoring.htm
 monitoring.html
+monitoring.php
 monitoring/compose/.env
 monitoringswab
 monitors
@@ -73097,7 +73702,6 @@ my3sons
 my97datepicker
 my404.asp
 my500.asp
-my view.aspx
 my-account
 my-account.aspx
 my-account.html
@@ -73215,6 +73819,7 @@ my_username
 my_vdo_edit.php
 my_video.php
 my_videos
+my_view.aspx
 my_wishlist.asp
 myabracadaweb
 myacc_login.php
@@ -73584,6 +74189,7 @@ mysql.bak
 mysql.bz2
 mysql.class.php
 mysql.dbi.lib.php
+mysql.dump
 mysql.err
 mysql.gz
 mysql.html
@@ -73812,6 +74418,7 @@ naginator
 nagios
 nagios-admin
 nagios.php
+nagios/cgi-bin
 nagios/cgi-bin/status.cgi
 nagios/cgi-binstatus.cgi
 nagios_admin
@@ -74350,7 +74957,6 @@ new5.html
 new6.html
 new7.html
 new11Jan2011.php
-New Folder With Items
 New%20Folder
 New%20folder%20(2)
 new-4.1.0
@@ -74500,6 +75106,7 @@ newacctform.php
 newad.php
 newadmin
 newadmin.php
+newadmin/login
 newadminuser.php
 newads
 newannounce.php
@@ -75471,6 +76078,8 @@ nom
 nom283sml.pdf
 nom-oublie.html
 nomachine
+nomad
+nomad/ui
 nomasterforms.aspx
 nomatch.aspx
 nombas
@@ -76395,7 +77004,6 @@ office/files
 office/forgot-password
 office/fraud
 Office/graph.php
-Office/graph.php#xxe
 office/groups
 office/health
 office/history
@@ -76501,7 +77109,6 @@ officedepot.php
 officeenter.html
 officeenter.php
 Officegraph.php
-Officegraph.php#xxe
 officehandler.c
 officelogin.asp
 officelogin.html
@@ -76643,7 +77250,12 @@ old/.env.production
 old/.env.staging
 old/adm
 old/admin
+old/admin.php
 old/administrator
+old/config.php
+old/index.php
+old/login
+old/panel
 old/vendor/phpunit/phpunit/phpunit
 old/vendor/phpunit/phpunitphpunit
 old_2_about_us.php
@@ -76680,6 +77292,7 @@ oldaddress.fil
 oldadm.php
 oldadmin
 oldadmin.php
+oldadmin/login
 oldadministrator.php
 oldblog
 oldbrowser.asp
@@ -77085,6 +77698,7 @@ openttd
 openui.log
 openurl
 openurl.asp
+openvas
 openview
 openvmps
 openvpn
@@ -77128,7 +77742,9 @@ operation.htm
 operations
 operations.html
 operator
+operator.htm
 operator.php
+operator.phtml
 operator/2fa
 operator/about
 operator/access
@@ -79289,6 +79905,7 @@ pampers
 pampers1
 pampersuk
 pamplona.html
+pamyat
 pan
 pan34
 panama
@@ -79370,8 +79987,10 @@ Panel-administracionlogin.php
 panel-administracionlogin.php
 panel-administracyjny
 panel.
+panel.htm
 panel.html
 panel.php
+panel.phtml
 panel/2fa
 panel/.env.1
 panel/.env.db
@@ -79381,6 +80000,7 @@ panel/access
 panel/account
 panel/accounts
 panel/activity
+panel/admin
 panel/admin/cpnsple.php
 panel/aml
 panel/analytics
@@ -79407,16 +80027,20 @@ panel/clients
 panel/comments
 panel/compliance
 panel/config
+panel/config.php
 panel/console
 panel/console/admin.php
 panel/content
 panel/contriling.php
+panel/control
 panel/cron
 panel/customers
 panel/dashboard
+panel/dashboard.php
 panel/database
 panel/db
 panel/debug
+panel/debug.php
 panel/deploy
 panel/deposits
 panel/devops
@@ -79436,10 +80060,13 @@ panel/groups
 panel/health
 panel/history
 panel/home
+panel/home.php
 panel/import
 panel/imports
 panel/index
+panel/index.php
 panel/info
+panel/info.php
 panel/integrations
 panel/inventory
 panel/invoices
@@ -79451,10 +80078,13 @@ panel/kyc
 panel/languages
 panel/localization
 panel/login
+panel/login.php
 panel/logout
 panel/logs
+panel/logs.php
 panel/mail
 panel/main
+panel/main.php
 panel/maintenance
 panel/media
 panel/member
@@ -79470,6 +80100,7 @@ panel/oauth
 panel/orders
 panel/pages
 panel/panel
+panel/panel.php
 panel/partners
 panel/password
 panel/payments
@@ -79486,6 +80117,7 @@ panel/redis
 panel/release
 panel/releases
 panel/reports
+panel/reports.php
 panel/reset-password
 panel/restore
 panel/reviews
@@ -79499,8 +80131,11 @@ panel/security
 panel/sellers
 panel/sessions
 panel/settings
+panel/settings.php
 panel/signin
+panel/signin.php
 panel/sso
+panel/stats.php
 panel/status
 panel/subscriptions
 panel/system
@@ -79515,6 +80150,7 @@ panel/translations
 panel/uploads
 panel/user
 panel/users
+panel/users.php
 panel/vendors
 panel/verification
 panel/version
@@ -79557,7 +80193,6 @@ panscient
 pantera
 pantheon_connect.php
 panther
-panther 2001.pdf
 pao
 paolita
 paolo
@@ -79718,6 +80353,7 @@ partner/access
 partner/account
 partner/accounts
 partner/activity
+partner/admin
 partner/aml
 partner/analytics
 partner/api-keys
@@ -80853,6 +81489,7 @@ performance
 performance.aspx
 performance.html
 performance.php
+performance/stats
 performatives.php
 performer
 PerfPassword
@@ -80912,6 +81549,7 @@ pershing
 persian
 persianblog
 persimmon
+persistence.xml
 persistent
 persistentchat
 persistentchatlocalhost
@@ -82023,6 +82661,7 @@ PHPMYADMIN/index.php
 PhpMyAdmin/index.php
 phpMyAdmin/index.php
 phpmyadmin/index.php
+phpmyadmin/login.php
 phpmyadmin/phpmyadmin/index.php
 phpMyAdmin/phpMyAdmin/index.php
 phpMyAdmin/phpMyAdminindex.php
@@ -82180,11 +82819,11 @@ phpslash
 phpsmssend
 phpsource
 phpspec.yml
-phpspy ver 2006.php
-PhpSpy Ver 2006.php
 phpspy.php
 PhpSpy.php
 PHPSPY.php
+phpspy_ver_2006.php
+PhpSpy_Ver_2006.php
 phpsql.php
 phpSQLiteAdmin
 phpsqliteadmin
@@ -82980,6 +83619,7 @@ pma-oldindex.php
 pma.php
 pma/index.php
 PMA/index.php
+pma/login.php
 pma/scripts/setup.php
 pma/scriptssetup.php
 PMA_List.class.php
@@ -83283,6 +83923,7 @@ pomoc.html
 pompom
 poncho
 pondering
+pong
 pongal
 ponudnik.aspx
 poochie
@@ -83523,6 +84164,7 @@ portainer/api/settings
 portainer/api/stacks
 portainer/api/status
 portainer/api/users
+portainer/login
 Portal
 portal
 PORTAL
@@ -84399,6 +85041,7 @@ pressroom.cfm
 pressroom.htm
 pressthis
 prestashop
+prestashop-admin
 prestashop/admin
 presto
 preston
@@ -84431,6 +85074,7 @@ preview.php
 preview.shtml
 preview.swf
 preview/.env
+preview/admin
 previewed
 previewframeset.cfm
 previewgallery.aspx
@@ -84877,6 +85521,7 @@ Private
 private
 private2
 private2.php
+private-admin
 private-area
 private-bip.mp3
 private-bip.ogg
@@ -84903,6 +85548,7 @@ private/access
 private/account
 private/accounts
 private/activity
+private/admin
 private/aml
 private/analytics
 private/api-keys
@@ -84927,12 +85573,14 @@ private/clients
 private/comments
 private/compliance
 private/config
+private/config.php
 private/console
 private/content
 private/cron
 private/customers
 private/dashboard
 private/database
+private/database.php
 private/db
 private/debug
 private/deploy
@@ -85015,6 +85663,7 @@ private/security
 private/sellers
 private/sessions
 private/settings
+private/settings.php
 private/signin
 private/sso
 private/status
@@ -85891,6 +86540,8 @@ profilelogin
 profileprint.aspx
 profiler
 profiler.php
+profiler/info
+profiler/queries
 profileregister
 profiles
 profiles.asp
@@ -86698,6 +87349,7 @@ public/.env.production
 public/.env.staging
 public/admin
 public/adminer.php
+public/app.php
 public/assets/.protected/.env
 public/config.js
 public/hot
@@ -86889,6 +87541,7 @@ pujar
 pull
 pullover.aspx
 pulse
+pulse/dashboard
 pult.html
 pumas
 pump26
@@ -87012,6 +87665,7 @@ pwadata.xml
 pwc
 pwd
 pwd.db
+pwd.php
 pwd/admin
 pwd/admin.php
 pwd_forget.aspx
@@ -87120,7 +87774,9 @@ qa/.env.bak
 qa/.env.local
 qa/.env.production
 qa/.env.staging
+qa/admin
 qa/config.env
+qa/login
 qalert
 qanda
 qanda.php
@@ -87358,6 +88014,7 @@ quests.html
 quetalfue
 Queue
 queue
+queue.php
 queues
 quezza
 qui-sommes-nous
@@ -87632,6 +88289,7 @@ rabatt.html
 rabbit
 rabbitmq
 rabbitmq-cluster/.env
+rabbitmq/management
 rabbitoshi.php
 rabbitoshi_shop.php
 rabbits
@@ -87772,6 +88430,7 @@ ramsey
 ramsite
 ran
 ranch
+rancher
 rancid
 rand
 rand.php
@@ -88190,6 +88849,7 @@ readreviews.aspx
 readwx.cfm
 ready
 ready4xmas.html
+ready.php
 readyscripts.html
 readyz
 reagan
@@ -89064,7 +89724,6 @@ regisztracio
 regisztracio.html
 regjovenes.nsf
 regklikk_linker.php
-reglas nic ar.swf
 reglas.php
 reglement.php
 reglements.html
@@ -89487,6 +90146,7 @@ report.jsp
 report.log
 report.pdf
 report.php
+report.phtml
 report.rar
 report.txt
 report.zip
@@ -89532,7 +90192,6 @@ reportproduct.aspx
 reportproduct.php
 Reports
 reports
-reports list
 reports-old
 reports-test
 reports.asp
@@ -89541,14 +90200,22 @@ reports.html
 reports.json
 reports.nsf
 reports.php
+reports.phtml
 reports.rar
 reports.tar.gz
 reports.txt
 reports.zip
+reports/admin
+reports/data.php
+reports/download.php
+reports/export.php
+reports/generate.php
+reports/login
 Reports/Pages/Folder.aspx
 Reports/PagesFolder.aspx
 reports/Webalizer
 reports_list
+reports_list.xml
 reportserver
 ReportServer
 ReportServer/Pages/ReportViewer.aspx
@@ -89919,6 +90586,7 @@ resources/fckeditor
 resources/sass/.sass-cache
 resources/tmp
 resources/views
+resources/views/admin/dashboard.blade.php
 resources/vulnerabilities_list.asp?id=
 resources_b.html
 resourcesfckeditor
@@ -90045,6 +90713,8 @@ restricted
 restricted.dat
 restricted.ini
 restricted.php
+restricted/admin
+restricted/panel
 restricted_access
 restrictor_log
 restrito
@@ -90617,7 +91287,8 @@ rochelle
 rochester
 rocio
 rock
-rock you
+rock-you
+rock_you
 rockandroll
 rocker04
 rockers
@@ -90904,7 +91575,7 @@ rootkit.aspx
 rootkit.nl
 rootkit.php
 rootlogin.php
-rootmdm  utf8.php
+rootmdm_utf8.php
 rootme
 rootpass
 rootroot
@@ -90973,6 +91644,7 @@ round_robin.php
 roundcube
 roundcube/.env
 roundcube/index.php
+roundcube/login
 roundcube/logs/errors.log
 roundcube/logs/sendmail
 roundcubeindex.php
@@ -90995,7 +91667,9 @@ router.php
 routers
 routes
 routes.htm
+routes.php
 routes/.env
+routes/api.php
 routes/error_log
 routes/web.php
 routines
@@ -91362,6 +92036,8 @@ runsearch
 runtests
 runtime
 runtime/defaultsystemjs
+runtime/logs/app.log
+runtime/logs/error.log
 runtime_messages.jsp
 runtimelog
 runway
@@ -91483,8 +92159,8 @@ s5
 s7
 s8.php
 s9y
-s72 Shell v1.1 Coding.php
 s72_Shell.php
+s72_Shell_v1.1_Coding.php
 s815uhcq.php
 s1148
 s5230
@@ -91832,6 +92508,7 @@ sandbox
 sandbox.html
 sandbox.php
 sandbox/.env
+sandbox/admin
 sandiego
 sandino
 sandisk
@@ -93080,6 +93757,7 @@ secpay.php
 secpayments.php
 secret
 Secret
+secret-admin
 secret.asp
 secret.aspdonotuse
 Secret.aspx
@@ -93087,6 +93765,8 @@ secret.html
 Secret.php
 secret.php
 secret.txt
+secret/admin
+secret/login
 secret_token.rb
 secretadmin
 secretadmin.php
@@ -93098,6 +93778,9 @@ secrets
 secrets.env
 secrets.php
 secrets.phtml
+secrets.txt
+secrets.xml
+secrets.yaml
 secrets.yml
 secring.bak
 secring.gpg
@@ -93375,6 +94058,7 @@ security.aspx
 security.cfm
 security.htm
 security.html
+security.log
 security.log.php
 SECURITY.md
 security.php
@@ -94290,7 +94974,6 @@ server2.php
 server3.php
 server4.php
 server5.php
-server variables.asp
 server-error.aspx
 server-images
 SERVER-INF
@@ -94362,6 +95045,7 @@ server_sql.php
 server_stats
 server_stats.php
 server_status.php
+server_variables.asp
 server_variables.php
 Server_with_db/.env
 serveradmin
@@ -94807,6 +95491,7 @@ settings.cfm
 settings.class.php
 settings.dat
 settings.env
+settings.htm
 settings.html
 settings.inc.php
 settings.ini
@@ -94823,10 +95508,12 @@ settings.php.swp
 settings.php.txt
 settings.php~
 Settings.php~
+settings.phtml
 settings.py
 settings.server.php
 settings.txt
 settings.xml
+settings.yaml
 settings.yml
 settings/.env
 settings/admin
@@ -94864,6 +95551,7 @@ setup.mvc
 setup.nsf
 Setup.php
 setup.php
+setup.phtml
 setup.py
 setup.sh
 setup.sql
@@ -96120,6 +96808,7 @@ signin.jsp
 Signin.php
 signin.php
 signin.phrml
+signin.phtml
 Signin.pl
 signin.pl
 Signin.py
@@ -96194,8 +96883,8 @@ silent
 silent-storm
 silenthouse.tar.gz
 silentthought
-silic webshell.jsp
 silic.jsp
+silic_webshell.jsp
 siliconsys
 silk
 silly
@@ -97181,12 +97870,12 @@ smackdown
 smail
 smail.php
 small
-small web shell by zaco.php
-Small Web Shell by ZaCo.php
 small-business
 small.php
 small_image
 Small_Web_Shell.php
+small_web_shell_by_zaco.php
+Small_Web_Shell_by_ZaCo.php
 smallbusiness
 SMALLER
 smallftpd
@@ -97518,6 +98207,7 @@ socket.php
 Socketio/.env
 socketkb
 socketwiz
+sockjs-node/info
 socks
 socks4.txt
 socks5.txt
@@ -98385,6 +99075,7 @@ sql/sqlweb
 sql/webadmin
 sql/webdb
 sql/websql
+sql_admin.php
 sql_dumps
 sql_dumps.php
 sql_error.log
@@ -98728,6 +99419,7 @@ staff.cfm
 staff.htm
 staff.html
 staff.php
+staff.phtml
 staff.shtml
 staff.txt
 staff/2fa
@@ -98909,6 +99601,8 @@ staging/.env
 staging/.env.local
 staging/.env.production
 staging/.env.staging
+staging/admin
+staging/login
 stagingtest.aspx
 stake
 stale
@@ -99218,6 +99912,8 @@ stats.shtml
 stats.txt
 stats.xml
 stats/.env
+stats/admin
+stats/login
 stats/summary
 stats?format=json
 stats?format=prometheus
@@ -99483,9 +100179,13 @@ storage/.env.local
 storage/.env.production
 storage/.env.staging
 storage/admin
+storage/app/public
 storage/link
 storage/logs
 storage/logs.txt
+storage/logs/app.log
+storage/logs/debug.log
+storage/logs/error.log
 storage/logs/laravel.log
 storage/logslaravel.log
 storage/v1/bucket
@@ -99778,6 +100478,7 @@ structures
 struktur_druck.php
 strut
 struts
+struts.xml
 struts/webconsole.html
 strutsutils.js
 strutture
@@ -99845,8 +100546,6 @@ stuffedwhugslp.cfm
 stumbleinside
 stunnel
 stupid
-stupidc0de shell (2017).php
-Stupidc0de Shell (2017).php
 sturgeon
 stuttgart
 stuttgart.html
@@ -101255,6 +101954,7 @@ sys.htm
 sys.html
 sys.jsp
 sys.php
+sys/admin
 sys/login
 sys/pprof
 sys_admin
@@ -101437,6 +102137,7 @@ sysconfig.aspx
 sysconfig.jsp
 sysconfig.php
 sysconstraints
+syscontrol
 syscp
 sysdata
 syshelp
@@ -101463,7 +102164,9 @@ syslogs.log
 SysMain.aspx
 sysmanage
 sysmanager
-sysmgmt/2015/bmc/info"  # Firmware Version and other info (iDRAC9
+sysmgmt
+sysmgmt.jsp
+sysmgmt.php
 sysmod
 sysop
 sysop.php
@@ -101509,6 +102212,7 @@ system/access
 system/account
 system/accounts
 system/activity
+system/admin
 system/alert
 system/aml
 system/analytics
@@ -101542,6 +102246,7 @@ system/console/bundles
 system/console/configMgr
 system/console/status-Bundlelist.txt
 system/content
+system/core/CodeIgniter.php
 system/cron
 system/cron/cron.txt
 system/croncron.txt
@@ -102687,6 +103392,7 @@ temp.txt
 TEMP.xml
 temp.zip
 temp/.env
+temp/config.php
 temp/data
 temp/env/.env
 temp/files
@@ -103495,6 +104201,8 @@ test/fixtures/app_types/rails/.env
 test/fixtures/node_path/.env
 test/fixtures/users.yml
 test/integration/env-config/app/.env
+test/login
+test/panel
 test/pathtraversal/master/..%252f..%252f..%252f..%252f../etc/passwd
 test/php/test.html
 test/reports
@@ -104555,6 +105263,7 @@ tincan
 tinh
 tinhyeu
 tinker
+tinker.php
 tinman
 tinnhan
 tintin
@@ -104776,6 +105485,7 @@ tmp/cache/views
 tmp/cgi.pl
 tmp/Cgishell.pl
 tmp/changeall.php
+tmp/config.php
 tmp/cpn.php
 tmp/d0maine.php
 tmp/d.php
@@ -104790,6 +105500,8 @@ tmp/index.php
 tmp/killer.php
 tmp/L3b.php
 tmp/log
+tmp/logs/access.log
+tmp/logs/error.log
 tmp/mad.php
 tmp/madspotshell.php
 tmp/nanoc
@@ -104955,6 +105667,7 @@ token/revoke
 TokenFactory.php
 tokenlite.zip
 tokens
+tokens.txt
 tokyo
 toledo
 toledo.html
@@ -105589,6 +106302,8 @@ tradetheme.php
 tradetracker
 trading
 traductions
+traefik
+traefik/dashboard
 traf
 traf2.php
 traf.php
@@ -106382,6 +107097,8 @@ uapplication
 uapws
 uapwsservice
 uat
+uat/admin
+uat/login
 ub
 ubb
 ubbc.js
@@ -106827,7 +107544,6 @@ unternehmen.php
 untgz.php
 until
 untitled
-untitled folder
 untitled-1.htm
 untitled-1.html
 untitled-1.php
@@ -106836,11 +107552,13 @@ untitled.asp
 untitled.htm
 untitled.html
 untitled.inc
+untitled.js
 untitled.php
 untitled.phtml
 untitled.py
 untitled_1.htm
 untitled_2.html
+untitled_folder
 untrash
 untrashed
 unu
@@ -106912,6 +107630,7 @@ update.htm
 update.html
 update.php
 update.php3
+update.phtml
 update.rb
 update.sh
 UPDATE.txt
@@ -107045,6 +107764,7 @@ upgrade.html
 UPGRADE.md
 UPGRADE.php
 upgrade.php
+upgrade.phtml
 upgrade.pl
 upgrade.readme
 UPGRADE.txt
@@ -107897,6 +108617,7 @@ usability.html
 usage
 usage2
 usage.php
+usage/stats
 usagedata
 usager
 usanet
@@ -107969,6 +108690,7 @@ user.cfm
 user.cgi
 user.class.php
 user.dat
+user.htm
 user.html
 User.html
 user.ini
@@ -108096,6 +108818,7 @@ user/products
 user/profile
 user/queue
 user/redis
+user/register
 user/release
 user/releases
 user/reports
@@ -108779,6 +109502,7 @@ users.json
 users.log
 users.mdb
 users.php
+users.phtml
 users.pwd
 users.rar
 users.sql
@@ -108802,6 +109526,7 @@ users.tar.gzip
 users.tgz
 users.txt
 users.xls
+users.xml
 users.yml
 users.zip
 users/2fa
@@ -109239,6 +109964,7 @@ v1/acl/tokens
 v1/add-bank
 v1/add-beneficiary
 v1/add-card
+v1/admin
 v1/agent/checks
 v1/agent/members
 v1/agent/self
@@ -109437,6 +110163,7 @@ v1/kv
 v1/laundry/status
 v1/load-money
 v1/logger.json
+v1/login
 v1/logout
 v1/longhorn/nodes
 v1/longhorn/settings
@@ -109593,6 +110320,7 @@ v2.asp
 v2.zip
 v2/.env
 v2/_catalog
+v2/admin
 v2/altair
 v2/api-docs
 v2/api/graphql
@@ -109624,6 +110352,7 @@ v2/keys/skydns/com/atspeeds/node
 v2/keys?recursive=true
 v2/listen
 v2/logger.json
+v2/login
 v2/machines
 v2/models
 v2/playground
@@ -109913,6 +110642,7 @@ var/backup/.env
 var/backups
 var/bootstrap.php.cache
 var/cache
+var/export
 var/jwt/private.pem
 var/lib/cloud/instance/boot-finished
 var/lib/cloud/instance/cloud-config.txt
@@ -109936,7 +110666,11 @@ var/lib/cloud/instancevendor-data.txt.i
 var/lib/mysql/mysql/user.frm
 var/lib/postgresql/data/pg_hba.conf
 var/log
+var/log/access.log
+var/log/app.log
 var/log/authorizenet.log
+var/log/debug.log
+var/log/error.log
 var/log/exception.log
 var/log/librepag.log
 var/log/old
@@ -109998,6 +110732,7 @@ vat.xls
 vaucer.htm
 vaude.php
 vault
+vault/ui
 vault_scripts
 vavoom
 vax
@@ -110175,6 +110910,7 @@ vendor/access
 vendor/account
 vendor/accounts
 vendor/activity
+vendor/admin
 vendor/aml
 vendor/analytics
 vendor/api-keys
@@ -111879,6 +112615,7 @@ warning.asp
 warning.aspx
 warning.htm
 warning.html
+warning.log
 warning.php
 warnings.htm
 warnings.php
@@ -112542,6 +113279,7 @@ web/.env.staging
 web/admin
 web/adminer.php
 web/adminlogin
+web/app.php
 web/app_dev.php
 web/bundles
 web/dashboard
@@ -113084,6 +113822,7 @@ webmail.html
 webmail.php
 webmail/calendar/minimizer/index.php?style=..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c/etc%5cpasswd
 webmail/calendar/minimizer/index.php?style=..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5cwindows%5cwin.ini
+webmail/login
 webmail/src/configtest.php
 webmail/srcconfigtest.php
 webmail/srclogin.php
@@ -113100,6 +113839,7 @@ webmaster.cgi
 webmaster.htm
 webmaster.html
 webmaster.php
+webmaster/login
 webmaster/logs
 webmaster/stats
 webmaster_logs
@@ -113144,6 +113884,7 @@ webobjects
 webobjects.dll
 weboffice
 webositespeedup
+webpack-dev-server/sockjs-node
 webpack.common.js
 webpack.config.js
 webpack.dev.js
@@ -114276,6 +115017,7 @@ workbook.php
 workdir
 worker
 worker.log
+worker.php
 worker_error.log
 worker_info.log
 workers
@@ -114484,8 +115226,7 @@ worldwide.php
 wormatia-worms
 worms
 wormwood
-worse linux shell.php
-Worse Linux Shell.php
+worse_linux_shell.php
 Worse_Linux_Shell.php
 worship
 wos.php
@@ -114818,9 +115559,13 @@ wp-admin/jsxfn.js
 wp-admin/m4d.php
 wp-admin/maint
 wp-admin/maintrepair.php
+wp-admin/media-upload.php
+wp-admin/options-general.php
 wp-admin/options.php
 wp-admin/plugins.php
 wp-admin/setup-config.php
+wp-admin/themes.php
+wp-admin/update-core.php
 wp-admin/users.php
 wp-adminadmin-ajax.php
 wp-adminadmin-db.php
@@ -115483,6 +116228,7 @@ wp-include
 wp-includes
 wp-includes/css/wp-config.php
 wp-includes/fonts/wp-config.php
+wp-includes/functions.php
 wp-includes/images
 wp-includes/images/crystal
 wp-includes/images/crystallicense.txt
@@ -115707,6 +116453,7 @@ wp-includes/theme-compatcomments.php
 wp-includes/theme-compatfooter.php
 wp-includes/theme-compatheader.php
 wp-includes/theme-compatsidebar.php
+wp-includes/version.php
 wp-includes/wp-db.php
 wp-includesatomlib.php
 wp-includesauthor-template.php
@@ -115955,6 +116702,8 @@ wrb
 wrestling
 wright
 writable
+writable/logs/error.log
+writable/logs/log.txt
 write
 write-a-review.aspx
 write-a-review.html
@@ -117133,6 +117882,7 @@ zabbix.php?action=dashboard.view&dashboardid=1
 zabbix.php?action=host.view
 zabbix.php?action=problem.view
 zabbix.php?action=user.list
+zabbix/index.php
 zabyili-parol.html
 zachary
 zack
@@ -117308,8 +118058,8 @@ zhizhu.php
 zhong
 zhongguo
 zhongli.asp
-zhongwen .jsp
 zhongwen.apx
+zhongwen.jsp
 zhuanjia
 zhuanti
 zhuanti.asp

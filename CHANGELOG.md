@@ -2,19 +2,20 @@ CHANGELOG
 =======
 v5.16.1 (xx.05.2026)
 ---------------------------
+- (fix) propagated `--fail-on-bucket` exit codes through the installed `opendoor` entrypoint so CI/CD runs behave the same as `python opendoor.py`.
 - (fix) reduced malware sniffer false positives by ignoring legitimate Google Tag Manager noscript hidden iframes while preserving detection for non-GTM hidden iframe injections.
-- (fix) kept scans running when individual paths trigger transport-level no-response failures while the target remains reachable, and summarized skipped path-specific transport failures without noisy per-path warnings.
+- (fix) kept scans running when individual paths exhaust configured retries while preserving configurable abort protection for consecutive retry failures.
 - (fix) ignored-path progress output so `skip [...]` shows the current scan position instead of `00000`.
 - (fix) proxy CLI overrides for wizard and session resume flows so explicit `--proxy`, `--proxy-pool`, and `--proxy-list --proxy-rotation` selections replace restored proxy settings correctly.
 - (fix) filtered/calibrated progress counters to use the same dynamic width as regular scan findings.
 - (fix) fingerprint evidence output to avoid repeating identical evidence values when the same marker is confirmed by multiple signal sources.
-- (enhancement) improved the stacktrace sniffer to detect exposed database connection identity errors like `Could not make ... user@host` while avoiding generic connection-error false positives.
-- (enhancement) hardened `--header` validation/normalization with wizard/session CLI overrides.
-- (enhancement) added remote HTTP(S) wordlist support through `--wordlist`, a 500 MB safety limit, streaming download progress.
-- (enhancement) added `--proxy-rotation random|sequential` to control existing `--proxy-list` rotation, preserving random rotation as the default and adding deterministic file-order sequential mode.
+- (enhancement) improved the `stacktrace` sniffer to detect exposed database connection identity errors like `Could not make a database connection using user@host` while avoiding generic connection-error false positives.
+- (enhancement) hardened `--header` validation and normalization, including wizard/session CLI override handling.
+- (enhancement) added remote HTTP(S) wordlist support through `--wordlist`, including streaming download progress and a 500 MB safety limit.
+- (enhancement) added `--proxy-rotation random|sequential` to control existing `--proxy-list` rotation, preserving `random` as the default and adding deterministic file-order sequential mode.
 - (enhancement) added DotCMS detection to `--fingerprint`.
-- (enhancement) added configurable `--retries-fail-streak` to control aborts after consecutive exhausted retry paths (default 10).
-- (dictionary) cleaned and normalized internal directories list.
+- (enhancement) added configurable `--retries-fail-streak` to control scan aborts after consecutive exhausted retry paths. Default: `10`.
+- (dictionary) cleaned and normalized the internal directories list.
 
 v5.16.0 (17.05.2026)
 ---------------------------

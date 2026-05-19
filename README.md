@@ -56,7 +56,7 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - subdomain enumeration;
 - multi-threading scans for faster lookups;
 - single target, target file, stdin, IPv4 CIDR, and IPv4 range input modes;
-- custom wordlists, prefixes, shuffling to break scan patterns and extension filters;
+- custom wordlists, prefixes, shuffling to break scan patterns and extension filters, remote wordlists supports;
 - custom request headers, cookies forwarding, and raw HTTP request templates;
 - response filters by status, size, text, regex, and body length;
 - response sniffers for detecting directory listings, empty responses, known file exposures, active shadow-copy probes, collation, possible exposed secrets, errors, exposed debug stack traces, and verified open redirect vulnerabilities;

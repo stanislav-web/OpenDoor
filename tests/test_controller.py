@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 
+import src as src_module
 from src import Controller, SrcError
 from src.core.logger.logger import Logger
 from src.lib import ArgumentsError, BrowserError, PackageError, ReporterError
@@ -417,6 +418,37 @@ class TestController(unittest.TestCase):
 
         self.assertEqual(actual, 1)
         scan_mock.assert_called_once_with({'host': 'http://example.com'}, show_banner=True)
+
+    def test_main_returns_controller_exit_code_for_installed_entrypoint(self):
+        """src.main() should return Controller.run() exit code for console scripts."""
+
+        controller = MagicMock()
+        controller.run.return_value = 1
+
+        with patch('src.Controller', return_value=controller):
+            actual = src_module.main()
+
+        self.assertEqual(actual, 1)
+        controller.run.assert_called_once_with()
+
+    def test_main_returns_zero_when_controller_returns_none(self):
+        """src.main() should normalize missing controller return values to success."""
+
+        controller = MagicMock()
+        controller.run.return_value = None
+
+        with patch('src.Controller', return_value=controller):
+            actual = src_module.main()
+
+        self.assertEqual(actual, 0)
+
+    def test_main_returns_one_when_controller_raises_src_error(self):
+        """src.main() should return failure instead of swallowing SrcError as success."""
+
+        with patch('src.Controller', side_effect=SrcError('boom')):
+            actual = src_module.main()
+
+        self.assertEqual(actual, 1)
 
     def test_scan_action_returns_one_when_fail_on_bucket_matches(self):
         """Controller.scan_action() should return 1 when selected CI bucket is found."""
