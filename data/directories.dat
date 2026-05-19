@@ -19944,9 +19944,6 @@ api2/json/nodes/localhost/syslog
 api2/json/version
 api3
 api4
-API Key.php
-api-155.log
-api-156.log
 api-console
 api-doc
 api-docs
@@ -19962,6 +19959,8 @@ api-gateway/.env.dev
 api-gateway/.env.local
 api-gateway/.env.production
 api-gateway/.env.staging
+api-key.json
+api-key.php
 api-keys.txt
 api-v12.php
 api.admin.mars.com-web.log
@@ -21577,6 +21576,8 @@ api_error.php
 api_info.php
 API_insert_atividades.php
 api_jsonrpc.php
+api_key.json
+API_Key.php
 api_log.txt
 api_smartapp/storage
 api_test

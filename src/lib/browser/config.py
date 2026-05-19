@@ -71,7 +71,7 @@ class Config(object):
         self._request_body = params.get('request_body')
         self._accept_cookies = params.get('accept_cookies') is not None
         self._keep_alive = params.get('keep_alive') is True
-        self._port = params.get('port')
+        self._port = self._normalize_port(params.get('port'))
         self._wordlist = params.get('wordlist')
         self._wordlist_resolved_path = params.get('wordlist_resolved_path') or params.get('resolved_wordlist')
         self._reports_dir = params.get('reports_dir')
@@ -478,6 +478,28 @@ class Config(object):
         """If using ssl."""
 
         return self._ssl
+
+    def _normalize_port(self, value):
+        """Normalize scan port with scheme-aware defaults.
+
+        :param value: configured port value
+        :raise ValueError:
+        :return: normalized TCP port
+        :rtype: int
+        """
+
+        if value is None:
+            return self.DEFAULT_SSL_PORT if self._ssl is True else self.DEFAULT_HTTP_PORT
+
+        try:
+            port = int(value)
+        except (TypeError, ValueError):
+            raise ValueError('port must be an integer from 1 to 65535')
+
+        if port < 1 or port > 65535:
+            raise ValueError('port must be an integer from 1 to 65535')
+
+        return port
 
     @property
     def prefix(self):

@@ -60,6 +60,25 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertTrue(cfg.is_ssl)
         self.assertEqual(cfg.port, 443)
 
+    def test_port_defaults_by_scheme_when_missing(self):
+        """Config.port should default to the scheme default when no port is configured."""
+
+        self.assertEqual(Config({'reports': 'std', 'scheme': 'http://'}).port, 80)
+        self.assertEqual(Config({'reports': 'std', 'scheme': 'https://'}).port, 443)
+
+    def test_port_normalizes_string_values(self):
+        """Config.port should normalize wizard/session string port values."""
+
+        self.assertEqual(Config({'reports': 'std', 'scheme': 'http://', 'port': '8080'}).port, 8080)
+
+    def test_port_rejects_invalid_values(self):
+        """Config.port should reject invalid port values before runtime requests."""
+
+        for value in ['abc', '0', '-1', '65536']:
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    Config({'reports': 'std', 'scheme': 'http://', 'port': value})
+
     def test_method_uses_get_for_non_file_sniffers(self):
         """Config.method should use GET when multiple sniffers are enabled."""
 

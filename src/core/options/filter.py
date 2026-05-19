@@ -165,6 +165,9 @@ class Filter(object):
             if args.get('delay') is not None:
                 filtered['delay'] = Filter.non_negative_float(args.get('delay'), key='--delay')
 
+            if args.get('port') is not None:
+                filtered['port'] = Filter.port(args.get('port'), key='--port')
+
             if args.get('header') is not None:
                 filtered['header'] = Filter.request_headers(args.get('header'), key='--header')
 
@@ -248,6 +251,8 @@ class Filter(object):
                 filtered[key] = Filter.session_file(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['header']:
                 filtered[key] = Filter.request_headers(value, key='--header')
+            elif key in ['port']:
+                filtered[key] = Filter.port(value, key='--port')
             elif key in ['session_autosave_sec', 'session_autosave_items']:
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
             elif 'proxy' == key:
@@ -759,7 +764,7 @@ class Filter(object):
         if ':' in raw:
             host, port = raw.rsplit(':', 1)
             if port.isdigit():
-                return host.strip(), int(port)
+                return host.strip(), Filter.port(port, key='raw request Host port')
         return raw, None
 
     @staticmethod
@@ -815,6 +820,27 @@ class Filter(object):
             if not regex.match(hostname):
                 raise FilterError("\"{0}\" is invalid host. Use ip, http(s) or just hostname".format(hostname))
         return hostname
+
+    @staticmethod
+    def port(value, key='--port'):
+        """Validate a TCP port value.
+
+        :param value: input port value
+        :param str key: CLI option name
+        :raise FilterError:
+        :return: normalized port
+        :rtype: int
+        """
+
+        try:
+            port = int(value)
+        except (TypeError, ValueError):
+            raise FilterError('{0} must be an integer from 1 to 65535'.format(key))
+
+        if port < 1 or port > 65535:
+            raise FilterError('{0} must be an integer from 1 to 65535'.format(key))
+
+        return port
 
     @staticmethod
     def proxy(proxyaddress):

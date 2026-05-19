@@ -57,9 +57,9 @@ class Options(object):
                 "group": "request",
                 "args": "-p",
                 "argl": "--port",
-                "default": 80,
+                "default": None,
                 "action": "store",
-                "help": "Custom port (default 80)",
+                "help": "Custom port (default by scheme)",
                 "type": int
             },
             {
@@ -824,6 +824,7 @@ class Options(object):
                     if value \
                             or arg in ['debug'] \
                             or (arg == 'delay' and value is not None) \
+                            or (arg == 'port' and value is not None) \
                             or (arg == 'header_bypass_limit' and value == 0):
                         args[arg] = value
                 args = Filter.filter(args)

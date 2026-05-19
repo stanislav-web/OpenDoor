@@ -440,6 +440,42 @@ class TestFilter(unittest.TestCase):
         with self.assertRaises(FilterError):
             Filter.non_negative_int('-1', key='--min-response-length')
 
+    def test_port_should_accept_valid_tcp_ports(self):
+        """Filter.port() should accept valid TCP ports."""
+
+        self.assertEqual(Filter.port('1', key='--port'), 1)
+        self.assertEqual(Filter.port(80, key='--port'), 80)
+        self.assertEqual(Filter.port('65535', key='--port'), 65535)
+
+    def test_port_should_reject_invalid_tcp_ports(self):
+        """Filter.port() should reject values outside the TCP port range."""
+
+        for value in [None, 'abc', '0', 0, '-1', -1, '65536', 65536]:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.port(value, key='--port')
+
+    def test_filter_should_validate_port_in_normal_flow(self):
+        """Filter.filter() should normalize and validate --port during regular scans."""
+
+        actual = Filter.filter({'host': 'example.com', 'port': '8443'})
+
+        self.assertEqual(actual['port'], 8443)
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'port': '65536'})
+
+    def test_filter_should_validate_port_with_session_load(self):
+        """Filter.filter() should preserve and validate --port for session resume overrides."""
+
+        actual = Filter.filter({'session_load': '/tmp/session.json', 'port': '8443'})
+
+        self.assertEqual(actual['session_load'], '/tmp/session.json')
+        self.assertEqual(actual['port'], 8443)
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'port': '0'})
+
     def test_status_ranges_reject_upper_out_of_range_code(self):
         """Filter.status_ranges() should reject status codes above 599."""
 
@@ -558,6 +594,19 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(actual['header'], ['User-Agent: RawUA', 'X-Test: 1', 'User-Agent: CliUA'])
         self.assertEqual(actual['cookie'], ['sid=abc', 'session=xyz'])
         self.assertEqual(actual['request_body'], 'username=admin')
+
+    def test_raw_request_should_reject_invalid_host_port(self):
+        """Filter.raw_request() should reject invalid numeric Host ports early."""
+
+        with tempfile.NamedTemporaryFile('w+', delete=False, encoding='utf-8') as handle:
+            handle.write('GET /admin HTTP/1.1\nHost: example.com:65536\n\n')
+            filepath = handle.name
+
+        try:
+            with self.assertRaises(FilterError):
+                Filter.raw_request(filepath, scheme='https')
+        finally:
+            os.unlink(filepath)
 
     def test_filter_should_require_scheme_for_relative_raw_request_target(self):
         """Filter.filter() should require --scheme when raw-request uses a relative path as the target source."""
