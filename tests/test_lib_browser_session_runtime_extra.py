@@ -170,6 +170,22 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
         self.assertEqual(params['retries_fail_streak'], 10)
 
 
+    def test_build_session_snapshot_exports_fingerprint_state(self):
+        """Browser session snapshot should preserve requested fingerprint state."""
+
+        br = self.make_browser(is_fingerprint=True)
+
+        snapshot = br._Browser__build_session_snapshot(reason='test')
+
+        self.assertTrue(snapshot['params']['fingerprint'])
+
+        br = self.make_browser(is_fingerprint=False)
+
+        snapshot = br._Browser__build_session_snapshot(reason='test')
+
+        self.assertFalse(snapshot['params']['fingerprint'])
+
+
     def test_build_session_snapshot_exports_waf_state(self):
         """Browser session snapshot should preserve selected WAF runtime flags."""
 

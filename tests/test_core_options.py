@@ -1180,6 +1180,55 @@ class TestOptions(unittest.TestCase):
         })
 
 
+    def test_get_arg_values_should_not_emit_default_fingerprint(self):
+        """Options.get_arg_values() should not emit unset fingerprint flag default."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            fingerprint=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com'})
+
+    def test_get_arg_values_should_pass_explicit_fingerprint(self):
+        """Options.get_arg_values() should pass explicit --fingerprint through Filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            fingerprint=True,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'fingerprint': True}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'fingerprint': True})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'fingerprint': True})
+
+
     def test_get_arg_values_should_not_emit_default_waf_flags(self):
         """Options.get_arg_values() should not emit unset WAF flag defaults."""
 

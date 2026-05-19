@@ -108,6 +108,9 @@ class Filter(object):
                     key='--session-autosave-items'
                 )
 
+            if args.get('fingerprint') is not None:
+                filtered['fingerprint'] = Filter.bool_option(args.get('fingerprint'), key='--fingerprint')
+
             if args.get('waf_detect') is not None:
                 filtered['waf_detect'] = Filter.bool_option(args.get('waf_detect'), key='--waf-detect')
 
@@ -340,7 +343,7 @@ class Filter(object):
                 filtered[key] = Filter.debug_level(value, key='--debug')
             elif key in ['delay']:
                 filtered[key] = Filter.non_negative_float(value, key='--delay')
-            elif key in ['waf_detect', 'waf_safe_mode', 'waf_guard']:
+            elif key in ['fingerprint', 'waf_detect', 'waf_safe_mode', 'waf_guard']:
                 filtered[key] = Filter.bool_option(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['waf_guard_after']:
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))

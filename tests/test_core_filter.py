@@ -1818,6 +1818,33 @@ class TestFilter(unittest.TestCase):
                 with self.assertRaises(FilterError):
                     Filter.bool_option(value, key='--waf-detect')
 
+    def test_filter_should_validate_fingerprint_in_normal_flow(self):
+        """Filter.filter() should normalize fingerprint flag in normal scan flow."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'fingerprint': 'true',
+        })
+
+        self.assertTrue(actual['fingerprint'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'fingerprint': 'maybe'})
+
+    def test_filter_should_validate_fingerprint_with_session_load(self):
+        """Filter.filter() should normalize fingerprint overrides in session resume flow."""
+
+        actual = Filter.filter({
+            'session_load': '/tmp/session.json',
+            'fingerprint': 'true',
+        })
+
+        self.assertTrue(actual['fingerprint'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'fingerprint': 'maybe'})
+
+
     def test_filter_should_validate_waf_options_in_normal_flow(self):
         """Filter.filter() should normalize WAF flags in normal scan flow."""
 

@@ -210,7 +210,7 @@ class Options(object):
                 "group": "request",
                 "args": None,
                 "argl": "--fingerprint",
-                "default": False,
+                "default": None,
                 "action": "store_true",
                 "help": "Detect probable CMS, framework, security posture and passive privacy risks before the scan",
                 "type": bool
@@ -826,6 +826,7 @@ class Options(object):
                             or (arg == 'port' and value is not None) \
                             or (arg == 'method' and value is not None) \
                             or (arg == 'threads' and value is not None) \
+                            or (arg == 'fingerprint' and value is not None) \
                             or (arg in ['waf_detect', 'waf_safe_mode', 'waf_guard'] and value is not None) \
                             or (arg in ['recursive_depth', 'recursive_status', 'recursive_exclude'] and value is not None) \
                             or (arg in ['reports', 'reports_dir'] and value is not None) \

@@ -265,6 +265,7 @@ class Controller(object):
             cli_recursive_overrides = cls._collect_recursive_cli_overrides(params)
             cli_report_overrides = cls._collect_report_cli_overrides(params)
             cli_waf_overrides = cls._collect_waf_cli_overrides(params)
+            cli_fingerprint = params.get('fingerprint')
             cli_delay = params.get('delay')
             cli_port = params.get('port')
             cli_method = params.get('method')
@@ -298,6 +299,9 @@ class Controller(object):
 
                 if cli_threads is not None:
                     params['threads'] = cli_threads
+
+                if cli_fingerprint is not None:
+                    params['fingerprint'] = cli_fingerprint
 
                 if cli_tls_legacy is True:
                     params['tls_legacy'] = True
@@ -345,6 +349,9 @@ class Controller(object):
 
                 if cli_threads is not None:
                     restored['threads'] = cli_threads
+
+                if cli_fingerprint is not None:
+                    restored['fingerprint'] = cli_fingerprint
 
                 if cli_tls_legacy is True:
                     restored['tls_legacy'] = True
@@ -682,8 +689,7 @@ class Controller(object):
 
             brows.ping()
 
-            if target_params.get('fingerprint') is True:
-                brows.fingerprint()
+            brows.fingerprint()
 
             if target_params.get('auto_calibrate') is True:
                 brows.calibrate()

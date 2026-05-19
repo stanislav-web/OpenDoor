@@ -2131,6 +2131,65 @@ class TestController(unittest.TestCase):
 
 
 
+    def test_scan_action_should_preserve_fingerprint_cli_override_for_wizard(self):
+        """Controller.scan_action() should preserve explicit --fingerprint for wizard flow."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+        wizard_params = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'port': 80,
+            'reports': 'std',
+            'fingerprint': False,
+        }
+
+        with patch('src.controller.package.wizard', return_value=wizard_params), \
+                patch('src.controller.browser', return_value=browser_instance) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'wizard': 'opendoor.conf',
+                'fingerprint': True,
+            })
+
+        browser_mock.assert_called_once()
+        passed_params = browser_mock.call_args[0][0]
+        self.assertTrue(passed_params['fingerprint'])
+
+    def test_scan_action_should_preserve_fingerprint_cli_override_for_session_load(self):
+        """Controller.scan_action() should preserve explicit --fingerprint for session resume."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+        snapshot = {
+            'params': {
+                'host': 'example.com',
+                'scheme': 'http://',
+                'ssl': False,
+                'port': 80,
+                'reports': 'std',
+                'fingerprint': False,
+            }
+        }
+
+        with patch('src.controller.SessionManager.load', return_value=snapshot), \
+                patch('src.controller.browser', return_value=browser_instance) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'session_load': '/tmp/session.json',
+                'fingerprint': True,
+            })
+
+        browser_mock.assert_called_once()
+        passed_params = browser_mock.call_args[0][0]
+        self.assertTrue(passed_params['fingerprint'])
+
+
     def test_scan_action_should_preserve_waf_cli_overrides_for_wizard(self):
         """Controller.scan_action() should preserve explicit WAF CLI overrides for wizard flow."""
 

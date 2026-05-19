@@ -570,6 +570,31 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertTrue(cfg.is_waf_detect)
 
 
+    def test_fingerprint_defaults_to_false_when_missing(self):
+        """Config should keep fingerprinting disabled by default."""
+
+        cfg = Config({'reports': 'std'})
+
+        self.assertFalse(cfg.is_fingerprint)
+
+    def test_fingerprint_normalizes_bool_like_values(self):
+        """Config should normalize fingerprint bool-like wizard/session values."""
+
+        for value in [True, 'true', 'True', '1', 'yes', 'on']:
+            with self.subTest(value=value):
+                self.assertTrue(Config({'reports': 'std', 'fingerprint': value}).is_fingerprint)
+
+        for value in [False, 'false', 'False', '0', 'no', 'off', None]:
+            with self.subTest(value=value):
+                self.assertFalse(Config({'reports': 'std', 'fingerprint': value}).is_fingerprint)
+
+    def test_fingerprint_rejects_invalid_values(self):
+        """Config should reject malformed fingerprint bool values."""
+
+        with self.assertRaises(ValueError):
+            Config({'reports': 'std', 'fingerprint': 'maybe'})
+
+
     def test_waf_flags_default_to_false_when_missing(self):
         """Config should keep WAF features disabled by default."""
 

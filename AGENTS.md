@@ -141,6 +141,134 @@ If a risk cannot be eliminated with deterministic tests, document it in the resp
 
 ---
 
+## CLI/config/session normalization rules
+
+CLI arguments, wizard configuration values, and session resume snapshots must follow one consistent normalization model.
+
+When adding or changing any CLI option that can also appear in `opendoor.conf`, wizard output, or session snapshots:
+
+- keep `argparse` defaults as `None` when the option can be restored from wizard/session state;
+- place runtime defaults in `src/lib/browser/config.py`, not in `argparse`, when the default must not overwrite restored state;
+- validate direct CLI input in `src/core/options/filter.py`;
+- validate wizard/session values again in `BrowserConfig`, because those values may bypass CLI parsing;
+- preserve explicit CLI overrides in `Controller.scan_action()` after wizard/session params are restored;
+- keep direct launcher and installed entrypoint behavior aligned.
+
+### Explicit override model
+
+Use this precedence for runtime params:
+
+```text
+explicit CLI value > session-loaded value > wizard/config value > BrowserConfig runtime default
+```
+
+Do not let parser defaults overwrite wizard/session values.
+
+For boolean `store_true` style flags, prefer:
+
+```text
+argparse default=None
+BrowserConfig default=False
+```
+
+This allows the controller to distinguish:
+
+```text
+flag omitted         -> do not override restored wizard/session state
+flag explicitly set  -> override restored wizard/session state
+```
+
+Do not add `--no-*` negation flags in a patch release unless the maintainer explicitly approves the new public CLI semantics.
+
+### Boolean normalization
+
+Boolean-like values from wizard/config/session must be normalized consistently.
+
+Accepted true values:
+
+```text
+true, True, 1, yes, on
+```
+
+Accepted false values:
+
+```text
+false, False, 0, no, off
+```
+
+Invalid boolean-like values must fail early with a clear validation error.
+
+### Numeric option normalization
+
+Numeric options must not silently fall back when the user provided an invalid value.
+
+Examples:
+
+```text
+--threads 0
+--port 0
+--delay -1
+--recursive-depth 0
+```
+
+Invalid explicit values must reach validation and fail early instead of being dropped as falsy values.
+
+If an option has a runtime clamp, keep validation and clamping separate:
+
+```text
+invalid range       -> validation error
+valid high value    -> documented runtime clamp, if legacy behavior requires it
+```
+
+### CSV/list option normalization
+
+CSV/list options must be normalized consistently:
+
+- trim whitespace;
+- remove empty tokens unless an empty value has explicit semantics;
+- deduplicate while preserving order when duplicate execution would be harmful;
+- validate every token;
+- keep user-visible order when order affects behavior.
+
+Unknown values must fail early instead of reaching plugin/report/runtime loading.
+
+### Raw request interaction
+
+When a CLI option can also be inferred from `--raw-request`, keep precedence deterministic:
+
+```text
+explicit CLI value > raw-request value > runtime default
+```
+
+Raw-request-derived values must pass the same validation helpers as direct CLI values.
+
+### Required tests for CLI/config/session changes
+
+For every new or changed CLI/config/session option, add or update tests for:
+
+- normal CLI flow;
+- invalid CLI values;
+- wizard/config normalization;
+- session-load normalization;
+- explicit CLI override over wizard state;
+- explicit CLI override over session state;
+- `BrowserConfig` runtime default;
+- `BrowserConfig` validation for values that bypass CLI parsing;
+- direct launcher and installed entrypoint behavior when exit code or runtime execution can be affected.
+
+Prefer focused tests in the existing suites:
+
+```text
+tests.test_core_options
+tests.test_core_filter
+tests.test_controller
+tests.test_lib_browser_config
+```
+
+Add runtime/session-specific tests only when the option affects scan execution, report output, fingerprinting, WAF behavior, transport, or session snapshots.
+
+---
+
 ## Packaging rules
 
 - Keep `pyproject.toml` present and valid.

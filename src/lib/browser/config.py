@@ -85,7 +85,7 @@ class Config(object):
         self._reports_dir = self._normalize_optional_path(params.get('reports_dir'))
         self._prefix = '' if params.get('prefix') is None else params.get('prefix')
         self._reports = self._normalize_scan_reports(params.get('reports'))
-        self._is_fingerprint = params.get('fingerprint') is True
+        self._is_fingerprint = self._normalize_bool(params.get('fingerprint'), 'fingerprint')
         self._is_waf_safe_mode = self._normalize_bool(params.get('waf_safe_mode'), 'waf_safe_mode')
         self._is_waf_guard = self._normalize_bool(params.get('waf_guard'), 'waf_guard')
         self._waf_guard_after = 50 if params.get('waf_guard_after') is None else int(
