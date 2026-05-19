@@ -66,7 +66,7 @@ class Options(object):
                 "group": "request",
                 "args": "-m",
                 "argl": "--method",
-                "default": "HEAD",
+                "default": None,
                 "action": "store",
                 "help": "Request method (HEAD by default)",
                 "type": str
@@ -825,6 +825,7 @@ class Options(object):
                             or arg in ['debug'] \
                             or (arg == 'delay' and value is not None) \
                             or (arg == 'port' and value is not None) \
+                            or (arg == 'method' and value is not None) \
                             or (arg == 'header_bypass_limit' and value == 0):
                         args[arg] = value
                 args = Filter.filter(args)

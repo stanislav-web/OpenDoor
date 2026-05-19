@@ -264,6 +264,7 @@ class Controller(object):
             cli_header_overrides = cls._collect_header_cli_overrides(params)
             cli_delay = params.get('delay')
             cli_port = params.get('port')
+            cli_method = params.get('method')
             cli_tls_legacy = params.get('tls_legacy')
 
             if 'wizard' in params:
@@ -287,6 +288,9 @@ class Controller(object):
 
                 if cli_port is not None:
                     params['port'] = cli_port
+
+                if cli_method is not None:
+                    params['method'] = cli_method
 
                 if cli_tls_legacy is True:
                     params['tls_legacy'] = True
@@ -325,6 +329,9 @@ class Controller(object):
 
                 if cli_port is not None:
                     restored['port'] = cli_port
+
+                if cli_method is not None:
+                    restored['method'] = cli_method
 
                 if cli_tls_legacy is True:
                     restored['tls_legacy'] = True

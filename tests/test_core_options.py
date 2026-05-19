@@ -190,6 +190,51 @@ class TestOptions(unittest.TestCase):
         self.assertEqual(actual, {'host': 'example.com', 'port': 8443})
         filter_mock.assert_called_once_with({'host': 'example.com', 'port': 8443})
 
+
+    def test_get_arg_values_should_not_emit_default_method(self):
+        """Options.get_arg_values() should not pass method when the user did not set it."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            method=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com'})
+
+    def test_get_arg_values_should_pass_explicit_method(self):
+        """Options.get_arg_values() should pass explicit methods to Filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            method='GET',
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'method': 'GET'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'method': 'GET'})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'method': 'GET'})
+
     def test_get_arg_values_filters_non_standalone_arguments(self):
         """Options.get_arg_values() should pass non-standalone args through Filter.filter()."""
 

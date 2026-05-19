@@ -476,6 +476,51 @@ class TestFilter(unittest.TestCase):
         with self.assertRaises(FilterError):
             Filter.filter({'session_load': '/tmp/session.json', 'port': '0'})
 
+
+    def test_method_should_accept_supported_methods(self):
+        """Filter.method() should normalize supported HTTP methods."""
+
+        for value in ['head', 'GET', 'post', 'PUT', 'patch', 'DELETE', 'options']:
+            with self.subTest(value=value):
+                self.assertEqual(Filter.method(value, key='--method'), str(value).upper())
+
+    def test_method_should_reject_invalid_methods(self):
+        """Filter.method() should reject unsupported HTTP methods."""
+
+        for value in [None, '', 'TRACE', 'CONNECT', 'FOO', 'GET / HTTP/1.1']:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.method(value, key='--method')
+
+    def test_method_should_reject_injection_values(self):
+        """Filter.method() should reject CR/LF injection attempts."""
+
+        for value in ['GET\r\nX-Test: 1', 'POST\nX-Test: 1']:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.method(value, key='--method')
+
+    def test_filter_should_validate_method_in_normal_flow(self):
+        """Filter.filter() should normalize and validate --method during regular scans."""
+
+        actual = Filter.filter({'host': 'example.com', 'method': 'post'})
+
+        self.assertEqual(actual['method'], 'POST')
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'method': 'TRACE'})
+
+    def test_filter_should_validate_method_with_session_load(self):
+        """Filter.filter() should preserve and validate --method for session resume overrides."""
+
+        actual = Filter.filter({'session_load': '/tmp/session.json', 'method': 'options'})
+
+        self.assertEqual(actual['session_load'], '/tmp/session.json')
+        self.assertEqual(actual['method'], 'OPTIONS')
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'method': 'CONNECT'})
+
     def test_status_ranges_reject_upper_out_of_range_code(self):
         """Filter.status_ranges() should reject status codes above 599."""
 
@@ -503,6 +548,20 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(actual['cookies'], ['sid=abc', 'theme=dark'])
         self.assertEqual(actual['headers'], ['User-Agent: CustomUA', 'X-Test: 1'])
         self.assertEqual(actual['body'], 'username=admin')
+
+
+    def test_raw_request_should_validate_request_method(self):
+        """Filter.raw_request() should reject unsupported request-line methods."""
+
+        with tempfile.NamedTemporaryFile('w+', delete=False, encoding='utf-8') as handle:
+            handle.write('TRACE /admin HTTP/1.1\nHost: example.com\n\n')
+            filepath = handle.name
+
+        try:
+            with self.assertRaises(FilterError):
+                Filter.raw_request(filepath, scheme='https')
+        finally:
+            os.unlink(filepath)
 
     def test_filter_should_use_raw_request_target_when_host_not_provided(self):
         """Filter.filter() should resolve target data from raw-request files."""

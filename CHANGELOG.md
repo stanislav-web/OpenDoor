@@ -2,6 +2,7 @@ CHANGELOG
 =======
 v5.16.1 (xx.05.2026)
 ---------------------------
+- (fix) validated `--method` values, preserved explicit method overrides for wizard/session resume flows, and kept raw-request method handling deterministic.
 - (fix) validated `--port` values as TCP ports, preserved explicit port overrides for wizard/session resume flows, and rejected invalid raw-request Host ports early.
 - (fix) propagated `--fail-on-bucket` exit codes through the installed `opendoor` entrypoint so CI/CD runs behave the same as `python opendoor.py`.
 - (fix) preserved fractional `--delay` values (0.1, 0.25...etc), rejected negative delays, and allowed explicit delay overrides for wizard/session resume flows.

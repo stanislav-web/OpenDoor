@@ -541,6 +541,31 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertIsNone(config.transport_bin)
         self.assertIsNone(config.openvpn_auth)
 
+    def test_method_defaults_to_head_when_missing(self):
+        """Config.requested_method should default to HEAD when method is absent."""
+
+        cfg = Config({'reports': 'std'})
+
+        self.assertEqual(cfg.requested_method, 'HEAD')
+        self.assertEqual(cfg.method, 'HEAD')
+
+    def test_method_normalizes_lowercase_values(self):
+        """Config.requested_method should normalize methods restored from wizard/session."""
+
+        cfg = Config({'reports': 'std', 'method': 'post'})
+
+        self.assertEqual(cfg.requested_method, 'POST')
+        self.assertEqual(cfg.method, 'POST')
+
+    def test_explicit_get_is_not_reported_as_head_override(self):
+        """Config.method_override_warning should stay empty for explicit GET requests."""
+
+        cfg = Config({'reports': 'std', 'method': 'GET', 'sniff': 'secret'})
+
+        self.assertEqual(cfg.method, 'GET')
+        self.assertEqual(cfg.method_override_warning, '')
+
+
 class TestBrowserConfigDefensiveCopies(unittest.TestCase):
     """Config defensive-copy regression tests."""
 
@@ -579,6 +604,7 @@ class TestBrowserConfigDefensiveCopies(unittest.TestCase):
 
         self.assertEqual(source, ['200', '403'])
         self.assertEqual(normalized, ['200', '403', '404'])
+
 
 
 class TestBrowserConfigCoverageOnly(unittest.TestCase):

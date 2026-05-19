@@ -42,6 +42,7 @@ class Filter(object):
     TRANSPORTS = ('direct', 'proxy', 'openvpn', 'wireguard')
     TRANSPORT_ROTATES = ('none', 'per-target')
     PROXY_ROTATIONS = ('random', 'sequential')
+    METHODS = ('HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS')
     VPN_TRANSPORTS = ('openvpn', 'wireguard')
     HEADER_BYPASS_PROFILES = ('safe', 'offensive')
     DIFF_REPORTS = ('std', 'json')
@@ -171,6 +172,9 @@ class Filter(object):
             if args.get('header') is not None:
                 filtered['header'] = Filter.request_headers(args.get('header'), key='--header')
 
+            if args.get('method') is not None:
+                filtered['method'] = Filter.method(args.get('method'), key='--method')
+
             if args.get('tls_legacy') is True:
                 filtered['tls_legacy'] = True
 
@@ -251,6 +255,8 @@ class Filter(object):
                 filtered[key] = Filter.session_file(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['header']:
                 filtered[key] = Filter.request_headers(value, key='--header')
+            elif key in ['method']:
+                filtered[key] = Filter.method(value, key='--method')
             elif key in ['port']:
                 filtered[key] = Filter.port(value, key='--port')
             elif key in ['session_autosave_sec', 'session_autosave_items']:
@@ -318,7 +324,7 @@ class Filter(object):
 
         if raw_request is not None:
             if 'method' not in filtered and raw_request.get('method'):
-                filtered['method'] = raw_request.get('method')
+                filtered['method'] = Filter.method(raw_request.get('method'), key='--raw-request method')
 
             raw_headers = raw_request.get('headers') or []
             cli_headers = filtered.get('header') or []
@@ -688,7 +694,7 @@ class Filter(object):
         if len(request_line_parts) < 2:
             raise FilterError('Invalid request line in --raw-request')
 
-        method = request_line_parts[0].upper()
+        method = Filter.method(request_line_parts[0], key='--raw-request method')
         request_target = request_line_parts[1].strip()
         explicit_scheme = Filter.explicit_scheme(scheme, key='--scheme')
 
@@ -841,6 +847,27 @@ class Filter(object):
             raise FilterError('{0} must be an integer from 1 to 65535'.format(key))
 
         return port
+
+    @staticmethod
+    def method(value, key='--method'):
+        """Validate and normalize an HTTP request method.
+
+        :param value: input method value
+        :param str key: CLI option name
+        :raise FilterError:
+        :return: normalized uppercase method
+        :rtype: str
+        """
+
+        if value is None:
+            raise FilterError('{0} must be one of: {1}'.format(key, ', '.join(Filter.METHODS)))
+
+        method = str(value).strip().upper()
+
+        if not method or '\r' in method or '\n' in method or method not in Filter.METHODS:
+            raise FilterError('{0} must be one of: {1}'.format(key, ', '.join(Filter.METHODS)))
+
+        return method
 
     @staticmethod
     def proxy(proxyaddress):
