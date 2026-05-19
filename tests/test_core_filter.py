@@ -1474,6 +1474,44 @@ class TestFilter(unittest.TestCase):
         with self.assertRaisesRegex(FilterError, 'requires at least one report'):
             Filter.diff_reports('')
 
+    def test_filter_validates_delay_as_non_negative_float(self):
+        """Filter.filter() should preserve fractional request delays and reject invalid values."""
+
+        actual = Filter.filter({'host': 'example.com', 'delay': '0.25'})
+        self.assertEqual(actual['delay'], 0.25)
+
+        actual = Filter.filter({'host': 'example.com', 'delay': 1.5})
+        self.assertEqual(actual['delay'], 1.5)
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'delay': '-0.1'})
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'delay': 'bad'})
+
+    def test_filter_keeps_delay_override_with_session_load(self):
+        """Filter.filter() should allow explicit --delay overrides during session resume."""
+
+        with tempfile.NamedTemporaryFile() as session_file:
+            actual = Filter.filter({'session_load': session_file.name, 'delay': '0.1'})
+
+        self.assertEqual(actual['delay'], 0.1)
+
+    def test_non_negative_float_helper_covers_error_paths(self):
+        """Filter.non_negative_float() should reject empty, invalid and negative values."""
+
+        self.assertEqual(Filter.non_negative_float('0', key='--delay'), 0.0)
+        self.assertEqual(Filter.non_negative_float('0.01', key='--delay'), 0.01)
+
+        with self.assertRaises(FilterError):
+            Filter.non_negative_float(None, key='--delay')
+
+        with self.assertRaises(FilterError):
+            Filter.non_negative_float('-1', key='--delay')
+
+        with self.assertRaises(FilterError):
+            Filter.non_negative_float('nope', key='--delay')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -344,7 +344,7 @@ class TestBrowserConfig(unittest.TestCase):
         """Config should normalize delay rounding, report defaults and empty recursive excludes."""
 
         cfg = Config({'delay': 1.7, 'reports': None, 'recursive_exclude': None})
-        self.assertEqual(cfg.delay, 1)
+        self.assertEqual(cfg.delay, 1.7)
         self.assertEqual(cfg.reports, ['std'])
         self.assertEqual(cfg.recursive_exclude, [])
 
@@ -579,7 +579,22 @@ class TestBrowserConfigCoverageOnly(unittest.TestCase):
 
         cfg = Config({'reports': 'std', 'delay': 1.5})
 
-        self.assertEqual(cfg.delay, 1)
+        self.assertEqual(cfg.delay, 1.5)
+
+    def test_delay_preserves_fractional_values_from_strings(self):
+        """Config.delay should preserve fractional values loaded from wizard/session strings."""
+
+        cfg = Config({'delay': '0.1'})
+
+        self.assertEqual(cfg.delay, 0.1)
+
+    def test_delay_rejects_negative_values(self):
+        """Config.delay should reject negative values before they reach workers."""
+
+        cfg = Config({'delay': '-0.1'})
+
+        with self.assertRaises(ValueError):
+            _ = cfg.delay
 
 
 if __name__ == '__main__':

@@ -592,9 +592,11 @@ class Config(object):
         """Delay property."""
 
         if self._delay is None:
-            self._delay = 0
-        elif self._delay >= 1:
-            self._delay = int(self._delay)
+            self._delay = 0.0
+        else:
+            self._delay = float(self._delay)
+            if self._delay < 0:
+                raise ValueError('delay must be a non-negative number')
         return self._delay
 
     @property

@@ -262,6 +262,7 @@ class Controller(object):
             cli_transport_overrides = cls._collect_transport_cli_overrides(params)
             cli_proxy_overrides = cls._collect_proxy_cli_overrides(params)
             cli_header_overrides = cls._collect_header_cli_overrides(params)
+            cli_delay = params.get('delay')
             cli_tls_legacy = params.get('tls_legacy')
 
             if 'wizard' in params:
@@ -279,6 +280,9 @@ class Controller(object):
 
                 if cli_calibration_threshold is not None:
                     params['calibration_threshold'] = cli_calibration_threshold
+
+                if cli_delay is not None:
+                    params['delay'] = cli_delay
 
                 if cli_tls_legacy is True:
                     params['tls_legacy'] = True
@@ -311,6 +315,9 @@ class Controller(object):
 
                 if cli_calibration_threshold is not None:
                     restored['calibration_threshold'] = cli_calibration_threshold
+
+                if cli_delay is not None:
+                    restored['delay'] = cli_delay
 
                 if cli_tls_legacy is True:
                     restored['tls_legacy'] = True

@@ -3,6 +3,7 @@ CHANGELOG
 v5.16.1 (xx.05.2026)
 ---------------------------
 - (fix) propagated `--fail-on-bucket` exit codes through the installed `opendoor` entrypoint so CI/CD runs behave the same as `python opendoor.py`.
+- (fix) preserved fractional `--delay` values (0.1, 0.25...etc), rejected negative delays, and allowed explicit delay overrides for wizard/session resume flows.
 - (fix) reduced malware sniffer false positives by ignoring legitimate Google Tag Manager noscript hidden iframes while preserving detection for non-GTM hidden iframe injections.
 - (fix) kept scans running when individual paths exhaust configured retries while preserving configurable abort protection for consecutive retry failures.
 - (fix) ignored-path progress output so `skip [...]` shows the current scan position instead of `00000`.

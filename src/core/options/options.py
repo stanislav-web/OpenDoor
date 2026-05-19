@@ -129,7 +129,7 @@ class Options(object):
                 "group": "request",
                 "args": "-d",
                 "argl": "--delay",
-                "default": 0,
+                "default": None,
                 "action": "store",
                 "help": "Delay between threaded requests",
                 "type": float
@@ -821,7 +821,10 @@ class Options(object):
                         break
             else:
                 for arg, value in vars(self.args).items():
-                    if value or arg in ['debug'] or (arg == 'header_bypass_limit' and value == 0):
+                    if value \
+                            or arg in ['debug'] \
+                            or (arg == 'delay' and value is not None) \
+                            or (arg == 'header_bypass_limit' and value == 0):
                         args[arg] = value
                 args = Filter.filter(args)
 

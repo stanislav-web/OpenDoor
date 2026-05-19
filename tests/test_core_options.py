@@ -101,6 +101,51 @@ class TestOptions(unittest.TestCase):
         self.assertEqual(actual, {'host': 'example.com', 'debug': 0})
         filter_mock.assert_called_once_with({'host': 'example.com', 'debug': 0})
 
+
+    def test_get_arg_values_should_keep_explicit_delay_zero(self):
+        """Options.get_arg_values() should keep explicit --delay 0 for wizard/session overrides."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            delay=0.0,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'delay': 0.0}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'delay': 0.0})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'delay': 0.0})
+
+    def test_get_arg_values_should_pass_fractional_delay(self):
+        """Options.get_arg_values() should pass fractional --delay values to the filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            delay=0.1,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'delay': 0.1}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'delay': 0.1})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'delay': 0.1})
+
     def test_get_arg_values_filters_non_standalone_arguments(self):
         """Options.get_arg_values() should pass non-standalone args through Filter.filter()."""
 

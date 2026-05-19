@@ -162,6 +162,9 @@ class Filter(object):
             if args.get('debug') is not None:
                 filtered['debug'] = Filter.debug_level(args.get('debug'), key='--debug')
 
+            if args.get('delay') is not None:
+                filtered['delay'] = Filter.non_negative_float(args.get('delay'), key='--delay')
+
             if args.get('header') is not None:
                 filtered['header'] = Filter.request_headers(args.get('header'), key='--header')
 
@@ -271,6 +274,8 @@ class Filter(object):
                 filtered[key] = Filter.bucket_values(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['debug']:
                 filtered[key] = Filter.debug_level(value, key='--debug')
+            elif key in ['delay']:
+                filtered[key] = Filter.non_negative_float(value, key='--delay')
             elif key in ['waf_guard_after']:
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['waf_guard_threshold']:
@@ -1139,6 +1144,27 @@ class Filter(object):
 
         if value < 0:
             raise FilterError('{0} must be a non-negative integer'.format(key))
+
+        return value
+
+    @staticmethod
+    def non_negative_float(value, key='--value'):
+        """Validate a non-negative floating-point option.
+
+        :param value: input value
+        :param str key: CLI option name
+        :raise FilterError:
+        :return: normalized non-negative float
+        :rtype: float
+        """
+
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            raise FilterError('{0} must be a non-negative number'.format(key))
+
+        if value < 0:
+            raise FilterError('{0} must be a non-negative number'.format(key))
 
         return value
 
