@@ -2,6 +2,7 @@ CHANGELOG
 =======
 v5.16.1 (xx.05.2026)
 ---------------------------
+- (fix) preserved managed runtime wordlist workspaces across interactive `Ctrl+C` pause/resume while keeping cleanup for aborts, process termination and normal scan completion.
 - (fix) normalized `--fingerprint` handling across CLI, wizard and session resume flows while keeping fingerprinting opt-in and cached session results reusable.
 - (fix) normalized WAF detection flags across CLI, wizard and session resume flows while preserving `waf_safe_mode` as an opt-in runtime profile that enables passive WAF detection.
 - (fix) validated `--threads` values, preserved explicit thread-count overrides for wizard/session resume flows, and raised the safe runtime thread clamp from 25 to 50.
@@ -23,7 +24,7 @@ v5.16.1 (xx.05.2026)
 - (enhancement) added `--proxy-rotation random|sequential` to control existing `--proxy-list` rotation, preserving `random` as the default and adding deterministic file-order sequential mode.
 - (enhancement) added DotCMS detection to `--fingerprint`.
 - (enhancement) added configurable `--retries-fail-streak` to control scan aborts after consecutive exhausted retry paths. Default: `10`.
-- (dictionary) cleaned and normalized the internal directories list (+TODO).
+- (dictionary) cleaned and normalized the internal directories list (+1331 potencial interesting paths).
 
 v5.16.0 (17.05.2026)
 ---------------------------

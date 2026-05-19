@@ -225,9 +225,12 @@ class ScanTempWorkspace(object):
         """
         Cleanup active workspaces before terminating after an OS signal.
 
-        Ctrl+Z sends SIGTSTP on POSIX shells. OpenDoor treats it as an abort for
-        managed temp cleanup purposes instead of leaving a suspended process with
-        stale runtime files.
+        SIGINT is intentionally excluded from immediate workspace cleanup because
+        OpenDoor uses Ctrl+C as an interactive pause/resume signal. Normal scan
+        completion, abort, process termination, and atexit cleanup still remove
+        managed workspaces. Ctrl+Z sends SIGTSTP on POSIX shells. OpenDoor
+        treats it as an abort for managed temp cleanup purposes instead of
+        leaving a suspended process with stale runtime files.
 
         :param int signum: Received signal number.
         :param frame: Current stack frame provided by signal.signal().
@@ -236,7 +239,8 @@ class ScanTempWorkspace(object):
         :return: None
         """
 
-        cls.cleanup_active()
+        if signum != getattr(signal, 'SIGINT', None):
+            cls.cleanup_active()
 
         previous = cls._previous_signal_handlers.get(signum)
         if callable(previous) and previous is not cls._handle_signal:
