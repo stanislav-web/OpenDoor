@@ -33,6 +33,14 @@ class TestHttpProviders(unittest.TestCase):
         self.assertEqual(CacheControlProvider()._cache_control, 'max-age=0')
         self.assertEqual(ConnectionHeaderProvider(SimpleNamespace())._keep_alive, 'keep-alive')
 
+    def test_cache_control_provider_should_return_default_cache_control(self):
+        """CacheControlProvider should expose the default Cache-Control request header."""
+
+        provider = CacheControlProvider()
+
+        self.assertEqual(provider._cache_control, 'max-age=0')
+        self.assertEqual(provider.DEFAULT_CACHE_CONTROL, 'max-age=0')
+
     def test_cookies_provider_flow(self):
         """CookiesProvider should fetch and push request-safe cookie pairs."""
 
