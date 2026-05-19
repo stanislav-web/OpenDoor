@@ -578,10 +578,19 @@ class Browser(Filter):
         try:
             submitted = int(self.__pool.submitted_size)
             planned = int(self.__pool.total_items_size)
+            streamed = int(getattr(self, '_Browser__streamed_items_count', 0) or 0)
+            processed_offset = int(getattr(self, '_Browser__processed_offset', 0) or 0)
         except (AttributeError, TypeError, ValueError):
             return
 
-        if submitted >= planned:
+        consumed = max(
+            submitted,
+            processed_offset + submitted,
+            streamed,
+            processed_offset + streamed,
+        )
+
+        if consumed >= planned:
             return
 
         if True is getattr(self, '_Browser__waf_guard_stopped', False):
@@ -589,9 +598,10 @@ class Browser(Filter):
 
         tpl.warning(
             msg=(
-                'Scan finished after submitting {submitted}/{planned} planned item(s). '
+                'Scan finished after consuming {consumed}/{planned} planned item(s) '
+                '({submitted} submitted to workers). '
                 'The active wordlist ended early or was changed during streaming.'
-            ).format(submitted=submitted, planned=planned)
+            ).format(consumed=consumed, planned=planned, submitted=submitted)
         )
 
     @staticmethod

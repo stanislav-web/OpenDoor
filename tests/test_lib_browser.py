@@ -1428,7 +1428,10 @@ class TestBrowser(unittest.TestCase):
             br.done()
 
         warning_mock.assert_called_once()
-        self.assertIn('submitting 4167/93661 planned item(s)', warning_mock.call_args.kwargs['msg'])
+        message = warning_mock.call_args.kwargs['msg']
+        self.assertIn('consuming 4167/93661 planned item(s)', message)
+        self.assertIn('(4167 submitted to workers)', message)
+        self.assertIn('active wordlist ended early or was changed during streaming', message)
 
     def test_catch_report_data_initializes_report_items_when_missing(self):
         """Browser.__catch_report_data() should restore report_items when old payloads do not have it."""

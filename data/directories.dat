@@ -19456,6 +19456,7 @@ allow
 allowed
 allowed.
 allows
+allpage.php
 allpages
 allpages.aspx
 allprods.php
@@ -70482,6 +70483,7 @@ mcmurtrey/whitaker
 mcmurtreywhitaker
 mcnews
 mcollective
+mconf.php
 mcore.php
 mcore_old.php
 mcp

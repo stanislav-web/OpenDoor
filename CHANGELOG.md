@@ -2,6 +2,7 @@ CHANGELOG
 =======
 v5.16.1 (xx.05.2026)
 ---------------------------
+- (fix) avoided false early-finish warnings when planned wordlist entries are intentionally skipped before HTTP submission, such as internally ignored paths.
 - (fix) aligned `indexof` runtime progress output with other sniffer findings by rendering it as `OK (IndexOf)` without changing detection or report semantics.
 - (fix) preserved managed runtime wordlist workspaces across interactive `Ctrl+C` pause/resume while keeping cleanup for aborts, process termination and normal scan completion.
 - (fix) normalized `--fingerprint` handling across CLI, wizard and session resume flows while keeping fingerprinting opt-in and cached session results reusable.
@@ -25,7 +26,7 @@ v5.16.1 (xx.05.2026)
 - (enhancement) added `--proxy-rotation random|sequential` to control existing `--proxy-list` rotation, preserving `random` as the default and adding deterministic file-order sequential mode.
 - (enhancement) added DotCMS detection to `--fingerprint`.
 - (enhancement) added configurable `--retries-fail-streak` to control scan aborts after consecutive exhausted retry paths. Default: `10`.
-- (dictionary) cleaned and normalized the internal directories list (+1331 potencial interesting paths).
+- (dictionary) cleaned and normalized the internal directories list (+1333 potential interesting paths).
 
 v5.16.0 (17.05.2026)
 ---------------------------
