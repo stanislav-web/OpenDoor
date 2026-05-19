@@ -267,6 +267,7 @@ class Controller(object):
             cli_delay = params.get('delay')
             cli_port = params.get('port')
             cli_method = params.get('method')
+            cli_threads = params.get('threads')
             cli_tls_legacy = params.get('tls_legacy')
 
             if 'wizard' in params:
@@ -293,6 +294,9 @@ class Controller(object):
 
                 if cli_method is not None:
                     params['method'] = cli_method
+
+                if cli_threads is not None:
+                    params['threads'] = cli_threads
 
                 if cli_tls_legacy is True:
                     params['tls_legacy'] = True
@@ -336,6 +340,9 @@ class Controller(object):
 
                 if cli_method is not None:
                     restored['method'] = cli_method
+
+                if cli_threads is not None:
+                    restored['threads'] = cli_threads
 
                 if cli_tls_legacy is True:
                     restored['tls_legacy'] = True

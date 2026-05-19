@@ -191,6 +191,73 @@ class TestOptions(unittest.TestCase):
         filter_mock.assert_called_once_with({'host': 'example.com', 'port': 8443})
 
 
+    def test_get_arg_values_should_not_emit_default_threads(self):
+        """Options.get_arg_values() should not pass threads when the user did not set it."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            threads=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com'})
+
+    def test_get_arg_values_should_keep_threads_zero_for_validation(self):
+        """Options.get_arg_values() should pass --threads 0 to Filter for validation."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            threads=0,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'threads': 0})
+
+    def test_get_arg_values_should_pass_explicit_threads(self):
+        """Options.get_arg_values() should pass explicit thread counts to Filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            threads=8,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'threads': 8}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'threads': 8})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'threads': 8})
+
+
     def test_get_arg_values_should_not_emit_default_method(self):
         """Options.get_arg_values() should not pass method when the user did not set it."""
 

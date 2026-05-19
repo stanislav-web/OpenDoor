@@ -171,6 +171,9 @@ class Filter(object):
             if args.get('reports_dir') is not None:
                 filtered['reports_dir'] = Filter.optional_path(args.get('reports_dir'), key='--reports-dir')
 
+            if args.get('threads') is not None:
+                filtered['threads'] = Filter.positive_int(args.get('threads'), key='--threads')
+
             if args.get('delay') is not None:
                 filtered['delay'] = Filter.non_negative_float(args.get('delay'), key='--delay')
 
@@ -286,6 +289,8 @@ class Filter(object):
                 filtered[key] = Filter.scan_reports(value, key='--reports')
             elif key in ['reports_dir']:
                 filtered[key] = Filter.optional_path(value, key='--reports-dir')
+            elif key in ['threads']:
+                filtered[key] = Filter.positive_int(value, key='--threads')
             elif key in ['header']:
                 filtered[key] = Filter.request_headers(value, key='--header')
             elif key in ['method']:

@@ -215,6 +215,40 @@ class TestBrowserConfig(unittest.TestCase):
         with self.assertRaises(ValueError):
             Config({'reports': 'std', 'retries_fail_streak': '-1'})
 
+    def test_threads_default_to_min_when_missing(self):
+        """Config should default worker threads to the minimum safe value."""
+
+        self.assertEqual(Config({'reports': 'std'}).threads, Config.DEFAULT_MIN_THREADS)
+
+    def test_threads_normalizes_string_values(self):
+        """Config should normalize thread counts from wizard/session strings."""
+
+        self.assertEqual(Config({'reports': 'std', 'threads': '8'}).threads, 8)
+
+    def test_threads_rejects_invalid_values(self):
+        """Config should reject thread counts that cannot create workers."""
+
+        for value in ['0', 0, '-1', -1, 'bad']:
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    Config({'reports': 'std', 'threads': value})
+
+    def test_set_threads_validates_values(self):
+        """Config.set_threads() should keep runtime thread assignments safe."""
+
+        cfg = Config({'reports': 'std'})
+        cfg.set_threads('3')
+
+        self.assertEqual(cfg.threads, 3)
+
+        with self.assertRaises(ValueError):
+            cfg.set_threads(0)
+
+    def test_default_max_threads_is_configured_to_fifty(self):
+        """Config should allow a higher I/O-bound thread clamp for scan workers."""
+
+        self.assertEqual(Config.DEFAULT_MAX_THREADS, 50)
+
     def test_threads_and_prefix_mutators_work(self):
         """Config should expose configurable threads and normalized prefixes."""
 

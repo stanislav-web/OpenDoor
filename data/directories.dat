@@ -19777,8 +19777,6 @@ antibotadntibot.php
 antibotimage.ashx
 antic
 antichat.php
-antichat_shell v1.3.php
-Antichat_Shell v1.3.php
 antichat_shell.php
 Antichat_Shell.php
 antichat_shell_v1.3.php
@@ -53156,12 +53154,6 @@ getiorenter.php
 getiorlogin.php
 getip.php
 getIp.php
-Key.json
-Key.txt
-key.php
-key.json
-key.dat
-key.txt
 getIP_ipInfo_apikey.php
 getirrelevant.php
 getissuepdf.aspx
@@ -63455,11 +63447,15 @@ key
 key1.php
 key-auths
 key.asp
+key.dat
 key.htm
 key.html
+Key.json
+key.json
 key.pem
 key.php
 key.php.encryptd
+Key.txt
 key.txt
 key_assoc.php
 key_assoc.php3

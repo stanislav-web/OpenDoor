@@ -27,7 +27,7 @@ class Config(object):
     BODY_REQUIRED_SNIFFERS = ('indexof', 'collation', 'stacktrace', 'secret', 'malware', 'shadow')
     DEFAULT_SOCKET_TIMEOUT = 10
     DEFAULT_MIN_THREADS = 1
-    DEFAULT_MAX_THREADS = 25
+    DEFAULT_MAX_THREADS = 50
     DEFAULT_DEBUG_LEVEL = 1
     DEFAULT_REPORT = 'std'
     DEFAULT_SCAN = 'directories'
@@ -136,7 +136,7 @@ class Config(object):
         self._is_extension_filter = len(self._extensions or []) > 0
         self._is_ignore_extension_filter = len(self._ignore_extensions or []) > 0
         self._user_agent = self.DEFAULT_USER_AGENT
-        self._threads = self.DEFAULT_MIN_THREADS if params.get('threads') is None else params.get('threads')
+        self._threads = self._normalize_threads(params.get('threads'))
         self._include_status = self._normalize_csv(params.get('include_status'))
         self._exclude_status = self._normalize_csv(params.get('exclude_status'))
         self._exclude_size = self._normalize_csv(params.get('exclude_size'))
@@ -221,6 +221,19 @@ class Config(object):
             raise ValueError('retries_fail_streak must be a positive integer')
 
         return threshold
+
+    @classmethod
+    def _normalize_threads(cls, value):
+        """Normalize worker thread count."""
+
+        if value is None:
+            return cls.DEFAULT_MIN_THREADS
+
+        threads = int(value)
+        if threads <= 0:
+            raise ValueError('threads must be a positive integer')
+
+        return threads
 
     @staticmethod
     def _normalize_recursive_depth(value):
@@ -1174,7 +1187,7 @@ class Config(object):
     def set_threads(self, threads):
         """Threads setter."""
 
-        self._threads = threads
+        self._threads = self._normalize_threads(threads)
 
     @property
     def threads(self):

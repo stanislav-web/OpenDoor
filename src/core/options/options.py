@@ -120,7 +120,7 @@ class Options(object):
                 "group": "stream",
                 "args": "-t",
                 "argl": "--threads",
-                "default": 1,
+                "default": None,
                 "action": "store",
                 "help": "Allowed threads",
                 "type": int
@@ -825,6 +825,7 @@ class Options(object):
                             or (arg == 'delay' and value is not None) \
                             or (arg == 'port' and value is not None) \
                             or (arg == 'method' and value is not None) \
+                            or (arg == 'threads' and value is not None) \
                             or (arg in ['recursive_depth', 'recursive_status', 'recursive_exclude'] and value is not None) \
                             or (arg in ['reports', 'reports_dir'] and value is not None) \
                             or (arg == 'header_bypass_limit' and value == 0):

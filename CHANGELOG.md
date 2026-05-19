@@ -2,6 +2,7 @@ CHANGELOG
 =======
 v5.16.1 (xx.05.2026)
 ---------------------------
+- (fix) validated `--threads` values, preserved explicit thread-count overrides for wizard/session resume flows, and raised the safe runtime thread clamp from 25 to 50.
 - (fix) validated scan report selections, normalized `--reports-dir`, and preserved explicit report output overrides for wizard/session resume flows.
 - (fix) validated recursive scan options, preserved explicit recursive CLI overrides for wizard/session resume flows, and kept recursive defaults stable at runtime.
 - (fix) validated `--method` values, preserved explicit method overrides for wizard/session resume flows, and kept raw-request method handling deterministic.
@@ -20,7 +21,7 @@ v5.16.1 (xx.05.2026)
 - (enhancement) added `--proxy-rotation random|sequential` to control existing `--proxy-list` rotation, preserving `random` as the default and adding deterministic file-order sequential mode.
 - (enhancement) added DotCMS detection to `--fingerprint`.
 - (enhancement) added configurable `--retries-fail-streak` to control scan aborts after consecutive exhausted retry paths. Default: `10`.
-- (dictionary) cleaned and normalized the internal directories list.
+- (dictionary) cleaned and normalized the internal directories list (+TODO).
 
 v5.16.0 (17.05.2026)
 ---------------------------

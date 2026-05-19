@@ -440,6 +440,41 @@ class TestFilter(unittest.TestCase):
         with self.assertRaises(FilterError):
             Filter.non_negative_int('-1', key='--min-response-length')
 
+    def test_threads_should_accept_positive_integer(self):
+        """Filter should accept positive thread counts."""
+
+        self.assertEqual(Filter.positive_int('1', key='--threads'), 1)
+        self.assertEqual(Filter.positive_int(50, key='--threads'), 50)
+
+    def test_threads_should_reject_invalid_values(self):
+        """Filter should reject non-positive thread counts."""
+
+        for value in ['0', 0, '-1', -1, 'bad', None]:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.positive_int(value, key='--threads')
+
+    def test_filter_should_validate_threads_in_normal_flow(self):
+        """Filter.filter() should normalize and validate --threads during regular scans."""
+
+        actual = Filter.filter({'host': 'example.com', 'threads': '8'})
+
+        self.assertEqual(actual['threads'], 8)
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'threads': '0'})
+
+    def test_filter_should_validate_threads_with_session_load(self):
+        """Filter.filter() should preserve and validate --threads for session resume overrides."""
+
+        actual = Filter.filter({'session_load': '/tmp/session.json', 'threads': '4'})
+
+        self.assertEqual(actual['session_load'], os.path.abspath('/tmp/session.json'))
+        self.assertEqual(actual['threads'], 4)
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'threads': '-1'})
+
     def test_port_should_accept_valid_tcp_ports(self):
         """Filter.port() should accept valid TCP ports."""
 
