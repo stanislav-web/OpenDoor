@@ -440,6 +440,56 @@ class TestOptions(unittest.TestCase):
             }
         )
 
+    def test_get_arg_values_should_not_emit_recursive_defaults(self):
+        """Options.get_arg_values() should not pass recursive defaults when unset."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            recursive=False,
+            recursive_depth=None,
+            recursive_status=None,
+            recursive_exclude=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com'})
+
+    def test_get_arg_values_should_keep_recursive_depth_zero_for_validation(self):
+        """Options.get_arg_values() should pass recursive-depth 0 to Filter for validation."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            recursive=False,
+            recursive_depth=0,
+            recursive_status=None,
+            recursive_exclude=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'recursive_depth': 0})
+
     def test_init_should_parse_multiple_header_arguments(self):
         """Options.__init__() should parse multiple custom request headers."""
 

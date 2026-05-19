@@ -2,6 +2,7 @@ CHANGELOG
 =======
 v5.16.1 (xx.05.2026)
 ---------------------------
+- (fix) validated recursive scan options, preserved explicit recursive CLI overrides for wizard/session resume flows, and kept recursive defaults stable at runtime.
 - (fix) validated `--method` values, preserved explicit method overrides for wizard/session resume flows, and kept raw-request method handling deterministic.
 - (fix) validated `--port` values as TCP ports, preserved explicit port overrides for wizard/session resume flows, and rejected invalid raw-request Host ports early.
 - (fix) propagated `--fail-on-bucket` exit codes through the installed `opendoor` entrypoint so CI/CD runs behave the same as `python opendoor.py`.

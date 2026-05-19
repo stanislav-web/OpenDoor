@@ -521,6 +521,94 @@ class TestFilter(unittest.TestCase):
         with self.assertRaises(FilterError):
             Filter.filter({'session_load': '/tmp/session.json', 'method': 'CONNECT'})
 
+    def test_recursive_depth_should_accept_positive_integer(self):
+        """Filter should accept positive recursive depths."""
+
+        self.assertEqual(Filter.positive_int('1', key='--recursive-depth'), 1)
+        self.assertEqual(Filter.positive_int(3, key='--recursive-depth'), 3)
+
+    def test_recursive_depth_should_reject_invalid_values(self):
+        """Filter should reject non-positive recursive depths."""
+
+        for value in [None, 'abc', '0', 0, '-1', -1]:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.positive_int(value, key='--recursive-depth')
+
+    def test_recursive_status_should_accept_exact_http_codes(self):
+        """Filter.recursive_statuses() should normalize exact HTTP status codes."""
+
+        self.assertEqual(
+            Filter.recursive_statuses('200, 301,403,200', key='--recursive-status'),
+            ['200', '301', '403']
+        )
+
+    def test_recursive_status_should_reject_invalid_values(self):
+        """Filter.recursive_statuses() should reject malformed or out-of-range statuses."""
+
+        for value in ['abc', '99', '600', '200-299', '200,abc', '']:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.recursive_statuses(value, key='--recursive-status')
+
+    def test_recursive_exclude_should_normalize_extensions(self):
+        """Filter.recursive_extensions() should normalize extension tokens."""
+
+        self.assertEqual(
+            Filter.recursive_extensions('.JPG, png ,css,jpg', key='--recursive-exclude'),
+            ['jpg', 'png', 'css']
+        )
+        self.assertEqual(Filter.recursive_extensions('', key='--recursive-exclude'), [])
+
+    def test_recursive_exclude_should_reject_path_like_values(self):
+        """Filter.recursive_extensions() should reject path-like or malformed values."""
+
+        for value in ['../env', 'jpg/png', 'jpg png', '/etc/passwd', '']:
+            if value == '':
+                continue
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.recursive_extensions(value, key='--recursive-exclude')
+
+    def test_filter_should_validate_recursive_options_in_normal_flow(self):
+        """Filter.filter() should normalize recursive scan options during regular scans."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'recursive': True,
+            'recursive_depth': '2',
+            'recursive_status': '200,403',
+            'recursive_exclude': '.jpg,png',
+        })
+
+        self.assertTrue(actual['recursive'])
+        self.assertEqual(actual['recursive_depth'], 2)
+        self.assertEqual(actual['recursive_status'], ['200', '403'])
+        self.assertEqual(actual['recursive_exclude'], ['jpg', 'png'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'recursive_depth': '0'})
+
+    def test_filter_should_validate_recursive_options_with_session_load(self):
+        """Filter.filter() should preserve recursive CLI overrides for session resume."""
+
+        actual = Filter.filter({
+            'session_load': '/tmp/session.json',
+            'recursive': True,
+            'recursive_depth': '3',
+            'recursive_status': '200,301',
+            'recursive_exclude': 'jpg,css',
+        })
+
+        self.assertEqual(actual['session_load'], '/tmp/session.json')
+        self.assertTrue(actual['recursive'])
+        self.assertEqual(actual['recursive_depth'], 3)
+        self.assertEqual(actual['recursive_status'], ['200', '301'])
+        self.assertEqual(actual['recursive_exclude'], ['jpg', 'css'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'recursive_status': '200-299'})
+
     def test_status_ranges_reject_upper_out_of_range_code(self):
         """Filter.status_ranges() should reject status codes above 599."""
 

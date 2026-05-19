@@ -571,7 +571,7 @@ class Options(object):
                 "group": "wordlist",
                 "args": None,
                 "argl": "--recursive-depth",
-                "default": 1,
+                "default": None,
                 "action": "store",
                 "help": "Maximum recursive scan depth",
                 "type": int
@@ -580,7 +580,7 @@ class Options(object):
                 "group": "wordlist",
                 "args": None,
                 "argl": "--recursive-status",
-                "default": "200,301,302,307,308,403",
+                "default": None,
                 "action": "store",
                 "help": "HTTP status codes allowed for recursive expansion",
                 "type": str
@@ -589,7 +589,7 @@ class Options(object):
                 "group": "wordlist",
                 "args": None,
                 "argl": "--recursive-exclude",
-                "default": "jpg,jpeg,png,gif,svg,css,js,ico,woff,woff2,ttf,map,pdf,zip,gz,tar",
+                "default": None,
                 "action": "store",
                 "help": "File extensions excluded from recursive expansion",
                 "type": str
@@ -826,6 +826,7 @@ class Options(object):
                             or (arg == 'delay' and value is not None) \
                             or (arg == 'port' and value is not None) \
                             or (arg == 'method' and value is not None) \
+                            or (arg in ['recursive_depth', 'recursive_status', 'recursive_exclude'] and value is not None) \
                             or (arg == 'header_bypass_limit' and value == 0):
                         args[arg] = value
                 args = Filter.filter(args)

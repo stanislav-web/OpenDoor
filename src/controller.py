@@ -262,6 +262,7 @@ class Controller(object):
             cli_transport_overrides = cls._collect_transport_cli_overrides(params)
             cli_proxy_overrides = cls._collect_proxy_cli_overrides(params)
             cli_header_overrides = cls._collect_header_cli_overrides(params)
+            cli_recursive_overrides = cls._collect_recursive_cli_overrides(params)
             cli_delay = params.get('delay')
             cli_port = params.get('port')
             cli_method = params.get('method')
@@ -299,6 +300,7 @@ class Controller(object):
                 params.update(cli_transport_overrides)
                 params.update(cli_proxy_overrides)
                 params.update(cli_header_overrides)
+                params.update(cli_recursive_overrides)
 
             if params.get('session_load'):
                 snapshot = SessionManager.load(params.get('session_load'))
@@ -340,6 +342,7 @@ class Controller(object):
                 restored.update(cli_transport_overrides)
                 restored.update(cli_proxy_overrides)
                 restored.update(cli_header_overrides)
+                restored.update(cli_recursive_overrides)
 
                 params = restored
                 tpl.info(msg='Loaded session checkpoint from {0}'.format(
@@ -769,6 +772,30 @@ class Controller(object):
             return {}
 
         return {'header': params.get('header')}
+
+    @staticmethod
+    def _collect_recursive_cli_overrides(params):
+        """Collect explicit recursive scan options for wizard/session overrides.
+
+        Parser defaults must not replace wizard/session recursive settings, but
+        explicit recursive CLI values should override restored scan settings.
+
+        :param dict params: filtered CLI params
+        :return: dict
+        """
+
+        override_keys = (
+            'recursive',
+            'recursive_depth',
+            'recursive_status',
+            'recursive_exclude',
+        )
+
+        return {
+            key: params.get(key)
+            for key in override_keys
+            if params.get(key) is not None
+        }
 
     @staticmethod
     def _collect_proxy_cli_overrides(params):

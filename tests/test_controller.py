@@ -1948,6 +1948,75 @@ class TestController(unittest.TestCase):
         self.assertEqual(passed_params['method'], 'OPTIONS')
 
 
+    def test_scan_action_should_preserve_recursive_cli_overrides_for_wizard(self):
+        """Controller.scan_action() should preserve explicit recursive CLI overrides for wizard flow."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+        wizard_params = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'port': 80,
+            'reports': 'std',
+            'recursive': False,
+            'recursive_depth': 1,
+            'recursive_status': ['200'],
+            'recursive_exclude': ['jpg'],
+        }
+
+        with patch('src.controller.package.wizard', return_value=wizard_params),                 patch('src.controller.browser', return_value=browser_instance) as browser_mock,                 patch('src.controller.reporter.is_reported', return_value=False),                 patch('src.controller.tpl.info'),                 patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'wizard': 'opendoor.conf',
+                'recursive': True,
+                'recursive_depth': 3,
+                'recursive_status': ['200', '403'],
+                'recursive_exclude': ['png', 'css'],
+            })
+
+        browser_mock.assert_called_once()
+        passed_params = browser_mock.call_args[0][0]
+        self.assertTrue(passed_params['recursive'])
+        self.assertEqual(passed_params['recursive_depth'], 3)
+        self.assertEqual(passed_params['recursive_status'], ['200', '403'])
+        self.assertEqual(passed_params['recursive_exclude'], ['png', 'css'])
+
+    def test_scan_action_should_preserve_recursive_cli_overrides_for_session_load(self):
+        """Controller.scan_action() should preserve explicit recursive CLI overrides for session resume."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+        snapshot = {
+            'params': {
+                'host': 'example.com',
+                'scheme': 'http://',
+                'ssl': False,
+                'port': 80,
+                'reports': 'std',
+                'recursive': False,
+                'recursive_depth': 1,
+                'recursive_status': ['200'],
+                'recursive_exclude': ['jpg'],
+            }
+        }
+
+        with patch('src.controller.SessionManager.load', return_value=snapshot),                 patch('src.controller.browser', return_value=browser_instance) as browser_mock,                 patch('src.controller.reporter.is_reported', return_value=False),                 patch('src.controller.tpl.info'),                 patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'session_load': '/tmp/session.json',
+                'recursive': True,
+                'recursive_depth': 2,
+                'recursive_status': ['301', '302'],
+                'recursive_exclude': ['gif'],
+            })
+
+        browser_mock.assert_called_once()
+        passed_params = browser_mock.call_args[0][0]
+        self.assertTrue(passed_params['recursive'])
+        self.assertEqual(passed_params['recursive_depth'], 2)
+        self.assertEqual(passed_params['recursive_status'], ['301', '302'])
+        self.assertEqual(passed_params['recursive_exclude'], ['gif'])
+
+
 
 if __name__ == '__main__':
     unittest.main()

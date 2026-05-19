@@ -1899,14 +1899,14 @@ class TestBrowser(unittest.TestCase):
             'port': 80,
             'scheme': 'http://',
             'recursive': True,
-            'recursive_depth': 0,
+            'recursive_depth': 1,
         }))
         reader = MagicMock()
         setattr(br, '_Browser__reader', reader)
         pool = MagicMock()
         setattr(br, '_Browser__pool', pool)
 
-        br._Browser__enqueue_recursive_children('http://example.com/admin', 0)
+        br._Browser__enqueue_recursive_children('http://example.com/admin', 1)
 
         reader.get_lines.assert_not_called()
         pool.add.assert_not_called()

@@ -37,6 +37,12 @@ class Config(object):
     DEFAULT_HTTP_METHOD = 'HEAD'
     DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
     DEFAULT_RETRIES_FAIL_STREAK = 10
+    DEFAULT_RECURSIVE_STATUS = ('200', '301', '302', '307', '308', '403')
+    DEFAULT_RECURSIVE_EXCLUDE = (
+        'jpg', 'jpeg', 'png', 'gif', 'svg', 'css', 'js', 'ico',
+        'woff', 'woff2', 'ttf', 'map', 'pdf', 'zip', 'gz', 'tar',
+    )
+    RECURSIVE_EXTENSION_REGEX = re.compile(r'^[A-Za-z0-9][A-Za-z0-9+_-]*$')
 
     def __init__(self, params):
         """
@@ -104,9 +110,15 @@ class Config(object):
         self._extensions = self._normalize_csv(params.get('extensions'))
         self._ignore_extensions = self._normalize_csv(params.get('ignore_extensions'))
         self._is_recursive = params.get('recursive') is True
-        self._recursive_depth = 1 if params.get('recursive_depth') is None else int(params.get('recursive_depth'))
-        self._recursive_status = self._normalize_csv(params.get('recursive_status'))
-        self._recursive_exclude = self._normalize_csv(params.get('recursive_exclude'))
+        self._recursive_depth = self._normalize_recursive_depth(params.get('recursive_depth'))
+        self._recursive_status = self._normalize_recursive_status(
+            params.get('recursive_status'),
+            enabled=self._is_recursive,
+        )
+        self._recursive_exclude = self._normalize_recursive_exclude(
+            params.get('recursive_exclude'),
+            enabled=self._is_recursive,
+        )
         self._retries = self._normalize_retries(params.get('retries'))
         self._retries_fail_streak = self._normalize_retries_fail_streak(params.get('retries_fail_streak'))
         self._method = params.get('method')
@@ -207,6 +219,75 @@ class Config(object):
             raise ValueError('retries_fail_streak must be a positive integer')
 
         return threshold
+
+    @staticmethod
+    def _normalize_recursive_depth(value):
+        """Normalize recursive scan depth."""
+
+        if value is None:
+            return 1
+
+        depth = int(value)
+        if depth <= 0:
+            raise ValueError('recursive_depth must be a positive integer')
+
+        return depth
+
+    @classmethod
+    def _normalize_recursive_status(cls, value, enabled=False):
+        """Normalize exact HTTP statuses allowed for recursive expansion."""
+
+        if value is None:
+            return list(cls.DEFAULT_RECURSIVE_STATUS) if enabled is True else None
+
+        statuses = []
+        seen = set()
+
+        for item in cls._normalize_csv(value) or []:
+            token = str(item).strip()
+
+            if not token.isdigit():
+                raise ValueError('recursive_status accepts only HTTP status codes from 100 to 599')
+
+            code = int(token)
+            if code < 100 or code > 599:
+                raise ValueError('recursive_status accepts only HTTP status codes from 100 to 599')
+
+            normalized = str(code)
+            if normalized in seen:
+                continue
+
+            statuses.append(normalized)
+            seen.add(normalized)
+
+        if len(statuses) <= 0:
+            raise ValueError('recursive_status requires at least one HTTP status code')
+
+        return statuses
+
+    @classmethod
+    def _normalize_recursive_exclude(cls, value, enabled=False):
+        """Normalize file extensions excluded from recursive expansion."""
+
+        if value is None:
+            return list(cls.DEFAULT_RECURSIVE_EXCLUDE) if enabled is True else None
+
+        extensions = []
+        seen = set()
+
+        for item in cls._normalize_csv(value) or []:
+            extension = str(item).strip().lstrip('.').lower()
+
+            if not extension or not cls.RECURSIVE_EXTENSION_REGEX.match(extension):
+                raise ValueError('recursive_exclude accepts only comma-separated file extensions')
+
+            if extension in seen:
+                continue
+
+            extensions.append(extension)
+            seen.add(extension)
+
+        return extensions
 
     @staticmethod
     def _normalize_csv(value):

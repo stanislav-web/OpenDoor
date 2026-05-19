@@ -38,6 +38,7 @@ class Filter(object):
     IPV4_RANGE_REGEX = re.compile(r'^(\d{1,3}(?:\.\d{1,3}){3})-(\d{1,3}(?:\.\d{1,3}){3})$')
     TARGET_EXPANSION_LIMIT = 65536
     HEADER_NAME_REGEX = re.compile(r"^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$")
+    RECURSIVE_EXTENSION_REGEX = re.compile(r'^[A-Za-z0-9][A-Za-z0-9+_-]*$')
 
     TRANSPORTS = ('direct', 'proxy', 'openvpn', 'wireguard')
     TRANSPORT_ROTATES = ('none', 'per-target')
@@ -175,6 +176,27 @@ class Filter(object):
             if args.get('method') is not None:
                 filtered['method'] = Filter.method(args.get('method'), key='--method')
 
+            if args.get('recursive') is True:
+                filtered['recursive'] = True
+
+            if args.get('recursive_depth') is not None:
+                filtered['recursive_depth'] = Filter.positive_int(
+                    args.get('recursive_depth'),
+                    key='--recursive-depth'
+                )
+
+            if args.get('recursive_status') is not None:
+                filtered['recursive_status'] = Filter.recursive_statuses(
+                    args.get('recursive_status'),
+                    key='--recursive-status'
+                )
+
+            if args.get('recursive_exclude') is not None:
+                filtered['recursive_exclude'] = Filter.recursive_extensions(
+                    args.get('recursive_exclude'),
+                    key='--recursive-exclude'
+                )
+
             if args.get('tls_legacy') is True:
                 filtered['tls_legacy'] = True
 
@@ -259,6 +281,12 @@ class Filter(object):
                 filtered[key] = Filter.method(value, key='--method')
             elif key in ['port']:
                 filtered[key] = Filter.port(value, key='--port')
+            elif key in ['recursive_depth']:
+                filtered[key] = Filter.positive_int(value, key='--recursive-depth')
+            elif key in ['recursive_status']:
+                filtered[key] = Filter.recursive_statuses(value, key='--recursive-status')
+            elif key in ['recursive_exclude']:
+                filtered[key] = Filter.recursive_extensions(value, key='--recursive-exclude')
             elif key in ['session_autosave_sec', 'session_autosave_items']:
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
             elif 'proxy' == key:
@@ -1096,6 +1124,65 @@ class Filter(object):
             ))
 
         return ','.join(reports)
+
+    @staticmethod
+    def recursive_statuses(value, key='--recursive-status'):
+        """Validate exact HTTP status codes allowed for recursive expansion."""
+
+        statuses = []
+        seen = set()
+
+        for item in Filter._split_csv(value):
+            token = str(item).strip()
+
+            if not token.isdigit():
+                raise FilterError(
+                    '"{0}" is invalid value in {1}. Use comma-separated HTTP status codes from 100 to 599'.format(
+                        item,
+                        key
+                    )
+                )
+
+            code = int(token)
+            if code < 100 or code > 599:
+                raise FilterError(
+                    '"{0}" is invalid value in {1}. Use HTTP status codes from 100 to 599'.format(item, key)
+                )
+
+            normalized = str(code)
+            if normalized in seen:
+                continue
+
+            statuses.append(normalized)
+            seen.add(normalized)
+
+        if len(statuses) <= 0:
+            raise FilterError('{0} requires at least one HTTP status code'.format(key))
+
+        return statuses
+
+    @staticmethod
+    def recursive_extensions(value, key='--recursive-exclude'):
+        """Validate and normalize file extensions excluded from recursive expansion."""
+
+        extensions = []
+        seen = set()
+
+        for item in Filter._split_csv(value):
+            extension = str(item).strip().lstrip('.').lower()
+
+            if not extension or not Filter.RECURSIVE_EXTENSION_REGEX.match(extension):
+                raise FilterError(
+                    '"{0}" is invalid value in {1}. Use comma-separated file extensions'.format(item, key)
+                )
+
+            if extension in seen:
+                continue
+
+            extensions.append(extension)
+            seen.add(extension)
+
+        return extensions
 
     @staticmethod
     def status_ranges(value, key='--status'):

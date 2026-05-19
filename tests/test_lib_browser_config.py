@@ -225,6 +225,35 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(cfg.recursive_status, [])
         self.assertEqual(cfg.recursive_exclude, [])
 
+    def test_recursive_defaults_apply_when_enabled(self):
+        """Config should apply recursive defaults when recursion is enabled."""
+
+        cfg = Config({'reports': 'std', 'recursive': True})
+
+        self.assertTrue(cfg.is_recursive)
+        self.assertEqual(cfg.recursive_depth, 1)
+        self.assertEqual(cfg.recursive_status, ['200', '301', '302', '307', '308', '403'])
+        self.assertEqual(
+            cfg.recursive_exclude,
+            ['jpg', 'jpeg', 'png', 'gif', 'svg', 'css', 'js', 'ico', 'woff', 'woff2', 'ttf', 'map', 'pdf', 'zip', 'gz', 'tar']
+        )
+
+    def test_recursive_settings_reject_invalid_values(self):
+        """Config should reject invalid recursive settings from wizard/session snapshots."""
+
+        for params in [
+            {'recursive_depth': '0'},
+            {'recursive_status': '200-299'},
+            {'recursive_status': '600'},
+            {'recursive_exclude': '../env'},
+            {'recursive_exclude': 'jpg/png'},
+        ]:
+            with self.subTest(params=params):
+                config = {'reports': 'std'}
+                config.update(params)
+                with self.assertRaises(ValueError):
+                    Config(config)
+
 
     def test_tls_legacy_defaults_to_disabled_and_can_be_enabled(self):
         """Config should expose the opt-in legacy TLS mode."""
