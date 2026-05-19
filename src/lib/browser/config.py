@@ -86,14 +86,14 @@ class Config(object):
         self._prefix = '' if params.get('prefix') is None else params.get('prefix')
         self._reports = self._normalize_scan_reports(params.get('reports'))
         self._is_fingerprint = params.get('fingerprint') is True
-        self._is_waf_safe_mode = params.get('waf_safe_mode') is True
-        self._is_waf_guard = params.get('waf_guard') is True
+        self._is_waf_safe_mode = self._normalize_bool(params.get('waf_safe_mode'), 'waf_safe_mode')
+        self._is_waf_guard = self._normalize_bool(params.get('waf_guard'), 'waf_guard')
         self._waf_guard_after = 50 if params.get('waf_guard_after') is None else int(
             params.get('waf_guard_after'))
         self._waf_guard_threshold = 0.95 if params.get('waf_guard_threshold') is None else float(
             params.get('waf_guard_threshold'))
         self._is_waf_detect = (
-            params.get('waf_detect') is True
+            self._normalize_bool(params.get('waf_detect'), 'waf_detect') is True
             or self._is_waf_safe_mode is True
             or self._is_waf_guard is True
         )
@@ -234,6 +234,31 @@ class Config(object):
             raise ValueError('threads must be a positive integer')
 
         return threads
+
+    @staticmethod
+    def _normalize_bool(value, name):
+        """Normalize bool-like CLI, wizard and session values.
+
+        :param bool|str|None value: raw boolean-like value.
+        :param str name: user-facing config key.
+        :raise ValueError: when value is not bool-like.
+        :return: normalized boolean.
+        :rtype: bool
+        """
+
+        if isinstance(value, bool):
+            return value
+
+        if value is None:
+            return False
+
+        token = str(value).strip().lower()
+        if token in ['1', 'true', 'yes', 'on']:
+            return True
+        if token in ['0', 'false', 'no', 'off']:
+            return False
+
+        raise ValueError('{0} must be a boolean value'.format(name))
 
     @staticmethod
     def _normalize_recursive_depth(value):

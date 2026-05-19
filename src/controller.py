@@ -264,6 +264,7 @@ class Controller(object):
             cli_header_overrides = cls._collect_header_cli_overrides(params)
             cli_recursive_overrides = cls._collect_recursive_cli_overrides(params)
             cli_report_overrides = cls._collect_report_cli_overrides(params)
+            cli_waf_overrides = cls._collect_waf_cli_overrides(params)
             cli_delay = params.get('delay')
             cli_port = params.get('port')
             cli_method = params.get('method')
@@ -307,6 +308,7 @@ class Controller(object):
                 params.update(cli_header_overrides)
                 params.update(cli_recursive_overrides)
                 params.update(cli_report_overrides)
+                params.update(cli_waf_overrides)
 
             if params.get('session_load'):
                 snapshot = SessionManager.load(params.get('session_load'))
@@ -353,6 +355,7 @@ class Controller(object):
                 restored.update(cli_header_overrides)
                 restored.update(cli_recursive_overrides)
                 restored.update(cli_report_overrides)
+                restored.update(cli_waf_overrides)
 
                 params = restored
                 tpl.info(msg='Loaded session checkpoint from {0}'.format(
@@ -798,6 +801,25 @@ class Controller(object):
 
         if params.get('reports_dir') is not None:
             overrides['reports_dir'] = params.get('reports_dir')
+
+        return overrides
+
+    @staticmethod
+    def _collect_waf_cli_overrides(params):
+        """Collect explicit WAF CLI options that must override wizard/session values.
+
+        :param dict params: filtered CLI params.
+        :return: WAF override params.
+        :rtype: dict
+        """
+
+        overrides = {}
+        for key in ['waf_detect', 'waf_safe_mode', 'waf_guard']:
+            if params.get(key) is True:
+                overrides[key] = True
+
+        if overrides.get('waf_safe_mode') is True or overrides.get('waf_guard') is True:
+            overrides['waf_detect'] = True
 
         return overrides
 

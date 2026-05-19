@@ -1179,6 +1179,71 @@ class TestOptions(unittest.TestCase):
             'waf_safe_mode': True,
         })
 
+
+    def test_get_arg_values_should_not_emit_default_waf_flags(self):
+        """Options.get_arg_values() should not emit unset WAF flag defaults."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            waf_detect=None,
+            waf_safe_mode=None,
+            waf_guard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com'})
+
+    def test_get_arg_values_should_pass_explicit_waf_flags(self):
+        """Options.get_arg_values() should pass explicit WAF flags through Filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            waf_detect=True,
+            waf_safe_mode=True,
+            waf_guard=True,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {
+            'host': 'example.com',
+            'waf_detect': True,
+            'waf_safe_mode': True,
+            'waf_guard': True,
+        }
+
+        with patch('src.core.options.options.Filter.filter', return_value=filtered) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, filtered)
+        filter_mock.assert_called_once_with({
+            'host': 'example.com',
+            'waf_detect': True,
+            'waf_safe_mode': True,
+            'waf_guard': True,
+        })
+
     def test_init_should_parse_fail_on_bucket_argument(self):
         """Options.__init__() should parse CI/CD fail-on bucket argument."""
 

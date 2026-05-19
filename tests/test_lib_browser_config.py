@@ -569,6 +569,74 @@ class TestBrowserConfig(unittest.TestCase):
         cfg = Config({'reports': 'std', 'waf_detect': True})
         self.assertTrue(cfg.is_waf_detect)
 
+
+    def test_waf_flags_default_to_false_when_missing(self):
+        """Config should keep WAF features disabled by default."""
+
+        cfg = Config({'reports': 'std'})
+
+        self.assertFalse(cfg.is_waf_detect)
+        self.assertFalse(cfg.is_waf_safe_mode)
+        self.assertFalse(cfg.is_waf_guard)
+
+    def test_waf_flags_normalize_string_values(self):
+        """Config should normalize WAF bool-like wizard/session values."""
+
+        cfg = Config({
+            'reports': 'std',
+            'waf_detect': 'true',
+            'waf_safe_mode': '1',
+            'waf_guard': 'yes',
+        })
+
+        self.assertTrue(cfg.is_waf_detect)
+        self.assertTrue(cfg.is_waf_safe_mode)
+        self.assertTrue(cfg.is_waf_guard)
+
+        cfg = Config({
+            'reports': 'std',
+            'waf_detect': 'false',
+            'waf_safe_mode': '0',
+            'waf_guard': 'no',
+        })
+
+        self.assertFalse(cfg.is_waf_detect)
+        self.assertFalse(cfg.is_waf_safe_mode)
+        self.assertFalse(cfg.is_waf_guard)
+
+    def test_waf_flags_reject_invalid_values(self):
+        """Config should reject malformed WAF bool values."""
+
+        for key in ['waf_detect', 'waf_safe_mode', 'waf_guard']:
+            with self.subTest(key=key):
+                with self.assertRaises(ValueError):
+                    Config({'reports': 'std', key: 'maybe'})
+
+    def test_waf_safe_mode_enables_waf_detect(self):
+        """Config should enable passive WAF detection when WAF safe mode is enabled."""
+
+        cfg = Config({'reports': 'std', 'waf_safe_mode': True})
+
+        self.assertTrue(cfg.is_waf_safe_mode)
+        self.assertTrue(cfg.is_waf_detect)
+
+    def test_waf_detect_does_not_enable_waf_safe_mode(self):
+        """Config should not enable WAF safe mode when only detection is requested."""
+
+        cfg = Config({'reports': 'std', 'waf_detect': True})
+
+        self.assertTrue(cfg.is_waf_detect)
+        self.assertFalse(cfg.is_waf_safe_mode)
+
+    def test_waf_guard_enables_waf_detect_without_safe_mode(self):
+        """Config should enable passive WAF detection when WAF guard is enabled."""
+
+        cfg = Config({'reports': 'std', 'waf_guard': True})
+
+        self.assertTrue(cfg.is_waf_guard)
+        self.assertTrue(cfg.is_waf_detect)
+        self.assertFalse(cfg.is_waf_safe_mode)
+
     def test_config_should_enable_auto_calibration(self):
         """Config should expose auto-calibration settings."""
 

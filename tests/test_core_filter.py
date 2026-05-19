@@ -1799,5 +1799,55 @@ class TestFilter(unittest.TestCase):
             Filter.non_negative_float('nope', key='--delay')
 
 
+    def test_bool_option_should_accept_supported_values(self):
+        """Filter.bool_option() should normalize supported boolean values."""
+
+        for value in [True, 'true', 'True', '1', 'yes', 'on']:
+            with self.subTest(value=value):
+                self.assertTrue(Filter.bool_option(value, key='--waf-detect'))
+
+        for value in [False, 'false', 'False', '0', 'no', 'off', None]:
+            with self.subTest(value=value):
+                self.assertFalse(Filter.bool_option(value, key='--waf-detect'))
+
+    def test_bool_option_should_reject_invalid_values(self):
+        """Filter.bool_option() should reject non-boolean values."""
+
+        for value in ['maybe', '2', '', object()]:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.bool_option(value, key='--waf-detect')
+
+    def test_filter_should_validate_waf_options_in_normal_flow(self):
+        """Filter.filter() should normalize WAF flags in normal scan flow."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'waf_detect': 'false',
+            'waf_safe_mode': 'true',
+        })
+
+        self.assertTrue(actual['waf_safe_mode'])
+        self.assertTrue(actual['waf_detect'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'waf_safe_mode': 'maybe'})
+
+    def test_filter_should_validate_waf_options_with_session_load(self):
+        """Filter.filter() should normalize WAF overrides in session resume flow."""
+
+        actual = Filter.filter({
+            'session_load': '/tmp/session.json',
+            'waf_detect': 'false',
+            'waf_guard': 'true',
+        })
+
+        self.assertTrue(actual['waf_guard'])
+        self.assertTrue(actual['waf_detect'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'waf_detect': 'maybe'})
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -108,8 +108,14 @@ class Filter(object):
                     key='--session-autosave-items'
                 )
 
-            if args.get('waf_guard') is True:
-                filtered['waf_guard'] = True
+            if args.get('waf_detect') is not None:
+                filtered['waf_detect'] = Filter.bool_option(args.get('waf_detect'), key='--waf-detect')
+
+            if args.get('waf_safe_mode') is not None:
+                filtered['waf_safe_mode'] = Filter.bool_option(args.get('waf_safe_mode'), key='--waf-safe-mode')
+
+            if args.get('waf_guard') is not None:
+                filtered['waf_guard'] = Filter.bool_option(args.get('waf_guard'), key='--waf-guard')
 
             if args.get('waf_guard_after') is not None:
                 filtered['waf_guard_after'] = Filter.positive_int(
@@ -270,6 +276,9 @@ class Filter(object):
                     key='--openvpn-auth'
                 )
 
+            if filtered.get('waf_safe_mode') is True or filtered.get('waf_guard') is True:
+                filtered['waf_detect'] = True
+
             Filter.validate_proxy_options(filtered)
             Filter.validate_transport_options(filtered)
 
@@ -331,6 +340,8 @@ class Filter(object):
                 filtered[key] = Filter.debug_level(value, key='--debug')
             elif key in ['delay']:
                 filtered[key] = Filter.non_negative_float(value, key='--delay')
+            elif key in ['waf_detect', 'waf_safe_mode', 'waf_guard']:
+                filtered[key] = Filter.bool_option(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['waf_guard_after']:
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['waf_guard_threshold']:
@@ -406,6 +417,9 @@ class Filter(object):
 
         if raw_request is not None and len(targets) <= 0:
             raise FilterError('Unable to resolve target from --raw-request. Provide a Host header or use --host/--hostlist/--stdin')
+
+        if filtered.get('waf_safe_mode') is True or filtered.get('waf_guard') is True:
+            filtered['waf_detect'] = True
 
         Filter.validate_proxy_options(filtered)
         Filter.validate_transport_options(filtered)
@@ -1307,6 +1321,31 @@ class Filter(object):
         if not text:
             return []
         return [text]
+
+    @staticmethod
+    def bool_option(value, key='--value'):
+        """Validate and normalize bool-like CLI, wizard and session values.
+
+        :param value: input value
+        :param str key: CLI/config option name
+        :raise FilterError:
+        :return: normalized boolean
+        :rtype: bool
+        """
+
+        if isinstance(value, bool):
+            return value
+
+        if value is None:
+            return False
+
+        token = str(value).strip().lower()
+        if token in ['1', 'true', 'yes', 'on']:
+            return True
+        if token in ['0', 'false', 'no', 'off']:
+            return False
+
+        raise FilterError('{0} must be a boolean value'.format(key))
 
     @staticmethod
     def debug_level(value, key='--debug'):

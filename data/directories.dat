@@ -32415,7 +32415,6 @@ cleanup.log
 Cleanup.php
 cleanup.php
 clear
-clear show.swf
 clear.cfm
 clear.dat
 clear.gif
@@ -32429,6 +32428,7 @@ clear_game.php
 clear_game_end.php
 clear_player.php
 clear_player_end.php
+clear_show.swf
 clear_skin_1.swf
 clear_skin_3.swf
 clear_tile.php
@@ -34537,9 +34537,9 @@ computador
 computadora
 computalynx
 computer
-Computer Science.asp?id=
 computer-weekly
 computer_info
+Computer_Science.asp
 computercitydk
 computeroil
 Computers
@@ -36761,10 +36761,10 @@ coppermine
 coppermine.inc.php
 coppermine.php
 copy
-copy of index.html
 copy.htm
 copy.html
 copy.php
+copy_of_index.html
 copy_this
 copyescape.php
 copyfrompic
@@ -67840,7 +67840,7 @@ ma1.jsp
 ma2.jsp
 ma3.jsp
 ma4.jsp
-ma (1).jsp
+ma(1).jsp
 ma-fr
 ma.html
 ma.jsp
@@ -89192,7 +89192,7 @@ Recycled
 recycled
 recycler
 recycler.php
-recyclers list.htm
+recyclers_list.htm
 recyclin.htm
 red
 red1.php

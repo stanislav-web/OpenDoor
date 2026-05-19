@@ -2,6 +2,7 @@ CHANGELOG
 =======
 v5.16.1 (xx.05.2026)
 ---------------------------
+- (fix) normalized WAF detection flags across CLI, wizard and session resume flows while preserving `waf_safe_mode` as an opt-in runtime profile that enables passive WAF detection.
 - (fix) validated `--threads` values, preserved explicit thread-count overrides for wizard/session resume flows, and raised the safe runtime thread clamp from 25 to 50.
 - (fix) validated scan report selections, normalized `--reports-dir`, and preserved explicit report output overrides for wizard/session resume flows.
 - (fix) validated recursive scan options, preserved explicit recursive CLI overrides for wizard/session resume flows, and kept recursive defaults stable at runtime.

@@ -219,7 +219,7 @@ class Options(object):
                 "group": "request",
                 "args": None,
                 "argl": "--waf-detect",
-                "default": False,
+                "default": None,
                 "action": "store_true",
                 "help": "Passively detect probable WAF or anti-bot protections before classifying a response",
                 "type": bool
@@ -228,7 +228,7 @@ class Options(object):
                 "group": "request",
                 "args": None,
                 "argl": "--waf-safe-mode",
-                "default": False,
+                "default": None,
                 "action": "store_true",
                 "help": "Automatically switch to a cautious scan profile after WAF detection",
                 "type": bool
@@ -237,7 +237,7 @@ class Options(object):
                 "group": "request",
                 "args": None,
                 "argl": "--waf-guard",
-                "default": False,
+                "default": None,
                 "action": "store_true",
                 "help": "Stop the scan early when initial classified responses are overwhelmingly WAF-blocked",
                 "type": bool
@@ -826,6 +826,7 @@ class Options(object):
                             or (arg == 'port' and value is not None) \
                             or (arg == 'method' and value is not None) \
                             or (arg == 'threads' and value is not None) \
+                            or (arg in ['waf_detect', 'waf_safe_mode', 'waf_guard'] and value is not None) \
                             or (arg in ['recursive_depth', 'recursive_status', 'recursive_exclude'] and value is not None) \
                             or (arg in ['reports', 'reports_dir'] and value is not None) \
                             or (arg == 'header_bypass_limit' and value == 0):
