@@ -47,9 +47,11 @@ class FakeClient(object):
 
     def __init__(self, responses):
         self.responses = responses
+        self.calls = []
 
     def request(self, url):
         method = getattr(self, 'config_method_getter', lambda: 'HEAD')()
+        self.calls.append((method, url))
         return self.responses.get((method, url), FakeResponse(status=404))
 
 
@@ -1070,6 +1072,80 @@ class TestFingerprint(unittest.TestCase):
 
         self.assertEqual(actual.status, 200)
         self.assertEqual(config._method, 'HEAD')
+
+    def test_request_reuses_exact_method_url_response_inside_detection(self):
+        """Fingerprint should reuse exact duplicate method+URL probes within one detect run."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(200, '<html><body>plain site</body></html>', {}),
+            ('HEAD', 'http://example.com/admin/init'): FakeResponse(
+                302,
+                '',
+                {'Location': '/dotAdmin/#/public/login?r=123'},
+            ),
+            ('HEAD', 'http://example.com/admin/init/'): FakeResponse(
+                302,
+                '',
+                {'Location': '/dotAdmin/#/public/login?r=123'},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+        client = self._make_client(config, responses)
+        detector = Fingerprint(config=config, client=client)
+
+        detector.detect()
+
+        self.assertEqual(client.calls.count(('HEAD', 'http://example.com/admin/init')), 1)
+        self.assertEqual(client.calls.count(('HEAD', 'http://example.com/admin/init/')), 1)
+
+    def test_request_does_not_share_cache_between_methods(self):
+        """Fingerprint request cache should keep different HTTP methods isolated."""
+
+        config = FakeConfig()
+        responses = {
+            ('HEAD', 'http://example.com/admin/init'): FakeResponse(204, '', {}),
+            ('GET', 'http://example.com/admin/init'): FakeResponse(200, 'ok', {}),
+        }
+        client = self._make_client(config, responses)
+        detector = Fingerprint(config=config, client=client)
+
+        head_response = detector._request('http://example.com/admin/init', method='HEAD')
+        get_response = detector._request('http://example.com/admin/init', method='GET')
+
+        self.assertEqual(head_response.status, 204)
+        self.assertEqual(get_response.status, 200)
+        self.assertEqual(client.calls, [
+            ('HEAD', 'http://example.com/admin/init'),
+            ('GET', 'http://example.com/admin/init'),
+        ])
+
+    def test_detect_resets_request_cache_between_runs(self):
+        """Fingerprint request cache should be scoped to one detect run only."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(200, '<html><body>plain site</body></html>', {}),
+            ('HEAD', 'http://example.com/admin/init'): FakeResponse(404, 'Not Found', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+        client = self._make_client(config, responses)
+        detector = Fingerprint(config=config, client=client)
+
+        detector.detect()
+        detector.detect()
+
+        self.assertEqual(client.calls.count(('HEAD', 'http://example.com/admin/init')), 2)
 
     def test_should_follow_redirects_stop_after_max_hops(self):
         """Fingerprint._follow_redirects() should stop after max_hops is reached."""

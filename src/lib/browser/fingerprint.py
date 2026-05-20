@@ -338,6 +338,7 @@ class Fingerprint(object):
         self.__infra_scores = defaultdict(float)
         self.__infra_signals = defaultdict(list)
         self.__dotcms_probe_signals = []
+        self.__request_cache = {}
 
     def detect(self):
         """
@@ -354,6 +355,7 @@ class Fingerprint(object):
         self.__infra_scores = defaultdict(float)
         self.__infra_signals = defaultdict(list)
         self.__dotcms_probe_signals = []
+        self.__request_cache = {}
 
         progress_total = len(self.PROBES) + 4
         progress_current = 0
@@ -504,18 +506,33 @@ class Fingerprint(object):
         """
         Execute an HTTP request with a temporary method override.
 
+        Exact duplicate fingerprint probes can happen when a generic probe is
+        reused by a narrower technology-specific check. Cache successful
+        responses for the current fingerprint pass only to avoid repeated
+        traffic without changing detection semantics.
+
         :param str url: target URL
         :param str method: request method
         :return: mixed
         """
 
+        normalized_method = str(method or 'HEAD').upper()
+        cache_key = (normalized_method, str(url))
+        if cache_key in self.__request_cache:
+            return self.__request_cache[cache_key]
+
         previous_method = getattr(self.__config, '_method', None)
 
         try:
-            setattr(self.__config, '_method', method)
-            return self.__client.request(url)
+            setattr(self.__config, '_method', normalized_method)
+            response = self.__client.request(url)
         finally:
             setattr(self.__config, '_method', previous_method)
+
+        if response is not None:
+            self.__request_cache[cache_key] = response
+
+        return response
 
     def _follow_redirects(self, response, url, method='GET', max_hops=3):
         """

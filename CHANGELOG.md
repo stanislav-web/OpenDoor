@@ -2,6 +2,7 @@ CHANGELOG
 =======
 v5.16.1 (xx.05.2026)
 ---------------------------
+- (fix) reduced duplicate fingerprint traffic by reusing exact same method+URL probe responses within a single fingerprint pass.
 - (fix) avoided false early-finish warnings when planned wordlist entries are intentionally skipped before HTTP submission, such as internally ignored paths.
 - (fix) aligned `indexof` runtime progress output with other sniffer findings by rendering it as `OK (IndexOf)` without changing detection or report semantics.
 - (fix) preserved managed runtime wordlist workspaces across interactive `Ctrl+C` pause/resume while keeping cleanup for aborts, process termination and normal scan completion.
