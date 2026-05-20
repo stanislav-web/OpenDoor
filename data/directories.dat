@@ -7009,7 +7009,6 @@
 /wp-content/debug.log
 /wp-content/uploads/dump.sql
 ?mode=phpinfo
-?rest_route=/wp/v2/users
 ?view=log
 ?view=phpinfo
 \..\..\..\..\..\..\..\..\..\etc\passwd
@@ -59442,6 +59441,7 @@ include/javascriptmvm.js
 include/jsajax.js
 include/jscommon.js
 include/jsmenu.js
+include/licenses_detail.php
 include/new-visitor
 include_admin.asp
 include_admin.html
@@ -60602,6 +60602,7 @@ info.php_
 info.phtml
 info.swf
 info.txt
+info/lab
 info/status
 info_
 info_2.html
@@ -118984,10 +118985,6 @@ zzzzzz
 ~tmp
 ~toor
 ~update.php
-include/licenses_detail.php
-timetable
-projects
-info/lab
 ~use.php
 ~user
 ~user1
