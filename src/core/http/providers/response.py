@@ -82,6 +82,80 @@ class ResponseProvider(object):
             ],
         },
         {
+            'name': 'SEnginx',
+            'confidence': 82,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [
+                'senginx-robot-mitigation',
+            ],
+            'body_markers': [
+                'senginx-robot-mitigation',
+                'senginx',
+            ],
+        },
+        {
+            'name': 'SiteLock TrueShield',
+            'confidence': 82,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [
+                'sitelock incident id',
+                'sitelock-site-verification',
+                'sitelock_shield_logo',
+            ],
+            'body_markers': [
+                'sitelock incident id',
+                'sitelock-site-verification',
+                'sitelock_shield_logo',
+                'trueshield',
+            ],
+        },
+        {
+            'name': 'SonicWALL',
+            'confidence': 82,
+            'strong_header_markers': [
+                'sonicwall',
+            ],
+            'header_markers': [],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'this request is blocked by the sonicwall',
+                '#nsa_banner',
+            ],
+            'body_markers': [
+                'sonicwall',
+                '#shd',
+                '#nsa_banner',
+            ],
+        },
+        {
+            'name': 'Sophos UTM Web Protection',
+            'confidence': 82,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [
+                'powered by utm web protection',
+            ],
+            'body_markers': [
+                'utm web protection',
+                'sophos',
+            ],
+        },
+        {
+            'name': 'Stingray Application Firewall',
+            'confidence': 81,
+            'strong_header_markers': [],
+            'header_markers': [
+                'x-mapping-',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'stingray application firewall',
+            ],
+        },
+        {
             'name': 'Sucuri',
             'confidence': 90,
             'strong_header_markers': [
@@ -139,6 +213,19 @@ class ResponseProvider(object):
                 'request unsuccessful',
                 'powered by imperva',
                 'incapsula incident id',
+            ],
+        },
+        {
+            'name': 'DenyAll',
+            'confidence': 82,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [
+                'condition intercepted',
+            ],
+            'body_markers': [
+                'condition intercepted',
+                'denyall',
             ],
         },
         {
@@ -549,6 +636,35 @@ class ResponseProvider(object):
             ],
         },
         {
+            'name': 'Teros / Citrix Application Firewall',
+            'confidence': 81,
+            'strong_header_markers': [],
+            'header_markers': [
+                'st8id',
+                'st8_wat',
+                'st8_wlf',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'teros',
+            ],
+        },
+        {
+            'name': 'TrafficShield',
+            'confidence': 81,
+            'strong_header_markers': [
+                'f5-trafficshield',
+                'asinfo=',
+            ],
+            'header_markers': [],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'trafficshield',
+            ],
+        },
+        {
             'name': 'Tencent Cloud WAF',
             'confidence': 83,
             'strong_header_markers': [
@@ -568,6 +684,47 @@ class ResponseProvider(object):
                 'tencent cloud waf',
                 'qcloud waf',
                 'request has been blocked',
+            ],
+        },
+        {
+            'name': 'UrlScan',
+            'confidence': 82,
+            'strong_header_markers': [
+                'rejected-by-urlscan',
+            ],
+            'header_markers': [],
+            'strong_body_markers': [
+                'rejected-by-urlscan',
+            ],
+            'body_markers': [
+                'urlscan',
+                'rejected-by-urlscan',
+            ],
+        },
+        {
+            'name': 'USP Secure Entry Server',
+            'confidence': 81,
+            'strong_header_markers': [],
+            'header_markers': [
+                'secure entry server',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'secure entry server',
+            ],
+        },
+        {
+            'name': 'Varnish WAF',
+            'confidence': 82,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [
+                'request rejected by xvarnish-waf',
+                'xvarnish-waf',
+            ],
+            'body_markers': [
+                'xvarnish-waf',
             ],
         },
         {
@@ -603,6 +760,35 @@ class ResponseProvider(object):
                 'wallarm',
                 'blocked by wallarm',
                 'wallarm blocked',
+            ],
+        },
+        {
+            'name': 'Yundun',
+            'confidence': 81,
+            'strong_header_markers': [
+                'yundun',
+            ],
+            'header_markers': [],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'yundun',
+            ],
+        },
+        {
+            'name': 'Zenedge',
+            'confidence': 82,
+            'strong_header_markers': [
+                'zenedge',
+            ],
+            'header_markers': [],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'zenedge/assets/',
+            ],
+            'body_markers': [
+                'zenedge/assets/',
+                'zenedge',
             ],
         },
         {
@@ -755,6 +941,99 @@ class ResponseProvider(object):
             'strong_body_markers': [],
             'body_markers': [
                 'chinacache',
+            ],
+        },
+        {
+            'name': 'aeSecure',
+            'confidence': 82,
+            'strong_header_markers': [
+                'aesecure-code',
+            ],
+            'header_markers': [],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [
+                'aesecure_denied.png',
+            ],
+            'body_markers': [
+                'aesecure_denied.png',
+                'aesecure',
+            ],
+        },
+        {
+            'name': 'Armor Protection',
+            'confidence': 82,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [
+                'this request has been blocked by website protection from armor',
+            ],
+            'body_markers': [
+                'website protection from armor',
+            ],
+        },
+        {
+            'name': 'Baidu Yunjiasu',
+            'confidence': 81,
+            'strong_header_markers': [],
+            'header_markers': [
+                'server: yunjiasu-nginx',
+                'yunjiasu-nginx',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'yunjiasu',
+            ],
+        },
+        {
+            'name': 'BlockDoS',
+            'confidence': 81,
+            'strong_header_markers': [],
+            'header_markers': [
+                'blockdos.net',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'blockdos.net',
+            ],
+        },
+        {
+            'name': 'Cisco ACE XML Gateway',
+            'confidence': 81,
+            'strong_header_markers': [],
+            'header_markers': [
+                'ace xml gateway',
+            ],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'ace xml gateway',
+            ],
+        },
+        {
+            'name': 'Cloudbric',
+            'confidence': 83,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [
+                'malicious code detected',
+            ],
+            'body_markers': [
+                'cloudbric',
+                'malicious code detected',
+            ],
+        },
+        {
+            'name': 'CrawlProtect',
+            'confidence': 82,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [
+                'this site is protected by crawlprotect',
+            ],
+            'body_markers': [
+                'crawlprotect',
             ],
         },
         {
@@ -931,6 +1210,19 @@ class ResponseProvider(object):
             ],
         },
         {
+            'name': 'WatchGuard',
+            'confidence': 81,
+            'strong_header_markers': [
+                'watchguard',
+            ],
+            'header_markers': [],
+            'header_requires_blocked_status': True,
+            'strong_body_markers': [],
+            'body_markers': [
+                'watchguard technologies',
+            ],
+        },
+        {
             'name': 'WebKnight',
             'confidence': 82,
             'strong_header_markers': [
@@ -954,6 +1246,22 @@ class ResponseProvider(object):
         'techaro.lol-anubis-auth=;',
         'cf-chl-',
         'cf-mitigated: challenge',
+        'aesecure-code',
+        'yunjiasu-nginx',
+        'blockdos.net',
+        'ace xml gateway',
+        'sonicwall',
+        'x-mapping-',
+        'st8id',
+        'st8_wat',
+        'st8_wlf',
+        'f5-trafficshield',
+        'asinfo=',
+        'rejected-by-urlscan',
+        'secure entry server',
+        'watchguard',
+        'yundun',
+        'zenedge',
         'x-sucuri-block',
         'x-sucuri-id',
         'x-distil-cs',
@@ -1015,6 +1323,22 @@ class ResponseProvider(object):
     ]
 
     DEFAULT_WAF_PASSIVE_HEADER_MARKERS_REQUIRE_BLOCKED_STATUS = [
+        'aesecure-code',
+        'yunjiasu-nginx',
+        'server: yunjiasu-nginx',
+        'blockdos.net',
+        'ace xml gateway',
+        'sonicwall',
+        'x-mapping-',
+        'st8id',
+        'st8_wat',
+        'st8_wlf',
+        'f5-trafficshield',
+        'asinfo=',
+        'secure entry server',
+        'watchguard',
+        'yundun',
+        'zenedge',
         'server: ddos-guard',
         'ddos-guard',
         'server: google frontend',
@@ -1056,6 +1380,29 @@ class ResponseProvider(object):
         'just a moment',
         'cf-browser-verification',
         'cloudflare ray id',
+        'aesecure_denied.png',
+        'website protection from armor',
+        'yunjiasu',
+        'blockdos.net',
+        'ace xml gateway',
+        'cloudbric',
+        'malicious code detected',
+        'crawlprotect',
+        'condition intercepted',
+        'senginx-robot-mitigation',
+        'sitelock incident id',
+        'sitelock-site-verification',
+        'sitelock_shield_logo',
+        'sonicwall',
+        'powered by utm web protection',
+        'teros',
+        'trafficshield',
+        'rejected-by-urlscan',
+        'secure entry server',
+        'xvarnish-waf',
+        'watchguard technologies',
+        'yundun',
+        'zenedge/assets/',
         'sucuri website firewall',
         'akamai bot manager',
         'distil networks',
