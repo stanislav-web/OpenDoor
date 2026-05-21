@@ -131,6 +131,11 @@ class Browser(Filter):
             self.__transport_failure_streak = 0
             self.__transport_failures_skipped = 0
             self.__transport_failure_summary_emitted = False
+            self.__pre_request_skipped = 0
+            self.__runtime_started_at = None
+            self.__runtime_finished_at = None
+            self.__runtime_active_seconds_offset = 0.0
+            self.__runtime_diagnostics_emitted = False
             self.__calibration = None
             self.__header_bypass = HeaderBypassProbe(self.__config)
             self.__active_sniffer_names = SnifferEngine.active_names_from_config(self.__config)
@@ -479,6 +484,8 @@ class Browser(Filter):
         getattr(self.__debug, 'debug_waf_guard', lambda: True)()
         self.__debug.debug_list(total_lines=self.__pool.total_items_size)
         self.__ensure_session_runtime_state()
+        self.__start_runtime_clock()
+        scan_completed = False
 
         try:  # beginning scan processes
             if True is self.__config.is_random_list:
@@ -504,6 +511,7 @@ class Browser(Filter):
                 self.__resume_pending_requests()
                 self.__pool.join()
             elif self.__session_snapshot is not None and self.__is_loaded_session_complete():
+                scan_completed = True
                 return
             elif True is self.__pool.is_started:
                 self.__reader.get_lines(
@@ -515,20 +523,26 @@ class Browser(Filter):
                     loader=getattr(self, '_add_urls'.format())
                 )
 
+            scan_completed = True
+
         except _WafGuardStop:
-            pass
+            scan_completed = True
 
         except (ProxyRequestError, HttpRequestError, HttpsRequestError, ReaderError) as error:
             raise BrowserError(error)
 
         except (SystemExit, KeyboardInterrupt):
+            self.__stop_runtime_clock()
             try:
                 self.__save_session(reason='signal', force=True)
             except SessionError as error:
                 tpl.warning(msg='Session checkpoint failed during interruption: {0}'.format(error))
+            self.__emit_runtime_diagnostics(status='interrupted')
             raise
 
         finally:
+            if scan_completed is True:
+                self.__stop_runtime_clock()
             self.close()
 
     def __verify_active_scan_list_size(self):
@@ -567,6 +581,199 @@ class Browser(Filter):
         ).format(planned=planned_total, active=active_total)
         tpl.warning(msg=message)
         raise BrowserError(message)
+
+
+    def __start_runtime_clock(self):
+        """Start active scan timing for debug runtime diagnostics.
+
+        :return: None
+        """
+
+        self.__ensure_session_runtime_state()
+
+        if self.__runtime_started_at is None:
+            self.__runtime_started_at = time.monotonic()
+            self.__runtime_finished_at = None
+
+    def __stop_runtime_clock(self):
+        """Freeze active scan timing without double-counting.
+
+        :return: None
+        """
+
+        self.__ensure_session_runtime_state()
+
+        if self.__runtime_started_at is None:
+            return
+
+        if self.__runtime_finished_at is None:
+            self.__runtime_finished_at = time.monotonic()
+            self.__runtime_active_seconds_offset += max(0.0, self.__runtime_finished_at - self.__runtime_started_at)
+            self.__runtime_started_at = None
+
+    def __active_runtime_seconds(self):
+        """Return accumulated active scan seconds.
+
+        :return: active runtime seconds
+        :rtype: float
+        """
+
+        self.__ensure_session_runtime_state()
+
+        seconds = float(getattr(self, '_Browser__runtime_active_seconds_offset', 0.0) or 0.0)
+        started_at = getattr(self, '_Browser__runtime_started_at', None)
+
+        if started_at is not None:
+            seconds += max(0.0, time.monotonic() - float(started_at))
+
+        return max(0.0, seconds)
+
+    @staticmethod
+    def __format_duration(seconds):
+        """Format seconds as HH:MM:SS for stable terminal diagnostics.
+
+        :param int|float seconds: duration in seconds
+        :return: formatted duration
+        :rtype: str
+        """
+
+        safe_seconds = max(0, int(round(float(seconds or 0))))
+        hours, remainder = divmod(safe_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return '{0:02d}:{1:02d}:{2:02d}'.format(hours, minutes, seconds)
+
+    @staticmethod
+    def __format_diagnostics_bool(value):
+        """Format a boolean-like diagnostics value.
+
+        :param mixed value: input value
+        :return: enabled or disabled
+        :rtype: str
+        """
+
+        return 'enabled' if value is True else 'disabled'
+
+    def __record_pre_request_skip(self):
+        """Record one dictionary item skipped before an HTTP request was submitted.
+
+        :return: None
+        """
+
+        self.__ensure_session_runtime_state()
+        self.__pre_request_skipped += 1
+
+    def __runtime_diagnostics_payload(self, status='completed'):
+        """Build debug-only terminal runtime diagnostics.
+
+        :param str status: scan terminal status
+        :return: runtime diagnostics payload
+        :rtype: dict
+        """
+
+        self.__ensure_session_runtime_state()
+
+        total = self.__progress_total_items()
+        processed = self.__current_scan_progress_items()
+        submitted = self.__safe_progress_int(getattr(self.__pool, 'submitted_size', 0))
+        skipped_before_request = self.__safe_progress_int(getattr(self, '_Browser__pre_request_skipped', 0))
+        transport_skipped = self.__transport_failures_skipped_count()
+        active_seconds = self.__active_runtime_seconds()
+        average_rate = 0.0
+
+        if active_seconds > 0:
+            average_rate = float(processed) / active_seconds
+
+        remaining_seconds = 0.0
+        if status not in ('completed', 'finished') and total > processed and average_rate > 0:
+            remaining_seconds = float(total - processed) / average_rate
+
+        total_counter = self.__result.get('total') if isinstance(self.__result, dict) else {}
+        if not isinstance(total_counter, dict):
+            total_counter = {}
+
+        return {
+            'status': status,
+            'processed': processed,
+            'total': total,
+            'submitted': submitted,
+            'skipped_before_request': skipped_before_request,
+            'transport_skipped': transport_skipped,
+            'threads': self.__safe_progress_int(getattr(self.__pool, 'workers_size', 0)),
+            'active_seconds': active_seconds,
+            'average_rate': average_rate,
+            'remaining_seconds': remaining_seconds,
+            'retries_fail_streak': self.__safe_progress_int(getattr(self, '_Browser__transport_failure_streak', 0)),
+            'retries_fail_limit': self.__transport_failure_threshold(),
+            'auto_calibration_enabled': getattr(self.__config, 'is_auto_calibrate', False) is True,
+            'calibrated_responses': self.__safe_progress_int(total_counter.get('calibrated', 0)),
+        }
+
+    def __format_runtime_diagnostics(self, status='completed'):
+        """Format debug runtime diagnostics as a compact terminal block.
+
+        :param str status: scan terminal status
+        :return: formatted diagnostics block
+        :rtype: str
+        """
+
+        payload = self.__runtime_diagnostics_payload(status=status)
+        total = payload.get('total', 0)
+        processed = payload.get('processed', 0)
+        progress = '0.0%'
+
+        if total > 0:
+            progress = helper.percent(min(processed, total), total)
+
+        lines = [
+            'Runtime diagnostics',
+            '-------------------',
+            'Progress:          {0}/{1} ({2})'.format(processed, total, progress),
+            'Requests:          {0} submitted, {1} skipped before request'.format(
+                payload.get('submitted'),
+                payload.get('skipped_before_request'),
+            ),
+            'Rate:              {0:.1f}/s average'.format(payload.get('average_rate', 0.0)),
+            'Time:              active {0}, remaining {1}'.format(
+                self.__format_duration(payload.get('active_seconds')),
+                self.__format_duration(payload.get('remaining_seconds')),
+            ),
+            'Threads:           {0}'.format(payload.get('threads')),
+            'Retries:           exhausted transport paths {0}, fail streak {1}/{2}'.format(
+                payload.get('transport_skipped'),
+                payload.get('retries_fail_streak'),
+                payload.get('retries_fail_limit'),
+            ),
+            'Calibration:       {0}, {1} responses suppressed'.format(
+                self.__format_diagnostics_bool(payload.get('auto_calibration_enabled')),
+                payload.get('calibrated_responses'),
+            ),
+        ]
+
+        if status not in ('completed', 'finished'):
+            lines.append('Status:            {0}'.format(status))
+
+        return '\n'.join(lines)
+
+    def __emit_runtime_diagnostics(self, status='completed'):
+        """Print debug runtime diagnostics once for terminal output only.
+
+        :param str status: scan terminal status
+        :return: bool
+        :rtype: bool
+        """
+
+        self.__ensure_session_runtime_state()
+
+        if self.__is_scan_debug_enabled() is not True:
+            return False
+
+        if getattr(self, '_Browser__runtime_diagnostics_emitted', False) is True:
+            return False
+
+        self.__finish_filtered_progress_line()
+        tpl.info(msg='\n{0}'.format(self.__format_runtime_diagnostics(status=status)))
+        self.__runtime_diagnostics_emitted = True
+        return True
 
     def __warn_if_scan_finished_early(self):
         """
@@ -2948,6 +3155,7 @@ class Browser(Filter):
                     if self.__register_pending_request(url, 0):
                         self.__pool.add(self.__http_request, url, 0)
                 else:
+                    self.__record_pre_request_skip()
                     self.__catch_report_data('ignored', url)
                     self.__emit_ignored_item_warning(url)
             self.__pool.join()
@@ -2989,6 +3197,7 @@ class Browser(Filter):
                         self.__pool.add(self.__http_request, url, 0)
                         window_submitted += 1
                 else:
+                    self.__record_pre_request_skip()
                     self.__catch_report_data('ignored', url)
                     self.__emit_ignored_item_warning(url)
 
@@ -3224,6 +3433,7 @@ class Browser(Filter):
                 self.__warn_if_scan_finished_early()
                 self.__emit_transport_failure_summary()
                 self.__save_session(reason='finish', force=True)
+                self.__emit_runtime_diagnostics(status='completed')
 
                 for rtype in self.__config.reports:
                     report = Reporter.load(rtype, self.__config.host, self.__result)
@@ -3316,6 +3526,9 @@ class Browser(Filter):
             'stats': {
                 'processed': self.__processed_offset + self.__pool.items_size,
                 'total_items': self.__pool.total_items_size,
+                'pre_request_skipped': self.__pre_request_skipped,
+                'transport_failures_skipped': self.__transport_failures_skipped_count(),
+                'active_time_seconds': self.__active_runtime_seconds(),
             },
             'checkpointReason': reason,
             'calibration': self.__calibration.to_dict() if self.__calibration is not None else None,
@@ -3456,8 +3669,12 @@ class Browser(Filter):
             if item.get('url') is not None:
                 self.__seen_scan_urls.add(str(item.get('url')))
 
-        self.__processed_offset = int(snapshot.get('stats', {}).get('processed', 0))
-        saved_total = int(snapshot.get('stats', {}).get('total_items', self.__pool.total_items_size))
+        stats = snapshot.get('stats', {})
+        self.__processed_offset = int(stats.get('processed', 0))
+        self.__pre_request_skipped = int(stats.get('pre_request_skipped', 0))
+        self.__transport_failures_skipped = int(stats.get('transport_failures_skipped', 0))
+        self.__runtime_active_seconds_offset = float(stats.get('active_time_seconds', 0.0) or 0.0)
+        saved_total = int(stats.get('total_items', self.__pool.total_items_size))
         if saved_total > self.__pool.total_items_size:
             self.__pool.total_items_size = saved_total
 
@@ -3584,6 +3801,21 @@ class Browser(Filter):
 
         if not hasattr(self, '_Browser__transport_failure_summary_emitted'):
             self.__transport_failure_summary_emitted = False
+
+        if not hasattr(self, '_Browser__pre_request_skipped'):
+            self.__pre_request_skipped = 0
+
+        if not hasattr(self, '_Browser__runtime_started_at'):
+            self.__runtime_started_at = None
+
+        if not hasattr(self, '_Browser__runtime_finished_at'):
+            self.__runtime_finished_at = None
+
+        if not hasattr(self, '_Browser__runtime_active_seconds_offset'):
+            self.__runtime_active_seconds_offset = 0.0
+
+        if not hasattr(self, '_Browser__runtime_diagnostics_emitted'):
+            self.__runtime_diagnostics_emitted = False
 
         if not hasattr(self, '_Browser__streamed_items_count'):
             self.__streamed_items_count = 0

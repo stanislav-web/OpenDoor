@@ -1524,6 +1524,187 @@ class TestBrowser(unittest.TestCase):
         )
         report.process.assert_called_once_with()
 
+    def test_done_prints_debug_runtime_diagnostics_before_reports(self):
+        """Browser.done() should print terminal-only runtime diagnostics when debug is enabled."""
+
+        br = self.make_browser()
+        total = helper.counter()
+        total.update({'calibrated': 3})
+        result = {'total': total, 'items': helper.list(), 'report_items': helper.list()}
+        config = SimpleNamespace(
+            reports=[],
+            host='test.local',
+            retries_fail_streak=30,
+            is_auto_calibrate=True,
+        )
+        debug = SimpleNamespace(is_scan_debug=lambda: True)
+        pool = SimpleNamespace(
+            total_items_size=10,
+            submitted_size=9,
+            workers_size=1,
+            size=0,
+            items_size=9,
+            completed_size=9,
+        )
+
+        setattr(br, '_Browser__result', result)
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__streamed_items_count', 10)
+        setattr(br, '_Browser__pre_request_skipped', 1)
+        setattr(br, '_Browser__transport_failures_skipped', 2)
+        setattr(br, '_Browser__transport_failure_summary_emitted', True)
+        setattr(br, '_Browser__runtime_active_seconds_offset', 2.0)
+        setattr(br, '_Browser__runtime_diagnostics_emitted', False)
+
+        with patch('src.lib.browser.browser.tpl.info') as info_mock:
+            br.done()
+
+        diagnostic_messages = [
+            call.kwargs.get('msg', '')
+            for call in info_mock.call_args_list
+            if 'Runtime diagnostics' in call.kwargs.get('msg', '')
+        ]
+        self.assertEqual(len(diagnostic_messages), 1)
+        rendered = diagnostic_messages[0]
+        self.assertIn('Progress:          10/10 (100.0%)', rendered)
+        self.assertIn('Requests:          9 submitted, 1 skipped before request', rendered)
+        self.assertIn('Rate:              5.0/s average', rendered)
+        self.assertIn('Time:              active 00:00:02, remaining 00:00:00', rendered)
+        self.assertIn('Retries:           exhausted transport paths 2, fail streak 0/30', rendered)
+        self.assertIn('Calibration:       enabled, 3 responses suppressed', rendered)
+        self.assertNotIn('Response filters:', rendered)
+        self.assertNotIn('Sniffers:', rendered)
+        self.assertNotIn('WAF detection:', rendered)
+        self.assertNotIn('WAF safe mode:', rendered)
+        self.assertNotIn('Status:', rendered)
+
+    def test_done_does_not_print_runtime_diagnostics_without_debug(self):
+        """Browser.done() should keep normal summary output unchanged when debug is disabled."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=1,
+            submitted_size=1,
+            workers_size=1,
+            size=0,
+            items_size=1,
+            completed_size=1,
+        ))
+        setattr(br, '_Browser__config', SimpleNamespace(reports=[], host='test.local'))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: False))
+
+        with patch('src.lib.browser.browser.tpl.info') as info_mock:
+            br.done()
+
+        self.assertFalse(any(
+            'Runtime diagnostics' in call.kwargs.get('msg', '')
+            for call in info_mock.call_args_list
+        ))
+
+    def test_runtime_diagnostics_marks_interrupted_scans(self):
+        """Browser runtime diagnostics should estimate remaining time for interrupted scans."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=10,
+            submitted_size=5,
+            workers_size=1,
+            size=0,
+            items_size=5,
+            completed_size=5,
+        ))
+        setattr(br, '_Browser__config', SimpleNamespace(
+            retries_fail_streak=30,
+            is_auto_calibrate=False,
+        ))
+        setattr(br, '_Browser__runtime_active_seconds_offset', 10.0)
+
+        rendered = br._Browser__format_runtime_diagnostics(status='interrupted')
+
+        self.assertIn('Progress:          5/10 (50.0%)', rendered)
+        self.assertIn('Rate:              0.5/s average', rendered)
+        self.assertIn('Time:              active 00:00:10, remaining 00:00:10', rendered)
+        self.assertIn('Status:            interrupted', rendered)
+
+    def test_runtime_clock_accumulates_active_time_without_double_counting(self):
+        """Browser runtime clock should accumulate active scan time safely."""
+
+        br = self.make_browser()
+
+        with patch('src.lib.browser.browser.time.monotonic', side_effect=[100.0, 102.25, 105.75]):
+            br._Browser__start_runtime_clock()
+            br._Browser__start_runtime_clock()
+
+            self.assertAlmostEqual(br._Browser__active_runtime_seconds(), 2.25)
+
+            br._Browser__stop_runtime_clock()
+
+        self.assertIsNone(getattr(br, '_Browser__runtime_started_at'))
+        self.assertAlmostEqual(getattr(br, '_Browser__runtime_active_seconds_offset'), 5.75)
+
+        br._Browser__stop_runtime_clock()
+        self.assertAlmostEqual(getattr(br, '_Browser__runtime_active_seconds_offset'), 5.75)
+
+        setattr(br, '_Browser__runtime_started_at', 200.0)
+        setattr(br, '_Browser__runtime_finished_at', 201.0)
+        br._Browser__stop_runtime_clock()
+        self.assertAlmostEqual(getattr(br, '_Browser__runtime_active_seconds_offset'), 5.75)
+
+    def test_runtime_diagnostics_handles_zero_totals_and_malformed_result_counters(self):
+        """Browser runtime diagnostics should stay stable with empty counters."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=0,
+            submitted_size='bad',
+            workers_size='2',
+            size=0,
+            items_size='bad',
+            completed_size='bad',
+        ))
+        setattr(br, '_Browser__config', SimpleNamespace(
+            retries_fail_streak=10,
+            is_auto_calibrate=False,
+        ))
+        setattr(br, '_Browser__result', {'total': 'bad', 'items': helper.list(), 'report_items': helper.list()})
+
+        rendered = br._Browser__format_runtime_diagnostics(status='completed')
+
+        self.assertIn('Progress:          0/0 (0.0%)', rendered)
+        self.assertIn('Requests:          0 submitted, 0 skipped before request', rendered)
+        self.assertIn('Rate:              0.0/s average', rendered)
+        self.assertIn('Threads:           2', rendered)
+        self.assertIn('Retries:           exhausted transport paths 0, fail streak 0/10', rendered)
+        self.assertIn('Calibration:       disabled, 0 responses suppressed', rendered)
+        self.assertNotIn('Status:', rendered)
+
+    def test_emit_runtime_diagnostics_is_idempotent(self):
+        """Browser runtime diagnostics should not print more than once."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=1,
+            submitted_size=1,
+            workers_size=1,
+            size=0,
+            items_size=1,
+            completed_size=1,
+        ))
+        setattr(br, '_Browser__config', SimpleNamespace(
+            retries_fail_streak=30,
+            is_auto_calibrate=True,
+        ))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
+        setattr(br, '_Browser__runtime_diagnostics_emitted', True)
+
+        with patch('src.lib.browser.browser.tpl.info') as info_mock:
+            emitted = br._Browser__emit_runtime_diagnostics(status='completed')
+
+        self.assertFalse(emitted)
+        info_mock.assert_not_called()
+
     def test_done_skips_report_generation_when_queue_is_not_empty(self):
         """Browser.done() should skip reporting while there are still queued items."""
 
