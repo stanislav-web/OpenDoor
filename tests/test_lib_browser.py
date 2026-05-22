@@ -1524,15 +1524,15 @@ class TestBrowser(unittest.TestCase):
         )
         report.process.assert_called_once_with()
 
-    def test_done_prints_debug_runtime_diagnostics_before_reports(self):
-        """Browser.done() should print terminal-only runtime diagnostics when debug is enabled."""
+    def test_done_prints_debug_runtime_diagnostics_after_reports(self):
+        """Browser.done() should print terminal-only runtime diagnostics after reports."""
 
         br = self.make_browser()
         total = helper.counter()
         total.update({'calibrated': 3})
         result = {'total': total, 'items': helper.list(), 'report_items': helper.list()}
         config = SimpleNamespace(
-            reports=[],
+            reports=['std'],
             host='test.local',
             retries_fail_streak=30,
             is_auto_calibrate=True,
@@ -1558,27 +1558,62 @@ class TestBrowser(unittest.TestCase):
         setattr(br, '_Browser__runtime_active_seconds_offset', 2.0)
         setattr(br, '_Browser__runtime_diagnostics_emitted', False)
 
-        with patch('src.lib.browser.browser.tpl.info') as info_mock:
+        report = MagicMock()
+        timeline = []
+        report.process.side_effect = lambda: timeline.append('report')
+
+        with patch('src.lib.browser.browser.Reporter.load', return_value=report), \
+                patch('src.lib.browser.browser.output.writeln') as info_mock:
+            info_mock.side_effect = lambda *args, **kwargs: timeline.append('diagnostics')
             br.done()
 
+        self.assertEqual(timeline, ['report', 'diagnostics'])
         diagnostic_messages = [
-            call.kwargs.get('msg', '')
+            call.args[0] if call.args else ''
             for call in info_mock.call_args_list
-            if 'Runtime diagnostics' in call.kwargs.get('msg', '')
+            if call.args and 'Runtime diagnostics' in call.args[0]
         ]
         self.assertEqual(len(diagnostic_messages), 1)
         rendered = diagnostic_messages[0]
-        self.assertIn('Progress:          10/10 (100.0%)', rendered)
-        self.assertIn('Requests:          9 submitted, 1 skipped before request', rendered)
-        self.assertIn('Rate:              5.0/s average', rendered)
-        self.assertIn('Time:              active 00:00:02, remaining 00:00:00', rendered)
-        self.assertIn('Retries:           exhausted transport paths 2, fail streak 0/30', rendered)
-        self.assertIn('Calibration:       enabled, 3 responses suppressed', rendered)
+        self.assertIn('| Runtime diagnostics', rendered)
+        self.assertIn('| items       | 10', rendered)
+        self.assertIn('| progress    | 10/10 (100.0%)', rendered)
+        self.assertIn('| requests    | 9 submitted, 1 skipped before request', rendered)
+        self.assertIn('| rate        | 5.0/s average', rendered)
+        self.assertIn('| time        | active 00:00:02, remaining 00:00:00', rendered)
+        self.assertIn('| threads     | 1', rendered)
+        self.assertIn('| retries     | exhausted transport paths 2, fail streak 0/30', rendered)
+        self.assertIn('| calibration | enabled, 3 responses suppressed', rendered)
         self.assertNotIn('Response filters:', rendered)
         self.assertNotIn('Sniffers:', rendered)
         self.assertNotIn('WAF detection:', rendered)
         self.assertNotIn('WAF safe mode:', rendered)
-        self.assertNotIn('Status:', rendered)
+        self.assertNotIn('| status', rendered)
+
+    def test_runtime_diagnostics_table_uses_dynamic_width_for_longest_cells(self):
+        """Runtime diagnostics table should expand to the longest label/value."""
+
+        long_label = 'transport_retry_diagnostics'
+        long_value = '95956 submitted, 220000 skipped before request after transport preflight'
+
+        rendered = Browser._Browser__format_diagnostics_table(
+            'Runtime diagnostics',
+            [
+                ('items', '96031'),
+                (long_label, long_value),
+                ('threads', '1'),
+            ],
+        )
+        lines = rendered.splitlines()
+
+        self.assertIn(long_label, rendered)
+        self.assertIn(long_value, rendered)
+        self.assertEqual(len({len(line) for line in lines}), 1)
+
+        border_len = len(lines[0])
+        self.assertEqual(len(lines[1]), border_len)
+        self.assertEqual(len(lines[-1]), border_len)
+        self.assertTrue(next(line for line in lines if long_value in line).endswith(' |'))
 
     def test_done_does_not_print_runtime_diagnostics_without_debug(self):
         """Browser.done() should keep normal summary output unchanged when debug is disabled."""
@@ -1595,11 +1630,11 @@ class TestBrowser(unittest.TestCase):
         setattr(br, '_Browser__config', SimpleNamespace(reports=[], host='test.local'))
         setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: False))
 
-        with patch('src.lib.browser.browser.tpl.info') as info_mock:
+        with patch('src.lib.browser.browser.output.writeln') as info_mock:
             br.done()
 
         self.assertFalse(any(
-            'Runtime diagnostics' in call.kwargs.get('msg', '')
+            call.args and 'Runtime diagnostics' in call.args[0]
             for call in info_mock.call_args_list
         ))
 
@@ -1623,10 +1658,12 @@ class TestBrowser(unittest.TestCase):
 
         rendered = br._Browser__format_runtime_diagnostics(status='interrupted')
 
-        self.assertIn('Progress:          5/10 (50.0%)', rendered)
-        self.assertIn('Rate:              0.5/s average', rendered)
-        self.assertIn('Time:              active 00:00:10, remaining 00:00:10', rendered)
-        self.assertIn('Status:            interrupted', rendered)
+        self.assertIn('| progress    | 5/10 (50.0%)', rendered)
+        self.assertIn('| rate        | 0.5/s average', rendered)
+        self.assertIn('| time        | active 00:00:10, remaining 00:00:10', rendered)
+        self.assertIn('| retries     | exhausted transport paths 0, fail streak 0/30', rendered)
+        self.assertIn('| calibration | disabled, 0 responses suppressed', rendered)
+        self.assertIn('| status      | interrupted', rendered)
 
     def test_runtime_clock_accumulates_active_time_without_double_counting(self):
         """Browser runtime clock should accumulate active scan time safely."""
@@ -1672,13 +1709,13 @@ class TestBrowser(unittest.TestCase):
 
         rendered = br._Browser__format_runtime_diagnostics(status='completed')
 
-        self.assertIn('Progress:          0/0 (0.0%)', rendered)
-        self.assertIn('Requests:          0 submitted, 0 skipped before request', rendered)
-        self.assertIn('Rate:              0.0/s average', rendered)
-        self.assertIn('Threads:           2', rendered)
-        self.assertIn('Retries:           exhausted transport paths 0, fail streak 0/10', rendered)
-        self.assertIn('Calibration:       disabled, 0 responses suppressed', rendered)
-        self.assertNotIn('Status:', rendered)
+        self.assertIn('| progress    | 0/0 (0.0%)', rendered)
+        self.assertIn('| requests    | 0 submitted, 0 skipped before request', rendered)
+        self.assertIn('| rate        | 0.0/s average', rendered)
+        self.assertIn('| threads     | 2', rendered)
+        self.assertIn('| retries     | exhausted transport paths 0, fail streak 0/10', rendered)
+        self.assertIn('| calibration | disabled, 0 responses suppressed', rendered)
+        self.assertNotIn('| status', rendered)
 
     def test_emit_runtime_diagnostics_is_idempotent(self):
         """Browser runtime diagnostics should not print more than once."""
@@ -1699,7 +1736,7 @@ class TestBrowser(unittest.TestCase):
         setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
         setattr(br, '_Browser__runtime_diagnostics_emitted', True)
 
-        with patch('src.lib.browser.browser.tpl.info') as info_mock:
+        with patch('src.lib.browser.browser.output.writeln') as info_mock:
             emitted = br._Browser__emit_runtime_diagnostics(status='completed')
 
         self.assertFalse(emitted)

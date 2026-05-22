@@ -708,8 +708,49 @@ class Browser(Filter):
             'calibrated_responses': self.__safe_progress_int(total_counter.get('calibrated', 0)),
         }
 
+    @staticmethod
+    def __format_diagnostics_table(title, rows):
+        """Render a two-column terminal diagnostics table with dynamic widths.
+
+        :param str title: table title
+        :param list[tuple] rows: table rows
+        :return: formatted table
+        :rtype: str
+        """
+
+        safe_rows = [(str(key), str(value)) for key, value in rows]
+        first_width = max([1] + [len(row[0]) for row in safe_rows])
+        second_width = max([1] + [len(row[1]) for row in safe_rows])
+        title_width = len(str(title))
+        inner_width = first_width + second_width + 3
+
+        if title_width > inner_width:
+            second_width += title_width - inner_width
+            inner_width = title_width
+
+        border = '+-{0}-+-{1}-+'.format('-' * first_width, '-' * second_width)
+        title_row = '| {0} |'.format(str(title).ljust(inner_width))
+
+        def render_row(first, second):
+            """Render a padded diagnostics row.
+
+            :param str first: row key
+            :param str second: row value
+            :return: formatted row
+            :rtype: str
+            """
+
+            return '| {0} | {1} |'.format(first.ljust(first_width), second.ljust(second_width))
+
+        lines = [border, title_row, border]
+        for row in safe_rows:
+            lines.append(render_row(row[0], row[1]))
+        lines.append(border)
+
+        return '\n'.join(lines)
+
     def __format_runtime_diagnostics(self, status='completed'):
-        """Format debug runtime diagnostics as a compact terminal block.
+        """Format debug runtime diagnostics as a terminal table.
 
         :param str status: scan terminal status
         :return: formatted diagnostics block
@@ -724,35 +765,46 @@ class Browser(Filter):
         if total > 0:
             progress = helper.percent(min(processed, total), total)
 
-        lines = [
-            'Runtime diagnostics',
-            '-------------------',
-            'Progress:          {0}/{1} ({2})'.format(processed, total, progress),
-            'Requests:          {0} submitted, {1} skipped before request'.format(
-                payload.get('submitted'),
-                payload.get('skipped_before_request'),
+        rows = [
+            ('items', total),
+            ('progress', '{0}/{1} ({2})'.format(processed, total, progress)),
+            (
+                'requests',
+                '{0} submitted, {1} skipped before request'.format(
+                    payload.get('submitted'),
+                    payload.get('skipped_before_request'),
+                ),
             ),
-            'Rate:              {0:.1f}/s average'.format(payload.get('average_rate', 0.0)),
-            'Time:              active {0}, remaining {1}'.format(
-                self.__format_duration(payload.get('active_seconds')),
-                self.__format_duration(payload.get('remaining_seconds')),
+            ('rate', '{0:.1f}/s average'.format(payload.get('average_rate', 0.0))),
+            (
+                'time',
+                'active {0}, remaining {1}'.format(
+                    self.__format_duration(payload.get('active_seconds')),
+                    self.__format_duration(payload.get('remaining_seconds')),
+                ),
             ),
-            'Threads:           {0}'.format(payload.get('threads')),
-            'Retries:           exhausted transport paths {0}, fail streak {1}/{2}'.format(
-                payload.get('transport_skipped'),
-                payload.get('retries_fail_streak'),
-                payload.get('retries_fail_limit'),
+            ('threads', payload.get('threads')),
+            (
+                'retries',
+                'exhausted transport paths {0}, fail streak {1}/{2}'.format(
+                    payload.get('transport_skipped'),
+                    payload.get('retries_fail_streak'),
+                    payload.get('retries_fail_limit'),
+                ),
             ),
-            'Calibration:       {0}, {1} responses suppressed'.format(
-                self.__format_diagnostics_bool(payload.get('auto_calibration_enabled')),
-                payload.get('calibrated_responses'),
+            (
+                'calibration',
+                '{0}, {1} responses suppressed'.format(
+                    self.__format_diagnostics_bool(payload.get('auto_calibration_enabled')),
+                    payload.get('calibrated_responses'),
+                ),
             ),
         ]
 
         if status not in ('completed', 'finished'):
-            lines.append('Status:            {0}'.format(status))
+            rows.append(('status', status))
 
-        return '\n'.join(lines)
+        return self.__format_diagnostics_table('Runtime diagnostics', rows)
 
     def __emit_runtime_diagnostics(self, status='completed'):
         """Print debug runtime diagnostics once for terminal output only.
@@ -771,7 +823,7 @@ class Browser(Filter):
             return False
 
         self.__finish_filtered_progress_line()
-        tpl.info(msg='\n{0}'.format(self.__format_runtime_diagnostics(status=status)))
+        output.writeln('\n{0}'.format(self.__format_runtime_diagnostics(status=status)))
         self.__runtime_diagnostics_emitted = True
         return True
 
@@ -3433,11 +3485,15 @@ class Browser(Filter):
                 self.__warn_if_scan_finished_early()
                 self.__emit_transport_failure_summary()
                 self.__save_session(reason='finish', force=True)
-                self.__emit_runtime_diagnostics(status='completed')
-
+                runtime_diagnostics_emitted = False
                 for rtype in self.__config.reports:
                     report = Reporter.load(rtype, self.__config.host, self.__result)
                     report.process()
+                    if rtype == 'std':
+                        runtime_diagnostics_emitted = self.__emit_runtime_diagnostics(status='completed')
+
+                if runtime_diagnostics_emitted is not True:
+                    self.__emit_runtime_diagnostics(status='completed')
             except ReporterError as error:
                 raise BrowserError(error)
         else:

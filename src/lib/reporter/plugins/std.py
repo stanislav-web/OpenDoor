@@ -87,7 +87,7 @@ class StdReportPlugin(PluginProvider):
         if not isinstance(total, dict):
             total = {}
 
-        hidden_summary_keys = {'calibrated', 'ignored', 'bad', 'skip'}
+        hidden_summary_keys = {'calibrated', 'ignored', 'bad', 'skip', 'items', 'workers'}
         data = [(key, value) for key, value in total.items() if key not in hidden_summary_keys]
         fingerprint = self._data.get('fingerprint')
 

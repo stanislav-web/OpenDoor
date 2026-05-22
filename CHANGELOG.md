@@ -29,7 +29,8 @@ v5.16.1 (xx.05.2026)
 - (enhancement) added DotCMS detection to `--fingerprint`.
 - (enhancement) added configurable `--retries-fail-streak` to control scan aborts after consecutive exhausted retry paths. Default: `10`.
 - (enhancement) expanded passive WAF recognition coverage with additional 21 WAF systems (Details : (https://opendoor.readthedocs.io/detection/waf-detection/)).
-- (dictionary) cleaned and normalized the internal directories list (+1334 potential interesting paths).
+- (ux) added debug-only runtime diagnostics to the terminal scan summary.
+- (dictionary) cleaned and normalized the internal directories list (+1518 potential interesting paths).
 
 v5.16.0 (17.05.2026)
 ---------------------------

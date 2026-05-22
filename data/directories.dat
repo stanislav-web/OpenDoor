@@ -5591,6 +5591,7 @@
 .gitchangelog.rc
 .gitCOMMIT_EDITMSG
 .gitconfig
+.gitcredentials
 .gitdescription
 .gitFETCH_HEAD
 .gitHEAD
@@ -5734,6 +5735,7 @@
 .hgtags
 .hgundo.dirstate
 .hhconfig
+.hidden
 .histfile
 .history
 .hound.yml
@@ -6418,6 +6420,8 @@
 .scrutinizer.yml
 .scss-lint.yml
 .search
+.secret
+.secrets
 .section.php
 .security
 .security.txt
@@ -6898,6 +6902,7 @@
 .yamllint
 .yardoc
 .yardopts
+.yarn
 .yarn-integrity
 .yarn/releases
 .yarnclean
@@ -7166,6 +7171,7 @@ _api
 _api/cluster/health
 _api/collection
 _api/database
+_api/docs
 _api/engine
 _api/user
 _api/version
@@ -8657,6 +8663,7 @@ access_log.xml
 access_logs
 access_stats
 access_token.php
+access_token.txt
 access_tokens.db
 access_user
 accessconfig
@@ -10576,6 +10583,7 @@ adm/setup.php
 adm/signin.php
 adm/staff.php
 adm/start.php
+adm/style
 adm/style/admin.css
 adm/system.php
 adm/token.php
@@ -11875,6 +11883,7 @@ admin/adminlogin.php
 admin/adminLogin.php
 Admin/adminLogin.php
 admin/adminLogin.phtml
+admin/adminpanel.php
 admin/adminview.php
 admin/alter
 admin/aml
@@ -12561,6 +12570,7 @@ admin/PMAindex.php
 admin/pmaindex.php
 admin/pol_log.txt
 admin/portal
+admin/portal.php
 admin/portalcollect.php
 admin/posts
 admin/pprof
@@ -16560,6 +16570,7 @@ administrator/main.php
 administrator/maintenance
 administrator/manage.php
 administrator/manager.php
+administrator/manifests
 administrator/manifests/filesjoomla.xml
 administrator/media
 administrator/member
@@ -20502,6 +20513,7 @@ api/application
 api/application.wadl
 api/auth
 api/auth.config
+api/auth.php
 api/auth/csrf
 api/auth/login
 api/auth/providers
@@ -20945,6 +20957,7 @@ api/log
 api/log_browser?log_base=archive&requested_dir=
 api/login
 api/login.json
+api/login.php
 api/logout
 api/logs
 api/logs/audit
@@ -20980,6 +20993,7 @@ api/oomco_payment/get-pending-transaction-track-ids
 api/oomco_payment/submit-failed-transaction-data
 api/oomco_payment/submit-transaction-data
 api/oomco_payment/submit-transaction-data-debug
+api/openapi.yaml
 api/opentsdbversion
 api/operations
 api/order
@@ -21368,6 +21382,7 @@ api/surveillance/totalnum
 api/swagger
 api/swagger-resources
 api/swagger-resources/restservices/v2/api-docs
+api/swagger-ui
 api/swagger-ui.html
 api/swagger-ui/api-docs
 api/swagger-ui/swagger.json
@@ -21960,6 +21975,10 @@ API_insert_atividades.php
 api_jsonrpc.php
 api_key.json
 API_Key.php
+api_key.php
+api_keys.php
+api_keys.txt
+api_keys.yaml
 api_log.txt
 api_smartapp/storage
 api_test
@@ -22031,6 +22050,7 @@ apikeymanager/signin.php
 apikeymanager/validate.php
 apikeymanager/verify.php
 apikeys
+apikeys.txt
 apikeys/auth.php
 apikeys/authenticate.php
 apikeys/check.php
@@ -22235,6 +22255,7 @@ app.php
 app.php.bak
 app.php.old
 app.php~
+app.properties
 app.py
 app.rar
 app.save
@@ -22281,6 +22302,7 @@ app/code/community/Nosto/Tagging/.env
 app/components
 app/composer.json
 app/composer.lock
+app/config
 app/config/.env
 app/config/adminConf.json
 app/config/app.php
@@ -22546,7 +22568,10 @@ application-dev.properties
 application-dev.yml
 application-local.yml
 application-pro.properties
+application-prod.properties
 application-prod.yml
+application-production.yml
+application-staging.yml
 application-test.properties
 application-uat.properties
 application.7z
@@ -22600,6 +22625,7 @@ application.txt
 application.wadl
 application.wadl?detail=true
 application.xml
+application.yaml
 application.yaml.bak
 application.yml
 application.yml.bak
@@ -24132,6 +24158,9 @@ auth.old
 auth.out
 auth.php
 Auth.php
+auth.php.bak
+auth.php.old
+auth.php~
 auth.phtml
 auth.pl
 auth.py
@@ -24196,6 +24225,7 @@ auth_ldap.php
 auth_mnet.php
 auth_old.php
 auth_page.php
+auth_token.txt
 auth_user.php
 auth_user_file.txt
 auth_user_files.db
@@ -24626,6 +24656,7 @@ aws/config
 aws/console
 aws/credentials
 aws/s3/.env
+aws_credentials
 awstat
 awstats
 awStats
@@ -25265,10 +25296,12 @@ backend/account
 backend/accounts
 backend/activity
 backend/admin
+backend/admin.php
 backend/admin/eWebEditor
 backend/admin/index
 backend/aml
 backend/analytics
+backend/api
 backend/api-keys
 backend/apikeys
 backend/appearance
@@ -25667,6 +25700,7 @@ backup.cfg
 backup.conf
 backup.dat
 backup.db
+backup.dump
 backup.html
 backup.htpasswd
 backup.inc
@@ -25723,6 +25757,7 @@ backup/database
 backup/database.sql
 backup/db.sql
 backup/dump.sql
+backup/index.php
 backup/login
 backup/mysql/.env
 backup/panel
@@ -25894,6 +25929,7 @@ BAK.index.php
 bak/admin
 bak/config.php
 bak/database.sql
+bak/index.php
 bak/login
 bak/panel
 bakbone
@@ -26645,6 +26681,7 @@ beanwebb
 bear
 bearbear
 bearbeiten
+bearer.txt
 bears
 beater
 beatles
@@ -28394,6 +28431,8 @@ Bootstrap
 bootstrap
 Bootstrap.php
 bootstrap.php
+bootstrap.php.bak
+bootstrap.php~
 bootstrap.properties
 bootstrap.yml
 bootstrap/.env
@@ -29740,6 +29779,7 @@ cache.html
 cache.old
 Cache.php
 cache.php
+cache/index.php
 cache/sql_error_latest.cgi
 cache_archiver.php
 cache_bbcodes.php
@@ -31264,6 +31304,7 @@ cerror
 cert
 cert.htm
 cert.html
+cert.key
 cert.pem
 cert.php
 cert_items.php
@@ -31287,7 +31328,9 @@ Certificate.cs
 certificate.cs
 Certificate.dat
 certificate.htm
+certificate.key
 Certificate.md
+certificate.pem
 Certificate.php
 certificate.php
 Certificate.txt
@@ -34842,6 +34885,7 @@ common.lib.php
 Common.php
 common.php
 common.php.bak
+common.php~
 common.phtml
 common.portal
 common.xml
@@ -35466,6 +35510,7 @@ config.php.orig
 config.php.sample
 config.php.save
 config.php.swp
+config.php.tmp
 config.php.txt
 config.php.zip
 config.php~
@@ -35484,7 +35529,9 @@ config.source
 config.sql
 config.sub
 config.swp
+config.tar.gz
 config.template.php
+config.toml
 config.txt
 config.xml
 config.yaml
@@ -35703,6 +35750,7 @@ configuration.php.zip
 configuration.php~
 configuration.phtml
 configuration.swp
+configuration.yaml
 configuration.yml
 configuration.zip
 configuration/.env
@@ -35869,6 +35917,8 @@ connect.inc
 connect.inc.php
 connect.php
 connect.php3
+connect.php.bak
+connect.php~
 connect_db.php
 connectdb.php
 connecte.php
@@ -35880,6 +35930,8 @@ connection
 connection.asp
 connection.inc
 connection.php
+connection.php.bak
+connection.php~
 Connections
 connections
 Connections.aspx
@@ -37918,6 +37970,7 @@ cpanel/home
 cpanel/import
 cpanel/imports
 cpanel/index
+cpanel/index.php
 cpanel/info
 cpanel/integrations
 cpanel/inventory
@@ -38196,13 +38249,16 @@ creator.php
 creatorCMS
 creators
 cred.php
+credential.php
 credentials
 credentials.csv
 credentials.db
 credentials.json
+credentials.php
 credentials.txt
 credentials.xml
 credentials.yaml
+credentials.yml
 credentials/gcloud.json
 credentialsgcloud.json
 credit
@@ -38237,6 +38293,8 @@ credits.shtml
 CREDITS.txt
 creditsummary.asp
 creditwizard.inc.php
+creds.txt
+creds.yaml
 creek
 cren
 creo_admin
@@ -38335,6 +38393,7 @@ cron/.env.local
 cron/.env.production
 cron/.env.staging
 cron/cron.sh
+cron/index.php
 cron_activate.log
 cron_auto.php
 cron_block.php
@@ -40340,6 +40399,8 @@ database.asp
 database.cfg
 database.cgi
 database.csv
+database.db
+database.dump
 database.htm
 database.html
 database.inc
@@ -40348,9 +40409,13 @@ database.log
 database.mdb
 database.mysqli.php
 database.php
+database.php.backup
 database.php.bak
+database.php.old
+database.php~
 database.rar
 database.sql
+database.sql.gz
 database.sqlite
 database.tar.bz2
 database.tar.gz
@@ -40386,6 +40451,7 @@ database_administration
 database_administration.php
 Database_Backup
 database_backup
+database_backup.sql
 database_changes.php
 database_connection.php
 database_credentials.inc
@@ -40874,6 +40940,7 @@ db.conf
 db.csv
 DB.dat
 db.dat
+db.dump
 db.gz
 db.html
 db.inc
@@ -40884,7 +40951,10 @@ db.log
 db.mdb
 DB.php
 db.php
+db.php.backup
 db.php.bak
+db.php.old
+db.php~
 Db.properties
 db.rar
 Db.script
@@ -41473,6 +41543,7 @@ debug/endpointz
 debug/env
 debug/featurez
 debug/health
+debug/index.php
 debug/info
 debug/log
 debug/logs
@@ -41964,6 +42035,7 @@ demo/admin/fckeditor/editor/filemanager
 demo/ejb/index.html
 demo/ejbindex.html
 demo/fckeditor/editor/filemanager
+demo/index.php
 demo/ojspext/events/globals.jsa
 demo/sql/index.jsp
 demo/sqlindex.jsp
@@ -42376,6 +42448,7 @@ dev/.env.staging
 dev/.env_1.bak
 dev/admin
 dev/admin.php
+dev/index.php
 dev/login
 dev/mailbox
 dev/panel
@@ -46234,6 +46307,7 @@ eliza
 elizabet
 elizabeth
 eljoker18
+elk
 elkartea.nsf
 elle
 ellen
@@ -47510,6 +47584,9 @@ env.prod.js
 env.production.js
 env.sh
 env.test.js
+env.txt
+env.yaml
+env.yml
 env/.env
 env/dockers/mariadb-test/.env
 env/dockers/php-apache/.env
@@ -48195,6 +48272,7 @@ etc/packages
 etc/passwd
 etc/pkexec
 etc/security
+etc/shadow
 etcconfig.ini
 etcd-apiserver-client.key
 etcd-ca.crt
@@ -48542,6 +48620,7 @@ example.log
 example.php
 example.phtml
 example/.env
+example/index.php
 example_form.php
 exampleapp
 exampledir
@@ -50955,6 +51034,7 @@ flashtext
 flashvideo
 flashxml
 flashZeroClipboard.swf
+flask
 flask.session
 flask_test_uploads/.env
 flat
@@ -52549,6 +52629,7 @@ full
 full-text.php
 full.html
 full.php
+full_backup.tar.gz
 full_screen.php
 full_search
 fullchain.pem
@@ -52679,6 +52760,9 @@ functions.js.php
 functions.legacy.php
 functions.locale.php
 functions.php
+functions.php.bak
+functions.php.old
+functions.php~
 functions.user.php
 functions/jwpanel/scripts/valums_uploader/php.php
 functions/v1
@@ -54160,10 +54244,12 @@ git/index
 git/logs/HEAD
 git/packed-refs
 git/refs/heads/master
+gitea
 github
 github-cache
 github-connect/.env
 github-recovery-codes.txt
+github_token.txt
 gitlab
 gitlab/admin
 gitlog
@@ -54255,6 +54341,8 @@ global.js.php
 global.json
 global.jspf
 global.php
+global.php.bak
+global.php~
 global/js
 global/product/product.asp?gubun=
 global_files
@@ -54495,6 +54583,7 @@ gogo.php
 gogogo
 gograboid.php
 gogreen.aspx
+gogs
 gohome.js
 gohome.php
 gohomeframe.js
@@ -56665,6 +56754,8 @@ HelloWorldServlet
 HelloWorldServlet.jsp
 helly-hansen.php
 helm
+helm/values.prod.yaml
+helm/values.yaml
 Helmetjs/.env
 helmets
 helmfile.yaml
@@ -56893,6 +56984,7 @@ hidden.html
 hidden.php
 hidden.phtml
 hidden/admin
+hidden/index.php
 hidden/login
 hiddenselect.php
 hiddenuploader.phtml
@@ -57747,6 +57839,7 @@ htdig-dev
 htdoc
 htdocs
 htdocs.old
+htdocs.tar.gz
 htdocs.zip
 htdocs/.env
 hterror
@@ -58278,6 +58371,7 @@ id_dsa.json
 id_dsa.ppk
 id_dsa.pub
 id_ecdsa
+id_ed25519.pub
 id_find.php
 id_group
 id_ID
@@ -59422,6 +59516,8 @@ include.dat
 include.html
 include.inc
 include.php
+include.php.bak
+include.php~
 include.rar
 include.tar
 include.tar.gz
@@ -60071,14 +60167,10 @@ index.php.static
 index.php.suspected
 index.php.swp
 index.php.tar.gz
+index.php.tmp
 index.php.txt
 index.php.wordpress
 index.php.zip
-index.php/?login
-index.php/adlog
-index.php/adlog.asp
-index.php/adlog.html
-index.php/adlog.php
 index.php/admin
 index.php/admin.html
 index.php/admin.php
@@ -60894,6 +60986,8 @@ init.bat
 init.inc
 init.inc.php
 init.php
+init.php.bak
+init.php~
 init.sh
 init.txt
 init_autoloader.php
@@ -61210,6 +61304,7 @@ install/adminstrator
 install/adminstrator.php
 install/enter
 install/enter.php
+install/index.php
 install/index.php?upgrade
 install/install.sh
 install/lib/ajaxHandlers/ajaxServerSettingsChk.php?rootUname=%3b%63%61%74%20%2f%65%74%63%2f%70%61%73%73%77%64%20%23
@@ -61305,6 +61400,7 @@ installweb.config
 installwordpress
 install~
 instance
+instance/config.py
 instancefiles
 instant
 InstantCV/server/.env
@@ -61448,6 +61544,7 @@ internal/activity
 internal/admin
 internal/aml
 internal/analytics
+internal/api
 internal/api-keys
 internal/apikeys
 internal/appearance
@@ -61501,6 +61598,7 @@ internal/home
 internal/import
 internal/imports
 internal/index
+internal/index.php
 internal/info
 internal/integrations
 internal/inventory
@@ -63111,6 +63209,7 @@ jolasean.eus
 jolasean.nsf
 jologs
 jolokia
+jolokia/exec
 jolokia/exec/ch.qos.logback.classic
 jolokia/execch.qos.logback.classic
 jolokia/list
@@ -63713,8 +63812,10 @@ jwks.jwt
 jwplayer
 jws
 jwsdir
+jwt.key
 jwt.php
 jwt/private.pem
+jwt_secret.txt
 jwtTest.php
 jx44146l.php
 jx.php
@@ -63747,6 +63848,8 @@ k8.jsp
 k8.php
 k8cmd.jsp
 k8s
+k8s.yml
+k8s/secrets.yml
 k8zr6x60.php
 k12
 k81.jsp
@@ -64112,6 +64215,7 @@ keys.html
 keys.json
 keys.php
 keys.txt
+keys.yaml
 keys.yml
 keystone
 keystore.jks
@@ -64637,6 +64741,8 @@ kubeflow/pipeline/apis/v1beta1/pipelines
 kubeflow/pipeline/apis/v1beta1/runs
 kuber
 kubernetes
+kubernetes-dashboard
+kubernetes.yml
 Kubernetes/.env
 kucv1937
 kuda-encoded.php
@@ -66940,8 +67046,10 @@ local.html
 local.php
 local.properties
 local.sql
+local.xml
 local.xml.additional
 local.xml.template
+local.yaml
 local/.env
 local/composer.lock
 local/composer.phar
@@ -67353,6 +67461,8 @@ Login.php
 login.php3
 login.php5
 login.php.bak
+login.php.old
+login.php~
 login.phtml
 login.phyml
 Login.pl
@@ -67684,6 +67794,7 @@ logs.mdb
 logs.php
 logs.pl
 logs.sqlite
+logs.tar.gz
 logs.txt
 logs.zip
 logs/access-log.log
@@ -68740,6 +68851,7 @@ mailbox.php
 mailcell.asp
 mailchime
 mailchimp
+mailchimp.key
 mailcompose.asp
 mailcompose.php
 mailcoureur.php
@@ -69497,6 +69609,7 @@ management/home
 management/import
 management/imports
 management/index
+management/index.php
 management/info
 management/integrations
 management/inventory
@@ -69507,6 +69620,7 @@ management/kyc
 management/languages
 management/localization
 management/login
+management/login.php
 management/logout
 management/logs
 management/mail
@@ -69526,6 +69640,7 @@ management/oauth
 management/orders
 management/pages
 management/panel
+management/panel.php
 management/partners
 management/password
 management/payments
@@ -69604,6 +69719,7 @@ manager/account
 manager/accounts
 manager/activity
 manager/admin.asp
+manager/admin.php
 manager/aml
 manager/analytics
 manager/api-keys
@@ -70541,6 +70657,7 @@ me
 me2
 me-gb
 me.php
+me/login_form.php
 meadmin
 meagan
 meagan.asp
@@ -72242,6 +72359,7 @@ migrate.php
 migrated
 migration
 migration.log
+migration.php
 migration/adm
 migration/admin
 migration/administrator
@@ -74899,6 +75017,7 @@ mysqld
 mysqldatabase.php
 Mysqldump.php
 mysqldump.sql
+mysqldump.sql.gz
 mysqldumper
 mysqldumper2
 Mysqli
@@ -77350,6 +77469,7 @@ oauth-credentials.json
 oauth.asp
 oauth.aspx
 oauth.html
+oauth.key
 oauth.php
 oauth.phtml
 oauth/admin
@@ -77362,6 +77482,7 @@ oauth/revoke
 oauth/signin
 oauth/token
 oauth/token/info
+oauth_secret.txt
 ob
 ob.lib.php
 obb_profiles
@@ -78440,6 +78561,7 @@ operator/home
 operator/import
 operator/imports
 operator/index
+operator/index.php
 operator/info
 operator/integrations
 operator/inventory
@@ -80871,6 +80993,7 @@ parameter.php
 parameters
 parameters.php
 parameters.xml
+parameters.yaml
 parameters.yml
 parameters.yml.dist
 paramore
@@ -81728,6 +81851,7 @@ paypal.cgi
 paypal.class.php
 paypal.htm
 paypal.html
+paypal.key
 paypal.login.com
 paypal.php
 paypal_callerservice.php
@@ -84893,6 +85017,7 @@ portal/images/MyVue/MyVueHelp.png
 portal/import
 portal/imports
 portal/index
+portal/index.php
 portal/info
 portal/integrations
 portal/inventory
@@ -84903,6 +85028,7 @@ portal/kyc
 portal/languages
 portal/localization
 portal/login
+portal/login.php
 portal/logout
 portal/logs
 portal/mail
@@ -86186,6 +86312,7 @@ private/activity
 private/admin
 private/aml
 private/analytics
+private/api
 private/api-keys
 private/apikeys
 private/appearance
@@ -86240,6 +86367,7 @@ private/home
 private/import
 private/imports
 private/index
+private/index.php
 private/info
 private/integrations
 private/inventory
@@ -86324,6 +86452,8 @@ private/workers
 private_area
 private_file.html
 private_files
+private_key
+private_key.pem
 private_key.php
 private_message.php
 private_messages
@@ -86417,6 +86547,8 @@ proc
 proc.jsp
 proc.php
 proc/.env
+proc/self/cmdline
+proc/self/environ
 proc/sys/kernel/core_pattern
 proc/sys/kernelcore_pattern
 proc_diskstats.log
@@ -87978,6 +88110,7 @@ public.aspx
 public.html
 public.mbizgroup
 public.php
+public.tar.gz
 public/.env
 public/.env.local
 public/.env.production
@@ -88050,6 +88183,7 @@ public_echo.php
 public_ftp
 public_html
 public_html.sql
+public_html.tar.gz
 public_html.zip
 public_html/.env
 public_html/.env.local
@@ -88650,6 +88784,7 @@ quetalfue
 Queue
 queue
 queue.php
+queue_worker.php
 queues
 quezza
 qui-sommes-nous
@@ -89977,6 +90112,7 @@ redis.dat
 redis.log
 redis.php
 redis.txt
+redis/admin
 redisadm
 redisadmin
 redisinsight
@@ -90111,6 +90247,7 @@ refresh
 refresh.asp
 refresh.json
 refresh.php
+refresh_token.txt
 refreshapp.asp
 refresher.tpl.php
 refs
@@ -90845,6 +90982,7 @@ reports/data.php
 reports/download.php
 reports/export.php
 reports/generate.php
+reports/index.php
 reports/login
 Reports/Pages/Folder.aspx
 Reports/PagesFolder.aspx
@@ -93086,6 +93224,7 @@ sample.php
 sample.txt
 sample.txt~
 sample.xml
+sample/index.php
 sample_1.php
 sample_pages
 sample_posteddata.php
@@ -94397,10 +94536,14 @@ secret.asp
 secret.aspdonotuse
 Secret.aspx
 secret.html
+secret.key
+secret.pem
 Secret.php
 secret.php
 secret.txt
+secret.yaml
 secret/admin
+secret/index.php
 secret/login
 secret_token.rb
 secretadmin
@@ -94528,6 +94671,7 @@ secure/home
 secure/import
 secure/imports
 secure/index
+secure/index.php
 secure/info
 secure/integrations
 secure/inventory
@@ -95354,6 +95498,7 @@ sendfriend.aspx
 sendfriend.php
 sendgame.php
 sendgrid.env
+sendgrid.key
 sendgrid/.env
 sendinfo.php
 sendinfo.php.save
@@ -95632,6 +95777,7 @@ server.js
 server.key
 server.log
 server.ovpn
+server.pem
 Server.php
 server.php
 server.pid
@@ -96135,9 +96281,11 @@ settings.json
 settings.php
 Settings.php
 settings.php3
+settings.php.backup
 settings.php.bak
 settings.php.dist
 settings.php.old
+settings.php.orig
 settings.php.save
 settings.php.swp
 settings.php.txt
@@ -96340,6 +96488,7 @@ shadercompiler-64bit-1.log
 shadmoss
 shadow
 shadow1
+shadow.txt
 shadowbox
 shadowbox-3.0.3
 shadowed
@@ -97799,6 +97948,7 @@ site_admin.php
 site_admin/login.php
 site_adminlogin.php
 site_backup
+site_backup.tar.gz
 site_cache
 site_cg/application/configs/application.ini
 site_database
@@ -98384,6 +98534,7 @@ sla
 sla.html
 slabel
 slabel.php
+slack_token.txt
 slacker
 slackware
 slakkline.php
@@ -99955,6 +100106,8 @@ ssimages
 ssk
 ssl
 ssl7Vv.php
+ssl.key
+ssl.pem
 ssl.php
 ssl.phtml
 ssl/localhost.key
@@ -100117,6 +100270,7 @@ staff/home
 staff/import
 staff/imports
 staff/index
+staff/index.php
 staff/info
 staff/integrations
 staff/inventory
@@ -100127,6 +100281,7 @@ staff/kyc
 staff/languages
 staff/localization
 staff/login
+staff/login.php
 staff/logout
 staff/logs
 staff/mail
@@ -100237,6 +100392,7 @@ staging/.env.local
 staging/.env.production
 staging/.env.staging
 staging/admin
+staging/index.php
 staging/login
 stagingtest.aspx
 stake
@@ -100814,7 +100970,9 @@ storage/.env.local
 storage/.env.production
 storage/.env.staging
 storage/admin
+storage/app
 storage/app/public
+storage/framework
 storage/link
 storage/logs
 storage/logs.txt
@@ -101059,6 +101217,8 @@ strings.js.php
 strip
 Strip.php
 StripComments.php
+stripe.key
+stripe_keys.txt
 stripeToken
 stripper
 striptoken.mgi
@@ -101734,6 +101894,7 @@ SuperAdmin/auth.php
 Superadmin/auth.php
 SuperAdmin/enter.php
 Superadmin/enter.php
+superadmin/index.php
 SuperAdmin/login.php
 Superadmin/login.php
 SuperAdminauth.php
@@ -102675,6 +102836,7 @@ sysadmin/home
 sysadmin/import
 sysadmin/imports
 sysadmin/index
+sysadmin/index.php
 sysadmin/info
 sysadmin/integrations
 sysadmin/inventory
@@ -104031,6 +104193,7 @@ temp/config.php
 temp/data
 temp/env/.env
 temp/files
+temp/index.php
 temp/log
 temp_docs
 temp_files
@@ -104835,6 +104998,7 @@ test/fixtures/app_types/node/.env
 test/fixtures/app_types/rails/.env
 test/fixtures/node_path/.env
 test/fixtures/users.yml
+test/index.php
 test/integration/env-config/app/.env
 test/login
 test/panel
@@ -105019,6 +105183,7 @@ testing.php
 testing.txt
 testing/.env
 testing/docker/.env
+testing/index.php
 testing_email.php
 testingheader.php
 testingsite
@@ -105106,6 +105271,7 @@ tests/default_settings/v11.0/.env
 tests/default_settings/v12.0/.env
 tests/default_settings/v13.0/.env
 tests/drupal-test/.env
+tests/index.php
 tests/Integration/Environment/.env
 tests/phpunit_report.xml
 tests/todo-react/.env
@@ -106124,6 +106290,7 @@ tmp/config.php
 tmp/cpn.php
 tmp/d0maine.php
 tmp/d.php
+tmp/debug.log
 tmp/domaine.php
 tmp/domaine.pl
 tmp/dz1.php
@@ -106297,11 +106464,13 @@ token
 token.json
 Token.php
 token.php
+token.txt
 token/introspect
 token/revoke
 TokenFactory.php
 tokenlite.zip
 tokens
+tokens.php
 tokens.txt
 tokyo
 toledo
@@ -107557,6 +107726,7 @@ TWiki
 twiki-bin
 twilight
 twilio
+twilio.key
 twilio.php
 twinkie
 TwinPeeks
@@ -109056,6 +109226,7 @@ uploads/.env
 uploads/affwp-debug.log
 uploads/dump.sql
 uploads/Flash
+uploads/index.php
 uploads/ok.php
 uploads_admin
 uploads_admin.php
@@ -110755,6 +110926,7 @@ v1/delete-card
 v1/demo/demo/testerree
 v1/demo/demo/testrere
 v1/deployments
+v1/docs
 v1/edit-bank
 v1/embeddings
 v1/endpoint
@@ -110958,12 +111130,14 @@ v2/.env
 v2/_catalog
 v2/admin
 v2/altair
+v2/api
 v2/api-docs
 v2/api/graphql
 v2/assets
 v2/auth
 v2/candles
 v2/client_configs
+v2/docs
 v2/explorer
 v2/graph
 v2/graphiql
@@ -111020,6 +111194,7 @@ v3.2a
 V3.php
 v3/.env
 v3/altair
+v3/api
 v3/api-docs
 v3/api-docs/swagger-config
 v3/api/graphql
@@ -111303,12 +111478,14 @@ var/lib/mysql/mysql/user.frm
 var/lib/postgresql/data/pg_hba.conf
 var/log
 var/log/access.log
+var/log/apache2/error.log
 var/log/app.log
 var/log/authorizenet.log
 var/log/debug.log
 var/log/error.log
 var/log/exception.log
 var/log/librepag.log
+var/log/nginx/error.log
 var/log/old
 var/log/payment.log
 var/log/payment_authorizenet.log
@@ -114398,6 +114575,7 @@ webhook.php
 webhook.php.save
 webhook.sql
 webhook.txt
+webhooks
 webhost
 webhosting
 webhosting.html
@@ -114475,6 +114653,7 @@ webmaster.cgi
 webmaster.htm
 webmaster.html
 webmaster.php
+webmaster/index.php
 webmaster/login
 webmaster/logs
 webmaster/stats
@@ -114506,6 +114685,7 @@ WebMgmt
 webmilesat
 webmilesde
 webmin
+webmin/index.php
 webmobo
 webmod
 webmodules
@@ -114573,6 +114753,7 @@ webroot.inc
 webroot.php
 webroot.phtml
 webroot.py
+webroot.tar.gz
 WebRoot.zip
 webroot_path/.env
 webrootdecision
@@ -116374,6 +116555,7 @@ wp-config.php.save
 wp-config.php.swn
 wp-config.php.swo
 wp-config.php.swp
+wp-config.php.tmp
 wp-config.php.txt
 wp-config.php.zip
 wp-config.php_
@@ -117189,6 +117371,7 @@ wp-json/wc/v3/settings
 wp-json/wc/v3/system_status
 wp-json/wp/v2/pages
 wp-json/wp/v2/posts
+wp-json/wp/v2/settings
 wp-json/wp/v2/users
 wp-json/wp/v2/users/1
 wp-json/wp/v2posts
@@ -118959,6 +119142,7 @@ zzzzzz
 ~nobody
 ~nscd
 ~office
+~old
 ~operator
 ~pop
 ~postmaster

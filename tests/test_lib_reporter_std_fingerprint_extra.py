@@ -119,7 +119,8 @@ class TestStdReportPluginFingerprintExtra(unittest.TestCase):
 
         rendered = writeln_mock.call_args[0][0]
 
-        self.assertIn('workers', rendered)
+        self.assertNotIn('| workers', rendered)
+        self.assertNotIn('| items', rendered)
         self.assertIn('fingerprint_name', rendered)
         self.assertIn('fingerprint_confidence', rendered)
         self.assertIn('fingerprint_runtime', rendered)
