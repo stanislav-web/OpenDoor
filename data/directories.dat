@@ -26800,9 +26800,13 @@ bencandy.php
 bencandy_html.php
 bench.log
 benchau.php
+benchmark.log
 benchmark.php
+benchmark.txt
 BenchmarkDotNet.Artifacts
 benchmarks
+benchmarks.log
+benchmarks.txt
 benders
 benedict
 Benefits
@@ -82910,6 +82914,7 @@ php_info.php
 php_ini.txt
 php_lib
 php_log
+php_mail.log
 php_my_admin
 php_my_admin.php
 php_my_adminindex.php

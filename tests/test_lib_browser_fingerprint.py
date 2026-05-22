@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
+from unittest.mock import patch
 
 from src.lib.browser.fingerprint import Fingerprint
 
@@ -1951,3 +1952,142 @@ class TestFingerprintHstsSecurityHeaders(unittest.TestCase):
         self.assertEqual(result['grade'], 'missing')
         self.assertIn('not_https', result['warnings'])
         self.assertIn('missing_hsts', result['warnings'])
+
+
+class TestFingerprintCoverageGapBranches(unittest.TestCase):
+    """Targeted branch coverage for stable fingerprint helper gaps."""
+
+    def _make_client(self, config, responses):
+        client = FakeClient(responses)
+        client.config_method_getter = lambda: getattr(config, '_method', 'HEAD')
+        return client
+
+    def test_should_cover_privacy_helper_edge_branches(self):
+        """Fingerprint privacy helpers should handle edge values deterministically."""
+
+        self.assertEqual(Fingerprint._privacy_score_to_risk(60), 'high')
+        self.assertFalse(Fingerprint._has_long_cache_lifetime('no-store, max-age=31536000'))
+        self.assertTrue(Fingerprint._has_long_cache_lifetime('public, max-age=2592000'))
+
+        class BadMatch(object):
+            def group(self, _index):
+                raise TypeError('bad max-age')
+
+        with patch('src.lib.browser.fingerprint.re.search', return_value=BadMatch()):
+            self.assertFalse(Fingerprint._has_long_cache_lifetime('max-age=31536000'))
+            self.assertIsNone(Fingerprint._extract_cookie_max_age('max-age=31536000'))
+
+        privacy = Fingerprint._build_privacy_risks(
+            headers={},
+            body='',
+            body_size=0,
+            final_root_url='https://example.com/',
+            security_headers={'hsts': 'invalid'},
+        )
+        self.assertEqual(privacy['supercookie']['risk'], 'none')
+
+    def test_should_ignore_persistent_cookie_when_required_attrs_are_present(self):
+        """Persistent-cookie helper should not flag cookies that include required attributes."""
+
+        signals = Fingerprint._detect_persistent_cookie_surface({
+            'set-cookie': 'uid=abc; Max-Age=31536000; HttpOnly; SameSite=Lax; Secure',
+        })
+
+        self.assertEqual(signals, [])
+
+    def test_should_cover_first_party_subdomain_helper_edge_branches(self):
+        """First-party helper functions should cover empty, root and public-suffix branches."""
+
+        self.assertEqual(Fingerprint._normalize_host(' Example.COM. '), 'example.com')
+        self.assertEqual(Fingerprint._site_domain('localhost'), '')
+        self.assertEqual(Fingerprint._site_domain('www.example.co.uk'), 'example.co.uk')
+        self.assertEqual(
+            Fingerprint._extract_first_party_subdomains(
+                'https://www.example.com/root https://cdn.example.com/app.js https://api.example.com/v1',
+                'https://www.example.com/',
+            ),
+            ['api.example.com', 'cdn.example.com'],
+        )
+        self.assertEqual(Fingerprint._extract_first_party_subdomains('https://cdn.example.com/app.js', 'http:///'), [])
+
+    def test_should_probe_dotcms_endpoint_header_signals_without_duplicates(self):
+        """dotCMS endpoint probes should emit unique vendor header signals."""
+
+        config = FakeConfig()
+        responses = {
+            ('HEAD', 'http://example.com/admin/init'): FakeResponse(
+                200,
+                '',
+                {
+                    'X-Dot-Server': 'dotcms-prod-1',
+                    'X-DotRequest-Cost': '1',
+                    'X-DotRateLimit-Limit': '100',
+                },
+            ),
+            ('HEAD', 'http://example.com/admin/init/'): FakeResponse(
+                200,
+                '',
+                {
+                    'X-Dot-Server': 'dotcms-prod-1',
+                    'X-DotRequest-Cost': '1',
+                    'X-DotRateLimit-Limit': '100',
+                },
+            ),
+        }
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+
+        signals = detector._probe_dotcms_endpoint_signals('http://example.com/')
+
+        self.assertEqual(
+            signals,
+            [
+                {'type': 'header', 'value': 'x-dot-server=dotcms-prod-1', 'weight': 10},
+                {'type': 'header', 'value': 'x-dotrequest-cost+x-dotratelimit-*', 'weight': 9},
+            ],
+        )
+
+    def test_should_cover_qrator_supporting_edge_branches(self):
+        """QRATOR detection should include partial server and 404 header branches."""
+
+        detector = Fingerprint(config=FakeConfig(), client=self._make_client(FakeConfig(), {}))
+        detector._apply_detection_rules(
+            body='',
+            body_lower='',
+            headers={'server': 'nginx + qrator edge'},
+            cookies=[],
+            generator='',
+            probe_statuses={},
+            final_root_url='http://example.com/',
+            not_found_status=404,
+            not_found_body='',
+            not_found_headers={
+                'server': 'nginx + qrator fallback',
+                'x-qrator-requestid': 'abcdef',
+            },
+        )
+
+        infra_result = detector._build_infrastructure_result(detector._build_infrastructure_candidates())
+        values = [signal['value'] for signal in infra_result['signals']]
+
+        self.assertIn('server=nginx + qrator edge', values)
+        self.assertIn('server=nginx + qrator fallback', values)
+        self.assertIn('x-qrator-requestid', values)
+
+    def test_should_detect_dotcms_from_single_marker_with_cookie(self):
+        """dotCMS should be detected from one body marker when supported by a dotCMS cookie."""
+
+        config = FakeConfig()
+        responses = {
+            ('GET', 'http://example.com/'): FakeResponse(
+                200,
+                '<html><body><a href="/dotAdmin">Admin</a></body></html>',
+                {'Set-Cookie': 'dmid=abc; Path=/'},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+
+        result = detector.detect()
+
+        self.assertEqual(result['name'], 'dotCMS')
+        self.assertIn('dotCMS', [candidate['name'] for candidate in result['candidates']])

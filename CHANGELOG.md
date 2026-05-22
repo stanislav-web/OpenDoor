@@ -29,9 +29,9 @@ v5.16.1 (xx.05.2026)
 - (enhancement) added `--proxy-rotation random|sequential` to control existing `--proxy-list` rotation, preserving `random` as the default and adding deterministic file-order sequential mode.
 - (enhancement) added DotCMS detection to `--fingerprint`.
 - (enhancement) added configurable `--retries-fail-streak` to control scan aborts after consecutive exhausted retry paths. Default: `10`.
-- (enhancement) expanded passive WAF recognition coverage with additional 21 WAF systems (Details : (https://opendoor.readthedocs.io/detection/waf-detection/)).
+- (enhancement) expanded passive WAF recognition coverage with additional 21 WAF systems. Details : (https://opendoor.readthedocs.io/detection/waf-detection/).
 - (ux) added debug-only runtime diagnostics to the terminal scan summary.
-- (dictionary) cleaned and normalized the internal directories list (+1520 potential interesting paths).
+- (dictionary) cleaned and normalized the internal directories list (+1525 potential interesting paths).
 
 v5.16.0 (17.05.2026)
 ---------------------------
