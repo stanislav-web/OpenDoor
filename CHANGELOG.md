@@ -22,6 +22,7 @@ v5.16.1 (xx.05.2026)
 - (fix) filtered/calibrated progress counters to use the same dynamic width as regular scan findings.
 - (fix) fingerprint evidence output to avoid repeating identical evidence values when the same marker is confirmed by multiple signal sources.
 - (fix) ResponseError: Unknown response status : `477` (non standart error) so scans no longer abort on unexpected HTTP status codes. 
+- (fix) stopped pre-skipping common error, index, redirect-like, and not-found paths from the bundled ignore list so they are scanned and classified normally.
 - (enhancement) improved the `stacktrace` sniffer to detect exposed database connection identity errors like `Could not make a database connection using user@host` while avoiding generic connection-error false positives.
 - (enhancement) hardened `--header` validation and normalization, including wizard/session CLI override handling.
 - (enhancement) added remote HTTP(S) wordlist support through `--wordlist`, including streaming download progress and a 500 MB safety limit.
@@ -30,7 +31,7 @@ v5.16.1 (xx.05.2026)
 - (enhancement) added configurable `--retries-fail-streak` to control scan aborts after consecutive exhausted retry paths. Default: `10`.
 - (enhancement) expanded passive WAF recognition coverage with additional 21 WAF systems (Details : (https://opendoor.readthedocs.io/detection/waf-detection/)).
 - (ux) added debug-only runtime diagnostics to the terminal scan summary.
-- (dictionary) cleaned and normalized the internal directories list (+1518 potential interesting paths).
+- (dictionary) cleaned and normalized the internal directories list (+1520 potential interesting paths).
 
 v5.16.0 (17.05.2026)
 ---------------------------

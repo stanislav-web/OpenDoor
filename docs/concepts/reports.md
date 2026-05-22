@@ -44,8 +44,7 @@ because available report plugins can vary by build.
 opendoor --host https://example.com --reports std
 ```
 
-Use `std` for interactive work.
-
+Use `std` for interactive work. `std` is the terminal summary output. It is always appended to scan reports, so users normally do not need to include it explicitly. Use --reports std only when you want terminal summary output without file reports.
 The terminal summary includes all result buckets.
 
 ---
