@@ -212,7 +212,8 @@ class Browser(Filter):
                 self.__shadow_probe = ShadowProbe(
                     self.__request_with_waf_safe_mode,
                     self.__handle_shadow_match,
-                    self.__emit_shadow_probe_progress
+                    self.__emit_shadow_probe_progress,
+                    delay=self.__config.delay
                 )
 
             if True is getattr(self.__config, 'is_session_enabled', False):

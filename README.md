@@ -107,7 +107,7 @@ OpenDoor includes a heuristic fingerprint engine for detecting probable applicat
 
 | Category                   | Examples |
 |----------------------------|---|
-| CMS                        | WordPress, Drupal, Joomla, TYPO3, Open Journal Systems, InstantCMS, CMS.S3 / Megagroup, Discuz!, NetCat |
+| CMS                        | WordPress, Drupal, Joomla, TYPO3, Open Journal Systems, InstantCMS, DiafanCMS, CMS.S3 / Megagroup, Discuz!, NetCat |
 | E-commerce                 | Magento, WooCommerce, Shopify, PrestaShop, OpenCart, Shopware, Webasyst / Shop-Script |
 | Frameworks / app platforms | Laravel, Symfony, Django, Flask, FastAPI, Express, NestJS, Next.js, Nuxt, Rails, Spring |
 | Runtime / language stack   | PHP, Node.js, JavaScript, Python, Ruby, .NET, Java/JVM, Elixir, static-site targets |
@@ -293,7 +293,7 @@ Useful sniffers include:
 | `skipsizes=46:1024` | Skip responses inside a noisy size range.                                                                                           |
 | `stacktrace`        | Detect exposed debug/runtime stack traces and internal error details.                                                               |
 | `secret`            | Detect possible exposed API keys, tokens, private keys and credentials with redacted report metadata.                               |
-| `shadow`            | Actively probe confirmed `200 OK` file-like hits for exposed backup/shadow copies such as `.bak`, `.old` etc variants.              |
+| `shadow`            | Actively probe confirmed `200 OK` file-like hits for bounded backup/shadow variants such as `.bak`, `.old`, and path templates like `index2.php`. |
 | `openredirect`      | Actively verify redirect-like query parameters with controlled marker URLs and report only confirmed open redirect vulnerabilities. |
 | `malware`           | Detect possible malicious content, webshell markers, injected scripts or obfuscated payloads.                                       |
 

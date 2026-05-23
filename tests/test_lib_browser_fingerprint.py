@@ -370,6 +370,14 @@ class TestFingerprint(unittest.TestCase):
                 {'Set-Cookie': 'discuz_test=1; Path=/'},
             ),
             (
+                'DiafanCMS',
+                'cms',
+                '<html><head><meta content="DIAFAN.CMS https://www.diafan.ru/" name="author"></head>'
+                '<body><form><input type="hidden" name="module" value="shop"></form>'
+                '<script src="/cache/js/theme.js"></script></body></html>',
+                {},
+            ),
+            (
                 'NetCat',
                 'cms',
                 '<html><head><meta name="generator" content="NetCat CMS"></head>'
@@ -394,6 +402,27 @@ class TestFingerprint(unittest.TestCase):
                 self.assertEqual(result['category'], expected_category)
                 self.assertEqual(result['name'], expected_name)
                 self.assertGreaterEqual(result['confidence'], 70)
+
+    def test_does_not_promote_generic_diafan_link_without_meta_author(self):
+        """Fingerprint should not promote DiafanCMS from a generic body mention only."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><p>We can migrate legacy DIAFAN.CMS sites.</p></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(signal.get('type') == 'meta' for signal in result['signals']))
 
     def test_detects_5145_infrastructure_catalog_additions(self):
         """Fingerprint should detect strong HTTP-visible infrastructure additions."""

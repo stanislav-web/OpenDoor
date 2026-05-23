@@ -85,7 +85,86 @@ class TestShadowProbe(unittest.TestCase):
 
         self.assertEqual(len(candidates), ShadowProbe.MAX_CANDIDATES_PER_HIT)
         self.assertEqual(candidates[0], ('https://example.com/index.php.s0?x=1', '.s0'))
-        self.assertEqual(candidates[-1], ('https://example.com/index.php.s11?x=1', '.s11'))
+        self.assertEqual(candidates[-1], ('https://example.com/index.php.s15?x=1', '.s15'))
+
+    def test_should_generate_template_candidates_with_query_and_variant_metadata(self):
+        """Should render path-aware template variants without weakening match metadata."""
+
+        candidates = ShadowProbe.build_candidates(
+            'https://example.com/admin/index.php?x=1',
+            ['tpl:{path}2.{ext}'],
+        )
+
+        self.assertEqual(candidates, [('https://example.com/admin/index2.php?x=1', 'tpl:{path}2.{ext}')])
+
+        metadata = ShadowProbe.build_metadata(
+            'https://example.com/admin/index.php',
+            'https://example.com/admin/index2.php',
+            'tpl:{path}2.{ext}',
+            {'size': 100},
+            {'size': 105, 'similarity': 0.94, 'content_type': 'text/html'},
+        )
+
+        detection = metadata['shadow_detection']
+        self.assertEqual(detection['variant'], 'tpl:{path}2.{ext}')
+        self.assertEqual(detection['variant_type'], 'template')
+
+    def test_should_skip_invalid_template_variants_and_deduplicate_candidates(self):
+        """Should keep template expansion bounded, valid and duplicate-free."""
+
+        candidates = ShadowProbe.build_candidates(
+            'https://example.com/index.php',
+            [
+                '',
+                'tpl:{path}.{ext}.bak',
+                '.bak',
+                'tpl:{path}',
+                'tpl:{path}2.{missing}',
+                '.old',
+            ],
+        )
+
+        self.assertEqual(
+            candidates,
+            [
+                ('https://example.com/index.php.bak', 'tpl:{path}.{ext}.bak'),
+                ('https://example.com/index.php.old', '.old'),
+            ],
+        )
+        self.assertIsNone(ShadowProbe.build_template_path('/.env', '{path}2.{ext}'))
+        self.assertIsNone(ShadowProbe.build_template_path('/admin/index', '{path}2.{ext}'))
+
+    def test_should_normalize_shadow_probe_delay_values(self):
+        """Should coerce active shadow delay to a safe non-negative float."""
+
+        self.assertEqual(ShadowProbe.normalize_delay(None), 0.0)
+        self.assertEqual(ShadowProbe.normalize_delay('bad'), 0.0)
+        self.assertEqual(ShadowProbe.normalize_delay(-1), 0.0)
+        self.assertEqual(ShadowProbe.normalize_delay(0), 0.0)
+        self.assertEqual(ShadowProbe.normalize_delay('1.25'), 1.25)
+
+    def test_should_honor_configured_delay_before_probe_request(self):
+        """Should respect scan delay before every active shadow probe request."""
+
+        base_response = self.make_response(body=b'base stable body line\n' * 5)
+        candidate_response = self.make_response(body=(b'base stable body line\n' * 5) + b'changed\n')
+        base_signature = ShadowProbe.response_signature(base_response)
+        request = MagicMock(return_value=candidate_response)
+        probe = ShadowProbe(request, MagicMock(), delay=1.25)
+
+        with patch('src.lib.browser.shadow.time.sleep') as sleep_mock:
+            getattr(probe, '_ShadowProbe__process_task')(
+                (
+                    'https://example.com/index.php',
+                    base_signature,
+                    'https://example.com/index.php.bak',
+                    '.bak',
+                    1,
+                )
+            )
+
+        sleep_mock.assert_called_once_with(1.25)
+        request.assert_called_once_with('https://example.com/index.php.bak')
 
     def test_should_ignore_identical_shadow_copy_and_classify_near_copy_diff(self):
         """Should report changed near-copies and ignore byte-identical copies."""
@@ -298,6 +377,53 @@ class TestBrowserShadowIntegration(unittest.TestCase):
         ))
         return br
 
+
+    def test_browser_passes_scan_delay_to_shadow_probe(self):
+        """Browser should pass the base scan delay into the active shadow probe worker."""
+
+        reader = MagicMock()
+        reader.total_lines = 3
+        cfg = SimpleNamespace(
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            _method='HEAD',
+            method='GET',
+            method_override_items=[],
+            proxy_list='',
+            is_random_list=False,
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+            is_external_wordlist=False,
+            wordlist=None,
+            is_standalone_proxy=False,
+            is_external_proxy_list=False,
+            prefix='',
+            is_external_reports_dir=False,
+            reports_dir=None,
+            extensions=[],
+            ignore_extensions=[],
+            threads=1,
+            delay=1.5,
+            timeout=10,
+            DEFAULT_SOCKET_TIMEOUT=10,
+            is_session_enabled=False,
+            session_save=None,
+            session_autosave_sec=20,
+            session_autosave_items=200,
+        )
+
+        with patch('src.lib.browser.browser.Config', return_value=cfg), \
+                patch('src.lib.browser.browser.Debug', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.Reader', return_value=reader), \
+                patch('src.lib.browser.browser.Filter.__init__', return_value=None), \
+                patch('src.lib.browser.browser.ThreadPool', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.response', return_value=MagicMock()), \
+                patch('src.lib.browser.browser.SnifferEngine.active_names_from_config', return_value={'shadow'}), \
+                patch('src.lib.browser.browser.ShadowProbe') as shadow_cls:
+            Browser({'host': 'test.local'})
+
+        shadow_cls.assert_called_once()
+        self.assertEqual(shadow_cls.call_args.kwargs['delay'], 1.5)
 
     def test_browser_enqueue_shadow_probes_defensive_and_enabled_paths(self):
         """Should cover shadow enqueue guards and enabled delegation."""

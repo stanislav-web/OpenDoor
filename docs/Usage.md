@@ -513,13 +513,6 @@ Security posture: HSTS preload-ready
 ```
 
 Detailed fingerprint metadata remains available in reports and in the final standard summary.
-
-
-OpenDoor 5.14.5 expands the passive fingerprint catalog with selected regional CMS, site-builder and strong HTTP-visible infrastructure signatures, including InstantCMS, Duda, Hostinger Website Builder, CMS.S3 / Megagroup, Webasyst / Shop-Script, Discuz!, NetCat, Hostinger, DDoS-Guard and Tencent Cloud.
-
-
-OpenDoor 5.15.2 also adds offline HSTS / preload-readiness detection to the same `--fingerprint` pass. It checks only the target host response and does not call external preload-status services. Report metadata is stored as `fingerprint.security_headers.hsts`.
-
 Example output in machine-readable reports:
 
 ```json

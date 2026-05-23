@@ -5,6 +5,7 @@
 import difflib
 import hashlib
 import threading
+import time
 from queue import Queue
 from urllib.parse import urlsplit, urlunsplit
 
@@ -16,7 +17,7 @@ class ShadowProbe(object):
     """Bounded active probe worker for backup/shadow postfix copies."""
 
     BUCKET = 'shadow'
-    MAX_CANDIDATES_PER_HIT = 12
+    MAX_CANDIDATES_PER_HIT = 16
     MAX_TOTAL_PROBES = 500
     MAX_BODY_SIZE = 1024 * 1024
     MIN_DIFF_SIMILARITY = 0.90
@@ -57,18 +58,20 @@ class ShadowProbe(object):
         'font/',
     )
 
-    def __init__(self, request_callback, match_callback, progress_callback=None):
+    def __init__(self, request_callback, match_callback, progress_callback=None, delay=0):
         """
         Initialize active shadow probing.
 
         :param callable request_callback: function used to fetch probe candidates
         :param callable match_callback: function called when a shadow copy is found
         :param callable|None progress_callback: optional progress callback
+        :param int|float delay: optional delay before every active probe request
         """
 
         self.__request_callback = request_callback
         self.__match_callback = match_callback
         self.__progress_callback = progress_callback
+        self.__delay = self.normalize_delay(delay)
         self.__suffixes = self.load_suffixes()
         self.__queue = Queue()
         self.__seen = set()
@@ -79,6 +82,26 @@ class ShadowProbe(object):
         self.__worker = threading.Thread(target=self.__run, name='opendoor-shadow-probe')
         self.__worker.daemon = True
         self.__worker.start()
+
+    @staticmethod
+    def normalize_delay(delay):
+        """
+        Normalize active probe delay to a safe non-negative float.
+
+        :param int|float delay: configured scan delay
+        :return: non-negative delay in seconds
+        :rtype: float
+        """
+
+        try:
+            value = float(delay)
+        except (TypeError, ValueError):
+            return 0.0
+
+        if value <= 0:
+            return 0.0
+
+        return value
 
     @property
     def submitted(self):
@@ -178,13 +201,49 @@ class ShadowProbe(object):
         return extension in cls.SOURCE_EXTENSIONS
 
     @classmethod
+    def build_template_path(cls, path, template):
+        """
+        Render one path-aware shadow template against a file-like URL path.
+
+        :param str path: URL path from the confirmed base response
+        :param str template: template body without the tpl: prefix
+        :return: rendered candidate path, or None when unsupported
+        :rtype: str|None
+        """
+
+        template = str(template or '')
+        if '{path}' not in template or '{ext}' not in template:
+            return None
+
+        path = str(path or '')
+        filename = path.rsplit('/', 1)[-1]
+        if not filename or '.' not in filename:
+            return None
+
+        if filename.startswith('.'):
+            return None
+
+        stem, extension = path.rsplit('.', 1)
+        if not stem or not extension:
+            return None
+
+        rendered = template.replace('{path}', stem).replace('{ext}', extension)
+        if '{' in rendered or '}' in rendered:
+            return None
+
+        if not rendered or rendered == path:
+            return None
+
+        return rendered
+
+    @classmethod
     def build_candidates(cls, url, suffixes):
         """
-        Build postfix shadow candidates from one base URL.
+        Build bounded suffix/template shadow candidates from one base URL.
 
         :param str url: base URL
-        :param list[str] suffixes: configured suffixes
-        :return: candidate URL and suffix pairs
+        :param list[str] suffixes: configured suffix/template variants
+        :return: candidate URL and variant pairs
         :rtype: list[tuple[str, str]]
         """
 
@@ -198,9 +257,28 @@ class ShadowProbe(object):
             return []
 
         candidates = []
-        for suffix in list(suffixes or [])[:cls.MAX_CANDIDATES_PER_HIT]:
-            new_path = '{0}{1}'.format(path, suffix)
-            candidates.append((urlunsplit((parsed.scheme, parsed.netloc, new_path, parsed.query, parsed.fragment)), suffix))
+        seen = set()
+        for variant in list(suffixes or []):
+            variant = str(variant or '').strip()
+            if not variant:
+                continue
+
+            if variant.startswith('tpl:'):
+                new_path = cls.build_template_path(path, variant[4:])
+            else:
+                new_path = '{0}{1}'.format(path, variant)
+
+            if not new_path:
+                continue
+
+            candidate_url = urlunsplit((parsed.scheme, parsed.netloc, new_path, parsed.query, parsed.fragment))
+            if candidate_url in seen:
+                continue
+
+            candidates.append((candidate_url, variant))
+            seen.add(candidate_url)
+            if len(candidates) >= cls.MAX_CANDIDATES_PER_HIT:
+                break
 
         return candidates
 
@@ -384,6 +462,9 @@ class ShadowProbe(object):
         :rtype: dict
         """
 
+        variant = str(suffix)
+        variant_type = 'template' if variant.startswith('tpl:') else 'suffix'
+
         return {
             'shadow_detection': {
                 'type': 'backup_copy',
@@ -391,8 +472,8 @@ class ShadowProbe(object):
                 'reason': 'content_diff',
                 'base_url': str(base_url),
                 'url': str(candidate_url),
-                'variant': str(suffix),
-                'variant_type': 'suffix',
+                'variant': variant,
+                'variant_type': variant_type,
                 'similarity': float(candidate_signature.get('similarity', 0.0)),
                 'base_size': int(base_signature.get('size', 0)),
                 'shadow_size': int(candidate_signature.get('size', 0)),
@@ -467,6 +548,9 @@ class ShadowProbe(object):
         """
 
         base_url, base_signature, candidate_url, suffix, current = task
+
+        if self.__delay > 0:
+            time.sleep(self.__delay)
 
         try:
             candidate_response = self.__request_callback(candidate_url)
