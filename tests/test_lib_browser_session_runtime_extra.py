@@ -32,6 +32,10 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
             'keep_alive': False,
             'is_fingerprint': True,
             'is_waf_detect': True,
+            'is_waf_safe_mode': False,
+            'is_waf_guard': False,
+            'waf_guard_after': None,
+            'waf_guard_threshold': None,
             'wordlist': '/tmp/wordlist.txt',
             'reports': ['std', 'json'],
             'reports_dir': '/tmp/reports',
@@ -59,6 +63,7 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
             'delay': 0,
             'timeout': 10,
             'retries': 3,
+            'retries_fail_streak': 10,
             'debug': 1,
             'is_builtin_proxy_pool': False,
             'is_external_proxy_list': False,
@@ -162,6 +167,44 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
         self.assertEqual(params['session_save'], '/tmp/opendoor-session.json')
         self.assertTrue(params['fingerprint'])
         self.assertTrue(params['waf_detect'])
+        self.assertEqual(params['retries_fail_streak'], 10)
+
+
+    def test_build_session_snapshot_exports_fingerprint_state(self):
+        """Browser session snapshot should preserve requested fingerprint state."""
+
+        br = self.make_browser(is_fingerprint=True)
+
+        snapshot = br._Browser__build_session_snapshot(reason='test')
+
+        self.assertTrue(snapshot['params']['fingerprint'])
+
+        br = self.make_browser(is_fingerprint=False)
+
+        snapshot = br._Browser__build_session_snapshot(reason='test')
+
+        self.assertFalse(snapshot['params']['fingerprint'])
+
+
+    def test_build_session_snapshot_exports_waf_state(self):
+        """Browser session snapshot should preserve selected WAF runtime flags."""
+
+        br = self.make_browser(
+            is_waf_detect=True,
+            is_waf_safe_mode=True,
+            is_waf_guard=True,
+            waf_guard_after=9,
+            waf_guard_threshold=0.75,
+        )
+
+        snapshot = br._Browser__build_session_snapshot(reason='test')
+        params = snapshot['params']
+
+        self.assertTrue(params['waf_detect'])
+        self.assertTrue(params['waf_safe_mode'])
+        self.assertTrue(params['waf_guard'])
+        self.assertEqual(params['waf_guard_after'], 9)
+        self.assertEqual(params['waf_guard_threshold'], 0.75)
 
     def test_build_session_snapshot_exports_all_selected_sniffers(self):
         """Browser session checkpoint should preserve every selected sniffer alias."""

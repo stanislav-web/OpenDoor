@@ -17,20 +17,17 @@
 """
 
 class CacheControlProvider(object):
-    """ CacheControlProvider class"""
+    """Cache-Control request header provider."""
 
-    def __init__(self):
-        """
-        Init interface
-        """
-
-        self.__cache_control = 'max-age=0'
+    DEFAULT_CACHE_CONTROL = 'max-age=0'
 
     @property
     def _cache_control(self):
         """
-        Get 'Cache-Control' Header
-        :return: str
+        Get the default Cache-Control request header value.
+
+        :return: Cache-Control header value.
+        :rtype: str
         """
 
-        return self.__cache_control
+        return self.DEFAULT_CACHE_CONTROL

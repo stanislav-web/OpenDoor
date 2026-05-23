@@ -61,7 +61,7 @@ class TestBrowserFilteredProgress(unittest.TestCase):
 
         self.assertTrue(result)
         self.assertTrue(output.startswith('\r'))
-        self.assertIn('1.0% [000001/100] - calibrated - 200 - 158KB', output)
+        self.assertIn('1.0% [001/100] - calibrated - 200 - 158KB', output)
         self.assertIn('score=0.91', output)
         self.assertIn('https://example.com/missing', output)
         self.assertNotIn('soft-200-shape', output)
@@ -204,6 +204,63 @@ class TestBrowserFilteredProgress(unittest.TestCase):
         self.assertIn('accounts/sellers\n', output)
         self.assertFalse(getattr(browser, '_Browser__filtered_progress_active'))
 
+    def test_ignored_item_warning_should_use_current_scan_progress(self):
+        """Ignored-item warnings should render the current scan counter, not zero."""
+
+        browser = self.make_browser(items_size=47083, total_items_size=95052)
+        browser._Browser__reader = SimpleNamespace(total_lines=95052)
+        stdout = io.StringIO()
+
+        for handler in list(Logger.log('warning').handlers):
+            Logger.log('warning').removeHandler(handler)
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=220)):
+                browser._Browser__emit_ignored_item_warning('https://kipkomplekt.ru/error.php')
+
+        output = stdout.getvalue()
+
+        self.assertIn('skip [47083/95052] - Ignored /error.php', output)
+        self.assertNotIn('skip [00000/95052]', output)
+
+    def test_add_urls_should_count_streamed_ignored_items_in_progress(self):
+        """Ignored dictionary entries should advance the displayed scan position."""
+
+        browser = self.make_browser(items_size=0, total_items_size=3)
+        browser._Browser__reader = SimpleNamespace(
+            total_lines=3,
+            get_ignored_list=lambda: ['index.php'],
+        )
+        browser._Browser__deduplicate_scan_url = lambda url: True
+        browser._Browser__register_pending_request = lambda url, depth: True
+        browser._Browser__catch_report_data = lambda *args, **kwargs: None
+
+        browser._Browser__pool = SimpleNamespace(
+            items_size=0,
+            completed_size=0,
+            submitted_size=0,
+            total_items_size=3,
+            add=lambda *_args, **_kwargs: None,
+            join=lambda: None,
+        )
+        stdout = io.StringIO()
+
+        for handler in list(Logger.log('warning').handlers):
+            Logger.log('warning').removeHandler(handler)
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=220)):
+                browser._add_urls([
+                    'https://localhost/admin',
+                    'https://localhost/index.php',
+                    'https://localhost/health',
+                ])
+
+        output = stdout.getvalue()
+
+        self.assertIn('skip [2/3] - Ignored /index.php', output)
+        self.assertNotIn('skip [0/3]', output)
+
     def test_waf_safe_mode_warning_should_clear_filtered_progress_first(self):
         """WAF activation warning should not glue to a rotating calibration line."""
 
@@ -278,7 +335,7 @@ class TestBrowserFilteredProgress(unittest.TestCase):
         output = stdout.getvalue()
         last_visual_line = output.split('\n')[-1].split('\r')[-1]
 
-        self.assertIn('[000074/95067]', last_visual_line)
+        self.assertIn('[00074/95067]', last_visual_line)
         self.assertIn('https://localhost/next-page.php', last_visual_line)
         self.assertNotIn('https://localhost/pers.csp', last_visual_line)
         self.assertTrue(getattr(browser, '_Browser__filtered_progress_active'))
@@ -303,9 +360,30 @@ class TestBrowserFilteredProgress(unittest.TestCase):
         rendered = output.split('\r')[-1]
 
         self.assertTrue(result)
-        self.assertIn('[000074/95067]', rendered)
+        self.assertIn('[00074/95067]', rendered)
         self.assertIn('https://localhost/CMS.h', rendered)
         self.assertNotIn('https://localhost/ ', rendered)
+
+    def test_emit_filtered_progress_should_use_total_width_for_large_wordlists(self):
+        """Filtered progress should align with regular finding progress width."""
+
+        browser = self.make_browser(items_size=2048, total_items_size=94736)
+        stdout = io.StringIO()
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=220)):
+                result = browser._Browser__emit_filtered_progress(
+                    'calibrated',
+                    ('success', 'https://localhost/dashboard/sso', '41KB', '302'),
+                    {'calibration_score': 1.0}
+                )
+
+        output = stdout.getvalue()
+        rendered = output.split('\r')[-1]
+
+        self.assertTrue(result)
+        self.assertIn('[02048/94736]', rendered)
+        self.assertNotIn('[002048/94736]', rendered)
 
     def test_emit_filtered_progress_should_keep_rendered_url_without_request_url(self):
         """Direct helper usage should remain backward-compatible without request URL."""
@@ -325,7 +403,7 @@ class TestBrowserFilteredProgress(unittest.TestCase):
         rendered = output.split('\r')[-1]
 
         self.assertTrue(result)
-        self.assertIn('[000074/95067]', rendered)
+        self.assertIn('[00074/95067]', rendered)
         self.assertIn('https://localhost/', rendered)
 
     def test_clear_filtered_progress_should_clear_active_rotating_line(self):

@@ -280,6 +280,61 @@ class TestTextReportPluginCoverage(unittest.TestCase):
         clear_mock.assert_called_once_with(self.target_dir, extension='.txt')
         record_mock.assert_not_called()
 
+    def test_should_format_supercookie_warning_and_signal_lists(self):
+        """Text fingerprint summary should include optional supercookie warning and signal lists."""
+
+        plugin = TextReportPlugin.__new__(TextReportPlugin)
+        plugin._data = {
+            'fingerprint': {
+                'category': 'custom',
+                'name': 'Unknown custom stack',
+                'confidence': 35,
+                'privacy_risks': {
+                    'supercookie': {
+                        'risk': 'medium',
+                        'score': 45,
+                        'warnings': ['persistent ETag/cache validator'],
+                        'signals': ['persistent_etag:"abc"'],
+                    }
+                },
+            }
+        }
+
+        rows = plugin.format_fingerprint_summary()
+
+        self.assertIn('privacy_supercookie_warnings: persistent ETag/cache validator', rows)
+        self.assertIn('supercookie_signals: persistent_etag:"abc"', rows)
+
+    def test_should_format_supercookie_rows_without_optional_warning_lists(self):
+        """Text fingerprint summary should handle supercookie metadata without optional lists."""
+
+        plugin = TextReportPlugin.__new__(TextReportPlugin)
+        plugin._data = {
+            'fingerprint': {
+                'category': 'custom',
+                'name': 'Unknown custom stack',
+                'confidence': 35,
+                'privacy_risks': {
+                    'supercookie': {
+                        'risk': 'none',
+                        'score': 0,
+                        'hsts_tracking_surface': False,
+                        'etag_tracking_surface': False,
+                        'cache_tracking_surface': False,
+                        'persistent_cookie_surface': False,
+                        'warnings': [],
+                        'signals': [],
+                    }
+                },
+            }
+        }
+
+        rows = plugin.format_fingerprint_summary()
+
+        self.assertIn('supercookie_risk: none', rows)
+        self.assertIn('supercookie_score: 0', rows)
+        self.assertNotIn('privacy_supercookie_warnings: ', rows)
+        self.assertNotIn('supercookie_signals: ', rows)
 
 if __name__ == '__main__':
     unittest.main()

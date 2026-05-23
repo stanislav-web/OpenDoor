@@ -32,11 +32,21 @@ Use a domain name instead of a full URL.
 
 ## Use a custom wordlist
 
+Local file:
+
 ```shell
 opendoor --host https://example.com --wordlist ./wordlists/paths.txt
 ```
 
-Use custom wordlists when the target stack or application naming patterns are known.
+Remote HTTP(S) file:
+
+```shell
+opendoor --host https://example.com --wordlist https://example.com/wordlists/paths.txt
+```
+
+Use custom wordlists when the target stack or application naming patterns are known. Local and remote custom wordlists are marked as `external`; bundled OpenDoor dictionaries are marked as `internal`.
+
+Remote wordlists are downloaded into the managed per-scan temporary workspace before scanning. The same counters, filters, extension handling, and scan progress are used after download. Remote files larger than 500 MB are rejected; download very large wordlists separately and pass the local file path.
 
 ---
 

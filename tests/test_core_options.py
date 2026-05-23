@@ -101,6 +101,207 @@ class TestOptions(unittest.TestCase):
         self.assertEqual(actual, {'host': 'example.com', 'debug': 0})
         filter_mock.assert_called_once_with({'host': 'example.com', 'debug': 0})
 
+
+    def test_get_arg_values_should_keep_explicit_delay_zero(self):
+        """Options.get_arg_values() should keep explicit --delay 0 for wizard/session overrides."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            delay=0.0,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'delay': 0.0}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'delay': 0.0})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'delay': 0.0})
+
+    def test_get_arg_values_should_pass_fractional_delay(self):
+        """Options.get_arg_values() should pass fractional --delay values to the filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            delay=0.1,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'delay': 0.1}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'delay': 0.1})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'delay': 0.1})
+
+    def test_get_arg_values_should_keep_explicit_port_zero_for_validation(self):
+        """Options.get_arg_values() should pass --port 0 to Filter for range validation."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            port=0,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'port': 0})
+
+    def test_get_arg_values_should_pass_custom_port(self):
+        """Options.get_arg_values() should pass explicit custom ports to Filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            port=8443,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'port': 8443}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'port': 8443})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'port': 8443})
+
+
+    def test_get_arg_values_should_not_emit_default_threads(self):
+        """Options.get_arg_values() should not pass threads when the user did not set it."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            threads=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com'})
+
+    def test_get_arg_values_should_keep_threads_zero_for_validation(self):
+        """Options.get_arg_values() should pass --threads 0 to Filter for validation."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            threads=0,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'threads': 0})
+
+    def test_get_arg_values_should_pass_explicit_threads(self):
+        """Options.get_arg_values() should pass explicit thread counts to Filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            threads=8,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'threads': 8}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'threads': 8})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'threads': 8})
+
+
+    def test_get_arg_values_should_not_emit_default_method(self):
+        """Options.get_arg_values() should not pass method when the user did not set it."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            method=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com'})
+
+    def test_get_arg_values_should_pass_explicit_method(self):
+        """Options.get_arg_values() should pass explicit methods to Filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            method='GET',
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'method': 'GET'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'method': 'GET'})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'method': 'GET'})
+
     def test_get_arg_values_filters_non_standalone_arguments(self):
         """Options.get_arg_values() should pass non-standalone args through Filter.filter()."""
 
@@ -305,6 +506,125 @@ class TestOptions(unittest.TestCase):
                 'recursive_exclude': 'jpg,png',
             }
         )
+
+    def test_get_arg_values_should_not_emit_recursive_defaults(self):
+        """Options.get_arg_values() should not pass recursive defaults when unset."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            recursive=False,
+            recursive_depth=None,
+            recursive_status=None,
+            recursive_exclude=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com'})
+
+    def test_get_arg_values_should_keep_recursive_depth_zero_for_validation(self):
+        """Options.get_arg_values() should pass recursive-depth 0 to Filter for validation."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            recursive=False,
+            recursive_depth=0,
+            recursive_status=None,
+            recursive_exclude=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'recursive_depth': 0})
+
+    def test_get_arg_values_should_not_emit_default_reports(self):
+        """Options.get_arg_values() should not pass report defaults when unset."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            reports=None,
+            reports_dir=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com'})
+
+    def test_get_arg_values_should_pass_explicit_reports(self):
+        """Options.get_arg_values() should pass explicit --reports values to Filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            reports='csv,html',
+            reports_dir=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'reports': 'csv,html'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'reports': 'csv,html'})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'reports': 'csv,html'})
+
+    def test_get_arg_values_should_pass_reports_dir_as_string(self):
+        """Options.get_arg_values() should pass --reports-dir as a string path."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            reports=None,
+            reports_dir='./reports',
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'reports_dir': './reports'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'reports_dir': './reports'})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'reports_dir': './reports'})
 
     def test_init_should_parse_multiple_header_arguments(self):
         """Options.__init__() should parse multiple custom request headers."""
@@ -859,6 +1179,120 @@ class TestOptions(unittest.TestCase):
             'waf_safe_mode': True,
         })
 
+
+    def test_get_arg_values_should_not_emit_default_fingerprint(self):
+        """Options.get_arg_values() should not emit unset fingerprint flag default."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            fingerprint=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com'})
+
+    def test_get_arg_values_should_pass_explicit_fingerprint(self):
+        """Options.get_arg_values() should pass explicit --fingerprint through Filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            fingerprint=True,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'fingerprint': True}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'fingerprint': True})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'fingerprint': True})
+
+
+    def test_get_arg_values_should_not_emit_default_waf_flags(self):
+        """Options.get_arg_values() should not emit unset WAF flag defaults."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            waf_detect=None,
+            waf_safe_mode=None,
+            waf_guard=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com'})
+
+    def test_get_arg_values_should_pass_explicit_waf_flags(self):
+        """Options.get_arg_values() should pass explicit WAF flags through Filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            waf_detect=True,
+            waf_safe_mode=True,
+            waf_guard=True,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {
+            'host': 'example.com',
+            'waf_detect': True,
+            'waf_safe_mode': True,
+            'waf_guard': True,
+        }
+
+        with patch('src.core.options.options.Filter.filter', return_value=filtered) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, filtered)
+        filter_mock.assert_called_once_with({
+            'host': 'example.com',
+            'waf_detect': True,
+            'waf_safe_mode': True,
+            'waf_guard': True,
+        })
+
     def test_init_should_parse_fail_on_bucket_argument(self):
         """Options.__init__() should parse CI/CD fail-on bucket argument."""
 
@@ -908,6 +1342,57 @@ class TestOptions(unittest.TestCase):
         filter_mock.assert_called_once_with({
             'host': 'example.com',
             'fail_on_bucket': 'success,auth',
+        })
+
+    def test_init_should_parse_retries_fail_streak_argument(self):
+        """Options.__init__() should parse the consecutive max-retry path threshold."""
+
+        with patch(
+                'src.core.options.options.sys.argv',
+                [
+                    'opendoor.py',
+                    '--host',
+                    'example.com',
+                    '--retries-fail-streak',
+                    '25',
+                ]
+        ):
+            option = Options()
+
+        self.assertEqual(option.args.retries_fail_streak, 25)
+
+    def test_get_arg_values_should_pass_retries_fail_streak_through_filter(self):
+        """Options.get_arg_values() should pass --retries-fail-streak through Filter.filter()."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            retries_fail_streak=25,
+        )
+        option = self.make_options(namespace)
+
+        filtered = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'retries_fail_streak': 25,
+        }
+
+        with patch('src.core.options.options.Filter.filter', return_value=filtered) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, filtered)
+        filter_mock.assert_called_once_with({
+            'host': 'example.com',
+            'retries_fail_streak': 25,
         })
 
     def test_init_should_parse_network_transport_arguments(self):

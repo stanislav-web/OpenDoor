@@ -120,6 +120,7 @@ method = HEAD
 delay = 0
 timeout = 30
 retries = 3
+retries_fail_streak = 10
 threads = 10
 keep_alive = None
 accept_cookies = None
@@ -130,6 +131,7 @@ Notes:
 - `HEAD` is faster for status/size-oriented discovery.
 - `GET` is better when body-based filters or body-oriented sniffers are required.
 - `timeout` and `retries` should be increased for slow or unstable targets.
+- `retries_fail_streak` aborts the scan only after this many consecutive paths exhaust retries.
 - `delay` can be used to reduce request pressure.
 - `threads` controls concurrency (1 ~ 50).
 
@@ -277,11 +279,19 @@ calibration_threshold = 0.85
 
 ## 📚 Wordlists and extensions
 
-Use a custom wordlist:
+Use a custom local wordlist:
 
 ```ini
 wordlist = ./wordlists/custom.txt
 ```
+
+Use a remote HTTP(S) wordlist:
+
+```ini
+wordlist = https://example.com/wordlists/custom.txt
+```
+
+Bundled OpenDoor dictionaries are treated as `internal`. Any value configured through `wordlist` is treated as `external`; remote files are downloaded before scan start and are limited to 500 MB.
 
 Shuffle scan order:
 
@@ -408,6 +418,15 @@ Use a custom proxy list:
 ```ini
 proxy_list = ./proxies.txt
 ```
+
+Custom proxy lists rotate randomly by default. To make proxy usage deterministic during debugging, set sequential rotation:
+
+```ini
+proxy_list = ./proxies.txt
+proxy_rotation = sequential
+```
+
+Allowed values are `random` and `sequential`. `proxy_rotation` is valid only when `proxy_list` is configured.
 
 ### Network transport
 
@@ -608,6 +627,7 @@ threads = 3
 delay = 1
 timeout = 60
 retries = 5
+retries_fail_streak = 10
 
 waf_safe_mode = True
 auto_calibrate = True
@@ -642,6 +662,7 @@ threads = 3
 delay = 1
 timeout = 60
 retries = 5
+retries_fail_streak = 10
 
 waf_detect = True
 waf_safe_mode = True

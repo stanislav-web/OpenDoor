@@ -221,11 +221,15 @@ class Debug(DebugProvider):
 
         return True
 
-    def debug_proxy_selected(self, server):
+    def debug_proxy_selected(self, server, rotation=None):
         """Debug selected proxy for rotating proxy modes."""
 
         if self.is_scan_debug():
-            tpl.debug(key='proxy_pool_selected', server=self.__mask_proxy_server(server))
+            masked_server = self.__mask_proxy_server(server)
+            if rotation:
+                masked_server = '{0} ({1})'.format(masked_server, rotation)
+
+            tpl.debug(key='proxy_pool_selected', server=masked_server)
 
         return True
 
@@ -267,8 +271,14 @@ class Debug(DebugProvider):
         else:
             urlpath = request_uri
 
-        if status in ['success', 'file', 'indexof', 'certificate', 'auth']:
+        if status in ['success', 'file', 'certificate', 'auth']:
             request_uri = tpl.line(key=status, color='green', url=urlpath)
+        elif status in ['indexof']:
+            request_uri = '{0} ({1}) {2}'.format(
+                tpl.line(msg='OK', color='green'),
+                tpl.line(msg='IndexOf', color='red'),
+                tpl.line(msg=urlpath, color='green')
+            )
         elif status in ['malware']:
             request_uri = '{0} ({1}) {2}'.format(
                 tpl.line(msg='OK', color='green'),

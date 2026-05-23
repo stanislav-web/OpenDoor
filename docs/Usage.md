@@ -102,13 +102,27 @@ Use a domain name instead of a full path when scanning subdomains.
 
 ## 📚 Wordlists and extensions
 
-### Custom wordlist
+### Custom local wordlist
 
 ```shell
 opendoor --host https://example.com --wordlist ./wordlist.txt
 ```
 
-A custom wordlist is useful when testing a specific technology stack, application, CMS, or organization-specific naming pattern.
+A custom local wordlist is useful when testing a specific technology stack, application, CMS, or organization-specific naming pattern.
+
+OpenDoor marks bundled `data/*.dat` dictionaries as `internal` in the startup banner. Any wordlist passed with `--wordlist` is marked as `external`, including local files and remote HTTP(S) files.
+
+### Remote HTTP(S) wordlist
+
+```shell
+opendoor --host https://example.com --wordlist https://example.com/wordlists/admin.txt
+```
+
+Remote wordlists are downloaded before the scan starts, stored in the managed per-scan temporary workspace, and then processed with the same parsing, filtering, shuffling, extension handling, and scan counters as local wordlists. The scan itself does not use a separate remote-wordlist mode.
+
+Only `http://` and `https://` sources are supported. Remote wordlists are limited to 500 MB. If a remote wordlist is larger, download it separately, review it, and pass the local file path with `--wordlist`.
+
+OpenDoor shows a single-line download progress bar for remote wordlists. With `--debug`, it also prints the remote source URL and the temporary runtime file path after download. Wordlist contents are not printed.
 
 ### Shuffle scan list
 
@@ -244,6 +258,30 @@ Short form:
 
 ```shell
 opendoor --host https://example.com -r 5
+```
+
+`--retries` controls retry attempts inside one path request.
+
+### Consecutive retry failures
+
+```shell
+opendoor --host https://example.com --retries 5 --retries-fail-streak 10
+```
+
+`--retries-fail-streak` controls how many consecutive paths may exhaust the configured retry budget before OpenDoor aborts the scan.
+
+Default: `10`.
+
+Use this to avoid spending a full wordlist on a target that became unavailable, while still tolerating occasional path-specific `Max retries exceeded` responses. Any normally processed response resets the streak. Paths that exhaust retries are still recorded as skipped/ignored before the abort threshold is evaluated.
+
+Examples:
+
+```shell
+# Fail faster when the target is expected to be stable
+opendoor --host https://example.com --retries-fail-streak 3
+
+# Tolerate unstable or WAF-sensitive targets
+opendoor --host https://example.com --retries-fail-streak 25
 ```
 
 ### Threads (1 ~ 50)
@@ -475,13 +513,6 @@ Security posture: HSTS preload-ready
 ```
 
 Detailed fingerprint metadata remains available in reports and in the final standard summary.
-
-
-OpenDoor 5.14.5 expands the passive fingerprint catalog with selected regional CMS, site-builder and strong HTTP-visible infrastructure signatures, including InstantCMS, Duda, Hostinger Website Builder, CMS.S3 / Megagroup, Webasyst / Shop-Script, Discuz!, NetCat, Hostinger, DDoS-Guard and Tencent Cloud.
-
-
-OpenDoor 5.15.2 also adds offline HSTS / preload-readiness detection to the same `--fingerprint` pass. It checks only the target host response and does not call external preload-status services. Report metadata is stored as `fingerprint.security_headers.hsts`.
-
 Example output in machine-readable reports:
 
 ```json
@@ -773,6 +804,21 @@ opendoor --host https://example.com --proxy-pool
 ```shell
 opendoor --host https://example.com --proxy-list proxies.txt
 ```
+
+By default, OpenDoor uses random rotation for custom proxy lists. Use `--proxy-rotation sequential` when you need deterministic file-order rotation for debugging or reproducible checks:
+
+```shell
+opendoor --host https://example.com --proxy-list proxies.txt --proxy-rotation sequential
+```
+
+Supported proxy-list rotation policies:
+
+| Policy | Behavior |
+|---|---|
+| `random` | Default. Selects an available proxy randomly from the live proxy pool. |
+| `sequential` | Uses proxies in file order and skips runtime-dead entries. |
+
+`--proxy-rotation` works only with `--proxy-list`. It is intentionally not accepted with `--proxy`, `--proxy-pool`, or direct scans.
 
 ### Transport mode
 
@@ -1164,6 +1210,7 @@ opendoor \
   --waf-safe-mode \
   --timeout 60 \
   --retries 5 \
+  --retries-fail-streak 10 \
   --delay 0.5
 ```
 

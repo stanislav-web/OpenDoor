@@ -57,16 +57,16 @@ class Options(object):
                 "group": "request",
                 "args": "-p",
                 "argl": "--port",
-                "default": 80,
+                "default": None,
                 "action": "store",
-                "help": "Custom port (default 80)",
+                "help": "Custom port (default by scheme)",
                 "type": int
             },
             {
                 "group": "request",
                 "args": "-m",
                 "argl": "--method",
-                "default": "HEAD",
+                "default": None,
                 "action": "store",
                 "help": "Request method (HEAD by default)",
                 "type": str
@@ -120,7 +120,7 @@ class Options(object):
                 "group": "stream",
                 "args": "-t",
                 "argl": "--threads",
-                "default": 1,
+                "default": None,
                 "action": "store",
                 "help": "Allowed threads",
                 "type": int
@@ -129,7 +129,7 @@ class Options(object):
                 "group": "request",
                 "args": "-d",
                 "argl": "--delay",
-                "default": 0,
+                "default": None,
                 "action": "store",
                 "help": "Delay between threaded requests",
                 "type": float
@@ -150,6 +150,15 @@ class Options(object):
                 "default": 3,
                 "action": "store",
                 "help": "Maximum reconnect retries (default 3)",
+                "type": int
+            },
+            {
+                "group": "request",
+                "args": None,
+                "argl": "--retries-fail-streak",
+                "default": 10,
+                "action": "store",
+                "help": "Abort after N consecutive paths exhaust --retries, default 10",
                 "type": int
             },
             {
@@ -201,7 +210,7 @@ class Options(object):
                 "group": "request",
                 "args": None,
                 "argl": "--fingerprint",
-                "default": False,
+                "default": None,
                 "action": "store_true",
                 "help": "Detect probable CMS, framework, security posture and passive privacy risks before the scan",
                 "type": bool
@@ -210,7 +219,7 @@ class Options(object):
                 "group": "request",
                 "args": None,
                 "argl": "--waf-detect",
-                "default": False,
+                "default": None,
                 "action": "store_true",
                 "help": "Passively detect probable WAF or anti-bot protections before classifying a response",
                 "type": bool
@@ -219,7 +228,7 @@ class Options(object):
                 "group": "request",
                 "args": None,
                 "argl": "--waf-safe-mode",
-                "default": False,
+                "default": None,
                 "action": "store_true",
                 "help": "Automatically switch to a cautious scan profile after WAF detection",
                 "type": bool
@@ -228,7 +237,7 @@ class Options(object):
                 "group": "request",
                 "args": None,
                 "argl": "--waf-guard",
-                "default": False,
+                "default": None,
                 "action": "store_true",
                 "help": "Stop the scan early when initial classified responses are overwhelmingly WAF-blocked",
                 "type": bool
@@ -335,6 +344,15 @@ class Options(object):
             {
                 "group": "request",
                 "args": None,
+                "argl": "--proxy-rotation",
+                "default": None,
+                "action": "store",
+                "help": "Proxy-list rotation policy: random keeps current behavior, sequential uses file order (default random)",
+                "type": str
+            },
+            {
+                "group": "request",
+                "args": None,
                 "argl": "--proxy",
                 "default": None,
                 "action": "store",
@@ -428,7 +446,7 @@ class Options(object):
                 "argl": "--wordlist",
                 "default": None,
                 "action": "store",
-                "help": "Path to custom wordlist",
+                "help": "Path or HTTP(S) URL to custom wordlist",
                 "type": str
             },
             {
@@ -471,7 +489,7 @@ class Options(object):
                 "group": "report",
                 "args": None,
                 "argl": "--reports",
-                "default": "std",
+                "default": None,
                 "action": "store",
                 "help": "Scan reports (json,std,txt,csv,html,sqlite,sarif)",
                 "type": str
@@ -492,7 +510,6 @@ class Options(object):
                 "default": None,
                 "action": "store",
                 "help": "Path to custom reports directory",
-                "nargs": 1,
                 "type": str
             },
             {
@@ -553,7 +570,7 @@ class Options(object):
                 "group": "wordlist",
                 "args": None,
                 "argl": "--recursive-depth",
-                "default": 1,
+                "default": None,
                 "action": "store",
                 "help": "Maximum recursive scan depth",
                 "type": int
@@ -562,7 +579,7 @@ class Options(object):
                 "group": "wordlist",
                 "args": None,
                 "argl": "--recursive-status",
-                "default": "200,301,302,307,308,403",
+                "default": None,
                 "action": "store",
                 "help": "HTTP status codes allowed for recursive expansion",
                 "type": str
@@ -571,7 +588,7 @@ class Options(object):
                 "group": "wordlist",
                 "args": None,
                 "argl": "--recursive-exclude",
-                "default": "jpg,jpeg,png,gif,svg,css,js,ico,woff,woff2,ttf,map,pdf,zip,gz,tar",
+                "default": None,
                 "action": "store",
                 "help": "File extensions excluded from recursive expansion",
                 "type": str
@@ -803,7 +820,17 @@ class Options(object):
                         break
             else:
                 for arg, value in vars(self.args).items():
-                    if value or arg in ['debug'] or (arg == 'header_bypass_limit' and value == 0):
+                    if value \
+                            or arg in ['debug'] \
+                            or (arg == 'delay' and value is not None) \
+                            or (arg == 'port' and value is not None) \
+                            or (arg == 'method' and value is not None) \
+                            or (arg == 'threads' and value is not None) \
+                            or (arg == 'fingerprint' and value is not None) \
+                            or (arg in ['waf_detect', 'waf_safe_mode', 'waf_guard'] and value is not None) \
+                            or (arg in ['recursive_depth', 'recursive_status', 'recursive_exclude'] and value is not None) \
+                            or (arg in ['reports', 'reports_dir'] and value is not None) \
+                            or (arg == 'header_bypass_limit' and value == 0):
                         args[arg] = value
                 args = Filter.filter(args)
 

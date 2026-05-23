@@ -16,6 +16,7 @@
     Development: Stanislav WEB
 """
 
+import os
 import re
 
 
@@ -26,7 +27,7 @@ class Config(object):
     BODY_REQUIRED_SNIFFERS = ('indexof', 'collation', 'stacktrace', 'secret', 'malware', 'shadow')
     DEFAULT_SOCKET_TIMEOUT = 10
     DEFAULT_MIN_THREADS = 1
-    DEFAULT_MAX_THREADS = 25
+    DEFAULT_MAX_THREADS = 50
     DEFAULT_DEBUG_LEVEL = 1
     DEFAULT_REPORT = 'std'
     DEFAULT_SCAN = 'directories'
@@ -36,6 +37,14 @@ class Config(object):
     DEFAULT_SSL_PORT = 443
     DEFAULT_HTTP_METHOD = 'HEAD'
     DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
+    DEFAULT_RETRIES_FAIL_STREAK = 10
+    DEFAULT_RECURSIVE_STATUS = ('200', '301', '302', '307', '308', '403')
+    DEFAULT_RECURSIVE_EXCLUDE = (
+        'jpg', 'jpeg', 'png', 'gif', 'svg', 'css', 'js', 'ico',
+        'woff', 'woff2', 'ttf', 'map', 'pdf', 'zip', 'gz', 'tar',
+    )
+    RECURSIVE_EXTENSION_REGEX = re.compile(r'^[A-Za-z0-9][A-Za-z0-9+_-]*$')
+    SCAN_REPORTS = ('json', 'std', 'txt', 'csv', 'html', 'sqlite', 'sarif')
 
     def __init__(self, params):
         """
@@ -70,20 +79,21 @@ class Config(object):
         self._request_body = params.get('request_body')
         self._accept_cookies = params.get('accept_cookies') is not None
         self._keep_alive = params.get('keep_alive') is True
-        self._port = params.get('port')
+        self._port = self._normalize_port(params.get('port'))
         self._wordlist = params.get('wordlist')
-        self._reports_dir = params.get('reports_dir')
+        self._wordlist_resolved_path = params.get('wordlist_resolved_path') or params.get('resolved_wordlist')
+        self._reports_dir = self._normalize_optional_path(params.get('reports_dir'))
         self._prefix = '' if params.get('prefix') is None else params.get('prefix')
-        self._reports = self._normalize_csv(params.get('reports'))
-        self._is_fingerprint = params.get('fingerprint') is True
-        self._is_waf_safe_mode = params.get('waf_safe_mode') is True
-        self._is_waf_guard = params.get('waf_guard') is True
+        self._reports = self._normalize_scan_reports(params.get('reports'))
+        self._is_fingerprint = self._normalize_bool(params.get('fingerprint'), 'fingerprint')
+        self._is_waf_safe_mode = self._normalize_bool(params.get('waf_safe_mode'), 'waf_safe_mode')
+        self._is_waf_guard = self._normalize_bool(params.get('waf_guard'), 'waf_guard')
         self._waf_guard_after = 50 if params.get('waf_guard_after') is None else int(
             params.get('waf_guard_after'))
         self._waf_guard_threshold = 0.95 if params.get('waf_guard_threshold') is None else float(
             params.get('waf_guard_threshold'))
         self._is_waf_detect = (
-            params.get('waf_detect') is True
+            self._normalize_bool(params.get('waf_detect'), 'waf_detect') is True
             or self._is_waf_safe_mode is True
             or self._is_waf_guard is True
         )
@@ -102,23 +112,31 @@ class Config(object):
         self._extensions = self._normalize_csv(params.get('extensions'))
         self._ignore_extensions = self._normalize_csv(params.get('ignore_extensions'))
         self._is_recursive = params.get('recursive') is True
-        self._recursive_depth = 1 if params.get('recursive_depth') is None else int(params.get('recursive_depth'))
-        self._recursive_status = self._normalize_csv(params.get('recursive_status'))
-        self._recursive_exclude = self._normalize_csv(params.get('recursive_exclude'))
+        self._recursive_depth = self._normalize_recursive_depth(params.get('recursive_depth'))
+        self._recursive_status = self._normalize_recursive_status(
+            params.get('recursive_status'),
+            enabled=self._is_recursive,
+        )
+        self._recursive_exclude = self._normalize_recursive_exclude(
+            params.get('recursive_exclude'),
+            enabled=self._is_recursive,
+        )
         self._retries = self._normalize_retries(params.get('retries'))
+        self._retries_fail_streak = self._normalize_retries_fail_streak(params.get('retries_fail_streak'))
         self._method = params.get('method')
         self._delay = params.get('delay')
         self._timeout = self.DEFAULT_SOCKET_TIMEOUT if params.get('timeout') is None else float(params.get('timeout'))
         self._debug = self.DEFAULT_DEBUG_LEVEL if params.get('debug') is None else params.get('debug')
         self._is_proxy_pool = params.get('proxy_pool') is True
         self._proxy_list = '' if 'proxy_list' not in params or params.get('proxy_list') is None else params.get('proxy_list')
+        self._proxy_rotation = 'random' if params.get('proxy_rotation') is None else params.get('proxy_rotation')
         self._is_random_user_agent = params.get('random_agent')
         self._sniff = self._normalize_csv(params.get('sniff'))
         self._is_random_list = params.get('random_list') is True
         self._is_extension_filter = len(self._extensions or []) > 0
         self._is_ignore_extension_filter = len(self._ignore_extensions or []) > 0
         self._user_agent = self.DEFAULT_USER_AGENT
-        self._threads = self.DEFAULT_MIN_THREADS if params.get('threads') is None else params.get('threads')
+        self._threads = self._normalize_threads(params.get('threads'))
         self._include_status = self._normalize_csv(params.get('include_status'))
         self._exclude_status = self._normalize_csv(params.get('exclude_status'))
         self._exclude_size = self._normalize_csv(params.get('exclude_size'))
@@ -187,6 +205,130 @@ class Config(object):
 
         return retries
 
+    @classmethod
+    def _normalize_retries_fail_streak(cls, value):
+        """Normalize the scan abort threshold for consecutive exhausted retry paths.
+
+        :param int|str|None value: Consecutive path failure threshold.
+        :return: Positive threshold.
+        """
+
+        if value is None:
+            return cls.DEFAULT_RETRIES_FAIL_STREAK
+
+        threshold = int(value)
+        if threshold <= 0:
+            raise ValueError('retries_fail_streak must be a positive integer')
+
+        return threshold
+
+    @classmethod
+    def _normalize_threads(cls, value):
+        """Normalize worker thread count."""
+
+        if value is None:
+            return cls.DEFAULT_MIN_THREADS
+
+        threads = int(value)
+        if threads <= 0:
+            raise ValueError('threads must be a positive integer')
+
+        return threads
+
+    @staticmethod
+    def _normalize_bool(value, name):
+        """Normalize bool-like CLI, wizard and session values.
+
+        :param bool|str|None value: raw boolean-like value.
+        :param str name: user-facing config key.
+        :raise ValueError: when value is not bool-like.
+        :return: normalized boolean.
+        :rtype: bool
+        """
+
+        if isinstance(value, bool):
+            return value
+
+        if value is None:
+            return False
+
+        token = str(value).strip().lower()
+        if token in ['1', 'true', 'yes', 'on']:
+            return True
+        if token in ['0', 'false', 'no', 'off']:
+            return False
+
+        raise ValueError('{0} must be a boolean value'.format(name))
+
+    @staticmethod
+    def _normalize_recursive_depth(value):
+        """Normalize recursive scan depth."""
+
+        if value is None:
+            return 1
+
+        depth = int(value)
+        if depth <= 0:
+            raise ValueError('recursive_depth must be a positive integer')
+
+        return depth
+
+    @classmethod
+    def _normalize_recursive_status(cls, value, enabled=False):
+        """Normalize exact HTTP statuses allowed for recursive expansion."""
+
+        if value is None:
+            return list(cls.DEFAULT_RECURSIVE_STATUS) if enabled is True else None
+
+        statuses = []
+        seen = set()
+
+        for item in cls._normalize_csv(value) or []:
+            token = str(item).strip()
+
+            if not token.isdigit():
+                raise ValueError('recursive_status accepts only HTTP status codes from 100 to 599')
+
+            code = int(token)
+            if code < 100 or code > 599:
+                raise ValueError('recursive_status accepts only HTTP status codes from 100 to 599')
+
+            normalized = str(code)
+            if normalized in seen:
+                continue
+
+            statuses.append(normalized)
+            seen.add(normalized)
+
+        if len(statuses) <= 0:
+            raise ValueError('recursive_status requires at least one HTTP status code')
+
+        return statuses
+
+    @classmethod
+    def _normalize_recursive_exclude(cls, value, enabled=False):
+        """Normalize file extensions excluded from recursive expansion."""
+
+        if value is None:
+            return list(cls.DEFAULT_RECURSIVE_EXCLUDE) if enabled is True else None
+
+        extensions = []
+        seen = set()
+
+        for item in cls._normalize_csv(value) or []:
+            extension = str(item).strip().lstrip('.').lower()
+
+            if not extension or not cls.RECURSIVE_EXTENSION_REGEX.match(extension):
+                raise ValueError('recursive_exclude accepts only comma-separated file extensions')
+
+            if extension in seen:
+                continue
+
+            extensions.append(extension)
+            seen.add(extension)
+
+        return extensions
+
     @staticmethod
     def _normalize_csv(value):
         """
@@ -201,6 +343,58 @@ class Config(object):
         if isinstance(value, list):
             return list(value)
         return [item.strip() for item in str(value).split(',') if item.strip()]
+
+    @classmethod
+    def _normalize_scan_reports(cls, value):
+        """Normalize scan report plugin names from CLI, wizard or session params."""
+
+        if value is None:
+            return None
+
+        if isinstance(value, list):
+            raw_items = value
+        else:
+            text = str(value).strip()
+            if text.lower() in ['', 'none', 'null']:
+                return None
+            raw_items = text.split(',')
+
+        reports = []
+        seen = set()
+
+        for item in raw_items:
+            report = str(item).strip().lower()
+            if not report or report in ['none', 'null']:
+                continue
+
+            if report not in cls.SCAN_REPORTS:
+                raise ValueError('reports supports only: {0}'.format(', '.join(cls.SCAN_REPORTS)))
+
+            if report in seen:
+                continue
+
+            reports.append(report)
+            seen.add(report)
+
+        return reports or None
+
+    @staticmethod
+    def _normalize_optional_path(value):
+        """Normalize optional filesystem path values from CLI, wizard or session params."""
+
+        if value is None:
+            return None
+
+        if isinstance(value, list):
+            if len(value) <= 0:
+                return None
+            value = value[0]
+
+        path = str(value).strip()
+        if path.lower() in ['', 'none', 'null']:
+            return None
+
+        return os.path.abspath(path)
 
     @staticmethod
     def _normalize_text_filter_values(value):
@@ -458,6 +652,28 @@ class Config(object):
 
         return self._ssl
 
+    def _normalize_port(self, value):
+        """Normalize scan port with scheme-aware defaults.
+
+        :param value: configured port value
+        :raise ValueError:
+        :return: normalized TCP port
+        :rtype: int
+        """
+
+        if value is None:
+            return self.DEFAULT_SSL_PORT if self._ssl is True else self.DEFAULT_HTTP_PORT
+
+        try:
+            port = int(value)
+        except (TypeError, ValueError):
+            raise ValueError('port must be an integer from 1 to 65535')
+
+        if port < 1 or port > 65535:
+            raise ValueError('port must be an integer from 1 to 65535')
+
+        return port
+
     @property
     def prefix(self):
         """Paths prefix."""
@@ -571,9 +787,11 @@ class Config(object):
         """Delay property."""
 
         if self._delay is None:
-            self._delay = 0
-        elif self._delay >= 1:
-            self._delay = int(self._delay)
+            self._delay = 0.0
+        else:
+            self._delay = float(self._delay)
+            if self._delay < 0:
+                raise ValueError('delay must be a non-negative number')
         return self._delay
 
     @property
@@ -594,6 +812,12 @@ class Config(object):
         """Retries property."""
 
         return self._retries
+
+    @property
+    def retries_fail_streak(self):
+        """Consecutive exhausted-retry path failures before aborting the scan."""
+
+        return self._retries_fail_streak
 
     @property
     def debug(self):
@@ -825,6 +1049,12 @@ class Config(object):
         return self._proxy_list
 
     @property
+    def proxy_rotation(self):
+        """Proxy-list rotation policy."""
+
+        return self._proxy_rotation
+
+    @property
     def is_external_wordlist(self):
         """If external word list is available."""
 
@@ -847,6 +1077,12 @@ class Config(object):
         """Get external wordlist."""
 
         return self._wordlist
+
+    @property
+    def wordlist_resolved_path(self):
+        """Get resolved runtime local wordlist path."""
+
+        return self._wordlist_resolved_path
 
     @property
     def extensions(self):
@@ -976,7 +1212,7 @@ class Config(object):
     def set_threads(self, threads):
         """Threads setter."""
 
-        self._threads = threads
+        self._threads = self._normalize_threads(threads)
 
     @property
     def threads(self):

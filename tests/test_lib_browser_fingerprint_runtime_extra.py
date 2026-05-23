@@ -111,6 +111,49 @@ class TestBrowserFingerprintRuntimeExtra(unittest.TestCase):
         self.assertIn('Security posture: HSTS strong', messages)
         self.assertGreaterEqual(info_mock.call_count, 4)
 
+    def test_fingerprint_evidence_output_deduplicates_values_only(self):
+        """
+        Browser.fingerprint() should not repeat identical evidence values in stdout.
+
+        :return: None
+        """
+
+        browser = self.make_browser()
+        setattr(browser, '_Browser__config', SimpleNamespace(is_fingerprint=True, host='example.com'))
+        setattr(browser, '_Browser__client', 'client')
+        setattr(browser, '_Browser__result', {})
+
+        fingerprint_result = {
+            'category': 'cms',
+            'name': 'WordPress',
+            'confidence': 98,
+            'signals': [
+                {'type': 'markup', 'value': '/wp-content/', 'weight': 6},
+                {'type': 'markup', 'value': '/wp-includes/', 'weight': 5},
+                {'type': 'endpoint', 'value': '/wp-content/', 'weight': 6},
+                {'type': 'endpoint', 'value': '/wp-includes/', 'weight': 5},
+                {'type': 'endpoint', 'value': '/wp-json/', 'weight': 5},
+            ],
+            'runtime': {'name': 'PHP', 'confidence': 90},
+            'infrastructure': {'provider': 'Apache HTTP Server', 'confidence': 90},
+            'security_headers': {},
+        }
+
+        fingerprint_instance = MagicMock()
+        fingerprint_instance.detect.return_value = fingerprint_result
+
+        with patch('src.lib.browser.browser.Fingerprint', return_value=fingerprint_instance), \
+                patch('src.lib.browser.browser.tpl.info') as info_mock:
+            result = browser.fingerprint()
+
+        self.assertEqual(result['signals'], fingerprint_result['signals'])
+        messages = [call.kwargs.get('msg') for call in info_mock.call_args_list]
+        self.assertIn('Fingerprint evidence: /wp-content/, /wp-includes/, /wp-json/', messages)
+        self.assertNotIn(
+            'Fingerprint evidence: /wp-content/, /wp-includes/, /wp-content/, /wp-includes/',
+            messages,
+        )
+
     def test_fingerprint_starts_request_provider_when_client_is_missing(self):
         """
         Browser.fingerprint() should initialize the request provider lazily.

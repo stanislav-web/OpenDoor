@@ -31,17 +31,21 @@ for _ in ['urllib3', 'importlib', 'packaging']:
 
 def main():
     """
-    This function loads the package and runs the Controller class.
+    Load the package and run the controller.
 
-    :except SrcError: Raises an exception if there is an error in the source code.
-    :return: None
+    Console-script entrypoints wrap this function in ``sys.exit(...)``.
+    Returning the controller exit code keeps installed ``opendoor`` behavior
+    aligned with the direct ``python opendoor.py`` launcher.
+
+    :return: Process exit code.
+    :rtype: int
     """
     try:
         bootstrap = Controller()
-        bootstrap.run()
+        return bootstrap.run() or 0
     except SrcError:
-        sys.exit()
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -761,5 +761,204 @@ class TestWafRecognition(unittest.TestCase):
 
 
 
+    def test_should_detect_xsstrike_audited_unique_waf_signatures(self):
+        """ResponseProvider should detect non-conflicting legacy WAF vendors from unique passive markers."""
+
+        cases = [
+            (
+                'aeSecure',
+                403,
+                {'aeSecure-Code': 'deny', 'Content-Length': '64'},
+                b'<img src="/aesecure_denied.png" alt="Denied">',
+            ),
+            (
+                'Armor Protection',
+                403,
+                {'Content-Length': '64'},
+                b'This request has been blocked by website protection from Armor.',
+            ),
+            (
+                'Baidu Yunjiasu',
+                403,
+                {'Server': 'yunjiasu-nginx', 'Content-Length': '64'},
+                b'Yunjiasu denied this request.',
+            ),
+            (
+                'BlockDoS',
+                403,
+                {'Server': 'BlockDos.net', 'Content-Length': '64'},
+                b'Blocked by BlockDos.net protection.',
+            ),
+            (
+                'Cisco ACE XML Gateway',
+                403,
+                {'Server': 'ACE XML Gateway', 'Content-Length': '64'},
+                b'ACE XML Gateway rejected this request.',
+            ),
+            (
+                'Cloudbric',
+                403,
+                {'Content-Length': '64'},
+                b'Cloudbric: Malicious Code Detected.',
+            ),
+            (
+                'CrawlProtect',
+                403,
+                {'Content-Length': '64'},
+                b'This site is protected by CrawlProtect.',
+            ),
+            (
+                'DenyAll',
+                403,
+                {'Content-Length': '64'},
+                b'Condition Intercepted by DenyAll.',
+            ),
+            (
+                'SEnginx',
+                403,
+                {'Content-Length': '64'},
+                b'SENGINX-ROBOT-MITIGATION challenge page.',
+            ),
+            (
+                'SiteLock TrueShield',
+                403,
+                {'Content-Length': '64'},
+                b'SiteLock Incident ID: abc123 sitelock_shield_logo',
+            ),
+            (
+                'SonicWALL',
+                403,
+                {'Server': 'SonicWALL', 'Content-Length': '64'},
+                b'This request is blocked by the SonicWALL.',
+            ),
+            (
+                'Sophos UTM Web Protection',
+                403,
+                {'Content-Length': '64'},
+                b'Powered by UTM Web Protection.',
+            ),
+            (
+                'Stingray Application Firewall',
+                403,
+                {'X-Mapping-Session': 'abc', 'Content-Length': '64'},
+                b'blocked',
+            ),
+            (
+                'Teros / Citrix Application Firewall',
+                403,
+                {'Set-Cookie': 'st8id=abc; Path=/', 'Content-Length': '64'},
+                b'blocked',
+            ),
+            (
+                'TrafficShield',
+                403,
+                {'Set-Cookie': 'ASINFO=abc; Path=/', 'Content-Length': '64'},
+                b'blocked',
+            ),
+            (
+                'UrlScan',
+                403,
+                {'Rejected-By-UrlScan': '1', 'Content-Length': '64'},
+                b'Rejected-By-UrlScan',
+            ),
+            (
+                'USP Secure Entry Server',
+                403,
+                {'Server': 'Secure Entry Server', 'Content-Length': '64'},
+                b'blocked',
+            ),
+            (
+                'Varnish WAF',
+                403,
+                {'Content-Length': '64'},
+                b'xVarnish-WAF block page.',
+            ),
+            (
+                'WatchGuard',
+                403,
+                {'Server': 'WatchGuard', 'Content-Length': '64'},
+                b'blocked',
+            ),
+            (
+                'Yundun',
+                403,
+                {'Server': 'YUNDUN', 'Content-Length': '64'},
+                b'blocked',
+            ),
+            (
+                'Zenedge',
+                403,
+                {'Server': 'ZENEDGE', 'Content-Length': '64'},
+                b'/zenedge/assets/deny.html',
+            ),
+        ]
+
+        for vendor, status, headers, body in cases:
+            with self.subTest(vendor=vendor):
+                provider = ResponseProvider(self.make_config())
+                response = DummyResponse(
+                    status=status,
+                    headers=headers,
+                    body=body,
+                )
+
+                self.assertEqual(provider.detect('https://example.com', response), 'blocked')
+                self.assertEqual(provider.waf_detection['name'], vendor)
+
+    def test_should_gate_xsstrike_audited_passive_waf_headers_on_success_response(self):
+        """ResponseProvider should not classify unique passive WAF headers on ordinary successful pages."""
+
+        cases = [
+            {'aeSecure-Code': 'pass'},
+            {'Server': 'yunjiasu-nginx'},
+            {'Server': 'BlockDos.net'},
+            {'Server': 'ACE XML Gateway'},
+            {'Server': 'SonicWALL'},
+            {'X-Mapping-Session': 'abc'},
+            {'Set-Cookie': 'st8id=abc; ASINFO=abc'},
+            {'Server': 'Secure Entry Server'},
+            {'Server': 'WatchGuard'},
+            {'Server': 'YUNDUN'},
+            {'Server': 'ZENEDGE'},
+        ]
+
+        for headers in cases:
+            with self.subTest(headers=headers):
+                provider = ResponseProvider(self.make_config())
+                response_headers = {'Content-Length': '11'}
+                response_headers.update(headers)
+                response = DummyResponse(
+                    status=200,
+                    headers=response_headers,
+                    body=b'normal page',
+                )
+
+                self.assertEqual(provider.detect('https://example.com', response), 'success')
+                self.assertIsNone(provider.waf_detection)
+
+    def test_should_not_classify_xsstrike_audited_vendor_names_without_block_evidence(self):
+        """ResponseProvider should avoid vendor-name false positives without unique block evidence."""
+
+        cases = [
+            b'Cloudbric product comparison page.',
+            b'Baidu Yunjiasu marketing content.',
+            b'Sophos support article.',
+            b'WatchGuard partner page.',
+            b'Zenedge migration notes.',
+        ]
+
+        for body in cases:
+            with self.subTest(body=body):
+                provider = ResponseProvider(self.make_config())
+                response = DummyResponse(
+                    status=200,
+                    headers={'Content-Length': str(len(body))},
+                    body=body,
+                )
+
+                self.assertEqual(provider.detect('https://example.com', response), 'success')
+                self.assertIsNone(provider.waf_detection)
+
+
 if __name__ == '__main__':
     unittest.main()

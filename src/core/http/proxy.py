@@ -55,6 +55,7 @@ class Proxy(RequestProvider, DebugProvider):
             self.__pm = None
             self.__proxy_pools = {}
             self.__dead_proxies = set()
+            self.__proxy_sequence_index = 0
             self.__cfg = config
             self.__debug = debug
             self.__ssl_context = maybe_build_ssl_context(getattr(self.__cfg, 'is_tls_legacy', False))
@@ -169,14 +170,17 @@ class Proxy(RequestProvider, DebugProvider):
         """
 
         try:
-            server = self.__cfg.proxy if True is self.__cfg.is_standalone_proxy else self.__get_random_proxy()
+            server = self.__cfg.proxy if True is self.__cfg.is_standalone_proxy else self.__get_next_proxy()
             self.__server = self.__normalize_proxy_server(server)
 
             if self.__server in self.__proxy_pools:
                 return self.__proxy_pools[self.__server]
 
             if True is not self.__cfg.is_standalone_proxy:
-                getattr(self.__debug, 'debug_proxy_selected', lambda *args, **kwargs: True)(self.__server)
+                getattr(self.__debug, 'debug_proxy_selected', lambda *args, **kwargs: True)(
+                    self.__server,
+                    getattr(self.__cfg, 'proxy_rotation', 'random'),
+                )
 
             if self.__get_proxy_type(self.__server) == 'socks':
                 disable_warnings(InsecureRequestWarning)
@@ -450,6 +454,18 @@ class Proxy(RequestProvider, DebugProvider):
 
         return proxies
 
+    def __get_next_proxy(self):
+        """Return the next rotating proxy using the configured policy.
+
+        :return: normalized proxy URL
+        :rtype: str
+        """
+
+        if getattr(self.__cfg, 'proxy_rotation', 'random') == 'sequential':
+            return self.__get_sequential_proxy()
+
+        return self.__get_random_proxy()
+
     def __get_random_proxy(self):
         """
         Get random server from proxy list
@@ -460,6 +476,26 @@ class Proxy(RequestProvider, DebugProvider):
         index = random.randrange(0, len(proxy_list))  # nosec B311
         server = proxy_list[index]
         return self.__normalize_proxy_server(server)
+
+    def __get_sequential_proxy(self):
+        """Return proxies in stable list order while skipping runtime-dead entries.
+
+        :raise ProxyRequestError:
+        :return: normalized proxy URL
+        :rtype: str
+        """
+
+        self.__get_available_proxies()
+
+        for _ in range(len(self.__proxylist)):
+            index = self.__proxy_sequence_index % len(self.__proxylist)
+            self.__proxy_sequence_index = (self.__proxy_sequence_index + 1) % len(self.__proxylist)
+            server = self.__normalize_proxy_server(self.__proxylist[index])
+
+            if server not in self.__dead_proxies:
+                return server
+
+        raise ProxyRequestError('All rotating proxies are unavailable for this scan runtime')
 
     @classmethod
     def __normalize_proxy_server(cls, server):

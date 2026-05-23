@@ -260,8 +260,10 @@ Actively probes for exposed backup/shadow copies next to confirmed successful fi
 opendoor --host https://example.com --method GET --sniff shadow
 ```
 
-Unlike passive body-only sniffers, `shadow` generates a bounded set of postfix candidates only after OpenDoor has already found a `200 OK` file-like response. For example, a confirmed `/index.php` hit can trigger probes such as `/index.php.bak`, `/index.php.old` etc.
-A candidate is classified into the `shadow` bucket only when the probe is successful and the normalized response content matches the original base file. Matching findings include `shadow_detection` metadata such as base URL, suffix variant, confidence, reason and size comparison.
+Unlike passive body-only sniffers, `shadow` generates a bounded set of additional candidates only after OpenDoor has already found a `200 OK` file-like response. For example, a confirmed `/index.php` hit can trigger suffix probes such as `/index.php.bak`, `/index.php.old`, and bounded path-template probes such as `/index2.php`.
+A candidate is classified into the `shadow` bucket only when the probe is successful and the normalized response content is highly similar to, but not byte-identical with, the original base file. Matching findings include `shadow_detection` metadata such as base URL, variant, variant type, confidence, reason and size comparison.
+
+`shadow` is an active sniffer. When enabled, it can submit up to 16 candidates per confirmed file-like hit and up to 500 total shadow probe requests per scan. Shadow probe requests use the normal request stack and honor the configured scan delay, retries, timeout, proxy, headers and cookies. These limits keep the feature bounded, but `--sniff shadow` can still increase scan traffic and runtime compared with passive-only sniffers.
 
 Example:
 

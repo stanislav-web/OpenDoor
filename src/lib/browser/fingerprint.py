@@ -138,9 +138,9 @@ class Fingerprint(object):
     STATIC_CATEGORY = 'static'
     RUNTIME_CATEGORY = 'runtime'
     TECHNOLOGY_RUNTIME_MAP = {
-        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'InstantCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
+        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
         'Express': 'Node.js', 'NestJS': 'Node.js', 'Fastify': 'Node.js', 'Koa': 'Node.js', 'Hapi': 'Node.js', 'Strapi': 'Node.js', 'Directus': 'Node.js', 'Ghost': 'Node.js', 'Next.js': 'Node.js', 'Nuxt': 'Node.js', 'Gatsby': 'Node.js', 'Astro': 'Node.js', 'Remix': 'Node.js', 'SvelteKit': 'Node.js', 'Docusaurus': 'Node.js', 'VitePress': 'Node.js', 'PencilBlue': 'Node.js',
-        'React': 'JavaScript', 'Vue': 'JavaScript', 'Angular': 'JavaScript', 'Django': 'Python', 'Flask': 'Python', 'FastAPI': 'Python', 'Ruby on Rails': 'Ruby', 'Spree': 'Ruby', 'Spring': 'Java/JVM', 'Liferay': 'Java/JVM', 'OpenCms': 'Java/JVM', 'Hippo CMS': 'Java/JVM', 'ASP.NET': '.NET', 'Microsoft SharePoint': '.NET', 'DNN Platform': '.NET', 'Orchard CMS': '.NET', 'Sitecore': '.NET', 'Sitefinity': '.NET', 'Umbraco': '.NET', 'Phoenix': 'Elixir', 'MkDocs': 'Static site', 'Jekyll': 'Static site', 'Hugo': 'Static site', 'AsciiDoc': 'Static site',
+        'React': 'JavaScript', 'Vue': 'JavaScript', 'Angular': 'JavaScript', 'Django': 'Python', 'Flask': 'Python', 'FastAPI': 'Python', 'Ruby on Rails': 'Ruby', 'Spree': 'Ruby', 'Spring': 'Java/JVM', 'Liferay': 'Java/JVM', 'OpenCms': 'Java/JVM', 'Hippo CMS': 'Java/JVM', 'dotCMS': 'Java/JVM', 'ASP.NET': '.NET', 'Microsoft SharePoint': '.NET', 'DNN Platform': '.NET', 'Orchard CMS': '.NET', 'Sitecore': '.NET', 'Sitefinity': '.NET', 'Umbraco': '.NET', 'Phoenix': 'Elixir', 'MkDocs': 'Static site', 'Jekyll': 'Static site', 'Hugo': 'Static site', 'AsciiDoc': 'Static site',
     }
 
     EXTENDED_CMS_GENERATOR_SIGNATURES = (
@@ -164,9 +164,11 @@ class Fingerprint(object):
         ('CS-Cart', ECOMMERCE_CATEGORY, ('cs-cart', 'cs cart', 'cscart')),
         ('CubeCart', ECOMMERCE_CATEGORY, ('cubecart',)),
         ('DataLife Engine', CMS_CATEGORY, ('datalife engine', 'dle')),
+        ('DiafanCMS', CMS_CATEGORY, ('diafan.cms', 'diafan cms')),
         ('Discuz!', CMS_CATEGORY, ('discuz!', 'discuz')),
         ('Duda', SITE_BUILDER_CATEGORY, ('duda', 'duda website builder')),
         ('DNN Platform', CMS_CATEGORY, ('dnn platform', 'dotnetnuke', 'dnn')),
+        ('dotCMS', CMS_CATEGORY, ('dotcms', 'dot cms')),
         ('Dynamicweb', ECOMMERCE_CATEGORY, ('dynamicweb',)),
         ('EC-CUBE', ECOMMERCE_CATEGORY, ('ec-cube', 'eccube')),
         ('EPiServer', CMS_CATEGORY, ('episerver', 'optimizely cms')),
@@ -239,6 +241,7 @@ class Fingerprint(object):
         ('CS-Cart', ECOMMERCE_CATEGORY, ('var tygh', 'index.php?dispatch=', '/design/themes/')),
         ('CubeCart', ECOMMERCE_CATEGORY, ('cubecart', 'index.php?_a=', '/skins/')),
         ('DataLife Engine', CMS_CATEGORY, ('datalife engine', 'engine/ajax/', 'index.php?do=')),
+        ('DiafanCMS', CMS_CATEGORY, ('diafan.cms',)),
         ('Discuz!', CMS_CATEGORY, ('discuz_uid', 'discuz_tips', 'static/image/common/', 'powered by discuz')),
         ('Duda', SITE_BUILDER_CATEGORY, ('static-cdn.multiscreensite.com', 'data-cmsid=', 'dmcdn.net')),
         ('DNN Platform', CMS_CATEGORY, ('__dnnvariable', 'dnn_', '/portals/_default/')),
@@ -336,6 +339,8 @@ class Fingerprint(object):
         self.__runtime_signals = defaultdict(list)
         self.__infra_scores = defaultdict(float)
         self.__infra_signals = defaultdict(list)
+        self.__dotcms_probe_signals = []
+        self.__request_cache = {}
 
     def detect(self):
         """
@@ -351,6 +356,8 @@ class Fingerprint(object):
         self.__runtime_signals = defaultdict(list)
         self.__infra_scores = defaultdict(float)
         self.__infra_signals = defaultdict(list)
+        self.__dotcms_probe_signals = []
+        self.__request_cache = {}
 
         progress_total = len(self.PROBES) + 4
         progress_current = 0
@@ -387,6 +394,7 @@ class Fingerprint(object):
             progress_total=progress_total,
         )
         progress_current += len(self.PROBES)
+        self.__dotcms_probe_signals = self._probe_dotcms_endpoint_signals(final_root_url)
 
         not_found_status, not_found_body, not_found_headers = self._probe_not_found_signature(final_root_url)
         progress_current += 1
@@ -500,18 +508,33 @@ class Fingerprint(object):
         """
         Execute an HTTP request with a temporary method override.
 
+        Exact duplicate fingerprint probes can happen when a generic probe is
+        reused by a narrower technology-specific check. Cache successful
+        responses for the current fingerprint pass only to avoid repeated
+        traffic without changing detection semantics.
+
         :param str url: target URL
         :param str method: request method
         :return: mixed
         """
 
+        normalized_method = str(method or 'HEAD').upper()
+        cache_key = (normalized_method, str(url))
+        if cache_key in self.__request_cache:
+            return self.__request_cache[cache_key]
+
         previous_method = getattr(self.__config, '_method', None)
 
         try:
-            setattr(self.__config, '_method', method)
-            return self.__client.request(url)
+            setattr(self.__config, '_method', normalized_method)
+            response = self.__client.request(url)
         finally:
             setattr(self.__config, '_method', previous_method)
+
+        if response is not None:
+            self.__request_cache[cache_key] = response
+
+        return response
 
     def _follow_redirects(self, response, url, method='GET', max_hops=3):
         """
@@ -1069,6 +1092,53 @@ class Fingerprint(object):
             )
         return statuses
 
+    def _probe_dotcms_endpoint_signals(self, base_url):
+        """
+        Probe narrow dotCMS admin redirect/header signals.
+
+        Some dotCMS deployments do not expose generator meta tags or x-dot*
+        headers on the root page. A redirect from Strapi-like admin paths to
+        /dotAdmin is a strong dotCMS signal and prevents endpoint-only Strapi
+        false positives on dotCMS targets.
+
+        :param str base_url:
+        :return: list[dict]
+        """
+
+        signals = []
+        seen_values = set()
+        probe_paths = ('/admin/init', '/admin/init/')
+
+        for probe_path in probe_paths:
+            response = self._request(urljoin(base_url, probe_path.lstrip('/')), method='HEAD')
+            if response is None:
+                continue
+
+            headers = self._extract_headers(response)
+            dot_server = str(headers.get('x-dot-server', '') or '').strip()
+            if 'dotcms' in dot_server.lower():
+                value = 'x-dot-server={0}'.format(dot_server)
+                if value not in seen_values:
+                    signals.append({'type': 'header', 'value': value, 'weight': 10})
+                    seen_values.add(value)
+
+            has_dot_request_cost = 'x-dotrequest-cost' in headers
+            has_dot_ratelimit = any(str(header_name).startswith('x-dotratelimit-') for header_name in headers)
+            if has_dot_request_cost and has_dot_ratelimit:
+                value = 'x-dotrequest-cost+x-dotratelimit-*'
+                if value not in seen_values:
+                    signals.append({'type': 'header', 'value': value, 'weight': 9})
+                    seen_values.add(value)
+
+            location = str(headers.get('location', '') or '').strip()
+            if '/dotadmin' in location.lower():
+                value = '{0} -> {1}'.format(probe_path, location)
+                if value not in seen_values:
+                    signals.append({'type': 'endpoint-redirect', 'value': value, 'weight': 9})
+                    seen_values.add(value)
+
+        return signals
+
     def _probe_not_found_signature(self, base_url):
         """
         Request a guaranteed-missing path to capture framework-specific 404 signatures.
@@ -1251,6 +1321,68 @@ class Fingerprint(object):
         if 'qrator labs' in body_lower or 'qrator labs' in not_found_body_lower:
             self._add_infrastructure_signal('QRATOR', 'body', 'Qrator Labs', 8)
 
+    def _apply_dotcms_rules(self, body_lower, headers, cookies, probe_signals=None):
+        """
+        Add conservative dotCMS fingerprint signals.
+
+        dotCMS often does not expose a generator meta tag or footer marker on
+        production sites. Keep detection limited to vendor-specific x-dot*
+        headers, dotCMS cookie pairs, or multiple dotCMS body/API markers.
+        Generic AWS ALB cookies, JSESSIONID, Java and Tomcat markers are
+        intentionally ignored here to avoid weak dotCMS false positives.
+
+        :param str body_lower: normalized response body
+        :param dict headers: normalized response headers
+        :param list cookies: normalized cookie names
+        :param list|None probe_signals: active dotCMS probe signals
+        :return: None
+        """
+
+        probe_signals = probe_signals or []
+        for signal in probe_signals:
+            self._add_signal(
+                'dotCMS',
+                self.CMS_CATEGORY,
+                signal.get('type', 'probe'),
+                signal.get('value', 'dotCMS probe'),
+                signal.get('weight', 7),
+            )
+
+        dot_server = str(headers.get('x-dot-server', '') or '').strip()
+        dot_server_lower = dot_server.lower()
+        if 'dotcms' in dot_server_lower:
+            self._add_signal('dotCMS', self.CMS_CATEGORY, 'header', 'x-dot-server={0}'.format(dot_server), 10)
+            return
+
+        has_dot_request_cost = 'x-dotrequest-cost' in headers
+        has_dot_ratelimit = any(str(header_name).startswith('x-dotratelimit-') for header_name in headers)
+        if has_dot_request_cost and has_dot_ratelimit:
+            self._add_signal('dotCMS', self.CMS_CATEGORY, 'header', 'x-dotrequest-cost+x-dotratelimit-*', 9)
+            return
+
+        dotcms_cookies = {'opvc', 'dmid', 'sitevisitscookie', 'svc', 'dwrsessionid', 'rme'}
+        found_cookies = sorted(cookie for cookie in cookies if cookie in dotcms_cookies)
+        if dot_server and len(found_cookies) >= 1:
+            self._add_signal('dotCMS', self.CMS_CATEGORY, 'header+cookie', 'x-dot-server+{0}'.format(found_cookies[0]), 9)
+            return
+        if len(found_cookies) >= 2:
+            self._add_signal('dotCMS', self.CMS_CATEGORY, 'cookie', '+'.join(found_cookies[:3]), 7)
+
+        body_markers = (
+            'data-dot-object=',
+            'data-dot-identifier=',
+            'data-dot-accept-types=',
+            '/api/v1/page/json/',
+            '/api/v1/nav/',
+            '/dotadmin',
+            '/dotajaxdirector/',
+        )
+        found_markers = sorted(marker for marker in body_markers if marker in body_lower)
+        if len(found_markers) >= 2:
+            self._add_signal('dotCMS', self.CMS_CATEGORY, 'markup', '+'.join(found_markers[:3]), 7)
+        elif len(found_markers) == 1 and len(found_cookies) >= 1:
+            self._add_signal('dotCMS', self.CMS_CATEGORY, 'markup+cookie', '{0}+{1}'.format(found_markers[0], found_cookies[0]), 7)
+
     def _apply_extended_cms_catalog_rules(self, body_lower, headers, cookies, generator):
         """
         Apply extended catalog signals for CMSs not covered by dedicated rules.
@@ -1288,6 +1420,28 @@ class Fingerprint(object):
                 if any(cookie == cookie_marker or cookie.startswith(cookie_marker) for cookie in cookies):
                     self._add_signal(technology, category, 'cookie', cookie_marker, 6)
                     break
+
+    @staticmethod
+    def _has_diafan_meta_author(body_lower):
+        """
+        Return True when an HTML meta author tag exposes DiafanCMS branding.
+
+        DiafanCMS commonly exposes a non-generator marker such as
+        <meta content="DIAFAN.CMS https://www.diafan.ru/" name="author">.
+        The check is constrained to meta tags to avoid classifying generic
+        body text that merely links to or mentions Diafan.
+
+        :param str body_lower: normalized response body
+        :return: bool
+        """
+
+        body_text = str(body_lower or '')
+        return (
+            re.search(r'<meta[^>]+name=["\']author["\'][^>]+content=["\'][^"\']*diafan\.cms', body_text)
+            is not None
+            or re.search(r'<meta[^>]+content=["\'][^"\']*diafan\.cms[^"\']*["\'][^>]+name=["\']author["\']', body_text)
+            is not None
+        )
 
     @staticmethod
     def _header_contains(headers, name, needle):
@@ -1578,6 +1732,10 @@ class Fingerprint(object):
             self._add_signal('Shopify', self.ECOMMERCE_CATEGORY, 'cookie', '_shopify*', 6)
         if 'x-shopid' in headers or 'shopify' in server:
             self._add_signal('Shopify', self.ECOMMERCE_CATEGORY, 'header', 'x-shopid|server', 6)
+
+        # DiafanCMS
+        if self._has_diafan_meta_author(body_lower):
+            self._add_signal('DiafanCMS', self.CMS_CATEGORY, 'meta', 'author=DIAFAN.CMS', 8)
 
         # Bitrix
         if 'bitrix' in x_powered_cms:
@@ -1992,20 +2150,28 @@ class Fingerprint(object):
 
         # Strapi
         strapi_header_hint = 'strapi' in x_powered_by
-        strapi_markup_hint = '/admin/init' in body_lower or ('strapi' in body_lower and '/uploads/' in body_lower)
-        strapi_init_up = probe_statuses.get('/admin/init') in [200, 301, 302, 401, 403]
+        strapi_markup_hint = 'strapi' in body_lower and ('/admin/init' in body_lower or '/uploads/' in body_lower)
+        strapi_init_up = self._is_distinct_probe_up(probe_statuses, '/admin/init', [200], not_found_status)
         strapi_hint = strapi_header_hint or strapi_markup_hint or strapi_init_up
 
         if strapi_header_hint:
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 8)
         if strapi_markup_hint:
-            self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'markup', '/admin/init|strapi + /uploads/', 7)
+            self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'markup', 'strapi + /admin/init|/uploads/', 7)
         if strapi_init_up:
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'endpoint', '/admin/init', 7)
-        if strapi_hint and probe_statuses.get('/admin') in [200, 301, 302, 401, 403]:
+        if strapi_hint and self._is_distinct_probe_up(probe_statuses, '/admin', [200, 301, 302, 401, 403], not_found_status):
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'endpoint', '/admin', 4)
-        if strapi_hint and probe_statuses.get('/uploads/') in [200, 301, 302, 401, 403]:
+        if strapi_hint and self._is_distinct_probe_up(probe_statuses, '/uploads/', [200, 301, 302, 401, 403], not_found_status):
             self._add_signal('Strapi', self.FRAMEWORK_CATEGORY, 'endpoint', '/uploads/', 4)
+
+        # dotCMS
+        self._apply_dotcms_rules(
+            body_lower=body_lower,
+            headers=headers,
+            cookies=cookies,
+            probe_signals=self.__dotcms_probe_signals,
+        )
 
         # Extended CMS catalog extension
         self._apply_extended_cms_catalog_rules(

@@ -54,6 +54,58 @@ class TestFilter(unittest.TestCase):
         self.assertIsNone(Filter.validate_proxy_options({'proxy': 'http://127.0.0.1:8080'}))
         self.assertIsNone(Filter.validate_proxy_options({'proxy_list': 'proxies.txt'}))
         self.assertIsNone(Filter.validate_proxy_options({'proxy_pool': True}))
+        self.assertIsNone(Filter.validate_proxy_options({'proxy_list': 'proxies.txt', 'proxy_rotation': 'sequential'}))
+
+    def test_filter_accepts_proxy_rotation_with_proxy_list(self):
+        """Filter.filter() should accept proxy rotation only for proxy-list scans."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'proxy_list': 'proxies.txt',
+            'proxy_rotation': 'sequential',
+        })
+
+        self.assertEqual(actual['proxy_list'], 'proxies.txt')
+        self.assertEqual(actual['proxy_rotation'], 'sequential')
+
+    def test_filter_normalizes_empty_proxy_rotation_to_random(self):
+        """Filter.filter() should keep blank proxy rotation values on the default random policy."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'proxy_list': 'proxies.txt',
+            'proxy_rotation': ' null ',
+        })
+
+        self.assertEqual(actual['proxy_rotation'], 'random')
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'proxy_list': 'proxies.txt',
+            'proxy_rotation': '',
+        })
+
+        self.assertEqual(actual['proxy_rotation'], 'random')
+
+    def test_filter_rejects_invalid_proxy_rotation(self):
+        """Filter.filter() should reject unknown proxy rotation policies."""
+
+        with self.assertRaises(FilterError) as context:
+            Filter.filter({
+                'host': 'example.com',
+                'proxy_list': 'proxies.txt',
+                'proxy_rotation': 'round-robin',
+            })
+
+        self.assertIn('--proxy-rotation must be one of: random, sequential', str(context.exception))
+
+    def test_filter_rejects_proxy_rotation_without_proxy_list(self):
+        """Filter.filter() should reject proxy rotation without --proxy-list."""
+
+        with self.assertRaises(FilterError) as context:
+            Filter.filter({'host': 'example.com', 'proxy_rotation': 'sequential'})
+
+        self.assertIn('--proxy-rotation can be used only with --proxy-list', str(context.exception))
 
     def test_scheme_defaults_to_http(self):
         """Filter.scheme() should default to HTTP when scheme is missing."""
@@ -152,6 +204,20 @@ class TestFilter(unittest.TestCase):
         with self.assertRaises(FilterError):
             Filter.filter({'host': 'example.com', 'retries': 'abc'})
 
+
+    def test_filter_validates_retries_fail_streak_as_positive_integer(self):
+        """Filter.filter() should normalize consecutive max-retry path abort threshold."""
+
+        self.assertEqual(
+            Filter.filter({'host': 'example.com', 'retries_fail_streak': '10'})['retries_fail_streak'],
+            10
+        )
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'retries_fail_streak': '0'})
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'retries_fail_streak': 'abc'})
 
     def test_filter_builds_single_target_list_for_host(self):
         """Filter.filter() should expose a single normalized target for --host."""
@@ -374,6 +440,265 @@ class TestFilter(unittest.TestCase):
         with self.assertRaises(FilterError):
             Filter.non_negative_int('-1', key='--min-response-length')
 
+    def test_threads_should_accept_positive_integer(self):
+        """Filter should accept positive thread counts."""
+
+        self.assertEqual(Filter.positive_int('1', key='--threads'), 1)
+        self.assertEqual(Filter.positive_int(50, key='--threads'), 50)
+
+    def test_threads_should_reject_invalid_values(self):
+        """Filter should reject non-positive thread counts."""
+
+        for value in ['0', 0, '-1', -1, 'bad', None]:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.positive_int(value, key='--threads')
+
+    def test_filter_should_validate_threads_in_normal_flow(self):
+        """Filter.filter() should normalize and validate --threads during regular scans."""
+
+        actual = Filter.filter({'host': 'example.com', 'threads': '8'})
+
+        self.assertEqual(actual['threads'], 8)
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'threads': '0'})
+
+    def test_filter_should_validate_threads_with_session_load(self):
+        """Filter.filter() should preserve and validate --threads for session resume overrides."""
+
+        actual = Filter.filter({'session_load': '/tmp/session.json', 'threads': '4'})
+
+        self.assertEqual(actual['session_load'], os.path.abspath('/tmp/session.json'))
+        self.assertEqual(actual['threads'], 4)
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'threads': '-1'})
+
+    def test_port_should_accept_valid_tcp_ports(self):
+        """Filter.port() should accept valid TCP ports."""
+
+        self.assertEqual(Filter.port('1', key='--port'), 1)
+        self.assertEqual(Filter.port(80, key='--port'), 80)
+        self.assertEqual(Filter.port('65535', key='--port'), 65535)
+
+    def test_port_should_reject_invalid_tcp_ports(self):
+        """Filter.port() should reject values outside the TCP port range."""
+
+        for value in [None, 'abc', '0', 0, '-1', -1, '65536', 65536]:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.port(value, key='--port')
+
+    def test_filter_should_validate_port_in_normal_flow(self):
+        """Filter.filter() should normalize and validate --port during regular scans."""
+
+        actual = Filter.filter({'host': 'example.com', 'port': '8443'})
+
+        self.assertEqual(actual['port'], 8443)
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'port': '65536'})
+
+    def test_filter_should_validate_port_with_session_load(self):
+        """Filter.filter() should preserve and validate --port for session resume overrides."""
+
+        actual = Filter.filter({'session_load': '/tmp/session.json', 'port': '8443'})
+
+        self.assertEqual(actual['session_load'], '/tmp/session.json')
+        self.assertEqual(actual['port'], 8443)
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'port': '0'})
+
+
+    def test_method_should_accept_supported_methods(self):
+        """Filter.method() should normalize supported HTTP methods."""
+
+        for value in ['head', 'GET', 'post', 'PUT', 'patch', 'DELETE', 'options']:
+            with self.subTest(value=value):
+                self.assertEqual(Filter.method(value, key='--method'), str(value).upper())
+
+    def test_method_should_reject_invalid_methods(self):
+        """Filter.method() should reject unsupported HTTP methods."""
+
+        for value in [None, '', 'TRACE', 'CONNECT', 'FOO', 'GET / HTTP/1.1']:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.method(value, key='--method')
+
+    def test_method_should_reject_injection_values(self):
+        """Filter.method() should reject CR/LF injection attempts."""
+
+        for value in ['GET\r\nX-Test: 1', 'POST\nX-Test: 1']:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.method(value, key='--method')
+
+    def test_filter_should_validate_method_in_normal_flow(self):
+        """Filter.filter() should normalize and validate --method during regular scans."""
+
+        actual = Filter.filter({'host': 'example.com', 'method': 'post'})
+
+        self.assertEqual(actual['method'], 'POST')
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'method': 'TRACE'})
+
+    def test_filter_should_validate_method_with_session_load(self):
+        """Filter.filter() should preserve and validate --method for session resume overrides."""
+
+        actual = Filter.filter({'session_load': '/tmp/session.json', 'method': 'options'})
+
+        self.assertEqual(actual['session_load'], '/tmp/session.json')
+        self.assertEqual(actual['method'], 'OPTIONS')
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'method': 'CONNECT'})
+
+    def test_recursive_depth_should_accept_positive_integer(self):
+        """Filter should accept positive recursive depths."""
+
+        self.assertEqual(Filter.positive_int('1', key='--recursive-depth'), 1)
+        self.assertEqual(Filter.positive_int(3, key='--recursive-depth'), 3)
+
+    def test_recursive_depth_should_reject_invalid_values(self):
+        """Filter should reject non-positive recursive depths."""
+
+        for value in [None, 'abc', '0', 0, '-1', -1]:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.positive_int(value, key='--recursive-depth')
+
+    def test_recursive_status_should_accept_exact_http_codes(self):
+        """Filter.recursive_statuses() should normalize exact HTTP status codes."""
+
+        self.assertEqual(
+            Filter.recursive_statuses('200, 301,403,200', key='--recursive-status'),
+            ['200', '301', '403']
+        )
+
+    def test_recursive_status_should_reject_invalid_values(self):
+        """Filter.recursive_statuses() should reject malformed or out-of-range statuses."""
+
+        for value in ['abc', '99', '600', '200-299', '200,abc', '']:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.recursive_statuses(value, key='--recursive-status')
+
+    def test_recursive_exclude_should_normalize_extensions(self):
+        """Filter.recursive_extensions() should normalize extension tokens."""
+
+        self.assertEqual(
+            Filter.recursive_extensions('.JPG, png ,css,jpg', key='--recursive-exclude'),
+            ['jpg', 'png', 'css']
+        )
+        self.assertEqual(Filter.recursive_extensions('', key='--recursive-exclude'), [])
+
+    def test_recursive_exclude_should_reject_path_like_values(self):
+        """Filter.recursive_extensions() should reject path-like or malformed values."""
+
+        for value in ['../env', 'jpg/png', 'jpg png', '/etc/passwd', '']:
+            if value == '':
+                continue
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.recursive_extensions(value, key='--recursive-exclude')
+
+    def test_filter_should_validate_recursive_options_in_normal_flow(self):
+        """Filter.filter() should normalize recursive scan options during regular scans."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'recursive': True,
+            'recursive_depth': '2',
+            'recursive_status': '200,403',
+            'recursive_exclude': '.jpg,png',
+        })
+
+        self.assertTrue(actual['recursive'])
+        self.assertEqual(actual['recursive_depth'], 2)
+        self.assertEqual(actual['recursive_status'], ['200', '403'])
+        self.assertEqual(actual['recursive_exclude'], ['jpg', 'png'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'recursive_depth': '0'})
+
+    def test_filter_should_validate_recursive_options_with_session_load(self):
+        """Filter.filter() should preserve recursive CLI overrides for session resume."""
+
+        actual = Filter.filter({
+            'session_load': '/tmp/session.json',
+            'recursive': True,
+            'recursive_depth': '3',
+            'recursive_status': '200,301',
+            'recursive_exclude': 'jpg,css',
+        })
+
+        self.assertEqual(actual['session_load'], '/tmp/session.json')
+        self.assertTrue(actual['recursive'])
+        self.assertEqual(actual['recursive_depth'], 3)
+        self.assertEqual(actual['recursive_status'], ['200', '301'])
+        self.assertEqual(actual['recursive_exclude'], ['jpg', 'css'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'recursive_status': '200-299'})
+
+    def test_scan_reports_should_accept_supported_reports(self):
+        """Filter.scan_reports() should normalize supported scan report plugins."""
+
+        self.assertEqual(Filter.scan_reports('std,csv,HTML'), 'std,csv,html')
+        self.assertIsNone(Filter.scan_reports(None))
+        self.assertIsNone(Filter.scan_reports('None'))
+
+    def test_scan_reports_should_reject_unknown_reports(self):
+        """Filter.scan_reports() should fail early on unsupported report plugins."""
+
+        for value in ['xml', 'std,xml', 'bad']:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.scan_reports(value, key='--reports')
+
+    def test_scan_reports_should_dedupe_preserving_order(self):
+        """Filter.scan_reports() should avoid duplicate reporter execution."""
+
+        self.assertEqual(Filter.scan_reports('std,csv,csv,json,std'), 'std,csv,json')
+
+    def test_filter_should_validate_reports_in_normal_flow(self):
+        """Filter.filter() should validate scan reports during regular scans."""
+
+        actual = Filter.filter({'host': 'example.com', 'reports': 'csv,html,CSV'})
+
+        self.assertEqual(actual['reports'], 'csv,html')
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'reports': 'xml'})
+
+    def test_filter_should_validate_reports_with_session_load(self):
+        """Filter.filter() should preserve report CLI overrides for session resume."""
+
+        actual = Filter.filter({'session_load': '/tmp/session.json', 'reports': 'json,csv'})
+
+        self.assertEqual(actual['session_load'], '/tmp/session.json')
+        self.assertEqual(actual['reports'], 'json,csv')
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'reports': 'xml'})
+
+    def test_filter_should_normalize_reports_dir_in_normal_flow(self):
+        """Filter.filter() should normalize --reports-dir during regular scans."""
+
+        actual = Filter.filter({'host': 'example.com', 'reports_dir': './reports'})
+
+        self.assertEqual(actual['reports_dir'], os.path.abspath('./reports'))
+
+    def test_filter_should_normalize_reports_dir_with_session_load(self):
+        """Filter.filter() should normalize --reports-dir for session resume."""
+
+        actual = Filter.filter({'session_load': '/tmp/session.json', 'reports_dir': './reports'})
+
+        self.assertEqual(actual['reports_dir'], os.path.abspath('./reports'))
+
     def test_status_ranges_reject_upper_out_of_range_code(self):
         """Filter.status_ranges() should reject status codes above 599."""
 
@@ -402,6 +727,20 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(actual['headers'], ['User-Agent: CustomUA', 'X-Test: 1'])
         self.assertEqual(actual['body'], 'username=admin')
 
+
+    def test_raw_request_should_validate_request_method(self):
+        """Filter.raw_request() should reject unsupported request-line methods."""
+
+        with tempfile.NamedTemporaryFile('w+', delete=False, encoding='utf-8') as handle:
+            handle.write('TRACE /admin HTTP/1.1\nHost: example.com\n\n')
+            filepath = handle.name
+
+        try:
+            with self.assertRaises(FilterError):
+                Filter.raw_request(filepath, scheme='https')
+        finally:
+            os.unlink(filepath)
+
     def test_filter_should_use_raw_request_target_when_host_not_provided(self):
         """Filter.filter() should resolve target data from raw-request files."""
 
@@ -421,6 +760,50 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(actual['prefix'], 'api/v1/')
         self.assertEqual(actual['header'], ['X-Test: 1'])
         self.assertNotIn('port', actual['targets'][0])
+
+    def test_filter_should_normalize_custom_request_headers(self):
+        """Filter.filter() should normalize custom --header values before runtime."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'header': [' X-Test :  1 ', 'Authorization: Bearer test'],
+        })
+
+        self.assertEqual(actual['header'], ['X-Test: 1', 'Authorization: Bearer test'])
+
+    def test_filter_should_reject_malformed_custom_request_header(self):
+        """Filter.filter() should fail early when --header has no separator."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'header': ['Broken']})
+
+    def test_filter_should_reject_invalid_custom_request_header_name(self):
+        """Filter.filter() should fail early when --header has an invalid name."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'header': ['Bad Header: 1']})
+
+    def test_filter_should_reject_custom_request_header_injection(self):
+        """Filter.filter() should reject CR/LF injection in --header."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'header': ['X-Test: 1\r\nX-Evil: yes']})
+
+    def test_filter_should_reject_empty_custom_request_header_value(self):
+        """Filter.filter() should fail early when --header value is empty."""
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'header': ['X-Test: ']})
+
+    def test_filter_should_validate_custom_request_header_with_session_load(self):
+        """Filter.filter() should preserve validated --header values for session resume."""
+
+        actual = Filter.filter({
+            'session_load': '/tmp/session.json',
+            'header': [' X-Resume : yes '],
+        })
+
+        self.assertEqual(actual['header'], ['X-Resume: yes'])
 
     def test_filter_should_merge_raw_request_headers_and_cli_overrides(self):
         """Filter.filter() should merge raw-request values with CLI overrides."""
@@ -448,6 +831,19 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(actual['header'], ['User-Agent: RawUA', 'X-Test: 1', 'User-Agent: CliUA'])
         self.assertEqual(actual['cookie'], ['sid=abc', 'session=xyz'])
         self.assertEqual(actual['request_body'], 'username=admin')
+
+    def test_raw_request_should_reject_invalid_host_port(self):
+        """Filter.raw_request() should reject invalid numeric Host ports early."""
+
+        with tempfile.NamedTemporaryFile('w+', delete=False, encoding='utf-8') as handle:
+            handle.write('GET /admin HTTP/1.1\nHost: example.com:65536\n\n')
+            filepath = handle.name
+
+        try:
+            with self.assertRaises(FilterError):
+                Filter.raw_request(filepath, scheme='https')
+        finally:
+            os.unlink(filepath)
 
     def test_filter_should_require_scheme_for_relative_raw_request_target(self):
         """Filter.filter() should require --scheme when raw-request uses a relative path as the target source."""
@@ -719,7 +1115,7 @@ class TestFilter(unittest.TestCase):
     def test_bucket_values_should_ignore_empty_items_and_reject_empty_lists(self):
         """Filter.bucket_values() should skip empty CSV items and reject empty results."""
 
-        self.assertEqual(Filter.bucket_values('success,, blocked,'), ['success', 'blocked'])
+        self.assertEqual(Filter.bucket_values(',success,, blocked,'), ['success', 'blocked'])
 
         with self.assertRaises(FilterError):
             Filter.bucket_values(' , , ', key='--fail-on-bucket')
@@ -1192,6 +1588,7 @@ class TestFilter(unittest.TestCase):
         self.assertIsNone(Filter.optional_text(''))
         self.assertIsNone(Filter.optional_text('   '))
         self.assertIsNone(Filter.optional_text('null'))
+        self.assertIsNone(Filter.optional_text([]))
         self.assertIsNone(Filter.optional_path(None))
         self.assertIsNone(Filter.optional_path('None'))
 
@@ -1362,6 +1759,121 @@ class TestFilter(unittest.TestCase):
 
         with self.assertRaisesRegex(FilterError, 'requires at least one report'):
             Filter.diff_reports('')
+
+    def test_filter_validates_delay_as_non_negative_float(self):
+        """Filter.filter() should preserve fractional request delays and reject invalid values."""
+
+        actual = Filter.filter({'host': 'example.com', 'delay': '0.25'})
+        self.assertEqual(actual['delay'], 0.25)
+
+        actual = Filter.filter({'host': 'example.com', 'delay': 1.5})
+        self.assertEqual(actual['delay'], 1.5)
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'delay': '-0.1'})
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'delay': 'bad'})
+
+    def test_filter_keeps_delay_override_with_session_load(self):
+        """Filter.filter() should allow explicit --delay overrides during session resume."""
+
+        with tempfile.NamedTemporaryFile() as session_file:
+            actual = Filter.filter({'session_load': session_file.name, 'delay': '0.1'})
+
+        self.assertEqual(actual['delay'], 0.1)
+
+    def test_non_negative_float_helper_covers_error_paths(self):
+        """Filter.non_negative_float() should reject empty, invalid and negative values."""
+
+        self.assertEqual(Filter.non_negative_float('0', key='--delay'), 0.0)
+        self.assertEqual(Filter.non_negative_float('0.01', key='--delay'), 0.01)
+
+        with self.assertRaises(FilterError):
+            Filter.non_negative_float(None, key='--delay')
+
+        with self.assertRaises(FilterError):
+            Filter.non_negative_float('-1', key='--delay')
+
+        with self.assertRaises(FilterError):
+            Filter.non_negative_float('nope', key='--delay')
+
+
+    def test_bool_option_should_accept_supported_values(self):
+        """Filter.bool_option() should normalize supported boolean values."""
+
+        for value in [True, 'true', 'True', '1', 'yes', 'on']:
+            with self.subTest(value=value):
+                self.assertTrue(Filter.bool_option(value, key='--waf-detect'))
+
+        for value in [False, 'false', 'False', '0', 'no', 'off', None]:
+            with self.subTest(value=value):
+                self.assertFalse(Filter.bool_option(value, key='--waf-detect'))
+
+    def test_bool_option_should_reject_invalid_values(self):
+        """Filter.bool_option() should reject non-boolean values."""
+
+        for value in ['maybe', '2', '', object()]:
+            with self.subTest(value=value):
+                with self.assertRaises(FilterError):
+                    Filter.bool_option(value, key='--waf-detect')
+
+    def test_filter_should_validate_fingerprint_in_normal_flow(self):
+        """Filter.filter() should normalize fingerprint flag in normal scan flow."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'fingerprint': 'true',
+        })
+
+        self.assertTrue(actual['fingerprint'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'fingerprint': 'maybe'})
+
+    def test_filter_should_validate_fingerprint_with_session_load(self):
+        """Filter.filter() should normalize fingerprint overrides in session resume flow."""
+
+        actual = Filter.filter({
+            'session_load': '/tmp/session.json',
+            'fingerprint': 'true',
+        })
+
+        self.assertTrue(actual['fingerprint'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'fingerprint': 'maybe'})
+
+
+    def test_filter_should_validate_waf_options_in_normal_flow(self):
+        """Filter.filter() should normalize WAF flags in normal scan flow."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'waf_detect': 'false',
+            'waf_safe_mode': 'true',
+        })
+
+        self.assertTrue(actual['waf_safe_mode'])
+        self.assertTrue(actual['waf_detect'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'host': 'example.com', 'waf_safe_mode': 'maybe'})
+
+    def test_filter_should_validate_waf_options_with_session_load(self):
+        """Filter.filter() should normalize WAF overrides in session resume flow."""
+
+        actual = Filter.filter({
+            'session_load': '/tmp/session.json',
+            'waf_detect': 'false',
+            'waf_guard': 'true',
+        })
+
+        self.assertTrue(actual['waf_guard'])
+        self.assertTrue(actual['waf_detect'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'waf_detect': 'maybe'})
 
 
 if __name__ == '__main__':

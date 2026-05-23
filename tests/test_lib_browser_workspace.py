@@ -24,7 +24,7 @@ class TestScanTempWorkspace(unittest.TestCase):
             self.assertTrue(os.path.basename(workspace.path).startswith('opendoor-test-'))
 
             paths = workspace.paths
-            self.assertEqual(set(paths.keys()), {'tmplist', 'extensionlist', 'ignore_extensionlist'})
+            self.assertEqual(set(paths.keys()), {'tmplist', 'extensionlist', 'ignore_extensionlist', 'remote_wordlist'})
 
             for path in paths.values():
                 self.assertEqual(os.path.dirname(path), workspace.path)
@@ -83,8 +83,8 @@ class TestScanTempWorkspace(unittest.TestCase):
             self.assertFalse(os.path.exists(managed_path))
             self.assertIsNone(workspace.path)
 
-    def test_sigint_handler_preserves_keyboard_interrupt_semantics(self):
-        """SIGINT should still raise KeyboardInterrupt after cleanup."""
+    def test_sigint_handler_preserves_workspace_for_pause_resume(self):
+        """SIGINT should raise KeyboardInterrupt without deleting pause-resume workspaces."""
 
         with tempfile.TemporaryDirectory() as root:
             workspace = ScanTempWorkspace(root=root, prefix='opendoor-test-')
@@ -95,8 +95,27 @@ class TestScanTempWorkspace(unittest.TestCase):
             with self.assertRaises(KeyboardInterrupt):
                 ScanTempWorkspace._handle_signal(signal.SIGINT, None)
 
-            self.assertFalse(os.path.exists(managed_path))
-            self.assertIsNone(workspace.path)
+            self.assertTrue(os.path.isdir(managed_path))
+            self.assertEqual(workspace.path, managed_path)
+            workspace.cleanup()
+
+
+    def test_sigint_handler_chains_previous_handler_without_cleanup(self):
+        """Custom SIGINT handlers should run without eager workspace cleanup."""
+
+        with tempfile.TemporaryDirectory() as root:
+            workspace = ScanTempWorkspace(root=root, prefix='opendoor-test-')
+            managed_path = workspace.path
+            previous = MagicMock()
+
+            ScanTempWorkspace._previous_signal_handlers[signal.SIGINT] = previous
+
+            ScanTempWorkspace._handle_signal(signal.SIGINT, None)
+
+            previous.assert_called_once_with(signal.SIGINT, None)
+            self.assertTrue(os.path.isdir(managed_path))
+            self.assertEqual(workspace.path, managed_path)
+            workspace.cleanup()
 
     def test_install_signal_handlers_skips_missing_signals(self):
         """Signal hook installation should ignore signals unavailable on the current OS."""

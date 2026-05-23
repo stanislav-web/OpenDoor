@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import unittest
 
 from src.lib.browser.config import Config
@@ -60,6 +61,25 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertTrue(cfg.is_ssl)
         self.assertEqual(cfg.port, 443)
 
+    def test_port_defaults_by_scheme_when_missing(self):
+        """Config.port should default to the scheme default when no port is configured."""
+
+        self.assertEqual(Config({'reports': 'std', 'scheme': 'http://'}).port, 80)
+        self.assertEqual(Config({'reports': 'std', 'scheme': 'https://'}).port, 443)
+
+    def test_port_normalizes_string_values(self):
+        """Config.port should normalize wizard/session string port values."""
+
+        self.assertEqual(Config({'reports': 'std', 'scheme': 'http://', 'port': '8080'}).port, 8080)
+
+    def test_port_rejects_invalid_values(self):
+        """Config.port should reject invalid port values before runtime requests."""
+
+        for value in ['abc', '0', '-1', '65536']:
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    Config({'reports': 'std', 'scheme': 'http://', 'port': value})
+
     def test_method_uses_get_for_non_file_sniffers(self):
         """Config.method should use GET when multiple sniffers are enabled."""
 
@@ -102,6 +122,34 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(cfg.extensions, ['php', 'html'])
         self.assertEqual(cfg.ignore_extensions, ['jpg', 'png'])
 
+    def test_reports_default_to_std_when_missing(self):
+        """Config.reports should default to std when reports are missing or disabled."""
+
+        self.assertEqual(Config({}).reports, ['std'])
+        self.assertEqual(Config({'reports': 'None'}).reports, ['std'])
+
+    def test_reports_are_normalized_and_deduped(self):
+        """Config.reports should normalize report names and avoid duplicates."""
+
+        self.assertEqual(Config({'reports': 'HTML,csv,csv,std'}).reports, ['html', 'csv', 'std'])
+        self.assertEqual(Config({'reports': ['json', 'csv', 'json']}).reports, ['json', 'csv', 'std'])
+
+    def test_reports_reject_unknown_values(self):
+        """Config.reports should reject unsupported wizard/session report plugins."""
+
+        for value in ['xml', 'std,xml', ['json', 'bad']]:
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    Config({'reports': value})
+
+    def test_reports_dir_normalizes_none_and_paths(self):
+        """Config.reports_dir should normalize None-like values and filesystem paths."""
+
+        self.assertIsNone(Config({'reports_dir': None}).reports_dir)
+        self.assertIsNone(Config({'reports_dir': 'None'}).reports_dir)
+        self.assertEqual(Config({'reports_dir': ['./reports']}).reports_dir, os.path.abspath('./reports'))
+        self.assertEqual(Config({'reports_dir': './reports'}).reports_dir, os.path.abspath('./reports'))
+
     def test_random_list_flag_requires_true_value(self):
         """Config should not enable random list mode from explicit False or missing values."""
 
@@ -129,6 +177,10 @@ class TestBrowserConfig(unittest.TestCase):
         external = Config({'reports': 'std', 'proxy_list': 'proxy-list.txt'})
         self.assertTrue(external.is_proxy)
         self.assertTrue(external.is_external_proxy_list)
+        self.assertEqual(external.proxy_rotation, 'random')
+
+        sequential = Config({'reports': 'std', 'proxy_list': 'proxy-list.txt', 'proxy_rotation': 'sequential'})
+        self.assertEqual(sequential.proxy_rotation, 'sequential')
 
         internal = Config({'reports': 'std', 'proxy_pool': True})
         self.assertTrue(internal.is_proxy)
@@ -150,6 +202,52 @@ class TestBrowserConfig(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             Config({'reports': 'std', 'retries': '-1'})
+
+    def test_retries_fail_streak_defaults_and_validates_positive_integer(self):
+        """Config should expose the consecutive max-retry path abort threshold."""
+
+        self.assertEqual(Config({'reports': 'std'}).retries_fail_streak, 10)
+        self.assertEqual(Config({'reports': 'std', 'retries_fail_streak': '25'}).retries_fail_streak, 25)
+
+        with self.assertRaises(ValueError):
+            Config({'reports': 'std', 'retries_fail_streak': '0'})
+
+        with self.assertRaises(ValueError):
+            Config({'reports': 'std', 'retries_fail_streak': '-1'})
+
+    def test_threads_default_to_min_when_missing(self):
+        """Config should default worker threads to the minimum safe value."""
+
+        self.assertEqual(Config({'reports': 'std'}).threads, Config.DEFAULT_MIN_THREADS)
+
+    def test_threads_normalizes_string_values(self):
+        """Config should normalize thread counts from wizard/session strings."""
+
+        self.assertEqual(Config({'reports': 'std', 'threads': '8'}).threads, 8)
+
+    def test_threads_rejects_invalid_values(self):
+        """Config should reject thread counts that cannot create workers."""
+
+        for value in ['0', 0, '-1', -1, 'bad']:
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    Config({'reports': 'std', 'threads': value})
+
+    def test_set_threads_validates_values(self):
+        """Config.set_threads() should keep runtime thread assignments safe."""
+
+        cfg = Config({'reports': 'std'})
+        cfg.set_threads('3')
+
+        self.assertEqual(cfg.threads, 3)
+
+        with self.assertRaises(ValueError):
+            cfg.set_threads(0)
+
+    def test_default_max_threads_is_configured_to_fifty(self):
+        """Config should allow a higher I/O-bound thread clamp for scan workers."""
+
+        self.assertEqual(Config.DEFAULT_MAX_THREADS, 50)
 
     def test_threads_and_prefix_mutators_work(self):
         """Config should expose configurable threads and normalized prefixes."""
@@ -189,6 +287,35 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(cfg.recursive_depth, 1)
         self.assertEqual(cfg.recursive_status, [])
         self.assertEqual(cfg.recursive_exclude, [])
+
+    def test_recursive_defaults_apply_when_enabled(self):
+        """Config should apply recursive defaults when recursion is enabled."""
+
+        cfg = Config({'reports': 'std', 'recursive': True})
+
+        self.assertTrue(cfg.is_recursive)
+        self.assertEqual(cfg.recursive_depth, 1)
+        self.assertEqual(cfg.recursive_status, ['200', '301', '302', '307', '308', '403'])
+        self.assertEqual(
+            cfg.recursive_exclude,
+            ['jpg', 'jpeg', 'png', 'gif', 'svg', 'css', 'js', 'ico', 'woff', 'woff2', 'ttf', 'map', 'pdf', 'zip', 'gz', 'tar']
+        )
+
+    def test_recursive_settings_reject_invalid_values(self):
+        """Config should reject invalid recursive settings from wizard/session snapshots."""
+
+        for params in [
+            {'recursive_depth': '0'},
+            {'recursive_status': '200-299'},
+            {'recursive_status': '600'},
+            {'recursive_exclude': '../env'},
+            {'recursive_exclude': 'jpg/png'},
+        ]:
+            with self.subTest(params=params):
+                config = {'reports': 'std'}
+                config.update(params)
+                with self.assertRaises(ValueError):
+                    Config(config)
 
 
     def test_tls_legacy_defaults_to_disabled_and_can_be_enabled(self):
@@ -328,7 +455,7 @@ class TestBrowserConfig(unittest.TestCase):
         """Config should normalize delay rounding, report defaults and empty recursive excludes."""
 
         cfg = Config({'delay': 1.7, 'reports': None, 'recursive_exclude': None})
-        self.assertEqual(cfg.delay, 1)
+        self.assertEqual(cfg.delay, 1.7)
         self.assertEqual(cfg.reports, ['std'])
         self.assertEqual(cfg.recursive_exclude, [])
 
@@ -442,6 +569,99 @@ class TestBrowserConfig(unittest.TestCase):
         cfg = Config({'reports': 'std', 'waf_detect': True})
         self.assertTrue(cfg.is_waf_detect)
 
+
+    def test_fingerprint_defaults_to_false_when_missing(self):
+        """Config should keep fingerprinting disabled by default."""
+
+        cfg = Config({'reports': 'std'})
+
+        self.assertFalse(cfg.is_fingerprint)
+
+    def test_fingerprint_normalizes_bool_like_values(self):
+        """Config should normalize fingerprint bool-like wizard/session values."""
+
+        for value in [True, 'true', 'True', '1', 'yes', 'on']:
+            with self.subTest(value=value):
+                self.assertTrue(Config({'reports': 'std', 'fingerprint': value}).is_fingerprint)
+
+        for value in [False, 'false', 'False', '0', 'no', 'off', None]:
+            with self.subTest(value=value):
+                self.assertFalse(Config({'reports': 'std', 'fingerprint': value}).is_fingerprint)
+
+    def test_fingerprint_rejects_invalid_values(self):
+        """Config should reject malformed fingerprint bool values."""
+
+        with self.assertRaises(ValueError):
+            Config({'reports': 'std', 'fingerprint': 'maybe'})
+
+
+    def test_waf_flags_default_to_false_when_missing(self):
+        """Config should keep WAF features disabled by default."""
+
+        cfg = Config({'reports': 'std'})
+
+        self.assertFalse(cfg.is_waf_detect)
+        self.assertFalse(cfg.is_waf_safe_mode)
+        self.assertFalse(cfg.is_waf_guard)
+
+    def test_waf_flags_normalize_string_values(self):
+        """Config should normalize WAF bool-like wizard/session values."""
+
+        cfg = Config({
+            'reports': 'std',
+            'waf_detect': 'true',
+            'waf_safe_mode': '1',
+            'waf_guard': 'yes',
+        })
+
+        self.assertTrue(cfg.is_waf_detect)
+        self.assertTrue(cfg.is_waf_safe_mode)
+        self.assertTrue(cfg.is_waf_guard)
+
+        cfg = Config({
+            'reports': 'std',
+            'waf_detect': 'false',
+            'waf_safe_mode': '0',
+            'waf_guard': 'no',
+        })
+
+        self.assertFalse(cfg.is_waf_detect)
+        self.assertFalse(cfg.is_waf_safe_mode)
+        self.assertFalse(cfg.is_waf_guard)
+
+    def test_waf_flags_reject_invalid_values(self):
+        """Config should reject malformed WAF bool values."""
+
+        for key in ['waf_detect', 'waf_safe_mode', 'waf_guard']:
+            with self.subTest(key=key):
+                with self.assertRaises(ValueError):
+                    Config({'reports': 'std', key: 'maybe'})
+
+    def test_waf_safe_mode_enables_waf_detect(self):
+        """Config should enable passive WAF detection when WAF safe mode is enabled."""
+
+        cfg = Config({'reports': 'std', 'waf_safe_mode': True})
+
+        self.assertTrue(cfg.is_waf_safe_mode)
+        self.assertTrue(cfg.is_waf_detect)
+
+    def test_waf_detect_does_not_enable_waf_safe_mode(self):
+        """Config should not enable WAF safe mode when only detection is requested."""
+
+        cfg = Config({'reports': 'std', 'waf_detect': True})
+
+        self.assertTrue(cfg.is_waf_detect)
+        self.assertFalse(cfg.is_waf_safe_mode)
+
+    def test_waf_guard_enables_waf_detect_without_safe_mode(self):
+        """Config should enable passive WAF detection when WAF guard is enabled."""
+
+        cfg = Config({'reports': 'std', 'waf_guard': True})
+
+        self.assertTrue(cfg.is_waf_guard)
+        self.assertTrue(cfg.is_waf_detect)
+        self.assertFalse(cfg.is_waf_safe_mode)
+
     def test_config_should_enable_auto_calibration(self):
         """Config should expose auto-calibration settings."""
 
@@ -506,6 +726,31 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertIsNone(config.transport_bin)
         self.assertIsNone(config.openvpn_auth)
 
+    def test_method_defaults_to_head_when_missing(self):
+        """Config.requested_method should default to HEAD when method is absent."""
+
+        cfg = Config({'reports': 'std'})
+
+        self.assertEqual(cfg.requested_method, 'HEAD')
+        self.assertEqual(cfg.method, 'HEAD')
+
+    def test_method_normalizes_lowercase_values(self):
+        """Config.requested_method should normalize methods restored from wizard/session."""
+
+        cfg = Config({'reports': 'std', 'method': 'post'})
+
+        self.assertEqual(cfg.requested_method, 'POST')
+        self.assertEqual(cfg.method, 'POST')
+
+    def test_explicit_get_is_not_reported_as_head_override(self):
+        """Config.method_override_warning should stay empty for explicit GET requests."""
+
+        cfg = Config({'reports': 'std', 'method': 'GET', 'sniff': 'secret'})
+
+        self.assertEqual(cfg.method, 'GET')
+        self.assertEqual(cfg.method_override_warning, '')
+
+
 class TestBrowserConfigDefensiveCopies(unittest.TestCase):
     """Config defensive-copy regression tests."""
 
@@ -546,6 +791,7 @@ class TestBrowserConfigDefensiveCopies(unittest.TestCase):
         self.assertEqual(normalized, ['200', '403', '404'])
 
 
+
 class TestBrowserConfigCoverageOnly(unittest.TestCase):
     """Coverage-only tests for config normalization edge branches."""
 
@@ -563,7 +809,22 @@ class TestBrowserConfigCoverageOnly(unittest.TestCase):
 
         cfg = Config({'reports': 'std', 'delay': 1.5})
 
-        self.assertEqual(cfg.delay, 1)
+        self.assertEqual(cfg.delay, 1.5)
+
+    def test_delay_preserves_fractional_values_from_strings(self):
+        """Config.delay should preserve fractional values loaded from wizard/session strings."""
+
+        cfg = Config({'delay': '0.1'})
+
+        self.assertEqual(cfg.delay, 0.1)
+
+    def test_delay_rejects_negative_values(self):
+        """Config.delay should reject negative values before they reach workers."""
+
+        cfg = Config({'delay': '-0.1'})
+
+        with self.assertRaises(ValueError):
+            _ = cfg.delay
 
 
 if __name__ == '__main__':

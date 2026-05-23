@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import threading
 import unittest
 from configparser import RawConfigParser
 from types import SimpleNamespace
@@ -592,13 +593,19 @@ class TestBrowser(unittest.TestCase):
         setattr(br, '_Browser__pool', pool)
         setattr(br, '_Browser__response', response_handler)
 
-        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+        debug_state = MagicMock()
+        debug_state.is_scan_debug.return_value = True
+        setattr(br, '_Browser__debug', debug_state)
+
+        with patch('src.lib.browser.browser.tpl.debug') as debug_mock, \
+                patch('src.lib.browser.browser.tpl.warning') as warning_mock:
             br._Browser__http_request('http://example.com/admin')
 
         client.request.assert_called_once_with('http://example.com/admin')
         response_handler.handle.assert_not_called()
-        warning_mock.assert_called_once()
-        self.assertIn('Consecutive transport failures: 1/2', warning_mock.call_args.kwargs.get('msg', ''))
+        warning_mock.assert_not_called()
+        debug_mock.assert_called_once()
+        self.assertIn('Consecutive max-retry path failures: 1/10', debug_mock.call_args.kwargs.get('msg', ''))
 
         result = getattr(br, '_Browser__result')
         self.assertEqual(result['total']['ignored'], 1)
@@ -619,14 +626,50 @@ class TestBrowser(unittest.TestCase):
         setattr(br, '_Browser__response', response_handler)
         setattr(getattr(br, '_Browser__config'), 'last_transport_error', 'TLS handshake failed: DH_KEY_TOO_SMALL. Retry with --tls-legacy.')
 
-        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+        debug_state = MagicMock()
+        debug_state.is_scan_debug.return_value = True
+        setattr(br, '_Browser__debug', debug_state)
+
+        with patch('src.lib.browser.browser.tpl.debug') as debug_mock, \
+                patch('src.lib.browser.browser.tpl.warning') as warning_mock:
             br._Browser__http_request('https://example.com/admin')
 
-        self.assertIn('DH_KEY_TOO_SMALL', warning_mock.call_args.kwargs.get('msg', ''))
-        self.assertIn('--tls-legacy', warning_mock.call_args.kwargs.get('msg', ''))
+        warning_mock.assert_not_called()
+        self.assertIn('DH_KEY_TOO_SMALL', debug_mock.call_args.kwargs.get('msg', ''))
+        self.assertIn('--tls-legacy', debug_mock.call_args.kwargs.get('msg', ''))
 
-    def test_http_request_aborts_after_consecutive_transport_failures(self):
-        """Browser.__http_request() should stop a scan after repeated exhausted transport failures."""
+    def test_http_request_aborts_after_configured_retries_fail_streak(self):
+        """Browser.__http_request() should stop after the configured exhausted-retry streak."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+        setattr(getattr(br, '_Browser__config'), '_retries_fail_streak', 2)
+
+        br._Browser__http_request('http://example.com/first')
+
+        with self.assertRaises(BrowserError) as context:
+            br._Browser__http_request('http://example.com/second')
+
+        self.assertIn('Aborting scan after 2 consecutive request(s) exhausted configured --retries', str(context.exception))
+        self.assertIn('--retries-fail-streak', str(context.exception))
+        self.assertEqual(client.request.call_count, 2)
+        client.request.assert_any_call('http://example.com/first')
+        client.request.assert_any_call('http://example.com/second')
+        response_handler.handle.assert_not_called()
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['ignored'], 2)
+        self.assertEqual(result['items']['ignored'], ['http://example.com/first', 'http://example.com/second'])
+
+    def test_http_request_does_not_abort_before_default_retries_fail_streak(self):
+        """Browser.__http_request() should keep max-retry paths skipped until the default threshold."""
 
         br = self.make_browser()
         client = MagicMock()
@@ -638,16 +681,44 @@ class TestBrowser(unittest.TestCase):
         setattr(br, '_Browser__pool', pool)
         setattr(br, '_Browser__response', response_handler)
 
-        with patch('src.lib.browser.browser.tpl.warning'):
-            br._Browser__http_request('http://example.com/first')
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__http_request('http://example.com/.well')
+            br._Browser__http_request('http://example.com/.idea/dictionaries')
 
-        with self.assertRaises(BrowserError) as context:
-            br._Browser__http_request('http://example.com/second')
-
-        self.assertIn('Target transport appears unavailable', str(context.exception))
-        self.assertIn('configured --timeout and --retries', str(context.exception))
         self.assertEqual(client.request.call_count, 2)
+        client.request.assert_any_call('http://example.com/.well')
+        client.request.assert_any_call('http://example.com/.idea/dictionaries')
         response_handler.handle.assert_not_called()
+        warning_mock.assert_not_called()
+        self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 2)
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['ignored'], 2)
+        self.assertEqual(
+            result['items']['ignored'],
+            ['http://example.com/.well', 'http://example.com/.idea/dictionaries']
+        )
+
+    def test_http_request_does_not_run_healthcheck_during_max_retry_streak(self):
+        """Browser.__http_request() should not add probe requests while counting max-retry paths."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+        setattr(getattr(br, '_Browser__config'), '_retries_fail_streak', 3)
+
+        br._Browser__http_request('http://example.com/.well')
+        br._Browser__http_request('http://example.com/.git/config')
+
+        self.assertEqual(client.request.call_count, 2)
+        self.assertNotIn('http://example.com/', [call.args[0] for call in client.request.call_args_list])
+        self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 2)
 
     def test_http_request_resets_transport_failure_streak_after_success(self):
         """Browser.__http_request() should not abort when transport recovers between failures."""
@@ -670,8 +741,25 @@ class TestBrowser(unittest.TestCase):
             br._Browser__http_request('http://example.com/miss-2')
 
         self.assertEqual(client.request.call_count, 3)
-        self.assertEqual(warning_mock.call_count, 2)
+        warning_mock.assert_not_called()
         self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 1)
+
+    def test_transport_failure_summary_reports_skipped_path_specific_failures(self):
+        """Browser should summarize skipped path-specific transport failures once."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__transport_failure_lock', threading.RLock())
+        setattr(br, '_Browser__transport_failures_skipped', 3)
+        setattr(br, '_Browser__transport_failure_summary_emitted', False)
+
+        with patch('src.lib.browser.browser.tpl.info') as info_mock:
+            br._Browser__emit_transport_failure_summary()
+            br._Browser__emit_transport_failure_summary()
+
+        info_mock.assert_called_once()
+        message = info_mock.call_args.kwargs.get('msg', '')
+        self.assertIn('Transport failures skipped: 3 request(s)', message)
+        self.assertIn('Scan continued without reaching --retries-fail-streak.', message)
 
     def test_http_request_records_status_from_response_handler(self):
         """Browser.__http_request() should record the tuple returned by the response handler."""
@@ -1340,7 +1428,10 @@ class TestBrowser(unittest.TestCase):
             br.done()
 
         warning_mock.assert_called_once()
-        self.assertIn('submitting 4167/93661 planned item(s)', warning_mock.call_args.kwargs['msg'])
+        message = warning_mock.call_args.kwargs['msg']
+        self.assertIn('consuming 4167/93661 planned item(s)', message)
+        self.assertIn('(4167 submitted to workers)', message)
+        self.assertIn('active wordlist ended early or was changed during streaming', message)
 
     def test_catch_report_data_initializes_report_items_when_missing(self):
         """Browser.__catch_report_data() should restore report_items when old payloads do not have it."""
@@ -1432,6 +1523,224 @@ class TestBrowser(unittest.TestCase):
             [{'url': 'http://example.com/admin', 'size': '5B', 'code': '200'}]
         )
         report.process.assert_called_once_with()
+
+    def test_done_prints_debug_runtime_diagnostics_after_reports(self):
+        """Browser.done() should print terminal-only runtime diagnostics after reports."""
+
+        br = self.make_browser()
+        total = helper.counter()
+        total.update({'calibrated': 3})
+        result = {'total': total, 'items': helper.list(), 'report_items': helper.list()}
+        config = SimpleNamespace(
+            reports=['std'],
+            host='test.local',
+            retries_fail_streak=30,
+            is_auto_calibrate=True,
+        )
+        debug = SimpleNamespace(is_scan_debug=lambda: True)
+        pool = SimpleNamespace(
+            total_items_size=10,
+            submitted_size=9,
+            workers_size=1,
+            size=0,
+            items_size=9,
+            completed_size=9,
+        )
+
+        setattr(br, '_Browser__result', result)
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__streamed_items_count', 10)
+        setattr(br, '_Browser__pre_request_skipped', 1)
+        setattr(br, '_Browser__transport_failures_skipped', 2)
+        setattr(br, '_Browser__transport_failure_summary_emitted', True)
+        setattr(br, '_Browser__runtime_active_seconds_offset', 2.0)
+        setattr(br, '_Browser__runtime_diagnostics_emitted', False)
+
+        report = MagicMock()
+        timeline = []
+        report.process.side_effect = lambda: timeline.append('report')
+
+        with patch('src.lib.browser.browser.Reporter.load', return_value=report), \
+                patch('src.lib.browser.browser.output.writeln') as info_mock:
+            info_mock.side_effect = lambda *args, **kwargs: timeline.append('diagnostics')
+            br.done()
+
+        self.assertEqual(timeline, ['report', 'diagnostics'])
+        diagnostic_messages = [
+            call.args[0] if call.args else ''
+            for call in info_mock.call_args_list
+            if call.args and 'Runtime diagnostics' in call.args[0]
+        ]
+        self.assertEqual(len(diagnostic_messages), 1)
+        rendered = diagnostic_messages[0]
+        self.assertIn('| Runtime diagnostics', rendered)
+        self.assertIn('| items       | 10', rendered)
+        self.assertIn('| progress    | 10/10 (100.0%)', rendered)
+        self.assertIn('| requests    | 9 submitted, 1 skipped before request', rendered)
+        self.assertIn('| rate        | 5.0/s average', rendered)
+        self.assertIn('| time        | active 00:00:02, remaining 00:00:00', rendered)
+        self.assertIn('| threads     | 1', rendered)
+        self.assertIn('| retries     | exhausted transport paths 2, fail streak 0/30', rendered)
+        self.assertIn('| calibration | enabled, 3 responses suppressed', rendered)
+        self.assertNotIn('Response filters:', rendered)
+        self.assertNotIn('Sniffers:', rendered)
+        self.assertNotIn('WAF detection:', rendered)
+        self.assertNotIn('WAF safe mode:', rendered)
+        self.assertNotIn('| status', rendered)
+
+    def test_runtime_diagnostics_table_uses_dynamic_width_for_longest_cells(self):
+        """Runtime diagnostics table should expand to the longest label/value."""
+
+        long_label = 'transport_retry_diagnostics'
+        long_value = '95956 submitted, 220000 skipped before request after transport preflight'
+
+        rendered = Browser._Browser__format_diagnostics_table(
+            'Runtime diagnostics',
+            [
+                ('items', '96031'),
+                (long_label, long_value),
+                ('threads', '1'),
+            ],
+        )
+        lines = rendered.splitlines()
+
+        self.assertIn(long_label, rendered)
+        self.assertIn(long_value, rendered)
+        self.assertEqual(len({len(line) for line in lines}), 1)
+
+        border_len = len(lines[0])
+        self.assertEqual(len(lines[1]), border_len)
+        self.assertEqual(len(lines[-1]), border_len)
+        self.assertTrue(next(line for line in lines if long_value in line).endswith(' |'))
+
+    def test_done_does_not_print_runtime_diagnostics_without_debug(self):
+        """Browser.done() should keep normal summary output unchanged when debug is disabled."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=1,
+            submitted_size=1,
+            workers_size=1,
+            size=0,
+            items_size=1,
+            completed_size=1,
+        ))
+        setattr(br, '_Browser__config', SimpleNamespace(reports=[], host='test.local'))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: False))
+
+        with patch('src.lib.browser.browser.output.writeln') as info_mock:
+            br.done()
+
+        self.assertFalse(any(
+            call.args and 'Runtime diagnostics' in call.args[0]
+            for call in info_mock.call_args_list
+        ))
+
+    def test_runtime_diagnostics_marks_interrupted_scans(self):
+        """Browser runtime diagnostics should estimate remaining time for interrupted scans."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=10,
+            submitted_size=5,
+            workers_size=1,
+            size=0,
+            items_size=5,
+            completed_size=5,
+        ))
+        setattr(br, '_Browser__config', SimpleNamespace(
+            retries_fail_streak=30,
+            is_auto_calibrate=False,
+        ))
+        setattr(br, '_Browser__runtime_active_seconds_offset', 10.0)
+
+        rendered = br._Browser__format_runtime_diagnostics(status='interrupted')
+
+        self.assertIn('| progress    | 5/10 (50.0%)', rendered)
+        self.assertIn('| rate        | 0.5/s average', rendered)
+        self.assertIn('| time        | active 00:00:10, remaining 00:00:10', rendered)
+        self.assertIn('| retries     | exhausted transport paths 0, fail streak 0/30', rendered)
+        self.assertIn('| calibration | disabled, 0 responses suppressed', rendered)
+        self.assertIn('| status      | interrupted', rendered)
+
+    def test_runtime_clock_accumulates_active_time_without_double_counting(self):
+        """Browser runtime clock should accumulate active scan time safely."""
+
+        br = self.make_browser()
+
+        with patch('src.lib.browser.browser.time.monotonic', side_effect=[100.0, 102.25, 105.75]):
+            br._Browser__start_runtime_clock()
+            br._Browser__start_runtime_clock()
+
+            self.assertAlmostEqual(br._Browser__active_runtime_seconds(), 2.25)
+
+            br._Browser__stop_runtime_clock()
+
+        self.assertIsNone(getattr(br, '_Browser__runtime_started_at'))
+        self.assertAlmostEqual(getattr(br, '_Browser__runtime_active_seconds_offset'), 5.75)
+
+        br._Browser__stop_runtime_clock()
+        self.assertAlmostEqual(getattr(br, '_Browser__runtime_active_seconds_offset'), 5.75)
+
+        setattr(br, '_Browser__runtime_started_at', 200.0)
+        setattr(br, '_Browser__runtime_finished_at', 201.0)
+        br._Browser__stop_runtime_clock()
+        self.assertAlmostEqual(getattr(br, '_Browser__runtime_active_seconds_offset'), 5.75)
+
+    def test_runtime_diagnostics_handles_zero_totals_and_malformed_result_counters(self):
+        """Browser runtime diagnostics should stay stable with empty counters."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=0,
+            submitted_size='bad',
+            workers_size='2',
+            size=0,
+            items_size='bad',
+            completed_size='bad',
+        ))
+        setattr(br, '_Browser__config', SimpleNamespace(
+            retries_fail_streak=10,
+            is_auto_calibrate=False,
+        ))
+        setattr(br, '_Browser__result', {'total': 'bad', 'items': helper.list(), 'report_items': helper.list()})
+
+        rendered = br._Browser__format_runtime_diagnostics(status='completed')
+
+        self.assertIn('| progress    | 0/0 (0.0%)', rendered)
+        self.assertIn('| requests    | 0 submitted, 0 skipped before request', rendered)
+        self.assertIn('| rate        | 0.0/s average', rendered)
+        self.assertIn('| threads     | 2', rendered)
+        self.assertIn('| retries     | exhausted transport paths 0, fail streak 0/10', rendered)
+        self.assertIn('| calibration | disabled, 0 responses suppressed', rendered)
+        self.assertNotIn('| status', rendered)
+
+    def test_emit_runtime_diagnostics_is_idempotent(self):
+        """Browser runtime diagnostics should not print more than once."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=1,
+            submitted_size=1,
+            workers_size=1,
+            size=0,
+            items_size=1,
+            completed_size=1,
+        ))
+        setattr(br, '_Browser__config', SimpleNamespace(
+            retries_fail_streak=30,
+            is_auto_calibrate=True,
+        ))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
+        setattr(br, '_Browser__runtime_diagnostics_emitted', True)
+
+        with patch('src.lib.browser.browser.output.writeln') as info_mock:
+            emitted = br._Browser__emit_runtime_diagnostics(status='completed')
+
+        self.assertFalse(emitted)
+        info_mock.assert_not_called()
 
     def test_done_skips_report_generation_when_queue_is_not_empty(self):
         """Browser.done() should skip reporting while there are still queued items."""
@@ -1811,14 +2120,14 @@ class TestBrowser(unittest.TestCase):
             'port': 80,
             'scheme': 'http://',
             'recursive': True,
-            'recursive_depth': 0,
+            'recursive_depth': 1,
         }))
         reader = MagicMock()
         setattr(br, '_Browser__reader', reader)
         pool = MagicMock()
         setattr(br, '_Browser__pool', pool)
 
-        br._Browser__enqueue_recursive_children('http://example.com/admin', 0)
+        br._Browser__enqueue_recursive_children('http://example.com/admin', 1)
 
         reader.get_lines.assert_not_called()
         pool.add.assert_not_called()

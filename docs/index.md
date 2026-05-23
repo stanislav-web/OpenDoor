@@ -47,13 +47,16 @@ opendoor --host https://example.com --scan directories
 opendoor --host example.com --scan subdomains
 ```
 
-You can use the built-in dictionaries or provide your own wordlists.
+You can use the built-in dictionaries or provide your own local or remote wordlists.
 
 ```shell
 opendoor --host https://example.com --wordlist ./paths.txt
+opendoor --host https://example.com --wordlist https://example.com/wordlists/paths.txt
 opendoor --host https://example.com --extensions php,json,txt  # keep only matching wordlist extensions
 opendoor --host https://example.com --ignore-extensions aspx,jsp
 ```
+
+Bundled dictionaries are marked as `internal`; local and remote `--wordlist` inputs are marked as `external`. Remote wordlists are limited to 500 MB and are processed like local wordlists after download.
 
 ---
 

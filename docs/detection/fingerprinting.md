@@ -108,6 +108,7 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 - Craft CMS
 - Directus
 - Discourse
+- DotCMS
 - Drupal
 - Ghost
 - GravCMS
@@ -139,6 +140,7 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 - CMS.S3 / Megagroup
 - Discuz!
 - InstantCMS
+- DiafanCMS
 - NetCat
 - CMS CONTENIDO
 - CMS Made Simple

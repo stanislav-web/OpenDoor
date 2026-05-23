@@ -38,11 +38,15 @@ class Filter(object):
     IPV4_RANGE_REGEX = re.compile(r'^(\d{1,3}(?:\.\d{1,3}){3})-(\d{1,3}(?:\.\d{1,3}){3})$')
     TARGET_EXPANSION_LIMIT = 65536
     HEADER_NAME_REGEX = re.compile(r"^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$")
+    RECURSIVE_EXTENSION_REGEX = re.compile(r'^[A-Za-z0-9][A-Za-z0-9+_-]*$')
 
     TRANSPORTS = ('direct', 'proxy', 'openvpn', 'wireguard')
     TRANSPORT_ROTATES = ('none', 'per-target')
+    PROXY_ROTATIONS = ('random', 'sequential')
+    METHODS = ('HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS')
     VPN_TRANSPORTS = ('openvpn', 'wireguard')
     HEADER_BYPASS_PROFILES = ('safe', 'offensive')
+    SCAN_REPORTS = ('json', 'std', 'txt', 'csv', 'html', 'sqlite', 'sarif')
     DIFF_REPORTS = ('std', 'json')
     PROXY_SCHEMES = ('http', 'https', 'socks4', 'socks5', 'socks5h')
 
@@ -104,8 +108,17 @@ class Filter(object):
                     key='--session-autosave-items'
                 )
 
-            if args.get('waf_guard') is True:
-                filtered['waf_guard'] = True
+            if args.get('fingerprint') is not None:
+                filtered['fingerprint'] = Filter.bool_option(args.get('fingerprint'), key='--fingerprint')
+
+            if args.get('waf_detect') is not None:
+                filtered['waf_detect'] = Filter.bool_option(args.get('waf_detect'), key='--waf-detect')
+
+            if args.get('waf_safe_mode') is not None:
+                filtered['waf_safe_mode'] = Filter.bool_option(args.get('waf_safe_mode'), key='--waf-safe-mode')
+
+            if args.get('waf_guard') is not None:
+                filtered['waf_guard'] = Filter.bool_option(args.get('waf_guard'), key='--waf-guard')
 
             if args.get('waf_guard_after') is not None:
                 filtered['waf_guard_after'] = Filter.positive_int(
@@ -160,6 +173,48 @@ class Filter(object):
 
             if args.get('debug') is not None:
                 filtered['debug'] = Filter.debug_level(args.get('debug'), key='--debug')
+
+            if args.get('reports') is not None:
+                filtered['reports'] = Filter.scan_reports(args.get('reports'), key='--reports')
+
+            if args.get('reports_dir') is not None:
+                filtered['reports_dir'] = Filter.optional_path(args.get('reports_dir'), key='--reports-dir')
+
+            if args.get('threads') is not None:
+                filtered['threads'] = Filter.positive_int(args.get('threads'), key='--threads')
+
+            if args.get('delay') is not None:
+                filtered['delay'] = Filter.non_negative_float(args.get('delay'), key='--delay')
+
+            if args.get('port') is not None:
+                filtered['port'] = Filter.port(args.get('port'), key='--port')
+
+            if args.get('header') is not None:
+                filtered['header'] = Filter.request_headers(args.get('header'), key='--header')
+
+            if args.get('method') is not None:
+                filtered['method'] = Filter.method(args.get('method'), key='--method')
+
+            if args.get('recursive') is True:
+                filtered['recursive'] = True
+
+            if args.get('recursive_depth') is not None:
+                filtered['recursive_depth'] = Filter.positive_int(
+                    args.get('recursive_depth'),
+                    key='--recursive-depth'
+                )
+
+            if args.get('recursive_status') is not None:
+                filtered['recursive_status'] = Filter.recursive_statuses(
+                    args.get('recursive_status'),
+                    key='--recursive-status'
+                )
+
+            if args.get('recursive_exclude') is not None:
+                filtered['recursive_exclude'] = Filter.recursive_extensions(
+                    args.get('recursive_exclude'),
+                    key='--recursive-exclude'
+                )
 
             if args.get('tls_legacy') is True:
                 filtered['tls_legacy'] = True
@@ -224,6 +279,9 @@ class Filter(object):
                     key='--openvpn-auth'
                 )
 
+            if filtered.get('waf_safe_mode') is True or filtered.get('waf_guard') is True:
+                filtered['waf_detect'] = True
+
             Filter.validate_proxy_options(filtered)
             Filter.validate_transport_options(filtered)
 
@@ -239,10 +297,30 @@ class Filter(object):
                 continue
             elif key in ['session_save']:
                 filtered[key] = Filter.session_file(value, key='--{0}'.format(key.replace('_', '-')))
+            elif key in ['reports']:
+                filtered[key] = Filter.scan_reports(value, key='--reports')
+            elif key in ['reports_dir']:
+                filtered[key] = Filter.optional_path(value, key='--reports-dir')
+            elif key in ['threads']:
+                filtered[key] = Filter.positive_int(value, key='--threads')
+            elif key in ['header']:
+                filtered[key] = Filter.request_headers(value, key='--header')
+            elif key in ['method']:
+                filtered[key] = Filter.method(value, key='--method')
+            elif key in ['port']:
+                filtered[key] = Filter.port(value, key='--port')
+            elif key in ['recursive_depth']:
+                filtered[key] = Filter.positive_int(value, key='--recursive-depth')
+            elif key in ['recursive_status']:
+                filtered[key] = Filter.recursive_statuses(value, key='--recursive-status')
+            elif key in ['recursive_exclude']:
+                filtered[key] = Filter.recursive_extensions(value, key='--recursive-exclude')
             elif key in ['session_autosave_sec', 'session_autosave_items']:
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
             elif 'proxy' == key:
                 filtered[key] = Filter.proxy(value)
+            elif key in ['proxy_rotation']:
+                filtered[key] = Filter.proxy_rotation(value, key='--proxy-rotation')
             elif key in ['tls_legacy']:
                 filtered[key] = value is True
             elif 'scheme' == key:
@@ -263,6 +341,10 @@ class Filter(object):
                 filtered[key] = Filter.bucket_values(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['debug']:
                 filtered[key] = Filter.debug_level(value, key='--debug')
+            elif key in ['delay']:
+                filtered[key] = Filter.non_negative_float(value, key='--delay')
+            elif key in ['fingerprint', 'waf_detect', 'waf_safe_mode', 'waf_guard']:
+                filtered[key] = Filter.bool_option(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['waf_guard_after']:
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['waf_guard_threshold']:
@@ -283,6 +365,8 @@ class Filter(object):
                 filtered[key] = Filter.ratio_float(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['retries']:
                 filtered[key] = Filter.non_negative_int(value, key='--retries')
+            elif key in ['retries_fail_streak']:
+                filtered[key] = Filter.positive_int(value, key='--retries-fail-streak')
             elif key in ['transport']:
                 filtered[key] = Filter.transport(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['transport_rotate']:
@@ -298,7 +382,7 @@ class Filter(object):
 
         if raw_request is not None:
             if 'method' not in filtered and raw_request.get('method'):
-                filtered['method'] = raw_request.get('method')
+                filtered['method'] = Filter.method(raw_request.get('method'), key='--raw-request method')
 
             raw_headers = raw_request.get('headers') or []
             cli_headers = filtered.get('header') or []
@@ -336,6 +420,9 @@ class Filter(object):
 
         if raw_request is not None and len(targets) <= 0:
             raise FilterError('Unable to resolve target from --raw-request. Provide a Host header or use --host/--hostlist/--stdin')
+
+        if filtered.get('waf_safe_mode') is True or filtered.get('waf_guard') is True:
+            filtered['waf_detect'] = True
 
         Filter.validate_proxy_options(filtered)
         Filter.validate_transport_options(filtered)
@@ -668,7 +755,7 @@ class Filter(object):
         if len(request_line_parts) < 2:
             raise FilterError('Invalid request line in --raw-request')
 
-        method = request_line_parts[0].upper()
+        method = Filter.method(request_line_parts[0], key='--raw-request method')
         request_target = request_line_parts[1].strip()
         explicit_scheme = Filter.explicit_scheme(scheme, key='--scheme')
 
@@ -744,7 +831,7 @@ class Filter(object):
         if ':' in raw:
             host, port = raw.rsplit(':', 1)
             if port.isdigit():
-                return host.strip(), int(port)
+                return host.strip(), Filter.port(port, key='raw request Host port')
         return raw, None
 
     @staticmethod
@@ -802,6 +889,48 @@ class Filter(object):
         return hostname
 
     @staticmethod
+    def port(value, key='--port'):
+        """Validate a TCP port value.
+
+        :param value: input port value
+        :param str key: CLI option name
+        :raise FilterError:
+        :return: normalized port
+        :rtype: int
+        """
+
+        try:
+            port = int(value)
+        except (TypeError, ValueError):
+            raise FilterError('{0} must be an integer from 1 to 65535'.format(key))
+
+        if port < 1 or port > 65535:
+            raise FilterError('{0} must be an integer from 1 to 65535'.format(key))
+
+        return port
+
+    @staticmethod
+    def method(value, key='--method'):
+        """Validate and normalize an HTTP request method.
+
+        :param value: input method value
+        :param str key: CLI option name
+        :raise FilterError:
+        :return: normalized uppercase method
+        :rtype: str
+        """
+
+        if value is None:
+            raise FilterError('{0} must be one of: {1}'.format(key, ', '.join(Filter.METHODS)))
+
+        method = str(value).strip().upper()
+
+        if not method or '\r' in method or '\n' in method or method not in Filter.METHODS:
+            raise FilterError('{0} must be one of: {1}'.format(key, ', '.join(Filter.METHODS)))
+
+        return method
+
+    @staticmethod
     def proxy(proxyaddress):
         """
         Input `proxy` param filter
@@ -817,6 +946,27 @@ class Filter(object):
         return proxyaddress
 
     @staticmethod
+    def proxy_rotation(value, key='--proxy-rotation'):
+        """Validate proxy-list rotation policy.
+
+        :param value: input proxy rotation value
+        :param str key: CLI option name
+        :raise FilterError:
+        :return: normalized proxy rotation policy
+        :rtype: str
+        """
+
+        value = 'random' if value is None else str(value).strip().lower()
+
+        if value in ['', 'null']:
+            value = 'random'
+
+        if value not in Filter.PROXY_ROTATIONS:
+            raise FilterError('{0} must be one of: {1}'.format(key, ', '.join(Filter.PROXY_ROTATIONS)))
+
+        return value
+
+    @staticmethod
     def scan(choose):
         """
         Input `scan` type filter
@@ -827,6 +977,58 @@ class Filter(object):
         if choose not in ['directories', 'subdomains']:
             choose = 'directories'
         return choose
+
+    @staticmethod
+    def request_headers(value, key='--header'):
+        """Validate and normalize one or more custom HTTP request headers.
+
+        :param value: Header value or list of header values in "Name: value" format
+        :param str key: CLI option name
+        :raise FilterError:
+        :return: normalized header list
+        :rtype: list[str]
+        """
+
+        if value is None:
+            return []
+
+        raw_headers = value if isinstance(value, list) else [value]
+        headers = []
+
+        for raw_header in raw_headers:
+            header = str(raw_header).strip()
+
+            if not header:
+                raise FilterError('{0} requires a non-empty HTTP header in "Name: value" format'.format(key))
+
+            if '\r' in header or '\n' in header:
+                raise FilterError('"{0}" is invalid value in {1}. Header injection is not allowed'.format(
+                    raw_header,
+                    key,
+                ))
+
+            if ':' not in header:
+                raise FilterError('"{0}" is invalid value in {1}. Use "Name: value" format'.format(
+                    raw_header,
+                    key,
+                ))
+
+            header_name, header_value = header.split(':', 1)
+            header_name = header_name.strip()
+            header_value = header_value.strip()
+
+            if not header_name or not Filter.HEADER_NAME_REGEX.match(header_name):
+                raise FilterError('"{0}" is invalid header name in {1}'.format(header_name, key))
+
+            if not header_value:
+                raise FilterError('"{0}" is invalid value in {1}. Header value cannot be empty'.format(
+                    raw_header,
+                    key,
+                ))
+
+            headers.append('{0}: {1}'.format(header_name, header_value))
+
+        return headers
 
     @staticmethod
     def header_bypass_profile(value, key='--header-bypass-profile'):
@@ -928,6 +1130,39 @@ class Filter(object):
         return buckets
 
     @staticmethod
+    def scan_reports(value, key='--reports'):
+        """Normalize scan output reports."""
+
+        if value is None:
+            return None
+
+        reports = []
+        seen = set()
+
+        for item in Filter._split_csv(value):
+            report = str(item).strip().lower()
+
+            if report in ['', 'none', 'null']:
+                continue
+
+            if report not in Filter.SCAN_REPORTS:
+                raise FilterError('{0} supports only: {1}'.format(
+                    key,
+                    ', '.join(Filter.SCAN_REPORTS),
+                ))
+
+            if report in seen:
+                continue
+
+            reports.append(report)
+            seen.add(report)
+
+        if len(reports) <= 0:
+            return None
+
+        return ','.join(reports)
+
+    @staticmethod
     def diff_reports(value, key='--reports'):
         """Normalize diff output reports."""
 
@@ -955,6 +1190,65 @@ class Filter(object):
             ))
 
         return ','.join(reports)
+
+    @staticmethod
+    def recursive_statuses(value, key='--recursive-status'):
+        """Validate exact HTTP status codes allowed for recursive expansion."""
+
+        statuses = []
+        seen = set()
+
+        for item in Filter._split_csv(value):
+            token = str(item).strip()
+
+            if not token.isdigit():
+                raise FilterError(
+                    '"{0}" is invalid value in {1}. Use comma-separated HTTP status codes from 100 to 599'.format(
+                        item,
+                        key
+                    )
+                )
+
+            code = int(token)
+            if code < 100 or code > 599:
+                raise FilterError(
+                    '"{0}" is invalid value in {1}. Use HTTP status codes from 100 to 599'.format(item, key)
+                )
+
+            normalized = str(code)
+            if normalized in seen:
+                continue
+
+            statuses.append(normalized)
+            seen.add(normalized)
+
+        if len(statuses) <= 0:
+            raise FilterError('{0} requires at least one HTTP status code'.format(key))
+
+        return statuses
+
+    @staticmethod
+    def recursive_extensions(value, key='--recursive-exclude'):
+        """Validate and normalize file extensions excluded from recursive expansion."""
+
+        extensions = []
+        seen = set()
+
+        for item in Filter._split_csv(value):
+            extension = str(item).strip().lstrip('.').lower()
+
+            if not extension or not Filter.RECURSIVE_EXTENSION_REGEX.match(extension):
+                raise FilterError(
+                    '"{0}" is invalid value in {1}. Use comma-separated file extensions'.format(item, key)
+                )
+
+            if extension in seen:
+                continue
+
+            extensions.append(extension)
+            seen.add(extension)
+
+        return extensions
 
     @staticmethod
     def status_ranges(value, key='--status'):
@@ -1032,6 +1326,31 @@ class Filter(object):
         return [text]
 
     @staticmethod
+    def bool_option(value, key='--value'):
+        """Validate and normalize bool-like CLI, wizard and session values.
+
+        :param value: input value
+        :param str key: CLI/config option name
+        :raise FilterError:
+        :return: normalized boolean
+        :rtype: bool
+        """
+
+        if isinstance(value, bool):
+            return value
+
+        if value is None:
+            return False
+
+        token = str(value).strip().lower()
+        if token in ['1', 'true', 'yes', 'on']:
+            return True
+        if token in ['0', 'false', 'no', 'off']:
+            return False
+
+        raise FilterError('{0} must be a boolean value'.format(key))
+
+    @staticmethod
     def debug_level(value, key='--debug'):
         """Validate OpenDoor debug level."""
 
@@ -1056,6 +1375,27 @@ class Filter(object):
 
         if value < 0:
             raise FilterError('{0} must be a non-negative integer'.format(key))
+
+        return value
+
+    @staticmethod
+    def non_negative_float(value, key='--value'):
+        """Validate a non-negative floating-point option.
+
+        :param value: input value
+        :param str key: CLI option name
+        :raise FilterError:
+        :return: normalized non-negative float
+        :rtype: float
+        """
+
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            raise FilterError('{0} must be a non-negative number'.format(key))
+
+        if value < 0:
+            raise FilterError('{0} must be a non-negative number'.format(key))
 
         return value
 
@@ -1238,6 +1578,9 @@ class Filter(object):
             raise FilterError('{0} cannot be used together. Select exactly one proxy source.'.format(
                 ', '.join(selected)
             ))
+
+        if filtered.get('proxy_rotation') is not None and not filtered.get('proxy_list'):
+            raise FilterError('--proxy-rotation can be used only with --proxy-list')
 
     @staticmethod
     def validate_transport_options(filtered):

@@ -57,6 +57,8 @@ class TestPackagingShadowAssets(unittest.TestCase):
         self.assertEqual(lines, suffixes)
         self.assertEqual(len(suffixes), len(set(suffixes)))
         self.assertTrue(all(not suffix.startswith('#') for suffix in suffixes))
+        self.assertIn('tpl:{path}2.{ext}', suffixes[:16])
+        self.assertLess(suffixes.index('.swp'), suffixes.index('.swo'))
 
 
 if __name__ == '__main__':

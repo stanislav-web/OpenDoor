@@ -1,6 +1,41 @@
 CHANGELOG
 =======
-v5.16.0 (16.05.2026)
+v5.16.1 (24.05.2026)
+---------------------------
+- (fix) reduced duplicate fingerprint traffic by reusing exact same method+URL probe responses within a single fingerprint pass.
+- (fix) avoided false early-finish warnings when planned wordlist entries are intentionally skipped before HTTP submission, such as internally ignored paths.
+- (fix) aligned `indexof` runtime progress output with other sniffer findings by rendering it as `OK (IndexOf)` without changing detection or report semantics.
+- (fix) preserved managed runtime wordlist workspaces across interactive `Ctrl+C` pause/resume while keeping cleanup for aborts, process termination and normal scan completion.
+- (fix) normalized `--fingerprint` handling across CLI, wizard and session resume flows while keeping fingerprinting opt-in and cached session results reusable.
+- (fix) normalized WAF detection flags across CLI, wizard and session resume flows while preserving `waf_safe_mode` as an opt-in runtime profile that enables passive WAF detection.
+- (fix) validated `--threads` values, preserved explicit thread-count overrides for wizard/session resume flows, and raised the safe runtime thread clamp from 25 to 50.
+- (fix) validated scan report selections, normalized `--reports-dir`, and preserved explicit report output overrides for wizard/session resume flows.
+- (fix) validated recursive scan options, preserved explicit recursive CLI overrides for wizard/session resume flows, and kept recursive defaults stable at runtime.
+- (fix) validated `--method` values, preserved explicit method overrides for wizard/session resume flows, and kept raw-request method handling deterministic.
+- (fix) validated `--port` values as TCP ports, preserved explicit port overrides for wizard/session resume flows, and rejected invalid raw-request Host ports early.
+- (fix) propagated `--fail-on-bucket` exit codes through the installed `opendoor` entrypoint so CI/CD runs behave the same as `python opendoor.py`.
+- (fix) preserved fractional `--delay` values (0.1, 0.25...etc), rejected negative delays, and allowed explicit delay overrides for wizard/session resume flows.
+- (fix) reduced malware sniffer false positives by ignoring legitimate Google Tag Manager noscript hidden iframes while preserving detection for non-GTM hidden iframe injections.
+- (fix) kept scans running when individual paths exhaust configured retries while preserving configurable abort protection for consecutive retry failures.
+- (fix) ignored-path progress output so `skip [...]` shows the current scan position instead of `00000`.
+- (fix) proxy CLI overrides for wizard and session resume flows so explicit `--proxy`, `--proxy-pool`, and `--proxy-list --proxy-rotation` selections replace restored proxy settings correctly.
+- (fix) filtered/calibrated progress counters to use the same dynamic width as regular scan findings.
+- (fix) fingerprint evidence output to avoid repeating identical evidence values when the same marker is confirmed by multiple signal sources.
+- (fix) ResponseError: Unknown response status : `477` (non standart error) so scans no longer abort on unexpected HTTP status codes. 
+- (fix) stopped pre-skipping common error, index, redirect-like, and not-found paths from the bundled ignore list so they are scanned and classified normally.
+- (fix) made active shadow probe requests honor the configured scan delay while preserving existing retry, timeout, proxy and request-stack behavior.
+- (enhancement) improved the active `shadow` sniffer with bounded path-template probes such as `{file}}2.{ext}` while keeping per-scan probe limits.
+- (enhancement) improved the `stacktrace` sniffer to detect exposed database connection identity errors like `Could not make a database connection using user@host` while avoiding generic connection-error false positives.
+- (enhancement) hardened `--header` validation and normalization, including wizard/session CLI override handling.
+- (enhancement) added remote HTTP(S) wordlist support through `--wordlist`, including streaming download progress and a 500 MB safety limit.
+- (enhancement) added `--proxy-rotation random|sequential` to control existing `--proxy-list` rotation, preserving `random` as the default and adding deterministic file-order sequential mode.
+- (enhancement) added DotCMS and DiafanCMS detection to `--fingerprint`.
+- (enhancement) added configurable `--retries-fail-streak` to control scan aborts after consecutive exhausted retry paths. Default: `10`.
+- (enhancement) expanded passive WAF recognition coverage with additional 21 WAF systems. Details : (https://opendoor.readthedocs.io/detection/waf-detection/).
+- (ux) added debug-only runtime diagnostics to the terminal scan summary.
+- (dictionary) cleaned and normalized the internal directories list (+2365 potential interesting paths).
+
+v5.16.0 (17.05.2026)
 ---------------------------
 - (fix) rendered fingerprint progress as a rotating single-line indicator and persisted only the final `done` state to reduce duplicate progress output.
 - (fix) proxy and transport-loss handling: proxy scans now validate the proxy without directly probing the target, filtered proxy timeouts remain visible, and direct scans abort cleanly after repeated exhausted transport failures when a target goes offline mid-scan.

@@ -582,6 +582,34 @@ class TestBrowserExtra(unittest.TestCase):
 
         warning_mock.assert_not_called()
 
+    def test_warn_if_scan_finished_early_counts_streamed_items(self):
+        """Pre-request skipped entries should not look like a truncated active wordlist."""
+
+        br = self.make_browser()
+        br._Browser__pool.submitted_size = 2
+        br._Browser__pool.total_items_size = 3
+        br._Browser__streamed_items_count = 3
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__warn_if_scan_finished_early()
+
+        warning_mock.assert_not_called()
+
+    def test_warn_if_scan_finished_early_warns_when_consumed_items_are_short(self):
+        """Early-finish guard should still warn when streamed and submitted counts are both short."""
+
+        br = self.make_browser()
+        br._Browser__pool.submitted_size = 2
+        br._Browser__pool.total_items_size = 3
+        br._Browser__streamed_items_count = 2
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__warn_if_scan_finished_early()
+
+        warning_mock.assert_called_once()
+        self.assertIn('Scan finished after consuming 2/3 planned item(s)', warning_mock.call_args.kwargs['msg'])
+        self.assertIn('(2 submitted to workers)', warning_mock.call_args.kwargs['msg'])
+
     def test_fingerprint_summary_private_helpers_handle_invalid_shapes(self):
         """Fingerprint summary helpers should return unknown for invalid metadata shapes."""
 

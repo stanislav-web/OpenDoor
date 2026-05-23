@@ -35,24 +35,32 @@ It is intended for safer scan classification and better operator awareness.
 The heuristic WAF detection engine currently recognizes probable signals for:
 
 - 360 WAF
+- aeSecure
 - Airlock
 - Akamai
 - Aliyun WAF
 - Anquanbao
 - Anubis
 - AppTrana
+- Armor Protection
 - AWS WAF
 - Azure Front Door
+- Baidu Yunjiasu
 - Barracuda
 - BinarySec
 - BitNinja
 - Bluedon WAF
+- BlockDoS
 - ChinaCache
+- Cisco ACE XML Gateway
 - CityHost
+- Cloudbric
 - Cloudflare
 - Comodo WAF
+- CrawlProtect
 - DataDome
 - DDoS-GUARD
+- DenyAll
 - Distil
 - DoSArrest
 - DotDefender
@@ -77,12 +85,25 @@ The heuristic WAF detection engine currently recognizes probable signals for:
 - Radware
 - Reblaze
 - SafeLine
+- SEnginx
+- SiteLock TrueShield
+- SonicWALL
+- Sophos UTM Web Protection
+- Stingray Application Firewall
 - Sucuri
 - Tencent Cloud WAF
+- Teros / Citrix Application Firewall
+- TrafficShield
+- UrlScan
+- USP Secure Entry Server
+- Varnish WAF
 - Vercel WAF
 - Wallarm
+- WatchGuard
 - WebKnight
 - Wordfence
+- Yundun
+- Zenedge
 
 Detection is heuristic. Treat results as probable signals and verify important findings manually.
 

@@ -155,7 +155,8 @@ class TestReporter(unittest.TestCase):
 
         rendered = writeln_mock.call_args[0][0]
         self.assertIn('Statistics (test.local)', rendered)
-        self.assertIn('workers', rendered)
+        self.assertNotIn('| workers', rendered)
+        self.assertNotIn('| items', rendered)
 
     def test_std_plugin_process_should_render_fingerprint_infrastructure(self):
         """StdReportPlugin.process() should render fingerprint infrastructure summary."""

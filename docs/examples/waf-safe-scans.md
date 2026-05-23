@@ -33,6 +33,7 @@ opendoor \
   --delay 1 \
   --timeout 60 \
   --retries 5 \
+  --retries-fail-streak 10 \
   --auto-calibrate \
   --reports json,html
 ```
@@ -94,6 +95,7 @@ opendoor \
   --delay 1 \
   --timeout 60 \
   --retries 5 \
+  --retries-fail-streak 10 \
   --header-bypass \
   --header-bypass-limit 32 \
   --reports json,sqlite,csv
@@ -133,6 +135,23 @@ opendoor \
   --reports json,sqlite,csv \
   --fail-on-bucket success,auth,forbidden,bypass
 ```
+
+---
+
+## Retry-failure abort threshold
+
+For unstable targets, combine `--retries` with `--retries-fail-streak`. `--retries` controls attempts inside one path request. `--retries-fail-streak` controls how many consecutive paths may exhaust those retries before the scan aborts.
+
+```shell
+opendoor \
+  --host https://example.com \
+  --waf-safe-mode \
+  --timeout 60 \
+  --retries 5 \
+  --retries-fail-streak 10
+```
+
+Path-specific exhausted retries are still recorded as skipped/ignored. Any normally processed response resets the consecutive failure counter.
 
 ---
 

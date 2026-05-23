@@ -44,8 +44,7 @@ because available report plugins can vary by build.
 opendoor --host https://example.com --reports std
 ```
 
-Use `std` for interactive work.
-
+Use `std` for interactive work. `std` is the terminal summary output. It is always appended to scan reports, so users normally do not need to include it explicitly. Use --reports std only when you want terminal summary output without file reports.
 The terminal summary includes all result buckets.
 
 ---
@@ -104,7 +103,7 @@ Shadow Copy Detection columns:
 | `shadow_confidence` | Confidence score for the exposed copy |
 | `shadow_reason` | Detection reason, for example `content_match` |
 | `shadow_base_url` | Original confirmed file used as the probe base |
-| `shadow_variant` | Matched postfix suffix such as `.bak`, `.old` or `~` |
+| `shadow_variant` | Matched suffix or template variant such as `.bak`, `.old`, `~`, or `tpl:{path}2.{ext}` |
 | `shadow_similarity` | Similarity score used by the detector |
 
 Open Redirect Verification columns:
@@ -250,7 +249,7 @@ Shadow Copy Detection columns:
 | `shadow_confidence` | Confidence score for the exposed copy |
 | `shadow_reason` | Detection reason, for example `content_match` |
 | `shadow_base_url` | Original confirmed file used as the probe base |
-| `shadow_variant` | Matched postfix suffix such as `.bak`, `.old` or `~` |
+| `shadow_variant` | Matched suffix or template variant such as `.bak`, `.old`, `~`, or `tpl:{path}2.{ext}` |
 | `shadow_similarity` | Similarity score used by the detector |
 
 Open Redirect Verification columns:
@@ -282,7 +281,7 @@ This is useful when one scan needs both human-readable and machine-readable outp
 
 ## Shadow-copy evidence
 
-When `--sniff shadow` is enabled and a postfix copy is confirmed, OpenDoor stores the result in the `shadow` bucket. Shadow probes are active but bounded: they are generated only from confirmed `200 OK` file-like hits and the shadow queue is drained before final summary, report generation and `--fail-on-bucket` checks.
+When `--sniff shadow` is enabled and a backup/shadow copy is confirmed, OpenDoor stores the result in the `shadow` bucket. Shadow probes are active but bounded: they are generated only from confirmed `200 OK` file-like hits and the shadow queue is drained before final summary, report generation and `--fail-on-bucket` checks. OpenDoor limits this active probing to 16 candidates per confirmed file-like hit and 500 total shadow probe requests per scan.
 
 Detailed report items include:
 
@@ -292,7 +291,8 @@ Detailed report items include:
 | `shadow_detection.confidence` | Confidence score |
 | `shadow_detection.reason` | Detection reason, for example `content_match` |
 | `shadow_detection.base_url` | Original confirmed file used as the probe base |
-| `shadow_detection.variant` | Matched postfix suffix |
+| `shadow_detection.variant` | Matched suffix or template variant |
+| `shadow_detection.variant_type` | Variant class: `suffix` or `template` |
 | `shadow_detection.similarity` | Similarity score |
 | `shadow_detection.base_size` | Base response size |
 | `shadow_detection.shadow_size` | Shadow response size |

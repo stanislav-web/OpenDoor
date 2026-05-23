@@ -18,4 +18,6 @@
 
 from .exceptions import ReaderError
 from .reader import Reader
+from .wordlist_source import WordlistSource
 
+from .remote_wordlist import RemoteWordlistDownloader, RemoteWordlistError, RemoteWordlistResult

@@ -31,9 +31,15 @@ from src.lib import events
 from src.lib import package
 from src.lib import reporter
 from src.lib import tpl
+from src.lib.browser.workspace import ScanTempWorkspace
+from src.lib.reader import RemoteWordlistDownloader, RemoteWordlistError, WordlistSource
 from src.lib.diff import DiffReportComparator, DiffReportReader, DiffResultSerializer, DiffStdoutFormatter, DiffValidationError
 from src.lib.browser.session import SessionManager, SessionError
 from src.core.network import NetworkTransportManager, NetworkTransportError
+from src.core import FileSystemError
+from src.core import filesystem
+from src.core import helper
+from src.core import sys as output
 from .exceptions import SrcError
 
 
@@ -78,13 +84,13 @@ class Controller(object):
                 getattr(self, 'update_action')()
                 return 0
 
-            tpl.message(package.banner())
+            if 'host' in self.ioargs or 'targets' in self.ioargs or 'wizard' in self.ioargs or 'session_load' in self.ioargs:
+                return getattr(self, 'scan_action')(self.ioargs, show_banner=True) or 0
+
+            tpl.message(package.banner(self.ioargs))
 
             if 'diff' in self.ioargs:
                 return getattr(self, 'diff_action')(self.ioargs) or 0
-
-            if 'host' in self.ioargs or 'targets' in self.ioargs or 'wizard' in self.ioargs or 'session_load' in self.ioargs:
-                return getattr(self, 'scan_action')(self.ioargs) or 0
 
             for action in self.ioargs.keys():
                 if hasattr(self, '{0}_action'.format(action)) \
@@ -236,13 +242,16 @@ class Controller(object):
             raise SrcError(error)
 
     @classmethod
-    def scan_action(cls, params):
+    def scan_action(cls, params, show_banner=False):
         """
         URL scan action
         :param dict params: console input args
+        :param bool show_banner: print banner after runtime scan inputs are resolved
         :raise SrcError
         :return: int
         """
+
+        remote_workspace = None
 
         try:
             cli_fail_on_bucket = params.get('fail_on_bucket')
@@ -251,6 +260,16 @@ class Controller(object):
             cli_calibration_threshold = params.get('calibration_threshold')
             cli_response_filter_overrides = cls._collect_response_filter_cli_overrides(params)
             cli_transport_overrides = cls._collect_transport_cli_overrides(params)
+            cli_proxy_overrides = cls._collect_proxy_cli_overrides(params)
+            cli_header_overrides = cls._collect_header_cli_overrides(params)
+            cli_recursive_overrides = cls._collect_recursive_cli_overrides(params)
+            cli_report_overrides = cls._collect_report_cli_overrides(params)
+            cli_waf_overrides = cls._collect_waf_cli_overrides(params)
+            cli_fingerprint = params.get('fingerprint')
+            cli_delay = params.get('delay')
+            cli_port = params.get('port')
+            cli_method = params.get('method')
+            cli_threads = params.get('threads')
             cli_tls_legacy = params.get('tls_legacy')
 
             if 'wizard' in params:
@@ -269,11 +288,31 @@ class Controller(object):
                 if cli_calibration_threshold is not None:
                     params['calibration_threshold'] = cli_calibration_threshold
 
+                if cli_delay is not None:
+                    params['delay'] = cli_delay
+
+                if cli_port is not None:
+                    params['port'] = cli_port
+
+                if cli_method is not None:
+                    params['method'] = cli_method
+
+                if cli_threads is not None:
+                    params['threads'] = cli_threads
+
+                if cli_fingerprint is not None:
+                    params['fingerprint'] = cli_fingerprint
+
                 if cli_tls_legacy is True:
                     params['tls_legacy'] = True
 
                 params.update(cli_response_filter_overrides)
                 params.update(cli_transport_overrides)
+                params.update(cli_proxy_overrides)
+                params.update(cli_header_overrides)
+                params.update(cli_recursive_overrides)
+                params.update(cli_report_overrides)
+                params.update(cli_waf_overrides)
 
             if params.get('session_load'):
                 snapshot = SessionManager.load(params.get('session_load'))
@@ -299,15 +338,40 @@ class Controller(object):
                 if cli_calibration_threshold is not None:
                     restored['calibration_threshold'] = cli_calibration_threshold
 
+                if cli_delay is not None:
+                    restored['delay'] = cli_delay
+
+                if cli_port is not None:
+                    restored['port'] = cli_port
+
+                if cli_method is not None:
+                    restored['method'] = cli_method
+
+                if cli_threads is not None:
+                    restored['threads'] = cli_threads
+
+                if cli_fingerprint is not None:
+                    restored['fingerprint'] = cli_fingerprint
+
                 if cli_tls_legacy is True:
                     restored['tls_legacy'] = True
 
                 restored.update(cli_response_filter_overrides)
                 restored.update(cli_transport_overrides)
+                restored.update(cli_proxy_overrides)
+                restored.update(cli_header_overrides)
+                restored.update(cli_recursive_overrides)
+                restored.update(cli_report_overrides)
+                restored.update(cli_waf_overrides)
 
                 params = restored
                 tpl.info(msg='Loaded session checkpoint from {0}'.format(
                     snapshot.get('_loaded_from', restored['session_save'])))
+
+            if show_banner is True:
+                tpl.message(package.banner(params))
+
+            params, remote_workspace = cls._prepare_remote_wordlist(params)
 
             targets = cls._resolve_scan_targets(params)
 
@@ -425,6 +489,184 @@ class Controller(object):
         except (KeyboardInterrupt, SystemExit):
             tpl.cancel(key='abort')
             return 0
+        finally:
+            cls._cleanup_remote_wordlist_workspace(remote_workspace)
+
+    @classmethod
+    def _prepare_remote_wordlist(cls, params):
+        """Download remote HTTP(S) wordlist into a managed local file.
+
+        The original ``wordlist`` value is preserved for session/reproducibility.
+        The scan engine reads ``wordlist_resolved_path`` like any other local
+        external wordlist.
+
+        :param dict params: Effective scan params after wizard/session resolution.
+        :raise BrowserError: When the remote source cannot be resolved safely.
+        :return: Updated params and optional workspace.
+        :rtype: tuple[dict, ScanTempWorkspace | None]
+        """
+
+        source = WordlistSource.from_value(
+            params.get('wordlist'),
+            resolved_value=params.get('wordlist_resolved_path') or params.get('resolved_wordlist'),
+        )
+
+        if source.is_remote is not True:
+            return params, None
+
+        if source.runtime_path is not None:
+            return params, None
+
+        workspace = ScanTempWorkspace()
+        output_path = workspace.get('remote_wordlist')
+        downloader = RemoteWordlistDownloader(progress_callback=cls._remote_wordlist_progress)
+
+        try:
+            if cls._is_debug_enabled(params):
+                tpl.debug(msg='Downloading remote wordlist: {0}'.format(source.value))
+            result = downloader.download(source.value, output_path, timeout=params.get('timeout'))
+            updated = dict(params)
+            updated['wordlist_resolved_path'] = result.path
+            updated['remote_wordlist_bytes'] = result.bytes_downloaded
+            updated['remote_wordlist_status'] = result.status
+            updated['remote_wordlist_content_type'] = result.content_type
+            cls._log_remote_wordlist_loaded(result.path)
+            if cls._is_debug_enabled(params):
+                tpl.debug(
+                    msg='Remote wordlist loaded: {0} ({1})'.format(
+                        result.path,
+                        RemoteWordlistDownloader._format_bytes(result.bytes_downloaded),
+                    )
+                )
+            return updated, workspace
+        except RemoteWordlistError as error:
+            workspace.cleanup()
+            raise BrowserError(error)
+
+    @classmethod
+    def _log_remote_wordlist_loaded(cls, path):
+        """Log the effective remote wordlist entry count after download.
+
+        :param str path: Downloaded runtime wordlist path.
+        :return: None
+        """
+
+        try:
+            entries = filesystem.count_lines(path)
+        except (FileSystemError, OSError, TypeError, ValueError):
+            return
+
+        tpl.info(msg='Wordlist entries loaded: {0} (external)'.format(entries))
+
+    @classmethod
+    def _cleanup_remote_wordlist_workspace(cls, workspace):
+        """Cleanup remote wordlist temporary workspace.
+
+        :param ScanTempWorkspace | None workspace: Workspace to cleanup.
+        :return: None
+        """
+
+        if workspace is None:
+            return
+
+        workspace.cleanup()
+
+    @classmethod
+    def _remote_wordlist_progress(cls, downloaded, total_bytes=None, done=False):
+        """Render remote wordlist download progress as a dynamic CLI row.
+
+        :param int downloaded: Downloaded bytes.
+        :param int | None total_bytes: Total bytes if known.
+        :param bool done: Whether download has finished.
+        :return: None
+        """
+
+        try:
+            downloaded = int(downloaded or 0)
+        except (TypeError, ValueError):
+            downloaded = 0
+
+        try:
+            total = int(total_bytes or 0)
+        except (TypeError, ValueError):
+            total = 0
+
+        if total > 0:
+            bar = cls._render_progress_bar(downloaded, total)
+            message = 'Wordlist download {0} {1}/{2}'.format(
+                bar,
+                RemoteWordlistDownloader._format_bytes(downloaded),
+                RemoteWordlistDownloader._format_bytes(total),
+            )
+        else:
+            message = 'Wordlist download {0}'.format(
+                RemoteWordlistDownloader._format_bytes(downloaded)
+            )
+
+        if done is True:
+            cls._clear_remote_wordlist_progress_line()
+            output.clear_dynamic_line()
+            tpl.info(msg=message + ' done')
+            return
+
+        rendered = cls._format_dynamic_info(message)
+        output.writels(rendered)
+        output.mark_dynamic_line(len(rendered))
+        cls._remote_wordlist_progress_active = True
+        cls._remote_wordlist_progress_last_length = len(rendered)
+
+    @classmethod
+    def _clear_remote_wordlist_progress_line(cls):
+        """Clear the transient remote-wordlist progress row before final output.
+
+        :return: None
+        """
+
+        import sys
+
+        if getattr(cls, '_remote_wordlist_progress_active', False) is not True:
+            return
+
+        last_length = getattr(cls, '_remote_wordlist_progress_last_length', 0)
+        if last_length > 0:
+            try:
+                sys.stdout.write('\r{0}\r'.format(' ' * last_length))
+                sys.stdout.flush()
+            except (AttributeError, OSError, ValueError):
+                pass
+
+        cls._remote_wordlist_progress_active = False
+        cls._remote_wordlist_progress_last_length = 0
+
+    @staticmethod
+    def _render_progress_bar(current, total, width=24):
+        """Render a simple ASCII progress bar.
+
+        :param int current: Current byte count.
+        :param int total: Total byte count.
+        :param int width: Bar width.
+        :return: Progress bar.
+        :rtype: str
+        """
+
+        safe_total = max(int(total or 1), 1)
+        safe_current = min(max(int(current or 0), 0), safe_total)
+        filled = int(round(width * safe_current / float(safe_total)))
+        empty = max(width - filled, 0)
+        return '[{0}{1}] {2}'.format('#' * filled, '-' * empty, helper.percent(safe_current, safe_total))
+
+    @staticmethod
+    def _format_dynamic_info(message):
+        """Format a dynamic info line like regular logger output.
+
+        :param str message: Message body.
+        :return: Rendered row.
+        :rtype: str
+        """
+
+        from datetime import datetime
+
+        return '[{0}] info:    {1}'.format(datetime.now().strftime('%H:%M:%S'), message)
 
     @classmethod
     def _scan_target(cls, target_params):
@@ -447,8 +689,7 @@ class Controller(object):
 
             brows.ping()
 
-            if target_params.get('fingerprint') is True:
-                brows.fingerprint()
+            brows.fingerprint()
 
             if target_params.get('auto_calibrate') is True:
                 brows.calibrate()
@@ -537,6 +778,125 @@ class Controller(object):
                 overrides['transport_rotate'] = params.get('transport_rotate')
 
         return overrides
+
+    @staticmethod
+    def _collect_header_cli_overrides(params):
+        """Collect explicit request-header options for wizard/session overrides.
+
+        :param dict params: filtered CLI params
+        :return: dict
+        """
+
+        if params.get('header') is None:
+            return {}
+
+        return {'header': params.get('header')}
+
+    @staticmethod
+    def _collect_report_cli_overrides(params):
+        """Collect explicit report output options for wizard/session overrides.
+
+        :param dict params: filtered CLI params
+        :return: dict
+        """
+
+        overrides = {}
+
+        if params.get('reports') is not None:
+            overrides['reports'] = params.get('reports')
+
+        if params.get('reports_dir') is not None:
+            overrides['reports_dir'] = params.get('reports_dir')
+
+        return overrides
+
+    @staticmethod
+    def _collect_waf_cli_overrides(params):
+        """Collect explicit WAF CLI options that must override wizard/session values.
+
+        :param dict params: filtered CLI params.
+        :return: WAF override params.
+        :rtype: dict
+        """
+
+        overrides = {}
+        for key in ['waf_detect', 'waf_safe_mode', 'waf_guard']:
+            if params.get(key) is True:
+                overrides[key] = True
+
+        if overrides.get('waf_safe_mode') is True or overrides.get('waf_guard') is True:
+            overrides['waf_detect'] = True
+
+        return overrides
+
+    @staticmethod
+    def _collect_recursive_cli_overrides(params):
+        """Collect explicit recursive scan options for wizard/session overrides.
+
+        Parser defaults must not replace wizard/session recursive settings, but
+        explicit recursive CLI values should override restored scan settings.
+
+        :param dict params: filtered CLI params
+        :return: dict
+        """
+
+        override_keys = (
+            'recursive',
+            'recursive_depth',
+            'recursive_status',
+            'recursive_exclude',
+        )
+
+        return {
+            key: params.get(key)
+            for key in override_keys
+            if params.get(key) is not None
+        }
+
+    @staticmethod
+    def _collect_proxy_cli_overrides(params):
+        """
+        Collect explicit proxy options that should override wizard/session params.
+
+        Wizard and session restore can contain a different proxy source than the
+        one selected on the command line. Proxy sources are mutually exclusive,
+        so an explicit CLI proxy source must also clear the restored alternatives.
+        Default parser values, such as proxy_pool=False or proxy_rotation=None,
+        must not clear wizard/session proxy configuration.
+
+        :param dict params:
+        :return: dict
+        """
+
+        if params.get('proxy') is not None:
+            return {
+                'proxy': params.get('proxy'),
+                'proxy_pool': False,
+                'proxy_list': None,
+                'proxy_rotation': None,
+            }
+
+        if params.get('proxy_list') is not None:
+            overrides = {
+                'proxy': None,
+                'proxy_pool': False,
+                'proxy_list': params.get('proxy_list'),
+            }
+
+            if params.get('proxy_rotation') is not None:
+                overrides['proxy_rotation'] = params.get('proxy_rotation')
+
+            return overrides
+
+        if params.get('proxy_pool') is True:
+            return {
+                'proxy': None,
+                'proxy_pool': True,
+                'proxy_list': None,
+                'proxy_rotation': None,
+            }
+
+        return {}
 
     @staticmethod
     def _match_fail_on_buckets(host, result, buckets):
