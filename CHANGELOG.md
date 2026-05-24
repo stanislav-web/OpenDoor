@@ -3,6 +3,7 @@ CHANGELOG
 v5.17.0 (xx.xx.2026)
 ---------------------------
 - (fix) directory scan prefix normalization so as example `--prefix locale` and `--prefix locale/` both scan under `/locale/<path>` instead of concatenating paths as `/locale<path>`.
+- (fix) `--auto-calibration` now disables weak HTTP baselines when too many probes are blocked, ignored, or failed, preventing sparse signatures from over-filtering scan results.
 - (dictionary) cleaned and normalized the internal directories list (+XXX potential interesting paths).
 
 v5.16.1 (24.05.2026)
@@ -400,7 +401,7 @@ v5.10.0 (28.04.2026)
 - (dictionary) cleaned and normalized directories list
 - (dictionary) refreshed subdomains wordlist with `+1251780` entries
 - (tests) added unittest coverage for CI/CD fail-on exit codes
-- (tests) added unittest coverage for adaptive cooldown behaviour
+- (tests) added unittest coverage for adaptive cooldown behavior
 
 v5.9.2 (27.04.2026)
 ---------------------------

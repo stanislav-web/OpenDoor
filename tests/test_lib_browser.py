@@ -2859,6 +2859,53 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(response_handler.handle.call_count, 2)
         warning_mock.assert_any_call(msg='Auto-calibration disabled: no usable baseline signatures')
 
+    def test_calibrate_should_disable_weak_http_baseline(self):
+        """Browser.calibrate() should disable sparse HTTP baselines after blocked probes."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'auto_calibrate': True,
+            'calibration_samples': 8,
+            'calibration_threshold': 0.92,
+        }))
+
+        client = MagicMock()
+        client.request.return_value = SimpleNamespace(
+            status=404,
+            headers={'Content-Type': 'text/html'},
+            data=b'not found'
+        )
+        setattr(br, '_Browser__client', client)
+
+        response_handler = MagicMock()
+        response_handler.handle.side_effect = [
+            ('success', 'http://example.com/abcdef123456-0', '9B', '404'),
+            ('blocked', 'http://example.com/assets/abcdef123456-1.map', '6KB', '403'),
+            ('blocked', 'http://example.com/abcdef123456-2.php', '6KB', '403'),
+            ('blocked', 'http://example.com/abcdef123456-3.html', '6KB', '403'),
+            ('blocked', 'http://example.com/api/abcdef123456-4', '6KB', '403'),
+            ('blocked', 'http://example.com/static/abcdef123456-5.js', '6KB', '403'),
+            ('blocked', 'http://example.com/wp-content/uploads/abcdef123456-6.php', '6KB', '403'),
+            ('blocked', 'http://example.com/admin/abcdef123456-7', '6KB', '403'),
+        ]
+        setattr(br, '_Browser__response', response_handler)
+
+        with patch('src.lib.browser.browser.tpl.info'), \
+                patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            actual = br.calibrate()
+
+        self.assertIsNone(actual)
+        warning_mock.assert_called_once_with(
+            msg=(
+                'Auto-calibration HTTP baseline is weak: usable=1/8, blocked=7, failed=0, ignored=0. '
+                'Runtime response calibration disabled for this target.'
+            )
+        )
+
     def test_calibrate_should_continue_after_probe_request_error(self):
         """Browser.calibrate() should continue and disable baseline when probes fail."""
 

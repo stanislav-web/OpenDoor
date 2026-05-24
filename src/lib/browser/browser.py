@@ -1203,24 +1203,31 @@ class Browser(Filter):
 
             dns_wildcard_addresses = self.__build_dns_wildcard_addresses()
             signatures = []
-            for url in self.__build_calibration_urls():
+            calibration_urls = self.__build_calibration_urls()
+            calibration_probe_stats = {
+                'blocked': 0,
+                'failed': 0,
+                'ignored': 0,
+            }
+
+            for url in calibration_urls:
                 try:
                     response_object = self.__request_with_waf_safe_mode(url)
                     response_data = self.__response.handle(
                         response_object,
                         request_url=url,
                         items_size=0,
-                        total_size=self.__config.calibration_samples,
+                        total_size=len(calibration_urls),
                         ignore_list=[],
                         emit_debug=False
                     )
 
                     if response_data is None:
+                        calibration_probe_stats['ignored'] += 1
                         continue
 
                     if response_data[0] == 'blocked':
-                        tpl.warning(
-                            msg='Auto-calibration probe skipped because it was classified as blocked: {0}'.format(url))
+                        calibration_probe_stats['blocked'] += 1
                         continue
 
                     signatures.append(Calibration.build_signature(response_object, response_data))
@@ -1229,10 +1236,29 @@ class Browser(Filter):
                     if self.__is_standalone_proxy_mode() is True:
                         raise BrowserError(error)
 
+                    calibration_probe_stats['failed'] += 1
                     tpl.warning(msg='Auto-calibration probe failed: {0}'.format(error))
 
                 except (HttpRequestError, HttpsRequestError, ResponseError) as error:
+                    calibration_probe_stats['failed'] += 1
                     tpl.warning(msg='Auto-calibration probe failed: {0}'.format(error))
+
+            http_baseline_disabled = False
+            if self.__is_weak_calibration_baseline(len(signatures), len(calibration_urls)) is True:
+                http_baseline_disabled = True
+                tpl.warning(
+                    msg=(
+                        'Auto-calibration HTTP baseline is weak: usable={0}/{1}, blocked={2}, failed={3}, '
+                        'ignored={4}. Runtime response calibration disabled for this target.'
+                    ).format(
+                        len(signatures),
+                        len(calibration_urls),
+                        calibration_probe_stats['blocked'],
+                        calibration_probe_stats['failed'],
+                        calibration_probe_stats['ignored'],
+                    )
+                )
+                signatures = []
 
             self.__calibration = Calibration(
                 signatures=signatures,
@@ -1257,12 +1283,41 @@ class Browser(Filter):
                 self.__mark_session_dirty()
                 return self.__calibration
 
-            tpl.warning(msg='Auto-calibration disabled: no usable baseline signatures')
+            if http_baseline_disabled is not True:
+                tpl.warning(msg='Auto-calibration disabled: no usable baseline signatures')
             return None
 
         except (AttributeError, TypeError, ValueError) as error:
             tpl.warning(msg='Auto-calibration skipped: {0}'.format(error))
             return None
+
+    @staticmethod
+    def __is_weak_calibration_baseline(usable_signatures, requested_samples):
+        """Return True when the HTTP calibration baseline is too sparse.
+
+        Weak baselines are dangerous because a single usable response can
+        overfit noisy targets after most probes were blocked, ignored, or
+        failed. Keep one-sample and two-sample scans backward-compatible, but
+        require a minimum half-sample quorum for larger calibration runs.
+
+        :param int usable_signatures: number of usable response signatures
+        :param int requested_samples: number of requested calibration probes
+        :return: True when response calibration should be disabled
+        :rtype: bool
+        """
+
+        try:
+            usable_signatures = int(usable_signatures or 0)
+            requested_samples = int(requested_samples or 0)
+        except (TypeError, ValueError):
+            return False
+
+        if requested_samples < 3 or usable_signatures <= 0:
+            return False
+
+        minimum_usable = max(2, (requested_samples + 1) // 2)
+
+        return usable_signatures < minimum_usable
 
     def __is_active_sniffer_enabled(self, name):
         """Return True when a built-in active sniffer is enabled.
