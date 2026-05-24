@@ -1578,7 +1578,7 @@ class TestBrowser(unittest.TestCase):
         self.assertIn('| Runtime diagnostics', rendered)
         self.assertIn('| items       | 10', rendered)
         self.assertIn('| progress    | 10/10 (100.0%)', rendered)
-        self.assertIn('| requests    | 9 submitted, 1 skipped before request', rendered)
+        self.assertIn('| queue       | 10 consumed, 9 submitted, 1 pre-request skipped', rendered)
         self.assertIn('| rate        | 5.0/s average', rendered)
         self.assertIn('| time        | active 00:00:02, remaining 00:00:00', rendered)
         self.assertIn('| threads     | 1', rendered)
@@ -1710,7 +1710,7 @@ class TestBrowser(unittest.TestCase):
         rendered = br._Browser__format_runtime_diagnostics(status='completed')
 
         self.assertIn('| progress    | 0/0 (0.0%)', rendered)
-        self.assertIn('| requests    | 0 submitted, 0 skipped before request', rendered)
+        self.assertIn('| queue       | 0 consumed, 0 submitted, 0 pre-request skipped', rendered)
         self.assertIn('| rate        | 0.0/s average', rendered)
         self.assertIn('| threads     | 2', rendered)
         self.assertIn('| retries     | exhausted transport paths 0, fail streak 0/10', rendered)

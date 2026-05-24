@@ -770,8 +770,9 @@ class Browser(Filter):
             ('items', total),
             ('progress', '{0}/{1} ({2})'.format(processed, total, progress)),
             (
-                'requests',
-                '{0} submitted, {1} skipped before request'.format(
+                'queue',
+                '{0} consumed, {1} submitted, {2} pre-request skipped'.format(
+                    payload.get('processed'),
                     payload.get('submitted'),
                     payload.get('skipped_before_request'),
                 ),
