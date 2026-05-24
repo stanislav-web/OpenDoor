@@ -40336,6 +40336,9 @@ data.sql.zip
 data.sqlite
 data.tar.bz2
 data.tar.gz
+member.inc
+aerfans
+stamember.php
 data.tgz
 data.tsv
 data.txt
@@ -40380,6 +40383,9 @@ data/passwords.dat
 data/passwords.txt
 data/passwords.zip
 data/pay.json
+uploadsp
+user_admin
+user_admin.php
 data/payments.json
 data/pgdata/pg_hba.conf
 data/project.rar
@@ -41519,6 +41525,7 @@ dblclk
 DBLIST
 dblist
 dblog
+aermember.php
 dblog.info
 dblogin.php
 dbm
@@ -110226,7 +110233,6 @@ user-agreement.html
 user-controls
 user-data
 user-data.txt
-user-data.txt.i
 user-edit.php
 user-login.php
 user-mode
@@ -112218,17 +112224,13 @@ var/lib/cloud/instance/obj.pkl
 var/lib/cloud/instance/scripts
 var/lib/cloud/instance/sem
 var/lib/cloud/instance/user-data.txt
-var/lib/cloud/instance/user-data.txt.i
 var/lib/cloud/instance/vendor-data.txt
-var/lib/cloud/instance/vendor-data.txt.i
 var/lib/cloud/instanceboot-finished
 var/lib/cloud/instancecloud-config.txt
 var/lib/cloud/instancedatasource
 var/lib/cloud/instanceobj.pkl
 var/lib/cloud/instanceuser-data.txt
-var/lib/cloud/instanceuser-data.txt.i
 var/lib/cloud/instancevendor-data.txt
-var/lib/cloud/instancevendor-data.txt.i
 var/lib/mysql/mysql/user.frm
 var/lib/postgresql/data/pg_hba.conf
 var/log
@@ -112471,7 +112473,6 @@ vendita_pc.htm
 vendite.php
 vendor
 vendor-data.txt
-vendor-data.txt.i
 vendor.php
 vendor/2fa
 vendor/.env

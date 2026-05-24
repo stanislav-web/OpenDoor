@@ -1,5 +1,10 @@
 CHANGELOG
 =======
+v5.17.0 (xx.xx.2026)
+---------------------------
+- (fix) directory scan prefix normalization so as example `--prefix locale` and `--prefix locale/` both scan under `/locale/<path>` instead of concatenating paths as `/locale<path>`.
+- (dictionary) cleaned and normalized the internal directories list (+XXX potential interesting paths).
+
 v5.16.1 (24.05.2026)
 ---------------------------
 - (fix) reduced duplicate fingerprint traffic by reusing exact same method+URL probe responses within a single fingerprint pass.

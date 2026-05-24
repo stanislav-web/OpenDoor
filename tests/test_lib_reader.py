@@ -255,6 +255,22 @@ class TestReader(unittest.TestCase):
 
         self.assertEqual(line, 'http://example.com/admin/login.php')
 
+    def test_directories_line_normalizes_prefix_without_trailing_slash(self):
+        """Reader._directories__line() should treat bare prefix values as path segments."""
+
+        reader = self.create_reader(browser_config={'prefix': 'admin', 'list': 'directories'})
+        line = reader._directories__line('login.php\n', {'scheme': 'http://', 'host': 'example.com', 'port': 80})
+
+        self.assertEqual(line, 'http://example.com/admin/login.php')
+
+    def test_directories_line_normalizes_prefix_with_outer_slashes(self):
+        """Reader._directories__line() should avoid duplicated separators around prefixes."""
+
+        reader = self.create_reader(browser_config={'prefix': '/admin/', 'list': 'directories'})
+        line = reader._directories__line('/login.php\n', {'scheme': 'http://', 'host': 'example.com', 'port': 80})
+
+        self.assertEqual(line, 'http://example.com/admin/login.php')
+
     def test_directories_line_appends_non_default_port(self):
         """Reader._directories__line() should include a non-default port in the final URL."""
 
