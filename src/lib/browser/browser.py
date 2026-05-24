@@ -1425,7 +1425,40 @@ class Browser(Filter):
 
         urls = []
         token = uuid.uuid4().hex[:12]
-        path_templates = (
+        path_templates = self.__build_calibration_path_templates()
+
+        for index in range(self.__config.calibration_samples):
+            template = path_templates[index % len(path_templates)]
+            path = template.format(token=token, index=index)
+            urls.append(self.__build_calibration_url(path))
+
+        return urls
+
+    def __build_calibration_path_templates(self):
+        """Return calibration path templates for the current runtime profile.
+
+        Regular auto-calibration keeps mixed URL shapes to detect different
+        soft-404/catch-all behaviours. In WAF safe mode, avoid high-risk
+        scanner-like probes such as `.php`, `.map`, `admin`, and
+        `wp-content/uploads/*.php` because those paths are commonly treated as
+        attack indicators by edge protections before the scan starts.
+
+        :return: tuple[str, ...]
+        """
+
+        if True is getattr(self.__config, 'is_waf_safe_mode', False):
+            return (
+                '{token}-{index}',
+                'assets/{token}-{index}',
+                'static/{token}-{index}',
+                'media/{token}-{index}',
+                'content/{token}-{index}',
+                'resources/{token}-{index}',
+                'public/{token}-{index}',
+                'files/{token}-{index}',
+            )
+
+        return (
             '{token}-{index}',
             'assets/{token}-{index}.map',
             '{token}-{index}.php',
@@ -1435,13 +1468,6 @@ class Browser(Filter):
             'wp-content/uploads/{token}-{index}.php',
             'admin/{token}-{index}',
         )
-
-        for index in range(self.__config.calibration_samples):
-            template = path_templates[index % len(path_templates)]
-            path = template.format(token=token, index=index)
-            urls.append(self.__build_calibration_url(path))
-
-        return urls
 
     def __build_calibration_url(self, path):
         """

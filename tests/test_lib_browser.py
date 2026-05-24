@@ -2705,6 +2705,41 @@ class TestBrowser(unittest.TestCase):
             'http://example.com/admin/abcdef123456-7',
         ])
 
+    def test_calibrate_should_build_waf_safe_probe_url_shapes(self):
+        """Browser calibration probes should avoid risky URL shapes in WAF safe mode."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'auto_calibrate': True,
+            'waf_safe_mode': True,
+            'calibration_samples': 8,
+        }))
+
+        with patch('src.lib.browser.browser.uuid.uuid4') as uuid4_mock:
+            uuid4_mock.return_value.hex = 'abcdef1234567890'
+            actual = br._Browser__build_calibration_urls()
+
+        self.assertEqual(actual, [
+            'http://example.com/abcdef123456-0',
+            'http://example.com/assets/abcdef123456-1',
+            'http://example.com/static/abcdef123456-2',
+            'http://example.com/media/abcdef123456-3',
+            'http://example.com/content/abcdef123456-4',
+            'http://example.com/resources/abcdef123456-5',
+            'http://example.com/public/abcdef123456-6',
+            'http://example.com/files/abcdef123456-7',
+        ])
+
+        joined = ' '.join(actual).lower()
+        self.assertNotIn('.php', joined)
+        self.assertNotIn('.map', joined)
+        self.assertNotIn('/admin/', joined)
+        self.assertNotIn('/wp-content/', joined)
+
     def test_calibrate_should_build_baseline_from_probe_responses(self):
         """Browser.calibrate() should build baseline signatures from calibration probes."""
 

@@ -4,6 +4,7 @@ v5.17.0 (xx.xx.2026)
 ---------------------------
 - (fix) directory scan prefix normalization so as example `--prefix locale` and `--prefix locale/` both scan under `/locale/<path>` instead of concatenating paths as `/locale<path>`.
 - (fix) `--auto-calibration` now disables weak HTTP baselines when too many probes are blocked, ignored, or failed, preventing sparse signatures from over-filtering scan results.
+- (fix) reduced WAF-safe auto-calibration noise by using neutral calibration probe paths when `--waf-safe-mode` is enabled, avoiding high-risk `.php`, `.map`, `admin`, and `wp-*` probe shapes.
 - (dictionary) cleaned and normalized the internal directories list (+XXX potential interesting paths).
 
 v5.16.1 (24.05.2026)
