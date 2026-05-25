@@ -33913,6 +33913,7 @@ cloudnine
 clouds
 cloudstore/configmysql.xml
 clover
+clover.xml
 clp
 cls
 cls.php
@@ -43531,6 +43532,7 @@ dlr_jasmin.php
 dls
 dlstats_nbulker.php
 dlt
+DLUsers
 dm
 dm-config
 dm.asp
@@ -76698,6 +76700,7 @@ newsign.aspx
 newsignup.php
 newsimage
 newsimages
+newsindex.php
 newsinfo
 newsinsert2000.pdf
 newsite
@@ -83514,6 +83517,7 @@ phpcommunitycalendar
 phpcompat.php
 phpconnect.php
 phpcounter
+phpcs.xml
 phpdata.php
 phpdb
 phpdbadm.php
@@ -106001,6 +106005,11 @@ tests.jsf
 tests.php
 tests/.env
 Tests/Application/.env
+tests/database/manager_users.sql
+tests/database/site_content.sql
+tests/database/site_templates.sql
+tests/database/site_tmplvars.sql
+tests/database/user_attributes.sql
 tests/default_settings/v7.0/.env
 tests/default_settings/v8.0/.env
 tests/default_settings/v9.0/.env

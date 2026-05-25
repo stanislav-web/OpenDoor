@@ -761,6 +761,78 @@ class TestBrowser(unittest.TestCase):
         self.assertIn('Transport failures skipped: 3 request(s)', message)
         self.assertIn('Scan continued without reaching --retries-fail-streak.', message)
 
+    def test_http_request_never_aborts_subdomain_scan_on_transport_failures(self):
+        """Subdomain misses should be skipped without using the directory fail-streak guard."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+        setattr(getattr(br, '_Browser__config'), '_scan', 'subdomains')
+        setattr(getattr(br, '_Browser__config'), '_retries_fail_streak', 2)
+
+        debug_state = MagicMock()
+        debug_state.is_scan_debug.return_value = True
+        setattr(br, '_Browser__debug', debug_state)
+
+        with patch('src.lib.browser.browser.tpl.debug') as debug_mock:
+            br._Browser__http_request('https://admin.example.com')
+            br._Browser__http_request('https://api.example.com')
+            br._Browser__http_request('https://dev.example.com')
+
+        self.assertEqual(client.request.call_count, 3)
+        response_handler.handle.assert_not_called()
+        self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 0)
+        self.assertEqual(getattr(br, '_Browser__transport_failures_skipped'), 3)
+        self.assertEqual(getattr(br, '_Browser__result')['total']['ignored'], 3)
+        self.assertIn('Subdomain candidate produced no HTTP response', debug_mock.call_args.kwargs.get('msg', ''))
+        self.assertIn('do not use fail-streak aborts', debug_mock.call_args.kwargs.get('msg', ''))
+
+    def test_transport_failure_summary_uses_subdomain_specific_wording(self):
+        """Subdomain transport misses should not mention reaching the directory fail-streak guard."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__transport_failure_lock', threading.RLock())
+        setattr(br, '_Browser__transport_failures_skipped', 4)
+        setattr(br, '_Browser__transport_failure_summary_emitted', False)
+        setattr(getattr(br, '_Browser__config'), '_scan', 'subdomains')
+
+        with patch('src.lib.browser.browser.tpl.info') as info_mock:
+            br._Browser__emit_transport_failure_summary()
+
+        info_mock.assert_called_once()
+        message = info_mock.call_args.kwargs.get('msg', '')
+        self.assertIn('Subdomain candidates without HTTP response: 4', message)
+        self.assertIn('without fail-streak abort', message)
+        self.assertNotIn('--retries-fail-streak', message)
+
+    def test_runtime_diagnostics_formats_subdomain_transport_misses_without_fail_streak(self):
+        """Runtime diagnostics should not show directory fail-streak state for subdomain scans."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=10,
+            items_size=4,
+            submitted_size=4,
+            workers_size=1,
+        ))
+        setattr(br, '_Browser__runtime_started_at', None)
+        setattr(br, '_Browser__active_runtime_total', 0.0)
+        setattr(br, '_Browser__pre_request_skipped', 0)
+        setattr(br, '_Browser__transport_failures_skipped', 4)
+        setattr(br, '_Browser__transport_failure_streak', 0)
+        setattr(getattr(br, '_Browser__config'), '_scan', 'subdomains')
+
+        rendered = br._Browser__format_runtime_diagnostics(status='completed')
+
+        self.assertIn('| retries     | subdomain misses 4, fail-fast disabled', rendered)
+        self.assertNotIn('fail streak', rendered)
+
     def test_http_request_records_status_from_response_handler(self):
         """Browser.__http_request() should record the tuple returned by the response handler."""
 

@@ -654,6 +654,30 @@ class Browser(Filter):
 
         return 'enabled' if value is True else 'disabled'
 
+    @staticmethod
+    def __format_transport_diagnostics(payload):
+        """Format transport-failure diagnostics for the active scan mode.
+
+        Directory scans use the consecutive exhausted-retry fail-streak as an
+        availability guard. Subdomain scans do not enforce that guard because
+        missing HTTP responses are normal enumeration misses.
+
+        :param dict payload: runtime diagnostics payload
+        :return: formatted diagnostics value
+        :rtype: str
+        """
+
+        if payload.get('retries_fail_streak_enforced') is not True:
+            return 'subdomain misses {0}, fail-fast disabled'.format(
+                payload.get('transport_skipped'),
+            )
+
+        return 'exhausted transport paths {0}, fail streak {1}/{2}'.format(
+            payload.get('transport_skipped'),
+            payload.get('retries_fail_streak'),
+            payload.get('retries_fail_limit'),
+        )
+
     def __record_pre_request_skip(self):
         """Record one dictionary item skipped before an HTTP request was submitted.
 
@@ -705,6 +729,7 @@ class Browser(Filter):
             'remaining_seconds': remaining_seconds,
             'retries_fail_streak': self.__safe_progress_int(getattr(self, '_Browser__transport_failure_streak', 0)),
             'retries_fail_limit': self.__transport_failure_threshold(),
+            'retries_fail_streak_enforced': self.__is_subdomains_scan() is not True,
             'auto_calibration_enabled': getattr(self.__config, 'is_auto_calibrate', False) is True,
             'calibrated_responses': self.__safe_progress_int(total_counter.get('calibrated', 0)),
         }
@@ -788,11 +813,7 @@ class Browser(Filter):
             ('threads', payload.get('threads')),
             (
                 'retries',
-                'exhausted transport paths {0}, fail streak {1}/{2}'.format(
-                    payload.get('transport_skipped'),
-                    payload.get('retries_fail_streak'),
-                    payload.get('retries_fail_limit'),
-                ),
+                self.__format_transport_diagnostics(payload),
             ),
             (
                 'calibration',
@@ -1161,7 +1182,7 @@ class Browser(Filter):
 
             evidence_values = self.__fingerprint_evidence_values(result.get('signals', []))
             if evidence_values:
-                tpl.info(msg='Fingerprint evidence: {0}'.format(', '.join(evidence_values)))
+                tpl.debug(msg='Fingerprint evidence: {0}'.format(', '.join(evidence_values)))
 
             return result
 
@@ -2417,12 +2438,22 @@ class Browser(Filter):
             return
 
         self.__finish_filtered_progress_line()
-        tpl.info(
-            msg=(
-                'Transport failures skipped: {0} request(s) without HTTP response. '
-                'Scan continued without reaching --retries-fail-streak.'
-            ).format(skipped)
-        )
+
+        if self.__is_subdomains_scan() is True:
+            tpl.info(
+                msg=(
+                    'Subdomain candidates without HTTP response: {0}. '
+                    'These candidates were skipped without fail-streak abort.'
+                ).format(skipped)
+            )
+        else:
+            tpl.info(
+                msg=(
+                    'Transport failures skipped: {0} request(s) without HTTP response. '
+                    'Scan continued without reaching --retries-fail-streak.'
+                ).format(skipped)
+            )
+
         self.__transport_failure_summary_emitted = True
 
     def __reset_transport_failure_streak(self):
@@ -2462,19 +2493,27 @@ class Browser(Filter):
 
         Request providers already pass ``config.retries`` to urllib3. This
         method is called only after that retry budget has been exhausted and the
-        provider returned ``None``. It must not short-circuit per-request retry
-        behavior; it only protects the scanner from silently walking the whole
-        dictionary after the target transport goes away.
+        provider returned ``None``. Directory scans use a consecutive-failure
+        guard to avoid walking the remaining dictionary against an unavailable
+        target. Subdomain scans intentionally do not use that guard because
+        missing HTTP responses are normal enumeration misses.
 
         :param str url: failed request URL
-        :raise BrowserError: when consecutive failures exceed the abort threshold
+        :raise BrowserError: when directory-scan consecutive failures exceed the abort threshold
         :return: None
         """
 
+        is_subdomains_scan = self.__is_subdomains_scan() is True
+
         with self.__transport_failure_lock:
-            self.__transport_failure_streak += 1
             self.__transport_failures_skipped += 1
-            streak = self.__transport_failure_streak
+
+            if is_subdomains_scan:
+                self.__transport_failure_streak = 0
+                streak = 0
+            else:
+                self.__transport_failure_streak += 1
+                streak = self.__transport_failure_streak
 
         threshold = self.__transport_failure_threshold()
         path = helper.parse_url(url).path or str(url)
@@ -2485,6 +2524,15 @@ class Browser(Filter):
         diagnostic_suffix = ''
         if diagnostic:
             diagnostic_suffix = ' Last transport error: {0}'.format(diagnostic)
+
+        if is_subdomains_scan:
+            self.__debug_transport_failure(
+                (
+                    'Subdomain candidate produced no HTTP response after configured timeout/retries: {path}. '
+                    'Candidate skipped; subdomain scans do not use fail-streak aborts.{diagnostic_suffix}'
+                ).format(path=path, diagnostic_suffix=diagnostic_suffix)
+            )
+            return
 
         if streak < threshold:
             self.__debug_transport_failure(
