@@ -2441,10 +2441,7 @@ class Browser(Filter):
 
         if self.__is_subdomains_scan() is True:
             tpl.info(
-                msg=(
-                    'Subdomain candidates without HTTP response: {0}. '
-                    'These candidates were skipped without fail-streak abort.'
-                ).format(skipped)
+                msg='Skipped subdomain candidates without HTTP response: {0}.'.format(skipped)
             )
         else:
             tpl.info(
@@ -2515,6 +2512,14 @@ class Browser(Filter):
                 self.__transport_failure_streak += 1
                 streak = self.__transport_failure_streak
 
+        if is_subdomains_scan:
+            self.__emit_filtered_progress(
+                'ignored',
+                ('ignored', url, '0B', '-'),
+                request_url=url,
+            )
+            return
+
         threshold = self.__transport_failure_threshold()
         path = helper.parse_url(url).path or str(url)
 
@@ -2524,15 +2529,6 @@ class Browser(Filter):
         diagnostic_suffix = ''
         if diagnostic:
             diagnostic_suffix = ' Last transport error: {0}'.format(diagnostic)
-
-        if is_subdomains_scan:
-            self.__debug_transport_failure(
-                (
-                    'Subdomain candidate produced no HTTP response after configured timeout/retries: {path}. '
-                    'Candidate skipped; subdomain scans do not use fail-streak aborts.{diagnostic_suffix}'
-                ).format(path=path, diagnostic_suffix=diagnostic_suffix)
-            )
-            return
 
         if streak < threshold:
             self.__debug_transport_failure(

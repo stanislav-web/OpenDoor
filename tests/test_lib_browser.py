@@ -779,6 +779,8 @@ class TestBrowser(unittest.TestCase):
         debug_state = MagicMock()
         debug_state.is_scan_debug.return_value = True
         setattr(br, '_Browser__debug', debug_state)
+        progress_mock = MagicMock()
+        setattr(br, '_Browser__emit_filtered_progress', progress_mock)
 
         with patch('src.lib.browser.browser.tpl.debug') as debug_mock:
             br._Browser__http_request('https://admin.example.com')
@@ -787,11 +789,16 @@ class TestBrowser(unittest.TestCase):
 
         self.assertEqual(client.request.call_count, 3)
         response_handler.handle.assert_not_called()
+        debug_mock.assert_not_called()
+        self.assertEqual(progress_mock.call_count, 3)
+        progress_mock.assert_any_call(
+            'ignored',
+            ('ignored', 'https://admin.example.com', '0B', '-'),
+            request_url='https://admin.example.com',
+        )
         self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 0)
         self.assertEqual(getattr(br, '_Browser__transport_failures_skipped'), 3)
         self.assertEqual(getattr(br, '_Browser__result')['total']['ignored'], 3)
-        self.assertIn('Subdomain candidate produced no HTTP response', debug_mock.call_args.kwargs.get('msg', ''))
-        self.assertIn('do not use fail-streak aborts', debug_mock.call_args.kwargs.get('msg', ''))
 
     def test_transport_failure_summary_uses_subdomain_specific_wording(self):
         """Subdomain transport misses should not mention reaching the directory fail-streak guard."""
@@ -807,8 +814,8 @@ class TestBrowser(unittest.TestCase):
 
         info_mock.assert_called_once()
         message = info_mock.call_args.kwargs.get('msg', '')
-        self.assertIn('Subdomain candidates without HTTP response: 4', message)
-        self.assertIn('without fail-streak abort', message)
+        self.assertIn('Skipped subdomain candidates without HTTP response: 4', message)
+        self.assertNotIn('fail-streak', message)
         self.assertNotIn('--retries-fail-streak', message)
 
     def test_runtime_diagnostics_formats_subdomain_transport_misses_without_fail_streak(self):

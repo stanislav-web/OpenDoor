@@ -75,6 +75,17 @@ def describe_tls_transport_error(error):
     message = _compact_error_message(error)
     lowered = message.lower()
 
+    name_resolution_markers = (
+        'failed to resolve',
+        'name or service not known',
+        'nodename nor servname provided',
+        'temporary failure in name resolution',
+        'no address associated with hostname',
+        'nameresolutionerror',
+    )
+    if any(marker in lowered for marker in name_resolution_markers):
+        return None
+
     if 'dh key too small' in lowered or 'dh_key_too_small' in lowered:
         return (
             'TLS handshake failed: DH_KEY_TOO_SMALL. '
