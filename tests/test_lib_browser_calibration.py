@@ -153,17 +153,17 @@ class TestCalibration(unittest.TestCase):
         self.assertIsNone(actual)
         self.assertFalse(calibration.is_enabled)
 
-    def test_calibration_should_not_match_different_status_code(self):
-        """Calibration.match() should not match responses with different status codes."""
+    def test_calibration_should_not_match_different_status_code_without_soft_error_shape(self):
+        """Calibration.match() should not match arbitrary responses with different status codes."""
 
-        baseline_response = self.make_response(status=404, body='not found')
-        candidate_response = self.make_response(status=200, body='not found')
+        baseline_response = self.make_response(status=403, body='access denied')
+        candidate_response = self.make_response(status=200, body='access denied')
 
         calibration = Calibration(
             signatures=[
                 Calibration.build_signature(
                     baseline_response,
-                    ('success', 'http://example.com/random', '9B', '404')
+                    ('forbidden', 'http://example.com/random', '13B', '403')
                 )
             ],
             threshold=0.92
@@ -171,7 +171,107 @@ class TestCalibration(unittest.TestCase):
 
         actual = calibration.match(
             candidate_response,
-            ('success', 'http://example.com/admin', '9B', '200')
+            ('success', 'http://example.com/admin', '13B', '200')
+        )
+
+        self.assertIsNone(actual)
+
+    def test_calibration_should_match_200_response_with_canonical_404_body(self):
+        """Calibration.match() should suppress 2xx responses carrying canonical 404 bodies."""
+
+        body = (
+            '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">'
+            '<html><head><title>404 Not Found</title></head>'
+            '<body><h1>Not Found</h1>'
+            '<p>The requested URL was not found on this server.</p>'
+            '<hr><address>Apache/2.4.63 (Unix) Server at example.com Port 80</address>'
+            '</body></html>'
+        )
+
+        baseline_response = self.make_response(status=404, body=body)
+        candidate_response = self.make_response(status=200, body=body)
+
+        calibration = Calibration(
+            signatures=[
+                Calibration.build_signature(
+                    baseline_response,
+                    ('failed', 'http://example.com/random', '273B', '404')
+                )
+            ],
+            threshold=0.92
+        )
+
+        actual = calibration.match(
+            candidate_response,
+            ('success', 'http://example.com/candidate.php', '273B', '200')
+        )
+
+        self.assertIsNotNone(actual)
+        self.assertIn('cross-status-soft-error', actual['calibration_reason'])
+
+    def test_calibration_should_not_cross_match_real_not_found_titled_page(self):
+        """Cross-status soft-error matching should not hide useful pages by title only."""
+
+        baseline_response = self.make_response(
+            status=404,
+            body='<html><head><title>404 Not Found</title></head><body>Missing resource</body></html>'
+        )
+        candidate_response = self.make_response(
+            status=200,
+            body='<html><head><title>Not Found</title></head><body><form><input name=login></form></body></html>'
+        )
+
+        calibration = Calibration(
+            signatures=[
+                Calibration.build_signature(
+                    baseline_response,
+                    ('failed', 'http://example.com/random', '80B', '404')
+                )
+            ],
+            threshold=0.92
+        )
+
+        actual = calibration.match(
+            candidate_response,
+            ('success', 'http://example.com/custom-login', '92B', '200')
+        )
+
+        self.assertIsNone(actual)
+
+    def test_calibration_should_not_cross_match_small_real_200_page_near_error_size(self):
+        """Cross-status soft-error matching should not hide small real 2xx pages."""
+
+        baseline_body = (
+            '<html><head><title>404 Not Found</title></head>'
+            '<body><h1>Not Found</h1>'
+            '<p>The requested URL was not found on this server.</p>'
+            '<hr><address>Server at example.com Port 443</address></body></html>'
+        )
+        candidate_body = (
+            '<html><head><title>Control Panel</title></head>'
+            '<body><main><h1>Control Panel</h1>'
+            '<form action="/login" method="post">'
+            '<input type="hidden" name="csrf" value="abc123">'
+            '<input name="username"><input type="password" name="password">'
+            '<button>Sign in</button></form></main></body></html>'
+        )
+
+        baseline_response = self.make_response(status=404, body=baseline_body)
+        candidate_response = self.make_response(status=200, body=candidate_body)
+
+        calibration = Calibration(
+            signatures=[
+                Calibration.build_signature(
+                    baseline_response,
+                    ('failed', 'http://example.com/random', '180B', '404')
+                )
+            ],
+            threshold=0.92
+        )
+
+        actual = calibration.match(
+            candidate_response,
+            ('success', 'http://example.com/control-panel.php', '276B', '200')
         )
 
         self.assertIsNone(actual)

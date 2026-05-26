@@ -401,6 +401,10 @@ class Calibration(object):
         reasons = []
 
         if baseline.get('code') != candidate.get('code'):
+            cross_status_score, cross_status_reasons = cls._cross_status_soft_error_score(baseline, candidate)
+            if cross_status_score >= cls._cross_status_soft_error_min_score():
+                return cross_status_score, cross_status_reasons
+
             return 0.0, reasons
 
         score = 0.18
@@ -496,6 +500,122 @@ class Calibration(object):
         if header_score >= 0.80:
             score += 0.03 * header_score
             reasons.append('headers')
+
+        return min(score, 1.0), reasons
+
+    @staticmethod
+    def _cross_status_soft_error_min_score():
+        """
+        Return the minimum score for cross-status soft-error suppression.
+
+        This branch handles servers that occasionally return a 2xx status with a
+        canonical 404/410 body. The threshold is intentionally strict because it
+        bypasses the normal same-status calibration guard.
+
+        :return: minimum score
+        :rtype: float
+        """
+
+        return 0.90
+
+    @staticmethod
+    def _is_soft_error_status_pair(baseline_code, candidate_code):
+        """
+        Check whether a baseline/candidate status pair can represent a soft error.
+
+        :param int|None baseline_code: calibration baseline status code
+        :param int|None candidate_code: candidate response status code
+        :return: True when a 4xx baseline can safely suppress a 2xx candidate
+        :rtype: bool
+        """
+
+        return baseline_code in (404, 410) and candidate_code in (200, 201, 202, 203, 204, 205, 206)
+
+    @classmethod
+    def _has_strong_soft_error_semantics(cls, signature):
+        """
+        Decide whether a signature looks like a canonical missing-resource page.
+
+        :param dict signature: calibration signature
+        :return: True when title/visible text carries strong 404-style semantics
+        :rtype: bool
+        """
+
+        phrases = set(signature.get('semantic_phrases') or [])
+        title = str(signature.get('title') or '').strip().lower()
+
+        if title in ('404', '404 not found', 'not found', 'page not found'):
+            return True
+
+        if '404' in phrases and 'not found' in phrases:
+            return True
+
+        if 'not found' in phrases and {'requested page', 'requested resource'} & phrases:
+            return True
+
+        return False
+
+    @classmethod
+    def _cross_status_soft_error_score(cls, baseline, candidate):
+        """
+        Score a 2xx candidate against a canonical 4xx soft-error baseline.
+
+        Normal calibration intentionally requires identical status codes. This
+        narrowly scoped exception catches origin/proxy inconsistencies where the
+        body is the same missing-resource page but the status was emitted as 2xx.
+
+        :param dict baseline: calibration baseline signature
+        :param dict candidate: candidate response signature
+        :return: score and reasons
+        :rtype: tuple[float, list[str]]
+        """
+
+        reasons = []
+
+        if cls._is_soft_error_status_pair(baseline.get('code'), candidate.get('code')) is not True:
+            return 0.0, reasons
+
+        if cls._has_strong_soft_error_semantics(baseline) is not True:
+            return 0.0, reasons
+
+        if cls._has_strong_soft_error_semantics(candidate) is not True:
+            return 0.0, reasons
+
+        score = 0.36
+        reasons.append('cross-status-soft-error')
+
+        if baseline.get('normalized_body_hash') == candidate.get('normalized_body_hash'):
+            score += 0.22
+            reasons.append('body-hash')
+
+        if baseline.get('body_skeleton_hash') == candidate.get('body_skeleton_hash'):
+            score += 0.16
+            reasons.append('skeleton-hash')
+
+        if baseline.get('visible_text_hash') and baseline.get('visible_text_hash') == candidate.get('visible_text_hash'):
+            score += 0.18
+            reasons.append('visible-text')
+
+        phrase_score = cls._jaccard_similarity(
+            baseline.get('semantic_phrases') or [],
+            candidate.get('semantic_phrases') or []
+        )
+        if phrase_score >= 0.80:
+            score += 0.08 * phrase_score
+            reasons.append('semantic-phrases')
+
+        dom_score = cls._sequence_similarity(
+            baseline.get('dom_tokens') or [],
+            candidate.get('dom_tokens') or []
+        )
+        if dom_score >= 0.90:
+            score += 0.05 * dom_score
+            reasons.append('dom-structure')
+
+        size_score = cls._numeric_similarity(baseline.get('size'), candidate.get('size'))
+        if size_score >= 0.95:
+            score += 0.05 * size_score
+            reasons.append('size')
 
         return min(score, 1.0), reasons
 

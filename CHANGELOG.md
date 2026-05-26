@@ -2,13 +2,15 @@ CHANGELOG
 =======
 v5.17.0 (xx.xx.2026)
 ---------------------------
-- (fix) Shadow Copy sniffer false positives on soft-200/fallback routes by adding a negative-control probe before reporting backup-file variants.
+- (fix) false-positive OK findings when a target returns a canonical 404/410 error body with a transient 2xx status by adding strict cross-status soft-error calibration.
+- (fix) `--sniff shadow` false positives on soft-200/fallback routes by adding a negative-control probe before reporting backup-file variants.
 - (fix) subdomain scans so missing/no-response candidates are skipped without triggering the directory retry fail-streak abort guard.
 - (fix) directory scan prefix normalization so `--prefix locale` and `--prefix locale/` both scan under `/locale/<path>` instead of concatenating paths as `/locale<path>`.
 - (fix) `--auto-calibrate` now disables weak HTTP baselines when too many probes are blocked, ignored, or failed, preventing sparse signatures from over-filtering scan results.
 - (fix) reduced WAF-safe auto-calibration noise by using neutral calibration probe paths when `--waf-safe-mode` is enabled, avoiding high-risk `.php`, `.map`, `admin`, and `wp-*` probe shapes.
-- (fix) reduced `--sniff malware` false positives for standard Bitrix admin login pages by allowlisting the built-in hidden `auth_frame` iframe only when strong Bitrix login markers are present.
+- (fix) `--sniff malware` false positives on security-plugin documentation by suppressing name-only webshell vocabulary in documentation context while preserving executable payload and shell UI detections.
 - (fix) clarified Runtime Diagnostics queue accounting by showing consumed items, submitted HTTP jobs, and pre-request skipped items separately.
+- (enhancement) reduced `--sniff malware` false positives for standard Bitrix admin login pages by allowlisting the built-in hidden `auth_frame` iframe only when strong Bitrix login markers are present.
 - (dictionary) cleaned and normalized the internal directories list (+XXX potential interesting paths).
 
 v5.16.1 (24.05.2026)

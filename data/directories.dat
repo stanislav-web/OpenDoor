@@ -1924,6 +1924,7 @@
 403.php
 403.shtml
 403_manage.phtml
+403bypass
 403error.htm
 403error.html
 403error.php
@@ -3808,7 +3809,6 @@
 7214.html
 7215.html
 7218.html
-7243A_ODU_UDP_DL_OTA_Aisspan_eNB_R1.0.6.log
 7279.php
 7280.php
 7288.php
@@ -4848,6 +4848,7 @@
 .addressbook
 .adm
 .admin
+.admin.php.swp
 .adminer.php.swp
 .Administration
 .administration
@@ -5186,6 +5187,7 @@
 .db
 .db3
 .db.env
+.db.php.swp
 .db.xml
 .db.yaml
 .dbeaver/credentials-config.json
@@ -5764,6 +5766,7 @@
 .htaccess.orig
 .htaccess.sample
 .htaccess.save
+.htaccess.swp
 .htaccess.txt
 .htaccess_extra
 .htaccess_orig
@@ -6009,6 +6012,7 @@
 .log.txt
 .logfile
 .login
+.login.php.swp
 .login_conf
 .logout
 .logs
@@ -6101,6 +6105,7 @@
 .nbgrader.log
 .nbproject
 .neomail
+.nessus
 .net
 .netrc
 .netrwhist
@@ -6266,6 +6271,7 @@
 .pmd
 .pmtignore
 .png
+.pnpm-store
 .pocketpc
 .poggit.yml
 .pomerium
@@ -6776,6 +6782,7 @@
 .well-known/ashrae
 .well-known/assetlinks.json
 .well-known/autoconfig/mail
+.well-known/bimi
 .well-known/browserid
 .well-known/caldav
 .well-known/carddav
@@ -6790,6 +6797,7 @@
 .well-known/enterprise-transport-security
 .well-known/envoy
 .well-known/est
+.well-known/est/cacerts
 .well-known/genid
 .well-known/hoba
 .well-known/host-meta
@@ -6813,12 +6821,14 @@
 .well-known/ni
 .well-known/nodeinfo
 .well-known/oauth-authorization-server
+.well-known/oauth-protected-resource
 .well-known/okta-organization
 .well-known/openai-plugin.json
 .well-known/openid-configuration
 .well-known/openid-federation
 .well-known/openorg
 .well-known/openpgpkey
+.well-known/passkey-endpoints
 .well-known/pki-validation
 .well-known/pomerium
 .well-known/pomerium/jwks.json
@@ -6827,6 +6837,7 @@
 .well-known/reload-config
 .well-known/repute-template
 .well-known/resourcesync
+.well-known/robots.txt
 .well-known/security.txt
 .well-known/stun-key
 .well-known/thread
@@ -6835,7 +6846,9 @@
 .well-known/traffic-advice
 .well-known/uma2-configuration
 .well-known/void
+.well-known/webauthn
 .well-known/webfinger
+.well-known/well-known
 .well-knownacme-challenge
 .well-knownapple-app-site-association
 .well-knownapple-developer-merchant-domain-association
@@ -7046,11 +7059,13 @@ __adminer.php
 __backup
 __bx_log.log
 __cache
+__cf_chl_jschl_tk__
 __clockwork/app
 __clockwork/latest
 __createdb.php
 __data
 __debug__
+__docs__
 __documents
 __dummy.html
 __errfiles__
@@ -7079,6 +7094,7 @@ __php_errors.log
 __pma___
 __pycache__
 __recovery
+__redoc__
 __SQL
 __swagger__
 __temp__
@@ -7246,6 +7262,8 @@ _beta
 _bin
 _bkup
 _blank.asp
+_blazor
+_blazor/negotiate
 _blog
 _blulab
 _bo
@@ -7414,6 +7432,7 @@ _disc
 _disc1
 _disc2
 _dist
+_dmarc.txt
 _doc
 _Dockerfile
 _docs
@@ -7667,6 +7686,9 @@ _mapping
 _mappings
 _master
 _masters
+_matrix/client/r0/login
+_matrix/client/r0/register
+_matrix/federation/v1/version
 _media
 _medienid
 _mem_bin
@@ -8184,6 +8206,7 @@ a-004.htm
 a-005.htm
 a-006.htm
 a-007.htm
+a-b
 a-blog
 a-propos
 a-propos.php
@@ -8265,6 +8288,7 @@ aaapremier
 aaasc
 aaasocalifornia
 aaatexas
+aad
 aadm.html
 aadmin
 aadmin.php
@@ -8301,6 +8325,7 @@ aatest
 aau
 ab
 ab-test
+ab-test/results
 ab.framework
 ab/docs
 ab_test
@@ -8462,6 +8487,8 @@ aboutus.htm
 aboutus.html
 aboutus.php
 aboutus.shtml
+ABP
+abp/api
 abpost.php
 abraham
 abrametas-prod.php
@@ -9403,6 +9430,7 @@ aclogic
 acls
 acm
 acme
+acme-challenge
 acme-challenge/.env
 acme/.env
 acme_challenges/.env
@@ -9487,8 +9515,10 @@ action.topic.php
 action.transfer.php
 action.upload.php
 action.validate.php
+action_cable
 action_custom.php
 action_emty.php
+action_mailer
 actionalert.asp
 actionapps
 actionfile
@@ -9556,12 +9586,15 @@ active.asp
 active.html
 active.log
 active.php
+active_admin
+active_admin/dashboard
 active_polls.asp
 active_port_get.cfm
 active_power_out.php
 active_topics.asp
 active_total_power.php
 active_users.asp
+activeadmin
 activecalendar.php
 activecampaign
 activeCollab
@@ -9614,6 +9647,7 @@ activity.php
 activity_char.php
 activity_favs.php
 activitynames.php
+activitypub
 activitysessions/docs
 activkey
 Activpp
@@ -9691,6 +9725,7 @@ actuator/caches
 actuator/conditions
 actuator/configprops
 actuator/configurationMetadata
+actuator/druid
 actuator/dump
 actuator/env
 actuator/events
@@ -9726,6 +9761,7 @@ actuator/shutdown
 actuator/springWebflow
 actuator/sso
 actuator/ssoSessions
+actuator/startup
 actuator/statistics
 actuator/status
 actuator/threaddump
@@ -11758,6 +11794,8 @@ ADMIN.php
 Admin.php
 admin.php3
 admin.php.back
+admin.php.orig
+admin.php.swp
 admin.phpadmin.html
 admin.phtml
 Admin.pl
@@ -16617,7 +16655,9 @@ administrator/maintenance
 administrator/manage.php
 administrator/manager.php
 administrator/manifests
+administrator/manifests/files/joomla.xml
 administrator/manifests/filesjoomla.xml
+administrator/manifests/packages
 administrator/media
 administrator/member
 administrator/member.php
@@ -18264,6 +18304,7 @@ affiliate.js
 affiliate.php
 Affiliate.php
 affiliate/login
+affiliate/track
 affiliate_admin
 affiliate_admin.php
 affiliate_area.php
@@ -18881,6 +18922,7 @@ ainfo.php
 ainstall
 ainstall.json
 ainstall.php
+aiohttp
 aiops
 aiops/admin.php
 aiops/config.php
@@ -18916,6 +18958,7 @@ airaksinen
 airasiago
 airbnb
 airbnb-get.php
+airbrake
 airconditioner1.php
 airconditioner2.php
 airconditioner3.php
@@ -19121,6 +19164,7 @@ ajuiza_grava_f.php
 ajuiza_pg_00_f.php
 ajx
 ajxaction
+ajxp.php
 ak
 ak47.php
 ak47.phtml
@@ -19129,6 +19173,7 @@ ak74shell.php
 AK-74.php
 ak-systems
 akamai
+akamai/purge
 akarru
 akatsuki
 akce
@@ -19289,6 +19334,9 @@ aleatorio.php
 alegria
 aleja
 alemania
+alembic
+alembic/env.py
+alembic/versions
 alentum
 alert
 alert.asp
@@ -19777,6 +19825,8 @@ amp
 amp.php
 ampache
 amphor@
+amplitude/2/httpapi
+amplitude/httpapi
 amqp
 amrefresh.asp
 amrhein
@@ -19877,28 +19927,39 @@ analytics.html
 analytics.php
 analytics.txt
 analytics/admin
+analytics/alias
+analytics/api
 analytics/api.php
+analytics/batch
 analytics/chart.php
 analytics/check.php
+analytics/collect
 analytics/csv.php
 analytics/dashboard
 analytics/dashboard.php
 analytics/data.php
+analytics/event
+analytics/events
 analytics/graph.php
+analytics/group
 analytics/health.php
+analytics/identify
 analytics/index.php
 analytics/json.php
 analytics/login
 analytics/metrics.php
 analytics/monitor.php
+analytics/page
 analytics/panel.php
 analytics/probe.php
 analytics/report.php
 analytics/saw.dll?bieehome&startPage=1#grabautologincookies
 analytics/saw.dll?getPreviewImage&previewFilePath=/etc/passwd
 analytics/saw.dll?getPreviewImage&previewFilePath=/etcpasswd
+analytics/screen
 analytics/stats.php
 analytics/status.php
+analytics/track
 analytics/view.php
 analytics/xml.php
 analyticstracking.php
@@ -20416,8 +20477,10 @@ api-gateway/.env.dev
 api-gateway/.env.local
 api-gateway/.env.production
 api-gateway/.env.staging
+api-key
 api-key.json
 api-key.php
+api-keys
 api-keys.txt
 api-reference
 api-v12.php
@@ -20437,6 +20500,7 @@ api.py
 api.tar.gz
 api.tgz
 api.txt
+api.wsdl
 api.xml
 api.zip
 api/2/explore
@@ -20466,6 +20530,7 @@ api/.env_1.bak
 api/__swagger__
 api/_preferences
 api/_swagger_
+api/abp/application-configuration
 api/access
 api/access.log
 api/Account/Login
@@ -20586,6 +20651,8 @@ api/auth
 api/auth.config
 api/auth.php
 api/auth/csrf
+api/auth/local
+api/auth/local/register
 api/auth/login
 api/auth/providers
 api/auth/session
@@ -20794,6 +20861,7 @@ api/cluster/spec
 api/cluster_conf
 api/collections
 api/collections.list
+api/collections/users/records
 api/command
 api/command/list
 api/command/ping
@@ -20868,10 +20936,12 @@ api/device/report
 api/device/service
 api/devices
 api/devservices
+api/diagnostics
 api/doc
 api/docs
 api/documents.list
 api/documents.search
+api/dynamicdata
 api/edges
 api/emails
 api/embed
@@ -21065,6 +21135,7 @@ api/monitor
 api/mpim.list
 api/nodes
 api/notice/alert
+api/odata
 api/offline
 api/oomco_payment/get-failed-transaction-track-ids
 api/oomco_payment/get-failed-transaction-track-ids-debug
@@ -21105,6 +21176,7 @@ api/prodservices
 api/profile
 api/profile/gateway
 api/profile/ping
+api/profiler
 api/profiles/v1/biometric/verify
 api/profiles/v1/prelogin-check
 api/projects/search
@@ -21125,6 +21197,8 @@ api/queries/search
 api/query_influxdb
 api/query_results
 api/queues
+api/quota
+api/rate-limit
 api/rawdata
 api/reactions.get
 api/reboot
@@ -21140,6 +21214,7 @@ api/recommend/buy/volume
 api/recommend/list
 api/recommend/single/list
 api/recommend/tab
+api/redoc
 api/reference
 api/refresh
 api/refresh_access_token
@@ -21239,6 +21314,7 @@ api/scenario/name
 api/scenario/notice
 api/scenario/ping
 api/scenario/status
+api/schema
 api/search
 api/search/character
 api/search/hot-keyword
@@ -21415,6 +21491,7 @@ api/silenceget
 api/singleclient
 api/snapshots
 api/soap
+api/soap/wsdl
 api/spec/swagger.json
 api/spec/swagger.yaml
 api/specswagger.json
@@ -21480,6 +21557,7 @@ api/swagger/static/index.html
 api/swagger/staticindex.html
 api/swagger/swagger
 api/swagger/swagger-ui.html
+api/swagger/ui
 api/swagger/ui/index
 api/swagger/uiindex
 api/swagger_doc.json
@@ -21524,6 +21602,7 @@ api/testget
 api/testusers
 api/themes
 api/third/videodetail
+api/throttle
 api/timelion/run
 api/timelionrun
 api/token
@@ -21598,6 +21677,7 @@ api/users-permissions/permissions
 api/users-permissions/roles
 api/users.json
 api/users.list
+api/users/count
 api/users/first-register
 api/users/me
 api/users/search
@@ -21640,6 +21720,7 @@ api/v1/account/users
 api/v1/account/users/password
 api/v1/account/users/summaries
 api/v1/accounts
+api/v1/actuator
 api/v1/admin
 api/v1/admin/cron
 api/v1/admin/orgs
@@ -21654,6 +21735,7 @@ api/v1/archived-workflows
 api/v1/artifacts
 api/v1/asset/asset
 api/v1/asset/assets
+api/v1/audit-log
 api/v1/auth
 api/v1/authorities
 api/v1/backend
@@ -21665,9 +21747,11 @@ api/v1/broker-admin
 api/v1/broker/msg
 api/v1/buckets
 api/v1/canal/config/1/1
+api/v1/certificates
 api/v1/channels.list
 api/v1/cloak
 api/v1/cluster-workflow-templates
+api/v1/clusters
 api/v1/common/accounts
 api/v1/common/connections
 api/v1/common/notifications
@@ -21690,6 +21774,7 @@ api/v1/delta/monitoring/accounts
 api/v1/delta/order
 api/v1/delta/userAssets
 api/v1/deploy
+api/v1/deployments
 api/v1/digitalone-cnl-facebook/is-churn
 api/v1/digitalone-cnl-facebook/post-token
 api/v1/directory
@@ -21698,11 +21783,13 @@ api/v1/dns/nameservers
 api/v1/docs
 api/v1/employees
 api/v1/endpoints
+api/v1/environments
 api/v1/event-sources
 api/v1/events
 api/v1/exportclients
 api/v1/fc/bot
 api/v1/fc/init
+api/v1/feature-flags
 api/v1/files
 api/v1/finchat-control
 api/v1/finchat/contact/manager
@@ -21727,6 +21814,7 @@ api/v1/healthcheck
 api/v1/history/history
 api/v1/importclients
 api/v1/info
+api/v1/integrations
 api/v1/integrations.list
 api/v1/keys
 api/v1/knowledge
@@ -21735,6 +21823,7 @@ api/v1/label/<label_name>/values
 api/v1/label/__name__/values
 api/v1/label/job/values
 api/v1/licenses.get
+api/v1/limits
 api/v1/login
 api/v1/logs/search
 api/v1/machine
@@ -21772,6 +21861,7 @@ api/v1/password
 api/v1/peers
 api/v1/permissions.listAll
 api/v1/persistentvolumes
+api/v1/pipelines
 api/v1/platform
 api/v1/platform/crypto/public
 api/v1/platform/server
@@ -21791,6 +21881,7 @@ api/v1/query
 api/v1/query_range
 api/v1/query_range?query=up&start=1633730000&end=1633733600&step=15s
 api/v1/quotes
+api/v1/rate-limits
 api/v1/registration
 api/v1/registry
 api/v1/remark
@@ -21800,6 +21891,7 @@ api/v1/repository
 api/v1/roles.list
 api/v1/routes
 api/v1/rules
+api/v1/runner
 api/v1/savefile
 api/v1/secrets
 api/v1/security/csrf_token
@@ -21863,8 +21955,11 @@ api/v1/users.list
 api/v1/users/me
 api/v1/users/me/settings
 api/v1/users/search
+api/v1/variables
 api/v1/version
+api/v1/webhooks
 api/v1/workflow-templates
+api/v1/workspace
 api/v1/workspaces
 api/v1mainMenus
 api/v1pod
@@ -21893,6 +21988,7 @@ api/v2.0/users
 api/v2/.env
 api/v2/access
 api/v2/activity_stream
+api/v2/actuator
 api/v2/admin
 api/v2/app
 api/v2/application.wadl
@@ -21931,8 +22027,10 @@ api/v2/current_user
 api/v2/current_user/owner
 api/v2/dashboard
 api/v2/dashboards
+api/v2/deployments
 api/v2/docs
 api/v2/explore/tab
+api/v2/feature-flags
 api/v2/feed
 api/v2/graphiql
 api/v2/graphql
@@ -21942,16 +22040,19 @@ api/v2/healthcheck
 api/v2/helpdesk/discover
 api/v2/helpdeskdiscover
 api/v2/hosts
+api/v2/integrations
 api/v2/inventories
 api/v2/job_templates
 api/v2/jobs
 api/v2/keys
+api/v2/limits
 api/v2/login
 api/v2/me
 api/v2/mobile
 api/v2/organizations
 api/v2/orgs
 api/v2/ping
+api/v2/pipelines
 api/v2/playground
 api/v2/private
 api/v2/projects
@@ -21986,6 +22087,8 @@ api/v2/user/system/versioninfo
 api/v2/users
 api/v2/verification/create
 api/v2/verification/financer
+api/v2/webhooks
+api/v2/workspace
 api/v2/workspaces
 api/v2/write
 api/v2swagger.json
@@ -22123,13 +22226,17 @@ apikey
 apikey/auth.php
 apikey/authenticate.php
 apikey/check.php
+apikey/create
 apikey/default.php
 apikey/home.php
 apikey/index.htm
 apikey/index.php
+apikey/list
 apikey/login.php
 apikey/main.php
+apikey/revoke
 apikey/signin.php
+apikey/validate
 apikey/validate.php
 apikey/verify.php
 apikeymanager
@@ -22298,6 +22405,7 @@ aplicacion
 aplicaciones
 aplio
 apm
+apm/intake/v2/events
 apm/ui
 apns
 apoll
@@ -22449,6 +22557,9 @@ app/configparameters.ini
 app/configparameters.yml
 app/configroutes.cfg
 app/configschema.yml
+app/Controller/AdminController.php
+app/Controller/AppController.php
+app/Controller/UsersController.php
 app/controllers
 app/dashboard
 app/dev
@@ -22496,6 +22607,8 @@ app/languages.xml
 app/log
 app/login
 app/logs
+app/metrics
+app/Model/User.php
 app/models
 app/phpunit.xml
 app/private
@@ -22524,7 +22637,10 @@ app/unschedule.bat
 app/vendor
 app/vendor-
 app/vendor-src
+app/version
+app/View/Users
 app/views
+app/webroot/index.php
 app_
 app_admin
 app_admin.php
@@ -22913,6 +23029,8 @@ appraisal/stats.php
 appraisal/status.php
 appraisal/view.php
 appraisal/xml.php
+apprise/notify
+apprise/stateless/notify
 approval
 approval.html
 approve
@@ -22949,6 +23067,7 @@ AppServer.php
 AppServer.phtml
 appsettings.config
 appsettings.json
+appsignal
 AppsLocalLogin
 AppsLogin
 appsmith
@@ -23030,6 +23149,11 @@ appveyor/stats.php
 appveyor/status.php
 appveyor/view.php
 appveyor/xml.php
+appwrite/v1/account
+appwrite/v1/databases
+appwrite/v1/functions
+appwrite/v1/storage
+appwrite/v1/users
 apr
 apr.html
 aprcalc
@@ -23091,6 +23215,7 @@ arama.html
 arama.php
 aran.aspx
 aranan.php
+arangodb
 aranjuez.html
 arantius
 araquote.html
@@ -23353,6 +23478,8 @@ arte
 arteddel.php
 artem2k.html
 artform.cfm?id=
+arthas
+arthas/api
 artho
 arthritis
 arthur
@@ -23496,6 +23623,7 @@ articulo.php
 articulos
 articulos.php
 artifactory
+artifactory/api
 artifactory/api/build
 artifactory/api/repositories
 artifactory/api/search/artifact
@@ -23508,6 +23636,7 @@ artifactory/api/storageinfo
 artifactory/api/system/configuration
 artifactory/api/system/ping
 artifactory/api/system/version
+artifactory/artifactory/api
 artifacts
 artigos
 artikel
@@ -23889,6 +24018,7 @@ assets/config.rb
 assets/credentials.json
 assets/fckeditor
 assets/file
+assets/fonts
 assets/inventory
 assets/js/fckeditor
 assets/jsfckeditor
@@ -24122,6 +24252,8 @@ attribute
 Attribute.php
 attributes
 attributes/restSearch
+attribution
+attribution/track
 AttrTransform.php
 AttrTypes.php
 AttrValidator.php
@@ -24191,6 +24323,11 @@ audit.html
 audit.log
 audit.php
 audit.txt
+audit/events
+audit/logs
+audit/reports
+audit/trail
+auditbeat
 auditevents
 auditevents.json
 auditing
@@ -24254,6 +24391,9 @@ autentificare.php
 auteur
 auth
 Auth
+auth0/callback
+auth0/login
+auth-bypass
 auth.asp
 auth.aspx
 auth.bak
@@ -24290,19 +24430,33 @@ auth/admin/master/console
 auth/administrator
 auth/administrator.php
 auth/apple
+auth/apple/callback
+auth/auth0/callback
+auth/aws-cognito/callback
+auth/azure/callback
+auth/bitbucket/callback
 auth/callback
 auth/catalogue
 auth/data.php
 auth/data.xml
 auth/discord
+auth/discord/callback
 auth/do.php
 auth/edit.php
 auth/enter
 auth/enter.php
 auth/facebook
+auth/facebook/callback
 auth/github
+auth/github/callback
+auth/gitlab/callback
 auth/google
+auth/google/callback
+auth/jwks
+auth/keycloak/callback
+auth/keys
 auth/linkedin
+auth/linkedin/callback
 auth/log.dat
 auth/log.log
 auth/log.txt
@@ -24316,8 +24470,10 @@ auth/login.shtml
 auth/logon
 auth/logon.php
 auth/microsoft
+auth/microsoft/callback
 auth/oauth
 auth/oidc
+auth/okta/callback
 auth/panel
 auth/panel.php
 auth/pass
@@ -24340,9 +24496,11 @@ auth/sign.php
 auth/signin
 auth/signin.php
 auth/slack
+auth/slack/callback
 auth/sso
 auth/token
 auth/twitter
+auth/twitter/callback
 auth/v1/admin/users
 auth/v1/settings
 auth_ads.php
@@ -24400,6 +24558,7 @@ authkey.asp
 authlog.dat
 authlog.log
 authlog.txt
+authlogic
 authlogin
 authlogin.asp
 authlogin.html
@@ -24562,6 +24721,7 @@ autopass
 autopilot
 autoplay.php
 autopromo
+autopsy
 autoptimize
 autor
 autor.php
@@ -24887,11 +25047,14 @@ azsdfrtbhnj789
 aztecs
 aztek
 azure
+azure-ad
 azure-pipelines.yaml
 azure-pipelines.yml
 azure/admin
 azure/console
+azuread
 azureadmin
+azurecdn
 azureus
 b
 B
@@ -25819,6 +25982,7 @@ backup-2022.zip
 backup-2023.zip
 backup-2024.zip
 backup-all.php
+backup-codes
 backup-data
 backup-db
 backup-dir
@@ -25895,9 +26059,12 @@ backup/login
 backup/mysql/.env
 backup/panel
 backup/res/.env
+backup/restore
 backup/schedules
 backup/vendor/phpunit/phpunit
 backup/vendor/phpunit/phpunit/phpunit
+backup_2024.sql
+backup_2025.sql
 backup_db
 backup_dir
 backup_entry.cgi
@@ -26095,6 +26262,7 @@ bamb
 bamboo
 bamboo-specs/bamboo.yml
 bamboo.yml
+bamboo/rest/api/latest
 bamboo/rest/api/latest/currentUser
 bamboo/rest/api/latest/plan
 bamboo/rest/api/latest/project
@@ -26642,6 +26810,8 @@ BBApp
 BBApp.php
 bbb
 bbb.html
+bbb/api
+bbb/bigbluebutton/api
 bbbb
 bbbbbb
 bbboard
@@ -26818,6 +26988,7 @@ bearbear
 bearbeiten
 bearer.txt
 bears
+beat
 beater
 beatles
 beatrice
@@ -26861,6 +27032,7 @@ beds
 bee
 beebee
 beehive
+beekeeper
 BeenThere
 beer
 beethoven
@@ -27138,6 +27310,7 @@ bfgbuy.php
 bfgdownload.php
 bfi
 bfiles
+bfla
 bfm
 bg
 bg4r8y0v.php
@@ -27231,6 +27404,7 @@ bigadmin
 bigb
 bigbanggravity
 bigbird
+bigbluebutton
 bigbrother
 bigbrother.php3
 bigdaddy
@@ -27348,6 +27522,7 @@ bin.xml
 bin.zip
 bin/.env
 bin/catalina.sh
+bin/cli
 bin/config.sh
 bin/console
 bin/contents.htm
@@ -27724,6 +27899,7 @@ blazeds/messagebrokerhttp
 blazeds/messagebrokerhttpsecure
 blazemeter-index.php
 blazer
+blazer/dashboards
 blazer/queries
 blazix
 blb
@@ -28019,6 +28195,7 @@ bluadmin
 bluadmin.php
 blue
 blue365.aspx
+blue-green
 blue/.env
 blueangel
 bluebell
@@ -28342,6 +28519,7 @@ boke/Edit_Plus/FCKeditor/editor
 bokep.phtml
 bokning.html
 bol
+bola
 boletim
 boletin
 boletines
@@ -28546,6 +28724,8 @@ booksearch.aspx
 bookshelf
 bookshelf.php
 bookshop
+bookstack
+bookstack/login
 bookstep.aspx
 bookstore
 bookstore.html
@@ -28609,6 +28789,7 @@ border.html
 Border.php
 borders
 borderware
+borgbackup
 boricua
 boris
 borkindex.php
@@ -28659,6 +28840,7 @@ bots.cnf
 bots.php
 botsi
 botsv
+bottle
 bottom
 bottom1.php
 bottom.asp
@@ -28872,6 +29054,7 @@ broadboard
 broadcast
 broadcast-ip
 broadcast.php
+broadcast/live
 broadcasting
 broadcasting/auth
 broadcasts
@@ -29114,6 +29297,7 @@ budget.asp
 budget.php
 budgetonline
 budgettext
+budibase/api
 budlight
 budweiser
 buecher
@@ -29157,6 +29341,7 @@ bugs.txt
 bugs.xml
 bugs/verify.php?confirm_hash=&id=1
 bugsbunny
+bugsnag
 bugsverify.php?confirm_hash=&id=1
 bugtrack
 bugtracker
@@ -29264,6 +29449,7 @@ bulk.php
 bulkadd.asp
 bulkdiscounts.asp
 bulkemail
+bulkhead
 bulkmail
 bulkquery
 bulksms
@@ -29304,6 +29490,7 @@ bunka
 bunnies
 bunny
 bunnyboo
+bunnycdn
 bunnyslippers
 buoni-sconto
 bupa
@@ -29324,6 +29511,7 @@ burner
 burningwhee1s
 burnwave,
 burp
+burpsuite
 burst
 burst.html
 burtchen
@@ -29905,6 +30093,7 @@ cabinet/withdrawals
 cabinet/workers
 cabinets
 cabins
+cable
 cabletron
 caboose
 cabrera
@@ -29930,8 +30119,21 @@ cache.html
 cache.old
 Cache.php
 cache.php
+cache/clear
+cache/flush
 cache/index.php
+cache/info
+cache/keys
+cache/prewarm
+cache/purge
+cache/shell.php
 cache/sql_error_latest.cgi
+cache/stats
+cache/status
+cache/tags
+cache/v1/purge
+cache/v2/purge
+cache/warm
 cache_archiver.php
 cache_bbcodes.php
 cache_birthdays.php
@@ -30359,6 +30561,8 @@ canada.php
 canadapost.php
 canal
 canales
+canary
+cancancan
 canced
 cancel
 Cancel
@@ -30851,6 +31055,7 @@ casio
 casper
 caspsamp
 cassandra
+cassandra-admin
 cassidy
 cassie
 Cassini.exe.config
@@ -30936,8 +31141,10 @@ catalog/admin.php
 catalog/admin/login.php
 catalog/administator.php
 catalog/api
+catalog/language/en-gb/common
 catalog/login.php
 catalog/login_diz.php
+catalog/model/account
 catalog/product.asp?cat_id=
 catalog/product.asp?pid=
 catalog/viewtheme
@@ -31312,6 +31519,13 @@ cdkey.txt
 cdm_ggao_tiezi.asp
 cdma
 cdn
+cdn-cgi
+cdn-cgi/beacon/performance
+cdn-cgi/challenge-platform
+cdn-cgi/l/chk_jschl
+cdn-cgi/rum
+cdn-cgi/specials/wrk
+cdn-cgi/trace
 cdn/assets
 cdn/static
 cdomain
@@ -31509,6 +31723,7 @@ certkey.asp
 certprov
 certprovlocalhost
 certs
+certs/config
 certs/server.key
 certserv
 certserver
@@ -31533,6 +31748,8 @@ cet
 cetelem
 cev
 cf
+cf-cache-status
+cf-ray
 cf_bulletin.cfc
 cf_calendar.cfm
 cf_nuke
@@ -31682,23 +31899,39 @@ cgi-bin/.%2e/%2e%2e/%2e%2e/%2e%2e/etcpasswd
 cgi-bin/.env
 cgi-bin/a1stats/a1disp.cgi
 cgi-bin/a1statsa1disp.cgi
+cgi-bin/admin
 cgi-bin/awstats
 cgi-bin/awstats.pl
+cgi-bin/backup
 cgi-bin/bugzilla
+cgi-bin/config
 cgi-bin/config.exp
+cgi-bin/device
+cgi-bin/dhcp
+cgi-bin/diag
+cgi-bin/dns
 cgi-bin/error_log
+cgi-bin/factory
+cgi-bin/firewall
+cgi-bin/firmware
+cgi-bin/home
 cgi-bin/htimage.exe
 cgi-bin/htimage.exe?2,2
 cgi-bin/htmlscript
 cgi-bin/imagemap.exe
 cgi-bin/imagemap.exe?2,2
 cgi-bin/index.html
+cgi-bin/info
+cgi-bin/lan
+cgi-bin/log
 cgi-bin/logi.php
 cgi-bin/login
 cgi-bin/login.cgi
 cgi-bin/login.php
 cgi-bin/loginasp
 cgi-bin/loginphp
+cgi-bin/luci
+cgi-bin/main
 cgi-bin/mt7/mt-xmlrpc.cgi
 cgi-bin/mt7/mt.cgi
 cgi-bin/mt7mt-xmlrpc.cgi
@@ -31711,14 +31944,35 @@ cgi-bin/mtmt-xmlrpc.cgi
 cgi-bin/mtmt.cgi
 cgi-bin/nagios3/status.cgi
 cgi-bin/nagios4/status.cgi
+cgi-bin/nat
+cgi-bin/network
+cgi-bin/passwd
 cgi-bin/php
 cgi-bin/php.ini
+cgi-bin/ping
 cgi-bin/printenv
 cgi-bin/printenv.pl
+cgi-bin/reboot
+cgi-bin/reset
+cgi-bin/restore
+cgi-bin/settings
+cgi-bin/snmp
+cgi-bin/status
+cgi-bin/syslog
+cgi-bin/system
+cgi-bin/telnet
 cgi-bin/test-cgi
 cgi-bin/test.cgi
+cgi-bin/traceroute
+cgi-bin/upload
 cgi-bin/upload/web-ftp.cgi
+cgi-bin/user
 cgi-bin/ViewLog.asp
+cgi-bin/vpn
+cgi-bin/wan
+cgi-bin/webproc
+cgi-bin/wifi
+cgi-bin/wireless
 cgi-bin_ssl
 cgi-binawstats.pl
 cgi-binerror_log
@@ -31815,6 +32069,7 @@ Cgishell.phtml
 Cgishell.pl
 cgishl
 CgiStart?page=Single
+cgit
 cgitelnet.php
 cgiwin
 cgiwrap
@@ -32188,12 +32443,14 @@ chartFile_Rev1.php
 chartimg.axd
 ChartImg.axd
 charting
+chartmuseum
 charts
 charts-min.js
 charts.aspx
 charts.cfm
 charts.html
 charts.php
+charts/index.yaml
 charts/liveObjects/.env
 charts_library
 chartSettings
@@ -32775,6 +33032,7 @@ chronic
 chronicle
 chronik
 chrono24
+chronograf
 chs
 CHS
 cht
@@ -32882,6 +33140,9 @@ circeos
 circle
 circle.yml
 circleci
+circuit
+circuit-breaker
+circuitbreaker
 circuits
 cirkuitincludes
 cis
@@ -33176,6 +33437,7 @@ classes/cookie.txt
 classes/db/DbPDO.php
 classes/gladius/README.TXT
 classes/gladiusREADME.TXT
+classes/PaymentModule.php
 classes/SiteMap.php
 classes/upload/changes.txt
 classes/upload/documentation.htm
@@ -33304,6 +33566,8 @@ clever
 clf
 cli
 cli.php
+cli/execute
+cli/run
 clic
 clic.asp
 clic.php
@@ -33352,7 +33616,10 @@ clickedon
 clicker.php
 clickheat
 clickhere.aspx
+clickhouse
+clickhouse/query
 clickinfo
+clickjacking
 clickme.cgi
 clickme.php
 clicknbuild
@@ -33893,9 +34160,12 @@ cloud-hosting.php
 cloud-provider.yaml
 cloud.php
 cloud/admin
+cloud/api
 cloud/console
 cloud_theme
 cloudbank/detail.asp?ID=
+cloudbeaver
+cloudbeaver/api
 clouder.asp
 cloudexp/application/configs/application.ini
 cloudflare
@@ -33904,6 +34174,7 @@ cloudflare/admin
 cloudflare_credentials.txt
 cloudformation
 cloudfoundryapplication
+cloudfront
 cloudmonitor.log.20210417
 cloudmonitor.log.20210418
 cloudmonitor.log.20210419
@@ -33963,6 +34234,8 @@ clubsinfo
 cluecentral
 clueless
 cluster
+cluster/admin
+cluster/api
 cluster/cluster
 cluster/config
 cluster/healthcheck
@@ -34579,6 +34852,7 @@ codemasters
 codenames-frontend/.env
 codepages
 codepress
+codereview
 codes
 codes.php
 codesearch
@@ -34603,6 +34877,9 @@ coformat.txt
 coger
 cogito
 cognates.pdf
+cognito
+cognito/callback
+cognito/login
 cognos
 coi
 coid
@@ -34627,6 +34904,8 @@ colin
 coll_info
 collab
 collab-connect-web-application/server/.env
+collabora
+collabora/api
 collaboration
 collabtive
 collapse
@@ -34914,6 +35193,7 @@ commander.php
 commandes
 commandfile
 Commands
+commands
 commands.html
 commands.php
 commandshell.inc
@@ -35034,6 +35314,7 @@ commissions
 commit
 commit.php
 COMMIT_EDITMSG
+commits
 committed.html
 committee
 committee.php
@@ -35306,6 +35587,7 @@ completeorder.aspx
 completesetup.php
 compliance
 compliance.php
+compliance/reports
 complicated
 comply
 component
@@ -35733,6 +36015,9 @@ config/app.yml
 config/AppData.config
 config/auth.php
 config/autoload
+config/autoload/global.php
+config/autoload/local.php
+config/autoload/local.php.dist
 config/aws.yml
 config/banned_words.txt
 config/cable.yml
@@ -35744,8 +36029,10 @@ config/config.toml
 config/config.yaml
 config/config.yml
 config/configuration.yml
+config/core.php
 config/cucumber.yml
 config/database.php
+config/database.php.default
 config/database.yaml
 config/database.yml
 config/database.yml.enc
@@ -35787,6 +36074,7 @@ config/properties.ini
 config/push_ssh_keys.yml
 config/push_ssh_keys_remote.yml
 config/routes
+config/routes.php
 config/routes.yml
 config/s3.yml
 config/secrets.yml
@@ -35824,6 +36112,7 @@ config_add_news.php
 config_ads.php
 config_backup.php
 config_backup.sql
+config_backup.tar.gz
 config_cache.php
 config_clicks.php
 config_cust.php
@@ -36028,6 +36317,7 @@ conflocalhost
 conflogging.properties
 confluence
 confluence/admin
+confluence/login.action
 confluence/pages/listpermissionpages.action
 confluence/pages/templates/createpagetemplate.action
 confluence/pages/templates/listpagetemplates.action
@@ -36052,6 +36342,9 @@ confluence/plugins/servlet/oauthview-consumer-info
 confluence/plugins/servlet/upm
 confluence/plugins/servletembedded-crowd
 confluence/plugins/servletupm
+confluence/rest/api/content
+confluence/rest/api/space
+confluence/rest/api/user
 confluence/spaces/addmailaccount.action
 confluence/spaces/exportspacehtml.action
 confluence/spaces/exportspacexml.action
@@ -36109,9 +36402,15 @@ connect.php.bak
 connect.php~
 connect/authorize
 connect/endsession
+connect/facebook
+connect/github
+connect/google
 connect/introspect
+connect/linkedin
+connect/microsoft
 connect/revoke
 connect/token
+connect/twitter
 connect/userinfo
 connect_db.php
 connect_old.php
@@ -36178,6 +36477,7 @@ console/activity
 console/admin
 console/aml
 console/analytics
+console/api
 console/api-keys
 console/api/api-keys
 console/api/apps
@@ -36208,6 +36508,7 @@ console/categories
 console/cd
 console/ci
 console/clients
+console/commands
 console/comments
 console/compliance
 console/config
@@ -36761,6 +37062,7 @@ content-builder
 content-form
 content-images
 content-manager
+content-type-builder
 content../.git/config
 content..json
 content.asp
@@ -37514,6 +37816,7 @@ conversion.asp
 conversion.htm
 conversion.html
 conversion.php
+conversion/track
 conversions
 convert
 convert-uulib
@@ -37616,6 +37919,7 @@ coolsettings.cfm
 coolsite.cfm
 coolsites
 coolstuff.cfm
+coolwsd
 cooolsoft
 coop
 COOP
@@ -37793,9 +38097,11 @@ correo.php
 correoweb
 correspondence
 correu
+cors
 corsi.php
 cortafuegos
 cortex
+cortex/api/responder
 cortez
 coruna
 coruna,-a.html
@@ -37831,7 +38137,10 @@ cottage
 cottage.html
 cottages
 cotton
+coturn
 couchdb
+couchdb/_all_dbs
+couchdb/_session
 coucou.php
 cougar
 cougars
@@ -38346,7 +38655,9 @@ CramMD5.php
 crap
 crapp
 crash
+crash-reporting
 crash.log
+crash/report
 crashes
 crawford
 crawl
@@ -38358,6 +38669,7 @@ crawlprotect
 crawltrack
 cray
 crazy4u
+crazy-egg
 crazygirl
 crc
 crc.corp.footer
@@ -38647,6 +38959,8 @@ cronout2.php
 cronout.php
 cronrun.php
 crons
+crons/admin
+crons/list
 cronscripts
 crontab
 crontabs
@@ -38684,6 +38998,7 @@ crosswords
 crot.phtml
 crotz.phtml
 crow
+crowd
 crowd/console
 crowd/console/login.action
 crowd/consolelogin.action
@@ -38705,6 +39020,7 @@ crss
 crtemplate.html
 crtr
 cru
+crucible
 cruise
 cruise-holidays
 cruise-lines.php
@@ -38812,6 +39128,7 @@ csm
 CSMA
 cso
 csp
+csp-report
 csp/gateway/slc/api/swagger-ui.html
 csp/gateway/slc/apiswagger-ui.html
 csproj
@@ -39557,6 +39874,8 @@ cv_rss_feeds.php
 cvc2.htm
 cvc2.html
 cvc.html
+cve
+cve-report
 cvnhelp.aspx
 cvnhelp.aspx.cs
 cvs
@@ -39775,6 +40094,8 @@ dadmin.php
 dados
 daemon
 daemon.php
+daemons
+daemons/admin
 daffodil
 dagit
 dagit/graphql
@@ -39907,6 +40228,7 @@ daryl
 das
 dasbhoard
 dash
+dash/live
 dasha
 DASHBOARD
 dashboard
@@ -40307,6 +40629,7 @@ data8888
 data%23data.asp
 data-api.php
 data-files
+data-layer
 data-nseries.tsv
 data-protection.asp
 data.7z
@@ -40869,6 +41192,7 @@ datadm.asp
 datadm.aspx
 datadm.php
 datadog
+datadog/intake
 datadump
 dataenter.php
 dataentry
@@ -40907,6 +41231,7 @@ dataimages.php
 DataImport
 datakey
 datakommunikation
+datalayer
 datalex
 dataLib.class.php
 datalogh.dtb
@@ -41233,6 +41558,7 @@ db/dump
 db/dump.sql
 db/dumper.php
 db/enter.php
+db/h2-console
 db/index.php
 db/item.html?item=
 db/login.php
@@ -41277,6 +41603,8 @@ db_14.php
 db_15.php
 db_16.jsp
 db_16.php
+db_2024.sql
+db_2025.sql
 db__.init.php
 db_access.php
 db_admin
@@ -41498,6 +41826,7 @@ dbdump.tgz
 dbdump.zip
 dbdumper.php
 dbdumps
+dbeaver
 dbeditor
 dbef.php
 dbenter.php
@@ -41511,6 +41840,7 @@ dbforms
 dbg
 dbg-wizard.php
 DBG.php
+dbgate
 dbhost
 dbhotlink.php
 dbi
@@ -42073,6 +42403,8 @@ delaware
 delaware.html
 delay
 delayed_job
+delayed_job/failed
+delayed_job/jobs
 delaylink.php
 delcart.php
 delcomment.php
@@ -42485,6 +42817,7 @@ descs
 desctracker.php
 desenvolupament
 desenvolvimento
+deserialization
 deserializer.php
 desgetfiles.aspx
 desi-hits.php
@@ -42793,6 +43126,7 @@ devin
 Devine1
 devis
 devis.php
+devise
 devlink.php
 devlnull
 devnet
@@ -42829,6 +43163,7 @@ dfa
 dfdf.php
 dfile.ashx
 dfile.php
+dfir-iris
 dfnet
 dforum
 dfp_cookie.aspx
@@ -42844,6 +43179,8 @@ dgidc2.php
 dgidc-2.php
 dgidc.php
 dgj
+dgraph
+dgraph/admin
 dgssearch
 dh
 dh_
@@ -42974,10 +43311,12 @@ diff.php
 difference
 difference.html
 difference.php
+differential
 difficulty
 DiffieHellman.php
 diffs
 difftime.php
+diffusion
 dig
 dig.asp
 dig_exhib.php
@@ -43089,6 +43428,7 @@ diradminauth.php
 diradminlogin.php
 dirb
 dirbmark
+dirbuster
 direct
 direct1
 direct.htm
@@ -43165,10 +43505,18 @@ directoryadmin.html
 directoryadmin.php
 directredirect.php
 directtopics
+directus
+directus/activity
 directus/collections
 directus/fields
+directus/files
+directus/permissions
+directus/relations
+directus/revisions
+directus/roles
 directus/server/health
 directus/server/info
+directus/settings
 directus/users
 directv
 directvdsl
@@ -43209,6 +43557,7 @@ disappear
 disappearing
 disassembler
 disaster
+disaster-recovery
 disc
 disc.asp
 disc.php
@@ -43404,7 +43753,9 @@ disputes
 disseny
 dist
 dist.php
+dist.tar.gz
 dist/.env
+dist/fonts
 distance
 distance.php
 distancelearning
@@ -43487,6 +43838,7 @@ dk
 dk-de
 dk-gb
 dkdk-myoffice.html
+DKIM
 dkms.conf
 dkscript
 dl
@@ -43542,6 +43894,7 @@ dm.html
 dm.php
 dmail
 dmanews
+dmarc
 dmc
 dmca
 dmca-notice.html
@@ -43914,6 +44267,8 @@ documents.jsf
 documents.php
 documents.vb
 documentum
+docusaurus
+docusaurus/api
 docuwiki
 dodaj-komentarz.php
 dodaj-strone
@@ -44092,6 +44447,7 @@ doomsday
 door
 door.php
 door.phtml
+doorkeeper
 doors
 doorway
 doow
@@ -44393,6 +44749,7 @@ dragresizetable
 drama
 drama.html
 dramaqueen
+dramatiq
 dratfs
 draver
 draw
@@ -44607,8 +44964,10 @@ dtlimg.php
 dtlink
 dtmcms
 dtmp
+dto
 dtool_pro.php
 DTool_Pro.php
+dtos
 dtp
 dtproperties
 dtr
@@ -44621,6 +44980,7 @@ du
 dual
 duanereade
 dubai
+dubbo
 dubbo-admin
 dubee
 dubelu
@@ -44694,6 +45054,8 @@ dump.zip
 dump/admin
 dump/admin.php
 dump/backup
+dump_2024.sql
+dump_2025.sql
 dumpadmin.php
 dumpenv
 dumper
@@ -44724,12 +45086,15 @@ dunzip.php
 duo
 duo.html
 duo.php
+duo/auth
+duo/callback
 dupfiles
 duplicate
 Duplicate.php
 duplicate.php
 duplicate_rows.php
 duplicateFolderCases.php
+duplicati
 dupont
 durango
 duration
@@ -45272,6 +45637,9 @@ edenred
 edgar
 edgardo
 edge
+edge/cache
+edge/purge
+edgecast
 edges
 edgewall
 edgy
@@ -46473,6 +46841,9 @@ elaine
 elamor
 elanor
 elastic
+elastic-apm-agent
+elastic/security
+elastic/siem
 elasticsearch
 elasticsearch/_mapping
 elasticsearch/_nodes
@@ -47975,6 +48346,8 @@ epdqout.php
 epg
 ephotos
 epic
+episerver
+episerver/cms
 episerver/cms/admin
 episode
 episodes
@@ -48205,6 +48578,7 @@ error-page.html
 error-page.php
 error-pages
 error-send.html
+error-tracking
 error.
 error.7z
 error.2021-04-07.log
@@ -48241,6 +48615,7 @@ error.xml
 error.zip
 error/.env
 error/error.log
+error/report
 error_
 error_403.htm
 error_403.html
@@ -48404,7 +48779,9 @@ esbit.php
 esborrar
 esc
 escalate_issue.jsp
+escalation
 escalation.pdf
+escalations
 escapades
 escape
 escape.html
@@ -48664,6 +49041,7 @@ eunomia
 eupdate
 euphoria.html
 eur
+eureka
 eureka/apps
 eurl.axd
 euro
@@ -48729,6 +49107,7 @@ evenements.php
 evennews_blocks.php
 event
 Event
+event-bus
 event-calendar.html
 event-info.aspx
 event-map.asp
@@ -48755,6 +49134,7 @@ event_listing.jsp
 event_post.php
 eventalbums.aspx
 eventbrite
+eventbus
 eventcal
 eventcalendar
 eventdata
@@ -48813,6 +49193,7 @@ events/_search
 events/detail.asp?ID=
 events/event-detail.cfm?intNewsEventsID=
 events/event.asp?id=
+events/handlers
 events/index
 events/restSearch
 events/stream
@@ -49015,6 +49396,7 @@ exception.cfm
 exception.log
 Exception.php
 exception.php
+exception/report
 exception_log
 exception_log.txt
 exceptionerror.cfm
@@ -49164,6 +49546,7 @@ experiences
 experiment
 experimental
 experiments
+experiments/results
 expert
 expert.aspx
 expert.html
@@ -49594,10 +49977,13 @@ facebox
 facedisc.html
 facefiles
 faces
+faces/admin
+faces/index.xhtml
 faces/javax.faces.resource/web.xml?ln=../WEB-INF
 faces/javax.faces.resource/web.xml?ln=..\\WEB-INF
 faces/javax.faces.resource/web.xml?ln=..WEB-INF
 faces/javax.faces.resourceweb.xml?ln=..\\WEB-INF
+faces/login.xhtml
 facestones
 facetalkonline.php
 facileforms
@@ -49658,6 +50044,7 @@ failed
 failed.htm
 failed.php
 failed_auth.html
+failover
 failure
 failure-print.htm
 failure.asp
@@ -49687,6 +50074,7 @@ falcons
 falconseye
 fall
 fall04.pdf
+fallback
 fallback-reboot
 fallen
 falloutboy
@@ -49849,6 +50237,7 @@ fashion_mosaic
 fasoo
 fast
 Fast_Lane_Checkout
+fastapi
 fastbin
 fastfind
 fastforward
@@ -49868,6 +50257,8 @@ fastlanescreenshots
 fastlanetest_output
 fastlink
 fastloads
+fastly/purge
+fastly/softpurge
 fastorder.aspx
 fastphp.ini
 fastpublish
@@ -49892,6 +50283,8 @@ fatboy
 fatcat
 fatcow.php
 father
+fathom
+fathom/collect
 fatih1
 fatman
 fatsecret
@@ -50166,6 +50559,7 @@ feature.cfm
 feature.html
 feature.php
 feature.xml
+feature/toggle
 feature_flags
 feature_list.php
 feature_request.jsp
@@ -50383,6 +50777,7 @@ fffua.php
 ffmpeg
 ffr_cart.html
 fftw
+ffuf
 fg
 fg_email_signup.htm
 fg_shopfromcat.html
@@ -50563,6 +50958,7 @@ fileajaxUpload
 filearchive
 filebase
 filebased
+filebeat
 filebin
 filebrowser/api/login
 filebrowser/api/settings
@@ -50745,6 +51141,7 @@ files_13.php
 files_14.php
 files_15.php
 files_16.php
+files_backup.tar.gz
 files_deleted
 files_log
 filesadmin.asp
@@ -50846,6 +51243,8 @@ filessa.asp
 filessa.aspx
 filessa.php
 Filessearch.indexes
+filestash
+filestash/login
 filestest.asp
 filestest.aspx
 filestest.php
@@ -51160,6 +51559,7 @@ firmen_export.php
 firms
 firms.php
 firmware
+firmware/update
 firmy
 first
 first4internet
@@ -51280,6 +51680,7 @@ flags
 flags.js.php
 flags.json
 flags.php
+flags/admin
 flags/api
 flags/config
 flags/status
@@ -51350,6 +51751,7 @@ flashgames
 flashindex.html
 flashobject.js
 flashpeak
+flashphoner
 flashplayer
 flashs
 flashservices
@@ -51500,8 +51902,11 @@ flowable-admin/app/rest/server-configs
 flowable-rest/service/management/engine
 flower
 flower.htm
+flower/api
 flower/api/tasks
 flower/api/workers
+flower/dashboard
+flower/workers
 flowerfire
 flowerpower
 flowers
@@ -51521,11 +51926,13 @@ flsh
 flu
 fluege
 fluent-bit
+fluent-bit/api
 fluent-bit/api/v1/health
 fluent-bit/api/v1/metrics
 fluent.conf
 fluent_aggregator.conf
 fluentd
+fluentd/api
 fluffy
 flughafenausbau
 fluidgames
@@ -51656,6 +52063,7 @@ follow
 follow.html
 follow.php
 follow_link.php
+follower
 followers
 following.php
 followup
@@ -51810,11 +52218,15 @@ foresee
 foresight
 forest
 foretag
+forever
+forever/list
 forevernew
 forex
 forex.html
 forfaits.php
 forge
+forgejo
+forgejo/user/login
 forget
 forget.html
 forget.php
@@ -52986,6 +53398,7 @@ fullsitemap.aspx
 fullsizecover
 fullsizegame
 FullStory.asp?Id=
+fullstory/rec/bundle
 fulltext
 fulltext.php
 fulltextsearch.asp
@@ -53174,6 +53587,7 @@ futuresoft
 futurestudents
 futurewave
 fuzz
+fuzzing
 fuzzy_seofq
 fuzzymonkey
 fv
@@ -53571,6 +53985,8 @@ gateway.htm
 gateway.html
 gateway.php
 gateway/.env
+gateway/filters
+gateway/refresh
 gateway/routes
 gatewayroutes
 gateways
@@ -53661,6 +54077,7 @@ gcp
 gcp/admin
 gcp/console
 gcpayment
+gcpcdn
 gcprocessipn.asp
 gcs_templates
 gcshared
@@ -53933,11 +54350,13 @@ gernot
 geronimo
 gerrard
 gerrit
+gerrit/a/changes
 gerrit/accounts/self
 gerrit/changes
 gerrit/config/server/info
 gerrit/config/server/version
 gerrit/groups
+gerrit/login
 gerrit/projects
 gerson
 gert
@@ -54326,6 +54745,7 @@ getSexo.php
 getShare.php
 getsiteversion.asp
 getsnap.php
+GetSnapshot
 getsolutions
 GetSpeedAlerts.php
 GetSpeedLimit.php
@@ -54439,6 +54859,10 @@ ghost/api/admin/site
 ghost/api/admin/users
 ghost/api/content/posts
 ghost/api/content/settings
+ghost/api/v4/admin
+ghost/api/v4/admin/settings
+ghost/api/v4/admin/users
+ghost/api/v4/content
 ghost/signin
 ghostdriver.log
 ghosts
@@ -54580,19 +55004,32 @@ git/index
 git/logs/HEAD
 git/packed-refs
 git/refs/heads/master
+gitbook
 gitea
+gitea/api/v1/admin/users
+gitea/api/v1/repos/search
+gitea/api/v1/settings/api
+gitea/api/v1/users/search
+gitea/user/login
 github
 github-cache
 github-connect/.env
 github-recovery-codes.txt
+github/api
 github_token.txt
 gitlab
 gitlab/admin
+gitlab/api/v4/admin/users
+gitlab/api/v4/groups
+gitlab/api/v4/projects
+gitlab/api/v4/users
+gitlab/explore
 gitlog
 gitlog.dat
 gitpull.php
 gitweb
 gitweb.cgi
+gitweb/?p=.git;a=summary
 give
 give.php
 giveadmin
@@ -54889,12 +55326,14 @@ goaway.php
 goback
 goblue
 gobo.jsp
+gobuster
 gocart.asp
 gocc
 gococo.php
 gocougs
 gocr
 god.php
+god/status
 god_admin
 godaddy
 godbless
@@ -54922,6 +55361,8 @@ gogogo
 gograboid.php
 gogreen.aspx
 gogs
+gogs/api/v1/users/search
+gogs/user/login
 gohome.js
 gohome.php
 gohomeframe.js
@@ -55146,6 +55587,8 @@ gotcha
 gotcha.html
 gotdotnet
 gothic
+gotify
+gotify/message
 gotlinks.php
 gotmilk
 goto
@@ -55920,9 +56363,11 @@ graf.php
 grafana
 grafana/api/admin/settings
 grafana/api/admin/stats
+grafana/api/admin/users
 grafana/api/alerting
 grafana/api/annotations
 grafana/api/dashboards
+grafana/api/dashboards/home
 grafana/api/datasources
 grafana/api/health
 grafana/api/org
@@ -55976,6 +56421,7 @@ graph/query
 graph_cms
 graph_ex.php
 graph_update.php
+graphene
 graphfactory.php
 graphic
 graphic-design
@@ -55996,6 +56442,8 @@ graphiql/finland
 graphiqlfinland
 graphique.php
 graphite
+graphite/metrics/find
+graphite/render
 graphix
 graphjpgraph.php
 graphon
@@ -56129,6 +56577,7 @@ grill
 grimm
 gringotts
 grip
+grist/api
 groceries
 grok
 grokster
@@ -56228,8 +56677,11 @@ growthbook/api/experiments
 growthbook/api/features
 grp
 GRP_WebShell.php
+grpc
+grpc-web
 grpc.health.v1.Health/Check
 grpc.reflection.v1.ServerReflection/ServerReflectionInfo
+grr
 grs
 grsecurity
 grube
@@ -56280,6 +56732,7 @@ gt
 gt-cache
 gt.php
 gta
+gtag/js
 gtasoft
 gtcatalog
 gtchat
@@ -56326,6 +56779,7 @@ guard.php
 guard.php.bak
 guard_nwcontent.php
 guardar
+guarded
 guardednet
 Guardfile
 guardian
@@ -56551,6 +57005,7 @@ h1.php
 h2
 h2-console
 h2-h3.php
+h2/console
 h2console
 h2opolo
 h4.php
@@ -56726,6 +57181,10 @@ handys
 hangar-16.html
 hangaroo
 hangfire
+hangfire/jobs
+hangfire/recurring
+hangfire/servers
+hangfire/stats
 hangman
 hangman.php
 hanks
@@ -56832,6 +57291,7 @@ haskell.php
 haslo.php
 hassan
 hastymail
+hasura
 hasura/.env
 hat
 hata.asp
@@ -57012,6 +57472,7 @@ healthCheck
 healthcheck.cfm
 healthcheck.html
 healthcheck.php
+healthchecks-ui
 healthe-plex.asp
 healthe-pulse.asp
 healthe-shield.asp
@@ -57019,10 +57480,13 @@ healthnotes.aspx
 healthprofile
 healthyyou.html
 healthz
+heap/identify
+heap/track
 heapdump
 heapdump.json
 heart
 heart-disease2.aspx
+heartbeat
 heartbeat.aspx
 heartbeat.php
 heartbreaker
@@ -57034,6 +57498,7 @@ heat.html
 heather
 heating-system.html
 heatmap
+heatmap-data
 heatmaps
 heaven.html
 heavenly
@@ -57113,6 +57578,7 @@ HelloWorldServlet
 HelloWorldServlet.jsp
 helly-hansen.php
 helm
+helm/charts
 helm/values.prod.yaml
 helm/values.staging.yaml
 helm/values.yaml
@@ -57207,6 +57673,8 @@ helperfiles
 helpers
 helpers.php
 helpers.php.bak
+helpers/admin
+helpers/debug
 helpfiles
 helpframe.aspx
 helpful
@@ -57528,6 +57996,9 @@ hledej_2.php
 hln_index.jsp
 hloader
 hlp
+hls
+hls/live
+hls/stream
 hlstats
 hlstats.php
 hlsw
@@ -57776,6 +58247,7 @@ honest
 honesty
 honey
 honey.html
+honeybadger
 honeybee
 honeycard.aspx
 honeyd
@@ -57993,6 +58465,7 @@ hotelxml
 hotfoon
 hotfrog
 hotgirl
+hotjar
 hotjobs
 hotline
 hotline.php
@@ -58027,6 +58500,7 @@ hottopics.aspx.cs
 hottrends
 hotufi2
 hotwebscripts
+hotwire
 hou
 houdini.php
 hound
@@ -58405,6 +58879,8 @@ hubble/v1/flows
 hubble/v1/nodes
 hubble/v1/status
 hubicka
+hubs
+hubs/chat
 hubspot-lead2.php
 hubspot-leads-all.php
 hubspot-leads-old.php
@@ -58418,6 +58894,7 @@ hudsonlogin
 huedqz0d.php
 huelva
 huelva.html
+huey
 huggel
 huggies
 huggiesau
@@ -58822,6 +59299,7 @@ idmelden2.php
 idmelden.php
 idn
 idontknow
+idor
 idp
 ids
 ids.log
@@ -59880,6 +60358,8 @@ incerror_log
 incfacebook.php
 incfckeditor
 incfiles
+incident
+incidents
 incimages
 incl
 incl_db.php
@@ -59970,6 +60450,7 @@ includes/admins.asp
 includes/admins.php
 includes/adovbs.inc
 includes/amad.php
+includes/application_top.php
 includes/asp.aspx
 includes/awstats
 includes/b.php
@@ -59988,6 +60469,7 @@ includes/cgi.pl
 includes/Cgishell.pl
 includes/changeall.php
 includes/configuration.php
+includes/configure.php
 includes/configure.php~
 includes/cp.php
 includes/cpanel
@@ -60000,6 +60482,7 @@ includes/d.php
 includes/dam.php
 includes/data.sql
 includes/database/install
+includes/database_tables.php
 includes/dom.php
 includes/downloads/dom.php
 includes/dz0.php
@@ -60141,6 +60624,7 @@ includes/useradmin
 includes/vb.rar
 includes/vb.sql
 includes/vb.zip
+includes/version.php
 includes/webadmin.html
 includes/whmcs.php
 includes/WolF.php
@@ -60552,6 +61036,10 @@ index.php.tmp
 index.php.txt
 index.php.wordpress
 index.php.zip
+index.php/apps/files
+index.php/login
+index.php/logout
+index.php/settings/admin
 index.php_
 index.php_bak
 index.php_bk
@@ -60920,6 +61408,8 @@ indiana.php
 indianapolis
 indiaplaza
 indiatimes
+indicator
+indicators
 indice
 indice.html
 indiceizda.htm
@@ -61000,7 +61490,9 @@ infinitesoftware
 infiniti
 infinity
 inflation-print.htm
+influx
 influxdb
+influxdb/query
 info
 Info
 info1.html
@@ -61500,6 +61992,7 @@ inscription_oa.php
 inscriptioncli.srvl
 inscriptions
 insead.files
+insecure-direct-object
 insenz.func.php
 insenz.inc.php
 insenz.php
@@ -61678,6 +62171,7 @@ install/adminstrator
 install/adminstrator.php
 install/enter
 install/enter.php
+install/includes
 install/index.php
 install/index.php?upgrade
 install/install.sh
@@ -61773,6 +62267,7 @@ installupdate.log
 installweb.config
 installwordpress
 install~
+instana/trace
 instance
 instance/config.py
 instancefiles
@@ -61869,6 +62364,7 @@ interceptor.php
 interceptors
 interchange
 Interchange.php
+intercom
 interdit.php
 interdoc
 interesados.php
@@ -62173,7 +62669,9 @@ inv
 invalid
 invalid.html
 invalid_login.asp
+invalidate
 invalidatecache.asp
+invalidation
 invalidcc.asp
 InvalidPromotion
 invalidrequest.aspx
@@ -62276,6 +62774,8 @@ io
 io.php
 io.swf
 ioana
+ioc
+iocs
 iodine
 iohat604.php
 iol
@@ -62972,6 +63472,8 @@ janles_mkr.htm
 janles_new.cgi
 janr.php
 januari
+janus
+janus/admin
 jap
 japan
 japan.html
@@ -63309,10 +63811,18 @@ jingjing
 jingying
 jinzora
 jira
+jira-service-management
+jira/plugins/servlet/gadgets
+jira/rest/api/2/issue
+jira/rest/api/2/project
+jira/rest/api/2/user
 jira/secure/Dashboard.jspa
 jira/secureDashboard.jspa
 jiran
 jiros
+jitsi
+jitsi-meet
+jitsi/login
 jitterbug
 jiudian
 jive
@@ -63495,8 +64005,11 @@ jobs.htm
 jobs.html
 jobs.php
 jobs.xml
+jobs/admin
+jobs/list
 jobs/send-email
 jobs/send-notification
+jobs/status
 jobs_no.html
 jobsearch
 jobsearch.asp
@@ -63604,6 +64117,7 @@ jolokia/exec/ch.qos.logback.classic
 jolokia/execch.qos.logback.classic
 jolokia/list
 jolokia/read
+jolokia/search
 jolokia/version
 jolokialist
 jolokiaversion
@@ -63967,6 +64481,7 @@ jsmenu
 json
 json-api
 json-min.js
+json-rpc
 json.ini
 json.js
 JSON.php
@@ -63983,6 +64498,7 @@ jsonlib.php
 jsonp
 jsonp.php
 jsonpost.php
+jsonrpc
 jsonwrapper
 jsoutput
 jsp
@@ -64131,6 +64647,7 @@ jump.php
 jump.php3
 jump.phtml
 jumpauction.php
+jumpcloud
 jumper.php
 jumphot.php
 Jumping.php
@@ -64197,14 +64714,18 @@ jvs
 jvtools.html
 jw
 jwc
+jwks
 jwks.json
 jwks.jwt
 jwplayer
 jws
 jwsdir
+jwt
 jwt.key
 jwt.php
+jwt/decode
 jwt/private.pem
+jwt/verify
 jwt_secret.txt
 jwtTest.php
 jx44146l.php
@@ -64347,6 +64868,7 @@ kansascity
 kanto
 kantoor
 kaosjs
+kapacitor
 kapcsolat
 kapcsolat.html
 kaphotoservice
@@ -64591,15 +65113,24 @@ key.php
 key.php.encryptd
 Key.txt
 key.txt
+key/create
+key/list
+key/revoke
 key_assoc.php
 key_assoc.php3
 key_form.jsp
 key_set.jsp
 keyadmin
 keyadmin.php
+keybase.txt
+keybase/config
 keyboard
 keyboard.asp
+keycdn
+keycloak
 keycloak.json
+keycloak/auth
+keycloak/realms/master
 keydetails
 keye
 keyence
@@ -64617,7 +65148,10 @@ keys.php
 keys.txt
 keys.yaml
 keys.yml
+keys/active
+keys/all
 keystone
+keystone/api
 keystore.jks
 keystore.pfx
 keystring
@@ -64675,11 +65209,23 @@ kiara
 kiax
 kibana
 kibana/.env
+kibana/api/fleet/agents
+kibana/api/fleet/enrollment-api-keys
 kibana/api/saved_objects
 kibana/api/spaces
 kibana/api/status
 kibana/app
+kibana/app/apm
+kibana/app/dashboards
+kibana/app/discover
+kibana/app/fleet
 kibana/app/kibana
+kibana/app/maps
+kibana/app/ml
+kibana/app/osquery
+kibana/app/security
+kibana/app/visualize
+kibana/login
 kibanalogin.asp
 kibanalogin.jsp
 kibanalogin.php
@@ -64713,6 +65259,7 @@ kijelentkezes.php
 kikay
 Kikou7734
 kill
+kill-switch
 kill.cgi
 killa
 killbill
@@ -64923,6 +65470,7 @@ kokeshcms
 koko
 kolab
 kolab-syncroton/.env
+kolide
 komentar-new.php
 komentar.php
 komentar_new.php
@@ -65137,7 +65685,9 @@ kube
 kube-apiserver.log
 kube-controller-manager.log
 kube-proxy.log
+kube-public
 kube-scheduler.log
+kube-system
 kubeflow/jupyter
 kubeflow/pipeline
 kubeflow/pipeline/apis/v1beta1/pipelines
@@ -65187,6 +65737,8 @@ kupon
 kupon.php
 Kurama.php
 kuratorium
+kurento
+kurento/api
 kurgan
 kurs
 kurs.php
@@ -65362,6 +65914,7 @@ lamda.php
 lamejor
 lamer
 lamina.php
+laminas
 laminat.html
 lamination
 lamm
@@ -65705,6 +66258,7 @@ launch
 launch.aspx
 launch.html
 launch.php
+launchd
 launchdarkly
 launcher
 launchpad
@@ -65763,6 +66317,7 @@ lb-gb
 lb-monitoring.html
 lb.html
 lb.php
+lb/config
 lbadmin
 lbadmin.php
 lbd.php
@@ -66137,6 +66692,7 @@ letter.htm
 letter.html
 letter.php
 letter_opener
+letter_opener_web
 letterhead
 letters
 letters.aspx
@@ -66175,6 +66731,7 @@ lexus.html
 lf
 lfc/fixtures/superuser.xml
 lfc/fixturessuperuser.xml
+lfi
 lfm.php
 lftp
 lg
@@ -66317,6 +66874,7 @@ libraries
 libraries.asp
 libraries.aspx
 libraries.php
+libraries/cms/version/version.php
 libraries/joomla/database
 libraries/joomla/version.php
 libraries/phpmailer
@@ -66530,6 +67088,7 @@ lighting
 lightning
 lights
 lightspeed.php
+lightstep/api/v0.1/reports
 lighttpd
 lighttpd.access.log
 lighttpd.error.log
@@ -66571,6 +67130,9 @@ limited
 Limited
 limited,
 limits
+limits/api
+limits/current
+limits/remaining
 limitTypes
 limo
 limpa.php
@@ -66591,6 +67153,7 @@ line9
 line_items
 linea.php
 linea_faq.jsp
+linear/api/graphql
 linecontrol
 lines
 lines.aspx
@@ -67085,6 +67648,7 @@ listen
 listen.php
 listener.log
 listener.php
+listeners
 listeners?format=json
 listerpage.aspx
 listes
@@ -67234,6 +67798,7 @@ live/.env.local
 live/.env.production
 live/.env.staging
 live/config.env
+live/stream
 live_chat.html
 live_chat.php
 live_comments.php
@@ -67269,6 +67834,8 @@ livehelp_step2.php
 livehelp_step3.php
 liveique_macros.vm
 livejournal
+livekit
+livekit/api
 livelife
 liveness
 livepages
@@ -67378,6 +67945,7 @@ lnspiderguy
 lnvideos
 lo
 load
+load-balancer/config
 load-scripts.php
 load-styles.php
 load.asp
@@ -67579,6 +68147,7 @@ locus7shell.php
 locus7shell.phtml
 locus7shell.py
 locus.php
+locust
 lodel
 lodges
 lodging
@@ -67687,6 +68256,7 @@ log/payment.log
 log/payment_authorizenet.log
 log/payment_paypal_express.log
 log/production.log
+log/report
 log/security.log
 log/server.log
 log/system.log
@@ -67750,6 +68320,7 @@ logconfig.php
 logdata
 logdevelopment.dat
 logdevelopment.log
+logdna
 logemann
 logerror.dat
 logerror.log
@@ -67773,6 +68344,7 @@ LogfileSearch
 logfilesstorage
 LogfileTail
 logfileview
+logflare/api/logs
 loggain.aspx
 logged
 loggedin
@@ -67880,6 +68452,8 @@ login.php3
 login.php5
 login.php.bak
 login.php.old
+login.php.orig
+login.php.swp
 login.php~
 login.phtml
 login.phyml
@@ -67905,18 +68479,27 @@ login/admin/admin.asp
 login/adminadmin.asp
 login/administrator
 Login/adminlogin.aspx
+login/apple
 Login/auth.php
 login/cpanel
 login/cpanel.asp
 login/cpanel.php
+login/discord
+login/facebook
+login/github
+login/google
 login/index
 login/index.php
+login/linkedin
 login/login
 login/login.php
+login/microsoft
 login/oauth
 Login/sign.php
+login/slack
 login/super
 login/super.php
+login/twitter
 login_
 login_2.php
 login_@123
@@ -68193,6 +68776,7 @@ logproduction.log
 logreferrer.php
 logreport
 logreports
+logrocket
 logrono.html
 logs
 LOGS
@@ -68337,6 +68921,7 @@ logsurfer
 logsuser.log
 logswsadmin.traceout
 logswww-error.log
+logtail
 logtest.log
 logtest.php
 logtmp
@@ -68357,7 +68942,9 @@ loki
 loki.php
 loki/api
 loki/api/v1/labels
+loki/api/v1/push
 loki/api/v1/query
+loki/api/v1/query_range
 loki/api/v1/rules
 loki/api/v1/series
 loki/api/v1/tail
@@ -68632,6 +69219,8 @@ lucasarts
 lucene
 lucent
 lucero
+luci
+luci-static
 luci.jsp.spy2009.jsp
 lucia
 lucian
@@ -68669,6 +69258,7 @@ lulu
 lululemon
 lumb-entry.php
 lumbroso
+lumen
 lumen.log
 lumigent
 luminox.php
@@ -69029,6 +69619,7 @@ mac.php
 macadmin
 macallan
 macaroni1
+macaroon
 maccosmetics
 macedonia
 macedonia.html
@@ -69607,6 +70198,11 @@ maintenance.html
 maintenance.php
 maintenance.shtml
 maintenance.txt
+maintenance/disable
+maintenance/enable
+maintenance/off
+maintenance/on
+maintenance/status
 maintenance/test2.php
 maintenance/test.php
 maintenance_pages
@@ -70311,6 +70907,7 @@ manager/subscriptions
 manager/system
 manager/tags
 manager/templates
+manager/text
 manager/themes
 manager/tokens
 manager/trace
@@ -70384,6 +70981,7 @@ manifest/cache
 manifest/logs
 manifest/tmp
 manila
+maniphest
 manman
 mannheim
 manninen
@@ -70610,6 +71208,7 @@ margaret
 margarida
 margie
 maria
+mariadb
 mariage
 mariah
 mariajose
@@ -70803,6 +71402,7 @@ master.tar.bz2
 master.tar.gz
 master.zip
 master/.env
+master/api
 master/login
 master/panel
 master/portquotes_new/admin.log
@@ -70847,6 +71447,8 @@ masterRqmntsEN.php
 masters
 mastersfusion.br
 masthead
+mastodon/api/v1/accounts/verify_credentials
+mastodon/api/v1/instance
 mat
 mat880
 mat.php
@@ -70899,6 +71501,7 @@ matomo/index.php?module=API&method=API.getMatomoVersion
 matomo/login
 matriks
 matrikzgb
+matrix
 matrix.js
 matrix.php
 matrix_engine
@@ -70906,6 +71509,9 @@ matrox
 matsushita
 matt
 mattermost
+mattermost/api/v4/system/ping
+mattermost/api/v4/teams
+mattermost/api/v4/users
 matthew
 matthews
 matthias
@@ -70934,6 +71540,7 @@ max-templates/default/stylebbsmax_forum.css.fast.aspx
 max-wilhelm
 max.htm
 maxage
+maxcdn
 MaxDepth.php
 maxdev
 maxheight.js
@@ -71100,6 +71707,7 @@ meagan.asp
 meandyou
 measure
 measure.html
+measurement
 measurements.pdf
 meaweb/os/mxperson
 meaweb/osmxperson
@@ -71184,6 +71792,7 @@ mediakit
 mediakit.html
 mediakitnav.cfm
 mediamarkt
+mediamtx
 medianamik
 mediapedia
 mediaplayer
@@ -71194,9 +71803,13 @@ medias
 mediaserv
 mediasize.php
 mediaslash
+mediasoup
+mediasoup/api
 mediastore
 mediatext
 mediawiki
+mediawiki/api.php
+mediawiki/index.php
 medical
 medical.html
 medicare
@@ -71810,6 +72423,7 @@ membres_dev
 membro
 membros
 memcache.php
+memcache/flush
 memcache_test.php
 memcached
 memcached/.env
@@ -72313,6 +72927,8 @@ mercuryboard
 mercurysteam
 meredith
 merge
+merge-request
+merge-requests
 merge.lib.php
 merge.php
 mergephrase.fil
@@ -72586,6 +73202,7 @@ metric-api
 metric-apimetrics
 metric_tracking
 metric_tracking.json
+metricbeat
 metrics
 metrics.json
 metrics.php
@@ -72610,10 +73227,16 @@ mexico
 mexico-df.html
 mexico.htm
 mexico.html
+mezmo
 mezuak
+mezzio
 mf
 mfa
+mfa/backup-codes
 mfa/challenge
+mfa/disable
+mfa/setup
+mfa/verify
 mfg
 mfg.php
 mfgvsmodularhomes.x
@@ -72772,6 +73395,7 @@ middleman
 middleware
 middleware.php
 middleware.php.bak
+middlewares
 midget
 midhosting
 midi
@@ -72823,6 +73447,7 @@ migrationinfo
 migrationlogin.php
 migrations
 migrations.php
+migrations/versions
 migrationsauth.php
 migrationsign.php
 migrationsignin.php
@@ -72851,6 +73476,7 @@ milano
 mildred
 milena
 miles
+milestone
 milestones
 milestones.html
 Milestones.php
@@ -72941,6 +73567,8 @@ mini4.php
 mini5.php
 mini-profiler-resources/flamegraph
 mini-profiler-resources/results
+mini-profiler-resources/results-index
+mini-profiler-resources/results-list
 mini.cgi
 mini.php
 mini.php5
@@ -72986,11 +73614,15 @@ minimum
 minina
 mining
 mininuke
+minio
 minio/health/cluster
 minio/health/live
 minio/health/ready
+minio/login
 minio/metrics/v3/cluster/health
 minio/metrics/v3/system/drive
+minio/minio/health/cluster
+minio/minio/login
 minions
 miniportail
 miniportal
@@ -73095,6 +73727,8 @@ misha
 mishka
 misnotas.php
 misp
+misp/attributes/restSearch
+misp/events/index
 miss1.htm
 miss2.htm
 miss-video.com
@@ -73165,13 +73799,17 @@ mix_entry.php
 mixed
 mixer
 mixes.php
+mixpanel/engage
+mixpanel/track
 mizuno
 mj
+mjpg/video.mjpg
 mju.swf
 mk
 mk1hf63j.php
 mk.php
 mkdir
+mkdocs
 mkdocs.yml
 Mkfile.old
 mkmf.log
@@ -74161,9 +74799,11 @@ moneycard.php
 moneyorder.php
 mongo
 mongo-backup
+mongo-compass
 mongo-cons.php
 mongo-db/bak-files/backup.bak
 mongo-express
+mongo-express/db
 mongo-test.php
 mongo.log
 mongo.php
@@ -74172,6 +74812,7 @@ mongodb
 mongodb/config/dev/.env
 mongodump
 mongodump.archive
+mongoexpress
 mongolia.html
 mongoose
 mongotest.php
@@ -74419,6 +75060,7 @@ mountain
 mountain-works.php
 mouse
 mouse1
+mouseflow
 mouseover.js
 mouser
 mousikomi.html
@@ -74652,6 +75294,7 @@ mss-shop.nsf
 mssccprj.scc
 msservice
 mssql
+mssql-admin
 mssql.asp
 mssql.aspx
 mssql.jsp
@@ -74699,6 +75342,7 @@ mt/mt-xmlrpc.cgi
 mt/mt.cgi
 mt_images
 mta
+mta-sts.txt
 mtapi.php
 mtb100
 mtc
@@ -75183,6 +75827,7 @@ mydomainadministrator.php
 mydomainlogin.php
 mydownload.php
 mydownloads
+mydumper
 myebay
 myEditor
 myenv.php
@@ -75614,8 +76259,10 @@ nacos/v1/auth/users?pageNo=1&pageSize=9
 nacos/v1/auth/users?pageNo=1&pageSize=10
 nacos/v1/console/namespaces
 nacos/v1/console/server/state
+nacos/v1/cs/configs
 nacos/v1/cs/configs?dataId=&group=&tenant=&search=accurate
 nacos/v1/cs/configs?search=blur&dataId=&group=&tenant=
+nacos/v1/ns/instance
 nacos/v1/ns/operator/servers
 nacos/v1/ns/service/list?pageNo=1&pageSize=100
 nacos/v2/cs/config?dataId=&group=&namespaceId=
@@ -75953,6 +76600,9 @@ nemo
 nenalinda
 neneng
 neo
+neo4j
+neo4j/browser
+neo4j/db/neo4j/tx
 neoboard
 neocrome
 neomail
@@ -76100,6 +76750,7 @@ netserver
 netsoft
 netsoltrademark.php
 netsolutions
+netsparker
 netspell
 netstat
 netstats
@@ -76887,6 +77538,7 @@ nextstep
 nextstep.aspx
 nextweb
 nexus
+nexus/repository
 nf
 nf2004text
 nf.aspx
@@ -76927,6 +77579,8 @@ nginx.conf
 nginx.conf.sample
 nginx.htaccess
 nginx/.env
+nginx/cache/clear
+nginx/cache/purge
 nginx/status
 nginx_access.log
 nginx_access.log.1
@@ -77051,6 +77705,7 @@ nikto
 nikung.php
 nikwax.php
 nilsen
+nimble
 nimcache
 nimda
 nimrod
@@ -77248,6 +77903,7 @@ node_modules
 node_modules/.env
 node_stats
 nodeadd
+nodeinfo
 Nodejs-Projects/play-ground/login/.env
 Nodejs-Projects/play-ground/ManageUserRoles/.env
 nodes
@@ -77553,6 +78209,7 @@ notifyme.action
 notifyme.asp
 notifyme.cfm
 notimportant
+notion
 notizia.php
 notizie
 notizie.php
@@ -77645,6 +78302,7 @@ npds
 nph-index.cgi
 nph-proxy.cgi
 nphp
+npm
 npm-debug.log
 npm-shrinkwrap.json
 npm.json
@@ -77726,6 +78384,7 @@ ntc
 ntdaddy.asp
 ntdaddy_v1.9.php
 NTDaddy_v1.9.php
+ntfy
 ntlm_sasl_client.php
 ntlmaps
 ntmail
@@ -77956,14 +78615,22 @@ oauth/admin
 oauth/authorization
 oauth/authorize
 oauth/callback
+oauth/check_token
+oauth/confirm_access
 oauth/device/code
 oauth/enter
+oauth/facebook
+oauth/github
+oauth/google
 oauth/introspect
+oauth/linkedin
 oauth/login
+oauth/microsoft
 oauth/revoke
 oauth/signin
 oauth/token
 oauth/token/info
+oauth/twitter
 oauth/userinfo
 oauth_secret.txt
 ob
@@ -78071,6 +78738,10 @@ ocp.php
 ocportal
 ocr
 ocs
+ocs/v1.php/apps
+ocs/v1.php/cloud/groups
+ocs/v1.php/cloud/users
+ocs/v2.php/cloud/users
 ocsp
 ocsplocalhost
 oct06-sp.php
@@ -78082,6 +78753,7 @@ oculto
 ocz6jsqm.php
 od
 oda.php
+odata
 odbc
 odbc.aspx
 odbc.js
@@ -78448,6 +79120,9 @@ oklahomacity
 okokok
 okqq
 okscripts
+okta
+okta/callback
+okta/login
 oktoplay.pdf
 okwy_A_D_server.php
 okzhang1314
@@ -78649,6 +79324,7 @@ oms/admin
 oms_track
 omsk
 on
+on-call
 on-line.html
 on.asp
 on_line.php
@@ -78657,6 +79333,7 @@ ona
 onairsamdonaldson
 onboarding
 onbound
+oncall
 oncology
 oncology.jsf
 ondemand
@@ -78680,6 +79357,7 @@ oneadmin.phtml
 onecenter
 onecore
 onedotoh
+onelogin
 oneorzero
 onepage
 onepiece
@@ -78752,6 +79430,7 @@ onlineview.php
 only
 onlycern
 onlyme
+onlyoffice
 onlyscript.info
 onmap.php
 onomisfotos
@@ -78765,6 +79444,7 @@ ontario
 onthisday
 onuninstall.php
 onupdate.php
+onvif
 onyx
 oo
 ooapp
@@ -78864,6 +79544,8 @@ opencms
 openconf
 openconnect
 OpenCover
+opencti
+opencti/graphql
 opendb
 opendir
 opendir.php
@@ -78878,6 +79560,8 @@ opener
 openfaq
 openfile
 openfind
+openfire
+openfire/login
 openforcead
 openftpd
 opengfs
@@ -78889,6 +79573,9 @@ OpenID
 openid
 OpenID.php
 openid.php
+openid/azure
+openid/google
+openid/okta
 openidcheck.php
 openinviter
 openjournal
@@ -78904,6 +79591,7 @@ openobex
 openoffice
 OPENORDER.php
 openpgp
+openpgpkey
 openphpnuke
 openpic.php
 openpkg
@@ -78935,6 +79623,9 @@ openssl
 openstack
 openswan
 opentelemetry
+opentelemetry/v1/logs
+opentelemetry/v1/metrics
+opentelemetry/v1/traces
 opentext
 opentime_bten2.php
 opentime_youku.php
@@ -78946,6 +79637,7 @@ openui.log
 openurl
 openurl.asp
 openvas
+openvas-scanner
 openview
 openvmps
 openvpn
@@ -79313,7 +80005,10 @@ opros.html
 ops
 ops/admin
 ops/dashboard
+ops/health
+ops/metrics
 ops/vagrant/.env
+opsgenie/api/v2/alerts
 opslag.php
 opsware
 opt
@@ -79393,6 +80088,7 @@ oracl
 oracle
 oracle8.php
 oracle11.php
+oracle-admin
 oracle.aspx
 oracle.jsp
 oracle.php
@@ -79401,6 +80097,7 @@ oraclerewerewrew.php
 oracle脱裤脚本.jsp
 oradata
 oradb
+oradmin
 oral.asp
 oral.pdf
 orange
@@ -79970,9 +80667,13 @@ osog.php
 osp
 ospfd.conf
 osprey.php
+osquery
+osquery/api
 oss
 oss.html
 oss.php
+ossec
+ossec/logs
 ossim
 ossp
 osstoreadmin.php
@@ -80026,6 +80727,8 @@ others.php
 others_chart.html
 othersbegin.asp
 othersites
+otlp/v1/metrics
+otlp/v1/traces
 oto
 oto1.html
 oto2.html
@@ -80236,6 +80939,8 @@ own
 owncloud
 owncloud/.env
 owncloud/config
+owncloud/index.php/login
+owncloud/status.php
 owned
 owner
 owner.html
@@ -80691,17 +81396,23 @@ packages.aspx
 packages.htm
 packages.html
 packages.php
+packages/admin
 packages/api/.env
 packages/app/.env
+packages/auth
 packages/client/.env
 packages/frontend/.env
+packages/maven
+packages/npm
 packages/plugin-analytics/src/fixtures/analytics-ga-key/.env
 packages/plugin-qiankun/examples/app1/.env
 packages/plugin-qiankun/examples/app2/.env
 packages/plugin-qiankun/examples/app3/.env
 packages/plugin-qiankun/examples/master/.env
+packages/pypi
 packages/react-scripts/fixtures/kitchensink/template/.env
 packages/styled-ui-docs/.env
+packages/user
 packages/web/.env
 packages_display.asp?ref=
 packagetrack.php
@@ -80718,6 +81429,7 @@ packer_cache
 packers
 packet
 Packet.php
+packetbeat
 packeteer
 packetpro.html
 packets
@@ -80993,6 +81705,7 @@ Pager_Wrapper.php
 pagerank
 pagerank.php
 pagerduty
+pagerduty/api/v2/incidents
 pagers
 pagerTest.php
 pages
@@ -81472,6 +82185,7 @@ paperdemo_bill1.jsp
 papers
 papers.php
 paperthin
+papertrail
 papichulo
 papigator
 papirkurv
@@ -81596,6 +82310,7 @@ particle
 particulier
 partidos_pnvea.nsf
 parties
+partition
 Partition.class.php
 partner
 partner1.html
@@ -81960,6 +82675,7 @@ pasadena
 pascal
 pascal.php
 pascalau
+paseto
 pasired.php
 pasmail.html
 paso
@@ -82015,6 +82731,8 @@ passion
 passions
 passive
 passkey
+passkey/authenticate
+passkey/register
 passlist
 passlist.csv
 passlist.dat
@@ -82276,6 +82994,8 @@ payline
 paylinki.mvc
 paylinkp.mvc
 payload
+payload-admin
+payloads
 paymanager
 payment
 payment2
@@ -82659,6 +83379,7 @@ peek
 peekaboo
 peel
 peel.php
+peer
 peer.php
 peercast
 peerftp_5
@@ -82705,6 +83426,7 @@ penny
 pensacola
 pentaho
 pentax-store.html
+pentest
 pentium
 penya
 penza
@@ -82939,6 +83661,7 @@ pfs.php
 pftpl
 pfx
 pg
+pg-admin
 pg.php
 pg_connect.php
 pg_customcode.asp
@@ -82947,6 +83670,8 @@ pg_hba.conf
 pg_setup.asp
 pgadmin
 pgadmin4
+pgadmin4/browser
+pgadmin4/login
 pgadmin.log
 pgadmin.php
 pgadmin/login
@@ -82998,9 +83723,12 @@ pgm-tracking.php
 pgm-view_video.php
 pgosd
 pgp
+pgp-key.txt
+pgp/key
 pgpi
 pgpmail
 pgrefresh
+pgrst
 pgs
 pgsql
 pgtId
@@ -83010,6 +83738,9 @@ ph
 PH5P.php
 ph.php
 ph_vayv.php
+phabricator
+phabricator/login
+phalcon
 phanmem
 phantasma.php
 PHANTASMA.php
@@ -84038,6 +84769,7 @@ phpraid
 phprank
 phprecipebook
 phpRedisAdmin
+phpredisadmin
 phpredmin
 phpremoteview.php
 PHPRemoteView.php
@@ -84388,8 +85120,10 @@ pingback
 pingback.php
 pingconnection.php
 pinger.php
+pingfederate
 pinglun
 pinglun.asp
+pingone
 pingpong
 pingserver.php
 pingshen
@@ -84430,6 +85164,8 @@ pirates
 pirates.php
 Pirates.php
 pirch
+pirsch/event
+pirsch/hit
 pisa.html
 pisces
 pisces-horoscope
@@ -84460,6 +85196,7 @@ pixel
 pixel2.php
 pixel.asp
 pixel.php
+pixel.png
 pixelbender.php
 pixelpost
 pixels
@@ -84499,6 +85236,7 @@ pkginfo.aspx
 pkginfo.php
 pkgs
 pki
+pki-validation
 pkinc
 pkr
 pkware
@@ -84629,7 +85367,9 @@ platypus.php
 platz_login
 platz_login.php
 Platzauswahl.php
+plausible/api
 plausible/api/v1/stats
+plausible/event
 plaxo_cb.html
 Play
 play
@@ -84847,6 +85587,7 @@ pluto
 plx
 plymouth
 pm
+pm2/list
 pm2_5_2.php
 pm2_5_3.php
 pm2_5_4.php
@@ -84996,6 +85737,7 @@ pocasi.asp
 pocet.php
 pochta2.html
 pocket
+pocketbase
 pocketpc
 poczta
 pod
@@ -85440,12 +86182,20 @@ portail
 portail_site.php
 portailphp
 portainer
+portainer/api
+portainer/api/containers/json
 portainer/api/endpoints
+portainer/api/endpoints/1/docker/containers/json
+portainer/api/images/json
+portainer/api/networks
 portainer/api/registries
+portainer/api/roles
 portainer/api/settings
 portainer/api/stacks
 portainer/api/status
+portainer/api/teams
 portainer/api/users
+portainer/api/volumes
 portainer/login
 Portal
 portal
@@ -85884,6 +86634,8 @@ postmail
 postmail.html
 postmessage.aspx
 postmessage.php
+postmortem
+postmortems
 postnewad2.aspx
 postnuke
 postnukehtml
@@ -87018,6 +87770,7 @@ privato
 privatschutz.htm
 prive
 privelink.asp
+privilege-escalation
 PRIVILEGES
 privileges
 privkey.pem
@@ -88166,10 +88919,14 @@ prom.html
 promanager
 promethe
 prometheus
+prometheus/api/v1/alertmanagers
 prometheus/api/v1/alerts
 prometheus/api/v1/label/__name__/values
+prometheus/api/v1/labels
 prometheus/api/v1/query
 prometheus/api/v1/rules
+prometheus/api/v1/series
+prometheus/api/v1/status/buildinfo
 prometheus/api/v1/status/config
 prometheus/api/v1/status/flags
 prometheus/api/v1/status/runtimeinfo
@@ -88293,6 +89050,7 @@ propupdate
 prorat
 pros
 pros.php
+prosody
 prosoft
 prospect
 prospect.asp
@@ -88313,12 +89071,15 @@ protect.php
 protected
 protected/.env
 protected/config/console.php
+protected/config/database.php
 protected/config/main.php
 protected/config/test.php
 protected/controllers
+protected/controllers/SiteController.php
 protected/data
 protected/data/schema.mysql.sql
 protected/models
+protected/models/User.php
 protected/runtime
 protected/views
 protected/yiic
@@ -88339,6 +89100,7 @@ protel
 protetor
 proto
 proto.php
+protobuf
 protocol
 proton
 prototipos
@@ -88430,6 +89192,7 @@ proxy.php
 proxy.stream
 proxy.txt
 proxy.xml
+proxy/config
 proxy_config.json
 proxy_error_bkrs2.php
 proxy_service.php
@@ -88440,6 +89203,7 @@ proxyheader.php
 proxyport
 ProxyPriceInfo
 proxypwd
+proxysql
 proxytest.jsp
 proxytui
 proxytunnel
@@ -88666,6 +89430,7 @@ public/assets
 public/assets/.protected/.env
 public/config.js
 public/files
+public/fonts
 public/hot
 public/index.php
 public/login
@@ -88857,6 +89622,8 @@ puhovoi.php
 pui_link.html
 pujar
 pull
+pull-request
+pull-requests
 pullover.aspx
 pulse
 pulse/dashboard
@@ -88872,6 +89639,7 @@ punbb115.inc.php
 punbb_users
 punchout
 punctweb
+pundit
 puneet
 punetoret
 punish.php
@@ -88918,6 +89686,7 @@ purepostpro
 purgatory
 purge
 purge.php
+purge/cache
 PurifierLinkify.php
 purity
 purple
@@ -88942,6 +89711,7 @@ pushlivecurl2.php
 pushlivecurl.log
 pushlivecurl.php
 pushlogs.log
+pushover
 pushtestcurl.php
 pussy
 put
@@ -89019,8 +89789,11 @@ py-compile
 py-livredor
 py-membres
 pyblosxom
+pydio
+pydio/index.php
 pydo
 pyj_artikutza.nsf
+pypi
 pyproject.toml
 pyramid
 pyramid.htm
@@ -89253,6 +90026,8 @@ quantum
 quantumsuccess.asp
 quarantine
 quarterly
+quartz
+quartz/jobs
 qub
 que
 que.php
@@ -89339,8 +90114,11 @@ Queue
 queue
 queue.php
 queue.php.bak
+queue/admin
 queue/email
+queue/list
 queue/mail
+queue/status
 queue_worker.php
 queues
 quezza
@@ -89462,6 +90240,7 @@ quizzes
 quota
 quota.cgi
 quota.php
+quota/status
 quotas
 quotation
 quotation.php
@@ -89715,6 +90494,7 @@ rails-api/react-app/.env
 rails.php
 rails/actions
 rails/actions?error=ActiveRecord
+rails/conductor
 rails/db
 rails/info
 rails/info/properties
@@ -89723,6 +90503,7 @@ rails/info/routes
 rails/info/routes.json
 rails/infoproperties
 rails/mailers
+rails_admin
 railsactions
 railsapp/config/storage.yml
 railway
@@ -89765,6 +90546,7 @@ ramsite
 ran
 ranch
 rancher
+rancher/v3/clusters
 rancid
 rand
 rand.php
@@ -89863,6 +90645,8 @@ rate2.php
 rate-details.aspx
 rate-game
 rate-it.php
+rate-limit
+rate-limits
 rate-product.aspx
 rate-this
 rate-this-item
@@ -89907,6 +90691,7 @@ rateit.asp
 rateit.aspx
 rateit.cgi
 rateit.php
+ratelimit
 ratelink.php
 ratemypic
 ratenews.php
@@ -90007,6 +90792,7 @@ rca
 rcart.asp
 rcblog
 rcc
+rce
 rcf
 rcheckout.php
 rci.ashx
@@ -90028,6 +90814,8 @@ rcjakar/adminlogin.js
 Rcjakar/adminlogin.php
 rcjakar/adminlogin.php
 rcLogin
+rclone
+rclone/api
 rcm
 rcms
 rcom.php
@@ -90096,6 +90884,7 @@ reactivepower3.php
 Read
 read
 Read%20Me.txt
+read-only
 read.asp
 Read.aspx
 read.aspx
@@ -90179,8 +90968,10 @@ readmessage.cfm
 readmore.php
 readnews.asp
 readnews.php
+readonly
 readpmsg.php
 readreviews.aspx
+readthedocs
 readwx.cfm
 ready
 ready4xmas.html
@@ -90477,6 +91268,7 @@ recoverpassword.jsp
 RecoverPassword.php
 recoverpassword.php
 recovery
+recovery-codes
 recovery.aspx
 recovery.html
 recovery.php
@@ -90680,10 +91472,12 @@ redis.log
 redis.php
 redis.txt
 redis/admin
+redis/flush
 redis_credentials.txt
 redisadm
 redisadmin
 redisinsight
+redisinsight/api
 redkernel
 redman
 redmine
@@ -90775,6 +91569,7 @@ referral.htm
 referral.html
 referral.jsp
 referral.php
+referral/track
 referral_add_set.php
 referral_asign.php
 referral_request.php
@@ -91102,6 +91897,7 @@ rei
 reiki.html
 reimbursements
 reimg
+reindex
 reindex_search.cfm
 reinstall
 reise
@@ -91196,6 +91992,8 @@ releases.html
 releases.php
 releases.txt
 releases.xml
+releases/latest
+releases/tag
 releases_headlines_details.asp?id=
 relexample_project
 religion
@@ -91274,6 +92072,11 @@ remote.htm
 remote.html
 remote.php
 remote.php/dav
+remote.php/dav/addressbooks
+remote.php/dav/calendars
+remote.php/dav/files
+remote.php/ocs/v2.php/apps/files
+remote.php/webdav
 remote/fgt_lang?lang=/../../../../////////////////////////bin/sslvpnd
 remote/fgt_lang?lang=/../../../../////////////////////////binsslvpnd
 remote/fgt_lang?lang=/../../../..//////////dev/cmdb/sslvpn_websession
@@ -91436,6 +92239,7 @@ replacement.php
 replacephotos.php
 replay
 replica
+replica/api
 replicas
 replicate
 replicated
@@ -91478,6 +92282,7 @@ report-detail.asp?id=
 report-error
 report-paper.php
 report-spam.html
+report-uri
 report.7z
 report.asp
 report.aspx
@@ -91531,6 +92336,8 @@ reportgame.php
 reportid
 reporting
 reporting/admin
+reporting/v1/csp
+reporting/v1/hpkp
 reportlisting.php
 reportlocation.aspx
 reportproduct.aspx
@@ -91833,6 +92640,8 @@ residential
 residential-roofing.php
 residential.asp
 residents
+resilience
+resilience4j
 resim
 resim.php
 resimler
@@ -91933,8 +92742,14 @@ resources/docker/phpmyadmin/.env
 resources/docker/rabbitmq/.env
 resources/docker/rediscommander/.env
 resources/fckeditor
+resources/lang/en/auth.php
+resources/lang/en/messages.php
+resources/lang/en/passwords.php
+resources/lang/en/validation.php
+resources/lang/ru/messages.php
 resources/sass/.sass-cache
 resources/tmp
+resources/translations/en.yaml
 resources/views
 resources/views/admin/dashboard.blade.php
 resources/vulnerabilities_list.asp?id=
@@ -91975,6 +92790,10 @@ resposta.html
 respre.cgi
 respuesta.php
 resque
+resque/failed
+resque/overview
+resque/queues
+resque/workers
 resserver.php
 ressource
 ressources
@@ -92048,6 +92867,7 @@ restaurantinfo.aspx
 restaurantmenu.aspx
 restaurants
 restaurants.php
+restic
 restituda
 restock
 restore
@@ -92172,6 +92992,7 @@ retard
 retired
 retirement
 retirement.htm
+retool/api
 retorno.php
 retour.php
 retourzenden.php
@@ -92650,6 +93471,8 @@ rocketman
 rockets
 rockliffe
 rockme
+rockmongo
+rockmongo/index.php
 rocknroll
 rocks
 rocku
@@ -92693,10 +93516,14 @@ rolex
 ROLIK_OUT.php
 roll
 rollback
+rollbar/deploy
+rollbar/item
 roller
 roller.html
 rollingstone
 rollingStone
+rollout
+rollout/status
 rollover.js
 rolltext
 rolltide
@@ -93026,6 +93853,7 @@ routes.go
 routes.htm
 routes.php
 routes.php.bak
+routes.rb
 routes/.env
 routes/api.php
 routes/error_log
@@ -93066,6 +93894,7 @@ rpc.asp
 rpc.html
 RPC.php
 rpc.php
+rpc/api
 rpc_admin
 rpc_admin.php
 rpc_relay.html
@@ -93279,6 +94108,8 @@ rt_styleswitcher.php
 rt_utils.php
 rta
 rtasarim
+rtc
+rtc/api
 rte
 rte-snippets
 RTE_configuration
@@ -93291,11 +94122,14 @@ rti
 rtl
 rtm
 rtm.log
+rtmp
 rtn_login08.php
 rtn_login.php
 rtndjy3s.php
 rto
 rtr
+rtsp
+rtsp-simple-server
 rtsp.php
 rtv
 ru
@@ -93375,6 +94209,8 @@ run.sh
 run.zip
 run/.env
 run_1.js
+runbook
+runbooks
 runcms
 runcrawl.php
 runcronjobs.php
@@ -93510,6 +94346,7 @@ s2tu6m70.php
 s3
 s3.yml
 s3/admin
+s3/login
 s3_credentials.txt
 s3c.php
 s3cmd.ini
@@ -93782,10 +94619,15 @@ samhain
 samira
 saml
 saml/acs
+saml/azure
 saml/callback
+saml/google
+saml/jumpcloud
 saml/login
 saml/logout
 saml/metadata
+saml/okta
+saml/onelogin
 saml/sls
 samlauth2.php
 samlauth.php
@@ -93903,6 +94745,7 @@ sandy
 sane
 sanfran
 sanfrancisco
+sanic
 sanita
 sanitize.php
 sanitizer
@@ -94235,6 +95078,7 @@ scalix
 scalyr
 scamper
 scan
+scan-results
 scan.aspx
 scan.php
 scan.phtml
@@ -94321,6 +95165,7 @@ schema.ser
 schema.sql
 Schema.sql
 schema.sql.gz
+schema.yaml
 schema.yml
 schema_dump.sql
 schemas
@@ -94544,7 +95389,10 @@ Scripts.xml
 scripts.zip
 scripts/.env
 scripts/.env.js
+scripts/admin
 scripts/app/components
+scripts/backup
+scripts/build
 scripts/cgimail.exe
 scripts/check-package-versions.mjs
 scripts/ckeditor/ckfinder/core/connector/asp/connector.asp
@@ -94553,9 +95401,12 @@ scripts/ckeditor/ckfinder/core/connector/aspx/connector.aspx
 scripts/ckeditor/ckfinder/core/connector/aspxconnector.aspx
 scripts/ckeditor/ckfinder/core/connector/php/connector.php
 scripts/ckeditor/ckfinder/core/connector/phpconnector.php
+scripts/cleanup
 scripts/components
 scripts/convert.bas
 scripts/counter.exe
+scripts/cron
+scripts/deploy
 scripts/fckeditor/editor/filemanager
 scripts/fckeditor/editor/filemanager/browser/defaultbrowser.html
 scripts/fckeditor/editorfckdialog.html
@@ -94575,6 +95426,7 @@ scripts/link.js
 scripts/make-changelog
 scripts/make-release
 scripts/manage_translations.py
+scripts/migrate
 scripts/no-such-file.pl
 scripts/open-api/public/index.html
 scripts/open-api/serve.js
@@ -94590,7 +95442,9 @@ scripts/rpm-install.sh
 scripts/samples
 scripts/samples/search/webhits.exe
 scripts/samples/searchwebhits.exe
+scripts/seed
 scripts/setup.php
+scripts/test
 scripts/tiny_mce
 scripts/tiny_mce/plugins/ajaxfilemanagerajax_login.php
 scripts/tiny_mce/plugins/ajaxfilemanagerajaxfilemanager.php
@@ -94686,10 +95540,12 @@ se.secure
 sea
 sea-to-summit.php
 sea.phtml
+seafile
 seafile/api2
 seagate
 seaglass
 seagull
+seahub
 seal.php
 sealInvoice.php
 sealInvoice_recuperado.php
@@ -94698,6 +95554,7 @@ sealInvoiceRespaldo3Nov.php
 sealInvoiceRespaldo151117.php
 sealRetention.php
 sealskinz.php
+seam-admin
 sean
 seanox
 seanpaul
@@ -95159,6 +96016,7 @@ secret.php
 secret.txt
 secret.yaml
 secret/admin
+secret/config
 secret/index.php
 secret/login
 secret_admin
@@ -95464,12 +96322,17 @@ security.txt
 security.xml
 security.yml
 security/config
+security/csp-report
+security/ct-report
+security/hpkp-report
 Security/login
 security/policies
+security/report
 security/roles
 security/rules
 security/user/authenticate
 security/users
+security/xss-report
 security_banip.php
 security_image.php
 security_images
@@ -95510,6 +96373,9 @@ sefaz
 sefl
 sefl.old
 seger.php
+segment
+segment/v1/page
+segment/v1/track
 segments
 segnala-abuso
 segnala.asp
@@ -96271,6 +97137,10 @@ sentraweb
 sentry
 sentry/api/0/organizations
 sentry/api/0/projects
+sentry/api/0/store
+sentry/api/store
+sentry/envelope
+sentry/store
 seo
 seo-blog
 seo-board
@@ -96421,16 +97291,19 @@ server/.env.local
 server/.env.production
 server/.env.staging
 server/admin
+server/config
 server/config.json
 server/config/.env
 server/laravel/.env
 server/login
+server/metrics
 server/reboot
 server/restart
 server/server.js
 server/src/persistence/.env
 server/status
 server/storage
+server/version
 server_6.php
 server_7.php
 server_8.php
@@ -96542,6 +97415,8 @@ service.php
 service.php.bak
 service.php~
 service.pwd
+service.wsdl
+Service.wsdl
 service.yaml
 service/.env
 service/.env.local
@@ -96559,6 +97434,7 @@ service/enter
 service/enter.php
 service/health
 service/info
+service/list
 service/login
 service/login.php
 service/login.phtml
@@ -96566,6 +97442,7 @@ service/metrics
 service/metrics/data
 service/metrics/healthcheck
 service/ping
+service/reload
 service/rest/swagger.json
 service/rest/v1/assets
 service/rest/v1/blobstores
@@ -96611,6 +97488,7 @@ serviceinterface
 servicelist
 servicelogin.php
 servicelogin.phtml
+servicenow/api/now
 servicerequest.php
 servicerfp
 services
@@ -96627,6 +97505,8 @@ services.html
 services.php
 services.php_files
 services.tar.gz
+services.wsdl
+Services.wsdl
 services/.env
 services/.env.local
 services/.env.production
@@ -96640,11 +97520,13 @@ services/graylog/.env
 services/health
 services/help
 services/jaeger/.env
+services/list
 services/minio/.env
 services/monitoring/.env
 services/portainer/.env
 services/redis-commander/.env
 services/registry/.env
+services/reload
 services/simcore/.env
 services/status
 services/traefik/.env
@@ -96775,6 +97657,7 @@ session
 session35.php
 session44.php
 session63.php
+session-replay
 session-update.ashx
 session.asp
 session.inc.php
@@ -96789,6 +97672,12 @@ session.madeline.safe.php.lock
 Session.php
 session.php
 session.xml
+session/create
+session/destroy
+session/info
+session/refresh
+session/status
+session/validate
 session_expired.jsp
 session_member_id
 session_member_login_key
@@ -96822,7 +97711,11 @@ sessions.php
 sessions.sql
 sessions.xml
 sessions/.env
+sessions/active
+sessions/all
+sessions/invalidate
 sessions/new
+sessions/revoke
 SessionServlet
 sessionsnew
 sessionstate.aspx
@@ -97169,6 +98062,7 @@ shannon
 shanti
 shape
 sharc
+shard
 share
 share1.php
 share42
@@ -97288,6 +98182,7 @@ shell.phtml
 shell.py
 shell.sh
 shell.txt
+shell/run
 shell_6.php
 shell_7.php
 shell_8.php
@@ -98165,6 +99060,12 @@ sidebarGenerator.php
 sidebars
 sidecart.asp
 sidekiq
+sidekiq/busy
+sidekiq/dead
+sidekiq/morgue
+sidekiq/queues
+sidekiq/retries
+sidekiq/scheduled
 sidekiq_monitor
 sidemenu.cfm
 sidemenu.php
@@ -98176,6 +99077,8 @@ sidney
 sidx
 siebel
 siegel
+siem
+siem/dashboard
 siemens
 siempre
 siena.html
@@ -98221,9 +99124,13 @@ sign_up
 sign_up.html
 sign_up.php
 signage
+signal
 signal.html
 signaler.html
 signaler.php
+signaling
+SignalR
+signalr
 signalr/hubs
 signalr/negotiate
 Signature
@@ -98772,6 +99679,7 @@ sitefeedback.aspx
 sitefiles
 sitefinity
 sitefinity/login
+sitefinitywebservices
 siteforum
 siteframe
 sitegen
@@ -98869,8 +99777,13 @@ sitemap.xml
 sitemap.xml.gz
 sitemap.xml.old
 sitemap.xml.php
+sitemap/images.xml
+sitemap/news.xml
+sitemap/video.xml
 sitemap_0_5000.html
+sitemap_1.xml
 sitemap_1.xml.gz
+sitemap_2.xml
 sitemap_2.xml.gz
 sitemap_3.xml.gz
 sitemap_4.xml.gz
@@ -98933,6 +99846,8 @@ siterefer
 siteroot.php
 sites
 Sites
+sites-available/default
+sites-enabled/default
 sites.asp
 sites.aspx
 sites.cfm
@@ -99193,6 +100108,8 @@ skype.htm
 skyscanner
 skystream
 skywalker
+skywalking
+skywalking/graphql
 sl
 sl.html
 sl.php
@@ -99201,6 +100118,8 @@ sla
 sla.html
 slabel
 slabel.php
+slack/api
+slack/api/auth.test
 slack_token.txt
 slacker
 slackware
@@ -99209,11 +100128,13 @@ slamdunk
 slanadmin
 slanadmin.php
 slapd.conf
+slas
 slashcode
 slashdot
 slashem
 slava
 slave
+slave/api
 slax
 slayer
 sldsystem
@@ -99267,6 +100188,7 @@ Sliding.php
 sliding_contact.php
 sliding_contact.php~
 slike
+slim
 slim4life.html
 slim10.html
 slimbox
@@ -99369,6 +100291,7 @@ smartisoft
 smartline
 smartlink.js
 smartlist
+smartlook
 smartmax
 smartoptimizer
 smartoptimizer/minifierscss.php
@@ -99532,12 +100455,14 @@ snapshot
 snapshot.php
 snapshot.sql
 snapshot.tar.gz
+SnapshotJPEG
 snapshots
 snapstream
 snatch
 snatch.php
 snd
 sne.php
+sneakers
 sneakysneakysnake
 sneezy
 snert
@@ -99612,6 +100537,8 @@ soanimesitehd2
 soap
 soap.htm
 soap.php
+soap/api.wsdl
+soap/service.wsdl
 soap/servlet/soaprouter
 soap/servlet/Spy
 soap_server_usuarios_registrados_java.php
@@ -99633,6 +100560,7 @@ sobreRDT.php
 soc
 soc.html
 soc/admin
+soc/dashboard
 soc_alterar_f.php
 soc_cep_f.php
 soc_cidade_f.php
@@ -99648,6 +100576,11 @@ social-security.asp
 social.htm
 social.html
 social.php
+social/facebook
+social/github
+social/google
+social/linkedin
+social/twitter
 social_catalogo.nsf
 social_centros.nsf
 social_datos.nsf
@@ -99852,6 +100785,7 @@ sophos
 soporte
 soporte.html
 soqor
+sorcery
 sord
 sorder
 sorenson
@@ -100255,6 +101189,7 @@ sperre.php
 spexec.aspx
 spezial
 spf
+SPF
 spgpartenaires
 sphera
 sphider
@@ -100337,6 +101272,8 @@ sploit
 splunk
 splunk/apps
 splunk/services
+splunk/services/collector
+splunk/services/collector/event
 spn.html
 spo
 spock
@@ -100413,6 +101350,8 @@ spread-betting
 spread.php
 Spreadsheets
 spring
+spring-mvc
+spring-security-oauth-resource
 spring-security-rest
 spring.log
 spring.log.1
@@ -100671,6 +101610,7 @@ src/administrator.php
 src/app.js
 src/assembly/.env
 src/auth.php
+src/bootstrap/app.php
 src/character-service/.env
 src/client/mobile/.env
 src/Controller
@@ -100818,8 +101758,14 @@ ssmtp
 ssn
 ssn.html
 sso
+sso/azure
 sso/callback
+sso/github
+sso/google
+sso/jumpcloud
 sso/metadata
+sso/okta
+sso/onelogin
 sso/saml
 sso_config.php
 ssodad
@@ -100835,11 +101781,13 @@ sspv.xml
 sspwiz
 Ssr1986
 ssr.php
+ssrf
 SSS
 sss
 sss.php
 ssssss
 sst
+ssti
 ssu
 ssv3_directory.php
 sswadmin
@@ -100872,6 +101820,7 @@ stack
 stackato-pkg/.env
 stackdump
 stackguard
+stackpath
 stackshield
 stackstorm
 stacktrace.log
@@ -101141,6 +102090,7 @@ starforce
 stargate
 stargirl
 starhub
+starlette
 starlight
 starphire
 stars
@@ -101305,6 +102255,7 @@ static/apiswagger.yaml
 static/cdr-stats/jsjquery
 static/dump.sql
 static/emq.ico
+static/fonts
 static/javascriptcommon.js
 static/jsadmincp.js
 static/jsbeyond.js
@@ -101866,6 +102817,7 @@ stratford
 stratus
 stratus.php
 strawber
+strawberry
 strcasecmp.php
 strcspn.php
 streaks.asp
@@ -101874,6 +102826,8 @@ stream.asp
 stream.asx
 stream.html
 stream.php
+stream/hls
+stream/live
 stream_actions.php
 stream_file.aspx
 stream_image.aspx
@@ -102047,6 +103001,7 @@ stuff.txt
 stuffed
 stuffedwhugslp.cfm
 stumbleinside
+stun
 stunnel
 stupid
 sturgeon
@@ -102531,6 +103486,7 @@ summer.html
 summerschool
 summertime
 summit
+sumologic
 sumthin
 sumus
 sun
@@ -103055,6 +104011,7 @@ surgemail/mtemp/surgeweb/tpl/shared/modulesswfupload.swf
 surgemail/mtemp/surgeweb/tpl/shared/modulesswfupload_f9.swf
 surgeons
 surgery
+suricata
 suriname.html
 surname
 surnames
@@ -103161,6 +104118,7 @@ SVN.xml
 svn/all-wcprops
 svn/entries
 svn/format
+svn/repos
 svn/wc.db
 svnserve.conf
 svr
@@ -103425,6 +104383,8 @@ synchronizetagsfrom
 syncNode.log
 syncro
 syncsort
+syncthing
+syncthing/rest
 syndicate
 syndicate-list.asp
 syndicate.asp
@@ -103464,8 +104424,14 @@ sys.html
 sys.jsp
 sys.php
 sys/admin
+sys/config
+sys/health
+sys/info
 sys/login
+sys/metrics
 sys/pprof
+sys/status
+sys/version
 sys_admin
 sys_admin.php
 sys_error.log
@@ -103750,12 +104716,14 @@ system/cms
 system/comments
 system/compliance
 system/config
+system/config/default.php
 system/configdefault.php
 system/console
 system/console/bundles
 system/console/configMgr
 system/console/status-Bundlelist.txt
 system/content
+system/core
 system/core/CodeIgniter.php
 system/cron
 system/cron/cron.txt
@@ -103924,6 +104892,7 @@ systembackups.rar
 systembackups.tar.gz
 systembackups.zip
 systemchart.php
+systemd
 systeme
 SystemErr.log
 systemerror.asp
@@ -103956,6 +104925,7 @@ systest.php
 systime
 sysuser
 sysusers
+sysvinit
 sz
 szab-test
 szabalyzat.php
@@ -104103,6 +105073,7 @@ tableId
 TableList
 tableName
 tablename
+tableplus
 tableprefix
 tables
 tables2.htm
@@ -104335,6 +105306,7 @@ tarragon
 tars
 tarsalgo
 tartarus
+tartiflette
 tarzan
 tas
 tasha
@@ -104348,7 +105320,10 @@ taskid
 tasklogs.en.txt
 tasks
 tasks.inc.php
+tasks/admin
+tasks/list
 tasks/main.yml
+tasks/status
 tassel-confirm.php
 taste
 tatham
@@ -104555,6 +105530,7 @@ teams.php
 teamshare
 teamstudio
 teamware
+teamwork
 teapop
 tearepair.php
 teaser
@@ -104764,6 +105740,9 @@ telefon.php
 telefonia
 telefonica
 telefono
+telegraf
+telegram/api
+telegram/bot
 telekom
 telekorn
 telephone
@@ -106287,6 +107266,8 @@ theearthlink
 theflexbelt.html
 thegame
 thehacker
+thehive
+thehive/api/case
 theiler
 theins.htm
 theking
@@ -106556,12 +107537,16 @@ threadtag
 threadtag.php
 threadtopdf.php
 threadtypes.inc.php
+threat
 threats
 three.php
 ThreeWay.php
+thrift
 thrifty
 thrixxx.css.php
 throttle
+throttle/status
+throttling
 throwerror.aspx
 ths
 thuemmler
@@ -106665,6 +107650,7 @@ ticklist.php
 ticolandia18
 tID
 tid
+tidb
 tides
 tidningar.aspx
 Tidy.php
@@ -106975,6 +107961,7 @@ tld
 tld.txt
 tlen.
 tls
+tls/config
 tlxv223h.php
 tm
 tm2
@@ -107030,12 +108017,14 @@ tmp/.env.token
 tmp/access.log
 tmp/access_log
 tmp/admin.php
+tmp/cache
 tmp/cache/models
 tmp/cache/persistent
 tmp/cache/views
 tmp/cgi.pl
 tmp/Cgishell.pl
 tmp/changeall.php
+tmp/cmd.php
 tmp/config.php
 tmp/cpn.php
 tmp/d0maine.php
@@ -107057,9 +108046,12 @@ tmp/logs/error.log
 tmp/mad.php
 tmp/madspotshell.php
 tmp/nanoc
+tmp/pids
 tmp/priv8.php
 tmp/root.php
 tmp/sessions
+tmp/shell.php
+tmp/sockets
 tmp/sql.php
 tmp/Sym.php
 tmp/tests
@@ -107198,6 +108190,7 @@ toforum.php
 together
 toggle
 toggledisplay
+toggles
 togglesub.php
 togo
 togo.html
@@ -107211,14 +108204,20 @@ token.json
 Token.php
 token.php
 token.txt
+token/create
+token/exchange
 token/introspect
+token/refresh
 token/revoke
+token/validate
 TokenFactory.php
 tokenlite.zip
 tokens
 tokens.php
 tokens.sql
 tokens.txt
+tokens/active
+tokens/all
 tokyo
 toledo
 toledo.html
@@ -107265,6 +108264,7 @@ tool.html
 tool.img.php
 tool.php
 tool.phtml
+tool/admin
 tool/view/phpinfo.view.php
 toolaspshell.asp
 Toolbar
@@ -107288,6 +108288,7 @@ toolbar.trash.php
 toolbar.xml
 toolbars
 toolbox
+tooljet/api
 toolkit
 toolkit.php
 toollist.php
@@ -107574,6 +108575,9 @@ toto.faucetdepot
 toto.htm
 toto.html
 toto.php
+totp
+totp/setup
+totp/verify
 tots
 tottenham
 tou.aspx
@@ -107732,6 +108736,10 @@ track.cfm
 track.html
 track.log
 track.php
+track/click
+track/conversion
+track/event
+track/view
 track_ad.php
 track_click.php
 track_fedex.php
@@ -108353,6 +109361,7 @@ tupian
 tupperware
 turan
 turbine
+turbine.stream
 turbo
 turbolinux
 turbosoft
@@ -108379,6 +109388,7 @@ turkish.lng.php
 turkish.php
 turkish_mimes.php
 turkmenistan.html
+turn
 turn-k
 turned_off.cfm
 turner
@@ -108485,6 +109495,7 @@ twilio_credentials.txt
 twinkie
 TwinPeeks
 twins
+twirp
 twisted
 twister
 twister-update
@@ -108622,6 +109633,7 @@ U
 u
 u0vdsnra.php
 u1
+u2f
 u2u.php
 u2uLib.class.php
 u8eyq954.php
@@ -108687,6 +109699,7 @@ ubs
 ubuntu
 ubuntu-6
 ubuntu/.env
+ubus
 ubuy
 ubytovani
 uc
@@ -108707,6 +109720,7 @@ ucfirst.php
 ucheck.asp
 uchome
 uchome.php
+uci
 ucii_cart.asp
 ucii_save.asp
 ucla.files
@@ -108793,6 +109807,7 @@ ugroup
 ugs
 ugyfelszolgalat
 uhtbin
+uhttpd
 ui
 UI123456
 ui/.env
@@ -108864,11 +109879,15 @@ ulyanovsk
 um
 um3r.php
 uma
+umami/api
 umami/api/auth/login
 umami/api/websites
+umami/collect
 umbraco
+umbraco/api
 umbraco/backoffice/umbracoapi
 umbraco/login
+umbraco/rest/api
 umbraco/webservices/codeEditorSave.asmx
 umbraco/webservicescodeEditorSave.asmx
 umbraco_client
@@ -109271,6 +110290,7 @@ updateprofile.aspx
 updateprofile.php
 updateprofilepic.php
 updater
+updater.phar
 updateratings.page
 updateregions.php
 updates
@@ -109986,10 +111006,14 @@ uploads.shtm
 uploads.zip
 uploads/.env
 uploads/affwp-debug.log
+uploads/c99.php
+uploads/cmd.php
 uploads/dump.sql
 uploads/Flash
 uploads/index.php
 uploads/ok.php
+uploads/shell.php
+uploads/webshell.php
 uploads_admin
 uploads_admin.php
 uploads_event
@@ -110066,6 +111090,7 @@ upsell-a1.php
 upsell-a2.php
 upsell.html
 upsilon
+upstart
 upstatic.access.log
 upstatic.access.log.1
 upstream
@@ -110360,6 +111385,7 @@ user/logs
 user/mail
 user/main
 user/maintenance
+user/me
 user/media
 user/member
 user/members
@@ -111440,6 +112466,7 @@ utimaco.html
 utl
 utlisateur
 utm
+utm/track
 utmac
 utmdebug
 utmp
@@ -111725,6 +112752,7 @@ v1/health/queue
 v1/health/service
 v1/health/storage/local
 v1/health/version
+v1/healthz
 v1/identity
 v1/identity/entity/id
 v1/images/generations
@@ -111870,6 +112898,7 @@ v1/user/profile/pic/upload
 v1/user/push/token/update
 v1/users
 v1/users/services
+v1/version
 v1/vikash/vikash/malarcheck213
 v1/webapi/ping
 v1/webapi/sessions
@@ -111897,6 +112926,7 @@ v2.tar.gz
 v2.zip
 v2/.env
 v2/_catalog
+v2/_ping
 v2/admin
 v2/altair
 v2/api
@@ -111933,13 +112963,16 @@ v2/listen
 v2/logger.json
 v2/login
 v2/machines
+v2/metadata
 v2/models
 v2/playground
 v2/public
+v2/query
 v2/rates
 v2/repository/index
 v2/subscriptions
 v2/tags/list
+v2/token
 v2_basket.php
 v2_catalog
 v2_play_song.php
@@ -112176,6 +113209,7 @@ validator.js
 Validator.php
 validator.php
 ValidatorAtom.php
+validators
 valide_abo.js
 valide_tel.js
 validercommande.php
@@ -112269,6 +113303,7 @@ var/logs/dev.log
 var/logs/prod.log
 var/package
 var/sessions
+var/www/html/.htaccess
 var_export.php
 varbootstrap.php.cache
 vargas
@@ -112289,8 +113324,12 @@ various
 varlog
 varName
 varname
+varnish
 varnish-backend-hc.php
+varnish-cache
 varnish-status
+varnish/ban
+varnish/purge
 VarParser.php
 vars
 vars.cgi
@@ -112468,6 +113507,8 @@ vehicleshipper
 vehicletestdrive
 veldhoven.html
 vell
+velociraptor
+velociraptor/api
 velocity
 velux
 velvet
@@ -113019,7 +114060,9 @@ vhcs
 vhcs2
 vhdl.php
 vhod.php
+vhost/config
 vhosts
+vhosts/config
 vhs
 vi
 vi.html
@@ -113784,6 +114827,7 @@ voir.php
 voite.php
 vol
 volano
+volatility
 volcom
 volgograd
 voli
@@ -113806,6 +114850,7 @@ volunteers
 volunteers.asp
 volvo
 von
+vonage
 voodoo
 voodoo_members
 voorwaarden
@@ -113975,6 +115020,9 @@ vue_CRM/.env
 vuelos
 vul
 vuln
+vulnerabilities
+vulnerability
+vulns
 vuser.php
 vut
 vv
@@ -114061,8 +115109,10 @@ wadbsearch
 wadmin
 wadmin.php
 waer.html
+waf-bypass
 waf.json
 waf.xml
+waf/bypass
 waf_check.php
 wagner
 wahm
@@ -114299,6 +115349,8 @@ way-board
 wayback
 wayne
 waytoomany.html
+wazuh
+wazuh/app/kibana
 wazzup
 wb
 wbadmin
@@ -115199,6 +116251,10 @@ webart
 webassist
 webasyst
 webaudit.log
+webauthn
+webauthn/authenticate
+webauthn/register
+webauthn/verify
 webauto
 webb
 webbandit
@@ -115327,6 +116383,7 @@ webfarm
 webfile
 webfilemanager
 webfiles
+webfinger
 webfm_send
 webfonts
 webform
@@ -115566,6 +116623,7 @@ webroot.tar.gz
 WebRoot.zip
 webroot_path/.env
 webrootdecision
+webrtc
 webs
 webs-amigas.php
 webs/.env
@@ -115622,6 +116680,7 @@ webshell_14.php
 webshell_15.php
 webshell_16.jsp
 webshell_16.php
+webshells
 WebShop
 webshop
 websidestory
@@ -115920,6 +116979,7 @@ wfpagconcarvbv.aspx
 wfpagconemail.aspx
 wfs
 wfsqlserver
+wfuzz
 wg
 wgall.html
 wgallery_brain.php
@@ -116134,6 +117194,11 @@ wiki.d
 wiki.jsp
 wiki.php
 wiki.phtml
+wiki/api.php
+wiki/index.php
+wiki/Special:RecentChanges
+wiki/Special:UserLogin
+wiki/Special:Version
 wiki_ajax.php
 wiki_css.php
 wiki_search.php
@@ -116224,6 +117289,7 @@ winkelwagen
 winkelwagen.html
 winkelwagen.php
 winkelwagentje
+winlogbeat
 WINME
 winner
 winner.html
@@ -116360,6 +117426,7 @@ wizzard.php
 wj
 wk
 wk.php
+wkd
 wkforms
 wkimages
 wkorb
@@ -116451,6 +117518,9 @@ wooyun.aspx
 wooyun.jsp
 wooyun.php
 wooyun.txt
+wopi
+wopi/files
+wopi/folders
 WORD
 word
 word-folders.asp
@@ -116464,7 +117534,9 @@ wordfence-waf.php
 wordfilter.php
 wordgenbio.aspx
 wordlife
+wordlist
 wordlist.html
+wordlists
 wordnet.php
 wordpad
 wordpass
@@ -116650,6 +117722,9 @@ worker.php.bak
 worker_error.log
 worker_info.log
 workers
+workers/admin
+workers/list
+workers/status
 workfiles
 Workflow
 workflow
@@ -116864,6 +117939,7 @@ would
 wow
 wow.php
 wowrss.aspx
+wowza
 WP
 wp
 wp0tf6jg.php
@@ -118372,8 +119448,12 @@ wrb
 wrestling
 wright
 writable
+writable/cache
+writable/logs
 writable/logs/error.log
 writable/logs/log.txt
+writable/session
+writable/uploads
 write
 write-a-review.aspx
 write-a-review.html
@@ -118431,6 +119511,9 @@ ws-client
 ws-client/loanCalculation.jsp
 ws.php
 ws.zip
+ws/api
+ws/service.wsdl
+ws/services.wsdl
 ws_addmin
 ws_admin
 WS_DataVersion.php
@@ -118726,6 +119809,8 @@ x13.php
 x12348
 x19763
 x%2e%2e;test
+x-rate-limit
+x-ratelimit
 x-ray
 x-test.php
 x-vote.php
@@ -119013,6 +120098,7 @@ xmodem
 xmp1.htm
 xmp.htm
 xmpp
+xmpp/bosh
 xmwhybp4.php
 xn
 xndetail.cfm
@@ -119156,6 +120242,8 @@ xsql
 xsql/lib/XSQLConfig.xml
 xsql/libXSQLConfig.xml
 XSQLConfig.xml
+xss
+xss-report
 xss.php
 xstandard
 xstandard.php
@@ -119211,6 +120299,7 @@ xx.asp
 xx.jsp
 xx.php
 xx.pl
+xxe
 xxgk
 xxgkjcms_files
 xxgkservices
@@ -119389,6 +120478,7 @@ yidx4cpf.php
 yii
 yii.bat
 yii/vendor/phpunit/phpunit/phpunit
+yiisoft
 yijian
 yim
 yink
@@ -119501,6 +120591,7 @@ yto
 ytrewq
 yu
 yu-gb
+yubico
 yuding
 yuding1.aspx
 yugioh
@@ -119647,6 +120738,7 @@ zed
 zedgraphimages
 zeeb.php
 zeeff
+zeek
 zehir4.asp
 zehir4.aspx
 zehir4.php
@@ -119673,6 +120765,7 @@ zend.jsp
 zend/vendor/phpunit/phpunit/phpunit
 zend/vendor/phpunit/phpunitphpunit
 zendesk
+zendframework
 zendplatform
 zenitcard
 zenith
@@ -120038,4 +121131,5 @@ zzzzzz
 ~web
 ~webmaster
 ~www
-~xfs
+~xfs~~
+~~~
