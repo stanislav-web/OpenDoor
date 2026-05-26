@@ -30,6 +30,8 @@ class ThreadPool(object):
 
     JOIN_POLL_INTERVAL_SEC = 1.0
     JOIN_STALL_WARNING_SEC = 60.0
+    PAUSE_PROMPT_DRAIN_TIMEOUT_SEC = 0.5
+    PAUSE_PROMPT_DRAIN_POLL_SEC = 0.05
 
     def __init__(self, num_threads, total_items, timeout, stall_warning_interval=None):
         """
@@ -297,6 +299,26 @@ class ThreadPool(object):
 
         return tuple(signature)
 
+    def __wait_for_pause_prompt_drain(self):
+        """
+        Give in-flight worker output a short chance to drain before prompting.
+
+        Runtime pause does not kill active requests. A worker can therefore
+        finish and print its scan result right after Ctrl+C. Waiting briefly
+        before showing the prompt keeps the prompt visible instead of letting it
+        be interleaved with the last in-flight result.
+
+        The wait is intentionally bounded so a slow or retrying request cannot
+        hide the pause prompt indefinitely.
+
+        :return: None
+        """
+
+        deadline = time.monotonic() + float(self.PAUSE_PROMPT_DRAIN_TIMEOUT_SEC)
+
+        while len(self.active_tasks) > 0 and time.monotonic() < deadline:
+            time.sleep(float(self.PAUSE_PROMPT_DRAIN_POLL_SEC))
+
     def __format_active_tasks(self, now):
         """
         Format active worker tasks for join watchdog diagnostics.
@@ -376,6 +398,8 @@ class ThreadPool(object):
 
         for worker in self.__workers:
             worker.pause()
+
+        self.__wait_for_pause_prompt_drain()
 
         try:
             while True:

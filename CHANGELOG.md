@@ -11,6 +11,7 @@ v5.16.2 (xx.06.2026)
 - (fix) `--sniff malware` false positives on security-plugin documentation by suppressing name-only webshell vocabulary in documentation context while preserving executable payload and shell UI detections.
 - (fix) clarified Runtime Diagnostics queue accounting by showing consumed items, submitted HTTP jobs, and pre-request skipped items separately.
 - (fix) preserved the current queued scan item when Ctrl+C opens the runtime pause prompt during task submission and the scan is resumed.
+- (fix) made the runtime pause prompt visible after in-flight worker output drains, avoiding prompt/result interleaving after Ctrl+C.
 - (enhancement) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt describe Enter/C continue, E/Q abort, and active-request drain semantics.
 - (enhancement) reduced `--sniff malware` false positives for standard Bitrix admin login pages by allowlisting the built-in hidden `auth_frame` iframe only when strong Bitrix login markers are present.
 - (dictionary) cleaned and normalized the internal directories list (+XXX potential interesting paths).

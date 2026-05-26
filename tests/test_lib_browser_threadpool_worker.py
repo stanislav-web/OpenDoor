@@ -187,6 +187,86 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
             'Unknown command. Use Enter/C to continue or E/Q to abort scan.',
         )
 
+    def test_pause_prompt_waits_for_active_task_output_to_drain(self):
+        """ThreadPool.pause() should show the prompt after the last active task drains."""
+
+        events = []
+
+        class DrainingWorker:
+            def __init__(self):
+                self.active_reads = 0
+
+            def pause(self):
+                events.append('pause')
+
+            def resume(self):
+                events.append('resume')
+
+            @property
+            def active_task(self):
+                events.append('active')
+                self.active_reads += 1
+
+                if self.active_reads == 1:
+                    return {
+                        'label': 'https://example.test/last-active',
+                        'started_at': 1.0,
+                    }
+
+                return None
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=5, timeout=0)
+
+        setattr(pool, '_ThreadPool__workers', [DrainingWorker()])
+
+        def continue_prompt(key):
+            events.append('prompt')
+            self.assertEqual(key, 'option_prompt')
+            return 'c'
+
+        with patch('src.lib.browser.threadpool.tpl.info'), \
+                patch('src.lib.browser.threadpool.tpl.prompt', side_effect=continue_prompt) as prompt_mock, \
+                patch('src.lib.browser.threadpool.time.sleep') as sleep_mock:
+            pool.pause()
+
+        self.assertLess(events.index('active'), events.index('prompt'))
+        self.assertIn('resume', events)
+        prompt_mock.assert_called_once_with(key='option_prompt')
+        sleep_mock.assert_called_once_with(pool.PAUSE_PROMPT_DRAIN_POLL_SEC)
+
+    def test_pause_prompt_drain_is_bounded_for_stuck_active_tasks(self):
+        """ThreadPool.pause() should not hide the prompt behind a stuck active request."""
+
+        class StickyWorker:
+            def pause(self):
+                pass
+
+            def resume(self):
+                pass
+
+            @property
+            def active_task(self):
+                return {
+                    'label': 'https://example.test/stuck',
+                    'started_at': 1.0,
+                }
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=5, timeout=0)
+
+        setattr(pool, '_ThreadPool__workers', [StickyWorker()])
+        pool.PAUSE_PROMPT_DRAIN_TIMEOUT_SEC = 0.0
+
+        with patch('src.lib.browser.threadpool.tpl.info'), \
+                patch('src.lib.browser.threadpool.tpl.prompt', return_value='c') as prompt_mock, \
+                patch('src.lib.browser.threadpool.time.sleep') as sleep_mock:
+            pool.pause()
+
+        prompt_mock.assert_called_once_with(key='option_prompt')
+        sleep_mock.assert_not_called()
+        self.assertTrue(pool.is_started)
+
     def test_pause_raises_keyboard_interrupt_on_e(self):
         """ThreadPool.pause() should raise KeyboardInterrupt on 'e'."""
 

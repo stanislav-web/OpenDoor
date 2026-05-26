@@ -4780,9 +4780,6 @@
 %20..
 %2500.cfm
 %C0%AE%C0%AE%C0%AF
-(compaq)
-(dtcc)
-(pty)
 ******
 +CSCOE+/logon.html
 +CSCOE+/session_password.html
@@ -71415,9 +71412,11 @@ master-admin.php
 master.css.php
 master.dwt
 master.htm
+action.log
 master.html
 master.key
 master.log
+systems/admin.js
 master.passwd
 master.php
 master.swf
