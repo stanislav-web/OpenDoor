@@ -27972,6 +27972,7 @@ blogs.html
 blogs.moderation.php
 blogs.php
 blogs/.env
+blogs_cat.php
 blogs_detalle.php
 blogs_full.php
 blogs_home.php
@@ -50948,7 +50949,7 @@ filter.aspx
 filter.html
 Filter.php
 filter.php
-filter/jmol/iframe.php?_USE=%22};alert(1337);
+filter/jmol/iframe.php
 filter/jmol/js/jsmol/php/jsmol.php?call=getRawDataFromDatabase&query=file
 filter/jmol/js/jsmol/phpjsmol.php?call=getRawDataFromDatabase&query=file
 filterinput.php
@@ -90080,6 +90081,7 @@ reach.cfm
 reach/sip.svc
 reachsip.svc
 react
+react-dom-client.production.js
 react_todo/.env
 reacties
 reaction
@@ -118932,6 +118934,7 @@ xml.php
 xml.rss
 xml/_common.xml
 xml/common.xml
+xml/main/register.php
 xml/productsdotnetcmsversion.xml
 xml_common.xml
 xml_data

@@ -2,6 +2,7 @@ CHANGELOG
 =======
 v5.17.0 (xx.xx.2026)
 ---------------------------
+- (fix) Shadow Copy sniffer false positives on soft-200/fallback routes by adding a negative-control probe before reporting backup-file variants.
 - (fix) subdomain scans so missing/no-response candidates are skipped without triggering the directory retry fail-streak abort guard.
 - (fix) directory scan prefix normalization so `--prefix locale` and `--prefix locale/` both scan under `/locale/<path>` instead of concatenating paths as `/locale<path>`.
 - (fix) `--auto-calibrate` now disables weak HTTP baselines when too many probes are blocked, ignored, or failed, preventing sparse signatures from over-filtering scan results.

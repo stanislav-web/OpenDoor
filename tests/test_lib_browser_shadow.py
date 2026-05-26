@@ -66,6 +66,14 @@ class TestShadowProbe(unittest.TestCase):
         self.assertFalse(ShadowProbe.is_enabled(SimpleNamespace(is_sniff=True, sniffers=['secret'])))
         self.assertTrue(ShadowProbe.is_enabled(SimpleNamespace(is_sniff=True, sniffers=['shadow'])))
 
+    def test_control_suffix_should_not_expose_tool_name(self):
+        """Should keep negative-control URLs neutral for target logs."""
+
+        self.assertNotIn('opendoor', ShadowProbe.CONTROL_SUFFIX.lower())
+        self.assertNotIn('shadow', ShadowProbe.CONTROL_SUFFIX.lower())
+        self.assertTrue(ShadowProbe.CONTROL_SUFFIX.startswith('.'))
+        self.assertTrue(ShadowProbe.CONTROL_SUFFIX.endswith('__'))
+
     def test_should_identify_file_like_seed_urls(self):
         """Should probe source/config-like files and skip directories/binary assets."""
 
@@ -208,6 +216,58 @@ class TestShadowProbe(unittest.TestCase):
             probe.drain()
 
         self.assertEqual(probe.findings, 0)
+
+    def test_should_suppress_shadow_burst_when_control_matches_fallback(self):
+        """Should suppress fallback-like shadow bursts without lowering real matching rules."""
+
+        base_body = b'<html><title>dashboard</title><main>same dynamic fallback body</main></html>'
+        base = self.make_response(body=base_body)
+        seen_urls = []
+        matches = []
+
+        def request(url):
+            seen_urls.append(url)
+            if url.endswith(ShadowProbe.CONTROL_SUFFIX):
+                return self.make_response(body=base_body.replace(b'dashboard', b'dashboard '))
+            return self.make_response(body=base_body + b'<!-- would be a false shadow -->')
+
+        probe = ShadowProbe(request, lambda url, response, metadata: matches.append((url, metadata)))
+        with patch.object(probe, '_ShadowProbe__suffixes', ['.bak', '.old', '.tmp']):
+            self.assertEqual(probe.enqueue('https://example.com/register-site-admin.php', base, 'success'), 3)
+            probe.drain()
+
+        self.assertEqual(seen_urls, ['https://example.com/register-site-admin.php{0}'.format(ShadowProbe.CONTROL_SUFFIX)])
+        self.assertEqual(matches, [])
+        self.assertEqual(probe.submitted, 3)
+        self.assertEqual(probe.completed, 3)
+        self.assertEqual(probe.findings, 0)
+
+    def test_should_keep_real_shadow_candidate_when_control_does_not_match(self):
+        """Should preserve real shadow findings when the negative control is not fallback-like."""
+
+        base_body = b'<?php echo "stable application body"; ?>\n' * 8
+        shadow_body = base_body + b'// backup-only marker\n'
+        base = self.make_response(body=base_body, content_type='text/plain')
+        matches = []
+
+        def request(url):
+            if url.endswith(ShadowProbe.CONTROL_SUFFIX):
+                return self.make_response(body=b'not found', status=404, content_type='text/plain')
+            if url.endswith('.bak'):
+                return self.make_response(body=shadow_body, content_type='text/plain')
+            return self.make_response(body=base_body, content_type='text/plain')
+
+        probe = ShadowProbe(request, lambda url, response, metadata: matches.append((url, metadata)))
+        with patch.object(probe, '_ShadowProbe__suffixes', ['.bak', '.old']):
+            self.assertEqual(probe.enqueue('https://example.com/index.php', base, 'success'), 2)
+            probe.drain()
+
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0][0], 'https://example.com/index.php.bak')
+        self.assertEqual(matches[0][1]['shadow_detection']['reason'], 'content_diff')
+        self.assertEqual(probe.submitted, 2)
+        self.assertEqual(probe.completed, 2)
+        self.assertEqual(probe.findings, 1)
 
     def test_should_skip_non_success_non_file_like_binary_and_shadow_buckets(self):
         """Should keep active probing limited to success 200 file-like responses."""
