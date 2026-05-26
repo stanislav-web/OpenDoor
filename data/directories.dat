@@ -214,6 +214,7 @@
 1c-bitrix
 1c-bitrix/admin.php
 1c_exchange.php
+1cadmin
 1checkout.aspx
 1cManager
 1confirmssr.htm
@@ -10585,6 +10586,8 @@ adm/authorization.php
 adm/authorize.php
 adm/backend.php
 adm/backoffice.php
+adm/callback.log
+adm/catch.php
 adm/check-login.php
 adm/check.php
 adm/check_login.php
@@ -10609,6 +10612,7 @@ adm/dashboard.phtml
 adm/default.php
 adm/entry.php
 adm/fckeditor
+adm/git.txt
 adm/home.php
 adm/index
 adm/index.asp
@@ -12721,10 +12725,12 @@ admin/roles.php
 admin/root
 admin/root.php
 admin/routes
+admin/routes.txt
 admin/rules
 admin/runtime/tree
 admin/saml
 admin/save.php
+admin/scale.php
 admin/scheduler
 admin/schema
 admin/scripts/fckeditor
@@ -12891,6 +12897,7 @@ admin/uhome.html
 admin/up
 admin/update.php
 admin/upfile.asp
+admin/upgrade.php
 admin/upload
 admin/upload.asp
 admin/upload.php
@@ -16637,6 +16644,7 @@ administrator/login.cgi
 administrator/login.html
 Administrator/login.html
 administrator/login.js
+administrator/login.log
 administrator/login.php
 Administrator/login.php
 administrator/login.phtml
@@ -22184,6 +22192,7 @@ api_test
 api_uru.php
 apiaccess.log
 apiaction
+apiadmin
 apialerts
 apiannotate
 apiapi
@@ -23382,6 +23391,7 @@ argocd/api/v1/repositories
 argocd/api/v1/session
 argocd/api/v1/settings
 argocd/api/version
+argocdadmin
 argomenti
 argosoft
 args
@@ -24949,6 +24959,7 @@ aws/credentials
 aws/s3/.env
 aws_credentials
 aws_keys.txt
+awsadmin/config.xml
 awstat
 awstats
 awStats
@@ -25054,6 +25065,8 @@ azure/admin
 azure/console
 azuread
 azureadmin
+azureadmin/access.log
+azureadmin/capture.php
 azurecdn
 azureus
 b
@@ -30401,6 +30414,7 @@ calhead.html
 cali
 caliban
 calibration.php
+calicoadmin/ips.log
 calife
 californ
 california
@@ -30440,6 +30454,7 @@ callback.phtml
 callback_form.php
 callback_mb.php
 callback_url.php
+callbackadmin
 callcenter
 callcenter.php
 callee
@@ -33140,6 +33155,8 @@ circeos
 circle
 circle.yml
 circleci
+circleciadmin
+circleciadmin.sh
 circuit
 circuit-breaker
 circuitbreaker
@@ -34163,6 +34180,7 @@ cloud/admin
 cloud/api
 cloud/console
 cloud_theme
+cloudadmin
 cloudbank/detail.asp?ID=
 cloudbeaver
 cloudbeaver/api
@@ -41740,6 +41758,7 @@ dbadmin.tar.gzip
 dbadmin.tgz
 dbadmin.zip
 dbadmin/account.php
+dbadmin/csv.php
 dbadmin/index.php
 dbadminaccount.php
 dbadminindex.php
@@ -43949,6 +43968,7 @@ DNS.php
 dns.php
 dns/admin
 dns/zones
+dnsadmin
 dnsmasq
 dnstools
 dnt
@@ -44827,6 +44847,7 @@ drm_unpaiditem.php
 droelf.kit
 drone/api/repos
 drone/api/user
+droneadmin
 drop
 drop.php
 drop_post.php
@@ -44907,6 +44928,7 @@ Drupal.php
 drupal.php
 drupal/admin
 drupal/user/login
+drupaladmin
 drupalit
 drushrc.php
 drv
@@ -46844,6 +46866,7 @@ elastic
 elastic-apm-agent
 elastic/security
 elastic/siem
+elasticadmin
 elasticsearch
 elasticsearch/_mapping
 elasticsearch/_nodes
@@ -68916,6 +68939,7 @@ logsproxy_access_ssl_log
 logsproxy_error_log
 logstash
 logstash.yml
+logstashadmin
 logstats
 logsurfer
 logsuser.log
@@ -76285,6 +76309,7 @@ nagios/cgi-bin/status.cgi
 nagios/cgi-binstatus.cgi
 nagios_admin
 nagios_get.php
+nagiosadmin
 nagiosxi
 nagl
 nahicodeofethics
@@ -76383,6 +76408,7 @@ native_stderr.log
 native_stdout.log
 nativeEncoding.txt
 nats
+natsadmin
 natterchat
 natural.htm
 nature
@@ -77539,6 +77565,7 @@ nextstep.aspx
 nextweb
 nexus
 nexus/repository
+nexusadmin
 nf
 nf2004text
 nf.aspx
@@ -85885,6 +85912,7 @@ poll_success.php
 poll_thankyou.html
 poll_user
 poll_vote.php
+polladmin
 pollbooth
 pollbooth.asp
 pollbooth.html
@@ -94348,6 +94376,7 @@ s3.yml
 s3/admin
 s3/login
 s3_credentials.txt
+s3admin
 s3c.php
 s3cmd.ini
 s3proxy.conf
@@ -114943,6 +114972,7 @@ vpn
 vpn/../vpns/cfg/smb.conf
 vpn/index.html
 vpn_credentials.txt
+vpnadmin
 vpnet
 vpnindex.html
 vpop3d
@@ -115114,6 +115144,7 @@ waf.json
 waf.xml
 waf/bypass
 waf_check.php
+wafadmin
 wagner
 wahm
 wai
@@ -119383,6 +119414,7 @@ wp_redirect.asp
 wp_users
 wpad
 wpad.dat
+wpadmin
 wpadmin.aspx
 wpadmin.php
 wpadmin.phtml

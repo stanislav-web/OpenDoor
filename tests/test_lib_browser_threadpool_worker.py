@@ -89,8 +89,24 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
             float(ThreadPool.JOIN_STALL_WARNING_SEC),
         )
 
-    def test_add_calls_pause_on_keyboard_interrupt(self):
-        """ThreadPool.add() should open the pause menu when queue.put() is interrupted."""
+    def test_add_retries_current_item_after_pause_continue_on_keyboard_interrupt(self):
+        """ThreadPool.add() should preserve the current item when pause resumes."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=5, timeout=0)
+
+        queue_mock = getattr(pool, '_ThreadPool__queue')
+
+        with patch.object(queue_mock, 'put', side_effect=[KeyboardInterrupt, None]) as put_mock, \
+                patch.object(pool, 'pause') as pause_mock:
+            pool.add(lambda: None)
+
+        pause_mock.assert_called_once_with()
+        self.assertEqual(put_mock.call_count, 2)
+        self.assertEqual(pool.submitted_size, 1)
+
+    def test_add_keeps_item_unsubmitted_when_pause_aborts(self):
+        """ThreadPool.add() should not count an item when the pause prompt aborts."""
 
         with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
             pool = ThreadPool(num_threads=1, total_items=5, timeout=0)
@@ -98,10 +114,12 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         queue_mock = getattr(pool, '_ThreadPool__queue')
 
         with patch.object(queue_mock, 'put', side_effect=KeyboardInterrupt), \
-                patch.object(pool, 'pause') as pause_mock:
-            pool.add(lambda: None)
+                patch.object(pool, 'pause', side_effect=KeyboardInterrupt) as pause_mock:
+            with self.assertRaises(KeyboardInterrupt):
+                pool.add(lambda: None)
 
         pause_mock.assert_called_once_with()
+        self.assertEqual(pool.submitted_size, 0)
 
     def test_threadpool_add_uses_submitted_counter_not_processed_items(self):
         """ThreadPool.add() should limit queue submissions using submitted_size."""
@@ -141,6 +159,7 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         setattr(pool, '_ThreadPool__workers', [worker])
 
         with patch('src.lib.browser.threadpool.tpl.info') as info_mock, \
+                patch('src.lib.browser.threadpool.tpl.warning') as warning_mock, \
                 patch('src.lib.browser.threadpool.tpl.prompt', side_effect=['x', 'c']):
             pool.pause()
 
@@ -148,6 +167,25 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         self.assertTrue(worker.resume.called)
         self.assertTrue(pool.is_started)
         self.assertTrue(info_mock.called)
+        warning_mock.assert_called_once_with(key='unknown_pause_command')
+
+    def test_pause_prompt_templates_are_concise_and_describe_existing_commands(self):
+        """Runtime pause templates should describe the existing continue/abort commands."""
+
+        from src.lib.tpl.config import Config
+
+        self.assertEqual(
+            Config.templates['stop_threads'],
+            'Pausing workers ({threads}). Active requests may finish first...',
+        )
+        self.assertEqual(
+            Config.templates['option_prompt'],
+            'Scan paused. Press Enter/[C] to continue or [E]/[Q] to abort scan: ',
+        )
+        self.assertEqual(
+            Config.templates['unknown_pause_command'],
+            'Unknown command. Use Enter/C to continue or E/Q to abort scan.',
+        )
 
     def test_pause_raises_keyboard_interrupt_on_e(self):
         """ThreadPool.pause() should raise KeyboardInterrupt on 'e'."""

@@ -145,13 +145,36 @@ class ThreadPool(object):
         :return: None
         """
 
-        try:
-            if True is self.is_started:
-                if self.__submitted < self.total_items_size:
-                    self.__queue.put((func, args, kargs))
-                    self.__submitted += 1
-        except (SystemExit, KeyboardInterrupt):
-            self.pause()
+        if True is not self.is_started:
+            return
+
+        if self.__submitted >= self.total_items_size:
+            return
+
+        self.__enqueue_with_pause_resume(func, args, kargs)
+
+    def __enqueue_with_pause_resume(self, func, args, kargs):
+        """
+        Enqueue a task and preserve it across the runtime pause prompt.
+
+        If Ctrl+C is pressed while the main thread is submitting a task, the
+        pause prompt must not silently drop the current queue item when the user
+        continues the scan.
+
+        :param func func: callback function
+        :param tuple args: callback positional arguments
+        :param dict kargs: callback keyword arguments
+        :raise KeyboardInterrupt: when the user aborts from the pause prompt
+        :return: None
+        """
+
+        while True:
+            try:
+                self.__queue.put((func, args, kargs))
+                self.__submitted += 1
+                return
+            except (SystemExit, KeyboardInterrupt):
+                self.pause()
 
     def join(self):
         """
@@ -363,6 +386,8 @@ class ThreadPool(object):
                 if option in ('C', ''):
                     self.resume()
                     return
+
+                tpl.warning(key='unknown_pause_command')
 
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt
