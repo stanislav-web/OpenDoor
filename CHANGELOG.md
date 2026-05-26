@@ -2,6 +2,7 @@ CHANGELOG
 =======
 v5.16.2 (xx.06.2026)
 ---------------------------
+- (fix) `--sniff malware` false positives when fallback pages repeatedly echo webshell-like names inside URL/query attributes, while preserving real webshell UI and executable payload detections.
 - (fix) false-positive OK findings when a target returns a canonical 404/410 error body with a transient 2xx status by adding strict cross-status soft-error calibration.
 - (fix) `--sniff shadow` false positives on soft-200/fallback routes by adding a negative-control probe before reporting backup-file variants.
 - (fix) subdomain scans so missing/no-response candidates are skipped without triggering the directory retry fail-streak abort guard.
@@ -10,8 +11,7 @@ v5.16.2 (xx.06.2026)
 - (fix) reduced WAF-safe auto-calibration noise by using neutral calibration probe paths when `--waf-safe-mode` is enabled, avoiding high-risk `.php`, `.map`, `admin`, and `wp-*` probe shapes.
 - (fix) `--sniff malware` false positives on security-plugin documentation by suppressing name-only webshell vocabulary in documentation context while preserving executable payload and shell UI detections.
 - (fix) clarified Runtime Diagnostics queue accounting by showing consumed items, submitted HTTP jobs, and pre-request skipped items separately.
-- (fix) preserved the current queued scan item when Ctrl+C opens the runtime pause prompt during task submission and the scan is resumed.
-- (fix) made the runtime pause prompt visible after in-flight worker output drains, avoiding prompt/result interleaving after Ctrl+C.
+- (fix) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt visible after in-flight worker output drains, while preserving Enter/C continue and E/Q abort semantics.
 - (enhancement) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt describe Enter/C continue, E/Q abort, and active-request drain semantics.
 - (enhancement) reduced `--sniff malware` false positives for standard Bitrix admin login pages by allowlisting the built-in hidden `auth_frame` iframe only when strong Bitrix login markers are present.
 - (dictionary) cleaned and normalized the internal directories list (+XXX potential interesting paths).

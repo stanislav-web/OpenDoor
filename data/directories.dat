@@ -9501,6 +9501,7 @@ action.filesform.php
 action.html
 action.importxml.php
 action.jsp
+action.log
 action.module.php
 action.newdir.php
 action.php
@@ -35628,6 +35629,8 @@ components/com_foxcontact/up.php
 components/com_foxcontact/upload.php
 components/com_hdflvplayer/hdflvplayer/download.php
 components/com_hdflvplayer/hdflvplayer/unduh.php
+components/com_jce
+components/com_jce/licence.txt
 components/com_users/views
 components/login
 components/login.ascx
@@ -71412,11 +71415,9 @@ master-admin.php
 master.css.php
 master.dwt
 master.htm
-action.log
 master.html
 master.key
 master.log
-systems/admin.js
 master.passwd
 master.php
 master.swf
@@ -104944,6 +104945,7 @@ systems
 Systems
 systems.
 systems.php
+systems/admin.js
 systems/login
 SystemService.asmx
 systemsoft
