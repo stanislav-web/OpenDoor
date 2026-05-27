@@ -22,13 +22,21 @@ Medium links will be added after publication.
 
 ## Recommended local lab target
 
-Use a local authorized target while following the series.
+Use the deterministic local lab from the repository while following the series.
+
+Start the lab in one terminal:
 
 ```shell
+python examples/mastering-lab/server.py
+```
+
+The server listens on:
+
+```text
 http://127.0.0.1:8080
 ```
 
-Do not scan third-party public systems while reproducing the examples unless you have explicit permission.
+Use another terminal for OpenDoor commands. Do not scan third-party public systems while reproducing the examples unless you have explicit permission.
 
 ---
 
@@ -36,12 +44,37 @@ Do not scan third-party public systems while reproducing the examples unless you
 
 ```shell
 opendoor \
-  --host http://127.0.0.1:8080 \
+  --host http://127.0.0.1 \
+  --port 8080 \
+  --method GET \
+  --threads 1 \
+  --wordlist examples/mastering-lab/wordlist.txt \
   --fingerprint \
-  --reports std,html,json
+  --reports std,html,json \
+  --reports-dir reports/mastering-lab
 ```
 
 This command is intentionally conservative and suitable for the first article in the series.
+
+---
+
+## Low-noise command
+
+```shell
+opendoor \
+  --host http://127.0.0.1 \
+  --port 8080 \
+  --method GET \
+  --threads 1 \
+  --wordlist examples/mastering-lab/wordlist.txt \
+  --include-status 200-299,301,401,403,500 \
+  --exclude-status 404 \
+  --sniff indexof,file,stacktrace,skipempty \
+  --reports std,html,json,sarif \
+  --reports-dir reports/mastering-lab
+```
+
+Use this command after the baseline scan to demonstrate cleaner report output and body-aware response analysis.
 
 ---
 

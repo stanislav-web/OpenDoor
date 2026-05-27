@@ -1,0 +1,14 @@
+admin
+login
+api/users
+uploads/
+backup.zip
+.git/HEAD
+.env
+forbidden
+auth-required
+redirect
+server-error
+nonexistent
+ghost
+random-miss
