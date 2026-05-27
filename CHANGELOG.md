@@ -11,6 +11,7 @@ v5.16.2 (xx.06.2026)
 - (fix) reduced WAF-safe auto-calibration noise by using neutral calibration probe paths when `--waf-safe-mode` is enabled, avoiding high-risk `.php`, `.map`, `admin`, and `wp-*` probe shapes.
 - (fix) `--sniff malware` false positives on security-plugin documentation by suppressing name-only webshell vocabulary in documentation context while preserving executable payload and shell UI detections.
 - (fix) `--sniff malware` false positives on legacy Google Analytics loaders while preserving suspicious document.write, atob, String.fromCharCode and PHP payload detections.
+- (fix) `--sniff secret` scan output so secret sniffer hits are labeled as `OK (Secret)` like other sniffer findings.
 - (enhancement) added Evolution CMS fingerprint detection from explicit generator, branding, and core install-fallback signals.
 - (enhancement) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt visible after in-flight worker output drains, while preserving Enter/C continue and E/Q abort semantics.
 - (enhancement) reduced `--sniff malware` false positives for standard Bitrix admin login pages by allowlisting the built-in hidden `auth_frame` iframe only when strong Bitrix login markers are present.

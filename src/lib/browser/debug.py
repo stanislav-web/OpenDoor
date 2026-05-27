@@ -285,6 +285,12 @@ class Debug(DebugProvider):
                 tpl.line(msg='Malware', color='red'),
                 tpl.line(msg=urlpath, color='green')
             )
+        elif status in ['secret']:
+            request_uri = '{0} ({1}) {2}'.format(
+                tpl.line(msg='OK', color='green'),
+                tpl.line(msg='Secret', color='red'),
+                tpl.line(msg=urlpath, color='green')
+            )
         elif status in ['stacktrace']:
             request_uri = '{0} ({1}) {2}'.format(
                 tpl.line(msg='OK', color='green'),
@@ -323,7 +329,7 @@ class Debug(DebugProvider):
 
         self.__clear = True if self.__catched else False
 
-        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'blocked', 'indexof', 'certificate', 'auth', 'stacktrace', 'malware', 'shadow', 'openredirect']:
+        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'blocked', 'indexof', 'certificate', 'auth', 'stacktrace', 'secret', 'malware', 'shadow', 'openredirect']:
             sys.writels('', flush=True)
             tpl.info(
                 key='get_item',
