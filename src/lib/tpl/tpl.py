@@ -71,12 +71,13 @@ class Tpl(object):
             raise TplError(error)
 
     @staticmethod
-    def prompt(key='', msg=None, status='info', **kwargs):
+    def prompt(key='', msg=None, status='info', newline=False, **kwargs):
         """
         Prompt message
         :param str key: tpl message key
         :param str msg: target message
         :param str status: message status
+        :param bool newline: print prompt text as a full line before reading input
         :param dict kwargs: additional key arguments
         :raise TplError
         :return:str
@@ -88,6 +89,11 @@ class Tpl(object):
                 msg = Tpl.line_log(key=key, status=status, write=False)
             else:
                 msg = Tpl.line_log(msg, status=status, write=False, **kwargs)
+            if newline is True:
+                Tpl.__finish_dynamic_line()
+                sys.writeln(msg)
+                return input('')
+
             result = input(msg)
             return result
 

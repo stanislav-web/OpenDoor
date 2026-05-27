@@ -403,7 +403,7 @@ class ThreadPool(object):
 
         try:
             while True:
-                option = self.normalize_runtime_pause_answer(tpl.prompt(key='option_prompt'))
+                option = self.normalize_runtime_pause_answer(tpl.prompt(key='option_prompt', newline=True))
 
                 if option == 'E':
                     raise KeyboardInterrupt

@@ -220,9 +220,10 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         setattr(pool, '_ThreadPool__workers', [DrainingWorker()])
 
-        def continue_prompt(key):
+        def continue_prompt(key, newline=False):
             events.append('prompt')
             self.assertEqual(key, 'option_prompt')
+            self.assertTrue(newline)
             return 'c'
 
         with patch('src.lib.browser.threadpool.tpl.info'), \
@@ -232,7 +233,7 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         self.assertLess(events.index('active'), events.index('prompt'))
         self.assertIn('resume', events)
-        prompt_mock.assert_called_once_with(key='option_prompt')
+        prompt_mock.assert_called_once_with(key='option_prompt', newline=True)
         sleep_mock.assert_called_once_with(pool.PAUSE_PROMPT_DRAIN_POLL_SEC)
 
     def test_pause_prompt_drain_is_bounded_for_stuck_active_tasks(self):
@@ -263,7 +264,7 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
                 patch('src.lib.browser.threadpool.time.sleep') as sleep_mock:
             pool.pause()
 
-        prompt_mock.assert_called_once_with(key='option_prompt')
+        prompt_mock.assert_called_once_with(key='option_prompt', newline=True)
         sleep_mock.assert_not_called()
         self.assertTrue(pool.is_started)
 
@@ -646,7 +647,7 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
                 patch('src.lib.browser.threadpool.tpl.info'):
             pool.pause()
 
-        prompt_mock.assert_called_once_with(key='option_prompt')
+        prompt_mock.assert_called_once_with(key='option_prompt', newline=True)
         self.assertTrue(pool.is_started)
 
     def test_threadpool_resume_is_noop_when_already_started(self):

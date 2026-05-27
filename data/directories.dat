@@ -11243,6 +11243,7 @@ admin-console/signout.php
 admin-console/signup.php
 admin-console/sso
 f.php
+_buran/seoModule.php
 admin-console/staff.php
 admin-console/start.php
 admin-console/status
