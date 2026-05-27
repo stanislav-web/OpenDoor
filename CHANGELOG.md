@@ -10,6 +10,7 @@ v5.16.2 (xx.06.2026)
 - (fix) `--auto-calibrate` now disables weak HTTP baselines when too many probes are blocked, ignored, or failed, preventing sparse signatures from over-filtering scan results.
 - (fix) reduced WAF-safe auto-calibration noise by using neutral calibration probe paths when `--waf-safe-mode` is enabled, avoiding high-risk `.php`, `.map`, `admin`, and `wp-*` probe shapes.
 - (fix) `--sniff malware` false positives on security-plugin documentation by suppressing name-only webshell vocabulary in documentation context while preserving executable payload and shell UI detections.
+- (fix) `--sniff malware` false positives on legacy Google Analytics loaders while preserving suspicious document.write, atob, String.fromCharCode and PHP payload detections.
 - (enhancement) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt visible after in-flight worker output drains, while preserving Enter/C continue and E/Q abort semantics.
 - (enhancement) reduced `--sniff malware` false positives for standard Bitrix admin login pages by allowlisting the built-in hidden `auth_frame` iframe only when strong Bitrix login markers are present.
 - (ui) clarified Runtime Diagnostics queue accounting by showing consumed items, submitted HTTP jobs, and pre-request skipped items separately.
