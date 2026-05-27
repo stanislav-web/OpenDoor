@@ -19066,6 +19066,7 @@ ajax/adm
 ajax/adm.php
 ajax/admin
 ajax/admin.php
+ajax/ajax.js
 ajax/api
 ajax/data
 ajax_
@@ -23180,8 +23181,6 @@ apr.html
 aprcalc
 aprelium
 april
-mg-admin
-schedule.php
 April04_schedule.php
 april4videos.php
 april.html
@@ -52315,8 +52314,6 @@ forgot_password.php
 forgot_pwd.php
 forgot_u.php
 forgotpass
-mg-core
-mg-plugins
 forgotpass.asp
 forgotpass.aspx
 forgotpass.html
@@ -64265,6 +64262,8 @@ journal
 journal.asp
 journal.cgi
 journal.php
+journal/content_list.php
+journal/nlist.php
 journal_proc.php
 journaleditors.aspx
 journalgetpage.aspx
@@ -66968,6 +66967,9 @@ libs
 libs.html
 libs.php
 libs/.env
+libs/cookie-consent.js
+libs/cookie.js
+libs/cookies.js
 libs/granite/core/content/login.html
 libs/granite/core/content/login/favicon.ico
 libsecure.php
@@ -67950,6 +67952,8 @@ ljf
 ljgm.asp
 ljh.asp
 lk
+lk2
+lk2/manifest_lk2.json
 lk.htm
 lk.php
 lk/login
@@ -71119,6 +71123,7 @@ manufacturing.aspx
 manufaktur
 manulife
 manunited
+manuscript.php
 manutencao
 manutencao.asp
 manutencao.html
@@ -73314,7 +73319,9 @@ mfr_admin.php
 mfriend.php
 mfs
 mg
+mg-admin
 mg-core
+mg-plugins
 mg.html
 mg.jsp
 mg.php
@@ -120815,12 +120822,7 @@ zb_system/scriptcommon.js
 zbblock
 ZBmsc
 zboard
-journal/nlist.php
-journal/content_list.php
 zbozi.php
-libs/cookie-consent.js
-libs/cookie.js
-libs/cookies.js
 zbvnawul.php
 zc
 zc989_install
