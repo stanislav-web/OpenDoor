@@ -331,6 +331,13 @@ class TestFingerprint(unittest.TestCase):
                 {},
             ),
             (
+                'Evolution CMS',
+                'cms',
+                '<html><head><meta name="generator" content="Evolution CMS 3.5"></head>'
+                '<body><footer>Powered by Evolution CMS</footer></body></html>',
+                {},
+            ),
+            (
                 'Duda',
                 'sitebuilder',
                 '<html><head><meta name="generator" content="Duda"></head>'
@@ -402,6 +409,49 @@ class TestFingerprint(unittest.TestCase):
                 self.assertEqual(result['category'], expected_category)
                 self.assertEqual(result['name'], expected_name)
                 self.assertGreaterEqual(result['confidence'], 70)
+
+    def test_detects_evolution_cms_from_not_installed_core_template(self):
+        """Fingerprint should detect Evolution CMS from its own install fallback text."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                503,
+                'Evolution CMS is not currently installed or the configuration file cannot be found. '
+                'Do you want to install now?',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Evolution CMS')
+        self.assertGreaterEqual(result['confidence'], 70)
+
+    def test_does_not_detect_evolution_cms_from_generic_evo_word_only(self):
+        """Fingerprint should not classify generic EVO wording as Evolution CMS."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><p>Our product follows an evolutionary design process.</p></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'Evolution CMS' for candidate in result['candidates']))
 
     def test_does_not_promote_generic_diafan_link_without_meta_author(self):
         """Fingerprint should not promote DiafanCMS from a generic body mention only."""

@@ -7273,6 +7273,7 @@ _bugs.txt
 _build
 _buildManifest.js
 _bulk
+_buran/seoModule.php
 _buy.html
 _c
 _cache
@@ -11242,8 +11243,6 @@ admin-console/signin.php
 admin-console/signout.php
 admin-console/signup.php
 admin-console/sso
-f.php
-_buran/seoModule.php
 admin-console/staff.php
 admin-console/start.php
 admin-console/status
@@ -49360,6 +49359,7 @@ exampleapp
 exampledir
 examples
 examples.html
+examples.md
 examples.php
 examples/01-simple-model/.env
 examples/02-complex-example/.env
@@ -49882,6 +49882,7 @@ extras
 extras.aspx
 extras.htm
 extras.html
+extras.md
 extras.php
 extras/django_bash_completion
 extras/documentation
@@ -62268,8 +62269,8 @@ installation.aspx
 installation.back.php
 installation.htm
 installation.html
-INSTALLATION.md
 installation.md
+INSTALLATION.md
 installation.old
 installation.old.php
 installation.php
@@ -74677,6 +74678,7 @@ modular
 module
 module.aspx
 module.functions.php
+module.md
 Module.php
 module.php
 Module.symvers
@@ -100555,6 +100557,7 @@ SnIpEr_SA.php
 sniper_sa_shell.php
 snippet
 snippet.ashx
+snippet.md
 snippetmaster
 snippets
 snips
@@ -107072,6 +107075,7 @@ Tests/Application/.env
 tests/database/manager_users.sql
 tests/database/site_content.sql
 tests/database/site_templates.sql
+tests/database/site_tmplvar_templates.sql
 tests/database/site_tmplvars.sql
 tests/database/user_attributes.sql
 tests/default_settings/v7.0/.env

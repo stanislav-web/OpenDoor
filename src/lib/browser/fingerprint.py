@@ -138,7 +138,7 @@ class Fingerprint(object):
     STATIC_CATEGORY = 'static'
     RUNTIME_CATEGORY = 'runtime'
     TECHNOLOGY_RUNTIME_MAP = {
-        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
+        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
         'Express': 'Node.js', 'NestJS': 'Node.js', 'Fastify': 'Node.js', 'Koa': 'Node.js', 'Hapi': 'Node.js', 'Strapi': 'Node.js', 'Directus': 'Node.js', 'Ghost': 'Node.js', 'Next.js': 'Node.js', 'Nuxt': 'Node.js', 'Gatsby': 'Node.js', 'Astro': 'Node.js', 'Remix': 'Node.js', 'SvelteKit': 'Node.js', 'Docusaurus': 'Node.js', 'VitePress': 'Node.js', 'PencilBlue': 'Node.js',
         'React': 'JavaScript', 'Vue': 'JavaScript', 'Angular': 'JavaScript', 'Django': 'Python', 'Flask': 'Python', 'FastAPI': 'Python', 'Ruby on Rails': 'Ruby', 'Spree': 'Ruby', 'Spring': 'Java/JVM', 'Liferay': 'Java/JVM', 'OpenCms': 'Java/JVM', 'Hippo CMS': 'Java/JVM', 'dotCMS': 'Java/JVM', 'ASP.NET': '.NET', 'Microsoft SharePoint': '.NET', 'DNN Platform': '.NET', 'Orchard CMS': '.NET', 'Sitecore': '.NET', 'Sitefinity': '.NET', 'Umbraco': '.NET', 'Phoenix': 'Elixir', 'MkDocs': 'Static site', 'Jekyll': 'Static site', 'Hugo': 'Static site', 'AsciiDoc': 'Static site',
     }
@@ -173,6 +173,7 @@ class Fingerprint(object):
         ('EC-CUBE', ECOMMERCE_CATEGORY, ('ec-cube', 'eccube')),
         ('EPiServer', CMS_CATEGORY, ('episerver', 'optimizely cms')),
         ('ExpressionEngine', CMS_CATEGORY, ('expressionengine', 'expression engine')),
+        ('Evolution CMS', CMS_CATEGORY, ('evolution cms', 'evolutioncms', 'modx evolution')),
         ('Fork CMS', CMS_CATEGORY, ('fork cms',)),
         ('GetSimple CMS', CMS_CATEGORY, ('getsimple cms', 'get-simple cms')),
         ('GoDaddy Website Builder', SITE_BUILDER_CATEGORY, ('godaddy website builder', 'go central')),
@@ -247,6 +248,16 @@ class Fingerprint(object):
         ('DNN Platform', CMS_CATEGORY, ('__dnnvariable', 'dnn_', '/portals/_default/')),
         ('EC-CUBE', ECOMMERCE_CATEGORY, ('eccube', 'ec-cube', '/user_data/packages/')),
         ('ExpressionEngine', CMS_CATEGORY, ('expressionengine', 'exp:channel', 'powered by expressionengine')),
+        (
+            'Evolution CMS',
+            CMS_CATEGORY,
+            (
+                'powered by evolution cms',
+                'evolution cms is not currently installed',
+                'please run the evolution cms install utility',
+                'modx evolution',
+            ),
+        ),
         ('GetSimple CMS', CMS_CATEGORY, ('getsimple', 'get-simple', '/data/uploads/')),
         ('GoDaddy Website Builder', SITE_BUILDER_CATEGORY, ('wsimg.com', 'godaddy.com/websites/website-builder')),
         ('Hostinger Website Builder', SITE_BUILDER_CATEGORY, ('hostinger website builder', 'userapp.zyrosite.com', 'assets.zyrosite.com', 'zyrosite.com')),
@@ -1383,6 +1394,54 @@ class Fingerprint(object):
         elif len(found_markers) == 1 and len(found_cookies) >= 1:
             self._add_signal('dotCMS', self.CMS_CATEGORY, 'markup+cookie', '{0}+{1}'.format(found_markers[0], found_cookies[0]), 7)
 
+    def _apply_evolution_cms_rules(self, body_lower, generator, probe_statuses, not_found_status):
+        """
+        Apply strong Evolution CMS signals.
+
+        Evolution CMS descends from MODX Evolution, but short words like
+        "evo" or the generic /manager/ path are too noisy for standalone
+        detection. Keep the rule limited to explicit branding or core fallback
+        text, and use endpoint reachability only as corroborating evidence.
+
+        :param str body_lower: normalized response body
+        :param str generator: raw generator meta value
+        :param dict probe_statuses: fingerprint endpoint probe statuses
+        :param int not_found_status: neutral 404-baseline status
+        :return: None
+        """
+
+        generator_lower = str(generator or '').lower()
+        explicit_markers = (
+            'evolution cms',
+            'evolutioncms',
+            'modx evolution',
+        )
+
+        has_explicit_marker = any(marker in generator_lower or marker in body_lower for marker in explicit_markers)
+
+        if any(marker in generator_lower for marker in explicit_markers):
+            self._add_signal('Evolution CMS', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 8)
+
+        if 'powered by evolution cms' in body_lower:
+            self._add_signal('Evolution CMS', self.CMS_CATEGORY, 'markup', 'powered by evolution cms', 7)
+
+        if (
+            'evolution cms is not currently installed' in body_lower
+            or 'please run the evolution cms install utility' in body_lower
+        ):
+            self._add_signal('Evolution CMS', self.CMS_CATEGORY, 'markup', 'install fallback', 8)
+
+        if 'modx evolution' in body_lower:
+            self._add_signal('Evolution CMS', self.CMS_CATEGORY, 'markup', 'modx evolution', 7)
+
+        if has_explicit_marker and self._is_distinct_probe_up(
+            probe_statuses,
+            '/manager/',
+            [200, 301, 302, 401, 403],
+            not_found_status,
+        ):
+            self._add_signal('Evolution CMS', self.CMS_CATEGORY, 'endpoint', '/manager/', 3)
+
     def _apply_extended_cms_catalog_rules(self, body_lower, headers, cookies, generator):
         """
         Apply extended catalog signals for CMSs not covered by dedicated rules.
@@ -2070,6 +2129,14 @@ class Fingerprint(object):
             self._add_signal('Bludit', self.CMS_CATEGORY, 'markup', 'bludit', 4)
         if probe_statuses.get('/admin') in [200, 301, 302, 401, 403] and '/bl-themes/' in body_lower:
             self._add_signal('Bludit', self.CMS_CATEGORY, 'endpoint', '/admin + /bl-themes/', 3)
+
+        # Evolution CMS
+        self._apply_evolution_cms_rules(
+            body_lower=body_lower,
+            generator=generator,
+            probe_statuses=probe_statuses,
+            not_found_status=not_found_status,
+        )
 
         # MODX
         modx_hint = (
