@@ -138,7 +138,7 @@ class Fingerprint(object):
     STATIC_CATEGORY = 'static'
     RUNTIME_CATEGORY = 'runtime'
     TECHNOLOGY_RUNTIME_MAP = {
-        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
+        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'MogutaCMS': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
         'Express': 'Node.js', 'NestJS': 'Node.js', 'Fastify': 'Node.js', 'Koa': 'Node.js', 'Hapi': 'Node.js', 'Strapi': 'Node.js', 'Directus': 'Node.js', 'Ghost': 'Node.js', 'Next.js': 'Node.js', 'Nuxt': 'Node.js', 'Gatsby': 'Node.js', 'Astro': 'Node.js', 'Remix': 'Node.js', 'SvelteKit': 'Node.js', 'Docusaurus': 'Node.js', 'VitePress': 'Node.js', 'PencilBlue': 'Node.js',
         'React': 'JavaScript', 'Vue': 'JavaScript', 'Angular': 'JavaScript', 'Django': 'Python', 'Flask': 'Python', 'FastAPI': 'Python', 'Ruby on Rails': 'Ruby', 'Spree': 'Ruby', 'Spring': 'Java/JVM', 'Liferay': 'Java/JVM', 'OpenCms': 'Java/JVM', 'Hippo CMS': 'Java/JVM', 'dotCMS': 'Java/JVM', 'ASP.NET': '.NET', 'Microsoft SharePoint': '.NET', 'DNN Platform': '.NET', 'Orchard CMS': '.NET', 'Sitecore': '.NET', 'Sitefinity': '.NET', 'Umbraco': '.NET', 'Phoenix': 'Elixir', 'MkDocs': 'Static site', 'Jekyll': 'Static site', 'Hugo': 'Static site', 'AsciiDoc': 'Static site',
     }
@@ -1394,6 +1394,88 @@ class Fingerprint(object):
         elif len(found_markers) == 1 and len(found_cookies) >= 1:
             self._add_signal('dotCMS', self.CMS_CATEGORY, 'markup+cookie', '{0}+{1}'.format(found_markers[0], found_cookies[0]), 7)
 
+
+    @classmethod
+    def _contains_mogutacms_brand(cls, text):
+        """
+        Return True when text contains an explicit MogutaCMS brand marker.
+
+        The matcher intentionally avoids a standalone "moguta" token because
+        portfolio pages, comparison articles and vendor links can mention the
+        product without proving that the scanned target runs on it.
+
+        :param str text: normalized text
+        :return: check result
+        :rtype: bool
+        """
+
+        source = str(text or '').lower()
+        return re.search(r'(?<![a-z0-9])moguta\s*\.?\s*cms(?![a-z0-9])', source) is not None \
+            or re.search(r'(?<![a-z0-9])mogutacms(?![a-z0-9])', source) is not None
+
+    @classmethod
+    def _has_mogutacms_powered_by_marker(cls, body_lower):
+        """
+        Return True for explicit powered-by footer style MogutaCMS markers.
+
+        Examples such as "Сайт работает на движке: Moguta.CMS" are strong
+        production-site evidence. Plain portfolio/marketing mentions are not
+        accepted by this rule.
+
+        :param str body_lower: normalized response body
+        :return: check result
+        :rtype: bool
+        """
+
+        body_text = str(body_lower or '').lower()
+        if cls._contains_mogutacms_brand(body_text) is not True:
+            return False
+
+        return (
+            'сайт работает на движке' in body_text
+            or 'работает на движке' in body_text
+            or 'powered by' in body_text
+        )
+
+    def _apply_mogutacms_rules(self, body_lower, generator):
+        """
+        Apply conservative passive MogutaCMS fingerprint signals.
+
+        MogutaCMS is identified only from explicit generator/powered-by
+        branding or from multiple documented engine asset paths. A generic
+        vendor mention or a single ``mg-*`` path is not enough to avoid
+        corrupting fingerprints on portfolio, comparison or unrelated pages.
+
+        :param str body_lower: normalized response body
+        :param str generator: raw generator meta value
+        :return: None
+        """
+
+        generator_lower = str(generator or '').lower()
+        has_generator = self._contains_mogutacms_brand(generator_lower)
+        has_powered_by = self._has_mogutacms_powered_by_marker(body_lower)
+
+        if has_generator:
+            self._add_signal('MogutaCMS', self.ECOMMERCE_CATEGORY, 'meta', 'generator={0}'.format(generator), 8)
+
+        if has_powered_by:
+            self._add_signal('MogutaCMS', self.ECOMMERCE_CATEGORY, 'markup', 'powered by MogutaCMS', 9)
+
+        engine_markers = (
+            '/mg-templates/',
+            '/mg-core/',
+            '/mg-admin/',
+            '/mg-plugins/',
+            '/mg-pages/',
+        )
+        found_markers = sorted(marker for marker in engine_markers if marker in str(body_lower or ''))
+
+        if len(found_markers) >= 2:
+            self._add_signal('MogutaCMS', self.ECOMMERCE_CATEGORY, 'asset', '+'.join(found_markers[:3]), 8)
+        elif len(found_markers) == 1 and (has_generator or has_powered_by):
+            self._add_signal('MogutaCMS', self.ECOMMERCE_CATEGORY, 'asset+brand', found_markers[0], 4)
+
+
     def _apply_evolution_cms_rules(self, body_lower, generator, probe_statuses, not_found_status):
         """
         Apply strong Evolution CMS signals.
@@ -2129,6 +2211,12 @@ class Fingerprint(object):
             self._add_signal('Bludit', self.CMS_CATEGORY, 'markup', 'bludit', 4)
         if probe_statuses.get('/admin') in [200, 301, 302, 401, 403] and '/bl-themes/' in body_lower:
             self._add_signal('Bludit', self.CMS_CATEGORY, 'endpoint', '/admin + /bl-themes/', 3)
+
+        # MogutaCMS
+        self._apply_mogutacms_rules(
+            body_lower=body_lower,
+            generator=generator,
+        )
 
         # Evolution CMS
         self._apply_evolution_cms_rules(

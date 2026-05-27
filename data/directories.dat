@@ -23180,6 +23180,8 @@ apr.html
 aprcalc
 aprelium
 april
+mg-admin
+schedule.php
 April04_schedule.php
 april4videos.php
 april.html
@@ -52313,6 +52315,8 @@ forgot_password.php
 forgot_pwd.php
 forgot_u.php
 forgotpass
+mg-core
+mg-plugins
 forgotpass.asp
 forgotpass.aspx
 forgotpass.html
@@ -120811,7 +120815,12 @@ zb_system/scriptcommon.js
 zbblock
 ZBmsc
 zboard
+journal/nlist.php
+journal/content_list.php
 zbozi.php
+libs/cookie-consent.js
+libs/cookie.js
+libs/cookies.js
 zbvnawul.php
 zc
 zc989_install

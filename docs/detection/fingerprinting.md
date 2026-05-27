@@ -110,17 +110,18 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 - Discourse
 - DotCMS
 - Drupal
+- Evolution CMS
 - Ghost
 - GravCMS
 - Joomla
 - Matomo
 - MediaWiki
-- Open Journal Systems
 - MODX
 - Moodle
 - Neos
 - Nextcloud
 - OctoberCMS
+- Open Journal Systems
 - ownCloud
 - phpBB
 - phpMyAdmin
@@ -188,6 +189,7 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 ### E-commerce
 
 - Magento
+- Moguta CMS
 - nopCommerce
 - OpenCart
 - PrestaShop
