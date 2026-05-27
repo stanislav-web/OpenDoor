@@ -13,6 +13,8 @@ extra:
 nav:
   - Home: index.md
   - Quickstart: quickstart.md
+  - Guides:
+      - Mastering OpenDoor: guides/mastering-opendoor.md
   - Installation and update: Installation-and-update.md
   - Usage: Usage.md
   - Concepts:
