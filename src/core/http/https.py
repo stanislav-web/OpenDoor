@@ -17,7 +17,7 @@
 """
 
 from urllib3 import HTTPSConnectionPool, PoolManager, HTTPResponse, Timeout, disable_warnings
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError, ConnectTimeoutError, \
+from urllib3.exceptions import DecodeError, MaxRetryError, ReadTimeoutError, ConnectTimeoutError, \
     HostChangedError, SSLError, InsecureRequestWarning
 from src.core import helper
 from .exceptions import HttpsRequestError
@@ -215,6 +215,9 @@ class HttpsRequest(RequestProvider, DebugProvider):
 
         except ReadTimeoutError:
             self.__tpl.warning(key='read_timeout_error', url=url)
+
+        except DecodeError:
+            self.__tpl.warning(key='decode_error', url=url)
 
         except ConnectTimeoutError:
             self.__tpl.warning(key='connection_timeout_error', url=url)

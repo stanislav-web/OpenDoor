@@ -5,7 +5,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, PropertyMock, patch
 
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError, ConnectTimeoutError, HostChangedError, ProxySchemeUnknown, SSLError
+from urllib3.exceptions import DecodeError, MaxRetryError, ReadTimeoutError, ConnectTimeoutError, HostChangedError, ProxySchemeUnknown, SSLError
 from urllib3.response import HTTPResponse
 
 from src.core.http.http import HttpRequest
@@ -170,7 +170,7 @@ class TestHttpRequest(unittest.TestCase):
         self.assertIsNone(req.request('http://example.com/x'))
         tpl.warning.assert_called()
 
-        for exc in [HostChangedError(None, '/', 0), ReadTimeoutError(None, '/', 'x'), ConnectTimeoutError(None, '/', 'x')]:
+        for exc in [HostChangedError(None, '/', 0), ReadTimeoutError(None, '/', 'x'), DecodeError('bad gzip'), ConnectTimeoutError(None, '/', 'x')]:
             pool.request.reset_mock(side_effect=True)
             tpl.warning.reset_mock()
             pool.request.side_effect = exc
@@ -377,7 +377,7 @@ class TestHttpsRequest(unittest.TestCase):
             response = req_sub.request('https://api.example.com')
         self.assertEqual(response.status, 496)
 
-        for exc in [MaxRetryError(None, '/', None), HostChangedError(None, '/', 0), ReadTimeoutError(None, '/', 'x'), ConnectTimeoutError(None, '/', 'x')]:
+        for exc in [MaxRetryError(None, '/', None), HostChangedError(None, '/', 0), ReadTimeoutError(None, '/', 'x'), DecodeError('bad gzip'), ConnectTimeoutError(None, '/', 'x')]:
             pool.request.reset_mock(side_effect=True)
             tpl.warning.reset_mock()
             pool.request.side_effect = exc
@@ -533,6 +533,39 @@ class TestProxy(unittest.TestCase):
 
         with patch('src.core.http.proxy.random.randrange', return_value=0):
             self.assertEqual(proxy._Proxy__get_random_proxy(), 'http://127.0.0.1:8080')
+
+
+    def test_proxy_request_handles_decode_error_without_crashing(self):
+        """Proxy.request() should skip corrupted encoded responses without raising worker-fatal errors."""
+
+        cfg = self.make_cfg(scan='directories')
+        tpl = MagicMock()
+        proxy = Proxy(cfg, SimpleNamespace(level=0, debug_proxy_pool=lambda: None), tpl=tpl, proxy_list=['http://unused'], agent_list=['UA'])
+
+        with patch.object(proxy, '_Proxy__pool_request', side_effect=DecodeError('bad gzip')):
+            actual = proxy.request('http://example.com/path')
+
+        self.assertIsNone(actual)
+        tpl.warning.assert_called_once_with(key='decode_error', url='/path')
+
+    def test_proxy_retry_handles_decode_error_without_marking_proxy_unavailable(self):
+        """Proxy retry path should not escalate DecodeError as a proxy outage."""
+
+        cfg = self.make_cfg(scan='directories', is_standalone_proxy=True)
+        tpl = MagicMock()
+        proxy = Proxy(cfg, SimpleNamespace(level=0, debug_proxy_pool=lambda: None), tpl=tpl, proxy_list=['http://unused'], agent_list=['UA'])
+        proxy._Proxy__server = 'http://127.0.0.1:8080'
+
+        with patch.object(
+            proxy,
+            '_Proxy__pool_request',
+            side_effect=[MaxRetryError(None, '/', None), DecodeError('bad gzip')],
+        ):
+            actual = proxy.request('http://example.com/path')
+
+        self.assertIsNone(actual)
+        tpl.error.assert_not_called()
+        self.assertEqual(tpl.warning.call_args_list[-1].kwargs['key'], 'decode_error')
 
 
 class TestSocket(unittest.TestCase):

@@ -72,6 +72,7 @@ class Config(object):
         'proxy_max_retry_error': 'Skipped. Proxy {proxy} Max retries exceeded: {url}',
         'host_changed_error': 'Block external redirect -> {details}',
         'read_timeout_error': 'Read timeout error! {url}. Increase using --timeout option',
+        'decode_error': 'Response decode error! {url}. Skipping corrupted encoded response',
         'connection_timeout_error': 'Connection timeout error! {url}. Increase using --timeout option',
         'certificate': 'Cert required {url}',
         'success': 'OK {url}',

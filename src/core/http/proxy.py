@@ -24,7 +24,7 @@ from urllib.parse import unquote, urlsplit, urlunsplit
 
 from urllib3 import ProxyManager, Timeout, disable_warnings
 from urllib3.util import make_headers
-from urllib3.exceptions import DependencyWarning, MaxRetryError, ProxySchemeUnknown, ReadTimeoutError, InsecureRequestWarning
+from urllib3.exceptions import DecodeError, DependencyWarning, MaxRetryError, ProxySchemeUnknown, ReadTimeoutError, InsecureRequestWarning
 
 from src.core import helper
 from .exceptions import ProxyRequestError
@@ -301,6 +301,11 @@ class Proxy(RequestProvider, DebugProvider):
                 self.__finish_active_terminal_line()
                 self.__tpl.warning(key='read_timeout_error', url=helper.parse_url(url).path)
 
+        except DecodeError:
+            if self.__is_directory_like_scan() is True:
+                self.__finish_active_terminal_line()
+                self.__tpl.warning(key='decode_error', url=helper.parse_url(url).path)
+
     def __retry_after_max_retry(self, url, request_headers):
         """
         Retry a proxy request once after MaxRetryError without leaking raw urllib3 tracebacks.
@@ -318,6 +323,9 @@ class Proxy(RequestProvider, DebugProvider):
         except ReadTimeoutError as error:
             self.__record_tls_transport_error(error)
             self.__warn_proxy_retry_failed(url, error)
+        except DecodeError:
+            self.__finish_active_terminal_line()
+            self.__tpl.warning(key='decode_error', url=helper.parse_url(url).path)
 
         return None
 

@@ -19069,6 +19069,7 @@ ajax/admin.php
 ajax/ajax.js
 ajax/api
 ajax/data
+ajax/search.php
 ajax_
 ajax_action.php
 ajax_bookmarks.php
@@ -61410,6 +61411,8 @@ indexoriginal.php
 indexorjj.php
 indexphil.php
 indexpic.asp
+indexpoisk
+indexpoisk.php
 indexppc.cfm
 indexprint.php
 indexprocess.cfm
