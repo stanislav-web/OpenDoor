@@ -317,6 +317,8 @@ class Fingerprint(object):
         ('Salesforce Commerce Cloud', ECOMMERCE_CATEGORY, 'x-dw-request-base-id', None),
         ('Salesforce Commerce Cloud', ECOMMERCE_CATEGORY, 'x-dw-trace-id', None),
         ('AEM', CMS_CATEGORY, 'x-dispatcher', None),
+        ('UMI.CMS', CMS_CATEGORY, 'x-generated-by', 'umi.cms'),
+        ('UMI.CMS', CMS_CATEGORY, 'x-generated-by', 'umi cms'),
     )
 
     EXTENDED_CMS_COOKIE_SIGNATURES = (
