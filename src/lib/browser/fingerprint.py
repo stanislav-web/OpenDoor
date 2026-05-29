@@ -1623,6 +1623,112 @@ class Fingerprint(object):
         ) is not None
 
     @staticmethod
+    def _has_rails_authenticity_token_meta(body_lower):
+        """
+        Return True for canonical Rails CSRF meta tags.
+
+        Rails commonly emits a csrf-param meta tag with the fixed
+        authenticity_token value together with csrf-token. Keep this more
+        specific than a generic csrf-token match to avoid false positives on
+        other frameworks.
+
+        :param str body_lower: normalized response body
+        :return: check result
+        :rtype: bool
+        """
+
+        body_text = str(body_lower or '')
+        if 'csrf-token' not in body_text:
+            return False
+
+        return (
+            re.search(
+                r'<meta[^>]+name=["\']csrf-param["\'][^>]+content=["\']authenticity_token["\']',
+                body_text,
+            ) is not None
+            or re.search(
+                r'<meta[^>]+content=["\']authenticity_token["\'][^>]+name=["\']csrf-param["\']',
+                body_text,
+            ) is not None
+        )
+
+    @staticmethod
+    def _has_rails_ujs_marker(body_lower):
+        """
+        Return True for Rails UJS/Turbo integration markers.
+
+        These markers are not used as standalone Rails evidence. They only
+        strengthen an existing Rails CSRF/cookie hint.
+
+        :param str body_lower: normalized response body
+        :return: check result
+        :rtype: bool
+        """
+
+        body_text = str(body_lower or '')
+        markers = (
+            '@rails/ujs',
+            'rails-ujs',
+            'turbo-rails',
+            'data-turbo-track=',
+            'data-disable-with=',
+            'data-remote="true"',
+            "data-remote='true'",
+            'data-method="delete"',
+            'data-method="patch"',
+            'data-method="put"',
+            "data-method='delete'",
+            "data-method='patch'",
+            "data-method='put'",
+        )
+        return any(marker in body_text for marker in markers)
+
+    @staticmethod
+    def _has_rails_asset_marker(body_lower):
+        """
+        Return True for Rails asset pipeline or Webpacker application assets.
+
+        Generic application.js/application.css names are intentionally ignored.
+        A digest-like asset name is required and the result is only used with
+        Rails corroboration.
+
+        :param str body_lower: normalized response body
+        :return: check result
+        :rtype: bool
+        """
+
+        body_text = str(body_lower or '')
+        return (
+            re.search(r'/assets/application-[a-z0-9]{8,}\.(?:css|js)(?:[?"\']|$)', body_text) is not None
+            or re.search(r'/packs/(?:js|css)/application-[a-z0-9]{8,}\.(?:css|js)(?:[?"\']|$)', body_text) is not None
+            or re.search(r'/assets/manifest-[a-z0-9]{8,}\.json(?:[?"\']|$)', body_text) is not None
+        )
+
+    @staticmethod
+    def _has_rails_error_marker(body_lower):
+        """
+        Return True for exposed Rails exception or diagnostic markers.
+
+        These strings are framework-specific and only consume response bodies
+        already fetched by fingerprinting. No active error probing is added.
+
+        :param str body_lower: normalized response body
+        :return: check result
+        :rtype: bool
+        """
+
+        body_text = str(body_lower or '')
+        error_markers = (
+            'actioncontroller::routingerror',
+            'actioncontroller::unknownformat',
+            'actionview::template::error',
+            'activerecord::',
+            'rails.root',
+            'action dispatch',
+        )
+        return any(marker in body_text for marker in error_markers)
+
+    @staticmethod
     def _looks_like_express_not_found(not_found_status, not_found_body_lower):
         """
         Return True for canonical Express finalhandler 404 responses.
@@ -2429,10 +2535,32 @@ class Fingerprint(object):
             self._add_signal('Flask', self.FRAMEWORK_CATEGORY, 'header', 'server={0}'.format(headers.get('server')), 7)
 
         # Ruby on Rails
-        if '_rails_session' in cookies:
+        rails_cookie_hint = '_rails_session' in cookies
+        rails_exact_csrf = self._has_rails_authenticity_token_meta(body_lower)
+        rails_csrf_pair = 'csrf-param' in body_lower and 'csrf-token' in body_lower
+        rails_ujs_hint = self._has_rails_ujs_marker(body_lower)
+        rails_asset_hint = self._has_rails_asset_marker(body_lower)
+        rails_error_hint = (
+            self._has_rails_error_marker(body_lower)
+            or self._has_rails_error_marker(not_found_body_lower)
+        )
+
+        if rails_cookie_hint:
             self._add_signal('Ruby on Rails', self.FRAMEWORK_CATEGORY, 'cookie', '_rails_session', 8)
-        if 'csrf-param' in body_lower and 'csrf-token' in body_lower:
+
+        if rails_exact_csrf:
+            self._add_signal('Ruby on Rails', self.FRAMEWORK_CATEGORY, 'markup', 'csrf-param=authenticity_token|csrf-token', 8)
+        elif rails_csrf_pair:
             self._add_signal('Ruby on Rails', self.FRAMEWORK_CATEGORY, 'markup', 'csrf-param|csrf-token', 5)
+
+        if rails_ujs_hint and (rails_cookie_hint or rails_exact_csrf or rails_csrf_pair):
+            self._add_signal('Ruby on Rails', self.FRAMEWORK_CATEGORY, 'script', 'rails-ujs|turbo-rails', 7)
+
+        if rails_asset_hint and (rails_cookie_hint or rails_exact_csrf or rails_csrf_pair or rails_ujs_hint):
+            self._add_signal('Ruby on Rails', self.FRAMEWORK_CATEGORY, 'asset', 'rails application asset', 5)
+
+        if rails_error_hint:
+            self._add_signal('Ruby on Rails', self.FRAMEWORK_CATEGORY, 'exception', 'Rails exception marker', 8)
 
         # Express / NestJS / Fastify / FastAPI / Koa / Hapi
         if 'express' in x_powered_by or 'express' in not_found_powered_by:
