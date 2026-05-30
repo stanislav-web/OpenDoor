@@ -726,6 +726,113 @@ class TestBrowserRemainingCoverageGaps(unittest.TestCase):
 
         warning.assert_called_once_with(key='filtered_progress_notice')
 
+    def test_destructor_records_cleanup_errors_without_raising(self):
+        """Browser destructor should keep cleanup best-effort and record cleanup failures."""
+
+        browser = Browser.__new__(Browser)
+        browser._Browser__temp_workspace = SimpleNamespace(cleanup=MagicMock(side_effect=RuntimeError('cleanup boom')))
+
+        browser.__del__()
+
+        self.assertEqual(browser._Browser__cleanup_error, 'cleanup boom')
+
+    def test_diagnostics_table_expands_second_column_for_wide_title(self):
+        """Diagnostics table should expand its value column when the title is wider."""
+
+        table = Browser._Browser__format_diagnostics_table('Very wide diagnostics title', [('a', 'b')])
+
+        self.assertIn('Very wide diagnostics title', table)
+        self.assertIn('| a | b', table)
+
+    def test_truncate_signal_values_handles_scalars_duplicates_and_limit(self):
+        """Fingerprint evidence helper should normalize scalar signals and preserve unique order."""
+
+        values = Browser._Browser__fingerprint_evidence_values([
+            {'value': ' /admin '},
+            '/admin',
+            '',
+            {'value': '/login'},
+            '/debug',
+        ], limit=2)
+
+        self.assertEqual(values, ['/admin', '/login'])
+
+    def test_safe_progress_int_covers_bool_float_and_invalid_string(self):
+        """Progress coercion should stay deterministic for primitive and invalid values."""
+
+        self.assertEqual(Browser._Browser__safe_progress_int(True), 1)
+        self.assertEqual(Browser._Browser__safe_progress_int(3.8), 3)
+        self.assertEqual(Browser._Browser__safe_progress_int('bad', default=7), 7)
+
+    def test_filtered_response_data_initializes_missing_raw_bucket(self):
+        """Filtered-response persistence should create the raw filtered_items list on demand."""
+
+        browser = self.make_browser()
+        browser._Browser__result.pop('filtered_items', None)
+
+        browser._Browser__catch_filtered_response_data('https://example.com/noise', '10B', '200')
+
+        self.assertEqual(browser._Browser__result['filtered_items'], [{
+            'url': 'https://example.com/noise',
+            'size': '10B',
+            'code': '200',
+            'reason': 'response_filter',
+        }])
+
+    def test_loaded_session_complete_handles_empty_pending_invalid_and_complete_states(self):
+        """Loaded-session completion check should be defensive around checkpoint counters."""
+
+        browser = self.make_browser()
+        browser._Browser__session_snapshot = None
+        browser._Browser__pending_requests = {}
+        browser._Browser__processed_offset = 0
+        browser._Browser__pool = SimpleNamespace(total_items_size=1)
+
+        self.assertFalse(browser._Browser__is_loaded_session_complete())
+
+        browser._Browser__session_snapshot = {'version': 1}
+        browser._Browser__pending_requests = {'0::https://example.com/a': {}}
+        self.assertFalse(browser._Browser__is_loaded_session_complete())
+
+        browser._Browser__pending_requests = {}
+        browser._Browser__processed_offset = 'bad'
+        self.assertFalse(browser._Browser__is_loaded_session_complete())
+
+        browser._Browser__processed_offset = 2
+        browser._Browser__pool = SimpleNamespace(total_items_size=2)
+        self.assertTrue(browser._Browser__is_loaded_session_complete())
+
+    def test_restore_session_state_initializes_report_and_filtered_items(self):
+        """Session restore should repair legacy result dictionaries and seed pending URL dedupe."""
+
+        browser = self.make_browser()
+        browser._Browser__pool = SimpleNamespace(total_items_size=1)
+        snapshot = {
+            'result': {'total': {}, 'items': {}, 'filtered_items': 'legacy-invalid'},
+            'visitedRecursive': ['https://example.com/root'],
+            'queuedRecursive': ['https://example.com/next'],
+            'seen': ['0::https://example.com/done', 'legacy'],
+            'pending': [
+                {'url': 'https://example.com/todo', 'depth': '1'},
+                {'url': None, 'depth': 0},
+            ],
+            'stats': {
+                'processed': 3,
+                'pre_request_skipped': 1,
+                'transport_failures_skipped': 2,
+                'active_time_seconds': 4.5,
+                'total_items': 5,
+            },
+        }
+
+        browser._Browser__restore_session_state(snapshot)
+
+        self.assertIn('report_items', browser._Browser__result)
+        self.assertEqual(browser._Browser__result['filtered_items'], [])
+        self.assertIn('https://example.com/done', browser._Browser__seen_scan_urls)
+        self.assertIn('https://example.com/todo', browser._Browser__seen_scan_urls)
+        self.assertEqual(browser._Browser__pool.total_items_size, 5)
+
 
 if __name__ == '__main__':
     unittest.main()

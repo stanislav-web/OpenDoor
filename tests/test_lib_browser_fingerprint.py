@@ -432,6 +432,29 @@ class TestFingerprint(unittest.TestCase):
         self.assertEqual(result['name'], 'Evolution CMS')
         self.assertGreaterEqual(result['confidence'], 70)
 
+    def test_detects_evolution_cms_from_modx_evolution_body_and_manager_endpoint(self):
+        """Fingerprint should use MODX Evolution body text and /manager/ as corroborating evidence."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body>MODX Evolution manager login powered by Evolution CMS.</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+            ('HEAD', 'http://example.com/manager/'): FakeResponse(200, '', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Evolution CMS')
+        self.assertIn('modx evolution', [item['value'] for item in result['signals']])
+        self.assertIn('/manager/', [item['value'] for item in result['signals']])
+
     def test_does_not_detect_evolution_cms_from_generic_evo_word_only(self):
         """Fingerprint should not classify generic EVO wording as Evolution CMS."""
 

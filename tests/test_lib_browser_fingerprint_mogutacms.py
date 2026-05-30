@@ -78,6 +78,29 @@ class TestFingerprintMogutaCMS(unittest.TestCase):
 
         self.assertIsNone(self._candidate(candidates, 'MogutaCMS'))
 
+    def test_uses_single_engine_path_only_as_brand_corroboration(self):
+        body = '<link rel="stylesheet" href="/mg-templates/shop/css/style.css">'
+        fingerprint = Fingerprint(None, None)
+
+        fingerprint._apply_detection_rules(
+            body=body,
+            body_lower=body.lower(),
+            headers={},
+            cookies=[],
+            generator='Moguta.CMS',
+            probe_statuses={},
+            final_root_url='https://example.test/',
+            not_found_status=404,
+            not_found_body='not found',
+            not_found_headers={},
+        )
+
+        signals = getattr(fingerprint, '_Fingerprint__signals')['MogutaCMS']
+        self.assertIn(
+            {'type': 'asset+brand', 'value': '/mg-templates/', 'weight': 4.0},
+            signals,
+        )
+
 
 if __name__ == '__main__':
     unittest.main()

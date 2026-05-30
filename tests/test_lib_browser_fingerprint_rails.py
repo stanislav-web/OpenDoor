@@ -107,6 +107,34 @@ class FingerprintRailsTestCase(unittest.TestCase):
         self.assertEqual('Ruby on Rails', result['name'])
         self.assertIn('csrf-param=authenticity_token|csrf-token', [item['value'] for item in result['signals']])
 
+    def test_keeps_generic_csrf_pair_as_low_confidence_rails_candidate(self):
+        body = '''
+            <html><head>
+              <meta name="csrf-param" content="csrf_token">
+              <meta name="csrf-token" content="token-value">
+            </head><body>hello</body></html>
+        '''
+        fingerprint = Fingerprint(None, None)
+
+        fingerprint._apply_detection_rules(
+            body=body,
+            body_lower=body.lower(),
+            headers={},
+            cookies=[],
+            generator='',
+            probe_statuses={},
+            final_root_url='https://example.test/',
+            not_found_status=404,
+            not_found_body='not found',
+            not_found_headers={},
+        )
+
+        signals = getattr(fingerprint, '_Fingerprint__signals')['Ruby on Rails']
+        self.assertIn(
+            {'type': 'markup', 'value': 'csrf-param|csrf-token', 'weight': 5.0},
+            signals,
+        )
+
     def test_detects_rails_ujs_only_with_csrf_corroboration(self):
         body = '''
             <meta name="csrf-param" content="authenticity_token">

@@ -1,6 +1,6 @@
 CHANGELOG
 =======
-v5.16.2 (xx.06.2026)
+v5.16.2 (30.06.2026)
 ---------------------------
 - (critical) fixed scan crashes caused by corrupted gzip/encoded HTTP responses by handling `DecodeError` as a recoverable transport failure instead of aborting worker threads.
 - (fix) `--sniff malware` false positives when fallback pages repeatedly echo webshell-like names inside URL/query attributes, while preserving real webshell UI and executable payload detections.
@@ -21,7 +21,7 @@ v5.16.2 (xx.06.2026)
 - (enhancement)  Ruby on Rails fingerprint detection with conservative passive CSRF, Rails UJS/Turbo, asset-pipeline and Rails error markers while avoiding standalone Rack.
 - (ui) clarified Runtime Diagnostics queue accounting by showing consumed items, submitted HTTP jobs, and pre-request skipped items separately.
 - (ui) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt describe Enter/C continue, E/Q abort, and active-request drain semantics.
-- (dictionary) cleaned and normalized the internal directories list (+XXX potential interesting paths).
+- (dictionary) cleaned and normalized the internal directories list (+1241 potential interesting paths).
 - (docs) added a `Mastering OpenDoor` companion documentation page for the upcoming article series.
 
 v5.16.1 (24.05.2026)

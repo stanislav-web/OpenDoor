@@ -96,6 +96,29 @@ class TestRainbowLoggingHandlerExtra(unittest.TestCase):
 
         self.assertEqual(actual, 'plain')
 
+    def test_format_uses_colorized_path_when_stream_is_tty(self):
+        """RainbowLoggingHandler.format() should colorize records on TTY streams."""
+
+        handler = RainbowLoggingHandler(_TtyStream())
+        record = self.make_record(level=logging.INFO, message='tty-message', func_name='scan')
+
+        with patch('src.core.logger.rainbow.Term', SimpleNamespace(terminal_size={'width': 120})):
+            actual = handler.format(record)
+
+        self.assertIn('tty-message', actual)
+        self.assertIn('\x1b[', actual)
+
+    def test_colorize_keeps_debug_messages_untruncated(self):
+        """RainbowLoggingHandler.colorize() should not truncate DEBUG messages."""
+
+        handler = RainbowLoggingHandler(_TtyStream())
+        record = self.make_record(level=logging.DEBUG, message='D' * 80, func_name='scan')
+
+        with patch('src.core.logger.rainbow.Term', SimpleNamespace(terminal_size={'width': 40})):
+            actual = handler.colorize(record)
+
+        self.assertIn('D' * 80, actual)
+
 
 class TestRainbowLoggingHandlerPaddingCoverage(unittest.TestCase):
     """Final branch coverage for RainbowLoggingHandler padding."""
