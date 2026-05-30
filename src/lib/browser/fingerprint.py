@@ -138,7 +138,7 @@ class Fingerprint(object):
     STATIC_CATEGORY = 'static'
     RUNTIME_CATEGORY = 'runtime'
     TECHNOLOGY_RUNTIME_MAP = {
-        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'MogutaCMS': 'PHP', 'CMS.S3 / Megagroup': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
+        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'MogutaCMS': 'PHP', 'CMS.S3 / Megagroup': 'PHP', 'Camaleon CMS': 'Ruby', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
         'Express': 'Node.js', 'NestJS': 'Node.js', 'Fastify': 'Node.js', 'Koa': 'Node.js', 'Hapi': 'Node.js', 'Strapi': 'Node.js', 'Directus': 'Node.js', 'Ghost': 'Node.js', 'Next.js': 'Node.js', 'Nuxt': 'Node.js', 'Gatsby': 'Node.js', 'Astro': 'Node.js', 'Remix': 'Node.js', 'SvelteKit': 'Node.js', 'Docusaurus': 'Node.js', 'VitePress': 'Node.js', 'PencilBlue': 'Node.js',
         'React': 'JavaScript', 'Vue': 'JavaScript', 'Angular': 'JavaScript', 'Django': 'Python', 'Flask': 'Python', 'FastAPI': 'Python', 'Ruby on Rails': 'Ruby', 'Spree': 'Ruby', 'Spring': 'Java/JVM', 'Liferay': 'Java/JVM', 'OpenCms': 'Java/JVM', 'Hippo CMS': 'Java/JVM', 'dotCMS': 'Java/JVM', 'ASP.NET': '.NET', 'Microsoft SharePoint': '.NET', 'DNN Platform': '.NET', 'Orchard CMS': '.NET', 'Sitecore': '.NET', 'Sitefinity': '.NET', 'Umbraco': '.NET', 'Phoenix': 'Elixir', 'MkDocs': 'Static site', 'Jekyll': 'Static site', 'Hugo': 'Static site', 'AsciiDoc': 'Static site',
     }
@@ -158,6 +158,7 @@ class Fingerprint(object):
         ('Bubble', SITE_BUILDER_CATEGORY, ('bubble', 'bubble.io')),
         ('CKAN', CMS_CATEGORY, ('ckan',)),
         ('CMS.S3 / Megagroup', CMS_CATEGORY, ('cms.s3', 'cms s3', 'megagroup cms')),
+        ('Camaleon CMS', CMS_CATEGORY, ('camaleon cms', 'camaleoncms')),
         ('CMS Made Simple', CMS_CATEGORY, ('cms made simple', 'cmsms')),
         ('CMS CONTENIDO', CMS_CATEGORY, ('contenido', 'cms contenido')),
         ('CMSimple', CMS_CATEGORY, ('cmsimple',)),
@@ -1528,6 +1529,110 @@ class Fingerprint(object):
 
 
     @classmethod
+    def _collect_camaleon_cms_signals(cls, body_lower, cookies, generator):
+        """
+        Return conservative Camaleon CMS passive signals.
+
+        Camaleon CMS is a Ruby on Rails CMS. Strong public markers include
+        Camaleon asset names used by the admin layout, generated Camaleon
+        image paths, Camaleon cookies observed by authenticated flows, and
+        explicit Camaleon branding paired with Rails CSRF metadata. Plain
+        marketing text alone is intentionally weak to avoid classifying blog
+        posts or documentation pages as Camaleon installations.
+
+        :param str body_lower: normalized response body
+        :param list cookies: normalized response cookie names
+        :param str generator: raw generator meta value
+        :return: detected signal tuples
+        :rtype: list[tuple[str, str]]
+        """
+
+        body_text = str(body_lower or '').lower()
+        generator_lower = str(generator or '').lower()
+        cookie_names = [str(cookie or '').lower() for cookie in cookies]
+        signals = []
+        seen_values = set()
+
+        def add_signal(signal_type, value):
+            if value in seen_values:
+                return
+            signals.append((signal_type, value))
+            seen_values.add(value)
+
+        if 'camaleon cms' in generator_lower or 'camaleoncms' in generator_lower:
+            add_signal('meta', 'generator=Camaleon CMS')
+
+        asset_markers = (
+            ('camaleon_cms/admin/admin-basic-manifest', 'camaleon_cms/admin/admin-basic-manifest'),
+            ('/assets/camaleon_cms/', '/assets/camaleon_cms/'),
+            ('camaleon_cms/camaleon.png', 'camaleon_cms/camaleon.png'),
+            ('/camaleon_cms/', '/camaleon_cms/'),
+        )
+        for marker, value in asset_markers:
+            if marker in body_text:
+                add_signal('asset', value)
+
+        if 'auth_token' in cookie_names:
+            add_signal('cookie', 'auth_token')
+        if '_cms_session' in cookie_names:
+            add_signal('cookie', '_cms_session')
+
+        brand_count = body_text.count('camaleon cms') + body_text.count('camaleoncms')
+        has_rails_csrf = cls._has_rails_authenticity_token_meta(body_text)
+        has_camaleon_public_context = bool(
+            'camaleon.website/store/' in body_text
+            or 'camaleon.website/documentation/' in body_text
+            or 'camaleon cms, rails cms' in body_text
+            or 'camaleoncms. all rights reserved' in body_text
+            or 'built with ruby-on-rails' in body_text
+        )
+        if brand_count >= 1 and has_rails_csrf and has_camaleon_public_context:
+            add_signal('markup', 'Camaleon CMS+Rails CSRF')
+        elif brand_count >= 2 and has_rails_csrf:
+            add_signal('markup', 'Camaleon CMS repeated+Rails CSRF')
+
+        return signals
+
+    def _apply_camaleon_cms_rules(self, body_lower, cookies, generator):
+        """
+        Apply conservative passive Camaleon CMS fingerprint signals.
+
+        This rule consumes only already fetched root response metadata. It does
+        not probe /admin or any Camaleon-specific endpoint. Strong asset/meta
+        signals are accepted directly; public brand text requires Rails CSRF
+        corroboration to avoid false positives on unrelated documentation.
+
+        :param str body_lower: normalized response body
+        :param list cookies: normalized response cookie names
+        :param str generator: raw generator meta value
+        :return: None
+        """
+
+        signals = self._collect_camaleon_cms_signals(body_lower, cookies, generator)
+        if len(signals) <= 0:
+            return
+
+        strong_values = [
+            value for signal_type, value in signals
+            if signal_type in ('meta', 'asset', 'markup')
+        ]
+        cookie_values = [value for signal_type, value in signals if signal_type == 'cookie']
+
+        if len(strong_values) > 0:
+            self._add_signal(
+                'Camaleon CMS',
+                self.CMS_CATEGORY,
+                'markup',
+                '+'.join(strong_values[:4]),
+                9,
+            )
+            if len(cookie_values) > 0:
+                self._add_signal('Camaleon CMS', self.CMS_CATEGORY, 'cookie', '+'.join(cookie_values[:2]), 3)
+        elif len(cookie_values) >= 2:
+            self._add_signal('Camaleon CMS', self.CMS_CATEGORY, 'cookie', '+'.join(cookie_values[:2]), 7)
+
+
+    @classmethod
     def _collect_cms_s3_root_signals(cls, body_lower):
         """
         Return conservative CMS.S3 / Megagroup root-page signals.
@@ -2573,6 +2678,13 @@ class Fingerprint(object):
         # DataLife Engine
         self._apply_datalife_engine_rules(
             body_lower=body_lower,
+            generator=generator,
+        )
+
+        # Camaleon CMS
+        self._apply_camaleon_cms_rules(
+            body_lower=body_lower,
+            cookies=cookies,
             generator=generator,
         )
 

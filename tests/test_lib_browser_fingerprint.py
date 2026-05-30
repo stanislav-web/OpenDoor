@@ -485,6 +485,99 @@ class TestFingerprint(unittest.TestCase):
         self.assertLess(result['candidates'][0]['score'], 7)
 
 
+    def test_detects_camaleon_cms_from_official_site_runtime_markers(self):
+        """Fingerprint should detect Camaleon CMS from brand context plus Rails CSRF."""
+
+        config = FakeConfig(host='camaleon.website', scheme='https://', port=443)
+        base = 'https://camaleon.website/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head>'
+                '<meta name="csrf-param" content="authenticity_token">'
+                '<meta name="csrf-token" content="token">'
+                '</head><body>'
+                '<h1>CAMALEON CMS</h1>'
+                '<p>Camaleon CMS is an advanced Content Management System.</p>'
+                '<p>Wordpress Alternative. Built with Ruby-on-Rails.</p>'
+                '<a href="https://camaleon.website/store/plugins">Plugins Store</a>'
+                '<footer>Copyright © 2015 - 2018 CamaleonCMS. All rights reserved.</footer>'
+                '</body></html>',
+                {},
+            ),
+            ('GET', 'https://camaleon.website{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Camaleon CMS')
+        self.assertEqual(result['runtime']['name'], 'Ruby')
+        self.assertIn('Camaleon CMS+Rails CSRF', [signal['value'] for signal in result['signals']])
+
+    def test_detects_camaleon_cms_from_admin_assets_and_cookies(self):
+        """Fingerprint should detect Camaleon CMS from strong admin asset markers."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head>'
+                '<link rel="stylesheet" href="/assets/camaleon_cms/admin/admin-basic-manifest.css">'
+                '<script src="/assets/camaleon_cms/admin/admin-basic-manifest.js"></script>'
+                '</head><body><img src="/assets/camaleon_cms/camaleon.png"></body></html>',
+                MultiHeaders([
+                    ('Set-Cookie', 'auth_token=abc; Path=/'),
+                    ('Set-Cookie', '_cms_session=xyz; Path=/; HttpOnly'),
+                ]),
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Camaleon CMS')
+        self.assertEqual(result['runtime']['name'], 'Ruby')
+        self.assertIn('auth_token+_cms_session', [signal['value'] for signal in result['signals']])
+
+    def test_does_not_detect_camaleon_cms_from_brand_text_without_rails_context(self):
+        """Generic Camaleon CMS text should not become a fingerprint by itself."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><article>Review of Camaleon CMS for Rails developers.</article></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'Camaleon CMS' for candidate in result['candidates']))
+
+
     def test_does_not_detect_wordpress_from_generic_restricted_static_probes(self):
         """Fingerprint should not treat generic 403/405 WordPress path denies as WordPress."""
 

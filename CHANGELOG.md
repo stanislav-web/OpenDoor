@@ -1,12 +1,11 @@
 CHANGELOG
 =======
-v5.16.2 (31.06.2026)
+v5.16.2 (30.06.2026)
 ---------------------------
 - (critical) fixed scan crashes caused by corrupted gzip/encoded HTTP responses by handling `DecodeError` as a recoverable transport failure instead of aborting worker threads.
-- (fix) `--fingerprint` no longer treats generic 403/405 WordPress static-path probes as strong WordPress evidence unless corroborated by root-page WordPress signals.
-- (fix) compact nginx-style 404 bodies emitted with transient 2xx statuses are now suppressed by strict cross-status auto-calibration instead of being reported as OK findings.
+- (fix) `--fingerprint` no longer treats generic WordPress static-path probes as strong WordPress evidence unless corroborated by root-page WordPress signals.
+- (fix) false-positive OK findings when a target returns a canonical 404/410 error body with a transient 2xx status by adding strict cross-status soft-error calibration, including compact nginx-style 404 bodies.
 - (fix) `--sniff malware` false positives when fallback pages repeatedly echo webshell-like names inside URL/query attributes, while preserving real webshell UI and executable payload detections.
-- (fix) false-positive OK findings when a target returns a canonical 404/410 error body with a transient 2xx status by adding strict cross-status soft-error calibration.
 - (fix) `--sniff shadow` false positives on soft-200/fallback routes by adding a negative-control probe before reporting backup-file variants.
 - (fix) subdomain scans so missing/no-response candidates are skipped without triggering the directory retry fail-streak abort guard.
 - (fix) directory scan prefix normalization so `--prefix ex` and `--prefix ex/` both scan under `/ex/<path>` instead of concatenating paths as `/ex<path>`.
@@ -17,17 +16,18 @@ v5.16.2 (31.06.2026)
 - (fix) `--sniff secret` scan output so secret sniffer hits are labeled as `OK (Secret)` like other sniffer findings.
 - (fix) `--fingerprint` now detects DataLife Engine (DLE) from conservative runtime globals and engine asset signals.
 - (fix) `--fingerprint` now prefers Webflow hosted-platform signals over endpoint-only WordPress static path artifacts.
-- (enhancement) added Evolution CMS fingerprint detection from explicit generator, branding, and core install-fallback signals.
-- (enhancement) UMI.CMS fingerprint detection (strong rules added).
-- (enhancement) added conservative MogutaCMS fingerprint detection without active probes or generic portfolio-page matches.
-- (enhancement) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt visible after in-flight worker output drains, while preserving Enter/C continue and E/Q abort semantics.
+- (fix) `--fingerprint` now detects CMS.S3 / Megagroup from strong root-page builder/runtime markers without relying on generic WordPress endpoint probes.
+- (enhancement) added Camaleon CMS without adding active probes.
+- (enhancement) added Evolution CMS fingerprint detection.
+- (enhancement) added strong UMI.CMS fingerprint detection rules.
+- (enhancement) added conservative MogutaCMS fingerprint detection without active probes.
+- (enhancement) added Ruby on Rails fingerprint detection with conservative passive CSRF, Rails UJS/Turbo, asset-pipeline and Rails error markers while avoiding standalone Rack.
 - (enhancement) reduced `--sniff malware` false positives for standard Bitrix admin login pages by allowlisting the built-in hidden `auth_frame` iframe only when strong Bitrix login markers are present.
-- (enhancement)  Ruby on Rails fingerprint detection with conservative passive CSRF, Rails UJS/Turbo, asset-pipeline and Rails error markers while avoiding standalone Rack.
 - (ui) clarified Runtime Diagnostics queue accounting by showing consumed items, submitted HTTP jobs, and pre-request skipped items separately.
-- (ui) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt describe Enter/C continue, E/Q abort, and active-request drain semantics.
+- (ui) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt visible after in-flight worker output drains and by documenting Enter/C continue and E/Q abort semantics.
 - (dictionary) cleaned and normalized the internal directories list (+1244 potential interesting paths).
 - (docs) added a `Mastering OpenDoor` companion documentation page for the upcoming article series.
-- (deps)(deps-dev): [PR#115](https://github.com/stanislav-web/OpenDoor/pull/115) bump ruff from 0.15.13 to 0.15.14 in the python-runtime-dependencies group
+- (deps-dev) [PR#115](https://github.com/stanislav-web/OpenDoor/pull/115) bump ruff from 0.15.13 to 0.15.14 in the python-runtime-dependencies group.
 
 v5.16.1 (24.05.2026)
 ---------------------------

@@ -103,6 +103,7 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 - Bitrix
 - Bludit
 - Bolt CMS
+- Camaleon CMS
 - Concrete CMS
 - Contao
 - Craft CMS
