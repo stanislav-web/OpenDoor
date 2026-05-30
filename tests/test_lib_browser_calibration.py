@@ -1154,6 +1154,62 @@ class TestCalibration(unittest.TestCase):
 
         self.assertTrue(Calibration._is_soft_200_shape_match(baseline, dom_candidate))
 
+    def test_calibration_soft_error_semantic_helpers_cover_phrase_branches(self):
+        """Soft-error semantic helpers should cover strong and weak phrase combinations."""
+
+        self.assertTrue(Calibration._has_strong_soft_error_semantics({
+            'title': '',
+            'semantic_phrases': ['404', 'not found'],
+        }))
+        self.assertTrue(Calibration._has_strong_soft_error_semantics({
+            'title': '',
+            'semantic_phrases': ['not found', 'requested resource'],
+        }))
+        self.assertTrue(Calibration._has_any_soft_error_semantics({
+            'title': '',
+            'semantic_phrases': ['404'],
+        }))
+        self.assertFalse(Calibration._has_any_soft_error_semantics({
+            'title': 'admin',
+            'semantic_phrases': ['login'],
+        }))
+
+    def test_calibration_compact_cross_status_shape_negative_branches(self):
+        """Compact cross-status matching should reject each weak or unsafe branch."""
+
+        base = {
+            'code': 404,
+            'content_kind': 'html',
+            'size': 100,
+            'title': 'not found',
+            'semantic_phrases': ['not found'],
+            'normalized_body_hash': 'same',
+        }
+        candidate = dict(base, code=200)
+
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            dict(base, code=403), candidate
+        ))
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            dict(base, title='admin', semantic_phrases=[]), candidate
+        ))
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            base, dict(candidate, title='admin', semantic_phrases=[])
+        ))
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            dict(base, content_kind='html'), dict(candidate, content_kind='json')
+        ))
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            dict(base, size=31), dict(candidate, size=31)
+        ))
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            dict(base, size=1025), dict(candidate, size=1025)
+        ))
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            dict(base, normalized_body_hash='left'), dict(candidate, normalized_body_hash='right')
+        ))
+
+
 
 if __name__ == '__main__':
     unittest.main()

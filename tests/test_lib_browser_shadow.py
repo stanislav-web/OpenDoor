@@ -420,6 +420,90 @@ class TestShadowProbe(unittest.TestCase):
         rendered = [call.kwargs.get('msg') for call in debug_mock.call_args_list]
         self.assertTrue(any('Shadow detection:' in str(item) for item in rendered))
 
+    def test_shadow_template_and_candidate_edge_branches(self):
+        """Shadow template helpers should reject malformed rendered paths."""
+
+        self.assertIsNone(ShadowProbe.build_template_path('/index.', '{path}2.{ext}'))
+        self.assertIsNone(ShadowProbe.build_template_path('/index.php', '{path}{bad}.{ext}'))
+        self.assertIsNone(ShadowProbe.build_template_path('/index.php', '{path}.{ext}'))
+        self.assertEqual(ShadowProbe.build_candidates('https://example.com/index.php', ['.bak', '.bak']), [
+            ('https://example.com/index.php.bak', '.bak'),
+        ])
+
+    def test_shadow_control_candidate_and_fallback_edges(self):
+        """Shadow negative-control helpers should cover parse and mismatch guards."""
+
+        self.assertIsNone(ShadowProbe.build_control_candidate('http://[::1'))
+        self.assertIsNone(ShadowProbe.build_control_candidate('https://example.com/admin/'))
+
+        identical = self.make_response(body=b'body', content_type='text/html')
+        base = ShadowProbe.response_signature(identical)
+        different_type = self.make_response(body=b'body', content_type='application/json')
+        self.assertFalse(ShadowProbe.is_fallback_like_control(base, different_type))
+
+        self.assertTrue(ShadowProbe.is_fallback_like_control(base, identical))
+        self.assertFalse(ShadowProbe.is_fallback_like_control(None, identical))
+
+    def test_shadow_enqueue_control_candidate_guards(self):
+        """Shadow control enqueue should skip short, invalid and duplicate states."""
+
+        probe = ShadowProbe(MagicMock(), MagicMock())
+        base_signature = {'hash': 'h', 'normalized': 'body', 'size': 10, 'content_type': 'text/html'}
+        enqueue_control = getattr(probe, '_ShadowProbe__enqueue_control_candidate')
+
+        enqueue_control('https://example.com/index.php', base_signature, [
+            ('https://example.com/index.php.bak', '.bak'),
+        ])
+        self.assertEqual(getattr(probe, '_ShadowProbe__queue').qsize(), 0)
+
+        enqueue_control('https://example.com/admin/', base_signature, [
+            ('https://example.com/admin/.bak', '.bak'),
+            ('https://example.com/admin/.old', '.old'),
+        ])
+        self.assertEqual(getattr(probe, '_ShadowProbe__queue').qsize(), 0)
+
+        enqueue_control('https://example.com/index.php', base_signature, [
+            ('https://example.com/index.php.bak', '.bak'),
+            ('https://example.com/index.php.old', '.old'),
+        ])
+        enqueue_control('https://example.com/index.php', base_signature, [
+            ('https://example.com/index.php.tmp', '.tmp'),
+            ('https://example.com/index.php.save', '.save'),
+        ])
+        self.assertEqual(getattr(probe, '_ShadowProbe__queue').qsize(), 1)
+
+    def test_shadow_process_control_task_delay_exception_and_state(self):
+        """Control probes should honor delay and mark allowed on request errors."""
+
+        probe = ShadowProbe(MagicMock(side_effect=RuntimeError('offline')), MagicMock(), delay=0.5)
+        base_signature = {'hash': 'h', 'normalized': 'body', 'size': 10, 'content_type': 'text/html'}
+
+        with patch('src.lib.browser.shadow.time.sleep') as sleep_mock:
+            getattr(probe, '_ShadowProbe__process_control_task')(
+                'https://example.com/index.php',
+                base_signature,
+                'https://example.com/index.php{0}'.format(ShadowProbe.CONTROL_SUFFIX),
+            )
+
+        sleep_mock.assert_called_once_with(0.5)
+        self.assertFalse(getattr(probe, '_ShadowProbe__is_base_suppressed')('https://example.com/index.php'))
+        self.assertFalse(getattr(ShadowProbe, '_ShadowProbe__is_control_task')(None))
+
+    def test_shadow_enqueue_stops_when_probe_limit_is_reached_mid_batch(self):
+        """Shadow enqueue should stop cleanly once the total probe limit is reached mid-batch."""
+
+        request = MagicMock(return_value=self.make_response(body=b'different'))
+        probe = ShadowProbe(request, MagicMock())
+        base = self.make_response(body=b'base stable body line\n' * 5)
+
+        with patch.object(probe, '_ShadowProbe__suffixes', ['.bak', '.old', '.tmp']), \
+                patch.object(ShadowProbe, 'MAX_TOTAL_PROBES', 1):
+            self.assertEqual(probe.enqueue('https://example.com/index.php', base, 'success'), 1)
+            probe.drain()
+
+        self.assertLessEqual(probe.submitted, 1)
+
+
 
 class TestBrowserShadowIntegration(unittest.TestCase):
     """Browser integration tests for active shadow probe plumbing."""

@@ -305,6 +305,12 @@ class TestReader(unittest.TestCase):
 
         self.assertEqual(line, 'http://api.example.com:8080')
 
+    def test_normalize_directory_prefix_should_accept_none(self):
+        """Reader._normalize_directory_prefix() should treat None as no prefix."""
+
+        self.assertEqual(Reader._normalize_directory_prefix(None), '')
+
+
     def test_count_active_lines_should_wrap_filesystem_errors(self):
         """Reader.count_active_lines() should wrap filesystem count errors."""
 
