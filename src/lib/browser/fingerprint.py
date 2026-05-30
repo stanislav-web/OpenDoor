@@ -1526,6 +1526,64 @@ class Fingerprint(object):
         ):
             self._add_signal('Evolution CMS', self.CMS_CATEGORY, 'endpoint', '/manager/', 3)
 
+
+    def _apply_datalife_engine_rules(self, body_lower, generator):
+        """
+        Apply conservative passive DataLife Engine (DLE) signals.
+
+        DLE installations often remove explicit generator branding, but still
+        expose stable runtime globals and engine asset bundle paths such as
+        ``dle_root`` / ``dle_login_hash`` and ``engine/classes/js/dle_js.js``.
+        Keep short ``dle`` text out of body matching to avoid false positives.
+
+        :param str body_lower: normalized response body
+        :param str generator: raw generator meta value
+        :return: None
+        """
+
+        body_text = str(body_lower or '').lower()
+        generator_lower = str(generator or '').lower()
+        brand_markers = (
+            'datalife engine',
+            'data life engine',
+            'dle-news.ru',
+            'dle-news.com',
+            'softnews media group',
+        )
+
+        if any(marker in generator_lower for marker in brand_markers):
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 8)
+
+        if any(marker in body_text for marker in brand_markers):
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'markup', 'DataLife Engine branding', 8)
+
+        dle_globals = sorted(set(re.findall(
+            r'(?:var\s+|window\.)(allow_dle_delete_news|dle_(?:root|admin|login_hash|group|skin|wysiwyg|act_lang|user_id|search_delay|search_value))\b',
+            body_text,
+        )))
+        if len(dle_globals) >= 2:
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'script', '+'.join(dle_globals[:4]), 8)
+        elif len(dle_globals) == 1 and any(marker in body_text for marker in brand_markers):
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'script+brand', dle_globals[0], 4)
+
+        has_dle_js_asset = '/engine/classes/js/dle_js.js' in body_text or 'engine/classes/js/dle_js.js' in body_text
+        has_dle_min_asset = '/engine/classes/min/index.php' in body_text or 'engine/classes/min/index.php' in body_text
+        if has_dle_js_asset:
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'asset', 'engine/classes/js/dle_js.js', 8)
+        elif has_dle_min_asset and (len(dle_globals) >= 1 or any(marker in body_text for marker in brand_markers)):
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'asset+script', 'engine/classes/min/index.php', 5)
+
+        ajax_markers = (
+            'dle_root+"engine/ajax/',
+            "dle_root+'engine/ajax/",
+            'dle_root + "engine/ajax/',
+            "dle_root + 'engine/ajax/",
+            '/engine/ajax/controller.php?mod=',
+            'engine/ajax/controller.php?mod=',
+        )
+        if any(marker in body_text for marker in ajax_markers) and (len(dle_globals) >= 1 or has_dle_js_asset):
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'ajax', 'engine/ajax/', 5)
+
     def _apply_extended_cms_catalog_rules(self, body_lower, headers, cookies, generator):
         """
         Apply extended catalog signals for CMSs not covered by dedicated rules.
@@ -2332,6 +2390,12 @@ class Fingerprint(object):
             generator=generator,
             probe_statuses=probe_statuses,
             not_found_status=not_found_status,
+        )
+
+        # DataLife Engine
+        self._apply_datalife_engine_rules(
+            body_lower=body_lower,
+            generator=generator,
         )
 
         # MODX

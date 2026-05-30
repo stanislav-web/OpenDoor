@@ -13,6 +13,7 @@ v5.16.2 (30.06.2026)
 - (fix) `--sniff malware` false positives on security-plugin documentation by suppressing name-only webshell vocabulary in documentation context while preserving executable payload and shell UI detections.
 - (fix) `--sniff malware` false positives on legacy Google Analytics loaders while preserving suspicious document.write, atob, String.fromCharCode and PHP payload detections.
 - (fix) `--sniff secret` scan output so secret sniffer hits are labeled as `OK (Secret)` like other sniffer findings.
+- (fix) `--fingerprint` now detects DataLife Engine (DLE) from conservative runtime globals and engine asset signals.
 - (enhancement) added Evolution CMS fingerprint detection from explicit generator, branding, and core install-fallback signals.
 - (enhancement) UMI.CMS fingerprint detection (strong rules added).
 - (enhancement) added conservative MogutaCMS fingerprint detection without active probes or generic portfolio-page matches.
@@ -21,7 +22,7 @@ v5.16.2 (30.06.2026)
 - (enhancement)  Ruby on Rails fingerprint detection with conservative passive CSRF, Rails UJS/Turbo, asset-pipeline and Rails error markers while avoiding standalone Rack.
 - (ui) clarified Runtime Diagnostics queue accounting by showing consumed items, submitted HTTP jobs, and pre-request skipped items separately.
 - (ui) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt describe Enter/C continue, E/Q abort, and active-request drain semantics.
-- (dictionary) cleaned and normalized the internal directories list (+1241 potential interesting paths).
+- (dictionary) cleaned and normalized the internal directories list (+1243 potential interesting paths).
 - (docs) added a `Mastering OpenDoor` companion documentation page for the upcoming article series.
 
 v5.16.1 (24.05.2026)

@@ -206,6 +206,105 @@ class TestFingerprint(unittest.TestCase):
         self.assertTrue(Fingerprint._is_distinct_probe_status(200, 'bad-baseline'))
         self.assertFalse(Fingerprint._is_distinct_probe_up({'/wp-content/': 200}, '/wp-content/', [403], 404))
 
+
+    def test_detects_datalife_engine_from_runtime_globals_and_assets(self):
+        """Fingerprint should detect DLE from stable runtime globals and engine assets."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head>'
+                '<script>var dle_root = "/"; var dle_admin = "admin.php"; '
+                'var dle_login_hash = ""; var dle_group = 5; var dle_skin = "Default";</script>'
+                '<script src="/engine/classes/min/index.php?charset=utf-8&amp;f='
+                'engine/classes/js/jquery.js,engine/classes/js/dle_js.js&amp;v=19"></script>'
+                '</head><body>News site</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'DataLife Engine')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertIn('engine/classes/js/dle_js.js', [signal['value'] for signal in result['signals']])
+
+
+    def test_detects_datalife_engine_from_search_runtime_globals(self):
+        """Fingerprint should detect DLE from inline search globals used on real homepages."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><script><!--\n'
+                'var allow_dle_delete_news = false;\n'
+                'var dle_search_delay = false;\n'
+                "var dle_search_value = '';\n"
+                '$(function(){ FastSearch(); });\n'
+                '//--></script></head><body>News</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'DataLife Engine')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertTrue(
+            any('dle_search_delay' in signal['value'] for signal in result['signals'])
+        )
+
+    def test_detects_datalife_engine_from_explicit_generator(self):
+        """Fingerprint should keep explicit DataLife Engine generator support."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><meta name="generator" content="DataLife Engine (http://dle-news.ru)"></head></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['name'], 'DataLife Engine')
+        self.assertGreaterEqual(result['confidence'], 70)
+
+    def test_does_not_promote_datalife_engine_from_weak_dle_text_only(self):
+        """Fingerprint should not classify generic DLE text or one isolated global as DLE."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body>DLE can mean distance learning environment. '
+                '<script>var dle_root = "/";</script></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertNotEqual(result['name'], 'DataLife Engine')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+
     def test_detects_nextjs(self):
         """Fingerprint should detect Next.js from __NEXT_DATA__ and _next assets."""
 

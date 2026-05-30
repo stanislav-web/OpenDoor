@@ -48064,6 +48064,8 @@ engine/classes/swfuploadswfupload_f9.swf
 engine/log.txt
 engine/login
 engine/login.php
+engine/opensearch.php
+engine/search.php
 engine/sign
 engine/sign.php
 engine/signin
