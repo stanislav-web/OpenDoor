@@ -18,6 +18,7 @@ v5.16.2 (xx.06.2026)
 - (enhancement) added conservative MogutaCMS fingerprint detection without active probes or generic portfolio-page matches.
 - (enhancement) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt visible after in-flight worker output drains, while preserving Enter/C continue and E/Q abort semantics.
 - (enhancement) reduced `--sniff malware` false positives for standard Bitrix admin login pages by allowlisting the built-in hidden `auth_frame` iframe only when strong Bitrix login markers are present.
+- (enhancement)  Ruby on Rails fingerprint detection with conservative passive CSRF, Rails UJS/Turbo, asset-pipeline and Rails error markers while avoiding standalone Rack.
 - (ui) clarified Runtime Diagnostics queue accounting by showing consumed items, submitted HTTP jobs, and pre-request skipped items separately.
 - (ui) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt describe Enter/C continue, E/Q abort, and active-request drain semantics.
 - (dictionary) cleaned and normalized the internal directories list (+XXX potential interesting paths).

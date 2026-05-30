@@ -7,7 +7,6 @@
 0-0-1
 0-9.html
 0-12
-config/environments/development.rb
 0-a.html
 00-backup
 00-cache
@@ -5845,11 +5844,6 @@ config/environments/development.rb
 .idea/webServers.xml
 .idea/woaWordpress.iml
 .idea/workspace(2).xml
-.idea/workspace(3).xml
-.idea/workspace(4).xml
-.idea/workspace(5).xml
-.idea/workspace(6).xml
-.idea/workspace(7).xml
 .idea/workspace.xml
 .idea_modules
 .ideaassetwizardsettings.xml
@@ -12662,6 +12656,8 @@ admin/PMA/index.php
 admin/PMAindex.php
 admin/pmaindex.php
 admin/pol_log.txt
+admin/polls/resultwin.php
+admin/polls/resultwin.php3
 admin/portal
 admin/portal.php
 admin/portalcollect.php
@@ -36097,6 +36093,7 @@ config/db.inc
 config/development
 config/elasticsearch.yml
 config/environment.rb
+config/environments/development.rb
 config/error_log
 config/initializers/secret_token.rb
 config/initializerssecret_token.rb
@@ -68659,6 +68656,7 @@ login_users
 login_usuario.html
 LoginAction.do
 loginadmin
+loginadmin.php
 loginasp
 Loginauth.php
 loginautoset.asp
