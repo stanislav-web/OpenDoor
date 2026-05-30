@@ -579,6 +579,7 @@ class TestBrowser(unittest.TestCase):
         result = getattr(br, '_Browser__result')
         self.assertEqual(result['total']['ignored'], 1)
         self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
+        self.assertEqual(result['transport_failed'], [])
 
     def test_http_request_records_transport_failure_without_bypassing_retries(self):
         """Browser.__http_request() should track missing responses after provider retries are exhausted."""
@@ -608,8 +609,17 @@ class TestBrowser(unittest.TestCase):
         self.assertIn('Consecutive max-retry path failures: 1/10', debug_mock.call_args.kwargs.get('msg', ''))
 
         result = getattr(br, '_Browser__result')
-        self.assertEqual(result['total']['ignored'], 1)
-        self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
+        self.assertNotIn('ignored', result['total'])
+        self.assertNotIn('ignored', result['items'])
+        self.assertNotIn('ignored', result['report_items'])
+        self.assertEqual(result['transport_failed'], [
+            {
+                'url': 'http://example.com/admin',
+                'size': '0B',
+                'code': '-',
+                'reason': 'no_response_after_retries',
+            }
+        ])
 
 
     def test_http_request_includes_tls_diagnostic_in_transport_failure(self):
@@ -665,8 +675,26 @@ class TestBrowser(unittest.TestCase):
         response_handler.handle.assert_not_called()
 
         result = getattr(br, '_Browser__result')
-        self.assertEqual(result['total']['ignored'], 2)
-        self.assertEqual(result['items']['ignored'], ['http://example.com/first', 'http://example.com/second'])
+        self.assertNotIn('ignored', result['total'])
+        self.assertNotIn('ignored', result['items'])
+        self.assertNotIn('ignored', result['report_items'])
+        self.assertEqual(
+            result['transport_failed'],
+            [
+                {
+                    'url': 'http://example.com/first',
+                    'size': '0B',
+                    'code': '-',
+                    'reason': 'no_response_after_retries',
+                },
+                {
+                    'url': 'http://example.com/second',
+                    'size': '0B',
+                    'code': '-',
+                    'reason': 'no_response_after_retries',
+                },
+            ]
+        )
 
     def test_http_request_does_not_abort_before_default_retries_fail_streak(self):
         """Browser.__http_request() should keep max-retry paths skipped until the default threshold."""
@@ -693,10 +721,25 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 2)
 
         result = getattr(br, '_Browser__result')
-        self.assertEqual(result['total']['ignored'], 2)
+        self.assertNotIn('ignored', result['total'])
+        self.assertNotIn('ignored', result['items'])
+        self.assertNotIn('ignored', result['report_items'])
         self.assertEqual(
-            result['items']['ignored'],
-            ['http://example.com/.well', 'http://example.com/.idea/dictionaries']
+            result['transport_failed'],
+            [
+                {
+                    'url': 'http://example.com/.well',
+                    'size': '0B',
+                    'code': '-',
+                    'reason': 'no_response_after_retries',
+                },
+                {
+                    'url': 'http://example.com/.idea/dictionaries',
+                    'size': '0B',
+                    'code': '-',
+                    'reason': 'no_response_after_retries',
+                },
+            ]
         )
 
     def test_http_request_does_not_run_healthcheck_during_max_retry_streak(self):
@@ -777,7 +820,9 @@ class TestBrowser(unittest.TestCase):
         br._Browser__http_request('http://example.com/offline-admin')
 
         result = getattr(br, '_Browser__result')
-        self.assertEqual(result['total']['ignored'], 1)
+        self.assertNotIn('ignored', result['total'])
+        self.assertNotIn('ignored', result['items'])
+        self.assertNotIn('ignored', result['report_items'])
         self.assertEqual(result['transport_failed'], [
             {
                 'url': 'http://example.com/offline-admin',
@@ -1007,6 +1052,7 @@ class TestBrowser(unittest.TestCase):
         result = getattr(br, '_Browser__result')
         self.assertEqual(result['total']['ignored'], 1)
         self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
+        self.assertEqual(result['transport_failed'], [])
 
     def test_add_urls_deduplicates_subdomain_candidates_before_queueing(self):
         """Browser._add_urls() should skip duplicate subdomain URLs before HTTP queueing."""

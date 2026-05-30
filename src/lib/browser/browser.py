@@ -2528,6 +2528,7 @@ class Browser(Filter):
                 })
 
         if is_subdomains_scan:
+            self.__catch_report_data('ignored', url)
             self.__emit_filtered_progress(
                 'ignored',
                 ('ignored', url, '0B', '-'),
@@ -2592,7 +2593,6 @@ class Browser(Filter):
             resp = self.__request_with_waf_safe_mode(url)
 
             if resp is None:
-                self.__catch_report_data('ignored', url)
                 self.__record_transport_failure(url)
                 return
 
