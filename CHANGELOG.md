@@ -1,6 +1,6 @@
 CHANGELOG
 =======
-v5.16.2 (30.06.2026)
+v5.16.2 (31.06.2026)
 ---------------------------
 - (critical) fixed scan crashes caused by corrupted gzip/encoded HTTP responses by handling `DecodeError` as a recoverable transport failure instead of aborting worker threads.
 - (fix) `--sniff malware` false positives when fallback pages repeatedly echo webshell-like names inside URL/query attributes, while preserving real webshell UI and executable payload detections.
@@ -24,6 +24,7 @@ v5.16.2 (30.06.2026)
 - (ui) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt describe Enter/C continue, E/Q abort, and active-request drain semantics.
 - (dictionary) cleaned and normalized the internal directories list (+1243 potential interesting paths).
 - (docs) added a `Mastering OpenDoor` companion documentation page for the upcoming article series.
+- (deps)(deps-dev): [PR#115](https://github.com/stanislav-web/OpenDoor/pull/115) bump ruff from 0.15.13 to 0.15.14 in the python-runtime-dependencies group
 
 v5.16.1 (24.05.2026)
 ---------------------------
