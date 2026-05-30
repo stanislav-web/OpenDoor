@@ -92,6 +92,27 @@ class TextReportPlugin(PluginProvider):
 
         return str(value)
 
+    def format_transport_failed_items(self):
+        """Format transport-exhausted request paths for a dedicated txt report.
+
+        These entries are not findings. They identify dictionary items that
+        were consumed but did not receive any HTTP response after the
+        configured timeout/retry budget.
+
+        :return: formatted report lines
+        :rtype: list[str]
+        """
+
+        items = self._data.get('transport_failed')
+        if not isinstance(items, list):
+            return []
+
+        return [
+            self.format_report_item(item)
+            for item in items
+            if item is not None
+        ]
+
     def format_fingerprint_summary(self):
         fingerprint = self._data.get('fingerprint')
         if not isinstance(fingerprint, dict) or len(fingerprint) == 0:
@@ -168,6 +189,9 @@ class TextReportPlugin(PluginProvider):
                 if status not in ['failed']:
                     data = [self.format_report_item(item) for item in self.get_report_items(status)]
                     self.record(self.__target_dir, status, data, '\n')
+            transport_failed_data = self.format_transport_failed_items()
+            if len(transport_failed_data) > 0:
+                self.record(self.__target_dir, 'transport_failed', transport_failed_data, '\n')
             fingerprint_data = self.format_fingerprint_summary()
             if len(fingerprint_data) > 0:
                 self.record(self.__target_dir, 'fingerprint', fingerprint_data, '\n')

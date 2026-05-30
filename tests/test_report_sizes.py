@@ -162,6 +162,30 @@ class TestReporterPlugins(unittest.TestCase):
         self.assertIn('"size": "9B"', content)
         self.assertIn('"url": "http://example.com/admin"', content)
 
+    def test_json_report_preserves_transport_failed_entries(self):
+        """JSON reports should preserve transport-failed diagnostics when present."""
+
+        data = dict(self.data)
+        data['transport_failed'] = [
+            {
+                'url': 'http://example.com/offline-admin',
+                'size': '0B',
+                'code': '-',
+                'reason': 'no_response_after_retries',
+            }
+        ]
+
+        plugin = JsonReportPlugin(self.target, data, directory=self.base_dir + os.path.sep)
+        plugin.process()
+
+        report_file = os.path.join(self.base_dir, self.target, self.target + '.json')
+        with open(report_file, 'r', encoding='utf-8') as handler:
+            content = handler.read()
+
+        self.assertIn('"transport_failed"', content)
+        self.assertIn('"reason": "no_response_after_retries"', content)
+        self.assertIn('"url": "http://example.com/offline-admin"', content)
+
     def test_html_report_uses_detailed_report_items_and_builds_fallbacks(self):
         """HTML reports should receive report_items regardless of input payload shape."""
 

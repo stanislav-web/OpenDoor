@@ -109,6 +109,35 @@ class TestTextReportPluginCoverage(unittest.TestCase):
             '\n'
         )
 
+    def test_should_write_transport_failed_report_when_present(self):
+        """TextReportPlugin.process() should write transport_failed.txt outside finding buckets."""
+
+        data = {
+            'items': {},
+            'transport_failed': [
+                {
+                    'url': 'http://example.com/offline-admin',
+                    'code': '-',
+                    'size': '0B',
+                    'reason': 'no_response_after_retries',
+                }
+            ],
+        }
+
+        with patch('src.lib.reporter.plugins.txt.filesystem.makedir', return_value=self.target_dir), \
+                patch('src.lib.reporter.plugins.txt.filesystem.clear') as clear_mock:
+            plugin = TextReportPlugin(self.target, data, directory='/custom/reports')
+            with patch.object(plugin, 'record') as record_mock:
+                plugin.process()
+
+        clear_mock.assert_called_once_with(self.target_dir, extension='.txt')
+        record_mock.assert_called_once_with(
+            self.target_dir,
+            'transport_failed',
+            ['http://example.com/offline-admin - - - 0B'],
+            '\n'
+        )
+
     def test_should_process_empty_items_without_writing_report_files(self):
         """TextReportPlugin.process() should clear stale txt reports even when no items exist."""
 

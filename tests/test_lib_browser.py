@@ -761,6 +761,32 @@ class TestBrowser(unittest.TestCase):
         self.assertIn('Transport failures skipped: 3 request(s)', message)
         self.assertIn('Scan continued without reaching --retries-fail-streak.', message)
 
+    def test_http_request_records_transport_failed_paths_for_directory_scan(self):
+        """Transport-exhausted directory paths should be available for reports."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+
+        br._Browser__http_request('http://example.com/offline-admin')
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['ignored'], 1)
+        self.assertEqual(result['transport_failed'], [
+            {
+                'url': 'http://example.com/offline-admin',
+                'size': '0B',
+                'code': '-',
+                'reason': 'no_response_after_retries',
+            }
+        ])
+
     def test_http_request_never_aborts_subdomain_scan_on_transport_failures(self):
         """Subdomain misses should be skipped without using the directory fail-streak guard."""
 
@@ -799,6 +825,7 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 0)
         self.assertEqual(getattr(br, '_Browser__transport_failures_skipped'), 3)
         self.assertEqual(getattr(br, '_Browser__result')['total']['ignored'], 3)
+        self.assertEqual(getattr(br, '_Browser__result').get('transport_failed'), [])
 
     def test_transport_failure_summary_uses_subdomain_specific_wording(self):
         """Subdomain transport misses should not mention reaching the directory fail-streak guard."""

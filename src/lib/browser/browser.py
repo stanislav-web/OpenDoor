@@ -154,7 +154,13 @@ class Browser(Filter):
                         key='method_override',
                         sniffers=', '.join(method_override_items)
                     )
-            self.__result = {'total': {}, 'items': {}, 'report_items': {}, 'filtered_items': []}
+            self.__result = {
+                'total': {},
+                'items': {},
+                'report_items': {},
+                'filtered_items': [],
+                'transport_failed': [],
+            }
             self.__visited_recursive = set()
             self.__queued_recursive = set()
             runtime_paths = self.__prepare_runtime_paths()
@@ -2503,6 +2509,8 @@ class Browser(Filter):
 
         is_subdomains_scan = self.__is_subdomains_scan() is True
 
+        self.__ensure_session_runtime_state()
+
         with self.__transport_failure_lock:
             self.__transport_failures_skipped += 1
 
@@ -2512,6 +2520,12 @@ class Browser(Filter):
             else:
                 self.__transport_failure_streak += 1
                 streak = self.__transport_failure_streak
+                self.__result['transport_failed'].append({
+                    'url': url,
+                    'size': '0B',
+                    'code': '-',
+                    'reason': 'no_response_after_retries',
+                })
 
         if is_subdomains_scan:
             self.__emit_filtered_progress(
@@ -4088,8 +4102,12 @@ class Browser(Filter):
             self.__result = {
                 'total': helper.counter(),
                 'items': helper.list(),
-                'report_items': helper.list()
+                'report_items': helper.list(),
+                'transport_failed': [],
             }
+
+        if isinstance(self.__result, dict) and not isinstance(self.__result.get('transport_failed'), list):
+            self.__result['transport_failed'] = []
         if not hasattr(self, '_Browser__waf_safe_lock'):
             self.__waf_safe_lock = threading.RLock()
 

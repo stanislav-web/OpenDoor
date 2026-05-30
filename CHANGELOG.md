@@ -4,6 +4,7 @@ v5.16.2 (31.06.2026)
 ---------------------------
 - (critical) fixed scan crashes caused by corrupted gzip/encoded HTTP responses by handling `DecodeError` as a recoverable transport failure instead of aborting worker threads.
 - (fix) JavaScript cookie-gate bypass pages such as  `document.cookie` + `location.reload()` responses are no longer reported as `OK` findings.
+- (fix) transport-exhausted directory entries are now saved to `transport_failed.txt` and JSON diagnostics, making temporary network-related wordlist coverage loss visible without changing scan scheduling.
 - (fix) subdomain scans so missing/no-response candidates are skipped without triggering the directory retry fail-streak abort guard.
 - (fix) directory scan prefix normalization so `--prefix ex` and `--prefix ex/` both scan under `/ex/<path>` instead of concatenating paths as `/ex<path>`.
 - (fix) reduced WAF-safe auto-calibration noise by using neutral calibration probe paths when `--waf-safe-mode` is enabled, avoiding high-risk `.php`, `.map`, `admin`, and `wp-*` probe shapes.
