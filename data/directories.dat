@@ -106290,6 +106290,7 @@ templates/defaultinfo.txt
 templates/index.html
 templates/ja-helio-farsi/index.php
 templates/ja-helio-farsiindex.php
+templates/javascripts.js
 templates/protostar
 templates/rhuk_milkyway
 templates/rhuk_milkyway/0day.php

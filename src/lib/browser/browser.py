@@ -17,6 +17,7 @@
 """
 
 import copy
+import re
 import socket as net_socket
 import threading
 import time
@@ -2639,6 +2640,20 @@ class Browser(Filter):
                     metadata=calibration_match
                 )
                 return
+
+            js_cookie_challenge = self.__match_js_cookie_reload_challenge(resp, response_data)
+            if js_cookie_challenge is not None:
+                self.__emit_passive_sniffer_findings(passive_sniffer_findings, resp)
+                self.__emit_filtered_progress('calibrated', response_data, js_cookie_challenge, request_url=url)
+                self.__catch_report_data(
+                    'calibrated',
+                    response_data[1],
+                    response_data[2],
+                    response_data[3],
+                    metadata=js_cookie_challenge
+                )
+                return
+
             debug_response_data = getattr(self.__response, 'debug_response_data', None)
             if callable(debug_response_data) and primary_suppressed is not True:
                 self.__clear_filtered_progress()
@@ -2724,6 +2739,114 @@ class Browser(Filter):
                     return True
 
         return False
+
+    @classmethod
+    def __match_js_cookie_reload_challenge(cls, response_object, response_data):
+        """
+        Match JavaScript cookie bootstrap pages emitted as 2xx responses.
+
+        Some hosting frontends return a small 200 HTML page that only sets a
+        browser cookie and reloads the current URL. Browsers execute the script
+        and then receive the real origin response, but raw scanners see the
+        bootstrap page as a false positive success. Treat only script-only
+        cookie+reload gates as filtered scan noise.
+
+        :param object response_object: raw response object
+        :param tuple response_data: legacy classified response tuple
+        :return: calibration-like metadata when the response should be filtered
+        :rtype: dict|None
+        """
+
+        code = cls.__extract_response_code(response_object, response_data)
+        if code is None or code < 200 or code >= 300:
+            return None
+
+        body = cls.__response_body_text(response_object)
+        if not body:
+            return None
+
+        if len(body) > 2048:
+            return None
+
+        content_type = str(cls.__get_header_value(response_object, 'content-type') or '').lower()
+        if content_type and 'html' not in content_type:
+            return None
+
+        lowered = body.lower()
+        compact = re.sub(r'\s+', '', lowered)
+
+        if 'document.cookie' not in compact:
+            return None
+
+        if 'location.reload(' not in compact and 'window.location.reload(' not in compact:
+            return None
+
+        if cls.__has_useful_html_controls(lowered) is True:
+            return None
+
+        if cls.__visible_text_without_scripts(body):
+            return None
+
+        known_cookie_gate = any(marker in compact for marker in (
+            'beget=begetok',
+            '__js_p_=',
+        ))
+        if known_cookie_gate is not True:
+            script_only = compact.startswith('<html><head><script') or compact.startswith('<script')
+            if script_only is not True:
+                return None
+
+        return {
+            'calibration_score': 1.0,
+            'calibration_reason': 'js-cookie-reload-challenge',
+        }
+
+    @staticmethod
+    def __response_body_text(response_object):
+        """
+        Decode response body defensively for lightweight response guards.
+
+        :param object response_object: raw response object
+        :return: decoded response body
+        :rtype: str
+        """
+
+        try:
+            return helper.decode(response_object.data)
+        except (AttributeError, TypeError, UnicodeError):
+            return ''
+
+    @staticmethod
+    def __has_useful_html_controls(body):
+        """
+        Return True when HTML contains user-facing controls or content containers.
+
+        :param str body: decoded lower-case response body
+        :return: whether the page looks like useful content
+        :rtype: bool
+        """
+
+        return re.search(
+            r'<\s*(?:form|input|textarea|select|button|table|main|article|section|pre|code)\b',
+            str(body or ''),
+            flags=re.IGNORECASE,
+        ) is not None
+
+    @staticmethod
+    def __visible_text_without_scripts(body):
+        """
+        Extract visible text after removing script/style blocks and tags.
+
+        :param str body: decoded response body
+        :return: normalized visible text
+        :rtype: str
+        """
+
+        value = re.sub(r'<script\b[^>]*>.*?</script\s*>', ' ', str(body or ''), flags=re.DOTALL | re.IGNORECASE)
+        value = re.sub(r'<style\b[^>]*>.*?</style\s*>', ' ', value, flags=re.DOTALL | re.IGNORECASE)
+        value = re.sub(r'<[^>]+>', ' ', value)
+        value = re.sub(r'\s+', ' ', value)
+        return value.strip()
 
     @staticmethod
     def __is_soft404_suppressor_response(response_object, primary_bucket, response_code):

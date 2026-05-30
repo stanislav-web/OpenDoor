@@ -2680,6 +2680,73 @@ class TestBrowser(unittest.TestCase):
 
         self.assertEqual(instance._Browser__result['total']['success'], 1)
 
+    def test_http_request_should_filter_js_cookie_reload_challenge(self):
+        """Browser.__http_request() should not report JS cookie bootstrap pages as success."""
+
+        br = self.make_browser()
+        body = (
+            "<html><head><script>function set_cookie(){var now = new Date();"
+            "document.cookie='beget=begetok'+'; expires='+now.toGMTString()+'; path=/';}"
+            "set_cookie();location.reload();;</script></head><body></body></html>"
+        )
+        response_object = SimpleNamespace(
+            status=200,
+            headers={'Content-Type': 'text/html'},
+            data=body.encode('utf-8'),
+        )
+
+        client = MagicMock()
+        client.request.return_value = response_object
+        pool = SimpleNamespace(items_size=1, total_items_size=3)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+        response_handler.handle.return_value = (
+            'success',
+            'http://www.madburg.ru/adminer-4.2.3-sk.php',
+            '273B',
+            '200',
+        )
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+
+        br._Browser__http_request('http://www.madburg.ru/adminer-4.2.3-sk.php')
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['success'], 0)
+        self.assertEqual(result['total']['calibrated'], 1)
+        self.assertEqual(
+            result['items']['calibrated'],
+            ['http://www.madburg.ru/adminer-4.2.3-sk.php'],
+        )
+        self.assertEqual(
+            result['report_items']['calibrated'][0]['calibration_reason'],
+            'js-cookie-reload-challenge',
+        )
+        response_handler.debug_response_data.assert_not_called()
+
+    def test_js_cookie_reload_challenge_helper_rejects_useful_pages(self):
+        """JS cookie challenge guard should not hide useful HTML pages."""
+
+        useful_response = SimpleNamespace(
+            status=200,
+            headers={'Content-Type': 'text/html'},
+            data=(
+                "<html><head><script>document.cookie='visited=1';location.reload();</script></head>"
+                "<body><form><input name='login'></form></body></html>"
+            ).encode('utf-8'),
+        )
+
+        actual = Browser._Browser__match_js_cookie_reload_challenge(
+            useful_response,
+            ('success', 'http://example.com/login', '130B', '200'),
+        )
+
+        self.assertIsNone(actual)
+
     def test_http_request_should_put_calibration_matches_into_calibrated_bucket(self):
         """Browser.__http_request() should classify calibration matches as calibrated."""
 

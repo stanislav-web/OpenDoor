@@ -485,6 +485,142 @@ class TestFingerprint(unittest.TestCase):
         self.assertLess(result['candidates'][0]['score'], 7)
 
 
+    def test_detects_melbis_shop_from_powered_footer(self):
+        """Fingerprint should detect Melbis Shop from an explicit product footer."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body>'
+                '<footer>© 2026 Melbis. Powered by Melbis Shop v6.5.0.279</footer>'
+                '<a href="/goods.php?id=1666">Product</a>'
+                '</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'ecommerce')
+        self.assertEqual(result['name'], 'Melbis Shop Platform')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertIn('Powered by Melbis Shop', [signal['value'] for signal in result['signals']])
+
+    def test_detects_melbis_shop_from_legacy_russian_footer_and_cookie(self):
+        """Fingerprint should detect legacy Melbis Shop storefront markers."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body>'
+                '<a href="/dir.php?id=372">Каталог</a>'
+                '<a href="/goods.php?id=1666">Товар</a>'
+                '<footer>Магазин создан на базе Melbis Shop v5.4.0. '
+                'Последнее обновление магазина: 25-06-2025 11:00</footer>'
+                '</body></html>',
+                MultiHeaders([('Set-Cookie', 'MS_MSS=abc123; path=/')]),
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'ecommerce')
+        self.assertEqual(result['name'], 'Melbis Shop Platform')
+        self.assertIn('MS_MSS', [signal['value'] for signal in result['signals']])
+
+    def test_detects_melbis_shop_from_default_template_assets(self):
+        """Fingerprint should detect Melbis Shop from default template assets."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head>'
+                '<link rel="stylesheet" href="/templates/default/melbis.css">'
+                '<script src="/templates/default/melbis.js"></script>'
+                '</head><body><a href="/dir.php?id=1">Catalog</a></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'ecommerce')
+        self.assertEqual(result['name'], 'Melbis Shop Platform')
+
+    def test_does_not_detect_melbis_shop_from_ms_mss_cookie_alone(self):
+        """MS_MSS is a weak corroborating cookie and should not classify alone."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><h1>Generic PHP storefront</h1></body></html>',
+                MultiHeaders([('Set-Cookie', 'MS_MSS=abc123; path=/')]),
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertNotEqual(result['name'], 'Melbis Shop Platform')
+        self.assertFalse(any(candidate['name'] == 'Melbis Shop Platform' for candidate in result['candidates']))
+
+    def test_does_not_detect_melbis_shop_from_generic_article_text(self):
+        """Generic Melbis Shop mentions should not become a storefront fingerprint."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><article>Review of Melbis Shop and other e-commerce platforms.</article></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'Melbis Shop Platform' for candidate in result['candidates']))
+
+
     def test_detects_camaleon_cms_from_official_site_runtime_markers(self):
         """Fingerprint should detect Camaleon CMS from brand context plus Rails CSRF."""
 

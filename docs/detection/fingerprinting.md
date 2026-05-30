@@ -190,6 +190,7 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 ### E-commerce
 
 - Magento
+- Melbis Shop Platform
 - Moguta CMS
 - nopCommerce
 - OpenCart

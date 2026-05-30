@@ -1,16 +1,16 @@
 CHANGELOG
 =======
-v5.16.2 (30.06.2026)
+v5.16.2 (31.06.2026)
 ---------------------------
 - (critical) fixed scan crashes caused by corrupted gzip/encoded HTTP responses by handling `DecodeError` as a recoverable transport failure instead of aborting worker threads.
-- (fix) `--fingerprint` no longer treats generic WordPress static-path probes as strong WordPress evidence unless corroborated by root-page WordPress signals.
-- (fix) false-positive OK findings when a target returns a canonical 404/410 error body with a transient 2xx status by adding strict cross-status soft-error calibration, including compact nginx-style 404 bodies.
-- (fix) `--sniff malware` false positives when fallback pages repeatedly echo webshell-like names inside URL/query attributes, while preserving real webshell UI and executable payload detections.
-- (fix) `--sniff shadow` false positives on soft-200/fallback routes by adding a negative-control probe before reporting backup-file variants.
+- (fix) JavaScript cookie-gate bypass pages such as  `document.cookie` + `location.reload()` responses are no longer reported as `OK` findings.
 - (fix) subdomain scans so missing/no-response candidates are skipped without triggering the directory retry fail-streak abort guard.
 - (fix) directory scan prefix normalization so `--prefix ex` and `--prefix ex/` both scan under `/ex/<path>` instead of concatenating paths as `/ex<path>`.
-- (fix) `--auto-calibrate` now disables weak HTTP baselines when too many probes are blocked, ignored, or failed, preventing sparse signatures from over-filtering scan results.
 - (fix) reduced WAF-safe auto-calibration noise by using neutral calibration probe paths when `--waf-safe-mode` is enabled, avoiding high-risk `.php`, `.map`, `admin`, and `wp-*` probe shapes.
+- (fix) `--fingerprint` no longer treats generic WordPress static-path probes as strong WordPress evidence unless corroborated by root-page WordPress signals.
+- (fix) `--auto-calibrate` now disables weak HTTP baselines when too many probes are blocked, ignored, or failed, preventing sparse signatures from over-filtering scan results.
+- (fix) `--sniff shadow` false positives on soft-200/fallback routes by adding a negative-control probe before reporting backup-file variants.
+- (fix) `--sniff malware` false positives when fallback pages repeatedly echo webshell-like names inside URL/query attributes, while preserving real webshell UI and executable payload detections.
 - (fix) `--sniff malware` false positives on security-plugin documentation by suppressing name-only webshell vocabulary in documentation context while preserving executable payload and shell UI detections.
 - (fix) `--sniff malware` false positives on legacy Google Analytics loaders while preserving suspicious document.write, atob, String.fromCharCode and PHP payload detections.
 - (fix) `--sniff secret` scan output so secret sniffer hits are labeled as `OK (Secret)` like other sniffer findings.
@@ -20,6 +20,7 @@ v5.16.2 (30.06.2026)
 - (enhancement) added Camaleon CMS without adding active probes.
 - (enhancement) added Evolution CMS fingerprint detection.
 - (enhancement) added strong UMI.CMS fingerprint detection rules.
+- (enhancement) added Melbis Shop Platform fingerprint detection rules.
 - (enhancement) added conservative MogutaCMS fingerprint detection without active probes.
 - (enhancement) added Ruby on Rails fingerprint detection with conservative passive CSRF, Rails UJS/Turbo, asset-pipeline and Rails error markers while avoiding standalone Rack.
 - (enhancement) reduced `--sniff malware` false positives for standard Bitrix admin login pages by allowlisting the built-in hidden `auth_frame` iframe only when strong Bitrix login markers are present.

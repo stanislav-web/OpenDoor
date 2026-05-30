@@ -138,7 +138,7 @@ class Fingerprint(object):
     STATIC_CATEGORY = 'static'
     RUNTIME_CATEGORY = 'runtime'
     TECHNOLOGY_RUNTIME_MAP = {
-        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'MogutaCMS': 'PHP', 'CMS.S3 / Megagroup': 'PHP', 'Camaleon CMS': 'Ruby', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
+        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'MogutaCMS': 'PHP', 'CMS.S3 / Megagroup': 'PHP', 'Camaleon CMS': 'Ruby', 'Melbis Shop Platform': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
         'Express': 'Node.js', 'NestJS': 'Node.js', 'Fastify': 'Node.js', 'Koa': 'Node.js', 'Hapi': 'Node.js', 'Strapi': 'Node.js', 'Directus': 'Node.js', 'Ghost': 'Node.js', 'Next.js': 'Node.js', 'Nuxt': 'Node.js', 'Gatsby': 'Node.js', 'Astro': 'Node.js', 'Remix': 'Node.js', 'SvelteKit': 'Node.js', 'Docusaurus': 'Node.js', 'VitePress': 'Node.js', 'PencilBlue': 'Node.js',
         'React': 'JavaScript', 'Vue': 'JavaScript', 'Angular': 'JavaScript', 'Django': 'Python', 'Flask': 'Python', 'FastAPI': 'Python', 'Ruby on Rails': 'Ruby', 'Spree': 'Ruby', 'Spring': 'Java/JVM', 'Liferay': 'Java/JVM', 'OpenCms': 'Java/JVM', 'Hippo CMS': 'Java/JVM', 'dotCMS': 'Java/JVM', 'ASP.NET': '.NET', 'Microsoft SharePoint': '.NET', 'DNN Platform': '.NET', 'Orchard CMS': '.NET', 'Sitecore': '.NET', 'Sitefinity': '.NET', 'Umbraco': '.NET', 'Phoenix': 'Elixir', 'MkDocs': 'Static site', 'Jekyll': 'Static site', 'Hugo': 'Static site', 'AsciiDoc': 'Static site',
     }
@@ -159,6 +159,7 @@ class Fingerprint(object):
         ('CKAN', CMS_CATEGORY, ('ckan',)),
         ('CMS.S3 / Megagroup', CMS_CATEGORY, ('cms.s3', 'cms s3', 'megagroup cms')),
         ('Camaleon CMS', CMS_CATEGORY, ('camaleon cms', 'camaleoncms')),
+        ('Melbis Shop Platform', ECOMMERCE_CATEGORY, ('melbis shop platform', 'melbis shop')),
         ('CMS Made Simple', CMS_CATEGORY, ('cms made simple', 'cmsms')),
         ('CMS CONTENIDO', CMS_CATEGORY, ('contenido', 'cms contenido')),
         ('CMSimple', CMS_CATEGORY, ('cmsimple',)),
@@ -1529,6 +1530,123 @@ class Fingerprint(object):
 
 
     @classmethod
+    def _collect_melbis_shop_signals(cls, body_lower, cookies, generator):
+        """
+        Return conservative Melbis Shop Platform passive signals.
+
+        Melbis Shop pages often expose a product footer such as
+        ``Powered by Melbis Shop v6.x`` or the older Russian
+        ``Магазин создан на базе Melbis Shop v5.x`` text. The ``MS_MSS``
+        session cookie is useful corroboration, but it is intentionally not
+        accepted as standalone evidence.
+
+        :param str body_lower: normalized response body
+        :param list cookies: normalized response cookie names
+        :param str generator: raw generator meta value
+        :return: detected signal tuples
+        :rtype: list[tuple[str, str]]
+        """
+
+        body_text = str(body_lower or '').lower()
+        generator_lower = str(generator or '').lower()
+        cookie_names = [str(cookie or '').lower() for cookie in cookies]
+        signals = []
+        seen_values = set()
+
+        def add_signal(signal_type, value):
+            if value in seen_values:
+                return
+            signals.append((signal_type, value))
+            seen_values.add(value)
+
+        if 'melbis shop' in generator_lower:
+            add_signal('meta', 'generator=Melbis Shop')
+
+        if re.search(r'powered\s+by(?:\s|<[^>]+>)*melbis\s+shop(?:\s*v?[0-9][0-9a-z.\-]*)?', body_text):
+            add_signal('powered', 'Powered by Melbis Shop')
+
+        if re.search(r'магазин\s+создан\s+на\s+базе\s+melbis\s+shop(?:\s*v?[0-9][0-9a-z.\-]*)?', body_text):
+            add_signal('powered', 'Магазин создан на базе Melbis Shop')
+
+        asset_markers = (
+            ('/templates/default/melbis.css', 'templates/default/melbis.css'),
+            ('/templates/default/melbis.js', 'templates/default/melbis.js'),
+            ('templates/default/melbis.css', 'templates/default/melbis.css'),
+            ('templates/default/melbis.js', 'templates/default/melbis.js'),
+        )
+        for marker, value in asset_markers:
+            if marker in body_text:
+                add_signal('asset', value)
+
+        source_markers = (
+            ("definesession('melbis_shop')", "DefineSession('MELBIS_SHOP')"),
+            ('definesession("melbis_shop")', 'DefineSession("MELBIS_SHOP")'),
+            ('melbis()->defineselfconst', 'MELBIS()->DefineSelfConst'),
+            ('melbis_base_page', 'melbis_base_page'),
+        )
+        for marker, value in source_markers:
+            if marker in body_text:
+                add_signal('source', value)
+
+        if re.search(r'(?:href|src|action)=["\'][^"\']*(?:dir|goods|news)\.php\?id=', body_text):
+            add_signal('route', 'dir/goods/news.php?id')
+        elif re.search(r'\b(?:dir|goods|news)\.php\?id=', body_text):
+            add_signal('route', 'dir/goods/news.php?id')
+
+        if 'ms_mss' in cookie_names:
+            add_signal('cookie', 'MS_MSS')
+
+        return signals
+
+    def _apply_melbis_shop_rules(self, body_lower, cookies, generator):
+        """
+        Apply conservative passive Melbis Shop Platform fingerprint signals.
+
+        Product footer, generator/source, and default template assets are strong
+        enough to classify Melbis Shop directly. The ``MS_MSS`` cookie is only
+        used with route/template corroboration to avoid cookie-name false
+        positives on unrelated PHP applications.
+
+        :param str body_lower: normalized response body
+        :param list cookies: normalized response cookie names
+        :param str generator: raw generator meta value
+        :return: None
+        """
+
+        signals = self._collect_melbis_shop_signals(body_lower, cookies, generator)
+        if len(signals) <= 0:
+            return
+
+        strong_values = [
+            value for signal_type, value in signals
+            if signal_type in ('meta', 'powered', 'asset', 'source')
+        ]
+        route_values = [value for signal_type, value in signals if signal_type == 'route']
+        cookie_values = [value for signal_type, value in signals if signal_type == 'cookie']
+
+        if len(strong_values) > 0:
+            self._add_signal(
+                'Melbis Shop Platform',
+                self.ECOMMERCE_CATEGORY,
+                'markup',
+                '+'.join(strong_values[:4]),
+                9,
+            )
+            if len(cookie_values) > 0:
+                self._add_signal('Melbis Shop Platform', self.ECOMMERCE_CATEGORY, 'cookie', cookie_values[0], 3)
+            if len(route_values) > 0:
+                self._add_signal('Melbis Shop Platform', self.ECOMMERCE_CATEGORY, 'route', route_values[0], 3)
+        elif len(cookie_values) > 0 and len(route_values) > 0:
+            self._add_signal(
+                'Melbis Shop Platform',
+                self.ECOMMERCE_CATEGORY,
+                'cookie+route',
+                '{0}+{1}'.format(cookie_values[0], route_values[0]),
+                8,
+            )
+
+
+    @classmethod
     def _collect_camaleon_cms_signals(cls, body_lower, cookies, generator):
         """
         Return conservative Camaleon CMS passive signals.
@@ -2678,6 +2796,13 @@ class Fingerprint(object):
         # DataLife Engine
         self._apply_datalife_engine_rules(
             body_lower=body_lower,
+            generator=generator,
+        )
+
+        # Melbis Shop Platform
+        self._apply_melbis_shop_rules(
+            body_lower=body_lower,
+            cookies=cookies,
             generator=generator,
         )
 
