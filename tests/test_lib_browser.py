@@ -832,6 +832,35 @@ class TestBrowser(unittest.TestCase):
             }
         ])
 
+
+    def test_http_request_requests_pause_after_transport_outage_streak(self):
+        """Directory scans should pause before burning many paths during a network outage."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(
+            items_size=1,
+            total_items_size=10,
+            request_pause=MagicMock(return_value=True),
+        )
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+        setattr(getattr(br, '_Browser__config'), '_retries_fail_streak', 10)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            for index in range(5):
+                br._Browser__http_request('http://example.com/miss-{0}'.format(index))
+
+        pool.request_pause.assert_called_once_with()
+        self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 5)
+        message = warning_mock.call_args.kwargs.get('msg', '')
+        self.assertIn('Network outage suspected after 5 consecutive transport failures', message)
+        self.assertIn('Scan paused to avoid consuming more dictionary entries', message)
+
     def test_http_request_never_aborts_subdomain_scan_on_transport_failures(self):
         """Subdomain misses should be skipped without using the directory fail-streak guard."""
 

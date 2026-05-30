@@ -92,6 +92,8 @@ class Browser(Filter):
     WAF_SAFE_RETRY_AFTER_STATUSES = (429, 503)
     WAF_SAFE_RETRY_AFTER_HEADER = 'retry-after'
     DEFAULT_RETRIES_FAIL_STREAK = 10
+    TRANSPORT_OUTAGE_PAUSE_MIN_STREAK = 5
+    TRANSPORT_OUTAGE_PAUSE_MAX_STREAK = 10
     WAF_SAFE_RECOVERY_STATUSES = ('success', 'redirect', 'auth', 'forbidden', 'bad', 'certificate')
 
     def __init__(self, params):
@@ -2431,6 +2433,56 @@ class Browser(Filter):
         with self.__transport_failure_lock:
             return int(getattr(self, '_Browser__transport_failures_skipped', 0))
 
+    def __transport_outage_pause_threshold(self, abort_threshold=None):
+        """Return the conservative streak threshold for auto-pausing scans.
+
+        The value is derived from the existing ``--retries-fail-streak`` guard so
+        patch releases do not add a new public option. Very low fail-fast limits
+        still abort normally before the pause threshold can fire.
+
+        :param int|None abort_threshold: configured fail-streak abort threshold
+        :return: pause threshold
+        :rtype: int
+        """
+
+        if abort_threshold is None:
+            abort_threshold = self.__transport_failure_threshold()
+
+        try:
+            abort_threshold = int(abort_threshold)
+        except (TypeError, ValueError):
+            abort_threshold = self.DEFAULT_RETRIES_FAIL_STREAK
+
+        tenth = max(1, abort_threshold // 10)
+        return min(
+            self.TRANSPORT_OUTAGE_PAUSE_MAX_STREAK,
+            max(self.TRANSPORT_OUTAGE_PAUSE_MIN_STREAK, tenth),
+        )
+
+    def __request_transport_outage_pause(self, streak, threshold, path):
+        """Ask the thread pool to open the regular pause prompt on the main thread.
+
+        :param int streak: consecutive transport failure count
+        :param int threshold: configured fail-streak abort threshold
+        :param str path: last failed path for diagnostics
+        :return: None
+        """
+
+        request_pause = getattr(getattr(self, '_Browser__pool', None), 'request_pause', None)
+        if not callable(request_pause):
+            return
+
+        if request_pause() is not True:
+            return
+
+        tpl.warning(
+            msg=(
+                'Network outage suspected after {streak} consecutive transport failures. '
+                'Scan paused to avoid consuming more dictionary entries. Last failed path: {path}. '
+                'Limit: {threshold}.'
+            ).format(streak=streak, threshold=threshold, path=path)
+        )
+
     def __emit_transport_failure_summary(self):
         """Print a compact summary for skipped path-specific transport failures.
 
@@ -2558,6 +2610,10 @@ class Browser(Filter):
                     diagnostic_suffix=diagnostic_suffix,
                 )
             )
+
+            if streak >= self.__transport_outage_pause_threshold(threshold):
+                self.__request_transport_outage_pause(streak, threshold, path)
+
             return
 
         raise BrowserError(

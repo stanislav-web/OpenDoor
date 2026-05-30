@@ -666,6 +666,35 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         info_mock.assert_not_called()
         worker.resume.assert_not_called()
 
+
+    def test_request_pause_marks_workers_and_join_opens_pause_prompt(self):
+        """ThreadPool.request_pause() should defer the interactive prompt to join()."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        worker = getattr(pool, '_ThreadPool__workers')[0]
+        queue = getattr(pool, '_ThreadPool__queue')
+        queue.put((lambda: None, (), {}))
+
+        self.assertTrue(pool.request_pause())
+        self.assertTrue(worker.paused)
+        self.assertFalse(pool.request_pause())
+
+        def wait_once(timeout=None):
+            queue.unfinished_tasks = 0
+            return True
+
+        def pause_once():
+            setattr(pool, '_ThreadPool__pause_requested', False)
+
+        with patch.object(queue.all_tasks_done, 'wait', side_effect=wait_once), \
+                patch.object(pool, 'pause', side_effect=pause_once) as pause_mock, \
+                patch('src.lib.browser.threadpool.time.monotonic', side_effect=[1.0, 2.0]):
+            pool.join()
+
+        pause_mock.assert_called_once_with()
+
     def test_threadpool_join_opens_pause_menu_on_keyboard_interrupt_and_continues(self):
         """ThreadPool.join() should pause/resume instead of bubbling Ctrl+C immediately."""
 

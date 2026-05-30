@@ -153,8 +153,7 @@ class HttpRequest(RequestProvider, DebugProvider):
             return response
 
         except MaxRetryError:
-            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
-                self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
+            pass
 
         except HostChangedError as error:
             self.__tpl.warning(key='host_changed_error', details=error)

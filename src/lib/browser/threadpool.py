@@ -16,6 +16,7 @@
     Development: Stanislav WEB
 """
 
+import threading
 import time
 from queue import Queue
 
@@ -46,6 +47,8 @@ class ThreadPool(object):
         self.__workers = []
         self.__submitted = 0
         self.__worker_error = None
+        self.__pause_requested = False
+        self.__pause_lock = threading.RLock()
         self.total_items_size = total_items
         self.is_started = True
         self.__stall_warning_interval = self.__normalize_stall_warning_interval(stall_warning_interval)
@@ -153,6 +156,11 @@ class ThreadPool(object):
         if self.__submitted >= self.total_items_size:
             return
 
+        self.__pause_if_requested()
+
+        if True is not self.is_started:
+            return
+
         self.__enqueue_with_pause_resume(func, args, kargs)
 
     def __enqueue_with_pause_resume(self, func, args, kargs):
@@ -178,6 +186,45 @@ class ThreadPool(object):
             except (SystemExit, KeyboardInterrupt):
                 self.pause()
 
+
+    def request_pause(self):
+        """
+        Request the regular runtime pause prompt from another thread.
+
+        Worker threads must not show the interactive prompt directly because an
+        abort answer raises ``KeyboardInterrupt`` outside the main scan thread.
+        This method only marks the pool as pause-requested and pauses workers
+        before their next queued task. ``add()`` or ``join()`` will show the
+        existing prompt on the controlling thread.
+
+        :return: True when a new pause request was registered
+        :rtype: bool
+        """
+
+        with self.__pause_lock:
+            if self.__pause_requested is True or self.is_started is not True:
+                return False
+
+            self.__pause_requested = True
+
+        for worker in self.__workers:
+            worker.pause()
+
+        return True
+
+    def __pause_if_requested(self):
+        """Open the regular pause menu when a worker requested it.
+
+        :raise KeyboardInterrupt: when the user aborts from the pause prompt
+        :return: None
+        """
+
+        with self.__pause_lock:
+            requested = self.__pause_requested is True
+
+        if requested is True:
+            self.pause()
+
     def join(self):
         """
         Join queue and periodically warn when workers stop making progress.
@@ -196,12 +243,15 @@ class ThreadPool(object):
 
         with self.__queue.all_tasks_done:
             while int(getattr(self.__queue, 'unfinished_tasks', 0) or 0) > 0:
+                self.__pause_if_requested()
+
                 try:
                     self.__queue.all_tasks_done.wait(timeout=self.JOIN_POLL_INTERVAL_SEC)
                 except (SystemExit, KeyboardInterrupt):
                     self.pause()
                     continue
 
+                self.__pause_if_requested()
                 self.__raise_worker_error_if_any()
 
                 completed = self.completed_size
@@ -392,6 +442,9 @@ class ThreadPool(object):
         :raise KeyboardInterrupt: when the user chooses exit or interrupts the prompt
         :return: None
         """
+
+        with self.__pause_lock:
+            self.__pause_requested = False
 
         self.is_started = False
         tpl.info(key='stop_threads', threads=len(self.__workers))

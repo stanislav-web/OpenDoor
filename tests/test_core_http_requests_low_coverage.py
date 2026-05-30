@@ -157,8 +157,8 @@ class TestHttpRequestLowCoverage(unittest.TestCase):
             self.assertIsNone(requester.request('http://example.com/test'))
             self.assertTrue(tpl.warning.called)
 
-    def test_http_request_warns_on_max_retry_only_for_default_scan(self):
-        """HttpRequest.request() should warn on MaxRetryError only for default scan mode."""
+    def test_http_request_keeps_max_retry_exhaustion_quiet_for_browser_accounting(self):
+        """HttpRequest.request() should let Browser account exhausted retries without per-path warning noise."""
 
         cfg = self.make_cfg()
         tpl = MagicMock()
@@ -168,7 +168,7 @@ class TestHttpRequestLowCoverage(unittest.TestCase):
         pool.request.side_effect = MaxRetryError(None, '/', None)
 
         self.assertIsNone(requester.request('http://example.com/test'))
-        tpl.warning.assert_called_once()
+        tpl.warning.assert_not_called()
 
 
     def test_http_request_preserves_explicit_user_agent_and_forwards_body(self):
@@ -342,8 +342,8 @@ class TestHttpsRequestLowCoverage(unittest.TestCase):
         with patch('src.core.http.https.disable_warnings'):
             self.assertIsNone(requester.request('https://example.com/test'))
 
-    def test_https_request_warns_on_max_retry_only_for_default_scan(self):
-        """HttpsRequest.request() should warn on MaxRetryError only for default scan mode."""
+    def test_https_request_keeps_plain_max_retry_exhaustion_quiet_for_browser_accounting(self):
+        """HttpsRequest.request() should let Browser account plain exhausted retries without per-path warning noise."""
 
         cfg = self.make_cfg()
         tpl = MagicMock()
@@ -354,7 +354,7 @@ class TestHttpsRequestLowCoverage(unittest.TestCase):
 
         with patch('src.core.http.https.disable_warnings'):
             self.assertIsNone(requester.request('https://example.com/test'))
-        tpl.warning.assert_called_once()
+        tpl.warning.assert_not_called()
 
     def test_https_pool_manager_wraps_construction_errors(self):
         """HttpsRequest should wrap PoolManager construction errors for non-default scans."""

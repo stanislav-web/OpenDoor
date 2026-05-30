@@ -168,7 +168,7 @@ class TestHttpRequest(unittest.TestCase):
 
         pool.request.side_effect = MaxRetryError(None, '/', None)
         self.assertIsNone(req.request('http://example.com/x'))
-        tpl.warning.assert_called()
+        tpl.warning.assert_not_called()
 
         for exc in [HostChangedError(None, '/', 0), ReadTimeoutError(None, '/', 'x'), DecodeError('bad gzip'), ConnectTimeoutError(None, '/', 'x')]:
             pool.request.reset_mock(side_effect=True)
@@ -377,7 +377,13 @@ class TestHttpsRequest(unittest.TestCase):
             response = req_sub.request('https://api.example.com')
         self.assertEqual(response.status, 496)
 
-        for exc in [MaxRetryError(None, '/', None), HostChangedError(None, '/', 0), ReadTimeoutError(None, '/', 'x'), DecodeError('bad gzip'), ConnectTimeoutError(None, '/', 'x')]:
+        pool.request.reset_mock(side_effect=True)
+        tpl.warning.reset_mock()
+        pool.request.side_effect = MaxRetryError(None, '/', None)
+        self.assertIsNone(req.request('https://example.com/x'))
+        tpl.warning.assert_not_called()
+
+        for exc in [HostChangedError(None, '/', 0), ReadTimeoutError(None, '/', 'x'), DecodeError('bad gzip'), ConnectTimeoutError(None, '/', 'x')]:
             pool.request.reset_mock(side_effect=True)
             tpl.warning.reset_mock()
             pool.request.side_effect = exc

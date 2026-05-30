@@ -207,8 +207,6 @@ class HttpsRequest(RequestProvider, DebugProvider):
 
         except MaxRetryError as error:
             self.__record_tls_transport_error(error)
-            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
-                self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
 
         except HostChangedError as error:
             self.__tpl.warning(key='host_changed_error', details=error)

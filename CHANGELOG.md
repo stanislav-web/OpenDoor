@@ -18,6 +18,8 @@ v5.16.2 (31.06.2026)
 - (fix) `--fingerprint` now detects DataLife Engine (DLE) from conservative runtime globals and engine asset signals.
 - (fix) `--fingerprint` now prefers Webflow hosted-platform signals over endpoint-only WordPress static path artifacts.
 - (fix) `--fingerprint` now detects CMS.S3 / Megagroup from strong root-page builder/runtime markers without relying on generic WordPress endpoint probes.
+- (enhancement) scans automatic PAUSE after repeated transport failures to avoid burning through the wordlist during temporary network outages.
+- (enhancement) exhausted directory entries are now tracked in `transport_failed.txt` and JSON diagnostics.
 - (enhancement) added Camaleon CMS without adding active probes.
 - (enhancement) added Evolution CMS fingerprint detection.
 - (enhancement) added strong UMI.CMS fingerprint detection rules.
