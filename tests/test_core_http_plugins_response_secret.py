@@ -67,6 +67,8 @@ class TestSecretResponsePlugin(unittest.TestCase):
             ('xoxb-1234567890-abcdEFGHijk', 'slack_token', 95),
             ('sk_live_' + ('A' * 24), 'stripe_key', 95),
             ('AIza' + ('A' * 35), 'google_api_key', 90),
+            ('github_pat_' + ('A' * 40), 'github_fine_grained_token', 95),
+            ('sq0csp-' + ('A' * 24), 'square_token', 92),
         ]
 
         for value, secret_type, confidence in samples:
@@ -82,6 +84,7 @@ class TestSecretResponsePlugin(unittest.TestCase):
             ('-----BEGIN PRIVATE KEY-----\nredacted\n-----END PRIVATE KEY-----', 'private_key', 98),
             ('postgresql://app_user:superSecretPassword@db.local:5432/app', 'database_url', 92),
             ('api_key = "live_secret_value_12345"', 'generic_assignment', 70),
+            ('access_secret = "live_access_secret_12345"', 'generic_assignment', 70),
         ]
 
         for value, secret_type, confidence in samples:
@@ -96,6 +99,28 @@ class TestSecretResponsePlugin(unittest.TestCase):
             'github_token',
             95,
             headers={'Content-Type': 'application/vnd.api+json'},
+        )
+
+    def test_detects_authorization_bearer_without_storing_raw_token(self):
+        """Should detect leaked bearer headers while storing only redacted metadata."""
+
+        token = 'headerPayloadSignatureValue1234567890'
+        detection = self.assert_secret_detection(
+            'Authorization: Bearer ' + token,
+            'authorization_bearer',
+            88,
+        )
+
+        self.assertEqual(detection['redacted'], 'head****7890')
+
+    def test_should_keep_secret_searcher_style_placeholder_hits_suppressed(self):
+        """Should avoid broad keyword-style hits when values are placeholders."""
+
+        self.assertIsNone(
+            SecretResponsePlugin.detect('Authorization: Bearer redactedBearerToken123456')
+        )
+        self.assertIsNone(
+            SecretResponsePlugin.detect('account_key = "maskedAccountKey123456"')
         )
 
     def test_ignores_binary_non_success_and_normal_responses(self):
