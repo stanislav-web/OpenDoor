@@ -209,6 +209,65 @@ class TestCalibration(unittest.TestCase):
         self.assertIsNotNone(actual)
         self.assertIn('cross-status-soft-error', actual['calibration_reason'])
 
+    def test_calibration_should_match_compact_200_response_with_not_found_body(self):
+        """Calibration.match() should suppress compact nginx-style 404 bodies emitted as 2xx."""
+
+        body = (
+            '<html><body><center><h1>Not Found</h1></center>'
+            '<hr><center>nginx-reuseport/1.21.1</center></body></html>'
+        )
+
+        baseline_response = self.make_response(status=404, body=body)
+        candidate_response = self.make_response(status=200, body=body)
+
+        calibration = Calibration(
+            signatures=[
+                Calibration.build_signature(
+                    baseline_response,
+                    ('failed', 'http://example.com/random', '275B', '404')
+                )
+            ],
+            threshold=0.92
+        )
+
+        actual = calibration.match(
+            candidate_response,
+            ('success', 'http://example.com/adminer-3.2.0-de.php', '273B', '200')
+        )
+
+        self.assertIsNotNone(actual)
+        self.assertIn('cross-status-soft-error', actual['calibration_reason'])
+        self.assertIn('compact-soft-error-shape', actual['calibration_reason'])
+
+    def test_calibration_should_not_cross_match_large_or_different_compact_error_shape(self):
+        """Compact cross-status matching should not suppress unrelated small 2xx pages."""
+
+        baseline_response = self.make_response(
+            status=404,
+            body='<html><body><center><h1>Not Found</h1></center><hr><center>nginx</center></body></html>'
+        )
+        candidate_response = self.make_response(
+            status=200,
+            body='<html><body><main><h1>Not Found Labs</h1><p>admin panel</p></main></body></html>'
+        )
+
+        calibration = Calibration(
+            signatures=[
+                Calibration.build_signature(
+                    baseline_response,
+                    ('failed', 'http://example.com/random', '90B', '404')
+                )
+            ],
+            threshold=0.92
+        )
+
+        actual = calibration.match(
+            candidate_response,
+            ('success', 'http://example.com/not-found-labs', '82B', '200')
+        )
+
+        self.assertIsNone(actual)
+
     def test_calibration_should_not_cross_match_real_not_found_titled_page(self):
         """Cross-status soft-error matching should not hide useful pages by title only."""
 

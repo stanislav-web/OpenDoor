@@ -138,7 +138,7 @@ class Fingerprint(object):
     STATIC_CATEGORY = 'static'
     RUNTIME_CATEGORY = 'runtime'
     TECHNOLOGY_RUNTIME_MAP = {
-        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'MogutaCMS': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
+        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'MogutaCMS': 'PHP', 'CMS.S3 / Megagroup': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
         'Express': 'Node.js', 'NestJS': 'Node.js', 'Fastify': 'Node.js', 'Koa': 'Node.js', 'Hapi': 'Node.js', 'Strapi': 'Node.js', 'Directus': 'Node.js', 'Ghost': 'Node.js', 'Next.js': 'Node.js', 'Nuxt': 'Node.js', 'Gatsby': 'Node.js', 'Astro': 'Node.js', 'Remix': 'Node.js', 'SvelteKit': 'Node.js', 'Docusaurus': 'Node.js', 'VitePress': 'Node.js', 'PencilBlue': 'Node.js',
         'React': 'JavaScript', 'Vue': 'JavaScript', 'Angular': 'JavaScript', 'Django': 'Python', 'Flask': 'Python', 'FastAPI': 'Python', 'Ruby on Rails': 'Ruby', 'Spree': 'Ruby', 'Spring': 'Java/JVM', 'Liferay': 'Java/JVM', 'OpenCms': 'Java/JVM', 'Hippo CMS': 'Java/JVM', 'dotCMS': 'Java/JVM', 'ASP.NET': '.NET', 'Microsoft SharePoint': '.NET', 'DNN Platform': '.NET', 'Orchard CMS': '.NET', 'Sitecore': '.NET', 'Sitefinity': '.NET', 'Umbraco': '.NET', 'Phoenix': 'Elixir', 'MkDocs': 'Static site', 'Jekyll': 'Static site', 'Hugo': 'Static site', 'AsciiDoc': 'Static site',
     }
@@ -1527,6 +1527,88 @@ class Fingerprint(object):
             self._add_signal('Evolution CMS', self.CMS_CATEGORY, 'endpoint', '/manager/', 3)
 
 
+    @classmethod
+    def _collect_cms_s3_root_signals(cls, body_lower):
+        """
+        Return conservative CMS.S3 / Megagroup root-page signals.
+
+        CMS.S3 pages commonly expose generated builder markup and runtime
+        assets such as ``/my/s3/``, ``/shared/s3/``, ``$ite.start(...)`` and
+        ``widget-type-*``. A single vendor footer/link is intentionally weak
+        and is not enough for standalone detection.
+
+        :param str body_lower: normalized response body
+        :return: detected signal tuples
+        :rtype: list[tuple[str, str]]
+        """
+
+        body_text = str(body_lower or '').lower()
+        marker_rules = (
+            ('/my/s3/', 'asset', '/my/s3/'),
+            ('/shared/s3/', 'asset', '/shared/s3/'),
+            ('/g/s3/', 'asset', '/g/s3/'),
+            ('/my/s3/xapi/public/', 'asset', '/my/s3/xapi/public/'),
+            ('$ite.start', 'script', '$ite.start'),
+            ('s3solutionspanel', 'script', 'S3SolutionsPanel'),
+            ('wm-widget-', 'markup', 'wm-widget-*'),
+            ('widget-type-', 'markup', 'widget-type-*'),
+            ('editorelement layer-type', 'markup', 'editorElement layer-type'),
+            ('data-api-type="popup-form"', 'markup', 'data-api-type=popup-form'),
+            ("data-api-type='popup-form'", 'markup', 'data-api-type=popup-form'),
+            ('megagroup.ru', 'vendor', 'megagroup.ru'),
+            ('mega-copyright', 'vendor', 'mega-copyright'),
+        )
+
+        signals = []
+        seen_values = set()
+        for marker, signal_type, value in marker_rules:
+            if marker not in body_text or value in seen_values:
+                continue
+            signals.append((signal_type, value))
+            seen_values.add(value)
+
+        return signals
+
+    def _apply_cms_s3_rules(self, body_lower):
+        """
+        Apply conservative passive CMS.S3 / Megagroup root-page signals.
+
+        Generic footer/vendor mentions remain weak catalog evidence. Strong
+        CMS.S3 classification requires multiple generated S3 builder/runtime
+        markers from the root page and does not depend on endpoint probes.
+
+        :param str body_lower: normalized response body
+        :return: None
+        """
+
+        signals = self._collect_cms_s3_root_signals(body_lower)
+        if len(signals) <= 0:
+            return
+
+        structural_signals = [
+            value for signal_type, value in signals
+            if signal_type in ('asset', 'script', 'markup')
+        ]
+        vendor_signals = [value for signal_type, value in signals if signal_type == 'vendor']
+
+        if len(structural_signals) >= 2:
+            self._add_signal(
+                'CMS.S3 / Megagroup',
+                self.CMS_CATEGORY,
+                'markup',
+                '+'.join(structural_signals[:4]),
+                9,
+            )
+            if len(vendor_signals) > 0:
+                self._add_signal(
+                    'CMS.S3 / Megagroup',
+                    self.CMS_CATEGORY,
+                    'vendor',
+                    '+'.join(vendor_signals[:2]),
+                    3,
+                )
+
+
     def _apply_datalife_engine_rules(self, body_lower, generator):
         """
         Apply conservative passive DataLife Engine (DLE) signals.
@@ -1899,6 +1981,46 @@ class Fingerprint(object):
         status = probe_statuses.get(path)
         return status in allowed_statuses and cls._is_distinct_probe_status(status, not_found_status)
 
+    @classmethod
+    def _is_wordpress_probe_up(
+        cls,
+        probe_statuses,
+        path,
+        not_found_status,
+        has_root_evidence,
+        public_statuses,
+        corroborated_statuses,
+    ):
+        """
+        Return True when a WordPress endpoint probe is safe to use as evidence.
+
+        WordPress static paths often return 403 on real installations, but
+        many non-WordPress hosts also return generic 403/405 deny templates
+        for suspicious paths. Endpoint-only restricted statuses therefore need
+        root-page corroboration before they can become WordPress evidence.
+
+        :param dict probe_statuses: collected probe statuses
+        :param str path: probe path
+        :param int|None not_found_status: missing-path baseline HTTP status
+        :param bool has_root_evidence: whether the root response exposed WordPress markers
+        :param list[int] public_statuses: statuses accepted without root corroboration
+        :param list[int] corroborated_statuses: statuses accepted only with root corroboration
+        :return: bool
+        """
+
+        try:
+            status = int(probe_statuses.get(path) or 0)
+        except (TypeError, ValueError):
+            return False
+
+        if status <= 0 or cls._is_distinct_probe_status(status, not_found_status) is not True:
+            return False
+
+        if status in public_statuses:
+            return True
+
+        return bool(has_root_evidence and status in corroborated_statuses)
+
     @staticmethod
     def _should_propagate_runtime_from_signal(signal_type):
         """
@@ -2008,14 +2130,42 @@ class Fingerprint(object):
         for probe_path, weight in wordpress_static_probes:
             if webflow_hosted_context and not wordpress_root_evidence:
                 continue
-            if self._is_distinct_probe_up(probe_statuses, probe_path, [200, 301, 302, 401, 403], not_found_status):
+            if self._is_wordpress_probe_up(
+                probe_statuses,
+                probe_path,
+                not_found_status,
+                wordpress_root_evidence,
+                public_statuses=[200],
+                corroborated_statuses=[301, 302, 401, 403],
+            ):
                 self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', probe_path, weight)
 
-        if self._is_distinct_probe_up(probe_statuses, '/wp-json/', [200, 401, 403], not_found_status):
+        if self._is_wordpress_probe_up(
+            probe_statuses,
+            '/wp-json/',
+            not_found_status,
+            wordpress_root_evidence,
+            public_statuses=[200],
+            corroborated_statuses=[401, 403],
+        ):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/wp-json/', 5)
-        if self._is_distinct_probe_up(probe_statuses, '/wp-login.php', [200, 301, 302, 401, 403], not_found_status):
+        if self._is_wordpress_probe_up(
+            probe_statuses,
+            '/wp-login.php',
+            not_found_status,
+            wordpress_root_evidence,
+            public_statuses=[200],
+            corroborated_statuses=[301, 302, 401, 403],
+        ):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/wp-login.php', 2)
-        if self._is_distinct_probe_up(probe_statuses, '/xmlrpc.php', [200, 301, 302, 401, 403, 405], not_found_status):
+        if self._is_wordpress_probe_up(
+            probe_statuses,
+            '/xmlrpc.php',
+            not_found_status,
+            wordpress_root_evidence,
+            public_statuses=[200],
+            corroborated_statuses=[301, 302, 401, 403, 405],
+        ):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/xmlrpc.php', 2)
         if any(cookie.startswith(('wordpress_', 'wp-settings-')) for cookie in cookies):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'cookie', 'wordpress_*', 5)
@@ -2424,6 +2574,11 @@ class Fingerprint(object):
         self._apply_datalife_engine_rules(
             body_lower=body_lower,
             generator=generator,
+        )
+
+        # CMS.S3 / Megagroup
+        self._apply_cms_s3_rules(
+            body_lower=body_lower,
         )
 
         # MODX

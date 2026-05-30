@@ -3,6 +3,8 @@ CHANGELOG
 v5.16.2 (31.06.2026)
 ---------------------------
 - (critical) fixed scan crashes caused by corrupted gzip/encoded HTTP responses by handling `DecodeError` as a recoverable transport failure instead of aborting worker threads.
+- (fix) `--fingerprint` no longer treats generic 403/405 WordPress static-path probes as strong WordPress evidence unless corroborated by root-page WordPress signals.
+- (fix) compact nginx-style 404 bodies emitted with transient 2xx statuses are now suppressed by strict cross-status auto-calibration instead of being reported as OK findings.
 - (fix) `--sniff malware` false positives when fallback pages repeatedly echo webshell-like names inside URL/query attributes, while preserving real webshell UI and executable payload detections.
 - (fix) false-positive OK findings when a target returns a canonical 404/410 error body with a transient 2xx status by adding strict cross-status soft-error calibration.
 - (fix) `--sniff shadow` false positives on soft-200/fallback routes by adding a negative-control probe before reporting backup-file variants.
@@ -23,7 +25,7 @@ v5.16.2 (31.06.2026)
 - (enhancement)  Ruby on Rails fingerprint detection with conservative passive CSRF, Rails UJS/Turbo, asset-pipeline and Rails error markers while avoiding standalone Rack.
 - (ui) clarified Runtime Diagnostics queue accounting by showing consumed items, submitted HTTP jobs, and pre-request skipped items separately.
 - (ui) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt describe Enter/C continue, E/Q abort, and active-request drain semantics.
-- (dictionary) cleaned and normalized the internal directories list (+1243 potential interesting paths).
+- (dictionary) cleaned and normalized the internal directories list (+1244 potential interesting paths).
 - (docs) added a `Mastering OpenDoor` companion documentation page for the upcoming article series.
 - (deps)(deps-dev): [PR#115](https://github.com/stanislav-web/OpenDoor/pull/115) bump ruff from 0.15.13 to 0.15.14 in the python-runtime-dependencies group
 
@@ -105,7 +107,7 @@ v5.16.0 (17.05.2026)
 - (ux) reduced stdout Summary noise by hiding low-value diagnostic counters and detailed fingerprint/HSTS/privacy internals while preserving them in structured reports.
 - (ux) improved connection preflight diagnostics for localhost/proxy transport checks.
 - (dictionary) bundled `data/shadow-suffixes.dat` in source and wheel distributions so PyPI, Homebrew-style source builds and local installs include the built-in shadow suffix catalog by default.
-- (dictionary) cleaned and normalized internal directories list (+2133 potencial interesting paths).
+- (dictionary) cleaned and normalized internal directories list (+xxx potencial interesting paths).
 - (build) added staged Ruff quality gates and advisory Vulture dead-code checks, with updated contributor rules and cleanup documentation.
 
 v5.15.3 (09.05.2026)

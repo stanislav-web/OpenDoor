@@ -556,6 +556,85 @@ class Calibration(object):
         return False
 
     @classmethod
+    def _has_any_soft_error_semantics(cls, signature):
+        """
+        Decide whether a signature carries at least a weak missing-resource marker.
+
+        Some compact nginx/hosting 404 templates contain only a short ``Not Found``
+        body without a title or ``requested URL`` wording. That is too weak by
+        itself, but it is useful when paired with an almost identical 4xx baseline.
+
+        :param dict signature: response signature
+        :return: True when a weak 404-style marker is present
+        :rtype: bool
+        """
+
+        if cls._has_strong_soft_error_semantics(signature) is True:
+            return True
+
+        phrases = set(signature.get('semantic_phrases') or [])
+        title = str(signature.get('title') or '').strip().lower()
+
+        return title in ('404', '404 not found', 'not found') or bool({'404', 'not found'} & phrases)
+
+    @classmethod
+    def _is_compact_cross_status_soft_error_shape_match(cls, baseline, candidate):
+        """
+        Return True for compact 4xx error templates emitted with a transient 2xx.
+
+        This is intentionally stricter than normal same-status calibration: it
+        requires a 404/410-to-2xx pair, weak missing-resource semantics on both
+        sides, small comparable bodies, compatible content kinds, and at least one
+        stable shape hash match.
+
+        :param dict baseline: baseline calibration signature
+        :param dict candidate: candidate response signature
+        :return: True when the candidate is the same compact error template
+        :rtype: bool
+        """
+
+        if cls._is_soft_error_status_pair(baseline.get('code'), candidate.get('code')) is not True:
+            return False
+
+        if cls._has_any_soft_error_semantics(baseline) is not True:
+            return False
+
+        if cls._has_any_soft_error_semantics(candidate) is not True:
+            return False
+
+        baseline_kind = baseline.get('content_kind')
+        candidate_kind = candidate.get('content_kind')
+
+        if baseline_kind and candidate_kind:
+            if baseline_kind != candidate_kind or baseline_kind not in ('html', 'text'):
+                return False
+
+        baseline_size = cls._soft_200_number(baseline.get('size'))
+        candidate_size = cls._soft_200_number(candidate.get('size'))
+
+        if min(baseline_size, candidate_size) < 32:
+            return False
+        if max(baseline_size, candidate_size) > 1024:
+            return False
+        if cls._soft_200_similarity(baseline_size, candidate_size) < 0.965:
+            return False
+
+        stable_hashes = (
+            'normalized_body_hash',
+            'body_skeleton_hash',
+            'visible_text_hash',
+            'dom_token_hash',
+        )
+
+        for name in stable_hashes:
+            baseline_hash = baseline.get(name)
+            candidate_hash = candidate.get(name)
+            if baseline_hash and candidate_hash and baseline_hash == candidate_hash:
+                return True
+
+        return False
+
+    @classmethod
     def _cross_status_soft_error_score(cls, baseline, candidate):
         """
         Score a 2xx candidate against a canonical 4xx soft-error baseline.
@@ -575,14 +654,20 @@ class Calibration(object):
         if cls._is_soft_error_status_pair(baseline.get('code'), candidate.get('code')) is not True:
             return 0.0, reasons
 
-        if cls._has_strong_soft_error_semantics(baseline) is not True:
-            return 0.0, reasons
+        compact_shape_match = cls._is_compact_cross_status_soft_error_shape_match(baseline, candidate)
 
-        if cls._has_strong_soft_error_semantics(candidate) is not True:
+        if (
+            cls._has_strong_soft_error_semantics(baseline) is not True
+            or cls._has_strong_soft_error_semantics(candidate) is not True
+        ) and compact_shape_match is not True:
             return 0.0, reasons
 
         score = 0.36
         reasons.append('cross-status-soft-error')
+
+        if compact_shape_match is True:
+            score += 0.12
+            reasons.append('compact-soft-error-shape')
 
         if baseline.get('normalized_body_hash') == candidate.get('normalized_body_hash'):
             score += 0.22

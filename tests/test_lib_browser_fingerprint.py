@@ -124,13 +124,17 @@ class TestFingerprint(unittest.TestCase):
         self.assertEqual(result['name'], 'WordPress')
         self.assertGreaterEqual(result['confidence'], 90)
 
-    def test_detects_wordpress_from_static_asset_endpoint_probes(self):
-        """Fingerprint should detect WordPress from distinctive static directory probes."""
+    def test_detects_wordpress_from_corroborated_static_endpoint_probes(self):
+        """Fingerprint should use restricted WordPress endpoints only with root evidence."""
 
         config = FakeConfig()
         base = 'http://example.com/'
         responses = {
-            ('GET', base): FakeResponse(200, '<html><body>plain site</body></html>', {}),
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><link href="/wp-content/themes/test/style.css"></body></html>',
+                {},
+            ),
             ('HEAD', 'http://example.com/wp-content/'): FakeResponse(403, '', {}),
             ('HEAD', 'http://example.com/wp-includes/'): FakeResponse(403, '', {}),
             ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
@@ -410,6 +414,109 @@ class TestFingerprint(unittest.TestCase):
         self.assertEqual(result['name'], 'Webflow')
         self.assertFalse(any(candidate['name'] == 'WordPress' for candidate in result['candidates']))
         self.assertIn('host=*.webflow.io', [signal['value'] for signal in result['signals']])
+
+    def test_detects_cms_s3_from_root_builder_runtime_markers(self):
+        """Fingerprint should detect CMS.S3 without relying on WordPress endpoint probes."""
+
+        config = FakeConfig(host='evroavtofurgon.ru', scheme='https://', port=443)
+        base = 'https://evroavtofurgon.ru/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><link rel="stylesheet" href="/shared/s3/css/calendar.css">'
+                '<script src="/shared/s3/js/widgets.js?v=8"></script>'
+                '<script src="/g/s3/misc/form/1.0.0/s3.form.js"></script>'
+                '<script src="/my/s3/js/site.min.js?1549533888"></script></head>'
+                '<body><div class="widget-8 wm-widget-menu widget-type-menu_horizontal '
+                'editorElement layer-type-widget"></div>'
+                '<a data-api-type="popup-form" '
+                'data-api-url="/my/s3/xapi/public/?method=form/postform"></a>'
+                '<span class="copyright">Изготовление сайтов: megagroup.ru</span>'
+                '<script>$ite.start({"sid":510324,"vid":1500293});</script></body></html>',
+                {'Server': 'nginx'},
+            ),
+            ('HEAD', 'https://evroavtofurgon.ru/wp-content/'): FakeResponse(403, '', {}),
+            ('HEAD', 'https://evroavtofurgon.ru/wp-includes/'): FakeResponse(403, '', {}),
+            ('HEAD', 'https://evroavtofurgon.ru/wp-content/plugins/'): FakeResponse(403, '', {}),
+            ('HEAD', 'https://evroavtofurgon.ru/wp-content/themes/'): FakeResponse(403, '', {}),
+            ('GET', 'https://evroavtofurgon.ru{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'CMS.S3 / Megagroup')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertFalse(any(candidate['name'] == 'WordPress' for candidate in result['candidates']))
+        self.assertIn(
+            '/shared/s3/',
+            ''.join(signal['value'] for signal in result['signals']),
+        )
+
+    def test_weak_cms_s3_vendor_text_stays_below_detection_threshold(self):
+        """A single Megagroup footer/link should not classify an unrelated site as CMS.S3."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><a href="https://megagroup.ru">vendor portfolio link</a></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertEqual(result['candidates'][0]['name'], 'CMS.S3 / Megagroup')
+        self.assertLess(result['candidates'][0]['score'], 7)
+
+
+    def test_does_not_detect_wordpress_from_generic_restricted_static_probes(self):
+        """Fingerprint should not treat generic 403/405 WordPress path denies as WordPress."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><title>CMS.S3-like site</title></head>'
+                '<body><script src="/my/s3/js/site.min.js"></script></body></html>',
+                {'Server': 'nginx'},
+            ),
+            ('HEAD', 'http://example.com/wp-content/'): FakeResponse(403, '', {}),
+            ('HEAD', 'http://example.com/wp-includes/'): FakeResponse(403, '', {}),
+            ('HEAD', 'http://example.com/wp-content/plugins/'): FakeResponse(403, '', {}),
+            ('HEAD', 'http://example.com/wp-content/themes/'): FakeResponse(403, '', {}),
+            ('HEAD', 'http://example.com/wp-json/'): FakeResponse(403, '', {}),
+            ('HEAD', 'http://example.com/wp-login.php'): FakeResponse(403, '', {}),
+            ('HEAD', 'http://example.com/xmlrpc.php'): FakeResponse(405, '', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'WordPress' for candidate in result['candidates']))
 
     def test_does_not_detect_wordpress_from_404_static_probes(self):
         """Fingerprint should not treat 404 WordPress static paths as reachable endpoints."""
