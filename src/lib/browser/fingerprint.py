@@ -1956,7 +1956,19 @@ class Fingerprint(object):
         x_amz_cf_id = str(headers.get('x-amz-cf-id', '')).lower()
         x_amz_request_id = str(headers.get('x-amz-request-id', '')).lower()
         x_amz_id_2 = str(headers.get('x-amz-id-2', '')).lower()
+        content_security_policy = str(headers.get('content-security-policy', '')).lower()
+        surrogate_key = str(headers.get('surrogate-key', '')).lower()
+        x_wf_region = str(headers.get('x-wf-region', '')).lower()
         final_root_lower = str(final_root_url).lower()
+        host_lower = str(getattr(self.__config, 'host', '') or '').lower()
+        webflow_hosted_context = bool(
+            host_lower == 'webflow.io'
+            or host_lower.endswith('.webflow.io')
+            or x_wf_region
+            or 'webflow.io' in surrogate_key
+            or 'webflow.com' in content_security_policy
+            or 'webflow.io' in content_security_policy
+        )
         not_found_body_lower = str(not_found_body).lower()
         not_found_powered_by = str(not_found_headers.get('x-powered-by', '')).lower()
         not_found_server = str(not_found_headers.get('server', '')).lower()
@@ -1974,12 +1986,18 @@ class Fingerprint(object):
         docs_probe_up = any(probe_statuses.get(path) in [200, 301, 302, 401, 403] for path in ['/docs', '/redoc'])
 
         # WordPress
+        wordpress_root_evidence = False
         if 'wordpress' in generator_lower:
             self._add_signal('WordPress', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+            wordpress_root_evidence = True
         if '/wp-content/' in body_lower:
             self._add_signal('WordPress', self.CMS_CATEGORY, 'markup', '/wp-content/', 6)
+            wordpress_root_evidence = True
         if '/wp-includes/' in body_lower:
             self._add_signal('WordPress', self.CMS_CATEGORY, 'markup', '/wp-includes/', 5)
+            wordpress_root_evidence = True
+        if any(cookie.startswith(('wordpress_', 'wp-settings-')) for cookie in cookies):
+            wordpress_root_evidence = True
 
         wordpress_static_probes = (
             ('/wp-content/', 6),
@@ -1988,6 +2006,8 @@ class Fingerprint(object):
             ('/wp-content/themes/', 4),
         )
         for probe_path, weight in wordpress_static_probes:
+            if webflow_hosted_context and not wordpress_root_evidence:
+                continue
             if self._is_distinct_probe_up(probe_statuses, probe_path, [200, 301, 302, 401, 403], not_found_status):
                 self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', probe_path, weight)
 
@@ -2083,6 +2103,14 @@ class Fingerprint(object):
             self._add_signal('Mobirise', self.SITE_BUILDER_CATEGORY, 'markup', 'mbr-*', 5)
 
         # Webflow
+        if host_lower == 'webflow.io' or host_lower.endswith('.webflow.io'):
+            self._add_signal('Webflow', self.SITE_BUILDER_CATEGORY, 'host', 'host=*.webflow.io', 9)
+        if x_wf_region:
+            self._add_signal('Webflow', self.SITE_BUILDER_CATEGORY, 'header', 'x-wf-region', 8)
+        if 'webflow.io' in surrogate_key:
+            self._add_signal('Webflow', self.SITE_BUILDER_CATEGORY, 'header', 'surrogate-key=webflow.io', 7)
+        if 'webflow.com' in content_security_policy or 'webflow.io' in content_security_policy:
+            self._add_signal('Webflow', self.SITE_BUILDER_CATEGORY, 'header', 'csp frame-ancestors webflow', 6)
         if 'webflow' in generator_lower:
             self._add_signal('Webflow', self.SITE_BUILDER_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
         if 'webflow.css' in body_lower or 'w-webflow-' in body_lower:

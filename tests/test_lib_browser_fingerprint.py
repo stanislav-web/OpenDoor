@@ -373,6 +373,69 @@ class TestFingerprint(unittest.TestCase):
         self.assertEqual(result['category'], 'sitebuilder')
         self.assertEqual(result['name'], 'Webflow')
 
+    def test_detects_webflow_hosted_site_and_ignores_wordpress_endpoint_artifacts(self):
+        """Fingerprint should prefer Webflow hosting/header signals over endpoint-only WordPress artifacts."""
+
+        config = FakeConfig(host='carrotdev.webflow.io', scheme='https://', port=443)
+        base = 'https://carrotdev.webflow.io/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><title>CarrotDevs</title></head><body>Web design</body></html>',
+                {
+                    'Server': 'cloudflare',
+                    'X-WF-Region': 'us-east-1',
+                    'Surrogate-Key': 'carrotdev.webflow.io pageId:abc',
+                    'Content-Security-Policy': (
+                        "frame-ancestors 'self' https://*.webflow.com "
+                        'http://*.webflow.io https://webflow.com'
+                    ),
+                },
+            ),
+            ('HEAD', 'https://carrotdev.webflow.io/wp-content/'): FakeResponse(403, '', {}),
+            ('HEAD', 'https://carrotdev.webflow.io/wp-includes/'): FakeResponse(403, '', {}),
+            ('HEAD', 'https://carrotdev.webflow.io/wp-content/plugins/'): FakeResponse(403, '', {}),
+            ('HEAD', 'https://carrotdev.webflow.io/wp-content/themes/'): FakeResponse(403, '', {}),
+            ('GET', 'https://carrotdev.webflow.io{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {'X-WF-Region': 'us-east-1'},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'sitebuilder')
+        self.assertEqual(result['name'], 'Webflow')
+        self.assertFalse(any(candidate['name'] == 'WordPress' for candidate in result['candidates']))
+        self.assertIn('host=*.webflow.io', [signal['value'] for signal in result['signals']])
+
+    def test_does_not_detect_wordpress_from_404_static_probes(self):
+        """Fingerprint should not treat 404 WordPress static paths as reachable endpoints."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(200, '<html><body>plain site</body></html>', {}),
+            ('HEAD', 'http://example.com/wp-content/'): FakeResponse(404, '', {}),
+            ('HEAD', 'http://example.com/wp-includes/'): FakeResponse(404, '', {}),
+            ('HEAD', 'http://example.com/wp-content/plugins/'): FakeResponse(404, '', {}),
+            ('HEAD', 'http://example.com/wp-content/themes/'): FakeResponse(404, '', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'WordPress' for candidate in result['candidates']))
+
     def test_detects_mobirise_from_generator_and_assets(self):
         """Fingerprint should detect Mobirise landing-page builder output."""
 

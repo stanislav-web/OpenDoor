@@ -14,6 +14,7 @@ v5.16.2 (31.06.2026)
 - (fix) `--sniff malware` false positives on legacy Google Analytics loaders while preserving suspicious document.write, atob, String.fromCharCode and PHP payload detections.
 - (fix) `--sniff secret` scan output so secret sniffer hits are labeled as `OK (Secret)` like other sniffer findings.
 - (fix) `--fingerprint` now detects DataLife Engine (DLE) from conservative runtime globals and engine asset signals.
+- (fix) `--fingerprint` now prefers Webflow hosted-platform signals over endpoint-only WordPress static path artifacts.
 - (enhancement) added Evolution CMS fingerprint detection from explicit generator, branding, and core install-fallback signals.
 - (enhancement) UMI.CMS fingerprint detection (strong rules added).
 - (enhancement) added conservative MogutaCMS fingerprint detection without active probes or generic portfolio-page matches.
