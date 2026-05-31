@@ -2,15 +2,27 @@
   "repo_notes": [
     {
       "author": "Stanislav WEB",
-      "content": "OpenDoor is a multifunctional console web directory scanner for security auditing. Documentation should prioritize the scanning engine, dictionary-based discovery, external dictionary support, proxy/anonymity features, detection of index-of directories, login entry points, restricted paths, web shells, hidden data, subdomains, and large backup files."
+      "content": "OpenDoor is an OWASP-oriented CLI Web Recon & Directory Discovery Platform for authorized security work. Documentation and agent work should describe it as a context-aware reconnaissance platform, not only as a basic directory brute-forcer. Core areas include dictionary-based directory discovery, subdomain enumeration, fingerprint-first scanning, WAF detection, response sniffers, response filtering, report generation, session resume, CI/CD fail-on buckets, report diffing, proxy support, OpenVPN/WireGuard transports, and controlled authorized bypass probes."
     },
     {
       "author": "Stanislav WEB",
-      "content": "The most important documentation outcome is to explain how targets are discovered, how scan dictionaries and signatures are organized, how proxy support affects scan execution, what findings are produced, and how tests validate detection logic and scanner behavior."
+      "content": "The most important documentation outcome is to explain how targets are normalized and discovered, how scan dictionaries and remote/custom wordlists are used, how fingerprints and WAF signals influence operator decisions, how response buckets and sniffers classify evidence, how filters and auto-calibration reduce false positives, how transport/proxy settings affect execution, and how JSON/HTML/SARIF/SQLite reports support audit, automation, and release-to-release exposure validation."
     },
     {
       "author": "Stanislav WEB",
-      "content": "If present, documentation should explicitly cover docs/, src/, tests/, scripts/, examples/, and any dictionaries or signature directories because these are essential to understanding scanner coverage and operation."
+      "content": "Repository documentation should explicitly cover docs/, src/, tests/, data/, examples/, scripts/, .github/e2e/, benchmarks/, dictionaries, signatures, report formats, sniffer behavior, fingerprint technologies, release tooling, and packaging files. These areas are essential for understanding scanner coverage, runtime behavior, validation strategy, and distribution workflows."
+    },
+    {
+      "author": "Stanislav WEB",
+      "content": "The Mastering OpenDoor article series has started. Part 1 is published on Medium and the project has an official ReadTheDocs companion page plus a deterministic local lab under examples/mastering-lab. Keep Part 1 links in README and docs/guides/mastering-opendoor.md. Do not start Part 2 yet; it is intentionally deferred until after the next release, planned roughly one week later."
+    },
+    {
+      "author": "Stanislav WEB",
+      "content": "When suggesting repository changes, preserve current CLI behavior unless the maintainer explicitly approves a public change. Follow the repository's AGENTS.md rules: assess blast radius, protect existing output/report semantics, add deterministic unittest coverage for runtime changes, keep packaging distribution-friendly, and run the documented validation commands relevant to the change."
+    },
+    {
+      "author": "Stanislav WEB",
+      "content": "Avoid framing OpenDoor as an anonymity or bypass tool. Proxy, OpenVPN, WireGuard, WAF-safe mode, and controlled header/path bypass features must be described as authorized testing and transport/routing workflows. Do not suggest aggressive scans, hidden request-volume behavior, credential submission, or third-party target scanning without explicit authorization."
     }
   ]
 }
