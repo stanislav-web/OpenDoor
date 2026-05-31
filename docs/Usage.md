@@ -268,11 +268,13 @@ opendoor --host https://example.com -r 5
 opendoor --host https://example.com --retries 5 --retries-fail-streak 10
 ```
 
-`--retries-fail-streak` controls how many consecutive paths may exhaust the configured retry budget before OpenDoor aborts the scan.
+`--retries-fail-streak` controls how many consecutive directory paths may exhaust the configured retry budget before OpenDoor aborts a directory scan.
 
 Default: `10`.
 
-Use this to avoid spending a full wordlist on a target that became unavailable, while still tolerating occasional path-specific `Max retries exceeded` responses. Any normally processed response resets the streak. Paths that exhaust retries are still recorded as skipped/ignored before the abort threshold is evaluated.
+Subdomain scans do not use this abort guard. Missing HTTP responses are expected during subdomain enumeration, so exhausted subdomain candidates are recorded as skipped/ignored and the scan continues.
+
+Use this option for directory scans to avoid spending a full wordlist on a target that became unavailable, while still tolerating occasional path-specific `Max retries exceeded` responses. Any normally processed response resets the directory-scan streak. Paths that exhaust retries are still recorded as skipped/ignored before the abort threshold is evaluated.
 
 Examples:
 

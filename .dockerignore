@@ -94,3 +94,5 @@ debian/*.substvars
 # Misc
 TODO
 ROADMAP.md
+test.py
+examples

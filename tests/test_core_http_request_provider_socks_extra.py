@@ -246,6 +246,17 @@ class TestSocketExtra(unittest.TestCase):
         connect_mock.assert_called_once_with(('example.com', 80), timeout=5)
         sock.close.assert_called_once()
 
+    def test_ping_closes_socket_when_closeable_connection_was_created(self):
+        """Socket.ping() should close a connection object even when it is truthy only after creation."""
+
+        sock = MagicMock()
+
+        with patch('src.core.http.socks.socket.create_connection', return_value=sock):
+            Socket.ping('example.com', '80', timeout=1)
+
+        sock.close.assert_called_once_with()
+
+
     def test_ping_wraps_socket_errors_with_connect_details(self):
         """Socket.ping() should wrap socket errors with host, port, timeout and resolved addresses."""
 

@@ -124,13 +124,17 @@ class TestFingerprint(unittest.TestCase):
         self.assertEqual(result['name'], 'WordPress')
         self.assertGreaterEqual(result['confidence'], 90)
 
-    def test_detects_wordpress_from_static_asset_endpoint_probes(self):
-        """Fingerprint should detect WordPress from distinctive static directory probes."""
+    def test_detects_wordpress_from_corroborated_static_endpoint_probes(self):
+        """Fingerprint should use restricted WordPress endpoints only with root evidence."""
 
         config = FakeConfig()
         base = 'http://example.com/'
         responses = {
-            ('GET', base): FakeResponse(200, '<html><body>plain site</body></html>', {}),
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><link href="/wp-content/themes/test/style.css"></body></html>',
+                {},
+            ),
             ('HEAD', 'http://example.com/wp-content/'): FakeResponse(403, '', {}),
             ('HEAD', 'http://example.com/wp-includes/'): FakeResponse(403, '', {}),
             ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
@@ -206,6 +210,105 @@ class TestFingerprint(unittest.TestCase):
         self.assertTrue(Fingerprint._is_distinct_probe_status(200, 'bad-baseline'))
         self.assertFalse(Fingerprint._is_distinct_probe_up({'/wp-content/': 200}, '/wp-content/', [403], 404))
 
+
+    def test_detects_datalife_engine_from_runtime_globals_and_assets(self):
+        """Fingerprint should detect DLE from stable runtime globals and engine assets."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head>'
+                '<script>var dle_root = "/"; var dle_admin = "admin.php"; '
+                'var dle_login_hash = ""; var dle_group = 5; var dle_skin = "Default";</script>'
+                '<script src="/engine/classes/min/index.php?charset=utf-8&amp;f='
+                'engine/classes/js/jquery.js,engine/classes/js/dle_js.js&amp;v=19"></script>'
+                '</head><body>News site</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'DataLife Engine')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertIn('engine/classes/js/dle_js.js', [signal['value'] for signal in result['signals']])
+
+
+    def test_detects_datalife_engine_from_search_runtime_globals(self):
+        """Fingerprint should detect DLE from inline search globals used on real homepages."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><script><!--\n'
+                'var allow_dle_delete_news = false;\n'
+                'var dle_search_delay = false;\n'
+                "var dle_search_value = '';\n"
+                '$(function(){ FastSearch(); });\n'
+                '//--></script></head><body>News</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'DataLife Engine')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertTrue(
+            any('dle_search_delay' in signal['value'] for signal in result['signals'])
+        )
+
+    def test_detects_datalife_engine_from_explicit_generator(self):
+        """Fingerprint should keep explicit DataLife Engine generator support."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><meta name="generator" content="DataLife Engine (http://dle-news.ru)"></head></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['name'], 'DataLife Engine')
+        self.assertGreaterEqual(result['confidence'], 70)
+
+    def test_does_not_promote_datalife_engine_from_weak_dle_text_only(self):
+        """Fingerprint should not classify generic DLE text or one isolated global as DLE."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body>DLE can mean distance learning environment. '
+                '<script>var dle_root = "/";</script></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertNotEqual(result['name'], 'DataLife Engine')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+
     def test_detects_nextjs(self):
         """Fingerprint should detect Next.js from __NEXT_DATA__ and _next assets."""
 
@@ -274,6 +377,401 @@ class TestFingerprint(unittest.TestCase):
         self.assertEqual(result['category'], 'sitebuilder')
         self.assertEqual(result['name'], 'Webflow')
 
+    def test_detects_webflow_hosted_site_and_ignores_wordpress_endpoint_artifacts(self):
+        """Fingerprint should prefer Webflow hosting/header signals over endpoint-only WordPress artifacts."""
+
+        config = FakeConfig(host='carrotdev.webflow.io', scheme='https://', port=443)
+        base = 'https://carrotdev.webflow.io/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><title>CarrotDevs</title></head><body>Web design</body></html>',
+                {
+                    'Server': 'cloudflare',
+                    'X-WF-Region': 'us-east-1',
+                    'Surrogate-Key': 'carrotdev.webflow.io pageId:abc',
+                    'Content-Security-Policy': (
+                        "frame-ancestors 'self' https://*.webflow.com "
+                        'http://*.webflow.io https://webflow.com'
+                    ),
+                },
+            ),
+            ('HEAD', 'https://carrotdev.webflow.io/wp-content/'): FakeResponse(403, '', {}),
+            ('HEAD', 'https://carrotdev.webflow.io/wp-includes/'): FakeResponse(403, '', {}),
+            ('HEAD', 'https://carrotdev.webflow.io/wp-content/plugins/'): FakeResponse(403, '', {}),
+            ('HEAD', 'https://carrotdev.webflow.io/wp-content/themes/'): FakeResponse(403, '', {}),
+            ('GET', 'https://carrotdev.webflow.io{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {'X-WF-Region': 'us-east-1'},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'sitebuilder')
+        self.assertEqual(result['name'], 'Webflow')
+        self.assertFalse(any(candidate['name'] == 'WordPress' for candidate in result['candidates']))
+        self.assertIn('host=*.webflow.io', [signal['value'] for signal in result['signals']])
+
+    def test_detects_cms_s3_from_root_builder_runtime_markers(self):
+        """Fingerprint should detect CMS.S3 without relying on WordPress endpoint probes."""
+
+        config = FakeConfig(host='evroavtofurgon.ru', scheme='https://', port=443)
+        base = 'https://evroavtofurgon.ru/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><link rel="stylesheet" href="/shared/s3/css/calendar.css">'
+                '<script src="/shared/s3/js/widgets.js?v=8"></script>'
+                '<script src="/g/s3/misc/form/1.0.0/s3.form.js"></script>'
+                '<script src="/my/s3/js/site.min.js?1549533888"></script></head>'
+                '<body><div class="widget-8 wm-widget-menu widget-type-menu_horizontal '
+                'editorElement layer-type-widget"></div>'
+                '<a data-api-type="popup-form" '
+                'data-api-url="/my/s3/xapi/public/?method=form/postform"></a>'
+                '<span class="copyright">Изготовление сайтов: megagroup.ru</span>'
+                '<script>$ite.start({"sid":510324,"vid":1500293});</script></body></html>',
+                {'Server': 'nginx'},
+            ),
+            ('HEAD', 'https://evroavtofurgon.ru/wp-content/'): FakeResponse(403, '', {}),
+            ('HEAD', 'https://evroavtofurgon.ru/wp-includes/'): FakeResponse(403, '', {}),
+            ('HEAD', 'https://evroavtofurgon.ru/wp-content/plugins/'): FakeResponse(403, '', {}),
+            ('HEAD', 'https://evroavtofurgon.ru/wp-content/themes/'): FakeResponse(403, '', {}),
+            ('GET', 'https://evroavtofurgon.ru{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'CMS.S3 / Megagroup')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertFalse(any(candidate['name'] == 'WordPress' for candidate in result['candidates']))
+        self.assertIn(
+            '/shared/s3/',
+            ''.join(signal['value'] for signal in result['signals']),
+        )
+
+    def test_weak_cms_s3_vendor_text_stays_below_detection_threshold(self):
+        """A single Megagroup footer/link should not classify an unrelated site as CMS.S3."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><a href="https://megagroup.ru">vendor portfolio link</a></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertEqual(result['candidates'][0]['name'], 'CMS.S3 / Megagroup')
+        self.assertLess(result['candidates'][0]['score'], 7)
+
+
+    def test_detects_melbis_shop_from_powered_footer(self):
+        """Fingerprint should detect Melbis Shop from an explicit product footer."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body>'
+                '<footer>© 2026 Melbis. Powered by Melbis Shop v6.5.0.279</footer>'
+                '<a href="/goods.php?id=1666">Product</a>'
+                '</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'ecommerce')
+        self.assertEqual(result['name'], 'Melbis Shop Platform')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertIn('Powered by Melbis Shop', [signal['value'] for signal in result['signals']])
+
+    def test_detects_melbis_shop_from_legacy_russian_footer_and_cookie(self):
+        """Fingerprint should detect legacy Melbis Shop storefront markers."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body>'
+                '<a href="/dir.php?id=372">Каталог</a>'
+                '<a href="/goods.php?id=1666">Товар</a>'
+                '<footer>Магазин создан на базе Melbis Shop v5.4.0. '
+                'Последнее обновление магазина: 25-06-2025 11:00</footer>'
+                '</body></html>',
+                MultiHeaders([('Set-Cookie', 'MS_MSS=abc123; path=/')]),
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'ecommerce')
+        self.assertEqual(result['name'], 'Melbis Shop Platform')
+        self.assertIn('MS_MSS', [signal['value'] for signal in result['signals']])
+
+    def test_detects_melbis_shop_from_default_template_assets(self):
+        """Fingerprint should detect Melbis Shop from default template assets."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head>'
+                '<link rel="stylesheet" href="/templates/default/melbis.css">'
+                '<script src="/templates/default/melbis.js"></script>'
+                '</head><body><a href="/dir.php?id=1">Catalog</a></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'ecommerce')
+        self.assertEqual(result['name'], 'Melbis Shop Platform')
+
+    def test_does_not_detect_melbis_shop_from_ms_mss_cookie_alone(self):
+        """MS_MSS is a weak corroborating cookie and should not classify alone."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><h1>Generic PHP storefront</h1></body></html>',
+                MultiHeaders([('Set-Cookie', 'MS_MSS=abc123; path=/')]),
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertNotEqual(result['name'], 'Melbis Shop Platform')
+        self.assertFalse(any(candidate['name'] == 'Melbis Shop Platform' for candidate in result['candidates']))
+
+    def test_does_not_detect_melbis_shop_from_generic_article_text(self):
+        """Generic Melbis Shop mentions should not become a storefront fingerprint."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><article>Review of Melbis Shop and other e-commerce platforms.</article></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'Melbis Shop Platform' for candidate in result['candidates']))
+
+
+    def test_detects_camaleon_cms_from_official_site_runtime_markers(self):
+        """Fingerprint should detect Camaleon CMS from brand context plus Rails CSRF."""
+
+        config = FakeConfig(host='camaleon.website', scheme='https://', port=443)
+        base = 'https://camaleon.website/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head>'
+                '<meta name="csrf-param" content="authenticity_token">'
+                '<meta name="csrf-token" content="token">'
+                '</head><body>'
+                '<h1>CAMALEON CMS</h1>'
+                '<p>Camaleon CMS is an advanced Content Management System.</p>'
+                '<p>Wordpress Alternative. Built with Ruby-on-Rails.</p>'
+                '<a href="https://camaleon.website/store/plugins">Plugins Store</a>'
+                '<footer>Copyright © 2015 - 2018 CamaleonCMS. All rights reserved.</footer>'
+                '</body></html>',
+                {},
+            ),
+            ('GET', 'https://camaleon.website{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Camaleon CMS')
+        self.assertEqual(result['runtime']['name'], 'Ruby')
+        self.assertIn('Camaleon CMS+Rails CSRF', [signal['value'] for signal in result['signals']])
+
+    def test_detects_camaleon_cms_from_admin_assets_and_cookies(self):
+        """Fingerprint should detect Camaleon CMS from strong admin asset markers."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head>'
+                '<link rel="stylesheet" href="/assets/camaleon_cms/admin/admin-basic-manifest.css">'
+                '<script src="/assets/camaleon_cms/admin/admin-basic-manifest.js"></script>'
+                '</head><body><img src="/assets/camaleon_cms/camaleon.png"></body></html>',
+                MultiHeaders([
+                    ('Set-Cookie', 'auth_token=abc; Path=/'),
+                    ('Set-Cookie', '_cms_session=xyz; Path=/; HttpOnly'),
+                ]),
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Camaleon CMS')
+        self.assertEqual(result['runtime']['name'], 'Ruby')
+        self.assertIn('auth_token+_cms_session', [signal['value'] for signal in result['signals']])
+
+    def test_does_not_detect_camaleon_cms_from_brand_text_without_rails_context(self):
+        """Generic Camaleon CMS text should not become a fingerprint by itself."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><article>Review of Camaleon CMS for Rails developers.</article></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'Camaleon CMS' for candidate in result['candidates']))
+
+
+    def test_does_not_detect_wordpress_from_generic_restricted_static_probes(self):
+        """Fingerprint should not treat generic 403/405 WordPress path denies as WordPress."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><title>CMS.S3-like site</title></head>'
+                '<body><script src="/my/s3/js/site.min.js"></script></body></html>',
+                {'Server': 'nginx'},
+            ),
+            ('HEAD', 'http://example.com/wp-content/'): FakeResponse(403, '', {}),
+            ('HEAD', 'http://example.com/wp-includes/'): FakeResponse(403, '', {}),
+            ('HEAD', 'http://example.com/wp-content/plugins/'): FakeResponse(403, '', {}),
+            ('HEAD', 'http://example.com/wp-content/themes/'): FakeResponse(403, '', {}),
+            ('HEAD', 'http://example.com/wp-json/'): FakeResponse(403, '', {}),
+            ('HEAD', 'http://example.com/wp-login.php'): FakeResponse(403, '', {}),
+            ('HEAD', 'http://example.com/xmlrpc.php'): FakeResponse(405, '', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'WordPress' for candidate in result['candidates']))
+
+    def test_does_not_detect_wordpress_from_404_static_probes(self):
+        """Fingerprint should not treat 404 WordPress static paths as reachable endpoints."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(200, '<html><body>plain site</body></html>', {}),
+            ('HEAD', 'http://example.com/wp-content/'): FakeResponse(404, '', {}),
+            ('HEAD', 'http://example.com/wp-includes/'): FakeResponse(404, '', {}),
+            ('HEAD', 'http://example.com/wp-content/plugins/'): FakeResponse(404, '', {}),
+            ('HEAD', 'http://example.com/wp-content/themes/'): FakeResponse(404, '', {}),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'WordPress' for candidate in result['candidates']))
+
     def test_detects_mobirise_from_generator_and_assets(self):
         """Fingerprint should detect Mobirise landing-page builder output."""
 
@@ -328,6 +826,13 @@ class TestFingerprint(unittest.TestCase):
                 'cms',
                 '<html><head><meta name="generator" content="InstantCMS"></head>'
                 '<body><script src="/templates/default/js/icms.js"></script></body></html>',
+                {},
+            ),
+            (
+                'Evolution CMS',
+                'cms',
+                '<html><head><meta name="generator" content="Evolution CMS 3.5"></head>'
+                '<body><footer>Powered by Evolution CMS</footer></body></html>',
                 {},
             ),
             (
@@ -402,6 +907,72 @@ class TestFingerprint(unittest.TestCase):
                 self.assertEqual(result['category'], expected_category)
                 self.assertEqual(result['name'], expected_name)
                 self.assertGreaterEqual(result['confidence'], 70)
+
+    def test_detects_evolution_cms_from_not_installed_core_template(self):
+        """Fingerprint should detect Evolution CMS from its own install fallback text."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                503,
+                'Evolution CMS is not currently installed or the configuration file cannot be found. '
+                'Do you want to install now?',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Evolution CMS')
+        self.assertGreaterEqual(result['confidence'], 70)
+
+    def test_detects_evolution_cms_from_modx_evolution_body_and_manager_endpoint(self):
+        """Fingerprint should use MODX Evolution body text and /manager/ as corroborating evidence."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body>MODX Evolution manager login powered by Evolution CMS.</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+            ('HEAD', 'http://example.com/manager/'): FakeResponse(200, '', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Evolution CMS')
+        self.assertIn('modx evolution', [item['value'] for item in result['signals']])
+        self.assertIn('/manager/', [item['value'] for item in result['signals']])
+
+    def test_does_not_detect_evolution_cms_from_generic_evo_word_only(self):
+        """Fingerprint should not classify generic EVO wording as Evolution CMS."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><p>Our product follows an evolutionary design process.</p></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'Evolution CMS' for candidate in result['candidates']))
 
     def test_does_not_promote_generic_diafan_link_without_meta_author(self):
         """Fingerprint should not promote DiafanCMS from a generic body mention only."""

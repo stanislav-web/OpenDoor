@@ -17,7 +17,7 @@
 """
 
 from urllib3 import HTTPSConnectionPool, PoolManager, HTTPResponse, Timeout, disable_warnings
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError, ConnectTimeoutError, \
+from urllib3.exceptions import DecodeError, MaxRetryError, ReadTimeoutError, ConnectTimeoutError, \
     HostChangedError, SSLError, InsecureRequestWarning
 from src.core import helper
 from .exceptions import HttpsRequestError
@@ -207,14 +207,15 @@ class HttpsRequest(RequestProvider, DebugProvider):
 
         except MaxRetryError as error:
             self.__record_tls_transport_error(error)
-            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
-                self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
 
         except HostChangedError as error:
             self.__tpl.warning(key='host_changed_error', details=error)
 
         except ReadTimeoutError:
             self.__tpl.warning(key='read_timeout_error', url=url)
+
+        except DecodeError:
+            self.__tpl.warning(key='decode_error', url=url)
 
         except ConnectTimeoutError:
             self.__tpl.warning(key='connection_timeout_error', url=url)

@@ -138,7 +138,7 @@ class Fingerprint(object):
     STATIC_CATEGORY = 'static'
     RUNTIME_CATEGORY = 'runtime'
     TECHNOLOGY_RUNTIME_MAP = {
-        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
+        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'MogutaCMS': 'PHP', 'CMS.S3 / Megagroup': 'PHP', 'Camaleon CMS': 'Ruby', 'Melbis Shop Platform': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
         'Express': 'Node.js', 'NestJS': 'Node.js', 'Fastify': 'Node.js', 'Koa': 'Node.js', 'Hapi': 'Node.js', 'Strapi': 'Node.js', 'Directus': 'Node.js', 'Ghost': 'Node.js', 'Next.js': 'Node.js', 'Nuxt': 'Node.js', 'Gatsby': 'Node.js', 'Astro': 'Node.js', 'Remix': 'Node.js', 'SvelteKit': 'Node.js', 'Docusaurus': 'Node.js', 'VitePress': 'Node.js', 'PencilBlue': 'Node.js',
         'React': 'JavaScript', 'Vue': 'JavaScript', 'Angular': 'JavaScript', 'Django': 'Python', 'Flask': 'Python', 'FastAPI': 'Python', 'Ruby on Rails': 'Ruby', 'Spree': 'Ruby', 'Spring': 'Java/JVM', 'Liferay': 'Java/JVM', 'OpenCms': 'Java/JVM', 'Hippo CMS': 'Java/JVM', 'dotCMS': 'Java/JVM', 'ASP.NET': '.NET', 'Microsoft SharePoint': '.NET', 'DNN Platform': '.NET', 'Orchard CMS': '.NET', 'Sitecore': '.NET', 'Sitefinity': '.NET', 'Umbraco': '.NET', 'Phoenix': 'Elixir', 'MkDocs': 'Static site', 'Jekyll': 'Static site', 'Hugo': 'Static site', 'AsciiDoc': 'Static site',
     }
@@ -158,6 +158,8 @@ class Fingerprint(object):
         ('Bubble', SITE_BUILDER_CATEGORY, ('bubble', 'bubble.io')),
         ('CKAN', CMS_CATEGORY, ('ckan',)),
         ('CMS.S3 / Megagroup', CMS_CATEGORY, ('cms.s3', 'cms s3', 'megagroup cms')),
+        ('Camaleon CMS', CMS_CATEGORY, ('camaleon cms', 'camaleoncms')),
+        ('Melbis Shop Platform', ECOMMERCE_CATEGORY, ('melbis shop platform', 'melbis shop')),
         ('CMS Made Simple', CMS_CATEGORY, ('cms made simple', 'cmsms')),
         ('CMS CONTENIDO', CMS_CATEGORY, ('contenido', 'cms contenido')),
         ('CMSimple', CMS_CATEGORY, ('cmsimple',)),
@@ -173,6 +175,7 @@ class Fingerprint(object):
         ('EC-CUBE', ECOMMERCE_CATEGORY, ('ec-cube', 'eccube')),
         ('EPiServer', CMS_CATEGORY, ('episerver', 'optimizely cms')),
         ('ExpressionEngine', CMS_CATEGORY, ('expressionengine', 'expression engine')),
+        ('Evolution CMS', CMS_CATEGORY, ('evolution cms', 'evolutioncms', 'modx evolution')),
         ('Fork CMS', CMS_CATEGORY, ('fork cms',)),
         ('GetSimple CMS', CMS_CATEGORY, ('getsimple cms', 'get-simple cms')),
         ('GoDaddy Website Builder', SITE_BUILDER_CATEGORY, ('godaddy website builder', 'go central')),
@@ -247,6 +250,16 @@ class Fingerprint(object):
         ('DNN Platform', CMS_CATEGORY, ('__dnnvariable', 'dnn_', '/portals/_default/')),
         ('EC-CUBE', ECOMMERCE_CATEGORY, ('eccube', 'ec-cube', '/user_data/packages/')),
         ('ExpressionEngine', CMS_CATEGORY, ('expressionengine', 'exp:channel', 'powered by expressionengine')),
+        (
+            'Evolution CMS',
+            CMS_CATEGORY,
+            (
+                'powered by evolution cms',
+                'evolution cms is not currently installed',
+                'please run the evolution cms install utility',
+                'modx evolution',
+            ),
+        ),
         ('GetSimple CMS', CMS_CATEGORY, ('getsimple', 'get-simple', '/data/uploads/')),
         ('GoDaddy Website Builder', SITE_BUILDER_CATEGORY, ('wsimg.com', 'godaddy.com/websites/website-builder')),
         ('Hostinger Website Builder', SITE_BUILDER_CATEGORY, ('hostinger website builder', 'userapp.zyrosite.com', 'assets.zyrosite.com', 'zyrosite.com')),
@@ -306,6 +319,8 @@ class Fingerprint(object):
         ('Salesforce Commerce Cloud', ECOMMERCE_CATEGORY, 'x-dw-request-base-id', None),
         ('Salesforce Commerce Cloud', ECOMMERCE_CATEGORY, 'x-dw-trace-id', None),
         ('AEM', CMS_CATEGORY, 'x-dispatcher', None),
+        ('UMI.CMS', CMS_CATEGORY, 'x-generated-by', 'umi.cms'),
+        ('UMI.CMS', CMS_CATEGORY, 'x-generated-by', 'umi cms'),
     )
 
     EXTENDED_CMS_COOKIE_SIGNATURES = (
@@ -1383,6 +1398,497 @@ class Fingerprint(object):
         elif len(found_markers) == 1 and len(found_cookies) >= 1:
             self._add_signal('dotCMS', self.CMS_CATEGORY, 'markup+cookie', '{0}+{1}'.format(found_markers[0], found_cookies[0]), 7)
 
+
+    @classmethod
+    def _contains_mogutacms_brand(cls, text):
+        """
+        Return True when text contains an explicit MogutaCMS brand marker.
+
+        The matcher intentionally avoids a standalone "moguta" token because
+        portfolio pages, comparison articles and vendor links can mention the
+        product without proving that the scanned target runs on it.
+
+        :param str text: normalized text
+        :return: check result
+        :rtype: bool
+        """
+
+        source = str(text or '').lower()
+        return re.search(r'(?<![a-z0-9])moguta\s*\.?\s*cms(?![a-z0-9])', source) is not None \
+            or re.search(r'(?<![a-z0-9])mogutacms(?![a-z0-9])', source) is not None
+
+    @classmethod
+    def _has_mogutacms_powered_by_marker(cls, body_lower):
+        """
+        Return True for explicit powered-by footer style MogutaCMS markers.
+
+        Examples such as "Сайт работает на движке: Moguta.CMS" are strong
+        production-site evidence. Plain portfolio/marketing mentions are not
+        accepted by this rule.
+
+        :param str body_lower: normalized response body
+        :return: check result
+        :rtype: bool
+        """
+
+        body_text = str(body_lower or '').lower()
+        if cls._contains_mogutacms_brand(body_text) is not True:
+            return False
+
+        return (
+            'сайт работает на движке' in body_text
+            or 'работает на движке' in body_text
+            or 'powered by' in body_text
+        )
+
+    def _apply_mogutacms_rules(self, body_lower, generator):
+        """
+        Apply conservative passive MogutaCMS fingerprint signals.
+
+        MogutaCMS is identified only from explicit generator/powered-by
+        branding or from multiple documented engine asset paths. A generic
+        vendor mention or a single ``mg-*`` path is not enough to avoid
+        corrupting fingerprints on portfolio, comparison or unrelated pages.
+
+        :param str body_lower: normalized response body
+        :param str generator: raw generator meta value
+        :return: None
+        """
+
+        generator_lower = str(generator or '').lower()
+        has_generator = self._contains_mogutacms_brand(generator_lower)
+        has_powered_by = self._has_mogutacms_powered_by_marker(body_lower)
+
+        if has_generator:
+            self._add_signal('MogutaCMS', self.ECOMMERCE_CATEGORY, 'meta', 'generator={0}'.format(generator), 8)
+
+        if has_powered_by:
+            self._add_signal('MogutaCMS', self.ECOMMERCE_CATEGORY, 'markup', 'powered by MogutaCMS', 9)
+
+        engine_markers = (
+            '/mg-templates/',
+            '/mg-core/',
+            '/mg-admin/',
+            '/mg-plugins/',
+            '/mg-pages/',
+        )
+        found_markers = sorted(marker for marker in engine_markers if marker in str(body_lower or ''))
+
+        if len(found_markers) >= 2:
+            self._add_signal('MogutaCMS', self.ECOMMERCE_CATEGORY, 'asset', '+'.join(found_markers[:3]), 8)
+        elif len(found_markers) == 1 and (has_generator or has_powered_by):
+            self._add_signal('MogutaCMS', self.ECOMMERCE_CATEGORY, 'asset+brand', found_markers[0], 4)
+
+
+    def _apply_evolution_cms_rules(self, body_lower, generator, probe_statuses, not_found_status):
+        """
+        Apply strong Evolution CMS signals.
+
+        Evolution CMS descends from MODX Evolution, but short words like
+        "evo" or the generic /manager/ path are too noisy for standalone
+        detection. Keep the rule limited to explicit branding or core fallback
+        text, and use endpoint reachability only as corroborating evidence.
+
+        :param str body_lower: normalized response body
+        :param str generator: raw generator meta value
+        :param dict probe_statuses: fingerprint endpoint probe statuses
+        :param int not_found_status: neutral 404-baseline status
+        :return: None
+        """
+
+        generator_lower = str(generator or '').lower()
+        explicit_markers = (
+            'evolution cms',
+            'evolutioncms',
+            'modx evolution',
+        )
+
+        has_explicit_marker = any(marker in generator_lower or marker in body_lower for marker in explicit_markers)
+
+        if any(marker in generator_lower for marker in explicit_markers):
+            self._add_signal('Evolution CMS', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 8)
+
+        if 'powered by evolution cms' in body_lower:
+            self._add_signal('Evolution CMS', self.CMS_CATEGORY, 'markup', 'powered by evolution cms', 7)
+
+        if (
+            'evolution cms is not currently installed' in body_lower
+            or 'please run the evolution cms install utility' in body_lower
+        ):
+            self._add_signal('Evolution CMS', self.CMS_CATEGORY, 'markup', 'install fallback', 8)
+
+        if 'modx evolution' in body_lower:
+            self._add_signal('Evolution CMS', self.CMS_CATEGORY, 'markup', 'modx evolution', 7)
+
+        if has_explicit_marker and self._is_distinct_probe_up(
+            probe_statuses,
+            '/manager/',
+            [200, 301, 302, 401, 403],
+            not_found_status,
+        ):
+            self._add_signal('Evolution CMS', self.CMS_CATEGORY, 'endpoint', '/manager/', 3)
+
+
+    @classmethod
+    def _collect_melbis_shop_signals(cls, body_lower, cookies, generator):
+        """
+        Return conservative Melbis Shop Platform passive signals.
+
+        Melbis Shop pages often expose a product footer such as
+        ``Powered by Melbis Shop v6.x`` or the older Russian
+        ``Магазин создан на базе Melbis Shop v5.x`` text. The ``MS_MSS``
+        session cookie is useful corroboration, but it is intentionally not
+        accepted as standalone evidence.
+
+        :param str body_lower: normalized response body
+        :param list cookies: normalized response cookie names
+        :param str generator: raw generator meta value
+        :return: detected signal tuples
+        :rtype: list[tuple[str, str]]
+        """
+
+        body_text = str(body_lower or '').lower()
+        generator_lower = str(generator or '').lower()
+        cookie_names = [str(cookie or '').lower() for cookie in cookies]
+        signals = []
+        seen_values = set()
+
+        def add_signal(signal_type, value):
+            if value in seen_values:
+                return
+            signals.append((signal_type, value))
+            seen_values.add(value)
+
+        if 'melbis shop' in generator_lower:
+            add_signal('meta', 'generator=Melbis Shop')
+
+        if re.search(r'powered\s+by(?:\s|<[^>]+>)*melbis\s+shop(?:\s*v?[0-9][0-9a-z.\-]*)?', body_text):
+            add_signal('powered', 'Powered by Melbis Shop')
+
+        if re.search(r'магазин\s+создан\s+на\s+базе\s+melbis\s+shop(?:\s*v?[0-9][0-9a-z.\-]*)?', body_text):
+            add_signal('powered', 'Магазин создан на базе Melbis Shop')
+
+        asset_markers = (
+            ('/templates/default/melbis.css', 'templates/default/melbis.css'),
+            ('/templates/default/melbis.js', 'templates/default/melbis.js'),
+            ('templates/default/melbis.css', 'templates/default/melbis.css'),
+            ('templates/default/melbis.js', 'templates/default/melbis.js'),
+        )
+        for marker, value in asset_markers:
+            if marker in body_text:
+                add_signal('asset', value)
+
+        source_markers = (
+            ("definesession('melbis_shop')", "DefineSession('MELBIS_SHOP')"),
+            ('definesession("melbis_shop")', 'DefineSession("MELBIS_SHOP")'),
+            ('melbis()->defineselfconst', 'MELBIS()->DefineSelfConst'),
+            ('melbis_base_page', 'melbis_base_page'),
+        )
+        for marker, value in source_markers:
+            if marker in body_text:
+                add_signal('source', value)
+
+        if re.search(r'(?:href|src|action)=["\'][^"\']*(?:dir|goods|news)\.php\?id=', body_text):
+            add_signal('route', 'dir/goods/news.php?id')
+        elif re.search(r'\b(?:dir|goods|news)\.php\?id=', body_text):
+            add_signal('route', 'dir/goods/news.php?id')
+
+        if 'ms_mss' in cookie_names:
+            add_signal('cookie', 'MS_MSS')
+
+        return signals
+
+    def _apply_melbis_shop_rules(self, body_lower, cookies, generator):
+        """
+        Apply conservative passive Melbis Shop Platform fingerprint signals.
+
+        Product footer, generator/source, and default template assets are strong
+        enough to classify Melbis Shop directly. The ``MS_MSS`` cookie is only
+        used with route/template corroboration to avoid cookie-name false
+        positives on unrelated PHP applications.
+
+        :param str body_lower: normalized response body
+        :param list cookies: normalized response cookie names
+        :param str generator: raw generator meta value
+        :return: None
+        """
+
+        signals = self._collect_melbis_shop_signals(body_lower, cookies, generator)
+        if len(signals) <= 0:
+            return
+
+        strong_values = [
+            value for signal_type, value in signals
+            if signal_type in ('meta', 'powered', 'asset', 'source')
+        ]
+        route_values = [value for signal_type, value in signals if signal_type == 'route']
+        cookie_values = [value for signal_type, value in signals if signal_type == 'cookie']
+
+        if len(strong_values) > 0:
+            self._add_signal(
+                'Melbis Shop Platform',
+                self.ECOMMERCE_CATEGORY,
+                'markup',
+                '+'.join(strong_values[:4]),
+                9,
+            )
+            if len(cookie_values) > 0:
+                self._add_signal('Melbis Shop Platform', self.ECOMMERCE_CATEGORY, 'cookie', cookie_values[0], 3)
+            if len(route_values) > 0:
+                self._add_signal('Melbis Shop Platform', self.ECOMMERCE_CATEGORY, 'route', route_values[0], 3)
+        elif len(cookie_values) > 0 and len(route_values) > 0:
+            self._add_signal(
+                'Melbis Shop Platform',
+                self.ECOMMERCE_CATEGORY,
+                'cookie+route',
+                '{0}+{1}'.format(cookie_values[0], route_values[0]),
+                8,
+            )
+
+
+    @classmethod
+    def _collect_camaleon_cms_signals(cls, body_lower, cookies, generator):
+        """
+        Return conservative Camaleon CMS passive signals.
+
+        Camaleon CMS is a Ruby on Rails CMS. Strong public markers include
+        Camaleon asset names used by the admin layout, generated Camaleon
+        image paths, Camaleon cookies observed by authenticated flows, and
+        explicit Camaleon branding paired with Rails CSRF metadata. Plain
+        marketing text alone is intentionally weak to avoid classifying blog
+        posts or documentation pages as Camaleon installations.
+
+        :param str body_lower: normalized response body
+        :param list cookies: normalized response cookie names
+        :param str generator: raw generator meta value
+        :return: detected signal tuples
+        :rtype: list[tuple[str, str]]
+        """
+
+        body_text = str(body_lower or '').lower()
+        generator_lower = str(generator or '').lower()
+        cookie_names = [str(cookie or '').lower() for cookie in cookies]
+        signals = []
+        seen_values = set()
+
+        def add_signal(signal_type, value):
+            if value in seen_values:
+                return
+            signals.append((signal_type, value))
+            seen_values.add(value)
+
+        if 'camaleon cms' in generator_lower or 'camaleoncms' in generator_lower:
+            add_signal('meta', 'generator=Camaleon CMS')
+
+        asset_markers = (
+            ('camaleon_cms/admin/admin-basic-manifest', 'camaleon_cms/admin/admin-basic-manifest'),
+            ('/assets/camaleon_cms/', '/assets/camaleon_cms/'),
+            ('camaleon_cms/camaleon.png', 'camaleon_cms/camaleon.png'),
+            ('/camaleon_cms/', '/camaleon_cms/'),
+        )
+        for marker, value in asset_markers:
+            if marker in body_text:
+                add_signal('asset', value)
+
+        if 'auth_token' in cookie_names:
+            add_signal('cookie', 'auth_token')
+        if '_cms_session' in cookie_names:
+            add_signal('cookie', '_cms_session')
+
+        brand_count = body_text.count('camaleon cms') + body_text.count('camaleoncms')
+        has_rails_csrf = cls._has_rails_authenticity_token_meta(body_text)
+        has_camaleon_public_context = bool(
+            'camaleon.website/store/' in body_text
+            or 'camaleon.website/documentation/' in body_text
+            or 'camaleon cms, rails cms' in body_text
+            or 'camaleoncms. all rights reserved' in body_text
+            or 'built with ruby-on-rails' in body_text
+        )
+        if brand_count >= 1 and has_rails_csrf and has_camaleon_public_context:
+            add_signal('markup', 'Camaleon CMS+Rails CSRF')
+        elif brand_count >= 2 and has_rails_csrf:
+            add_signal('markup', 'Camaleon CMS repeated+Rails CSRF')
+
+        return signals
+
+    def _apply_camaleon_cms_rules(self, body_lower, cookies, generator):
+        """
+        Apply conservative passive Camaleon CMS fingerprint signals.
+
+        This rule consumes only already fetched root response metadata. It does
+        not probe /admin or any Camaleon-specific endpoint. Strong asset/meta
+        signals are accepted directly; public brand text requires Rails CSRF
+        corroboration to avoid false positives on unrelated documentation.
+
+        :param str body_lower: normalized response body
+        :param list cookies: normalized response cookie names
+        :param str generator: raw generator meta value
+        :return: None
+        """
+
+        signals = self._collect_camaleon_cms_signals(body_lower, cookies, generator)
+        if len(signals) <= 0:
+            return
+
+        strong_values = [
+            value for signal_type, value in signals
+            if signal_type in ('meta', 'asset', 'markup')
+        ]
+        cookie_values = [value for signal_type, value in signals if signal_type == 'cookie']
+
+        if len(strong_values) > 0:
+            self._add_signal(
+                'Camaleon CMS',
+                self.CMS_CATEGORY,
+                'markup',
+                '+'.join(strong_values[:4]),
+                9,
+            )
+            if len(cookie_values) > 0:
+                self._add_signal('Camaleon CMS', self.CMS_CATEGORY, 'cookie', '+'.join(cookie_values[:2]), 3)
+        elif len(cookie_values) >= 2:
+            self._add_signal('Camaleon CMS', self.CMS_CATEGORY, 'cookie', '+'.join(cookie_values[:2]), 7)
+
+
+    @classmethod
+    def _collect_cms_s3_root_signals(cls, body_lower):
+        """
+        Return conservative CMS.S3 / Megagroup root-page signals.
+
+        CMS.S3 pages commonly expose generated builder markup and runtime
+        assets such as ``/my/s3/``, ``/shared/s3/``, ``$ite.start(...)`` and
+        ``widget-type-*``. A single vendor footer/link is intentionally weak
+        and is not enough for standalone detection.
+
+        :param str body_lower: normalized response body
+        :return: detected signal tuples
+        :rtype: list[tuple[str, str]]
+        """
+
+        body_text = str(body_lower or '').lower()
+        marker_rules = (
+            ('/my/s3/', 'asset', '/my/s3/'),
+            ('/shared/s3/', 'asset', '/shared/s3/'),
+            ('/g/s3/', 'asset', '/g/s3/'),
+            ('/my/s3/xapi/public/', 'asset', '/my/s3/xapi/public/'),
+            ('$ite.start', 'script', '$ite.start'),
+            ('s3solutionspanel', 'script', 'S3SolutionsPanel'),
+            ('wm-widget-', 'markup', 'wm-widget-*'),
+            ('widget-type-', 'markup', 'widget-type-*'),
+            ('editorelement layer-type', 'markup', 'editorElement layer-type'),
+            ('data-api-type="popup-form"', 'markup', 'data-api-type=popup-form'),
+            ("data-api-type='popup-form'", 'markup', 'data-api-type=popup-form'),
+            ('megagroup.ru', 'vendor', 'megagroup.ru'),
+            ('mega-copyright', 'vendor', 'mega-copyright'),
+        )
+
+        signals = []
+        seen_values = set()
+        for marker, signal_type, value in marker_rules:
+            if marker not in body_text or value in seen_values:
+                continue
+            signals.append((signal_type, value))
+            seen_values.add(value)
+
+        return signals
+
+    def _apply_cms_s3_rules(self, body_lower):
+        """
+        Apply conservative passive CMS.S3 / Megagroup root-page signals.
+
+        Generic footer/vendor mentions remain weak catalog evidence. Strong
+        CMS.S3 classification requires multiple generated S3 builder/runtime
+        markers from the root page and does not depend on endpoint probes.
+
+        :param str body_lower: normalized response body
+        :return: None
+        """
+
+        signals = self._collect_cms_s3_root_signals(body_lower)
+        if len(signals) <= 0:
+            return
+
+        structural_signals = [
+            value for signal_type, value in signals
+            if signal_type in ('asset', 'script', 'markup')
+        ]
+        vendor_signals = [value for signal_type, value in signals if signal_type == 'vendor']
+
+        if len(structural_signals) >= 2:
+            self._add_signal(
+                'CMS.S3 / Megagroup',
+                self.CMS_CATEGORY,
+                'markup',
+                '+'.join(structural_signals[:4]),
+                9,
+            )
+            if len(vendor_signals) > 0:
+                self._add_signal(
+                    'CMS.S3 / Megagroup',
+                    self.CMS_CATEGORY,
+                    'vendor',
+                    '+'.join(vendor_signals[:2]),
+                    3,
+                )
+
+
+    def _apply_datalife_engine_rules(self, body_lower, generator):
+        """
+        Apply conservative passive DataLife Engine (DLE) signals.
+
+        DLE installations often remove explicit generator branding, but still
+        expose stable runtime globals and engine asset bundle paths such as
+        ``dle_root`` / ``dle_login_hash`` and ``engine/classes/js/dle_js.js``.
+        Keep short ``dle`` text out of body matching to avoid false positives.
+
+        :param str body_lower: normalized response body
+        :param str generator: raw generator meta value
+        :return: None
+        """
+
+        body_text = str(body_lower or '').lower()
+        generator_lower = str(generator or '').lower()
+        brand_markers = (
+            'datalife engine',
+            'data life engine',
+            'dle-news.ru',
+            'dle-news.com',
+            'softnews media group',
+        )
+
+        if any(marker in generator_lower for marker in brand_markers):
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 8)
+
+        if any(marker in body_text for marker in brand_markers):
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'markup', 'DataLife Engine branding', 8)
+
+        dle_globals = sorted(set(re.findall(
+            r'(?:var\s+|window\.)(allow_dle_delete_news|dle_(?:root|admin|login_hash|group|skin|wysiwyg|act_lang|user_id|search_delay|search_value))\b',
+            body_text,
+        )))
+        if len(dle_globals) >= 2:
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'script', '+'.join(dle_globals[:4]), 8)
+        elif len(dle_globals) == 1 and any(marker in body_text for marker in brand_markers):
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'script+brand', dle_globals[0], 4)
+
+        has_dle_js_asset = '/engine/classes/js/dle_js.js' in body_text or 'engine/classes/js/dle_js.js' in body_text
+        has_dle_min_asset = '/engine/classes/min/index.php' in body_text or 'engine/classes/min/index.php' in body_text
+        if has_dle_js_asset:
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'asset', 'engine/classes/js/dle_js.js', 8)
+        elif has_dle_min_asset and (len(dle_globals) >= 1 or any(marker in body_text for marker in brand_markers)):
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'asset+script', 'engine/classes/min/index.php', 5)
+
+        ajax_markers = (
+            'dle_root+"engine/ajax/',
+            "dle_root+'engine/ajax/",
+            'dle_root + "engine/ajax/',
+            "dle_root + 'engine/ajax/",
+            '/engine/ajax/controller.php?mod=',
+            'engine/ajax/controller.php?mod=',
+        )
+        if any(marker in body_text for marker in ajax_markers) and (len(dle_globals) >= 1 or has_dle_js_asset):
+            self._add_signal('DataLife Engine', self.CMS_CATEGORY, 'ajax', 'engine/ajax/', 5)
+
     def _apply_extended_cms_catalog_rules(self, body_lower, headers, cookies, generator):
         """
         Apply extended catalog signals for CMSs not covered by dedicated rules.
@@ -1478,6 +1984,112 @@ class Fingerprint(object):
             r"\b(?:index|read|show|article|news|print|login|search|catalog|page|view|download|profile|forum|topic|item|anons|articles)\.php(?:[?#/&\"']|$)",
             body_text,
         ) is not None
+
+    @staticmethod
+    def _has_rails_authenticity_token_meta(body_lower):
+        """
+        Return True for canonical Rails CSRF meta tags.
+
+        Rails commonly emits a csrf-param meta tag with the fixed
+        authenticity_token value together with csrf-token. Keep this more
+        specific than a generic csrf-token match to avoid false positives on
+        other frameworks.
+
+        :param str body_lower: normalized response body
+        :return: check result
+        :rtype: bool
+        """
+
+        body_text = str(body_lower or '')
+        if 'csrf-token' not in body_text:
+            return False
+
+        return (
+            re.search(
+                r'<meta[^>]+name=["\']csrf-param["\'][^>]+content=["\']authenticity_token["\']',
+                body_text,
+            ) is not None
+            or re.search(
+                r'<meta[^>]+content=["\']authenticity_token["\'][^>]+name=["\']csrf-param["\']',
+                body_text,
+            ) is not None
+        )
+
+    @staticmethod
+    def _has_rails_ujs_marker(body_lower):
+        """
+        Return True for Rails UJS/Turbo integration markers.
+
+        These markers are not used as standalone Rails evidence. They only
+        strengthen an existing Rails CSRF/cookie hint.
+
+        :param str body_lower: normalized response body
+        :return: check result
+        :rtype: bool
+        """
+
+        body_text = str(body_lower or '')
+        markers = (
+            '@rails/ujs',
+            'rails-ujs',
+            'turbo-rails',
+            'data-turbo-track=',
+            'data-disable-with=',
+            'data-remote="true"',
+            "data-remote='true'",
+            'data-method="delete"',
+            'data-method="patch"',
+            'data-method="put"',
+            "data-method='delete'",
+            "data-method='patch'",
+            "data-method='put'",
+        )
+        return any(marker in body_text for marker in markers)
+
+    @staticmethod
+    def _has_rails_asset_marker(body_lower):
+        """
+        Return True for Rails asset pipeline or Webpacker application assets.
+
+        Generic application.js/application.css names are intentionally ignored.
+        A digest-like asset name is required and the result is only used with
+        Rails corroboration.
+
+        :param str body_lower: normalized response body
+        :return: check result
+        :rtype: bool
+        """
+
+        body_text = str(body_lower or '')
+        return (
+            re.search(r'/assets/application-[a-z0-9]{8,}\.(?:css|js)(?:[?"\']|$)', body_text) is not None
+            or re.search(r'/packs/(?:js|css)/application-[a-z0-9]{8,}\.(?:css|js)(?:[?"\']|$)', body_text) is not None
+            or re.search(r'/assets/manifest-[a-z0-9]{8,}\.json(?:[?"\']|$)', body_text) is not None
+        )
+
+    @staticmethod
+    def _has_rails_error_marker(body_lower):
+        """
+        Return True for exposed Rails exception or diagnostic markers.
+
+        These strings are framework-specific and only consume response bodies
+        already fetched by fingerprinting. No active error probing is added.
+
+        :param str body_lower: normalized response body
+        :return: check result
+        :rtype: bool
+        """
+
+        body_text = str(body_lower or '')
+        error_markers = (
+            'actioncontroller::routingerror',
+            'actioncontroller::unknownformat',
+            'actionview::template::error',
+            'activerecord::',
+            'rails.root',
+            'action dispatch',
+        )
+        return any(marker in body_text for marker in error_markers)
 
     @staticmethod
     def _looks_like_express_not_found(not_found_status, not_found_body_lower):
@@ -1592,6 +2204,46 @@ class Fingerprint(object):
         status = probe_statuses.get(path)
         return status in allowed_statuses and cls._is_distinct_probe_status(status, not_found_status)
 
+    @classmethod
+    def _is_wordpress_probe_up(
+        cls,
+        probe_statuses,
+        path,
+        not_found_status,
+        has_root_evidence,
+        public_statuses,
+        corroborated_statuses,
+    ):
+        """
+        Return True when a WordPress endpoint probe is safe to use as evidence.
+
+        WordPress static paths often return 403 on real installations, but
+        many non-WordPress hosts also return generic 403/405 deny templates
+        for suspicious paths. Endpoint-only restricted statuses therefore need
+        root-page corroboration before they can become WordPress evidence.
+
+        :param dict probe_statuses: collected probe statuses
+        :param str path: probe path
+        :param int|None not_found_status: missing-path baseline HTTP status
+        :param bool has_root_evidence: whether the root response exposed WordPress markers
+        :param list[int] public_statuses: statuses accepted without root corroboration
+        :param list[int] corroborated_statuses: statuses accepted only with root corroboration
+        :return: bool
+        """
+
+        try:
+            status = int(probe_statuses.get(path) or 0)
+        except (TypeError, ValueError):
+            return False
+
+        if status <= 0 or cls._is_distinct_probe_status(status, not_found_status) is not True:
+            return False
+
+        if status in public_statuses:
+            return True
+
+        return bool(has_root_evidence and status in corroborated_statuses)
+
     @staticmethod
     def _should_propagate_runtime_from_signal(signal_type):
         """
@@ -1649,7 +2301,19 @@ class Fingerprint(object):
         x_amz_cf_id = str(headers.get('x-amz-cf-id', '')).lower()
         x_amz_request_id = str(headers.get('x-amz-request-id', '')).lower()
         x_amz_id_2 = str(headers.get('x-amz-id-2', '')).lower()
+        content_security_policy = str(headers.get('content-security-policy', '')).lower()
+        surrogate_key = str(headers.get('surrogate-key', '')).lower()
+        x_wf_region = str(headers.get('x-wf-region', '')).lower()
         final_root_lower = str(final_root_url).lower()
+        host_lower = str(getattr(self.__config, 'host', '') or '').lower()
+        webflow_hosted_context = bool(
+            host_lower == 'webflow.io'
+            or host_lower.endswith('.webflow.io')
+            or x_wf_region
+            or 'webflow.io' in surrogate_key
+            or 'webflow.com' in content_security_policy
+            or 'webflow.io' in content_security_policy
+        )
         not_found_body_lower = str(not_found_body).lower()
         not_found_powered_by = str(not_found_headers.get('x-powered-by', '')).lower()
         not_found_server = str(not_found_headers.get('server', '')).lower()
@@ -1667,12 +2331,18 @@ class Fingerprint(object):
         docs_probe_up = any(probe_statuses.get(path) in [200, 301, 302, 401, 403] for path in ['/docs', '/redoc'])
 
         # WordPress
+        wordpress_root_evidence = False
         if 'wordpress' in generator_lower:
             self._add_signal('WordPress', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+            wordpress_root_evidence = True
         if '/wp-content/' in body_lower:
             self._add_signal('WordPress', self.CMS_CATEGORY, 'markup', '/wp-content/', 6)
+            wordpress_root_evidence = True
         if '/wp-includes/' in body_lower:
             self._add_signal('WordPress', self.CMS_CATEGORY, 'markup', '/wp-includes/', 5)
+            wordpress_root_evidence = True
+        if any(cookie.startswith(('wordpress_', 'wp-settings-')) for cookie in cookies):
+            wordpress_root_evidence = True
 
         wordpress_static_probes = (
             ('/wp-content/', 6),
@@ -1681,14 +2351,44 @@ class Fingerprint(object):
             ('/wp-content/themes/', 4),
         )
         for probe_path, weight in wordpress_static_probes:
-            if self._is_distinct_probe_up(probe_statuses, probe_path, [200, 301, 302, 401, 403], not_found_status):
+            if webflow_hosted_context and not wordpress_root_evidence:
+                continue
+            if self._is_wordpress_probe_up(
+                probe_statuses,
+                probe_path,
+                not_found_status,
+                wordpress_root_evidence,
+                public_statuses=[200],
+                corroborated_statuses=[301, 302, 401, 403],
+            ):
                 self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', probe_path, weight)
 
-        if self._is_distinct_probe_up(probe_statuses, '/wp-json/', [200, 401, 403], not_found_status):
+        if self._is_wordpress_probe_up(
+            probe_statuses,
+            '/wp-json/',
+            not_found_status,
+            wordpress_root_evidence,
+            public_statuses=[200],
+            corroborated_statuses=[401, 403],
+        ):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/wp-json/', 5)
-        if self._is_distinct_probe_up(probe_statuses, '/wp-login.php', [200, 301, 302, 401, 403], not_found_status):
+        if self._is_wordpress_probe_up(
+            probe_statuses,
+            '/wp-login.php',
+            not_found_status,
+            wordpress_root_evidence,
+            public_statuses=[200],
+            corroborated_statuses=[301, 302, 401, 403],
+        ):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/wp-login.php', 2)
-        if self._is_distinct_probe_up(probe_statuses, '/xmlrpc.php', [200, 301, 302, 401, 403, 405], not_found_status):
+        if self._is_wordpress_probe_up(
+            probe_statuses,
+            '/xmlrpc.php',
+            not_found_status,
+            wordpress_root_evidence,
+            public_statuses=[200],
+            corroborated_statuses=[301, 302, 401, 403, 405],
+        ):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'endpoint', '/xmlrpc.php', 2)
         if any(cookie.startswith(('wordpress_', 'wp-settings-')) for cookie in cookies):
             self._add_signal('WordPress', self.CMS_CATEGORY, 'cookie', 'wordpress_*', 5)
@@ -1776,6 +2476,14 @@ class Fingerprint(object):
             self._add_signal('Mobirise', self.SITE_BUILDER_CATEGORY, 'markup', 'mbr-*', 5)
 
         # Webflow
+        if host_lower == 'webflow.io' or host_lower.endswith('.webflow.io'):
+            self._add_signal('Webflow', self.SITE_BUILDER_CATEGORY, 'host', 'host=*.webflow.io', 9)
+        if x_wf_region:
+            self._add_signal('Webflow', self.SITE_BUILDER_CATEGORY, 'header', 'x-wf-region', 8)
+        if 'webflow.io' in surrogate_key:
+            self._add_signal('Webflow', self.SITE_BUILDER_CATEGORY, 'header', 'surrogate-key=webflow.io', 7)
+        if 'webflow.com' in content_security_policy or 'webflow.io' in content_security_policy:
+            self._add_signal('Webflow', self.SITE_BUILDER_CATEGORY, 'header', 'csp frame-ancestors webflow', 6)
         if 'webflow' in generator_lower:
             self._add_signal('Webflow', self.SITE_BUILDER_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
         if 'webflow.css' in body_lower or 'w-webflow-' in body_lower:
@@ -2071,6 +2779,45 @@ class Fingerprint(object):
         if probe_statuses.get('/admin') in [200, 301, 302, 401, 403] and '/bl-themes/' in body_lower:
             self._add_signal('Bludit', self.CMS_CATEGORY, 'endpoint', '/admin + /bl-themes/', 3)
 
+        # MogutaCMS
+        self._apply_mogutacms_rules(
+            body_lower=body_lower,
+            generator=generator,
+        )
+
+        # Evolution CMS
+        self._apply_evolution_cms_rules(
+            body_lower=body_lower,
+            generator=generator,
+            probe_statuses=probe_statuses,
+            not_found_status=not_found_status,
+        )
+
+        # DataLife Engine
+        self._apply_datalife_engine_rules(
+            body_lower=body_lower,
+            generator=generator,
+        )
+
+        # Melbis Shop Platform
+        self._apply_melbis_shop_rules(
+            body_lower=body_lower,
+            cookies=cookies,
+            generator=generator,
+        )
+
+        # Camaleon CMS
+        self._apply_camaleon_cms_rules(
+            body_lower=body_lower,
+            cookies=cookies,
+            generator=generator,
+        )
+
+        # CMS.S3 / Megagroup
+        self._apply_cms_s3_rules(
+            body_lower=body_lower,
+        )
+
         # MODX
         modx_hint = (
             'modx' in generator_lower
@@ -2272,10 +3019,32 @@ class Fingerprint(object):
             self._add_signal('Flask', self.FRAMEWORK_CATEGORY, 'header', 'server={0}'.format(headers.get('server')), 7)
 
         # Ruby on Rails
-        if '_rails_session' in cookies:
+        rails_cookie_hint = '_rails_session' in cookies
+        rails_exact_csrf = self._has_rails_authenticity_token_meta(body_lower)
+        rails_csrf_pair = 'csrf-param' in body_lower and 'csrf-token' in body_lower
+        rails_ujs_hint = self._has_rails_ujs_marker(body_lower)
+        rails_asset_hint = self._has_rails_asset_marker(body_lower)
+        rails_error_hint = (
+            self._has_rails_error_marker(body_lower)
+            or self._has_rails_error_marker(not_found_body_lower)
+        )
+
+        if rails_cookie_hint:
             self._add_signal('Ruby on Rails', self.FRAMEWORK_CATEGORY, 'cookie', '_rails_session', 8)
-        if 'csrf-param' in body_lower and 'csrf-token' in body_lower:
+
+        if rails_exact_csrf:
+            self._add_signal('Ruby on Rails', self.FRAMEWORK_CATEGORY, 'markup', 'csrf-param=authenticity_token|csrf-token', 8)
+        elif rails_csrf_pair:
             self._add_signal('Ruby on Rails', self.FRAMEWORK_CATEGORY, 'markup', 'csrf-param|csrf-token', 5)
+
+        if rails_ujs_hint and (rails_cookie_hint or rails_exact_csrf or rails_csrf_pair):
+            self._add_signal('Ruby on Rails', self.FRAMEWORK_CATEGORY, 'script', 'rails-ujs|turbo-rails', 7)
+
+        if rails_asset_hint and (rails_cookie_hint or rails_exact_csrf or rails_csrf_pair or rails_ujs_hint):
+            self._add_signal('Ruby on Rails', self.FRAMEWORK_CATEGORY, 'asset', 'rails application asset', 5)
+
+        if rails_error_hint:
+            self._add_signal('Ruby on Rails', self.FRAMEWORK_CATEGORY, 'exception', 'Rails exception marker', 8)
 
         # Express / NestJS / Fastify / FastAPI / Koa / Hapi
         if 'express' in x_powered_by or 'express' in not_found_powered_by:

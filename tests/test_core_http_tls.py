@@ -61,6 +61,20 @@ class TestTlsHelpers(unittest.TestCase):
 
         self.assertIsNone(describe_tls_transport_error(Exception('connection refused')))
 
+    def test_describe_tls_transport_error_ignores_dns_failures_with_tls_like_hostnames(self):
+        """DNS failures should not become TLS warnings because the hostname contains ssl/tls."""
+
+        samples = [
+            "HTTPSConnection(host='mtls.localhost', port=443): Failed to resolve 'mtls.localhost' ([Errno 8] nodename nor servname provided, or not known)",
+            "HTTPSConnection(host='ssl.localhost', port=443): Failed to resolve 'ssl.localhost' ([Errno -2] Name or service not known)",
+            "NameResolutionError: Failed to resolve 'tls.example.test' (Temporary failure in name resolution)",
+            "Failed to resolve 'api-tls.example.test' (No address associated with hostname)",
+        ]
+
+        for sample in samples:
+            with self.subTest(sample=sample):
+                self.assertIsNone(describe_tls_transport_error(Exception(sample)))
+
 
 if __name__ == '__main__':
     unittest.main()

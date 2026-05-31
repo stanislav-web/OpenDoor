@@ -89,8 +89,24 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
             float(ThreadPool.JOIN_STALL_WARNING_SEC),
         )
 
-    def test_add_calls_pause_on_keyboard_interrupt(self):
-        """ThreadPool.add() should open the pause menu when queue.put() is interrupted."""
+    def test_add_retries_current_item_after_pause_continue_on_keyboard_interrupt(self):
+        """ThreadPool.add() should preserve the current item when pause resumes."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=5, timeout=0)
+
+        queue_mock = getattr(pool, '_ThreadPool__queue')
+
+        with patch.object(queue_mock, 'put', side_effect=[KeyboardInterrupt, None]) as put_mock, \
+                patch.object(pool, 'pause') as pause_mock:
+            pool.add(lambda: None)
+
+        pause_mock.assert_called_once_with()
+        self.assertEqual(put_mock.call_count, 2)
+        self.assertEqual(pool.submitted_size, 1)
+
+    def test_add_keeps_item_unsubmitted_when_pause_aborts(self):
+        """ThreadPool.add() should not count an item when the pause prompt aborts."""
 
         with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
             pool = ThreadPool(num_threads=1, total_items=5, timeout=0)
@@ -98,10 +114,12 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         queue_mock = getattr(pool, '_ThreadPool__queue')
 
         with patch.object(queue_mock, 'put', side_effect=KeyboardInterrupt), \
-                patch.object(pool, 'pause') as pause_mock:
-            pool.add(lambda: None)
+                patch.object(pool, 'pause', side_effect=KeyboardInterrupt) as pause_mock:
+            with self.assertRaises(KeyboardInterrupt):
+                pool.add(lambda: None)
 
         pause_mock.assert_called_once_with()
+        self.assertEqual(pool.submitted_size, 0)
 
     def test_threadpool_add_uses_submitted_counter_not_processed_items(self):
         """ThreadPool.add() should limit queue submissions using submitted_size."""
@@ -141,6 +159,7 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         setattr(pool, '_ThreadPool__workers', [worker])
 
         with patch('src.lib.browser.threadpool.tpl.info') as info_mock, \
+                patch('src.lib.browser.threadpool.tpl.warning') as warning_mock, \
                 patch('src.lib.browser.threadpool.tpl.prompt', side_effect=['x', 'c']):
             pool.pause()
 
@@ -148,6 +167,106 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
         self.assertTrue(worker.resume.called)
         self.assertTrue(pool.is_started)
         self.assertTrue(info_mock.called)
+        warning_mock.assert_called_once_with(key='unknown_pause_command')
+
+    def test_pause_prompt_templates_are_concise_and_describe_existing_commands(self):
+        """Runtime pause templates should describe the existing continue/abort commands."""
+
+        from src.lib.tpl.config import Config
+
+        self.assertEqual(
+            Config.templates['stop_threads'],
+            'Pausing workers ({threads}). Active requests may finish first...',
+        )
+        self.assertEqual(
+            Config.templates['option_prompt'],
+            'Scan paused. Press Enter/[C] to continue or [E]/[Q] to abort scan: ',
+        )
+        self.assertEqual(
+            Config.templates['unknown_pause_command'],
+            'Unknown command. Use Enter/C to continue or E/Q to abort scan.',
+        )
+
+    def test_pause_prompt_waits_for_active_task_output_to_drain(self):
+        """ThreadPool.pause() should show the prompt after the last active task drains."""
+
+        events = []
+
+        class DrainingWorker:
+            def __init__(self):
+                self.active_reads = 0
+
+            def pause(self):
+                events.append('pause')
+
+            def resume(self):
+                events.append('resume')
+
+            @property
+            def active_task(self):
+                events.append('active')
+                self.active_reads += 1
+
+                if self.active_reads == 1:
+                    return {
+                        'label': 'https://example.test/last-active',
+                        'started_at': 1.0,
+                    }
+
+                return None
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=5, timeout=0)
+
+        setattr(pool, '_ThreadPool__workers', [DrainingWorker()])
+
+        def continue_prompt(key, newline=False):
+            events.append('prompt')
+            self.assertEqual(key, 'option_prompt')
+            self.assertTrue(newline)
+            return 'c'
+
+        with patch('src.lib.browser.threadpool.tpl.info'), \
+                patch('src.lib.browser.threadpool.tpl.prompt', side_effect=continue_prompt) as prompt_mock, \
+                patch('src.lib.browser.threadpool.time.sleep') as sleep_mock:
+            pool.pause()
+
+        self.assertLess(events.index('active'), events.index('prompt'))
+        self.assertIn('resume', events)
+        prompt_mock.assert_called_once_with(key='option_prompt', newline=True)
+        sleep_mock.assert_called_once_with(pool.PAUSE_PROMPT_DRAIN_POLL_SEC)
+
+    def test_pause_prompt_drain_is_bounded_for_stuck_active_tasks(self):
+        """ThreadPool.pause() should not hide the prompt behind a stuck active request."""
+
+        class StickyWorker:
+            def pause(self):
+                pass
+
+            def resume(self):
+                pass
+
+            @property
+            def active_task(self):
+                return {
+                    'label': 'https://example.test/stuck',
+                    'started_at': 1.0,
+                }
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=5, timeout=0)
+
+        setattr(pool, '_ThreadPool__workers', [StickyWorker()])
+        pool.PAUSE_PROMPT_DRAIN_TIMEOUT_SEC = 0.0
+
+        with patch('src.lib.browser.threadpool.tpl.info'), \
+                patch('src.lib.browser.threadpool.tpl.prompt', return_value='c') as prompt_mock, \
+                patch('src.lib.browser.threadpool.time.sleep') as sleep_mock:
+            pool.pause()
+
+        prompt_mock.assert_called_once_with(key='option_prompt', newline=True)
+        sleep_mock.assert_not_called()
+        self.assertTrue(pool.is_started)
 
     def test_pause_raises_keyboard_interrupt_on_e(self):
         """ThreadPool.pause() should raise KeyboardInterrupt on 'e'."""
@@ -528,7 +647,7 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
                 patch('src.lib.browser.threadpool.tpl.info'):
             pool.pause()
 
-        prompt_mock.assert_called_once_with(key='option_prompt')
+        prompt_mock.assert_called_once_with(key='option_prompt', newline=True)
         self.assertTrue(pool.is_started)
 
     def test_threadpool_resume_is_noop_when_already_started(self):
@@ -546,6 +665,35 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         info_mock.assert_not_called()
         worker.resume.assert_not_called()
+
+
+    def test_request_pause_marks_workers_and_join_opens_pause_prompt(self):
+        """ThreadPool.request_pause() should defer the interactive prompt to join()."""
+
+        with patch('src.lib.browser.threadpool.Worker', side_effect=lambda q, n, t: FakeWorker(q, n, t)):
+            pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        worker = getattr(pool, '_ThreadPool__workers')[0]
+        queue = getattr(pool, '_ThreadPool__queue')
+        queue.put((lambda: None, (), {}))
+
+        self.assertTrue(pool.request_pause())
+        self.assertTrue(worker.paused)
+        self.assertFalse(pool.request_pause())
+
+        def wait_once(timeout=None):
+            queue.unfinished_tasks = 0
+            return True
+
+        def pause_once():
+            setattr(pool, '_ThreadPool__pause_requested', False)
+
+        with patch.object(queue.all_tasks_done, 'wait', side_effect=wait_once), \
+                patch.object(pool, 'pause', side_effect=pause_once) as pause_mock, \
+                patch('src.lib.browser.threadpool.time.monotonic', side_effect=[1.0, 2.0]):
+            pool.join()
+
+        pause_mock.assert_called_once_with()
 
     def test_threadpool_join_opens_pause_menu_on_keyboard_interrupt_and_continues(self):
         """ThreadPool.join() should pause/resume instead of bubbling Ctrl+C immediately."""

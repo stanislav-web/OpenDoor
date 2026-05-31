@@ -1,5 +1,37 @@
 CHANGELOG
 =======
+v5.16.2 (31.05.2026)
+---------------------------
+- (critical) fixed scan crashes caused by corrupted gzip/encoded HTTP responses by handling `DecodeError` as a recoverable transport failure instead of aborting worker threads.
+- (fix) JavaScript cookie-gate bootstrap pages such as `document.cookie` + `location.reload()` responses are no longer reported as `OK` findings.
+- (fix) subdomain scans so missing/no-response candidates are skipped without triggering the directory retry fail-streak abort guard.
+- (fix) directory scan prefix normalization so `--prefix ex` and `--prefix ex/` both scan under `/ex/<path>` instead of concatenating paths as `/ex<path>`.
+- (fix) reduced WAF-safe auto-calibration noise by using neutral calibration probe paths when `--waf-safe-mode` is enabled, avoiding high-risk `.php`, `.map`, `admin`, and `wp-*` probe shapes.
+- (fix) `--fingerprint` no longer treats generic WordPress static-path probes as strong WordPress evidence unless corroborated by root-page WordPress signals.
+- (fix) `--auto-calibrate` now disables weak HTTP baselines when too many probes are blocked, ignored, or failed, preventing sparse signatures from over-filtering scan results.
+- (fix) `--sniff shadow` false positives on soft-200/fallback routes by adding a negative-control probe before reporting backup-file variants.
+- (fix) `--sniff malware` false positives when fallback pages repeatedly echo webshell-like names inside URL/query attributes, while preserving real webshell UI and executable payload detections.
+- (fix) `--sniff malware` false positives on security-plugin documentation by suppressing name-only webshell vocabulary in documentation context while preserving executable payload and shell UI detections.
+- (fix) `--sniff malware` false positives on legacy Google Analytics loaders while preserving suspicious document.write, atob, String.fromCharCode and PHP payload detections.
+- (fix) `--sniff secret` scan output so secret sniffer hits are labeled as `OK (Secret)` like other sniffer findings.
+- (fix) `--fingerprint` now detects DataLife Engine (DLE) from conservative runtime globals and engine asset signals.
+- (fix) `--fingerprint` now prefers Webflow hosted-platform signals over endpoint-only WordPress static path artifacts.
+- (fix) `--fingerprint` now detects CMS.S3 / Megagroup from strong root-page builder/runtime markers without relying on generic WordPress endpoint probes.
+- (fix) transport-exhausted directory entries are now tracked in `transport_failed.txt` and JSON diagnostics, and scans automatically pause after repeated transport failures to avoid burning through the wordlist during temporary network outages.
+- (enhancement) added Camaleon CMS without adding active probes.
+- (enhancement) added Evolution CMS fingerprint detection.
+- (enhancement) added strong UMI.CMS fingerprint detection rules.
+- (enhancement) added Melbis Shop Platform fingerprint detection rules.
+- (enhancement) added conservative MogutaCMS fingerprint detection without active probes.
+- (enhancement) added Ruby on Rails fingerprint detection with conservative passive CSRF, Rails UJS/Turbo, asset-pipeline and Rails error markers while avoiding standalone Rack.
+- (enhancement) reduced `--sniff malware` false positives for standard Bitrix admin login pages by allowlisting the built-in hidden `auth_frame` iframe only when strong Bitrix login markers are present.
+- (enhancement) `--sniff secret` now detects additional low-noise token patterns, including GitHub fine-grained tokens, Square-style tokens, leaked bearer headers and expanded credential assignments.
+- (ui) clarified Runtime Diagnostics queue accounting by showing consumed items, submitted HTTP jobs, and pre-request skipped items separately.
+- (ui) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt visible after in-flight worker output drains and by documenting Enter/C continue and E/Q abort semantics.
+- (dictionary) cleaned and normalized the internal directories list (+1247 potential interesting paths).
+- (docs) added a `Mastering OpenDoor` companion documentation page for the upcoming article series.
+- (deps-dev) [PR#115](https://github.com/stanislav-web/OpenDoor/pull/115) bump ruff from 0.15.13 to 0.15.14 in the python-runtime-dependencies group.
+
 v5.16.1 (24.05.2026)
 ---------------------------
 - (fix) reduced duplicate fingerprint traffic by reusing exact same method+URL probe responses within a single fingerprint pass.
@@ -78,7 +110,7 @@ v5.16.0 (17.05.2026)
 - (ux) reduced stdout Summary noise by hiding low-value diagnostic counters and detailed fingerprint/HSTS/privacy internals while preserving them in structured reports.
 - (ux) improved connection preflight diagnostics for localhost/proxy transport checks.
 - (dictionary) bundled `data/shadow-suffixes.dat` in source and wheel distributions so PyPI, Homebrew-style source builds and local installs include the built-in shadow suffix catalog by default.
-- (dictionary) cleaned and normalized internal directories list (+2133 potencial interesting paths).
+- (dictionary) cleaned and normalized internal directories list (+xxx potencial interesting paths).
 - (build) added staged Ruff quality gates and advisory Vulture dead-code checks, with updated contributor rules and cleanup documentation.
 
 v5.15.3 (09.05.2026)
@@ -395,7 +427,7 @@ v5.10.0 (28.04.2026)
 - (dictionary) cleaned and normalized directories list
 - (dictionary) refreshed subdomains wordlist with `+1251780` entries
 - (tests) added unittest coverage for CI/CD fail-on exit codes
-- (tests) added unittest coverage for adaptive cooldown behaviour
+- (tests) added unittest coverage for adaptive cooldown behavior
 
 v5.9.2 (27.04.2026)
 ---------------------------

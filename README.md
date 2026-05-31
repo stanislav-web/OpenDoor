@@ -293,7 +293,7 @@ Useful sniffers include:
 | `skipsizes=46:1024` | Skip responses inside a noisy size range.                                                                                           |
 | `stacktrace`        | Detect exposed debug/runtime stack traces and internal error details.                                                               |
 | `secret`            | Detect possible exposed API keys, tokens, private keys and credentials with redacted report metadata.                               |
-| `shadow`            | Actively probe confirmed `200 OK` file-like hits for bounded backup/shadow variants such as `.bak`, `.old`, and path templates like `index2.php`. |
+| `shadow`            | Actively probe confirmed `200 OK` file-like hits for bounded backup/shadow variants such as `.bak`, `.old`, and path templates . |
 | `openredirect`      | Actively verify redirect-like query parameters with controlled marker URLs and report only confirmed open redirect vulnerabilities. |
 | `malware`           | Detect possible malicious content, webshell markers, injected scripts or obfuscated payloads.                                       |
 

@@ -16,6 +16,7 @@
     Development: Stanislav WEB
 """
 
+import threading
 import time
 from queue import Queue
 
@@ -30,6 +31,8 @@ class ThreadPool(object):
 
     JOIN_POLL_INTERVAL_SEC = 1.0
     JOIN_STALL_WARNING_SEC = 60.0
+    PAUSE_PROMPT_DRAIN_TIMEOUT_SEC = 0.5
+    PAUSE_PROMPT_DRAIN_POLL_SEC = 0.05
 
     def __init__(self, num_threads, total_items, timeout, stall_warning_interval=None):
         """
@@ -44,6 +47,8 @@ class ThreadPool(object):
         self.__workers = []
         self.__submitted = 0
         self.__worker_error = None
+        self.__pause_requested = False
+        self.__pause_lock = threading.RLock()
         self.total_items_size = total_items
         self.is_started = True
         self.__stall_warning_interval = self.__normalize_stall_warning_interval(stall_warning_interval)
@@ -145,12 +150,79 @@ class ThreadPool(object):
         :return: None
         """
 
-        try:
-            if True is self.is_started:
-                if self.__submitted < self.total_items_size:
-                    self.__queue.put((func, args, kargs))
-                    self.__submitted += 1
-        except (SystemExit, KeyboardInterrupt):
+        if True is not self.is_started:
+            return
+
+        if self.__submitted >= self.total_items_size:
+            return
+
+        self.__pause_if_requested()
+
+        if True is not self.is_started:
+            return
+
+        self.__enqueue_with_pause_resume(func, args, kargs)
+
+    def __enqueue_with_pause_resume(self, func, args, kargs):
+        """
+        Enqueue a task and preserve it across the runtime pause prompt.
+
+        If Ctrl+C is pressed while the main thread is submitting a task, the
+        pause prompt must not silently drop the current queue item when the user
+        continues the scan.
+
+        :param func func: callback function
+        :param tuple args: callback positional arguments
+        :param dict kargs: callback keyword arguments
+        :raise KeyboardInterrupt: when the user aborts from the pause prompt
+        :return: None
+        """
+
+        while True:
+            try:
+                self.__queue.put((func, args, kargs))
+                self.__submitted += 1
+                return
+            except (SystemExit, KeyboardInterrupt):
+                self.pause()
+
+
+    def request_pause(self):
+        """
+        Request the regular runtime pause prompt from another thread.
+
+        Worker threads must not show the interactive prompt directly because an
+        abort answer raises ``KeyboardInterrupt`` outside the main scan thread.
+        This method only marks the pool as pause-requested and pauses workers
+        before their next queued task. ``add()`` or ``join()`` will show the
+        existing prompt on the controlling thread.
+
+        :return: True when a new pause request was registered
+        :rtype: bool
+        """
+
+        with self.__pause_lock:
+            if self.__pause_requested is True or self.is_started is not True:
+                return False
+
+            self.__pause_requested = True
+
+        for worker in self.__workers:
+            worker.pause()
+
+        return True
+
+    def __pause_if_requested(self):
+        """Open the regular pause menu when a worker requested it.
+
+        :raise KeyboardInterrupt: when the user aborts from the pause prompt
+        :return: None
+        """
+
+        with self.__pause_lock:
+            requested = self.__pause_requested is True
+
+        if requested is True:
             self.pause()
 
     def join(self):
@@ -171,12 +243,15 @@ class ThreadPool(object):
 
         with self.__queue.all_tasks_done:
             while int(getattr(self.__queue, 'unfinished_tasks', 0) or 0) > 0:
+                self.__pause_if_requested()
+
                 try:
                     self.__queue.all_tasks_done.wait(timeout=self.JOIN_POLL_INTERVAL_SEC)
                 except (SystemExit, KeyboardInterrupt):
                     self.pause()
                     continue
 
+                self.__pause_if_requested()
                 self.__raise_worker_error_if_any()
 
                 completed = self.completed_size
@@ -274,6 +349,26 @@ class ThreadPool(object):
 
         return tuple(signature)
 
+    def __wait_for_pause_prompt_drain(self):
+        """
+        Give in-flight worker output a short chance to drain before prompting.
+
+        Runtime pause does not kill active requests. A worker can therefore
+        finish and print its scan result right after Ctrl+C. Waiting briefly
+        before showing the prompt keeps the prompt visible instead of letting it
+        be interleaved with the last in-flight result.
+
+        The wait is intentionally bounded so a slow or retrying request cannot
+        hide the pause prompt indefinitely.
+
+        :return: None
+        """
+
+        deadline = time.monotonic() + float(self.PAUSE_PROMPT_DRAIN_TIMEOUT_SEC)
+
+        while len(self.active_tasks) > 0 and time.monotonic() < deadline:
+            time.sleep(float(self.PAUSE_PROMPT_DRAIN_POLL_SEC))
+
     def __format_active_tasks(self, now):
         """
         Format active worker tasks for join watchdog diagnostics.
@@ -348,21 +443,28 @@ class ThreadPool(object):
         :return: None
         """
 
+        with self.__pause_lock:
+            self.__pause_requested = False
+
         self.is_started = False
         tpl.info(key='stop_threads', threads=len(self.__workers))
 
         for worker in self.__workers:
             worker.pause()
 
+        self.__wait_for_pause_prompt_drain()
+
         try:
             while True:
-                option = self.normalize_runtime_pause_answer(tpl.prompt(key='option_prompt'))
+                option = self.normalize_runtime_pause_answer(tpl.prompt(key='option_prompt', newline=True))
 
                 if option == 'E':
                     raise KeyboardInterrupt
                 if option in ('C', ''):
                     self.resume()
                     return
+
+                tpl.warning(key='unknown_pause_command')
 
         except (SystemExit, KeyboardInterrupt):
             raise KeyboardInterrupt

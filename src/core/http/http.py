@@ -17,7 +17,7 @@
 """
 
 from urllib3 import HTTPConnectionPool, PoolManager, Timeout
-from urllib3.exceptions import MaxRetryError, ReadTimeoutError, ConnectTimeoutError, HostChangedError
+from urllib3.exceptions import DecodeError, MaxRetryError, ReadTimeoutError, ConnectTimeoutError, HostChangedError
 from src.core import helper
 from .exceptions import HttpRequestError
 from .providers import DebugProvider
@@ -153,14 +153,16 @@ class HttpRequest(RequestProvider, DebugProvider):
             return response
 
         except MaxRetryError:
-            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
-                self.__tpl.warning(key='max_retry_error', url=helper.parse_url(url).path)
+            pass
 
         except HostChangedError as error:
             self.__tpl.warning(key='host_changed_error', details=error)
 
         except ReadTimeoutError:
             self.__tpl.warning(key='read_timeout_error', url=url)
+
+        except DecodeError:
+            self.__tpl.warning(key='decode_error', url=url)
 
         except ConnectTimeoutError:
             self.__tpl.warning(key='connection_timeout_error', url=url)

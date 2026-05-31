@@ -153,17 +153,17 @@ class TestCalibration(unittest.TestCase):
         self.assertIsNone(actual)
         self.assertFalse(calibration.is_enabled)
 
-    def test_calibration_should_not_match_different_status_code(self):
-        """Calibration.match() should not match responses with different status codes."""
+    def test_calibration_should_not_match_different_status_code_without_soft_error_shape(self):
+        """Calibration.match() should not match arbitrary responses with different status codes."""
 
-        baseline_response = self.make_response(status=404, body='not found')
-        candidate_response = self.make_response(status=200, body='not found')
+        baseline_response = self.make_response(status=403, body='access denied')
+        candidate_response = self.make_response(status=200, body='access denied')
 
         calibration = Calibration(
             signatures=[
                 Calibration.build_signature(
                     baseline_response,
-                    ('success', 'http://example.com/random', '9B', '404')
+                    ('forbidden', 'http://example.com/random', '13B', '403')
                 )
             ],
             threshold=0.92
@@ -171,7 +171,166 @@ class TestCalibration(unittest.TestCase):
 
         actual = calibration.match(
             candidate_response,
-            ('success', 'http://example.com/admin', '9B', '200')
+            ('success', 'http://example.com/admin', '13B', '200')
+        )
+
+        self.assertIsNone(actual)
+
+    def test_calibration_should_match_200_response_with_canonical_404_body(self):
+        """Calibration.match() should suppress 2xx responses carrying canonical 404 bodies."""
+
+        body = (
+            '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">'
+            '<html><head><title>404 Not Found</title></head>'
+            '<body><h1>Not Found</h1>'
+            '<p>The requested URL was not found on this server.</p>'
+            '<hr><address>Apache/2.4.63 (Unix) Server at example.com Port 80</address>'
+            '</body></html>'
+        )
+
+        baseline_response = self.make_response(status=404, body=body)
+        candidate_response = self.make_response(status=200, body=body)
+
+        calibration = Calibration(
+            signatures=[
+                Calibration.build_signature(
+                    baseline_response,
+                    ('failed', 'http://example.com/random', '273B', '404')
+                )
+            ],
+            threshold=0.92
+        )
+
+        actual = calibration.match(
+            candidate_response,
+            ('success', 'http://example.com/candidate.php', '273B', '200')
+        )
+
+        self.assertIsNotNone(actual)
+        self.assertIn('cross-status-soft-error', actual['calibration_reason'])
+
+    def test_calibration_should_match_compact_200_response_with_not_found_body(self):
+        """Calibration.match() should suppress compact nginx-style 404 bodies emitted as 2xx."""
+
+        body = (
+            '<html><body><center><h1>Not Found</h1></center>'
+            '<hr><center>nginx-reuseport/1.21.1</center></body></html>'
+        )
+
+        baseline_response = self.make_response(status=404, body=body)
+        candidate_response = self.make_response(status=200, body=body)
+
+        calibration = Calibration(
+            signatures=[
+                Calibration.build_signature(
+                    baseline_response,
+                    ('failed', 'http://example.com/random', '275B', '404')
+                )
+            ],
+            threshold=0.92
+        )
+
+        actual = calibration.match(
+            candidate_response,
+            ('success', 'http://example.com/adminer-3.2.0-de.php', '273B', '200')
+        )
+
+        self.assertIsNotNone(actual)
+        self.assertIn('cross-status-soft-error', actual['calibration_reason'])
+        self.assertIn('compact-soft-error-shape', actual['calibration_reason'])
+
+    def test_calibration_should_not_cross_match_large_or_different_compact_error_shape(self):
+        """Compact cross-status matching should not suppress unrelated small 2xx pages."""
+
+        baseline_response = self.make_response(
+            status=404,
+            body='<html><body><center><h1>Not Found</h1></center><hr><center>nginx</center></body></html>'
+        )
+        candidate_response = self.make_response(
+            status=200,
+            body='<html><body><main><h1>Not Found Labs</h1><p>admin panel</p></main></body></html>'
+        )
+
+        calibration = Calibration(
+            signatures=[
+                Calibration.build_signature(
+                    baseline_response,
+                    ('failed', 'http://example.com/random', '90B', '404')
+                )
+            ],
+            threshold=0.92
+        )
+
+        actual = calibration.match(
+            candidate_response,
+            ('success', 'http://example.com/not-found-labs', '82B', '200')
+        )
+
+        self.assertIsNone(actual)
+
+    def test_calibration_should_not_cross_match_real_not_found_titled_page(self):
+        """Cross-status soft-error matching should not hide useful pages by title only."""
+
+        baseline_response = self.make_response(
+            status=404,
+            body='<html><head><title>404 Not Found</title></head><body>Missing resource</body></html>'
+        )
+        candidate_response = self.make_response(
+            status=200,
+            body='<html><head><title>Not Found</title></head><body><form><input name=login></form></body></html>'
+        )
+
+        calibration = Calibration(
+            signatures=[
+                Calibration.build_signature(
+                    baseline_response,
+                    ('failed', 'http://example.com/random', '80B', '404')
+                )
+            ],
+            threshold=0.92
+        )
+
+        actual = calibration.match(
+            candidate_response,
+            ('success', 'http://example.com/custom-login', '92B', '200')
+        )
+
+        self.assertIsNone(actual)
+
+    def test_calibration_should_not_cross_match_small_real_200_page_near_error_size(self):
+        """Cross-status soft-error matching should not hide small real 2xx pages."""
+
+        baseline_body = (
+            '<html><head><title>404 Not Found</title></head>'
+            '<body><h1>Not Found</h1>'
+            '<p>The requested URL was not found on this server.</p>'
+            '<hr><address>Server at example.com Port 443</address></body></html>'
+        )
+        candidate_body = (
+            '<html><head><title>Control Panel</title></head>'
+            '<body><main><h1>Control Panel</h1>'
+            '<form action="/login" method="post">'
+            '<input type="hidden" name="csrf" value="abc123">'
+            '<input name="username"><input type="password" name="password">'
+            '<button>Sign in</button></form></main></body></html>'
+        )
+
+        baseline_response = self.make_response(status=404, body=baseline_body)
+        candidate_response = self.make_response(status=200, body=candidate_body)
+
+        calibration = Calibration(
+            signatures=[
+                Calibration.build_signature(
+                    baseline_response,
+                    ('failed', 'http://example.com/random', '180B', '404')
+                )
+            ],
+            threshold=0.92
+        )
+
+        actual = calibration.match(
+            candidate_response,
+            ('success', 'http://example.com/control-panel.php', '276B', '200')
         )
 
         self.assertIsNone(actual)
@@ -994,6 +1153,62 @@ class TestCalibration(unittest.TestCase):
         })
 
         self.assertTrue(Calibration._is_soft_200_shape_match(baseline, dom_candidate))
+
+    def test_calibration_soft_error_semantic_helpers_cover_phrase_branches(self):
+        """Soft-error semantic helpers should cover strong and weak phrase combinations."""
+
+        self.assertTrue(Calibration._has_strong_soft_error_semantics({
+            'title': '',
+            'semantic_phrases': ['404', 'not found'],
+        }))
+        self.assertTrue(Calibration._has_strong_soft_error_semantics({
+            'title': '',
+            'semantic_phrases': ['not found', 'requested resource'],
+        }))
+        self.assertTrue(Calibration._has_any_soft_error_semantics({
+            'title': '',
+            'semantic_phrases': ['404'],
+        }))
+        self.assertFalse(Calibration._has_any_soft_error_semantics({
+            'title': 'admin',
+            'semantic_phrases': ['login'],
+        }))
+
+    def test_calibration_compact_cross_status_shape_negative_branches(self):
+        """Compact cross-status matching should reject each weak or unsafe branch."""
+
+        base = {
+            'code': 404,
+            'content_kind': 'html',
+            'size': 100,
+            'title': 'not found',
+            'semantic_phrases': ['not found'],
+            'normalized_body_hash': 'same',
+        }
+        candidate = dict(base, code=200)
+
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            dict(base, code=403), candidate
+        ))
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            dict(base, title='admin', semantic_phrases=[]), candidate
+        ))
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            base, dict(candidate, title='admin', semantic_phrases=[])
+        ))
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            dict(base, content_kind='html'), dict(candidate, content_kind='json')
+        ))
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            dict(base, size=31), dict(candidate, size=31)
+        ))
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            dict(base, size=1025), dict(candidate, size=1025)
+        ))
+        self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
+            dict(base, normalized_body_hash='left'), dict(candidate, normalized_body_hash='right')
+        ))
+
 
 
 if __name__ == '__main__':

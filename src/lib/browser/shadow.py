@@ -24,6 +24,12 @@ class ShadowProbe(object):
     MAX_SIZE_DELTA_RATIO = 0.25
     SHADOW_STATUSES = {200}
     QUEUE_TIMEOUT_SEC = 0.25
+    MIN_CONTROL_CANDIDATES = 2
+    MIN_FALLBACK_CONTROL_SIMILARITY = 0.97
+    CONTROL_SUFFIX = '.__healthcheck__'
+    CONTROL_STATE_PENDING = 'pending'
+    CONTROL_STATE_ALLOWED = 'allowed'
+    CONTROL_STATE_SUPPRESSED = 'suppressed'
 
     SOURCE_EXTENSIONS = {
         'asp', 'aspx', 'bash', 'c', 'cfg', 'cgi', 'conf', 'config', 'cpp', 'cs',
@@ -75,6 +81,7 @@ class ShadowProbe(object):
         self.__suffixes = self.load_suffixes()
         self.__queue = Queue()
         self.__seen = set()
+        self.__base_control_states = {}
         self.__lock = threading.RLock()
         self.__submitted = 0
         self.__completed = 0
@@ -416,6 +423,63 @@ class ShadowProbe(object):
         return abs(base_size - candidate_size) / float(max(base_size, candidate_size))
 
     @classmethod
+    def build_control_candidate(cls, url):
+        """
+        Build one deterministic negative-control URL for fallback detection.
+
+        The control keeps the same query string as the original URL so route
+        fallbacks that depend on query context are still detected, but appends a
+        suffix that should not exist as a real backup artifact.
+
+        :param str url: base URL
+        :return: control URL, or None when the base URL cannot be parsed
+        :rtype: str|None
+        """
+
+        try:
+            parsed = urlsplit(str(url))
+        except ValueError:
+            return None
+
+        path = parsed.path or ''
+        if not path or path.endswith('/'):
+            return None
+
+        return urlunsplit((parsed.scheme, parsed.netloc, '{0}{1}'.format(path, cls.CONTROL_SUFFIX), parsed.query, ''))
+
+    @classmethod
+    def is_fallback_like_control(cls, base_signature, response):
+        """
+        Return True when a negative-control URL behaves like the base response.
+
+        Unlike real shadow matching, byte-identical responses are suspicious
+        here: a definitely-nonexistent suffix that returns the same page is a
+        soft-200/fallback signal, not a backup copy.
+
+        :param dict base_signature: base response signature
+        :param object response: control response
+        :return: whether shadow candidates for this base URL should be suppressed
+        :rtype: bool
+        """
+
+        control_signature = cls.response_signature(response)
+        if not isinstance(base_signature, dict) or control_signature is None:
+            return False
+
+        base_content_type = str(base_signature.get('content_type', ''))
+        control_content_type = str(control_signature.get('content_type', ''))
+        if base_content_type and control_content_type and base_content_type != control_content_type:
+            return False
+
+        if cls.size_delta_ratio(base_signature, control_signature) > cls.MAX_SIZE_DELTA_RATIO:
+            return False
+
+        if control_signature.get('hash') == base_signature.get('hash'):
+            return True
+
+        return cls.similarity_ratio(base_signature, control_signature) >= cls.MIN_FALLBACK_CONTROL_SIMILARITY
+
+    @classmethod
     def is_match(cls, base_signature, response):
         """
         Compare a changed shadow candidate response with its base signature.
@@ -502,8 +566,15 @@ class ShadowProbe(object):
         if base_signature is None:
             return 0
 
+        candidates = self.build_candidates(base_url, self.__suffixes)
+        with self.__lock:
+            if self.__submitted >= self.MAX_TOTAL_PROBES:
+                return 0
+
+        self.__enqueue_control_candidate(base_url, base_signature, candidates)
+
         queued = 0
-        for candidate_url, suffix in self.build_candidates(base_url, self.__suffixes):
+        for candidate_url, suffix in candidates:
             with self.__lock:
                 if self.__submitted >= self.MAX_TOTAL_PROBES:
                     break
@@ -513,10 +584,38 @@ class ShadowProbe(object):
                 self.__submitted += 1
                 current = self.__submitted
 
-            self.__queue.put((base_url, base_signature, candidate_url, suffix, current))
+            self.__queue.put(('candidate', base_url, base_signature, candidate_url, suffix, current))
             queued += 1
 
         return queued
+
+    def __enqueue_control_candidate(self, base_url, base_signature, candidates):
+        """
+        Queue one internal negative-control probe before candidate probes.
+
+        Controls are intentionally not counted in submitted/completed candidate
+        counters. They only decide whether a base URL is a soft-200/fallback
+        source that would otherwise create a burst of false shadow findings.
+
+        :param str base_url: original base URL
+        :param dict base_signature: normalized base response signature
+        :param list[tuple[str, str]] candidates: generated shadow candidates
+        :return: None
+        """
+
+        if len(candidates) < self.MIN_CONTROL_CANDIDATES:
+            return
+
+        control_url = self.build_control_candidate(base_url)
+        if not control_url:
+            return
+
+        with self.__lock:
+            if base_url in self.__base_control_states:
+                return
+            self.__base_control_states[base_url] = self.CONTROL_STATE_PENDING
+
+        self.__queue.put(('control', base_url, base_signature, control_url, self.CONTROL_SUFFIX, 0))
 
     def drain(self):
         """
@@ -535,8 +634,9 @@ class ShadowProbe(object):
             try:
                 self.__process_task(task)
             finally:
-                with self.__lock:
-                    self.__completed += 1
+                if self.__is_control_task(task) is not True:
+                    with self.__lock:
+                        self.__completed += 1
                 self.__queue.task_done()
 
     def __process_task(self, task):
@@ -547,7 +647,14 @@ class ShadowProbe(object):
         :return: None
         """
 
-        base_url, base_signature, candidate_url, suffix, current = task
+        task_type, base_url, base_signature, candidate_url, suffix, current = self.__normalize_task(task)
+
+        if task_type == 'control':
+            self.__process_control_task(base_url, base_signature, candidate_url)
+            return
+
+        if self.__is_base_suppressed(base_url) is True:
+            return
 
         if self.__delay > 0:
             time.sleep(self.__delay)
@@ -570,3 +677,83 @@ class ShadowProbe(object):
 
         if callable(self.__match_callback):
             self.__match_callback(candidate_url, candidate_response, metadata)
+
+    @classmethod
+    def __normalize_task(cls, task):
+        """
+        Normalize legacy and current shadow task tuples.
+
+        :param tuple task: queued shadow task
+        :return: task type, base URL, base signature, candidate URL, suffix and counter
+        :rtype: tuple[str, str, dict, str, str, int]
+        """
+
+        if len(task) == 6:
+            return task
+
+        base_url, base_signature, candidate_url, suffix, current = task
+        return 'candidate', base_url, base_signature, candidate_url, suffix, current
+
+    @classmethod
+    def __is_control_task(cls, task):
+        """
+        Return whether a queued task is an internal fallback-control task.
+
+        :param tuple task: queued shadow task
+        :return: whether task is a control probe
+        :rtype: bool
+        """
+
+        try:
+            return len(task) == 6 and task[0] == 'control'
+        except TypeError:
+            return False
+
+    def __process_control_task(self, base_url, base_signature, control_url):
+        """
+        Process one internal negative-control probe.
+
+        :param str base_url: original base URL
+        :param dict base_signature: base response signature
+        :param str control_url: generated control URL
+        :return: None
+        """
+
+        if self.__delay > 0:
+            time.sleep(self.__delay)
+
+        try:
+            control_response = self.__request_callback(control_url)
+        except Exception:
+            self.__set_base_control_state(base_url, self.CONTROL_STATE_ALLOWED)
+            return
+
+        if self.is_fallback_like_control(base_signature, control_response) is True:
+            self.__set_base_control_state(base_url, self.CONTROL_STATE_SUPPRESSED)
+            return
+
+        self.__set_base_control_state(base_url, self.CONTROL_STATE_ALLOWED)
+
+    def __set_base_control_state(self, base_url, state):
+        """
+        Store fallback-control state for one base URL.
+
+        :param str base_url: original base URL
+        :param str state: control state
+        :return: None
+        """
+
+        with self.__lock:
+            self.__base_control_states[str(base_url)] = state
+
+    def __is_base_suppressed(self, base_url):
+        """
+        Return whether shadow candidates for a base URL must be skipped.
+
+        :param str base_url: original base URL
+        :return: whether candidates are suppressed as fallback noise
+        :rtype: bool
+        """
+
+        with self.__lock:
+            return self.__base_control_states.get(str(base_url)) == self.CONTROL_STATE_SUPPRESSED

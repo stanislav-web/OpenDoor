@@ -339,7 +339,7 @@ class TestBrowserDebugCoverageOnly(unittest.TestCase):
 
         debug_mock.assert_called_once_with(key='waf_guard_enabled', after=7, threshold='80.0')
 
-    def test_should_render_indexof_malware_stacktrace_shadow_and_openredirect_progress(self):
+    def test_should_render_indexof_secret_malware_stacktrace_shadow_and_openredirect_progress(self):
         """Debug.debug_request_uri() should render special finding buckets."""
 
         dbg = self.make_debug({'debug': 1, 'reports': 'std'})
@@ -347,7 +347,7 @@ class TestBrowserDebugCoverageOnly(unittest.TestCase):
         with patch('src.lib.browser.debug.tpl.info') as info_mock, \
                 patch('src.lib.browser.debug.tpl.line', side_effect=lambda *args, **kwargs: kwargs.get('msg') or kwargs.get('url') or 'line'), \
                 patch('src.lib.browser.debug.sys.writels'):
-            for status in ('indexof', 'malware', 'stacktrace', 'shadow', 'openredirect'):
+            for status in ('indexof', 'secret', 'malware', 'stacktrace', 'shadow', 'openredirect'):
                 self.assertTrue(dbg.debug_request_uri(
                     status,
                     'http://test.local/path',
@@ -357,9 +357,10 @@ class TestBrowserDebugCoverageOnly(unittest.TestCase):
                     response_code='200',
                 ))
 
-        self.assertEqual(info_mock.call_count, 5)
+        self.assertEqual(info_mock.call_count, 6)
         rendered = ' '.join(str(call.kwargs.get('item')) for call in info_mock.call_args_list)
         self.assertIn('IndexOf', rendered)
+        self.assertIn('Secret', rendered)
         self.assertIn('Malware', rendered)
         self.assertIn('StackTrace', rendered)
         self.assertIn('Shadow', rendered)

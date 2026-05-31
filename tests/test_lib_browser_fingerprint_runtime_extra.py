@@ -143,7 +143,7 @@ class TestBrowserFingerprintRuntimeExtra(unittest.TestCase):
         fingerprint_instance.detect.return_value = fingerprint_result
 
         with patch('src.lib.browser.browser.Fingerprint', return_value=fingerprint_instance), \
-                patch('src.lib.browser.browser.tpl.info') as info_mock:
+                patch('src.lib.browser.browser.tpl.debug') as info_mock:
             result = browser.fingerprint()
 
         self.assertEqual(result['signals'], fingerprint_result['signals'])

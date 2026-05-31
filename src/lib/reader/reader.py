@@ -318,6 +318,25 @@ class Reader(object):
 
         return params.get('scheme') + line + '.' + host + port
 
+    @staticmethod
+    def _normalize_directory_prefix(prefix):
+        """
+        Normalize directory scan prefix as a path segment.
+
+        :param str|None prefix: raw prefix from CLI/config/session
+        :return: normalized prefix with trailing slash, or an empty string
+        """
+
+        if prefix is None:
+            return ''
+
+        prefix = str(prefix).strip().strip('/')
+
+        if not prefix:
+            return ''
+
+        return '{0}/'.format(prefix)
+
     def _directories__line(self, line, params):
         """
         Read lines from directories file
@@ -331,6 +350,8 @@ class Reader(object):
         prefix = params.get('prefix')
         if prefix is None:
             prefix = self.__browser_config.get('prefix', '')
+
+        prefix = self._normalize_directory_prefix(prefix)
 
         if prefix:
             line = prefix + line

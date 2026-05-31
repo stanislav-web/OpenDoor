@@ -131,7 +131,7 @@ Notes:
 - `HEAD` is faster for status/size-oriented discovery.
 - `GET` is better when body-based filters or body-oriented sniffers are required.
 - `timeout` and `retries` should be increased for slow or unstable targets.
-- `retries_fail_streak` aborts the scan only after this many consecutive paths exhaust retries.
+- `retries_fail_streak` aborts directory scans only after this many consecutive paths exhaust retries; subdomain scans ignore this abort guard because missing candidates are expected.
 - `delay` can be used to reduce request pressure.
 - `threads` controls concurrency (1 ~ 50).
 

@@ -92,6 +92,20 @@ class TestTpl(unittest.TestCase):
         self.assertEqual(result, 'C')
         input_mock.assert_called_once()
 
+    def test_prompt_newline_should_write_complete_prompt_line_before_input(self):
+        """Tpl.prompt() should keep runtime menus on their own terminal line."""
+
+        with patch('src.lib.tpl.tpl.sys.finish_dynamic_line') as finish_mock, \
+                patch('src.lib.tpl.tpl.sys.writeln') as writeln_mock, \
+                patch('builtins.input', return_value='C') as input_mock:
+            result = Tpl.prompt(key='option_prompt', newline=True)
+
+        self.assertEqual(result, 'C')
+        finish_mock.assert_called_once_with()
+        writeln_mock.assert_called_once()
+        self.assertTrue(writeln_mock.call_args[0][0])
+        input_mock.assert_called_once_with('')
+
     def test_prompt_exception(self):
         """Tpl.prompt() should wrap template lookup errors."""
 

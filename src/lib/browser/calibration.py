@@ -401,6 +401,10 @@ class Calibration(object):
         reasons = []
 
         if baseline.get('code') != candidate.get('code'):
+            cross_status_score, cross_status_reasons = cls._cross_status_soft_error_score(baseline, candidate)
+            if cross_status_score >= cls._cross_status_soft_error_min_score():
+                return cross_status_score, cross_status_reasons
+
             return 0.0, reasons
 
         score = 0.18
@@ -496,6 +500,207 @@ class Calibration(object):
         if header_score >= 0.80:
             score += 0.03 * header_score
             reasons.append('headers')
+
+        return min(score, 1.0), reasons
+
+    @staticmethod
+    def _cross_status_soft_error_min_score():
+        """
+        Return the minimum score for cross-status soft-error suppression.
+
+        This branch handles servers that occasionally return a 2xx status with a
+        canonical 404/410 body. The threshold is intentionally strict because it
+        bypasses the normal same-status calibration guard.
+
+        :return: minimum score
+        :rtype: float
+        """
+
+        return 0.90
+
+    @staticmethod
+    def _is_soft_error_status_pair(baseline_code, candidate_code):
+        """
+        Check whether a baseline/candidate status pair can represent a soft error.
+
+        :param int|None baseline_code: calibration baseline status code
+        :param int|None candidate_code: candidate response status code
+        :return: True when a 4xx baseline can safely suppress a 2xx candidate
+        :rtype: bool
+        """
+
+        return baseline_code in (404, 410) and candidate_code in (200, 201, 202, 203, 204, 205, 206)
+
+    @classmethod
+    def _has_strong_soft_error_semantics(cls, signature):
+        """
+        Decide whether a signature looks like a canonical missing-resource page.
+
+        :param dict signature: calibration signature
+        :return: True when title/visible text carries strong 404-style semantics
+        :rtype: bool
+        """
+
+        phrases = set(signature.get('semantic_phrases') or [])
+        title = str(signature.get('title') or '').strip().lower()
+
+        if title in ('404', '404 not found', 'not found', 'page not found'):
+            return True
+
+        if '404' in phrases and 'not found' in phrases:
+            return True
+
+        if 'not found' in phrases and {'requested page', 'requested resource'} & phrases:
+            return True
+
+        return False
+
+    @classmethod
+    def _has_any_soft_error_semantics(cls, signature):
+        """
+        Decide whether a signature carries at least a weak missing-resource marker.
+
+        Some compact nginx/hosting 404 templates contain only a short ``Not Found``
+        body without a title or ``requested URL`` wording. That is too weak by
+        itself, but it is useful when paired with an almost identical 4xx baseline.
+
+        :param dict signature: response signature
+        :return: True when a weak 404-style marker is present
+        :rtype: bool
+        """
+
+        if cls._has_strong_soft_error_semantics(signature) is True:
+            return True
+
+        phrases = set(signature.get('semantic_phrases') or [])
+        title = str(signature.get('title') or '').strip().lower()
+
+        return title in ('404', '404 not found', 'not found') or bool({'404', 'not found'} & phrases)
+
+    @classmethod
+    def _is_compact_cross_status_soft_error_shape_match(cls, baseline, candidate):
+        """
+        Return True for compact 4xx error templates emitted with a transient 2xx.
+
+        This is intentionally stricter than normal same-status calibration: it
+        requires a 404/410-to-2xx pair, weak missing-resource semantics on both
+        sides, small comparable bodies, compatible content kinds, and at least one
+        stable shape hash match.
+
+        :param dict baseline: baseline calibration signature
+        :param dict candidate: candidate response signature
+        :return: True when the candidate is the same compact error template
+        :rtype: bool
+        """
+
+        if cls._is_soft_error_status_pair(baseline.get('code'), candidate.get('code')) is not True:
+            return False
+
+        if cls._has_any_soft_error_semantics(baseline) is not True:
+            return False
+
+        if cls._has_any_soft_error_semantics(candidate) is not True:
+            return False
+
+        baseline_kind = baseline.get('content_kind')
+        candidate_kind = candidate.get('content_kind')
+
+        if baseline_kind and candidate_kind:
+            if baseline_kind != candidate_kind or baseline_kind not in ('html', 'text'):
+                return False
+
+        baseline_size = cls._soft_200_number(baseline.get('size'))
+        candidate_size = cls._soft_200_number(candidate.get('size'))
+
+        if min(baseline_size, candidate_size) < 32:
+            return False
+        if max(baseline_size, candidate_size) > 1024:
+            return False
+        if cls._soft_200_similarity(baseline_size, candidate_size) < 0.965:
+            return False
+
+        stable_hashes = (
+            'normalized_body_hash',
+            'body_skeleton_hash',
+            'visible_text_hash',
+            'dom_token_hash',
+        )
+
+        for name in stable_hashes:
+            baseline_hash = baseline.get(name)
+            candidate_hash = candidate.get(name)
+            if baseline_hash and candidate_hash and baseline_hash == candidate_hash:
+                return True
+
+        return False
+
+    @classmethod
+    def _cross_status_soft_error_score(cls, baseline, candidate):
+        """
+        Score a 2xx candidate against a canonical 4xx soft-error baseline.
+
+        Normal calibration intentionally requires identical status codes. This
+        narrowly scoped exception catches origin/proxy inconsistencies where the
+        body is the same missing-resource page but the status was emitted as 2xx.
+
+        :param dict baseline: calibration baseline signature
+        :param dict candidate: candidate response signature
+        :return: score and reasons
+        :rtype: tuple[float, list[str]]
+        """
+
+        reasons = []
+
+        if cls._is_soft_error_status_pair(baseline.get('code'), candidate.get('code')) is not True:
+            return 0.0, reasons
+
+        compact_shape_match = cls._is_compact_cross_status_soft_error_shape_match(baseline, candidate)
+
+        if (
+            cls._has_strong_soft_error_semantics(baseline) is not True
+            or cls._has_strong_soft_error_semantics(candidate) is not True
+        ) and compact_shape_match is not True:
+            return 0.0, reasons
+
+        score = 0.36
+        reasons.append('cross-status-soft-error')
+
+        if compact_shape_match is True:
+            score += 0.12
+            reasons.append('compact-soft-error-shape')
+
+        if baseline.get('normalized_body_hash') == candidate.get('normalized_body_hash'):
+            score += 0.22
+            reasons.append('body-hash')
+
+        if baseline.get('body_skeleton_hash') == candidate.get('body_skeleton_hash'):
+            score += 0.16
+            reasons.append('skeleton-hash')
+
+        if baseline.get('visible_text_hash') and baseline.get('visible_text_hash') == candidate.get('visible_text_hash'):
+            score += 0.18
+            reasons.append('visible-text')
+
+        phrase_score = cls._jaccard_similarity(
+            baseline.get('semantic_phrases') or [],
+            candidate.get('semantic_phrases') or []
+        )
+        if phrase_score >= 0.80:
+            score += 0.08 * phrase_score
+            reasons.append('semantic-phrases')
+
+        dom_score = cls._sequence_similarity(
+            baseline.get('dom_tokens') or [],
+            candidate.get('dom_tokens') or []
+        )
+        if dom_score >= 0.90:
+            score += 0.05 * dom_score
+            reasons.append('dom-structure')
+
+        size_score = cls._numeric_similarity(baseline.get('size'), candidate.get('size'))
+        if size_score >= 0.95:
+            score += 0.05 * size_score
+            reasons.append('size')
 
         return min(score, 1.0), reasons
 

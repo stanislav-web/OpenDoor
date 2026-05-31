@@ -288,6 +288,19 @@ class TestStacktraceResponsePlugin(unittest.TestCase):
         self.assertEqual(plugin.process(response), 'stacktrace')
         self.assertEqual(getattr(response, 'opendoor_stacktrace_detection')['runtime'], 'python')
 
+    def test_get_header_returns_none_after_iterating_non_matching_headers(self):
+        """Stacktrace header lookup should return None after case-insensitive misses."""
+
+        plugin = StacktraceResponsePlugin(None)
+        response = self.make_response(
+            body=b'Traceback (most recent call last):',
+            headers={'X-Test': '1'},
+        )
+
+        plugin.process(response)
+        self.assertIsNone(plugin._get_header('Content-Type'))
+
+
     def test_accepts_vendor_json_and_xml_suffix_content_types(self):
         """Should inspect vendor structured content types ending with +json or +xml."""
 

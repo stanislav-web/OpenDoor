@@ -579,6 +579,7 @@ class TestBrowser(unittest.TestCase):
         result = getattr(br, '_Browser__result')
         self.assertEqual(result['total']['ignored'], 1)
         self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
+        self.assertEqual(result['transport_failed'], [])
 
     def test_http_request_records_transport_failure_without_bypassing_retries(self):
         """Browser.__http_request() should track missing responses after provider retries are exhausted."""
@@ -608,8 +609,17 @@ class TestBrowser(unittest.TestCase):
         self.assertIn('Consecutive max-retry path failures: 1/10', debug_mock.call_args.kwargs.get('msg', ''))
 
         result = getattr(br, '_Browser__result')
-        self.assertEqual(result['total']['ignored'], 1)
-        self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
+        self.assertNotIn('ignored', result['total'])
+        self.assertNotIn('ignored', result['items'])
+        self.assertNotIn('ignored', result['report_items'])
+        self.assertEqual(result['transport_failed'], [
+            {
+                'url': 'http://example.com/admin',
+                'size': '0B',
+                'code': '-',
+                'reason': 'no_response_after_retries',
+            }
+        ])
 
 
     def test_http_request_includes_tls_diagnostic_in_transport_failure(self):
@@ -665,8 +675,26 @@ class TestBrowser(unittest.TestCase):
         response_handler.handle.assert_not_called()
 
         result = getattr(br, '_Browser__result')
-        self.assertEqual(result['total']['ignored'], 2)
-        self.assertEqual(result['items']['ignored'], ['http://example.com/first', 'http://example.com/second'])
+        self.assertNotIn('ignored', result['total'])
+        self.assertNotIn('ignored', result['items'])
+        self.assertNotIn('ignored', result['report_items'])
+        self.assertEqual(
+            result['transport_failed'],
+            [
+                {
+                    'url': 'http://example.com/first',
+                    'size': '0B',
+                    'code': '-',
+                    'reason': 'no_response_after_retries',
+                },
+                {
+                    'url': 'http://example.com/second',
+                    'size': '0B',
+                    'code': '-',
+                    'reason': 'no_response_after_retries',
+                },
+            ]
+        )
 
     def test_http_request_does_not_abort_before_default_retries_fail_streak(self):
         """Browser.__http_request() should keep max-retry paths skipped until the default threshold."""
@@ -693,10 +721,25 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 2)
 
         result = getattr(br, '_Browser__result')
-        self.assertEqual(result['total']['ignored'], 2)
+        self.assertNotIn('ignored', result['total'])
+        self.assertNotIn('ignored', result['items'])
+        self.assertNotIn('ignored', result['report_items'])
         self.assertEqual(
-            result['items']['ignored'],
-            ['http://example.com/.well', 'http://example.com/.idea/dictionaries']
+            result['transport_failed'],
+            [
+                {
+                    'url': 'http://example.com/.well',
+                    'size': '0B',
+                    'code': '-',
+                    'reason': 'no_response_after_retries',
+                },
+                {
+                    'url': 'http://example.com/.idea/dictionaries',
+                    'size': '0B',
+                    'code': '-',
+                    'reason': 'no_response_after_retries',
+                },
+            ]
         )
 
     def test_http_request_does_not_run_healthcheck_during_max_retry_streak(self):
@@ -760,6 +803,143 @@ class TestBrowser(unittest.TestCase):
         message = info_mock.call_args.kwargs.get('msg', '')
         self.assertIn('Transport failures skipped: 3 request(s)', message)
         self.assertIn('Scan continued without reaching --retries-fail-streak.', message)
+
+    def test_http_request_records_transport_failed_paths_for_directory_scan(self):
+        """Transport-exhausted directory paths should be available for reports."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+
+        br._Browser__http_request('http://example.com/offline-admin')
+
+        result = getattr(br, '_Browser__result')
+        self.assertNotIn('ignored', result['total'])
+        self.assertNotIn('ignored', result['items'])
+        self.assertNotIn('ignored', result['report_items'])
+        self.assertEqual(result['transport_failed'], [
+            {
+                'url': 'http://example.com/offline-admin',
+                'size': '0B',
+                'code': '-',
+                'reason': 'no_response_after_retries',
+            }
+        ])
+
+
+    def test_http_request_requests_pause_after_transport_outage_streak(self):
+        """Directory scans should pause before burning many paths during a network outage."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(
+            items_size=1,
+            total_items_size=10,
+            request_pause=MagicMock(return_value=True),
+        )
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+        setattr(getattr(br, '_Browser__config'), '_retries_fail_streak', 10)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            for index in range(5):
+                br._Browser__http_request('http://example.com/miss-{0}'.format(index))
+
+        pool.request_pause.assert_called_once_with()
+        self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 5)
+        message = warning_mock.call_args.kwargs.get('msg', '')
+        self.assertIn('Network outage suspected after 5 consecutive transport failures', message)
+        self.assertIn('Scan paused to avoid consuming more dictionary entries', message)
+
+    def test_http_request_never_aborts_subdomain_scan_on_transport_failures(self):
+        """Subdomain misses should be skipped without using the directory fail-streak guard."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = None
+        pool = SimpleNamespace(items_size=1, total_items_size=10)
+        response_handler = MagicMock()
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__response', response_handler)
+        setattr(getattr(br, '_Browser__config'), '_scan', 'subdomains')
+        setattr(getattr(br, '_Browser__config'), '_retries_fail_streak', 2)
+
+        debug_state = MagicMock()
+        debug_state.is_scan_debug.return_value = True
+        setattr(br, '_Browser__debug', debug_state)
+        progress_mock = MagicMock()
+        setattr(br, '_Browser__emit_filtered_progress', progress_mock)
+
+        with patch('src.lib.browser.browser.tpl.debug') as debug_mock:
+            br._Browser__http_request('https://admin.example.com')
+            br._Browser__http_request('https://api.example.com')
+            br._Browser__http_request('https://dev.example.com')
+
+        self.assertEqual(client.request.call_count, 3)
+        response_handler.handle.assert_not_called()
+        debug_mock.assert_not_called()
+        self.assertEqual(progress_mock.call_count, 3)
+        progress_mock.assert_any_call(
+            'ignored',
+            ('ignored', 'https://admin.example.com', '0B', '-'),
+            request_url='https://admin.example.com',
+        )
+        self.assertEqual(getattr(br, '_Browser__transport_failure_streak'), 0)
+        self.assertEqual(getattr(br, '_Browser__transport_failures_skipped'), 3)
+        self.assertEqual(getattr(br, '_Browser__result')['total']['ignored'], 3)
+        self.assertEqual(getattr(br, '_Browser__result').get('transport_failed'), [])
+
+    def test_transport_failure_summary_uses_subdomain_specific_wording(self):
+        """Subdomain transport misses should not mention reaching the directory fail-streak guard."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__transport_failure_lock', threading.RLock())
+        setattr(br, '_Browser__transport_failures_skipped', 4)
+        setattr(br, '_Browser__transport_failure_summary_emitted', False)
+        setattr(getattr(br, '_Browser__config'), '_scan', 'subdomains')
+
+        with patch('src.lib.browser.browser.tpl.info') as info_mock:
+            br._Browser__emit_transport_failure_summary()
+
+        info_mock.assert_called_once()
+        message = info_mock.call_args.kwargs.get('msg', '')
+        self.assertIn('Skipped subdomain candidates without HTTP response: 4', message)
+        self.assertNotIn('fail-streak', message)
+        self.assertNotIn('--retries-fail-streak', message)
+
+    def test_runtime_diagnostics_formats_subdomain_transport_misses_without_fail_streak(self):
+        """Runtime diagnostics should not show directory fail-streak state for subdomain scans."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=10,
+            items_size=4,
+            submitted_size=4,
+            workers_size=1,
+        ))
+        setattr(br, '_Browser__runtime_started_at', None)
+        setattr(br, '_Browser__active_runtime_total', 0.0)
+        setattr(br, '_Browser__pre_request_skipped', 0)
+        setattr(br, '_Browser__transport_failures_skipped', 4)
+        setattr(br, '_Browser__transport_failure_streak', 0)
+        setattr(getattr(br, '_Browser__config'), '_scan', 'subdomains')
+
+        rendered = br._Browser__format_runtime_diagnostics(status='completed')
+
+        self.assertIn('| retries     | subdomain misses 4, fail-fast disabled', rendered)
+        self.assertNotIn('fail streak', rendered)
 
     def test_http_request_records_status_from_response_handler(self):
         """Browser.__http_request() should record the tuple returned by the response handler."""
@@ -901,6 +1081,7 @@ class TestBrowser(unittest.TestCase):
         result = getattr(br, '_Browser__result')
         self.assertEqual(result['total']['ignored'], 1)
         self.assertEqual(result['items']['ignored'], ['http://example.com/admin'])
+        self.assertEqual(result['transport_failed'], [])
 
     def test_add_urls_deduplicates_subdomain_candidates_before_queueing(self):
         """Browser._add_urls() should skip duplicate subdomain URLs before HTTP queueing."""
@@ -1578,7 +1759,7 @@ class TestBrowser(unittest.TestCase):
         self.assertIn('| Runtime diagnostics', rendered)
         self.assertIn('| items       | 10', rendered)
         self.assertIn('| progress    | 10/10 (100.0%)', rendered)
-        self.assertIn('| requests    | 9 submitted, 1 skipped before request', rendered)
+        self.assertIn('| queue       | 10 consumed, 9 submitted, 1 pre-request skipped', rendered)
         self.assertIn('| rate        | 5.0/s average', rendered)
         self.assertIn('| time        | active 00:00:02, remaining 00:00:00', rendered)
         self.assertIn('| threads     | 1', rendered)
@@ -1710,7 +1891,7 @@ class TestBrowser(unittest.TestCase):
         rendered = br._Browser__format_runtime_diagnostics(status='completed')
 
         self.assertIn('| progress    | 0/0 (0.0%)', rendered)
-        self.assertIn('| requests    | 0 submitted, 0 skipped before request', rendered)
+        self.assertIn('| queue       | 0 consumed, 0 submitted, 0 pre-request skipped', rendered)
         self.assertIn('| rate        | 0.0/s average', rendered)
         self.assertIn('| threads     | 2', rendered)
         self.assertIn('| retries     | exhausted transport paths 0, fail streak 0/10', rendered)
@@ -2601,6 +2782,105 @@ class TestBrowser(unittest.TestCase):
 
         self.assertEqual(instance._Browser__result['total']['success'], 1)
 
+    def test_http_request_should_filter_js_cookie_reload_challenge(self):
+        """Browser.__http_request() should not report JS cookie bootstrap pages as success."""
+
+        br = self.make_browser()
+        body = (
+            "<html><head><script>function set_cookie(){var now = new Date();"
+            "document.cookie='beget=begetok'+'; expires='+now.toGMTString()+'; path=/';}"
+            "set_cookie();location.reload();;</script></head><body></body></html>"
+        )
+        response_object = SimpleNamespace(
+            status=200,
+            headers={'Content-Type': 'text/html'},
+            data=body.encode('utf-8'),
+        )
+
+        client = MagicMock()
+        client.request.return_value = response_object
+        pool = SimpleNamespace(items_size=1, total_items_size=3)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+        response_handler.handle.return_value = (
+            'success',
+            'http://www.madburg.ru/adminer-4.2.3-sk.php',
+            '273B',
+            '200',
+        )
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+
+        br._Browser__http_request('http://www.madburg.ru/adminer-4.2.3-sk.php')
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['success'], 0)
+        self.assertEqual(result['total']['calibrated'], 1)
+        self.assertEqual(
+            result['items']['calibrated'],
+            ['http://www.madburg.ru/adminer-4.2.3-sk.php'],
+        )
+        self.assertEqual(
+            result['report_items']['calibrated'][0]['calibration_reason'],
+            'js-cookie-reload-challenge',
+        )
+        response_handler.debug_response_data.assert_not_called()
+
+    def test_js_cookie_reload_challenge_helper_rejects_useful_pages(self):
+        """JS cookie challenge guard should not hide useful HTML pages."""
+
+        useful_response = SimpleNamespace(
+            status=200,
+            headers={'Content-Type': 'text/html'},
+            data=(
+                "<html><head><script>document.cookie='visited=1';location.reload();</script></head>"
+                "<body><form><input name='login'></form></body></html>"
+            ).encode('utf-8'),
+        )
+
+        actual = Browser._Browser__match_js_cookie_reload_challenge(
+            useful_response,
+            ('success', 'http://example.com/login', '130B', '200'),
+        )
+
+        self.assertIsNone(actual)
+
+    def test_js_cookie_reload_challenge_helper_handles_multiline_script_end_tag(self):
+        """JS cookie challenge guard should ignore script bodies without regex HTML filtering."""
+
+        response = SimpleNamespace(
+            status=200,
+            headers={'Content-Type': 'text/html'},
+            data=(
+                "<html><head><script>document.cookie='beget=begetok';"
+                "location.reload();</script\t\n></head><body></body></html>"
+            ).encode('utf-8'),
+        )
+
+        actual = Browser._Browser__match_js_cookie_reload_challenge(
+            response,
+            ('success', 'http://example.com/adminer-4.2.3-sk.php', '120B', '200'),
+        )
+
+        self.assertIsNotNone(actual)
+        self.assertEqual(actual['calibration_reason'], 'js-cookie-reload-challenge')
+
+    def test_visible_text_without_scripts_should_ignore_script_and_style_blocks(self):
+        """Visible text extraction should avoid script/style regex parsing."""
+
+        body = (
+            "<html><head><script>document.cookie='x';location.reload();</script\t\n>"
+            "<style>.hidden{display:none}</style></head><body><p>Useful text</p></body></html>"
+        )
+
+        actual = Browser._Browser__visible_text_without_scripts(body)
+
+        self.assertEqual(actual, 'Useful text')
+
     def test_http_request_should_put_calibration_matches_into_calibrated_bucket(self):
         """Browser.__http_request() should classify calibration matches as calibrated."""
 
@@ -2704,6 +2984,41 @@ class TestBrowser(unittest.TestCase):
             'http://example.com/wp-content/uploads/abcdef123456-6.php',
             'http://example.com/admin/abcdef123456-7',
         ])
+
+    def test_calibrate_should_build_waf_safe_probe_url_shapes(self):
+        """Browser calibration probes should avoid risky URL shapes in WAF safe mode."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'auto_calibrate': True,
+            'waf_safe_mode': True,
+            'calibration_samples': 8,
+        }))
+
+        with patch('src.lib.browser.browser.uuid.uuid4') as uuid4_mock:
+            uuid4_mock.return_value.hex = 'abcdef1234567890'
+            actual = br._Browser__build_calibration_urls()
+
+        self.assertEqual(actual, [
+            'http://example.com/abcdef123456-0',
+            'http://example.com/assets/abcdef123456-1',
+            'http://example.com/static/abcdef123456-2',
+            'http://example.com/media/abcdef123456-3',
+            'http://example.com/content/abcdef123456-4',
+            'http://example.com/resources/abcdef123456-5',
+            'http://example.com/public/abcdef123456-6',
+            'http://example.com/files/abcdef123456-7',
+        ])
+
+        joined = ' '.join(actual).lower()
+        self.assertNotIn('.php', joined)
+        self.assertNotIn('.map', joined)
+        self.assertNotIn('/admin/', joined)
+        self.assertNotIn('/wp-content/', joined)
 
     def test_calibrate_should_build_baseline_from_probe_responses(self):
         """Browser.calibrate() should build baseline signatures from calibration probes."""
@@ -2858,6 +3173,53 @@ class TestBrowser(unittest.TestCase):
         self.assertIsNone(actual)
         self.assertEqual(response_handler.handle.call_count, 2)
         warning_mock.assert_any_call(msg='Auto-calibration disabled: no usable baseline signatures')
+
+    def test_calibrate_should_disable_weak_http_baseline(self):
+        """Browser.calibrate() should disable sparse HTTP baselines after blocked probes."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'port': 80,
+            'scheme': 'http://',
+            'auto_calibrate': True,
+            'calibration_samples': 8,
+            'calibration_threshold': 0.92,
+        }))
+
+        client = MagicMock()
+        client.request.return_value = SimpleNamespace(
+            status=404,
+            headers={'Content-Type': 'text/html'},
+            data=b'not found'
+        )
+        setattr(br, '_Browser__client', client)
+
+        response_handler = MagicMock()
+        response_handler.handle.side_effect = [
+            ('success', 'http://example.com/abcdef123456-0', '9B', '404'),
+            ('blocked', 'http://example.com/assets/abcdef123456-1.map', '6KB', '403'),
+            ('blocked', 'http://example.com/abcdef123456-2.php', '6KB', '403'),
+            ('blocked', 'http://example.com/abcdef123456-3.html', '6KB', '403'),
+            ('blocked', 'http://example.com/api/abcdef123456-4', '6KB', '403'),
+            ('blocked', 'http://example.com/static/abcdef123456-5.js', '6KB', '403'),
+            ('blocked', 'http://example.com/wp-content/uploads/abcdef123456-6.php', '6KB', '403'),
+            ('blocked', 'http://example.com/admin/abcdef123456-7', '6KB', '403'),
+        ]
+        setattr(br, '_Browser__response', response_handler)
+
+        with patch('src.lib.browser.browser.tpl.info'), \
+                patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            actual = br.calibrate()
+
+        self.assertIsNone(actual)
+        warning_mock.assert_called_once_with(
+            msg=(
+                'Auto-calibration HTTP baseline is weak: usable=1/8, blocked=7, failed=0, ignored=0. '
+                'Runtime response calibration disabled for this target.'
+            )
+        )
 
     def test_calibrate_should_continue_after_probe_request_error(self):
         """Browser.calibrate() should continue and disable baseline when probes fail."""

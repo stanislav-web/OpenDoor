@@ -90,3 +90,4 @@ debian/*.substvars
 *.dsc
 *.tar.xz
 /debug.sh
+/test.py

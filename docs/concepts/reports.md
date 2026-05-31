@@ -57,6 +57,8 @@ opendoor --host https://example.com --reports txt
 
 Use `txt` when you want one plain text file per result bucket.
 
+When directory requests exhaust the configured timeout and retry budget without any HTTP response, OpenDoor writes those consumed-but-unverified paths to `transport_failed.txt`. These lines are not findings; they show wordlist entries that may need a later rescan after a temporary network outage or route failure. Subdomain no-response candidates are not written to this file because they are normal enumeration misses.
+
 Header-bypass candidates include evidence in the bypass report lines, for example:
 
 ```text
@@ -74,6 +76,8 @@ opendoor --host https://example.com --reports json
 Use JSON for automation, pipelines, post-processing, and CI/CD artifact uploads.
 
 JSON preserves detailed `report_items` metadata, including WAF, fingerprint, calibration, header-bypass, secret, stacktrace, shadow and openredirect fields.
+
+When transport-exhausted directory entries exist, JSON also preserves them in the top-level `transport_failed` list.
 
 ---
 

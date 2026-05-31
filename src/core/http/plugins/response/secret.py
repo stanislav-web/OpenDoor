@@ -71,20 +71,32 @@ class SecretResponsePlugin(ResponsePluginProvider):
     )
     GOOGLE_API_KEY_RE = re.compile(r'\bAIza[0-9A-Za-z_-]{35}\b')
     GITHUB_TOKEN_RE = re.compile(r'\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,255}\b')
+    GITHUB_FINE_GRAINED_TOKEN_RE = re.compile(r'\bgithub_pat_[A-Za-z0-9_]{40,255}\b')
     SLACK_TOKEN_RE = re.compile(r'\bxox[baprs]-[A-Za-z0-9-]{10,}\b')
     STRIPE_KEY_RE = re.compile(r'\b(?:sk|rk)_(?:live|test)_[0-9A-Za-z]{16,}\b')
+    SQUARE_TOKEN_RE = re.compile(r'\bsq0(?:csp|scp|atp)-[0-9A-Za-z_-]{20,}\b')
+    AUTHORIZATION_BEARER_RE = re.compile(
+        r'(?i)\bauthorization\b\s*[:=]\s*[\"\']?bearer\s+([A-Za-z0-9._~+/=-]{20,})'
+    )
     DB_URL_RE = re.compile(
         r'\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis)://[^:\s/@]{1,80}:[^@\s]{6,}@[^\'"\s<>]+',
         re.IGNORECASE,
     )
     ASSIGNMENT_RE = re.compile(
-        r'(?i)\b(?:api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret|db[_-]?password|password)\b'
+        r'(?i)\b(?:api[_-]?key|secret[_-]?key|secretkey|access[_-]?key|access[_-]?secret|access[_-]?token|auth[_-]?token|client[_-]?secret|account[_-]?key|accountkey|db[_-]?password|password|pwd)\b'
         r'\s*[:=]\s*[\'"]([^\'"\s]{12,})[\'"]'
     )
 
     DETECTION_TYPE_JWT = 'jwt'  # nosec B105 - detector type id, not a credential.
     DETECTION_TYPE_GENERIC_ASSIGNMENT = (
         'generic_assignment'  # nosec B105 - detector type id, not a credential.
+    )
+    DETECTION_TYPE_AUTHORIZATION_BEARER = (
+        'authorization_bearer'  # nosec B105 - detector type id, not a credential.
+    )
+    CAPTURE_GROUP_RULES = (
+        DETECTION_TYPE_GENERIC_ASSIGNMENT,
+        DETECTION_TYPE_AUTHORIZATION_BEARER,
     )
 
     SECRET_RULES = (
@@ -93,8 +105,11 @@ class SecretResponsePlugin(ResponsePluginProvider):
         ('private_key', PRIVATE_KEY_RE, 98),
         ('google_api_key', GOOGLE_API_KEY_RE, 90),
         ('github_token', GITHUB_TOKEN_RE, 95),
+        ('github_fine_grained_token', GITHUB_FINE_GRAINED_TOKEN_RE, 95),
         ('slack_token', SLACK_TOKEN_RE, 95),
         ('stripe_key', STRIPE_KEY_RE, 95),
+        ('square_token', SQUARE_TOKEN_RE, 92),
+        (DETECTION_TYPE_AUTHORIZATION_BEARER, AUTHORIZATION_BEARER_RE, 88),
         ('database_url', DB_URL_RE, 92),
         (DETECTION_TYPE_GENERIC_ASSIGNMENT, ASSIGNMENT_RE, 70),
     )
@@ -147,7 +162,7 @@ class SecretResponsePlugin(ResponsePluginProvider):
             for match in pattern.finditer(str(text or '')):
                 value = (
                     match.group(1)
-                    if secret_type == cls.DETECTION_TYPE_GENERIC_ASSIGNMENT and match.groups()
+                    if secret_type in cls.CAPTURE_GROUP_RULES and match.groups()
                     else match.group(0)
                 )
                 if cls._is_probable_false_positive(secret_type, value):
@@ -326,6 +341,8 @@ class SecretResponsePlugin(ResponsePluginProvider):
             'dummy',
             'placeholder',
             'changeme',
+            'redacted',
+            'masked',
             'your_',
             'insert_',
             '<',

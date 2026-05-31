@@ -17,11 +17,13 @@
 """
 
 import copy
+import re
 import socket as net_socket
 import threading
 import time
 import uuid
 from urllib.parse import unquote, urlsplit, urlunsplit
+from html.parser import HTMLParser
 from .session import SessionManager, SessionError
 from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError
 from src.core import FileSystemError
@@ -52,6 +54,59 @@ from .workspace import ScanTempWorkspace
 
 class _WafGuardStop(Exception):
     """Internal sentinel used to stop wordlist streaming after WAF guard triggers."""
+
+
+class _VisibleTextExtractor(HTMLParser):
+    """Extract visible text while ignoring script/style-like blocks."""
+
+    HIDDEN_TAGS = {'script', 'style', 'noscript', 'template'}
+
+    def __init__(self):
+        """Initialize the bounded visible text collector."""
+
+        HTMLParser.__init__(self, convert_charrefs=True)
+        self._hidden_depth = 0
+        self._chunks = []
+
+    def handle_starttag(self, tag, _attrs):
+        """Track hidden HTML blocks.
+
+        :param str tag: normalized start tag name
+        :param list _attrs: parsed tag attributes, unused
+        :return: None
+        """
+
+        if str(tag or '').lower() in self.HIDDEN_TAGS:
+            self._hidden_depth += 1
+
+    def handle_endtag(self, tag):
+        """Leave hidden HTML blocks.
+
+        :param str tag: normalized end tag name
+        :return: None
+        """
+
+        if str(tag or '').lower() in self.HIDDEN_TAGS and self._hidden_depth > 0:
+            self._hidden_depth -= 1
+
+    def handle_data(self, data):
+        """Collect visible text chunks only.
+
+        :param str data: text node content
+        :return: None
+        """
+
+        if self._hidden_depth <= 0:
+            self._chunks.append(str(data or ''))
+
+    def text(self):
+        """Return normalized visible text.
+
+        :return: whitespace-normalized visible text
+        :rtype: str
+        """
+
+        return ' '.join(' '.join(self._chunks).split())
 
 
 class Browser(Filter):
@@ -91,6 +146,8 @@ class Browser(Filter):
     WAF_SAFE_RETRY_AFTER_STATUSES = (429, 503)
     WAF_SAFE_RETRY_AFTER_HEADER = 'retry-after'
     DEFAULT_RETRIES_FAIL_STREAK = 10
+    TRANSPORT_OUTAGE_PAUSE_MIN_STREAK = 5
+    TRANSPORT_OUTAGE_PAUSE_MAX_STREAK = 10
     WAF_SAFE_RECOVERY_STATUSES = ('success', 'redirect', 'auth', 'forbidden', 'bad', 'certificate')
 
     def __init__(self, params):
@@ -153,7 +210,13 @@ class Browser(Filter):
                         key='method_override',
                         sniffers=', '.join(method_override_items)
                     )
-            self.__result = {'total': {}, 'items': {}, 'report_items': {}, 'filtered_items': []}
+            self.__result = {
+                'total': {},
+                'items': {},
+                'report_items': {},
+                'filtered_items': [],
+                'transport_failed': [],
+            }
             self.__visited_recursive = set()
             self.__queued_recursive = set()
             runtime_paths = self.__prepare_runtime_paths()
@@ -654,6 +717,30 @@ class Browser(Filter):
 
         return 'enabled' if value is True else 'disabled'
 
+    @staticmethod
+    def __format_transport_diagnostics(payload):
+        """Format transport-failure diagnostics for the active scan mode.
+
+        Directory scans use the consecutive exhausted-retry fail-streak as an
+        availability guard. Subdomain scans do not enforce that guard because
+        missing HTTP responses are normal enumeration misses.
+
+        :param dict payload: runtime diagnostics payload
+        :return: formatted diagnostics value
+        :rtype: str
+        """
+
+        if payload.get('retries_fail_streak_enforced') is not True:
+            return 'subdomain misses {0}, fail-fast disabled'.format(
+                payload.get('transport_skipped'),
+            )
+
+        return 'exhausted transport paths {0}, fail streak {1}/{2}'.format(
+            payload.get('transport_skipped'),
+            payload.get('retries_fail_streak'),
+            payload.get('retries_fail_limit'),
+        )
+
     def __record_pre_request_skip(self):
         """Record one dictionary item skipped before an HTTP request was submitted.
 
@@ -705,6 +792,7 @@ class Browser(Filter):
             'remaining_seconds': remaining_seconds,
             'retries_fail_streak': self.__safe_progress_int(getattr(self, '_Browser__transport_failure_streak', 0)),
             'retries_fail_limit': self.__transport_failure_threshold(),
+            'retries_fail_streak_enforced': self.__is_subdomains_scan() is not True,
             'auto_calibration_enabled': getattr(self.__config, 'is_auto_calibrate', False) is True,
             'calibrated_responses': self.__safe_progress_int(total_counter.get('calibrated', 0)),
         }
@@ -770,8 +858,9 @@ class Browser(Filter):
             ('items', total),
             ('progress', '{0}/{1} ({2})'.format(processed, total, progress)),
             (
-                'requests',
-                '{0} submitted, {1} skipped before request'.format(
+                'queue',
+                '{0} consumed, {1} submitted, {2} pre-request skipped'.format(
+                    payload.get('processed'),
                     payload.get('submitted'),
                     payload.get('skipped_before_request'),
                 ),
@@ -787,11 +876,7 @@ class Browser(Filter):
             ('threads', payload.get('threads')),
             (
                 'retries',
-                'exhausted transport paths {0}, fail streak {1}/{2}'.format(
-                    payload.get('transport_skipped'),
-                    payload.get('retries_fail_streak'),
-                    payload.get('retries_fail_limit'),
-                ),
+                self.__format_transport_diagnostics(payload),
             ),
             (
                 'calibration',
@@ -1160,7 +1245,7 @@ class Browser(Filter):
 
             evidence_values = self.__fingerprint_evidence_values(result.get('signals', []))
             if evidence_values:
-                tpl.info(msg='Fingerprint evidence: {0}'.format(', '.join(evidence_values)))
+                tpl.debug(msg='Fingerprint evidence: {0}'.format(', '.join(evidence_values)))
 
             return result
 
@@ -1203,24 +1288,31 @@ class Browser(Filter):
 
             dns_wildcard_addresses = self.__build_dns_wildcard_addresses()
             signatures = []
-            for url in self.__build_calibration_urls():
+            calibration_urls = self.__build_calibration_urls()
+            calibration_probe_stats = {
+                'blocked': 0,
+                'failed': 0,
+                'ignored': 0,
+            }
+
+            for url in calibration_urls:
                 try:
                     response_object = self.__request_with_waf_safe_mode(url)
                     response_data = self.__response.handle(
                         response_object,
                         request_url=url,
                         items_size=0,
-                        total_size=self.__config.calibration_samples,
+                        total_size=len(calibration_urls),
                         ignore_list=[],
                         emit_debug=False
                     )
 
                     if response_data is None:
+                        calibration_probe_stats['ignored'] += 1
                         continue
 
                     if response_data[0] == 'blocked':
-                        tpl.warning(
-                            msg='Auto-calibration probe skipped because it was classified as blocked: {0}'.format(url))
+                        calibration_probe_stats['blocked'] += 1
                         continue
 
                     signatures.append(Calibration.build_signature(response_object, response_data))
@@ -1229,10 +1321,29 @@ class Browser(Filter):
                     if self.__is_standalone_proxy_mode() is True:
                         raise BrowserError(error)
 
+                    calibration_probe_stats['failed'] += 1
                     tpl.warning(msg='Auto-calibration probe failed: {0}'.format(error))
 
                 except (HttpRequestError, HttpsRequestError, ResponseError) as error:
+                    calibration_probe_stats['failed'] += 1
                     tpl.warning(msg='Auto-calibration probe failed: {0}'.format(error))
+
+            http_baseline_disabled = False
+            if self.__is_weak_calibration_baseline(len(signatures), len(calibration_urls)) is True:
+                http_baseline_disabled = True
+                tpl.warning(
+                    msg=(
+                        'Auto-calibration HTTP baseline is weak: usable={0}/{1}, blocked={2}, failed={3}, '
+                        'ignored={4}. Runtime response calibration disabled for this target.'
+                    ).format(
+                        len(signatures),
+                        len(calibration_urls),
+                        calibration_probe_stats['blocked'],
+                        calibration_probe_stats['failed'],
+                        calibration_probe_stats['ignored'],
+                    )
+                )
+                signatures = []
 
             self.__calibration = Calibration(
                 signatures=signatures,
@@ -1257,12 +1368,41 @@ class Browser(Filter):
                 self.__mark_session_dirty()
                 return self.__calibration
 
-            tpl.warning(msg='Auto-calibration disabled: no usable baseline signatures')
+            if http_baseline_disabled is not True:
+                tpl.warning(msg='Auto-calibration disabled: no usable baseline signatures')
             return None
 
         except (AttributeError, TypeError, ValueError) as error:
             tpl.warning(msg='Auto-calibration skipped: {0}'.format(error))
             return None
+
+    @staticmethod
+    def __is_weak_calibration_baseline(usable_signatures, requested_samples):
+        """Return True when the HTTP calibration baseline is too sparse.
+
+        Weak baselines are dangerous because a single usable response can
+        overfit noisy targets after most probes were blocked, ignored, or
+        failed. Keep one-sample and two-sample scans backward-compatible, but
+        require a minimum half-sample quorum for larger calibration runs.
+
+        :param int usable_signatures: number of usable response signatures
+        :param int requested_samples: number of requested calibration probes
+        :return: True when response calibration should be disabled
+        :rtype: bool
+        """
+
+        try:
+            usable_signatures = int(usable_signatures or 0)
+            requested_samples = int(requested_samples or 0)
+        except (TypeError, ValueError):
+            return False
+
+        if requested_samples < 3 or usable_signatures <= 0:
+            return False
+
+        minimum_usable = max(2, (requested_samples + 1) // 2)
+
+        return usable_signatures < minimum_usable
 
     def __is_active_sniffer_enabled(self, name):
         """Return True when a built-in active sniffer is enabled.
@@ -1370,7 +1510,40 @@ class Browser(Filter):
 
         urls = []
         token = uuid.uuid4().hex[:12]
-        path_templates = (
+        path_templates = self.__build_calibration_path_templates()
+
+        for index in range(self.__config.calibration_samples):
+            template = path_templates[index % len(path_templates)]
+            path = template.format(token=token, index=index)
+            urls.append(self.__build_calibration_url(path))
+
+        return urls
+
+    def __build_calibration_path_templates(self):
+        """Return calibration path templates for the current runtime profile.
+
+        Regular auto-calibration keeps mixed URL shapes to detect different
+        soft-404/catch-all behaviours. In WAF safe mode, avoid high-risk
+        scanner-like probes such as `.php`, `.map`, `admin`, and
+        `wp-content/uploads/*.php` because those paths are commonly treated as
+        attack indicators by edge protections before the scan starts.
+
+        :return: tuple[str, ...]
+        """
+
+        if True is getattr(self.__config, 'is_waf_safe_mode', False):
+            return (
+                '{token}-{index}',
+                'assets/{token}-{index}',
+                'static/{token}-{index}',
+                'media/{token}-{index}',
+                'content/{token}-{index}',
+                'resources/{token}-{index}',
+                'public/{token}-{index}',
+                'files/{token}-{index}',
+            )
+
+        return (
             '{token}-{index}',
             'assets/{token}-{index}.map',
             '{token}-{index}.php',
@@ -1380,13 +1553,6 @@ class Browser(Filter):
             'wp-content/uploads/{token}-{index}.php',
             'admin/{token}-{index}',
         )
-
-        for index in range(self.__config.calibration_samples):
-            template = path_templates[index % len(path_templates)]
-            path = template.format(token=token, index=index)
-            urls.append(self.__build_calibration_url(path))
-
-        return urls
 
     def __build_calibration_url(self, path):
         """
@@ -2321,6 +2487,56 @@ class Browser(Filter):
         with self.__transport_failure_lock:
             return int(getattr(self, '_Browser__transport_failures_skipped', 0))
 
+    def __transport_outage_pause_threshold(self, abort_threshold=None):
+        """Return the conservative streak threshold for auto-pausing scans.
+
+        The value is derived from the existing ``--retries-fail-streak`` guard so
+        patch releases do not add a new public option. Very low fail-fast limits
+        still abort normally before the pause threshold can fire.
+
+        :param int|None abort_threshold: configured fail-streak abort threshold
+        :return: pause threshold
+        :rtype: int
+        """
+
+        if abort_threshold is None:
+            abort_threshold = self.__transport_failure_threshold()
+
+        try:
+            abort_threshold = int(abort_threshold)
+        except (TypeError, ValueError):
+            abort_threshold = self.DEFAULT_RETRIES_FAIL_STREAK
+
+        tenth = max(1, abort_threshold // 10)
+        return min(
+            self.TRANSPORT_OUTAGE_PAUSE_MAX_STREAK,
+            max(self.TRANSPORT_OUTAGE_PAUSE_MIN_STREAK, tenth),
+        )
+
+    def __request_transport_outage_pause(self, streak, threshold, path):
+        """Ask the thread pool to open the regular pause prompt on the main thread.
+
+        :param int streak: consecutive transport failure count
+        :param int threshold: configured fail-streak abort threshold
+        :param str path: last failed path for diagnostics
+        :return: None
+        """
+
+        request_pause = getattr(getattr(self, '_Browser__pool', None), 'request_pause', None)
+        if not callable(request_pause):
+            return
+
+        if request_pause() is not True:
+            return
+
+        tpl.warning(
+            msg=(
+                'Network outage suspected after {streak} consecutive transport failures. '
+                'Scan paused to avoid consuming more dictionary entries. Last failed path: {path}. '
+                'Limit: {threshold}.'
+            ).format(streak=streak, threshold=threshold, path=path)
+        )
+
     def __emit_transport_failure_summary(self):
         """Print a compact summary for skipped path-specific transport failures.
 
@@ -2335,12 +2551,19 @@ class Browser(Filter):
             return
 
         self.__finish_filtered_progress_line()
-        tpl.info(
-            msg=(
-                'Transport failures skipped: {0} request(s) without HTTP response. '
-                'Scan continued without reaching --retries-fail-streak.'
-            ).format(skipped)
-        )
+
+        if self.__is_subdomains_scan() is True:
+            tpl.info(
+                msg='Skipped subdomain candidates without HTTP response: {0}.'.format(skipped)
+            )
+        else:
+            tpl.info(
+                msg=(
+                    'Transport failures skipped: {0} request(s) without HTTP response. '
+                    'Scan continued without reaching --retries-fail-streak.'
+                ).format(skipped)
+            )
+
         self.__transport_failure_summary_emitted = True
 
     def __reset_transport_failure_streak(self):
@@ -2380,19 +2603,44 @@ class Browser(Filter):
 
         Request providers already pass ``config.retries`` to urllib3. This
         method is called only after that retry budget has been exhausted and the
-        provider returned ``None``. It must not short-circuit per-request retry
-        behavior; it only protects the scanner from silently walking the whole
-        dictionary after the target transport goes away.
+        provider returned ``None``. Directory scans use a consecutive-failure
+        guard to avoid walking the remaining dictionary against an unavailable
+        target. Subdomain scans intentionally do not use that guard because
+        missing HTTP responses are normal enumeration misses.
 
         :param str url: failed request URL
-        :raise BrowserError: when consecutive failures exceed the abort threshold
+        :raise BrowserError: when directory-scan consecutive failures exceed the abort threshold
         :return: None
         """
 
+        is_subdomains_scan = self.__is_subdomains_scan() is True
+
+        self.__ensure_session_runtime_state()
+
         with self.__transport_failure_lock:
-            self.__transport_failure_streak += 1
             self.__transport_failures_skipped += 1
-            streak = self.__transport_failure_streak
+
+            if is_subdomains_scan:
+                self.__transport_failure_streak = 0
+                streak = 0
+            else:
+                self.__transport_failure_streak += 1
+                streak = self.__transport_failure_streak
+                self.__result['transport_failed'].append({
+                    'url': url,
+                    'size': '0B',
+                    'code': '-',
+                    'reason': 'no_response_after_retries',
+                })
+
+        if is_subdomains_scan:
+            self.__catch_report_data('ignored', url)
+            self.__emit_filtered_progress(
+                'ignored',
+                ('ignored', url, '0B', '-'),
+                request_url=url,
+            )
+            return
 
         threshold = self.__transport_failure_threshold()
         path = helper.parse_url(url).path or str(url)
@@ -2416,6 +2664,10 @@ class Browser(Filter):
                     diagnostic_suffix=diagnostic_suffix,
                 )
             )
+
+            if streak >= self.__transport_outage_pause_threshold(threshold):
+                self.__request_transport_outage_pause(streak, threshold, path)
+
             return
 
         raise BrowserError(
@@ -2451,7 +2703,6 @@ class Browser(Filter):
             resp = self.__request_with_waf_safe_mode(url)
 
             if resp is None:
-                self.__catch_report_data('ignored', url)
                 self.__record_transport_failure(url)
                 return
 
@@ -2513,6 +2764,20 @@ class Browser(Filter):
                     metadata=calibration_match
                 )
                 return
+
+            js_cookie_challenge = self.__match_js_cookie_reload_challenge(resp, response_data)
+            if js_cookie_challenge is not None:
+                self.__emit_passive_sniffer_findings(passive_sniffer_findings, resp)
+                self.__emit_filtered_progress('calibrated', response_data, js_cookie_challenge, request_url=url)
+                self.__catch_report_data(
+                    'calibrated',
+                    response_data[1],
+                    response_data[2],
+                    response_data[3],
+                    metadata=js_cookie_challenge
+                )
+                return
+
             debug_response_data = getattr(self.__response, 'debug_response_data', None)
             if callable(debug_response_data) and primary_suppressed is not True:
                 self.__clear_filtered_progress()
@@ -2598,6 +2863,119 @@ class Browser(Filter):
                     return True
 
         return False
+
+    @classmethod
+    def __match_js_cookie_reload_challenge(cls, response_object, response_data):
+        """
+        Match JavaScript cookie bootstrap pages emitted as 2xx responses.
+
+        Some hosting frontends return a small 200 HTML page that only sets a
+        browser cookie and reloads the current URL. Browsers execute the script
+        and then receive the real origin response, but raw scanners see the
+        bootstrap page as a false positive success. Treat only script-only
+        cookie+reload gates as filtered scan noise.
+
+        :param object response_object: raw response object
+        :param tuple response_data: legacy classified response tuple
+        :return: calibration-like metadata when the response should be filtered
+        :rtype: dict|None
+        """
+
+        code = cls.__extract_response_code(response_object, response_data)
+        if code is None or code < 200 or code >= 300:
+            return None
+
+        body = cls.__response_body_text(response_object)
+        if not body:
+            return None
+
+        if len(body) > 2048:
+            return None
+
+        content_type = str(cls.__get_header_value(response_object, 'content-type') or '').lower()
+        if content_type and 'html' not in content_type:
+            return None
+
+        lowered = body.lower()
+        compact = re.sub(r'\s+', '', lowered)
+
+        if 'document.cookie' not in compact:
+            return None
+
+        if 'location.reload(' not in compact and 'window.location.reload(' not in compact:
+            return None
+
+        if cls.__has_useful_html_controls(lowered) is True:
+            return None
+
+        if cls.__visible_text_without_scripts(body):
+            return None
+
+        known_cookie_gate = any(marker in compact for marker in (
+            'beget=begetok',
+            '__js_p_=',
+        ))
+        if known_cookie_gate is not True:
+            script_only = compact.startswith('<html><head><script') or compact.startswith('<script')
+            if script_only is not True:
+                return None
+
+        return {
+            'calibration_score': 1.0,
+            'calibration_reason': 'js-cookie-reload-challenge',
+        }
+
+    @staticmethod
+    def __response_body_text(response_object):
+        """
+        Decode response body defensively for lightweight response guards.
+
+        :param object response_object: raw response object
+        :return: decoded response body
+        :rtype: str
+        """
+
+        try:
+            return helper.decode(response_object.data)
+        except (AttributeError, TypeError, UnicodeError):
+            return ''
+
+    @staticmethod
+    def __has_useful_html_controls(body):
+        """
+        Return True when HTML contains user-facing controls or content containers.
+
+        :param str body: decoded lower-case response body
+        :return: whether the page looks like useful content
+        :rtype: bool
+        """
+
+        return re.search(
+            r'<\s*(?:form|input|textarea|select|button|table|main|article|section|pre|code)\b',
+            str(body or ''),
+            flags=re.IGNORECASE,
+        ) is not None
+
+    @staticmethod
+    def __visible_text_without_scripts(body):
+        """
+        Extract visible text after removing script/style blocks and tags.
+
+        :param str body: decoded response body
+        :return: normalized visible text
+        :rtype: str
+        """
+
+        parser = _VisibleTextExtractor()
+        try:
+            parser.feed(str(body or ''))
+            parser.close()
+        except Exception:
+            value = re.sub(r'<[^>]+>', ' ', str(body or ''))
+            value = re.sub(r'\s+', ' ', value)
+            return value.strip()
+
+        return parser.text()
 
     @staticmethod
     def __is_soft404_suppressor_response(response_object, primary_bucket, response_code):
@@ -3839,8 +4217,12 @@ class Browser(Filter):
             self.__result = {
                 'total': helper.counter(),
                 'items': helper.list(),
-                'report_items': helper.list()
+                'report_items': helper.list(),
+                'transport_failed': [],
             }
+
+        if isinstance(self.__result, dict) and not isinstance(self.__result.get('transport_failed'), list):
+            self.__result['transport_failed'] = []
         if not hasattr(self, '_Browser__waf_safe_lock'):
             self.__waf_safe_lock = threading.RLock()
 
