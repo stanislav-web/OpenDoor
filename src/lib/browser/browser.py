@@ -23,6 +23,7 @@ import threading
 import time
 import uuid
 from urllib.parse import unquote, urlsplit, urlunsplit
+from html.parser import HTMLParser
 from .session import SessionManager, SessionError
 from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError
 from src.core import FileSystemError
@@ -53,6 +54,59 @@ from .workspace import ScanTempWorkspace
 
 class _WafGuardStop(Exception):
     """Internal sentinel used to stop wordlist streaming after WAF guard triggers."""
+
+
+class _VisibleTextExtractor(HTMLParser):
+    """Extract visible text while ignoring script/style-like blocks."""
+
+    HIDDEN_TAGS = {'script', 'style', 'noscript', 'template'}
+
+    def __init__(self):
+        """Initialize the bounded visible text collector."""
+
+        HTMLParser.__init__(self, convert_charrefs=True)
+        self._hidden_depth = 0
+        self._chunks = []
+
+    def handle_starttag(self, tag, _attrs):
+        """Track hidden HTML blocks.
+
+        :param str tag: normalized start tag name
+        :param list _attrs: parsed tag attributes, unused
+        :return: None
+        """
+
+        if str(tag or '').lower() in self.HIDDEN_TAGS:
+            self._hidden_depth += 1
+
+    def handle_endtag(self, tag):
+        """Leave hidden HTML blocks.
+
+        :param str tag: normalized end tag name
+        :return: None
+        """
+
+        if str(tag or '').lower() in self.HIDDEN_TAGS and self._hidden_depth > 0:
+            self._hidden_depth -= 1
+
+    def handle_data(self, data):
+        """Collect visible text chunks only.
+
+        :param str data: text node content
+        :return: None
+        """
+
+        if self._hidden_depth <= 0:
+            self._chunks.append(str(data or ''))
+
+    def text(self):
+        """Return normalized visible text.
+
+        :return: whitespace-normalized visible text
+        :rtype: str
+        """
+
+        return ' '.join(' '.join(self._chunks).split())
 
 
 class Browser(Filter):
@@ -2912,11 +2966,16 @@ class Browser(Filter):
         :rtype: str
         """
 
-        value = re.sub(r'<script\b[^>]*>.*?</script\s*>', ' ', str(body or ''), flags=re.DOTALL | re.IGNORECASE)
-        value = re.sub(r'<style\b[^>]*>.*?</style\s*>', ' ', value, flags=re.DOTALL | re.IGNORECASE)
-        value = re.sub(r'<[^>]+>', ' ', value)
-        value = re.sub(r'\s+', ' ', value)
-        return value.strip()
+        parser = _VisibleTextExtractor()
+        try:
+            parser.feed(str(body or ''))
+            parser.close()
+        except Exception:
+            value = re.sub(r'<[^>]+>', ' ', str(body or ''))
+            value = re.sub(r'\s+', ' ', value)
+            return value.strip()
+
+        return parser.text()
 
     @staticmethod
     def __is_soft404_suppressor_response(response_object, primary_bucket, response_code):

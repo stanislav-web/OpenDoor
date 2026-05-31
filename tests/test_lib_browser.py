@@ -2849,6 +2849,38 @@ class TestBrowser(unittest.TestCase):
 
         self.assertIsNone(actual)
 
+    def test_js_cookie_reload_challenge_helper_handles_multiline_script_end_tag(self):
+        """JS cookie challenge guard should ignore script bodies without regex HTML filtering."""
+
+        response = SimpleNamespace(
+            status=200,
+            headers={'Content-Type': 'text/html'},
+            data=(
+                "<html><head><script>document.cookie='beget=begetok';"
+                "location.reload();</script\t\n></head><body></body></html>"
+            ).encode('utf-8'),
+        )
+
+        actual = Browser._Browser__match_js_cookie_reload_challenge(
+            response,
+            ('success', 'http://example.com/adminer-4.2.3-sk.php', '120B', '200'),
+        )
+
+        self.assertIsNotNone(actual)
+        self.assertEqual(actual['calibration_reason'], 'js-cookie-reload-challenge')
+
+    def test_visible_text_without_scripts_should_ignore_script_and_style_blocks(self):
+        """Visible text extraction should avoid script/style regex parsing."""
+
+        body = (
+            "<html><head><script>document.cookie='x';location.reload();</script\t\n>"
+            "<style>.hidden{display:none}</style></head><body><p>Useful text</p></body></html>"
+        )
+
+        actual = Browser._Browser__visible_text_without_scripts(body)
+
+        self.assertEqual(actual, 'Useful text')
+
     def test_http_request_should_put_calibration_matches_into_calibrated_bucket(self):
         """Browser.__http_request() should classify calibration matches as calibrated."""
 
