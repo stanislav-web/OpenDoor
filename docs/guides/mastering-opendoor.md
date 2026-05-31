@@ -2,7 +2,7 @@
 
 Mastering OpenDoor is a practical article series for learning authorized web reconnaissance, context-aware directory discovery, response analysis, and report-driven exposure validation with OpenDoor.
 
-The full articles are intended for Medium. This page is the official companion page for stable commands, lab setup, and responsible-use boundaries.
+The full articles are published on Medium. This page is the official companion page for stable commands, lab setup, and responsible-use boundaries.
 
 > Use OpenDoor only on systems you own or have explicit permission to test.
 
@@ -12,11 +12,9 @@ The full articles are intended for Medium. This page is the official companion p
 
 | Article | Status | Focus |
 |---|---|---|
-| Part 1 — Context-Aware Discovery | Planned | Installation, first scan, fingerprint-first workflow, response buckets, and basic reports. |
-| Part 2 — Low-Noise Recon | Planned | Auto-calibration, response filters, sniffers, WAF-safe scanning, and practical scan profiles. |
+| [Part 1 — Context-Aware Discovery](https://medium.com/@stanisov/mastering-opendoor-context-aware-web-recon-beyond-directory-brute-force-part-1-cc13eda8cd3d) | Published | Local lab setup, first scan, fingerprint-first workflow, response buckets, body-aware sniffers, and HTML/JSON/SARIF reports. |
+| Part 2 — Low-Noise Recon | Planned | Auto-calibration, response filters, WAF-safe scanning, and practical scan profiles. |
 | Part 3 — Automation and CI/CD | Planned | JSON, HTML, SQLite, SARIF, fail-on buckets, report diffing, and exposure regression checks. |
-
-Medium links will be added after publication.
 
 ---
 
