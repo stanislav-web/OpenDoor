@@ -53,6 +53,8 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 
 Hands-on article series for learning OpenDoor through reproducible, authorized web reconnaissance workflows.
 
+![OpenDoor](https://raw.githubusercontent.com/stanislav-web/OpenDoor/master/examples/screenshots/cli.png)
+
 - [Part 1 — Context-Aware Web Recon Beyond Directory Brute Force](https://medium.com/@stanisov/mastering-opendoor-context-aware-web-recon-beyond-directory-brute-force-part-1-cc13eda8cd3d)
 - [Series companion page](https://opendoor.readthedocs.io/guides/mastering-opendoor/)
 
