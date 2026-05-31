@@ -8,13 +8,11 @@ OpenDoor supports single-target and batch scanning, custom wordlists, response f
 
 > Use OpenDoor only on systems you own or have explicit permission to test.
 
-![OpenDoor-cli](https://raw.githubusercontent.com/stanislav-web/OpenDoor/master/examples/screenshots/cli.png)
+![OpenDoor](https://github.com/stanislav-web/OpenDoor/raw/master/logo.png)
 
 ---
 
 ## 🚀 Start here
-
-
 
 | Page | Purpose |
 |---|---|
