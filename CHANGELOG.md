@@ -1,10 +1,9 @@
 CHANGELOG
 =======
-v5.16.2 (31.06.2026)
+v5.16.2 (31.05.2026)
 ---------------------------
 - (critical) fixed scan crashes caused by corrupted gzip/encoded HTTP responses by handling `DecodeError` as a recoverable transport failure instead of aborting worker threads.
-- (fix) JavaScript cookie-gate bypass pages such as  `document.cookie` + `location.reload()` responses are no longer reported as `OK` findings.
-- (fix) transport-exhausted directory entries are now saved to `transport_failed.txt` and JSON diagnostics, making temporary network-related wordlist coverage loss visible without changing scan scheduling.
+- (fix) JavaScript cookie-gate bootstrap pages such as `document.cookie` + `location.reload()` responses are no longer reported as `OK` findings.
 - (fix) subdomain scans so missing/no-response candidates are skipped without triggering the directory retry fail-streak abort guard.
 - (fix) directory scan prefix normalization so `--prefix ex` and `--prefix ex/` both scan under `/ex/<path>` instead of concatenating paths as `/ex<path>`.
 - (fix) reduced WAF-safe auto-calibration noise by using neutral calibration probe paths when `--waf-safe-mode` is enabled, avoiding high-risk `.php`, `.map`, `admin`, and `wp-*` probe shapes.
@@ -18,8 +17,7 @@ v5.16.2 (31.06.2026)
 - (fix) `--fingerprint` now detects DataLife Engine (DLE) from conservative runtime globals and engine asset signals.
 - (fix) `--fingerprint` now prefers Webflow hosted-platform signals over endpoint-only WordPress static path artifacts.
 - (fix) `--fingerprint` now detects CMS.S3 / Megagroup from strong root-page builder/runtime markers without relying on generic WordPress endpoint probes.
-- (enhancement) scans automatic PAUSE after repeated transport failures to avoid burning through the wordlist during temporary network outages.
-- (enhancement) exhausted directory entries are now tracked in `transport_failed.txt` and JSON diagnostics.
+- (fix) transport-exhausted directory entries are now tracked in `transport_failed.txt` and JSON diagnostics, and scans automatically pause after repeated transport failures to avoid burning through the wordlist during temporary network outages.
 - (enhancement) added Camaleon CMS without adding active probes.
 - (enhancement) added Evolution CMS fingerprint detection.
 - (enhancement) added strong UMI.CMS fingerprint detection rules.
@@ -27,9 +25,10 @@ v5.16.2 (31.06.2026)
 - (enhancement) added conservative MogutaCMS fingerprint detection without active probes.
 - (enhancement) added Ruby on Rails fingerprint detection with conservative passive CSRF, Rails UJS/Turbo, asset-pipeline and Rails error markers while avoiding standalone Rack.
 - (enhancement) reduced `--sniff malware` false positives for standard Bitrix admin login pages by allowlisting the built-in hidden `auth_frame` iframe only when strong Bitrix login markers are present.
+- (enhancement) `--sniff secret` now detects additional low-noise token patterns, including GitHub fine-grained tokens, Square-style tokens, leaked bearer headers and expanded credential assignments.
 - (ui) clarified Runtime Diagnostics queue accounting by showing consumed items, submitted HTTP jobs, and pre-request skipped items separately.
 - (ui) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt visible after in-flight worker output drains and by documenting Enter/C continue and E/Q abort semantics.
-- (dictionary) cleaned and normalized the internal directories list (+1244 potential interesting paths).
+- (dictionary) cleaned and normalized the internal directories list (+1247 potential interesting paths).
 - (docs) added a `Mastering OpenDoor` companion documentation page for the upcoming article series.
 - (deps-dev) [PR#115](https://github.com/stanislav-web/OpenDoor/pull/115) bump ruff from 0.15.13 to 0.15.14 in the python-runtime-dependencies group.
 
