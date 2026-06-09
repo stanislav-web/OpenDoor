@@ -114,3 +114,12 @@ class TestSkipSizesResponsePlugin(unittest.TestCase):
         )
 
         self.assertEqual(plugin.process(response), 'skip')
+
+    def test_invalid_range_token_falls_back_to_exact_legacy_value(self):
+        """Invalid range-looking tokens should remain legacy exact-size values."""
+
+        plugin = SkipSizesResponsePlugin('2-x')
+
+        self.assertEqual(plugin.SIZE_VALUES, ['2-xKB'])
+        self.assertEqual(plugin.RANGE_VALUES, [])
+

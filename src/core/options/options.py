@@ -90,6 +90,15 @@ class Options(object):
                 "type": str
             },
             {
+                "group": "request",
+                "args": None,
+                "argl": "--crawl",
+                "default": None,
+                "action": "store_true",
+                "help": "Discover same-origin links from HTML responses and enqueue them through the normal scan pipeline",
+                "type": bool
+            },
+            {
                 "group": "session",
                 "args": None,
                 "argl": "--session-save",
@@ -204,6 +213,15 @@ class Options(object):
                 "default": False,
                 "action": "store_true",
                 "help": "Accept and route cookies from responses",
+                "type": bool
+            },
+            {
+                "group": "request",
+                "args": None,
+                "argl": "--follow-redirects",
+                "default": False,
+                "action": "store_true",
+                "help": "Follow bounded same-host redirects and classify the final response",
                 "type": bool
             },
             {
@@ -599,7 +617,7 @@ class Options(object):
                 "argl": "--sniff",
                 "default": None,
                 "action": "store",
-                "help": "Response sniff plugins (shadow,secret,stacktrace,indexof,collation,file,skipempty,skipsizes=NUM:NUM...)",
+                "help": "Response sniff plugins (endpoint,shadow,secret,stacktrace,indexof,collation,file,skipempty,skipsizes=NUM:NUM...)",
                 "type": str
             },
             {
@@ -825,6 +843,8 @@ class Options(object):
                             or (arg == 'delay' and value is not None) \
                             or (arg == 'port' and value is not None) \
                             or (arg == 'method' and value is not None) \
+                            or (arg == 'crawl' and value is not None) \
+                            or (arg == 'follow_redirects' and value is not None) \
                             or (arg == 'threads' and value is not None) \
                             or (arg == 'fingerprint' and value is not None) \
                             or (arg in ['waf_detect', 'waf_safe_mode', 'waf_guard'] and value is not None) \

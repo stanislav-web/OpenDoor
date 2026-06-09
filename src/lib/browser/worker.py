@@ -30,6 +30,8 @@ class Worker(threading.Thread):
 
     """Worker class"""
 
+    STOP_TASK = object()
+
     def __init__(self, queue, num_threads, timeout=0, error_callback=None):
         """
         Init thread worker
@@ -176,7 +178,13 @@ class Worker(threading.Thread):
         :return: None
         """
 
-        func, args, kargs = self.__queue.get(block=True)
+        task = self.__queue.get(block=True)
+        if task is self.STOP_TASK:
+            self.__running = False
+            self.__queue.task_done()
+            return
+
+        func, args, kargs = task
         self.counter += 1
         self.__task_label = self.__build_task_label(args, kargs)
         self.__task_started_at = time.monotonic()

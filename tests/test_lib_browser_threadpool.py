@@ -56,6 +56,7 @@ class TestBrowserThreadPool(unittest.TestCase):
             logger.removeHandler(handler)
 
         self._pool.join()
+        self._pool.close()
 
     def test_size(self):
         """ThreadPool.size test."""
@@ -99,6 +100,53 @@ class TestBrowserThreadPool(unittest.TestCase):
         """ThreadPool.add() test."""
 
         self.assertIs(self._pool.add(self.__test_function, 1), None)
+
+    def test_add_rechecks_runtime_state_after_pause_request(self):
+        """ThreadPool.add() should not enqueue when pause handling stops the pool."""
+
+        pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+
+        def stop_pool():
+            pool.is_started = False
+
+        with patch.object(pool, '_ThreadPool__pause_if_requested', side_effect=stop_pool), \
+                patch.object(pool, '_ThreadPool__enqueue_with_pause_resume') as enqueue_mock:
+            self.assertIsNone(pool.add(self.__test_function, 1))
+
+        enqueue_mock.assert_not_called()
+        pool.close()
+
+    def test_record_worker_error_keeps_first_exception(self):
+        """ThreadPool should preserve the first worker error for deterministic propagation."""
+
+        pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+        first = RuntimeError('first')
+        second = RuntimeError('second')
+
+        pool._ThreadPool__record_worker_error(first)
+        pool._ThreadPool__record_worker_error(second)
+
+        self.assertIs(getattr(pool, '_ThreadPool__worker_error'), first)
+        pool.close()
+
+    def test_close_stops_worker_threads(self):
+        """ThreadPool.close() should stop idle worker threads instead of leaving them blocked."""
+
+        pool = ThreadPool(num_threads=2, total_items=2, timeout=0)
+        pool.join()
+
+        pool.close()
+
+        workers = getattr(pool, '_ThreadPool__workers')
+        self.assertTrue(all(worker.is_alive() is False for worker in workers))
+
+    def test_close_is_idempotent(self):
+        """ThreadPool.close() should tolerate repeated cleanup calls."""
+
+        pool = ThreadPool(num_threads=1, total_items=1, timeout=0)
+        pool.close()
+
+        self.assertIsNone(pool.close())
 
     def pause(self):
         """

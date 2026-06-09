@@ -108,11 +108,34 @@ class Debug(DebugProvider):
 
         return self.__level
 
+    @staticmethod
+    def _extract_custom_user_agent(headers):
+        """Return an explicit User-Agent value from custom headers when present.
+
+        :param list[str] headers: configured request headers
+        :return: explicit User-Agent value or None
+        :rtype: str | None
+        """
+
+        for raw_header in headers or []:
+            if ':' not in str(raw_header):
+                continue
+
+            key, value = str(raw_header).split(':', 1)
+            if key.strip().lower() == 'user-agent' and value.strip():
+                return value.strip()
+
+        return None
+
     def debug_user_agents(self):
         """Debug info for user agent."""
 
         if self.is_scan_debug():
-            if self.__cfg.is_random_user_agent is True:
+            custom_user_agent = self._extract_custom_user_agent(getattr(self.__cfg, 'headers', []))
+
+            if custom_user_agent:
+                tpl.debug(key='custom_browser', browser=custom_user_agent)
+            elif self.__cfg.is_random_user_agent is True:
                 tpl.debug(key='random_browser')
             else:
                 tpl.debug(key='browser', browser=self.__cfg.user_agent)
@@ -263,16 +286,37 @@ class Debug(DebugProvider):
     def debug_request_uri(self, status, request_uri, **kwargs):
         """Debug request_uri."""
 
-        percentage = tpl.line(msg=helper.percent(kwargs.get('items_size', 0), kwargs.get('total_size', 1)), color='cyan')
-        total_len = len(str(abs(kwargs.get('total_size', 1))))
+        progress_total = kwargs.get('base_total_size') or kwargs.get('total_size', 1)
+        progress_current = kwargs.get('items_size', 0)
+        crawl_enqueued = int(kwargs.get('crawl_enqueued_size') or 0)
+        crawl_processed = int(kwargs.get('crawl_processed_size') or 0)
+        if crawl_enqueued > 0:
+            progress_current = max(0, progress_current - crawl_processed)
+        percentage = tpl.line(msg=helper.percent(progress_current, progress_total), color='cyan')
+        total_len = len(str(abs(progress_total)))
+        current_label = '{0:0{l}d}'.format(progress_current, l=total_len)
+        if crawl_enqueued > 0:
+            current_label = '{0}+{1}'.format(progress_current, crawl_enqueued)
 
         if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
-            urlpath = helper.parse_url(request_uri).path
+            parsed_uri = helper.parse_url(request_uri)
+            urlpath = parsed_uri.path
+            if parsed_uri.query:
+                urlpath = '{0}?{1}'.format(urlpath, parsed_uri.query)
         else:
             urlpath = request_uri
 
-        if status in ['success', 'file', 'certificate', 'auth']:
+        if kwargs.get('request_source') == 'crawl':
+            urlpath = '[crawl] {0}'.format(urlpath)
+
+        if status in ['success', 'certificate', 'auth']:
             request_uri = tpl.line(key=status, color='green', url=urlpath)
+        elif status in ['file']:
+            request_uri = '{0} ({1}) {2}'.format(
+                tpl.line(msg='OK', color='green'),
+                tpl.line(msg='File', color='red'),
+                tpl.line(msg=urlpath, color='green')
+            )
         elif status in ['indexof']:
             request_uri = '{0} ({1}) {2}'.format(
                 tpl.line(msg='OK', color='green'),
@@ -283,6 +327,12 @@ class Debug(DebugProvider):
             request_uri = '{0} ({1}) {2}'.format(
                 tpl.line(msg='OK', color='green'),
                 tpl.line(msg='Malware', color='red'),
+                tpl.line(msg=urlpath, color='green')
+            )
+        elif status in ['endpoint']:
+            request_uri = '{0} ({1}) {2}'.format(
+                tpl.line(msg='OK', color='green'),
+                tpl.line(msg='Endpoint', color='red'),
                 tpl.line(msg=urlpath, color='green')
             )
         elif status in ['secret']:
@@ -314,7 +364,17 @@ class Debug(DebugProvider):
         elif status in ['bad', 'forbidden']:
             request_uri = tpl.line(key='forbidden', color='yellow', url=urlpath)
         elif status in ['redirect']:
-            request_uri = tpl.line(key='redirect', color='blue', url=urlpath, rurl=kwargs.get('redirect_uri'))
+            redirect_classification = kwargs.get('redirect_classification') or {}
+            marker = 'R'
+            target = kwargs.get('redirect_uri')
+            if isinstance(redirect_classification, dict) and redirect_classification.get('type'):
+                marker = 'R({0})'.format(redirect_classification.get('type'))
+                target = redirect_classification.get('display') or target
+            request_uri = '{0} {1} -> {2}'.format(
+                tpl.line(msg=marker, color='blue'),
+                tpl.line(msg=urlpath, color='green'),
+                tpl.line(msg=target or '-', color='blue')
+            )
         elif status in ['blocked']:
             waf_name = kwargs.get('waf_name')
             waf_confidence = kwargs.get('waf_confidence')
@@ -329,14 +389,14 @@ class Debug(DebugProvider):
 
         self.__clear = True if self.__catched else False
 
-        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'blocked', 'indexof', 'certificate', 'auth', 'stacktrace', 'secret', 'malware', 'shadow', 'openredirect']:
+        if status in ['success', 'file', 'bad', 'forbidden', 'redirect', 'blocked', 'indexof', 'certificate', 'auth', 'stacktrace', 'secret', 'malware', 'endpoint', 'shadow', 'openredirect']:
             sys.writels('', flush=True)
             tpl.info(
                 key='get_item',
                 clear=self.__clear,
                 percent=percentage,
-                current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
-                total=kwargs.get('total_size', 1),
+                current=current_label,
+                total=progress_total,
                 item=request_uri,
                 size=kwargs.get('content_size'),
                 code=kwargs.get('response_code', '-'),
@@ -352,8 +412,8 @@ class Debug(DebugProvider):
                 tpl.line_log(
                     key='get_item',
                     percent=percentage,
-                    current='{0:0{l}d}'.format(kwargs.get('items_size', 0), l=total_len),
-                    total=kwargs.get('total_size', 1),
+                    current=current_label,
+                    total=progress_total,
                     item=request_uri,
                     size=kwargs.get('content_size'),
                     code=kwargs.get('response_code', '-'),
@@ -487,9 +547,21 @@ class Debug(DebugProvider):
             secret_detection=None,
             shadow_detection=None,
             openredirect_detection=None,
-            malware_detection=None
+            malware_detection=None,
+            endpoint_detection=None,
+            redirect_classification=None,
+            **_metadata
     ):
-        """Debug response classification summary."""
+        """Debug response classification summary.
+
+        Additive response metadata must never crash runtime rendering.
+
+        :param dict|None endpoint_detection: Endpoint sniffer metadata.
+        :param dict|None redirect_classification: Passive redirect metadata.
+        :param dict _metadata: Future additive metadata ignored by this compact summary.
+        :return: True
+        :rtype: bool
+        """
 
         if not self.is_response_debug():
             return True

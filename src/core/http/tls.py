@@ -49,6 +49,60 @@ def maybe_build_ssl_context(is_tls_legacy):
     return None
 
 
+
+
+def emit_tls_legacy_policy(config, tpl):
+    """Emit debug output for opt-in legacy TLS compatibility.
+
+    :param object config: Runtime configuration object.
+    :param object tpl: Terminal/output provider.
+    :return: None
+    """
+
+    if getattr(config, 'is_tls_legacy', False) is True:
+        getattr(tpl, 'debug', lambda *args, **kwargs: True)(
+            msg='TLS legacy compatibility enabled: ciphers={0}'.format(TLS_LEGACY_CIPHERS)
+        )
+
+
+def tls_pool_kwargs(ssl_context):
+    """Return urllib3 TLS kwargs only when a custom SSL context is available.
+
+    :param ssl.SSLContext | None ssl_context: Optional custom SSL context.
+    :return: TLS keyword arguments for urllib3 pool constructors/managers.
+    :rtype: dict
+    """
+
+    if ssl_context is None:
+        return {}
+
+    return {'ssl_context': ssl_context}
+
+
+def warn_tls_transport_error(config, tpl, error, line_finisher=None):
+    """Store and print a compact TLS transport diagnostic when applicable.
+
+    :param object config: Runtime configuration object.
+    :param object tpl: Terminal/output provider.
+    :param Exception error: Source urllib3/OpenSSL exception.
+    :param callable | None line_finisher: Optional callback before terminal warning output.
+    :return: Diagnostic message or None when the error is not TLS-specific.
+    :rtype: str | None
+    """
+
+    message = describe_tls_transport_error(error)
+    if not message:
+        return None
+
+    setattr(config, 'last_transport_error', message)
+
+    if line_finisher is not None:
+        line_finisher()
+
+    tpl.warning(msg=message)
+    return message
+
+
 def _compact_error_message(error):
     """
     Format nested TLS/transport errors without multiline tracebacks.

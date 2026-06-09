@@ -124,6 +124,78 @@ class TestFingerprint(unittest.TestCase):
         self.assertEqual(result['name'], 'WordPress')
         self.assertGreaterEqual(result['confidence'], 90)
 
+    def test_detects_gravcms_from_session_cookie(self):
+        """Fingerprint should detect GravCMS from its default session cookie prefix."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><title>Flat file site</title></head><body>Home</body></html>',
+                {'Set-Cookie': 'grav-site-09f1269=abc; Path=/; HttpOnly; SameSite=Lax'}
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'GravCMS')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertGreaterEqual(result['confidence'], 70)
+        self.assertIn(
+            {'type': 'cookie', 'value': 'grav-site*|grav-admin*', 'weight': 8.0},
+            result['signals'],
+        )
+
+    def test_detects_gravcms_from_reversed_generator_meta_and_assets(self):
+        """Fingerprint should detect GravCMS when generator meta attributes are reversed."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><meta content="Grav CMS 1.7" name="generator"></head>'
+                '<body>'
+                '<link href="/user/themes/quark/css/site.css">'
+                '<script src="/user/plugins/form/assets/form.js"></script>'
+                '<script src="/system/assets/jquery/jquery-3.x.min.js"></script>'
+                '</body></html>',
+                {}
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'GravCMS')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertGreaterEqual(result['confidence'], 90)
+
+    def test_does_not_detect_gravcms_from_gravatar_generator(self):
+        """Fingerprint should not treat unrelated generator values containing grav as GravCMS."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head><meta name="generator" content="Gravatar Profile Exporter"></head>'
+                '<body><img src="https://www.gravatar.com/avatar/test"></body></html>',
+                {}
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertNotIn('GravCMS', [candidate['name'] for candidate in result['candidates']])
+
     def test_detects_wordpress_from_corroborated_static_endpoint_probes(self):
         """Fingerprint should use restricted WordPress endpoints only with root evidence."""
 
@@ -816,6 +888,200 @@ class TestFingerprint(unittest.TestCase):
 
         self.assertEqual(result['category'], 'custom')
         self.assertEqual(result['name'], 'Unknown custom stack')
+
+    def test_detects_una_cms_from_powered_footer_and_assets(self):
+        """Fingerprint should detect UNA CMS from passive brand and frontend markers."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html class="bx-media-phone"><head>'
+                '<meta name="description" content="Community powered by UNA Platform">'
+                '<link rel="stylesheet" href="gzip_loader.php?file=bx_templ_css_abcd.css">'
+                '<script src="gzip_loader.php?file=bx_templ_js_abcd.js"></script>'
+                '</head><body class="bx-main">'
+                '<div id="bx-toolbar" class="bx-toolbar-content bx-menu-toolbar"></div>'
+                '<img src="image_transcoder.php?o=bx_photos_image&h=123">'
+                '<footer>Powered by UNA</footer>'
+                '</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'UNA CMS')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertGreaterEqual(result['confidence'], 80)
+        self.assertIn('powered by una', [signal['value'] for signal in result['signals']])
+
+    def test_detects_una_cms_from_generated_namespace_without_branding(self):
+        """Fingerprint should detect UNA CMS from generated assets plus frontend namespace."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head>'
+                '<link rel="stylesheet" href="/gzip_loader.php?file=bx_templ_css_123.css">'
+                '</head><body class="bx-main">'
+                '<div class="bx-db-container bx-def-padding">Box</div>'
+                '<div class="bx-toolbar-content"><ul class="bx-menu-toolbar"></ul></div>'
+                '<script src="/modules/boonex/timeline/js/main.js"></script>'
+                '</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'UNA CMS')
+        self.assertGreaterEqual(result['confidence'], 70)
+        self.assertIn('gzip_loader.php?file=bx_templ_+modules/boonex/+bx-def-+bx-main+bx-toolbar-content', [signal['value'] for signal in result['signals']])
+
+    def test_detects_una_cms_from_betanet_style_platform_markers(self):
+        """Fingerprint should detect UNA CMS from platform assets, not site-specific routes."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head>'
+                '<link href="https://betanet.net/gzip_loader.php?file=bx_templ_css_bd90.css" rel="stylesheet">'
+                '<script src="https://betanet.net/gzip_loader.php?file=bx_templ_js_b1c7.js"></script>'
+                '<script>var aDolLang = {"_sys_loading": "Loading..."}; '
+                'bx_redirect_for_external_links($(".bx-def-vanilla-html"));</script>'
+                '</head><body class="bx-artificer bx-dir-ltr bx-def-font bx-def-color-bg-page">'
+                '<div class="bx-popup-close-wrapper bx-def-media-desktop-hide"></div>'
+                '<div class="bx-db-container bx-def-color-bg-block"></div>'
+                '<script>window["oFormSysAccountCreate"] = new BxDolForm({"sObject": "sys_account"});</script>'
+                '</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'UNA CMS')
+        self.assertGreaterEqual(result['confidence'], 70)
+        self.assertIn(
+            'gzip_loader.php?file=bx_templ_+bx-def-+bx-db-container+bxdolform+bx_redirect_for_external_links',
+            [signal['value'] for signal in result['signals']],
+        )
+
+    def test_does_not_detect_una_cms_from_generic_gzip_loader_and_app_routes(self):
+        """Fingerprint should ignore site route names without UNA platform namespace evidence."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head>'
+                '<link rel="stylesheet" href="/gzip_loader.php?file=9f4c8e7a.css">'
+                '<script src="/gzip_loader.php?file=8b12f3d4.js"></script>'
+                '</head><body>'
+                '<noscript>This site requires JavaScript! Please, enable it in the browser!</noscript>'
+                '<nav>'
+                '<a href="/groups">Groups</a>'
+                '<a href="/discussions-home">Discussions</a>'
+                '<a href="/courses-home">Courses</a>'
+                '<a href="/products-home">Market</a>'
+                '</nav>'
+                '</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'UNA CMS' for candidate in result['candidates']))
+
+    def test_does_not_detect_una_cms_from_generic_gzip_loader_only(self):
+        """Fingerprint should not classify generic pages from gzip-loader alone."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><head>'
+                '<script src="/gzip_loader.php?file=site.js"></script>'
+                '</head><body class="bx-main">'
+                '<main class="bx-def-padding bx-db-container">Generic optimized application shell</main>'
+                '</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'UNA CMS' for candidate in result['candidates']))
+
+    def test_does_not_detect_una_cms_from_generic_text_only(self):
+        """Fingerprint should not classify pages that merely discuss UNA CMS."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><article>UNA CMS is one option for community projects.</article></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'UNA CMS' for candidate in result['candidates']))
+
+    def test_does_not_detect_una_cms_from_generic_bx_classes_only(self):
+        """Fingerprint should require UNA asset/module corroboration for bx-prefixed classes."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body class="bx-main">'
+                '<div class="bx-def-padding bx-db-container bx-toolbar-content">Generic UI</div>'
+                '</body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(404, 'Not Found', {}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'UNA CMS' for candidate in result['candidates']))
 
     def test_detects_5145_regional_cms_and_sitebuilder_catalog(self):
         """Fingerprint should detect regional CMS and site-builder catalog additions."""
@@ -2450,6 +2716,21 @@ class TestFingerprint(unittest.TestCase):
         self.assertIn('endpoint-redirect', [signal['type'] for signal in result['signals']])
         self.assertNotIn('Strapi', [candidate['name'] for candidate in result['candidates']])
 
+    def test_dotcms_probe_deduplicates_repeated_header_evidence(self):
+        """dotCMS endpoint probing should keep repeated header evidence compact."""
+
+        config = FakeConfig()
+        responses = {
+            ('HEAD', 'http://example.com/admin/init'): FakeResponse(200, '', {'X-Dot-Server': 'dotCMS/24'}),
+            ('HEAD', 'http://example.com/admin/init/'): FakeResponse(200, '', {'X-Dot-Server': 'dotCMS/24'}),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        signals = detector._probe_dotcms_endpoint_signals('http://example.com/')
+
+        self.assertEqual(signals, [{'type': 'header', 'value': 'x-dot-server=dotCMS/24', 'weight': 10}])
+
+
     def test_should_not_detect_strapi_from_admin_init_redirect_to_dotadmin(self):
         """Fingerprint should not classify dotCMS admin redirects as Strapi."""
 
@@ -2691,3 +2972,139 @@ class TestFingerprintCoverageGapBranches(unittest.TestCase):
 
         self.assertEqual(result['name'], 'dotCMS')
         self.assertIn('dotCMS', [candidate['name'] for candidate in result['candidates']])
+
+    def test_detects_nubex_cms_from_customer_footer_branding(self):
+        """Fingerprint should detect Nubex CMS from explicit customer-site footer branding."""
+
+        config = FakeConfig(host='afrodita.karelia.ru', scheme='https://', port=443)
+        base = 'https://afrodita.karelia.ru/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><footer>© Конструктор&nbsp;сайтов '
+                '<a href="https://nubex.ru/">Nubex.ru</a></footer></body></html>',
+                {},
+            ),
+            ('GET', 'https://afrodita.karelia.ru{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Nubex CMS')
+        self.assertEqual(result['runtime']['name'], 'PHP')
+        self.assertIn('Конструктор сайтов Nubex.ru', [signal['value'] for signal in result['signals']])
+
+    def test_detects_nubex_cms_from_hosted_customer_subdomain(self):
+        """Fingerprint should detect Nubex CMS from hosted *.nubex.ru customer domains."""
+
+        config = FakeConfig(host='cdt-strekoza.nubex.ru', scheme='https://', port=443)
+        base = 'https://cdt-strekoza.nubex.ru/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><h1>Муниципальное бюджетное учреждение</h1></body></html>',
+                {},
+            ),
+            ('GET', 'https://cdt-strekoza.nubex.ru{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Nubex CMS')
+        self.assertIn('*.nubex.ru', [signal['value'] for signal in result['signals']])
+
+    def test_detects_nubex_cms_from_runtime_path_disclosure(self):
+        """Fingerprint should detect Nubex CMS from Nubex-specific PHP path disclosure."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                'Notice: Undefined offset: 1 in /srv/sites/data/nubex/site/htdocs/'
+                'classes/modules/stat/classes/libs/detect.php on line 394',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Nubex CMS')
+        self.assertIn('/srv/sites/data/nubex/site/htdocs/', [signal['value'] for signal in result['signals']])
+
+    def test_detects_nubex_cms_from_footer_even_when_admin_probes_look_strapi_like(self):
+        """Nubex footer branding should outrank generic Strapi-like admin endpoints."""
+
+        config = FakeConfig(host='opkarelia.ru', scheme='https://', port=443)
+        base = 'https://opkarelia.ru/'
+        homepage = (
+            '<html><body><main>Общественная Палата Республики Карелия</main>'
+            '<footer>Общественная Палата Республики Карелия 2016 г. '
+            '© Конструктор\xa0сайтов\xa0<a href="https://nubex.ru/">Nubex.ru</a>'
+            '</footer></body></html>'
+        )
+        responses = {
+            ('GET', base): FakeResponse(200, homepage, {'Server': 'nginx'}),
+            ('HEAD', 'https://opkarelia.ru/admin/init'): FakeResponse(200, '{}', {}),
+            ('HEAD', 'https://opkarelia.ru/admin'): FakeResponse(200, '<html><body>Admin</body></html>', {}),
+            ('GET', 'https://opkarelia.ru{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'cms')
+        self.assertEqual(result['name'], 'Nubex CMS')
+        self.assertIn('Strapi', [candidate['name'] for candidate in result['candidates']])
+        self.assertGreater(
+            next(candidate['score'] for candidate in result['candidates'] if candidate['name'] == 'Nubex CMS'),
+            next(candidate['score'] for candidate in result['candidates'] if candidate['name'] == 'Strapi'),
+        )
+
+    def test_does_not_detect_nubex_cms_from_generic_article_mention(self):
+        """Generic Nubex CMS mentions should not fingerprint the scanned site as Nubex."""
+
+        config = FakeConfig()
+        base = 'http://example.com/'
+        responses = {
+            ('GET', base): FakeResponse(
+                200,
+                '<html><body><article>Обзор CMS Nubex и других конструкторов сайтов.</article></body></html>',
+                {},
+            ),
+            ('GET', 'http://example.com{0}'.format(Fingerprint.NOT_FOUND_PROBE_PATH)): FakeResponse(
+                404,
+                'Not Found',
+                {},
+            ),
+        }
+
+        detector = Fingerprint(config=config, client=self._make_client(config, responses))
+        result = detector.detect()
+
+        self.assertEqual(result['category'], 'custom')
+        self.assertEqual(result['name'], 'Unknown custom stack')
+        self.assertFalse(any(candidate['name'] == 'Nubex CMS' for candidate in result['candidates']))

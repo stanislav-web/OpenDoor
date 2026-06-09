@@ -3,9 +3,9 @@
 import io
 import unittest
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
-from urllib3.exceptions import MaxRetryError, ProxySchemeUnknown, ReadTimeoutError
+from urllib3.exceptions import DecodeError, MaxRetryError, ProxySchemeUnknown, ReadTimeoutError
 from urllib3.response import HTTPResponse
 
 from src.core.http.exceptions import ProxyRequestError
@@ -111,6 +111,53 @@ class TestProxyExtra(unittest.TestCase):
 
         self.assertEqual(getattr(proxy, '_Proxy__get_next_proxy')(), 'http://three:8080')
         self.assertEqual(getattr(proxy, '_Proxy__get_next_proxy')(), 'http://one:8080')
+
+    def test_request_refreshes_managed_random_user_agent_for_each_proxy_request(self):
+        """Proxy.request() should refresh managed random User-Agent before every request."""
+
+        cfg = self.make_cfg(is_random_user_agent=True)
+        proxy = Proxy(cfg, self.make_debug(), tpl=MagicMock(), proxy_list=['http://unused'], agent_list=['UA-0'])
+
+        captured_headers = []
+
+        def fake_pool_request(*args, **kwargs):
+            captured_headers.append(dict(kwargs['headers']))
+            return HTTPResponse(status=200, body=b'ok', headers={})
+
+        with patch.object(proxy, '_Proxy__pool_request', side_effect=fake_pool_request), \
+                patch.object(Proxy, '_user_agent', new_callable=PropertyMock, create=True) as user_agent_mock:
+            user_agent_mock.side_effect = ['UA-1', 'UA-2']
+            proxy.request('http://example.com/a')
+            proxy.request('http://example.com/b')
+
+        self.assertEqual(captured_headers[0]['User-Agent'], 'UA-1')
+        self.assertEqual(captured_headers[1]['User-Agent'], 'UA-2')
+
+    def test_request_keeps_custom_user_agent_header_even_when_proxy_random_agent_enabled(self):
+        """Proxy.request() should not overwrite an explicit User-Agent header."""
+
+        cfg = self.make_cfg(
+            is_random_user_agent=True,
+            headers=['User-Agent: Custom-UA'],
+            header=None,
+        )
+        proxy = Proxy(cfg, self.make_debug(), tpl=MagicMock(), proxy_list=['http://unused'], agent_list=['UA-0'])
+
+        captured_headers = []
+
+        def fake_pool_request(*args, **kwargs):
+            captured_headers.append(dict(kwargs['headers']))
+            return HTTPResponse(status=200, body=b'ok', headers={})
+
+        with patch.object(proxy, '_Proxy__pool_request', side_effect=fake_pool_request), \
+                patch.object(Proxy, '_user_agent', new_callable=PropertyMock, create=True) as user_agent_mock:
+            user_agent_mock.side_effect = ['UA-1', 'UA-2']
+            proxy.request('http://example.com/a')
+            proxy.request('http://example.com/b')
+
+        self.assertEqual(captured_headers[0]['User-Agent'], 'Custom-UA')
+        self.assertEqual(captured_headers[1]['User-Agent'], 'Custom-UA')
+        user_agent_mock.assert_not_called()
 
     def test_get_proxy_type_detects_socks_https_and_http(self):
         """Proxy.__get_proxy_type() should classify supported proxy schemes."""
@@ -589,7 +636,7 @@ class TestProxyExtra(unittest.TestCase):
         self.assertIn('PySocks', str(context.exception))
 
     def test_debug_cookie_middleware_emits_accept_and_accepted_diagnostics(self):
-        """Proxy.__debug_cookie_middleware() should report accepted cookies when enabled."""
+        """RequestProvider._debug_cookie_middleware() should report accepted cookies when enabled."""
 
         cfg = self.make_cfg(accept_cookies=True)
         debug = self.make_debug(level=3)
@@ -598,7 +645,7 @@ class TestProxyExtra(unittest.TestCase):
         proxy = Proxy(cfg, debug, tpl=MagicMock(), proxy_list=['http://unused'], agent_list=['UA'])
         response = HTTPResponse(status=200, body=b'ok', headers={'Set-Cookie': 'sid=abc; Path=/'})
 
-        getattr(proxy, '_Proxy__debug_cookie_middleware')(response)
+        proxy._debug_cookie_middleware(debug, cfg.accept_cookies, response)
 
         debug.debug_cookie_accept_enabled.assert_called_once_with()
         debug.debug_cookie_accepted.assert_called_once_with('sid=abc')
@@ -803,6 +850,19 @@ class TestProxyExtra(unittest.TestCase):
 
         with self.assertRaisesRegex(ProxyRequestError, 'All rotating proxies are unavailable'):
             getattr(proxy, '_Proxy__get_available_proxies')()
+
+    def test_proxy_decode_error_is_quiet_for_non_directory_scans(self):
+        """Proxy.request() should not emit per-path decode warnings outside directory-like scans."""
+
+        cfg = self.make_cfg(scan='subdomains', is_standalone_proxy=False)
+        tpl = MagicMock()
+        proxy = Proxy(cfg, self.make_debug(), tpl=tpl, proxy_list=['http://proxy:8080'], agent_list=['UA'])
+
+        with patch.object(proxy, '_Proxy__pool_request', side_effect=DecodeError('broken')):
+            self.assertIsNone(proxy.request('http://api.example.com/test'))
+
+        tpl.warning.assert_not_called()
+
 
 
 if __name__ == '__main__':

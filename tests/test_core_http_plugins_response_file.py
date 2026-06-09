@@ -121,6 +121,93 @@ class TestFileResponsePlugin(unittest.TestCase):
 
         self.assertIsNone(plugin.process(response))
 
+    def test_request_filename_helper_handles_missing_and_empty_urls(self):
+        """Request filename extraction should safely handle missing URL metadata."""
+
+        response = self.make_response(body=b'', headers={})
+        response.opendoor_request_url = None
+        self.assertEqual(FileResponsePlugin._extract_request_filename(response), '')
+
+        response.opendoor_request_url = 'https://example.com'
+        self.assertEqual(FileResponsePlugin._extract_request_filename(response), '')
+
+    def test_detects_generic_db_path_without_body_or_content_type(self):
+        """Should classify arbitrary .db paths as file for HEAD-like responses."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(body=b'', headers={})
+        response.opendoor_request_url = 'https://example.com/assets/custom-cache.db'
+
+        self.assertEqual(plugin.process(response), 'file')
+
+    def test_detects_encoded_generic_db_path(self):
+        """Should classify URL-encoded .db path basenames."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(body=b'', headers={})
+        response.opendoor_request_url = 'https://example.com/assets/catalog%2Edb'
+
+        self.assertEqual(plugin.process(response), 'file')
+
+    def test_detects_thumbs_db_as_generic_db_path(self):
+        """Should classify Thumbs.db through the generic .db extension rule."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(body=b'', headers={})
+        response.opendoor_request_url = 'https://example.com/images/Thumbs.db'
+
+        self.assertEqual(plugin.process(response), 'file')
+
+    def test_detects_ole_compound_file_magic_as_file(self):
+        """Should classify OLE Compound File bodies as files."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(
+            body=b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1' + (b'\x00' * 16),
+            headers={}
+        )
+
+        self.assertEqual(plugin.process(response), 'file')
+
+    def test_db_path_does_not_override_html_fallback(self):
+        """Should not classify soft-200 HTML catch-all pages as files by path alone."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(
+            body=b'<html><body>Not found</body></html>',
+            headers={
+                'Content-Type': 'text/html; charset=utf-8',
+                'Content-Length': '35',
+            }
+        )
+        response.opendoor_request_url = 'https://example.com/assets/custom-cache.db'
+
+        self.assertIsNone(plugin.process(response))
+
+    def test_db_path_does_not_override_text_fallback(self):
+        """Should not classify textual fallback payloads as files by .db path."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(
+            body=b'not found',
+            headers={
+                'Content-Type': 'text/plain',
+                'Content-Length': '9',
+            }
+        )
+        response.opendoor_request_url = 'https://example.com/assets/custom-cache.db'
+
+        self.assertIsNone(plugin.process(response))
+
+    def test_non_db_path_with_empty_unknown_response_is_not_file(self):
+        """Should keep empty unknown non-.db responses out of file findings."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(body=b'', headers={})
+        response.opendoor_request_url = 'https://example.com/assets/custom-cache.bin'
+
+        self.assertIsNone(plugin.process(response))
+
     def test_returns_none_for_empty_binary_response_without_size(self):
         """Should not classify empty binary-like responses without content as file."""
 

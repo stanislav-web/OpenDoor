@@ -217,6 +217,31 @@ class TestShadowProbe(unittest.TestCase):
 
         self.assertEqual(probe.findings, 0)
 
+    def test_should_ignore_js_cookie_gate_base_and_candidate_responses(self):
+        """Should not build shadow signatures from JavaScript cookie-gate bootstrap pages."""
+
+        cookie_gate_body = (
+            b'<html><body><script>document.cookie="bpc=abc;Domain=www.familytree.ru;Path=/";'
+            b'document.location.href="http://www.familytree.ru/wp-login.php.tmp";'
+            b'</script></body></html>'
+        )
+        cookie_gate_response = self.make_response(body=cookie_gate_body)
+
+        self.assertIsNone(ShadowProbe.response_signature(cookie_gate_response))
+
+        request = MagicMock(return_value=cookie_gate_response)
+        probe = ShadowProbe(request, MagicMock())
+        with patch.object(probe, '_ShadowProbe__suffixes', ['.bak']):
+            self.assertEqual(probe.enqueue('https://www.familytree.ru/wp-login.php', cookie_gate_response, 'success'), 0)
+
+        base = self.make_response(body=b'<?php echo "stable application body"; ?>\n' * 8)
+        probe = ShadowProbe(request, MagicMock())
+        with patch.object(probe, '_ShadowProbe__suffixes', ['.bak']):
+            self.assertEqual(probe.enqueue('https://example.com/index.php', base, 'success'), 1)
+            probe.drain()
+
+        self.assertEqual(probe.findings, 0)
+
     def test_should_suppress_shadow_burst_when_control_matches_fallback(self):
         """Should suppress fallback-like shadow bursts without lowering real matching rules."""
 
@@ -702,6 +727,42 @@ class TestBrowserShadowIntegration(unittest.TestCase):
         self.assertEqual(debug_response_data.call_args.kwargs['response'], response)
         self.assertEqual(response.opendoor_shadow_detection, metadata['shadow_detection'])
         self.assertEqual(getattr(br, '_Browser__result')['total']['shadow'], 1)
+
+        item = getattr(br, '_Browser__result')['report_items']['shadow'][0]
+        self.assertIn('passive_finding', item)
+        self.assertEqual(item['passive_finding']['bucket'], 'shadow')
+        self.assertEqual(item['passive_finding']['type'], 'backup_copy')
+        self.assertEqual(item['passive_finding']['reason'], 'backup_copy_exposed')
+        self.assertEqual(item['passive_finding']['source']['signal'], 'active_followup_response')
+
+    def test_shadow_passive_finding_confidence_edges_and_invalid_inputs(self):
+        """Should normalize shadow passive finding confidence and reject bad inputs."""
+
+        medium = Browser._Browser__passive_shadow_metadata(
+            url='https://example.com/index.php.old',
+            code='not-a-status',
+            method='POST',
+            detection={
+                'type': 'backup_copy',
+                'confidence': 70,
+                'base_url': 'https://example.com/index.php',
+                'variant': '.old',
+            },
+        )
+        low = Browser._Browser__passive_shadow_metadata(
+            url='https://example.com/index.php.tmp',
+            code='200',
+            method='GET',
+            detection={'type': 'backup_copy', 'confidence': 69},
+        )
+
+        self.assertEqual(medium['passive_finding']['confidence'], 'medium')
+        self.assertEqual(medium['passive_finding']['source']['request_method'], 'POST')
+        self.assertEqual(medium['passive_finding']['source']['status'], 'not-a-status')
+        self.assertEqual(low['passive_finding']['confidence'], 'low')
+        self.assertEqual(low['passive_finding']['source']['status'], 200)
+        self.assertEqual(Browser._Browser__passive_shadow_metadata('', '200', 'GET', {'confidence': 90}), {})
+        self.assertEqual(Browser._Browser__passive_shadow_metadata('https://example.com/x', '200', 'GET', None), {})
 
     def test_debug_request_uri_renders_shadow_marker(self):
         """Should render shadow findings as OK plus red Shadow marker."""

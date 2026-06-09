@@ -170,3 +170,61 @@ class TestSqliteReportPlugin(unittest.TestCase):
             plugin = SqliteReportPlugin(self.target, self.data, directory='/custom/')
             with self.assertRaises(Exception):
                 plugin.process()
+
+        with patch('src.lib.reporter.plugins.sqlite.filesystem.makedir', return_value='/tmp/reports'), \
+                patch('src.lib.reporter.plugins.sqlite.filesystem.clear'), \
+                patch('src.lib.reporter.plugins.sqlite.filesystem.makefile'), \
+                patch('src.lib.reporter.plugins.sqlite.sqlite3.connect', side_effect=sqlite3.Error('connect boom')):
+            plugin = SqliteReportPlugin(self.target, self.data, directory='/custom/')
+            with self.assertRaises(Exception) as context:
+                plugin.process()
+
+        self.assertIn('connect boom', str(context.exception))
+
+
+class TestSqliteReportRedirectClassification(unittest.TestCase):
+    """SQLite redirect classification report tests."""
+
+    def test_sqlite_plugin_persists_redirect_classification_columns(self):
+        """SQLite rows should expose redirect classification metadata."""
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data = {
+                'items': {'redirect': ['https://example.com/login']},
+                'report_items': {
+                    'redirect': [{
+                        'url': 'https://example.com/login',
+                        'code': '302',
+                        'size': '0B',
+                        'redirect_classification': {
+                            'type': 'login',
+                            'reason': 'auth_gate_redirect',
+                            'location': '/login?next=/admin',
+                            'target_scheme': 'https',
+                            'target_host': 'example.com',
+                            'target_path': '/login',
+                            'same_origin': True,
+                            'cross_origin': False,
+                            'confidence': 'high',
+                        },
+                    }]
+                },
+                'total': {'redirect': 1},
+            }
+            plugin = SqliteReportPlugin('example.com', data, directory=temp_dir)
+            plugin.process()
+            database_path = os.path.join(temp_dir, 'example.com', 'example.com.sqlite')
+            connection = sqlite3.connect(database_path)
+            cursor = connection.cursor()
+            row = cursor.execute(
+                'SELECT redirect_type, redirect_reason, redirect_location, redirect_target_scheme, '
+                'redirect_target_host, redirect_target_path, redirect_same_origin, redirect_cross_origin, '
+                'redirect_confidence FROM items WHERE status = ?',
+                ('redirect',),
+            ).fetchone()
+            connection.close()
+
+        self.assertEqual(
+            row,
+            ('login', 'auth_gate_redirect', '/login?next=/admin', 'https', 'example.com', '/login', 1, 0, 'high')
+        )

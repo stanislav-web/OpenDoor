@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 from src.core.logger.logger import Logger
 from src.lib.browser.browser import Browser
+from src.lib.browser.crawl import CrawlState
 
 
 class TestBrowserFilteredProgress(unittest.TestCase):
@@ -384,6 +385,35 @@ class TestBrowserFilteredProgress(unittest.TestCase):
         self.assertTrue(result)
         self.assertIn('[02048/94736]', rendered)
         self.assertNotIn('[002048/94736]', rendered)
+
+    def test_emit_filtered_progress_should_keep_crawl_delta_after_queue_drain(self):
+        """Filtered progress should keep crawl delta separate from the base wordlist total."""
+
+        browser = self.make_browser(items_size=14695, total_items_size=96734)
+        crawl_state = CrawlState()
+        for index in range(56):
+            crawl_state.reserve('https://localhost/crawl-{0}'.format(index))
+            crawl_state.record_processed()
+        setattr(browser, '_Browser__crawl_state', crawl_state)
+        setattr(browser, '_Browser__reader', SimpleNamespace(total_lines=96678))
+        stdout = io.StringIO()
+
+        with patch('sys.stdout', stdout):
+            with patch('shutil.get_terminal_size', return_value=SimpleNamespace(columns=220)):
+                result = browser._Browser__emit_filtered_progress(
+                    'calibrated',
+                    ('success', 'https://localhost/portal/console', '212B', '404'),
+                    {'calibration_score': 1.0},
+                    request_url='https://localhost/portal/console',
+                )
+
+        output = stdout.getvalue()
+        rendered = output.split('\r')[-1]
+
+        self.assertTrue(result)
+        self.assertIn('[14639+56/96678]', rendered)
+        self.assertNotIn('[14695/96734]', rendered)
+        self.assertIn('https://localhost/portal/console', rendered)
 
     def test_emit_filtered_progress_should_keep_rendered_url_without_request_url(self):
         """Direct helper usage should remain backward-compatible without request URL."""

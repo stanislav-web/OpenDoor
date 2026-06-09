@@ -138,7 +138,7 @@ class Fingerprint(object):
     STATIC_CATEGORY = 'static'
     RUNTIME_CATEGORY = 'runtime'
     TECHNOLOGY_RUNTIME_MAP = {
-        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'MogutaCMS': 'PHP', 'CMS.S3 / Megagroup': 'PHP', 'Camaleon CMS': 'Ruby', 'Melbis Shop Platform': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
+        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'GravCMS': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'UNA CMS': 'PHP', 'MogutaCMS': 'PHP', 'Nubex CMS': 'PHP', 'CMS.S3 / Megagroup': 'PHP', 'Camaleon CMS': 'Ruby', 'Melbis Shop Platform': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
         'Express': 'Node.js', 'NestJS': 'Node.js', 'Fastify': 'Node.js', 'Koa': 'Node.js', 'Hapi': 'Node.js', 'Strapi': 'Node.js', 'Directus': 'Node.js', 'Ghost': 'Node.js', 'Next.js': 'Node.js', 'Nuxt': 'Node.js', 'Gatsby': 'Node.js', 'Astro': 'Node.js', 'Remix': 'Node.js', 'SvelteKit': 'Node.js', 'Docusaurus': 'Node.js', 'VitePress': 'Node.js', 'PencilBlue': 'Node.js',
         'React': 'JavaScript', 'Vue': 'JavaScript', 'Angular': 'JavaScript', 'Django': 'Python', 'Flask': 'Python', 'FastAPI': 'Python', 'Ruby on Rails': 'Ruby', 'Spree': 'Ruby', 'Spring': 'Java/JVM', 'Liferay': 'Java/JVM', 'OpenCms': 'Java/JVM', 'Hippo CMS': 'Java/JVM', 'dotCMS': 'Java/JVM', 'ASP.NET': '.NET', 'Microsoft SharePoint': '.NET', 'DNN Platform': '.NET', 'Orchard CMS': '.NET', 'Sitecore': '.NET', 'Sitefinity': '.NET', 'Umbraco': '.NET', 'Phoenix': 'Elixir', 'MkDocs': 'Static site', 'Jekyll': 'Static site', 'Hugo': 'Static site', 'AsciiDoc': 'Static site',
     }
@@ -214,6 +214,7 @@ class Fingerprint(object):
         ('Textpattern CMS', CMS_CATEGORY, ('textpattern', 'textpattern cms')),
         ('TiddlyWiki', CMS_CATEGORY, ('tiddlywiki',)),
         ('Tiki Wiki CMS Groupware', CMS_CATEGORY, ('tiki wiki cms groupware', 'tiki wiki', 'tikiwiki')),
+        ('UNA CMS', CMS_CATEGORY, ('una cms', 'una platform', 'unacms')),
         ('UMI.CMS', CMS_CATEGORY, ('umi.cms', 'umi cms')),
         ('WebsiteBaker CMS', CMS_CATEGORY, ('websitebaker', 'websitebaker cms')),
         ('Webasyst / Shop-Script', ECOMMERCE_CATEGORY, ('webasyst', 'shop-script', 'shop script')),
@@ -1075,14 +1076,68 @@ class Fingerprint(object):
         :return: str
         """
 
-        match = re.search(
-            r'<meta[^>]+name=["\']generator["\'][^>]+content=["\']([^"\']+)["\']',
-            body,
-            re.IGNORECASE,
+        for meta_match in re.finditer(r'<meta\b[^>]*>', str(body or ''), re.IGNORECASE):
+            meta_tag = meta_match.group(0)
+            name_match = re.search(
+                r'\bname\s*=\s*["\']generator["\']',
+                meta_tag,
+                re.IGNORECASE,
+            )
+            if name_match is None:
+                continue
+
+            content_match = re.search(
+                r'\bcontent\s*=\s*["\']([^"\']+)["\']',
+                meta_tag,
+                re.IGNORECASE,
+            )
+            if content_match is not None:
+                return content_match.group(1).strip()
+
+        return ''
+
+    @staticmethod
+    def _is_grav_generator(generator):
+        """
+        Return True when a generator meta value identifies Grav CMS.
+
+        :param str generator: raw generator meta content
+        :return: check result
+        :rtype: bool
+        """
+
+        generator_text = str(generator or '').strip().lower()
+        if not generator_text:
+            return False
+
+        normalized = re.sub(r'[^a-z0-9]+', ' ', generator_text).strip()
+        compact = re.sub(r'[^a-z0-9]+', '', generator_text)
+
+        if compact in {'grav', 'gravcms', 'getgrav'}:
+            return True
+
+        return normalized.startswith('grav cms') or normalized.startswith('grav flat file cms')
+
+    @staticmethod
+    def _collect_grav_asset_markers(body_lower):
+        """
+        Collect Grav-specific public asset path markers from a response body.
+
+        :param str body_lower: normalized response body
+        :return: matched markers
+        :rtype: list[str]
+        """
+
+        body_text = str(body_lower or '')
+        markers = (
+            '/user/themes/',
+            '/user/plugins/',
+            '/system/assets/',
+            '/system/build/',
+            '/user/pages/',
         )
-        if match is None:
-            return ''
-        return match.group(1).strip()
+
+        return [marker for marker in markers if marker in body_text]
 
     def _probe_endpoints(self, base_url, progress_offset=0, progress_total=None):
         """
@@ -1479,6 +1534,120 @@ class Fingerprint(object):
         elif len(found_markers) == 1 and (has_generator or has_powered_by):
             self._add_signal('MogutaCMS', self.ECOMMERCE_CATEGORY, 'asset+brand', found_markers[0], 4)
 
+    @staticmethod
+    def _is_nubex_hostname(value):
+        """
+        Return True when URL/host belongs to the Nubex customer platform.
+
+        :param str value: URL or hostname
+        :return: check result
+        :rtype: bool
+        """
+
+        source = str(value or '').strip().lower()
+        if not source:
+            return False
+
+        parsed = urlparse(source if '://' in source else '//{0}'.format(source))
+        hostname = str(parsed.hostname or source).strip('.').lower()
+        return hostname == 'nubex.ru' or hostname.endswith('.nubex.ru')
+
+    @staticmethod
+    def _has_nubex_footer_marker(body_lower):
+        """
+        Return True for production-site Nubex footer branding.
+
+        The matcher requires the builder/footer wording together with the
+        vendor domain. A plain marketing or comparison mention of "Nubex" is
+        intentionally ignored.
+
+        :param str body_lower: normalized response body
+        :return: check result
+        :rtype: bool
+        """
+
+        body_text = str(body_lower or '').lower()
+        body_text = body_text.replace('&nbsp;', ' ').replace('\xa0', ' ')
+        body_text = re.sub(r'\s+', ' ', body_text)
+        if 'nubex.ru' not in body_text:
+            return False
+
+        footer_patterns = (
+            r'(?:©|&copy;)?\s*конструктор\s+сайтов\s*(?:<[^>]+>\s*)*nubex\.ru',
+            r'сделано\s+на\s+(?:<[^>]+>\s*)*nubex\.ru',
+            r'создано\s+на\s+(?:<[^>]+>\s*)*nubex\.ru',
+            r'powered\s+by\s+(?:<[^>]+>\s*)*nubex\.ru',
+        )
+        if any(re.search(pattern, body_text) is not None for pattern in footer_patterns):
+            return True
+
+        nubex_positions = [match.start() for match in re.finditer(r'nubex\.ru', body_text)]
+        footer_context_markers = (
+            '©', '&copy;', '<footer', '</footer>', 'copyright',
+            'all rights reserved', 'все права', 'конструктор', 'сайтов',
+            'сделано', 'создано', 'powered by',
+        )
+        for position in nubex_positions:
+            window = body_text[max(0, position - 300):position + 120]
+            if any(marker in window for marker in footer_context_markers):
+                return True
+
+        tail = body_text[-1600:]
+        return 'nubex.ru' in tail and any(marker in tail for marker in footer_context_markers)
+
+    @staticmethod
+    def _has_nubex_runtime_path_marker(body_lower):
+        """
+        Return True for Nubex-specific PHP path disclosure markers.
+
+        :param str body_lower: normalized response body
+        :return: check result
+        :rtype: bool
+        """
+
+        body_text = str(body_lower or '').lower()
+        return (
+            '/srv/sites/data/nubex/site/htdocs/' in body_text
+            or 'classes/modules/stat/classes/libs/detect.php' in body_text
+        )
+
+    def _apply_nubex_cms_rules(self, body_lower, generator, final_root_url):
+        """
+        Apply conservative passive Nubex CMS/site-builder signals.
+
+        Nubex exposes strong production-site evidence through hosted
+        ``*.nubex.ru`` customer domains or explicit footer branding such as
+        ``© Конструктор сайтов Nubex.ru``. Generic articles mentioning Nubex
+        are not enough to avoid false positives.
+
+        :param str body_lower: normalized response body
+        :param str generator: raw generator meta value
+        :param str final_root_url: final root URL after redirects
+        :return: None
+        """
+
+        generator_lower = str(generator or '').lower()
+        final_root_lower = str(final_root_url or '').lower()
+        host_lower = str(getattr(self.__config, 'host', '') or '').lower()
+
+        if 'nubex' in generator_lower:
+            self._add_signal('Nubex CMS', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 12)
+
+        if self._has_nubex_footer_marker(body_lower):
+            self._add_signal('Nubex CMS', self.CMS_CATEGORY, 'markup', 'Конструктор сайтов Nubex.ru', 12)
+
+        if self._is_nubex_hostname(host_lower) or self._is_nubex_hostname(final_root_lower):
+            self._add_signal('Nubex CMS', self.CMS_CATEGORY, 'host', '*.nubex.ru', 10)
+
+        if self._has_nubex_runtime_path_marker(body_lower):
+            self._add_signal('Nubex CMS', self.CMS_CATEGORY, 'error-path', '/srv/sites/data/nubex/site/htdocs/', 12)
+
+        if (
+            'panel.nubex.ru' in str(body_lower or '')
+            and 'конструктор сайтов' in str(body_lower or '')
+        ):
+            self._add_signal('Nubex CMS', self.CMS_CATEGORY, 'markup', 'panel.nubex.ru+конструктор сайтов', 8)
+
 
     def _apply_evolution_cms_rules(self, body_lower, generator, probe_statuses, not_found_status):
         """
@@ -1791,6 +1960,142 @@ class Fingerprint(object):
             seen_values.add(value)
 
         return signals
+
+    @staticmethod
+    def _collect_una_cms_root_signals(body_lower, generator):
+        """
+        Collect conservative passive UNA CMS root-page signals.
+
+        UNA uses a historically BoonEx-prefixed frontend namespace. Generic
+        bx-* class names are therefore treated only as corroborating evidence,
+        while explicit UNA branding or generated asset/module paths can promote
+        the fingerprint.
+
+        :param str body_lower: normalized response body
+        :param str generator: raw generator meta value
+        :return: list[tuple[str, str]]
+        """
+
+        body_text = str(body_lower or '').lower()
+        generator_lower = str(generator or '').lower()
+        signals = []
+        seen_values = set()
+
+        def add(signal_type, value):
+            if value in seen_values:
+                return
+            signals.append((signal_type, value))
+            seen_values.add(value)
+
+        generator_markers = (
+            'una cms',
+            'una platform',
+            'unacms',
+        )
+        if any(marker in generator_lower for marker in generator_markers):
+            add('meta', 'generator=UNA')
+
+        brand_markers = (
+            'powered by una',
+            'community powered by una platform',
+            'this site is powered by una',
+        )
+        for marker in brand_markers:
+            if marker in body_text:
+                add('brand', marker)
+
+        if 'gzip_loader.php?file=bx_templ_' in body_text:
+            add('asset', 'gzip_loader.php?file=bx_templ_')
+        elif 'gzip_loader.php?file=bx_' in body_text:
+            add('asset', 'gzip_loader.php?file=bx_')
+        elif 'gzip_loader.php?file=' in body_text:
+            add('asset', 'gzip_loader.php?file=')
+        elif 'gzip_loader.php' in body_text:
+            add('asset', 'gzip_loader.php')
+
+        if 'image_transcoder.php?o=' in body_text:
+            add('asset', 'image_transcoder.php?o=')
+        elif 'image_transcoder.php' in body_text:
+            add('asset', 'image_transcoder.php')
+
+        module_markers = (
+            '/modules/boonex/',
+            'modules/boonex/',
+        )
+        for marker in module_markers:
+            if marker in body_text:
+                add('module', 'modules/boonex/')
+                break
+
+        dom_markers = (
+            'bx-def-',
+            'bx-main',
+            'bx-toolbar-content',
+            'bx-menu-toolbar',
+            'bx-db-container',
+            'bx-popup-wrapper',
+            'bx-media-phone',
+            'sys-icon-a',
+        )
+        for marker in dom_markers:
+            if marker in body_text:
+                add('dom', marker)
+
+        runtime_markers = (
+            'bxdolform',
+            'bxartificerutils',
+            'bx_redirect_for_external_links',
+        )
+        for marker in runtime_markers:
+            if marker in body_text:
+                add('runtime', marker)
+
+        return signals
+
+    def _apply_una_cms_rules(self, body_lower, generator):
+        """
+        Apply conservative passive UNA CMS detection rules.
+
+        Explicit UNA branding is strong enough by itself. Otherwise, classify
+        only when generated UNA/BoonEx asset or module paths are corroborated
+        by multiple stable frontend namespace markers.
+
+        :param str body_lower: normalized response body
+        :param str generator: raw generator meta value
+        :return: None
+        """
+
+        signals = self._collect_una_cms_root_signals(body_lower, generator)
+        if len(signals) <= 0:
+            return
+
+        meta_values = [value for signal_type, value in signals if signal_type == 'meta']
+        brand_values = [value for signal_type, value in signals if signal_type == 'brand']
+        asset_values = [value for signal_type, value in signals if signal_type == 'asset']
+        module_values = [value for signal_type, value in signals if signal_type == 'module']
+        dom_values = [value for signal_type, value in signals if signal_type == 'dom']
+        runtime_values = [value for signal_type, value in signals if signal_type == 'runtime']
+
+        if len(meta_values) > 0:
+            self._add_signal('UNA CMS', self.CMS_CATEGORY, 'meta', meta_values[0], 8)
+
+        if len(brand_values) > 0:
+            self._add_signal('UNA CMS', self.CMS_CATEGORY, 'brand', brand_values[0], 9)
+
+        strong_asset_values = [
+            value for value in asset_values
+            if value in ('gzip_loader.php?file=bx_templ_', 'gzip_loader.php?file=bx_', 'image_transcoder.php?o=')
+        ]
+        structural_values = strong_asset_values + module_values
+        platform_values = dom_values + runtime_values
+        if len(structural_values) > 0 and len(platform_values) >= 2:
+            self._add_signal(
+                'UNA CMS',
+                self.CMS_CATEGORY,
+                'markup',
+                '+'.join((structural_values + platform_values)[:5]),
+                8,
+            )
 
     def _apply_cms_s3_rules(self, body_lower):
         """
@@ -2433,6 +2738,9 @@ class Fingerprint(object):
         if 'x-shopid' in headers or 'shopify' in server:
             self._add_signal('Shopify', self.ECOMMERCE_CATEGORY, 'header', 'x-shopid|server', 6)
 
+        # UNA CMS
+        self._apply_una_cms_rules(body_lower, generator)
+
         # DiafanCMS
         if self._has_diafan_meta_author(body_lower):
             self._add_signal('DiafanCMS', self.CMS_CATEGORY, 'meta', 'author=DIAFAN.CMS', 8)
@@ -2663,14 +2971,36 @@ class Fingerprint(object):
             self._add_signal('Contao', self.CMS_CATEGORY, 'endpoint', '/contao/', 4)
 
         # GravCMS
-        if 'gravcms' in generator_lower or 'grav cms' in generator_lower or 'grav' in generator_lower:
-            self._add_signal('GravCMS', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
-        if '/user/themes/' in body_lower and '/system/assets/' in body_lower:
-            self._add_signal('GravCMS', self.CMS_CATEGORY, 'asset', '/user/themes/ + /system/assets/', 6)
-        if 'grav-' in body_lower or 'grav-language-select' in body_lower:
-            self._add_signal('GravCMS', self.CMS_CATEGORY, 'markup', 'grav-*', 4)
-        if 'gravcms' in body_lower or 'grav cms' in body_lower:
-            self._add_signal('GravCMS', self.CMS_CATEGORY, 'markup', 'GravCMS|Grav CMS', 5)
+        grav_generator_hint = self._is_grav_generator(generator)
+        grav_cookie_hint = any(
+            cookie == 'grav-site'
+            or cookie.startswith('grav-site-')
+            or cookie == 'grav-admin'
+            or cookie.startswith('grav-admin-')
+            for cookie in cookies
+        )
+        grav_asset_markers = self._collect_grav_asset_markers(body_lower)
+        grav_text_hint = (
+            'gravcms' in body_lower
+            or 'grav cms' in body_lower
+            or 'powered by grav' in body_lower
+            or 'powered by <a href="https://getgrav.org' in body_lower
+            or "powered by <a href='https://getgrav.org" in body_lower
+        )
+        grav_markup_hint = 'grav-language-select' in body_lower or 'data-grav-' in body_lower
+
+        if grav_generator_hint:
+            self._add_signal('GravCMS', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 9)
+        if grav_cookie_hint:
+            self._add_signal('GravCMS', self.CMS_CATEGORY, 'cookie', 'grav-site*|grav-admin*', 8)
+        if len(grav_asset_markers) >= 2:
+            self._add_signal('GravCMS', self.CMS_CATEGORY, 'asset', ' + '.join(grav_asset_markers[:3]), 8)
+        elif len(grav_asset_markers) == 1 and (grav_generator_hint or grav_cookie_hint or grav_text_hint):
+            self._add_signal('GravCMS', self.CMS_CATEGORY, 'asset', grav_asset_markers[0], 5)
+        if grav_markup_hint:
+            self._add_signal('GravCMS', self.CMS_CATEGORY, 'markup', 'grav-language-select|data-grav-*', 5)
+        if grav_text_hint:
+            self._add_signal('GravCMS', self.CMS_CATEGORY, 'markup', 'GravCMS|Grav CMS|Powered by Grav', 6)
 
         # MediaWiki
         if 'mediawiki' in generator_lower:
@@ -2816,6 +3146,13 @@ class Fingerprint(object):
         # CMS.S3 / Megagroup
         self._apply_cms_s3_rules(
             body_lower=body_lower,
+        )
+
+        # Nubex CMS
+        self._apply_nubex_cms_rules(
+            body_lower=body_lower,
+            generator=generator,
+            final_root_url=final_root_url,
         )
 
         # MODX

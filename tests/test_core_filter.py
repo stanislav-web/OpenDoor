@@ -236,6 +236,13 @@ class TestFilter(unittest.TestCase):
             }
         ])
 
+    def test_host_should_only_treat_explicit_http_scheme_as_scheme(self):
+        """Filter.host() should not reject valid hostnames that contain the text http."""
+
+        self.assertEqual(Filter.host('httpbin.example.com'), 'httpbin.example.com')
+        self.assertEqual(Filter.host('https-label.example.com'), 'https-label.example.com')
+        self.assertEqual(Filter.host('https://secure.example.com'), 'secure.example.com')
+
     def test_targets_should_read_hostlist_and_deduplicate(self):
         """Filter.targets() should read hostlist entries, ignore blanks/comments and deduplicate them."""
 
@@ -771,6 +778,14 @@ class TestFilter(unittest.TestCase):
 
         self.assertEqual(actual['header'], ['X-Test: 1', 'Authorization: Bearer test'])
 
+    def test_request_headers_should_accept_absent_values_and_reject_blank_items(self):
+        """Filter.request_headers() should keep absent headers empty and reject blank items."""
+
+        self.assertEqual(Filter.request_headers(None), [])
+
+        with self.assertRaisesRegex(FilterError, 'non-empty HTTP header'):
+            Filter.request_headers(['   '])
+
     def test_filter_should_reject_malformed_custom_request_header(self):
         """Filter.filter() should fail early when --header has no separator."""
 
@@ -1016,6 +1031,7 @@ class TestFilter(unittest.TestCase):
         self.assertEqual(actual['waf_guard_after'], 12)
         self.assertEqual(actual['waf_guard_threshold'], 0.85)
 
+
     def test_filter_keeps_header_bypass_options_with_session_load(self):
         """Filter.filter() should allow header-bypass CLI overrides when resuming a session."""
 
@@ -1170,6 +1186,16 @@ class TestFilter(unittest.TestCase):
 
         with self.assertRaises(FilterError):
             Filter.ratio_float('bad', key='--calibration-threshold')
+
+    def test_filter_should_normalize_follow_redirects_option(self):
+        """Filter.filter() should normalize explicit same-host redirect following."""
+
+        actual = Filter.filter({
+            'host': 'example.com',
+            'follow_redirects': True,
+        })
+
+        self.assertTrue(actual['follow_redirects'])
 
     def test_filter_should_normalize_auto_calibration_options(self):
         """Filter.filter() should normalize auto-calibration options."""
@@ -1742,6 +1768,32 @@ class TestFilter(unittest.TestCase):
             'debug': 0,
         })
 
+    def test_filter_accepts_diff_mode_without_optional_output_settings(self):
+        """Filter.filter() should keep minimal diff mode isolated and deterministic."""
+
+        actual = Filter.filter({'diff': 'old.json:new.json'})
+
+        self.assertEqual(actual, {'diff': 'old.json:new.json'})
+
+    def test_filter_accepts_diff_mode_with_reports_dir_only(self):
+        """Filter.filter() should accept a diff output directory without forcing report/debug settings."""
+
+        actual = Filter.filter({
+            'diff': 'old.sqlite:new.sqlite',
+            'reports_dir': './diff-reports',
+        })
+
+        self.assertEqual(actual['diff'], 'old.sqlite:new.sqlite')
+        self.assertTrue(actual['reports_dir'].endswith('diff-reports'))
+        self.assertNotIn('reports', actual)
+        self.assertNotIn('debug', actual)
+
+    def test_filter_rejects_empty_diff_value(self):
+        """Filter.filter() should reject diff mode without a pair value."""
+
+        with self.assertRaisesRegex(FilterError, '--diff requires'):
+            Filter.filter({'diff': ''})
+
     def test_filter_rejects_diff_output_reports_outside_std_and_json(self):
         """Filter.filter() should reject unsupported diff output reports."""
 
@@ -1874,6 +1926,34 @@ class TestFilter(unittest.TestCase):
 
         with self.assertRaises(FilterError):
             Filter.filter({'session_load': '/tmp/session.json', 'waf_detect': 'maybe'})
+
+    def test_filter_should_validate_follow_redirects_with_session_load(self):
+        """Filter.filter() should preserve follow-redirects overrides during session resume."""
+
+        actual = Filter.filter({
+            'session_load': '/tmp/session.json',
+            'follow_redirects': 'true',
+        })
+
+        self.assertTrue(actual['follow_redirects'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'follow_redirects': 'maybe'})
+
+    def test_filter_should_validate_crawl_and_waf_safe_overrides_with_session_load(self):
+        """Filter.filter() should preserve crawl and WAF-safe overrides during session resume."""
+
+        actual = Filter.filter({
+            'session_load': '/tmp/session.json',
+            'crawl': 'true',
+            'waf_safe_mode': 'true',
+        })
+
+        self.assertTrue(actual['crawl'])
+        self.assertTrue(actual['waf_safe_mode'])
+
+        with self.assertRaises(FilterError):
+            Filter.filter({'session_load': '/tmp/session.json', 'crawl': 'maybe'})
 
 
 if __name__ == '__main__':

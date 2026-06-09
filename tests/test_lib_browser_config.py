@@ -30,12 +30,31 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(cfg.threads, Config.DEFAULT_MIN_THREADS)
         self.assertFalse(cfg.accept_cookies)
         self.assertFalse(cfg.keep_alive)
+        self.assertFalse(cfg.is_follow_redirects)
+
+    def test_follow_redirects_config_flag(self):
+        """Config should expose explicit same-host redirect following without method override."""
+
+        cfg = Config({'reports': 'std', 'follow_redirects': True})
+
+        self.assertTrue(cfg.is_follow_redirects)
+        self.assertNotIn('--follow-redirects', cfg.method_override_items)
+        self.assertEqual(cfg.method, 'HEAD')
 
     def test_keep_alive_respects_explicit_false_and_true(self):
         """Config should not treat an explicit False keep_alive value as enabled."""
 
         self.assertFalse(Config({'reports': 'std', 'keep_alive': False}).keep_alive)
         self.assertTrue(Config({'reports': 'std', 'keep_alive': True}).keep_alive)
+
+    def test_memory_monitor_follows_debug_level(self):
+        """Config should expose memory diagnostics only when debug is enabled."""
+
+        self.assertFalse(Config({'reports': 'std', 'debug': 0}).is_memory_monitor)
+        self.assertTrue(Config({'reports': 'std', 'debug': 1}).is_memory_monitor)
+        self.assertTrue(Config({'reports': 'std', 'debug': '2'}).is_memory_monitor)
+        self.assertFalse(Config({'reports': 'std', 'debug': 'bad'}).is_memory_monitor)
+        self.assertFalse(Config({'reports': 'std', 'debug': 0, 'memory_monitor': True}).is_memory_monitor)
 
     def test_port_switches_to_ssl_default_for_https(self):
         """Config.port should switch from 80 to 443 when SSL is enabled."""
@@ -95,11 +114,11 @@ class TestBrowserConfig(unittest.TestCase):
     def test_method_override_warning_lists_body_required_sniffers(self):
         """Config should describe why HEAD is overridden when body sniffers are selected."""
 
-        cfg = Config({'reports': 'std', 'method': 'HEAD', 'sniff': 'file,indexof,collation,stacktrace,skipempty'})
+        cfg = Config({'reports': 'std', 'method': 'HEAD', 'sniff': 'file,indexof,collation,stacktrace,endpoint,skipempty'})
 
         self.assertEqual(
             cfg.method_override_warning,
-            'HEAD overridden to GET because selected sniffers/filters require response body: indexof, collation, stacktrace'
+            'HEAD overridden to GET because selected sniffers/filters require response body: indexof, collation, stacktrace, endpoint'
         )
 
     def test_method_override_warning_is_empty_without_body_required_sniffers(self):
@@ -662,6 +681,7 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertTrue(cfg.is_waf_detect)
         self.assertFalse(cfg.is_waf_safe_mode)
 
+
     def test_config_should_enable_auto_calibration(self):
         """Config should expose auto-calibration settings."""
 
@@ -750,6 +770,43 @@ class TestBrowserConfig(unittest.TestCase):
         self.assertEqual(cfg.method, 'GET')
         self.assertEqual(cfg.method_override_warning, '')
 
+    def test_crawl_defaults_to_get_when_method_is_omitted(self):
+        """Config.method should use GET for --crawl when --method is omitted."""
+
+        cfg = Config({'reports': 'std', 'crawl': True})
+
+        self.assertTrue(cfg.is_crawl)
+        self.assertEqual(cfg.requested_method, 'HEAD')
+        self.assertEqual(cfg.method, 'GET')
+        self.assertIn('--crawl', cfg.method_override_items)
+        self.assertIn('--crawl', cfg.method_override_warning)
+
+    def test_crawl_rejects_subdomain_scan_from_wizard_or_session(self):
+        """Config should reject restored crawl + subdomain scan combinations."""
+
+        with self.assertRaises(ValueError) as context:
+            Config({'reports': 'std', 'crawl': True, 'scan': 'subdomains'})
+
+        self.assertIn('crawl can be used only with scan directories', str(context.exception))
+
+    def test_crawl_preserves_explicit_get_method(self):
+        """Config.method should preserve explicit GET when crawl is enabled."""
+
+        cfg = Config({'reports': 'std', 'crawl': True, 'method': 'GET'})
+
+        self.assertTrue(cfg.is_crawl)
+        self.assertEqual(cfg.requested_method, 'GET')
+        self.assertEqual(cfg.method, 'GET')
+        self.assertEqual(cfg.method_override_warning, '')
+
+    def test_crawl_rejects_explicit_head_from_wizard_or_session(self):
+        """Config should reject restored crawl + HEAD combinations that bypass CLI filtering."""
+
+        with self.assertRaises(ValueError) as context:
+            Config({'reports': 'std', 'crawl': True, 'method': 'HEAD'})
+
+        self.assertIn('crawl requires response bodies', str(context.exception))
+
 
 class TestBrowserConfigDefensiveCopies(unittest.TestCase):
     """Config defensive-copy regression tests."""
@@ -829,3 +886,31 @@ class TestBrowserConfigCoverageOnly(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestBrowserConfigCoverageGaps(unittest.TestCase):
+    """Additional Config normalization edge coverage."""
+
+    def test_recursive_status_deduplicates_and_rejects_empty_values(self):
+        """Recursive status normalization should deduplicate and reject empty lists."""
+
+        cfg = Config({'reports': 'std', 'recursive': True, 'recursive_status': '200,200,301'})
+        self.assertEqual(cfg.recursive_status, ['200', '301'])
+
+        with self.assertRaises(ValueError):
+            Config({'reports': 'std', 'recursive': True, 'recursive_status': ',,'})
+
+    def test_recursive_exclude_deduplicates_extensions(self):
+        """Recursive exclude normalization should deduplicate normalized extensions."""
+
+        cfg = Config({'reports': 'std', 'recursive': True, 'recursive_exclude': '.jpg,JPG,png'})
+
+        self.assertEqual(cfg.recursive_exclude, ['jpg', 'png'])
+
+    def test_reports_normalization_ignores_none_tokens_and_empty_path_lists(self):
+        """Reports and optional paths should ignore none-like list values safely."""
+
+        cfg = Config({'reports': ['json', '', 'none', 'std', 'json'], 'reports_dir': []})
+
+        self.assertEqual(cfg.reports, ['json', 'std'])
+        self.assertIsNone(cfg.reports_dir)

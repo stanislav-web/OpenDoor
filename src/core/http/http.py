@@ -37,12 +37,10 @@ class HttpRequest(RequestProvider, DebugProvider):
 
         try:
             self.__tpl = kwargs.get('tpl')
-            RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
-            self.__headers = self._headers
-            self.__is_user_agent_managed = self.__headers.get('User-Agent') is None
-            self.__connection_header = 'default'
-            if True is config.keep_alive:
-                self.__connection_header = self._keep_alive
+            self.__headers, self.__is_user_agent_managed, self.__connection_header = self._initialize_request_backend(
+                config,
+                kwargs.get('agent_list'),
+            )
         except (TypeError, ValueError) as error:
             raise HttpRequestError(error)
 
@@ -94,41 +92,37 @@ class HttpRequest(RequestProvider, DebugProvider):
         except Exception as error:
             raise HttpRequestError(str(error))
 
-    def __debug_cookie_middleware(self, response):
-        """Route response cookies and emit request-level cookie diagnostics."""
+    def close(self):
+        """Release HTTP connection pools owned by this request backend.
 
-        if True is self.__cfg.accept_cookies:
-            getattr(self.__debug, 'debug_cookie_accept_enabled', lambda *args, **kwargs: True)()
+        :return: None
+        """
 
-        self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
+        self._close_connection_resource(getattr(self, '_HttpRequest__pool', None))
+        self._close_connection_resource(getattr(self, '_HttpRequest__manager', None))
 
-        if True is self.__cfg.accept_cookies and True is self._is_cookie_fetched:
-            getattr(self.__debug, 'debug_cookie_accepted', lambda *args, **kwargs: True)(self._push_cookies())
-
-    def request(self, url, extra_headers=None):
+    def request(self, url, extra_headers=None, absolute=False):
         """
         Client request HTTP
 
         :param str url: request uri
         :param dict | list | tuple | None extra_headers: temporary per-request headers
+        :param bool absolute: use an absolute URL through a pool manager
         :return: urllib3.HTTPResponse
         """
 
-        if True is self.__cfg.is_random_user_agent and True is self.__is_user_agent_managed:
-            self.__headers.update({'User-Agent': self._user_agent})
-        elif self.__headers.get('User-Agent') is None:
-            self.__headers.update({'User-Agent': self._user_agent})
-            self.__is_user_agent_managed = True
-
-        request_headers = self._build_request_headers(self.__headers, extra_headers)
-        if self.__connection_header != 'default' and request_headers.get('Connection') is None:
-            request_headers.update({'Connection': self.__connection_header})
-
-        getattr(self.__debug, 'debug_cookie_attached', lambda *args, **kwargs: True)(request_headers)
-        getattr(self.__debug, 'debug_request', lambda *args, **kwargs: True)(request_headers, url, self.__cfg.method)
+        request_headers, self.__is_user_agent_managed = self._prepare_request_headers(
+            self.__cfg,
+            self.__debug,
+            self.__headers,
+            self.__is_user_agent_managed,
+            self.__connection_header,
+            url,
+            extra_headers,
+        )
 
         try:
-            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:
+            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan and absolute is not True:
                 response = self.__pool.request(
                     self.__cfg.method,
                     helper.parse_url(url).path,
@@ -139,6 +133,9 @@ class HttpRequest(RequestProvider, DebugProvider):
                     redirect=False,
                 )
             else:
+                if self.__manager is None:
+                    self.__manager = self.__pool_manager()
+
                 response = self.__manager.request(
                     self.__cfg.method,
                     url,
@@ -149,7 +146,7 @@ class HttpRequest(RequestProvider, DebugProvider):
                     redirect=False,
                 )
             self._debug_response_received(self.__debug, response)
-            self.__debug_cookie_middleware(response)
+            self._debug_cookie_middleware(self.__debug, self.__cfg.accept_cookies, response)
             return response
 
         except MaxRetryError:

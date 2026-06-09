@@ -21,7 +21,7 @@ from urllib3.exceptions import DecodeError, MaxRetryError, ReadTimeoutError, Con
     HostChangedError, SSLError, InsecureRequestWarning
 from src.core import helper
 from .exceptions import HttpsRequestError
-from .tls import TLS_LEGACY_CIPHERS, describe_tls_transport_error, maybe_build_ssl_context
+from .tls import emit_tls_legacy_policy, maybe_build_ssl_context, tls_pool_kwargs, warn_tls_transport_error
 from .providers import DebugProvider
 from .providers import RequestProvider
 
@@ -40,12 +40,10 @@ class HttpsRequest(RequestProvider, DebugProvider):
 
         try:
             self.__tpl = kwargs.get('tpl')
-            RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
-            self.__headers = self._headers
-            self.__is_user_agent_managed = self.__headers.get('User-Agent') is None
-            self.__connection_header = 'default'
-            if True is config.keep_alive:
-                self.__connection_header = self._keep_alive
+            self.__headers, self.__is_user_agent_managed, self.__connection_header = self._initialize_request_backend(
+                config,
+                kwargs.get('agent_list'),
+            )
         except (TypeError, ValueError) as error:
             raise HttpsRequestError(error)
 
@@ -64,10 +62,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
     def __debug_tls_policy(self):
         """Emit debug output for opt-in legacy TLS compatibility."""
 
-        if getattr(self.__cfg, 'is_tls_legacy', False) is True:
-            getattr(self.__tpl, 'debug', lambda *args, **kwargs: True)(
-                msg='TLS legacy compatibility enabled: ciphers={0}'.format(TLS_LEGACY_CIPHERS)
-            )
+        emit_tls_legacy_policy(self.__cfg, self.__tpl)
 
 
     def __pool_tls_kwargs(self):
@@ -77,10 +72,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
         :rtype: dict
         """
 
-        if self.__ssl_context is None:
-            return {}
-
-        return {'ssl_context': self.__ssl_context}
+        return tls_pool_kwargs(self.__ssl_context)
 
     def __record_tls_transport_error(self, error):
         """Store and print a helpful TLS transport diagnostic when possible.
@@ -89,12 +81,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
         :return: None
         """
 
-        message = describe_tls_transport_error(error)
-        if not message:
-            return
-
-        setattr(self.__cfg, 'last_transport_error', message)
-        self.__tpl.warning(msg=message)
+        warn_tls_transport_error(self.__cfg, self.__tpl, error)
 
     def _provide_ssl_auth_required(self):
         """
@@ -151,41 +138,37 @@ class HttpsRequest(RequestProvider, DebugProvider):
         except Exception as error:
             raise HttpsRequestError(str(error))
 
-    def __debug_cookie_middleware(self, response):
-        """Route response cookies and emit request-level cookie diagnostics."""
+    def close(self):
+        """Release HTTPS connection pools owned by this request backend.
 
-        if True is self.__cfg.accept_cookies:
-            getattr(self.__debug, 'debug_cookie_accept_enabled', lambda *args, **kwargs: True)()
+        :return: None
+        """
 
-        self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
+        self._close_connection_resource(getattr(self, '_HttpsRequest__pool', None))
+        self._close_connection_resource(getattr(self, '_HttpsRequest__manager', None))
 
-        if True is self.__cfg.accept_cookies and True is self._is_cookie_fetched:
-            getattr(self.__debug, 'debug_cookie_accepted', lambda *args, **kwargs: True)(self._push_cookies())
-
-    def request(self, url, extra_headers=None):
+    def request(self, url, extra_headers=None, absolute=False):
         """
         Client request SSL
 
         :param str url: request uri
         :param dict | list | tuple | None extra_headers: temporary per-request headers
+        :param bool absolute: use an absolute URL through a pool manager
         :return: urllib3.HTTPResponse
         """
 
-        if True is self.__cfg.is_random_user_agent and True is self.__is_user_agent_managed:
-            self.__headers.update({'User-Agent': self._user_agent})
-        elif self.__headers.get('User-Agent') is None:
-            self.__headers.update({'User-Agent': self._user_agent})
-            self.__is_user_agent_managed = True
-
-        request_headers = self._build_request_headers(self.__headers, extra_headers)
-        if 'default' != self.__connection_header and request_headers.get('Connection') is None:
-            request_headers.update({'Connection': self.__connection_header})
-
-        getattr(self.__debug, 'debug_cookie_attached', lambda *args, **kwargs: True)(request_headers)
-        getattr(self.__debug, 'debug_request', lambda *args, **kwargs: True)(request_headers, url, self.__cfg.method)
+        request_headers, self.__is_user_agent_managed = self._prepare_request_headers(
+            self.__cfg,
+            self.__debug,
+            self.__headers,
+            self.__is_user_agent_managed,
+            self.__connection_header,
+            url,
+            extra_headers,
+        )
         try:
             disable_warnings(InsecureRequestWarning)
-            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan:  # directories requests
+            if self.__cfg.DEFAULT_SCAN == self.__cfg.scan and absolute is not True:  # directories requests
                 response = self.__pool.request(self.__cfg.method,
                                                helper.parse_url(url).path,
                                                headers=request_headers,
@@ -193,7 +176,10 @@ class HttpsRequest(RequestProvider, DebugProvider):
                                                retries=self.__cfg.retries,
                                                assert_same_host=False,
                                                redirect=False)
-            else:  # subdomains
+            else:  # absolute follow-up or subdomains
+                if self.__manager is None:
+                    self.__manager = self.__pool_manager()
+
                 response = self.__manager.request(self.__cfg.method, url,
                                                   headers=request_headers,
                                                   body=self._request_body,
@@ -202,7 +188,7 @@ class HttpsRequest(RequestProvider, DebugProvider):
                                                   redirect=False)
             setattr(self.__cfg, 'last_transport_error', None)
             self._debug_response_received(self.__debug, response)
-            self.__debug_cookie_middleware(response)
+            self._debug_cookie_middleware(self.__debug, self.__cfg.accept_cookies, response)
             return response
 
         except MaxRetryError as error:

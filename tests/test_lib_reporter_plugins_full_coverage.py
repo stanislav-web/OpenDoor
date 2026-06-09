@@ -3,6 +3,7 @@
 import copy
 import importlib
 import os
+import json
 import unittest
 from unittest.mock import patch
 
@@ -748,6 +749,58 @@ class TestReporterPluginsFullCoverage(unittest.TestCase):
         self.assertIn('2 fields', html)
         self.assertIn('&quot;name&quot;: &quot;Bitrix&quot;', html)
         self.assertIn('&quot;value&quot;: &quot;x-powered-cms&quot;', html)
+
+    def test_text_html_and_json_preserve_redirect_classification_metadata(self):
+        """Report plugins should preserve redirect classification metadata without a new report file."""
+
+        data = {
+            'items': {'redirect': ['https://example.com/login']},
+            'report_items': {
+                'redirect': [{
+                    'url': 'https://example.com/login',
+                    'code': '302',
+                    'size': '0B',
+                    'redirect_classification': {
+                        'type': 'login',
+                        'reason': 'auth_gate_redirect',
+                        'location': '/login?next=/admin',
+                        'target_host': 'example.com',
+                        'confidence': 'high',
+                    },
+                }]
+            },
+        }
+
+        with patch('src.lib.reporter.plugins.txt.filesystem.makedir', return_value='/tmp/reports'), \
+                patch('src.lib.reporter.plugins.txt.filesystem.clear'):
+            plugin = TextReportPlugin(self.target, data, directory='/custom/')
+            with patch.object(plugin, 'record') as record_mock:
+                plugin.process()
+
+        record_mock.assert_called_once()
+        self.assertEqual(record_mock.call_args.args[1], 'redirect')
+        self.assertIn('redirect=login', record_mock.call_args.args[2][0])
+        self.assertIn('location=/login?next=/admin', record_mock.call_args.args[2][0])
+
+        with patch('src.lib.reporter.plugins.html.filesystem.makedir', return_value='/tmp/reports'), \
+                patch('src.lib.reporter.plugins.html.filesystem.clear'), \
+                patch('src.lib.reporter.plugins.html.render_html_report') as render_html_report_mock:
+            render_html_report_mock.return_value = '<html>ok</html>'
+            plugin = HtmlReportPlugin(self.target, data, directory='/custom/')
+            with patch.object(plugin, 'record'):
+                plugin.process()
+
+        payload = render_html_report_mock.call_args.args[1]
+        self.assertEqual(payload['report_items']['redirect'][0]['redirect_classification']['type'], 'login')
+
+        with patch('src.lib.reporter.plugins.json.filesystem.makedir', return_value='/tmp/reports'), \
+                patch('src.lib.reporter.plugins.json.filesystem.clear'):
+            plugin = JsonReportPlugin(self.target, data, directory='/custom/')
+            with patch.object(plugin, 'record') as json_record_mock:
+                plugin.process()
+
+        json_payload = json.loads(json_record_mock.call_args.args[2])
+        self.assertEqual(json_payload['report_items']['redirect'][0]['redirect_classification']['type'], 'login')
 
 
 if __name__ == '__main__':

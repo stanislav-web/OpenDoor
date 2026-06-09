@@ -145,3 +145,95 @@ class TestPluginProviderCoverageExtra(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestPluginProviderRedirectClassification(unittest.TestCase):
+    """Redirect classification formatting tests."""
+
+    def test_format_report_item_renders_redirect_classification(self):
+        """Plain-text report output should include compact redirect metadata."""
+
+        rendered = PluginProvider.format_report_item({
+            'url': 'https://example.com/login',
+            'code': '302',
+            'size': '0B',
+            'redirect_classification': {
+                'type': 'login',
+                'reason': 'auth_gate_redirect',
+                'location': '/login?next=/admin',
+                'target_host': 'example.com',
+                'confidence': 'high',
+            },
+        })
+
+        self.assertIn('redirect=login', rendered)
+        self.assertIn('reason=auth_gate_redirect', rendered)
+        self.assertIn('location=/login?next=/admin', rendered)
+        self.assertIn('target_host=example.com', rendered)
+        self.assertIn('confidence=high', rendered)
+
+    def test_format_report_item_renders_minimal_redirect_classification(self):
+        """Plain-text report output should tolerate partial redirect metadata."""
+
+        rendered = PluginProvider.format_report_item({
+            'url': 'https://example.com/redirect',
+            'code': '302',
+            'size': '0B',
+            'redirect_classification': {},
+        })
+
+        self.assertIn('redirect=unknown', rendered)
+        self.assertNotIn('reason=', rendered)
+        self.assertNotIn('location=', rendered)
+        self.assertNotIn('target_host=', rendered)
+        self.assertNotIn('confidence=', rendered)
+
+
+class TestPluginProviderEndpointFormattingCoverage(unittest.TestCase):
+    """Endpoint report formatting branch coverage."""
+
+    def test_format_report_item_renders_endpoint_detection_details(self):
+        """Endpoint metadata should be compactly rendered in text reports."""
+
+        rendered = PluginProvider.format_report_item({
+            'url': 'https://example.com/app.js',
+            'code': '200',
+            'size': '4KB',
+            'endpoint_detection': {
+                'type': 'ajax',
+                'confidence': 88,
+                'count': 4,
+                'types': ['ajax', 'websocket'],
+                'endpoints': [
+                    {'endpoint': '/api/users', 'method': 'GET'},
+                    {'endpoint': '/ws'},
+                    {'endpoint': ''},
+                    'bad',
+                    {'endpoint': '/events', 'method': 'EventSource'},
+                    {'endpoint': '/ignored'},
+                ],
+            },
+        })
+
+        self.assertIn('endpoint=ajax', rendered)
+        self.assertIn('confidence=88%', rendered)
+        self.assertIn('count=4', rendered)
+        self.assertIn('types=ajax;websocket', rendered)
+        self.assertIn('samples=GET /api/users;/ws;EventSource /events', rendered)
+        self.assertNotIn('/ignored', rendered)
+
+    def test_format_report_item_renders_minimal_endpoint_detection(self):
+        """Endpoint metadata should tolerate partial dictionaries."""
+
+        rendered = PluginProvider.format_report_item({
+            'url': 'https://example.com/app.js',
+            'code': '200',
+            'size': '4KB',
+            'endpoint_detection': {},
+        })
+
+        self.assertIn('endpoint=endpoint', rendered)
+        self.assertNotIn('confidence=', rendered)
+        self.assertNotIn('count=', rendered)
+        self.assertNotIn('types=', rendered)
+        self.assertNotIn('samples=', rendered)

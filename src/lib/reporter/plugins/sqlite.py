@@ -16,6 +16,7 @@
     Development: Stanislav WEB
 """
 
+import json
 import os
 import sqlite3
 
@@ -48,6 +49,103 @@ class SqliteReportPlugin(PluginProvider):
             self.__target_dir = filesystem.makedir(os.path.join(directory, self._target))
         except FileSystemError as error:
             raise Exception(error)
+
+
+    @staticmethod
+    def _json_or_none(value):
+        """Return stable JSON text for structured metadata or None.
+
+        :param dict | list | mixed value: value to serialize
+        :return: JSON text or None
+        :rtype: str | None
+        """
+
+        if value is None:
+            return None
+        if isinstance(value, (dict, list, tuple)):
+            return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+        return str(value)
+
+    @staticmethod
+    def _dict_or_empty(value):
+        """Return a dict value or an empty dict.
+
+        :param dict | mixed value: source value
+        :return: source dict or empty dict
+        :rtype: dict
+        """
+
+        if isinstance(value, dict):
+            return value
+        return {}
+
+    @staticmethod
+    def _str_or_none(value):
+        """Return string value or None.
+
+        :param mixed value: source value
+        :return: string value or None
+        :rtype: str | None
+        """
+
+        if value is None:
+            return None
+        return str(value)
+
+    @staticmethod
+    def _int_or_none(value):
+        """Return integer value or None.
+
+        :param mixed value: source value
+        :return: integer value or None
+        :rtype: int | None
+        """
+
+        if value is None:
+            return None
+        return int(value)
+
+    @staticmethod
+    def _float_or_none(value):
+        """Return float value or None.
+
+        :param mixed value: source value
+        :return: float value or None
+        :rtype: float | None
+        """
+
+        if value is None:
+            return None
+        return float(value)
+
+    @staticmethod
+    def _bool_int_or_none(value):
+        """Return bool coerced to SQLite integer or None.
+
+        :param mixed value: source value
+        :return: 1/0 integer value or None
+        :rtype: int | None
+        """
+
+        if value is None:
+            return None
+        return int(bool(value))
+
+    @staticmethod
+    def _joined_or_none(value):
+        """Return semicolon-joined iterable values or None.
+
+        This preserves the existing SQLite report coercion behavior for
+        iterable metadata values.
+
+        :param iterable | None value: source value
+        :return: semicolon-joined string or None
+        :rtype: str | None
+        """
+
+        if value is None:
+            return None
+        return ';'.join([str(item) for item in value])
 
     def process(self):
         """
@@ -116,8 +214,24 @@ class SqliteReportPlugin(PluginProvider):
                 'openredirect_parameter TEXT, '
                 'openredirect_variant TEXT, '
                 'openredirect_payload TEXT, '
+                'openredirect_payload_family TEXT, '
                 'openredirect_location TEXT, '
-                'openredirect_source_url TEXT'
+                'openredirect_source_url TEXT, '
+                'redirect_type TEXT, '
+                'redirect_reason TEXT, '
+                'redirect_location TEXT, '
+                'redirect_target_scheme TEXT, '
+                'redirect_target_host TEXT, '
+                'redirect_target_path TEXT, '
+                'redirect_same_origin INTEGER, '
+                'redirect_cross_origin INTEGER, '
+                'redirect_confidence TEXT, '
+                'finding_type TEXT, '
+                'finding_severity TEXT, '
+                'finding_reason TEXT, '
+                'finding_confidence TEXT, '
+                'finding_source TEXT, '
+                'finding_evidence TEXT'
                 ')'
             )
             cursor.execute(
@@ -180,23 +294,23 @@ class SqliteReportPlugin(PluginProvider):
             )
 
             rows = []
+            str_or_none = self._str_or_none
+            int_or_none = self._int_or_none
+            float_or_none = self._float_or_none
+            bool_int_or_none = self._bool_int_or_none
+            joined_or_none = self._joined_or_none
+            json_or_none = self._json_or_none
+            dict_or_empty = self._dict_or_empty
+
             for status in self._data.get('items', {}).keys():
                 for item in self.get_report_items(status):
-                    stacktrace_detection = item.get('stacktrace_detection')
-                    if not isinstance(stacktrace_detection, dict):
-                        stacktrace_detection = {}
-                    secret_detection = item.get('secret_detection')
-                    if not isinstance(secret_detection, dict):
-                        secret_detection = {}
-                    malware_detection = item.get('malware_detection')
-                    if not isinstance(malware_detection, dict):
-                        malware_detection = {}
-                    shadow_detection = item.get('shadow_detection')
-                    if not isinstance(shadow_detection, dict):
-                        shadow_detection = {}
-                    openredirect_detection = item.get('openredirect_detection')
-                    if not isinstance(openredirect_detection, dict):
-                        openredirect_detection = {}
+                    stacktrace_detection = dict_or_empty(item.get('stacktrace_detection'))
+                    secret_detection = dict_or_empty(item.get('secret_detection'))
+                    malware_detection = dict_or_empty(item.get('malware_detection'))
+                    shadow_detection = dict_or_empty(item.get('shadow_detection'))
+                    openredirect_detection = dict_or_empty(item.get('openredirect_detection'))
+                    redirect_classification = dict_or_empty(item.get('redirect_classification'))
+                    passive_finding = dict_or_empty(item.get('passive_finding'))
 
                     rows.append(
                         (
@@ -204,55 +318,65 @@ class SqliteReportPlugin(PluginProvider):
                             str(item.get('url', '')),
                             str(item.get('code', '-')),
                             str(item.get('size', '0B')),
-                            None if item.get('bypass') is None else str(item.get('bypass')),
-                            None if item.get('bypass_profile') is None else str(item.get('bypass_profile')),
-                            None if item.get('bypass_header') is None else str(item.get('bypass_header')),
-                            None if item.get('bypass_value') is None else str(item.get('bypass_value')),
-                            None if item.get('bypass_variant') is None else str(item.get('bypass_variant')),
-                            None if item.get('bypass_url') is None else str(item.get('bypass_url')),
-                            None if item.get('bypass_from_status') is None else str(item.get('bypass_from_status')),
-                            None if item.get('bypass_to_status') is None else str(item.get('bypass_to_status')),
-                            None if item.get('bypass_from_code') is None else str(item.get('bypass_from_code')),
-                            None if item.get('bypass_to_code') is None else str(item.get('bypass_to_code')),
-                            None if item.get('bypass_score') is None else int(item.get('bypass_score')),
-                            None if item.get('bypass_reasons') is None else ';'.join([
-                                str(reason) for reason in item.get('bypass_reasons', [])
-                            ]),
-                            None if stacktrace_detection.get('type') is None else str(stacktrace_detection.get('type')),
-                            None if stacktrace_detection.get('runtime') is None else str(stacktrace_detection.get('runtime')),
-                            None if stacktrace_detection.get('signal') is None else str(stacktrace_detection.get('signal')),
-                            None if stacktrace_detection.get('confidence') is None else int(stacktrace_detection.get('confidence')),
-                            None if secret_detection.get('type') is None else str(secret_detection.get('type')),
-                            None if secret_detection.get('redacted') is None else str(secret_detection.get('redacted')),
-                            None if secret_detection.get('confidence') is None else int(secret_detection.get('confidence')),
-                            None if secret_detection.get('count') is None else int(secret_detection.get('count')),
-                            None if secret_detection.get('types') is None else ';'.join([
-                                str(secret_type) for secret_type in secret_detection.get('types', [])
-                            ]),
-                            None if malware_detection.get('type') is None else str(malware_detection.get('type')),
-                            None if malware_detection.get('subtype') is None else str(malware_detection.get('subtype')),
-                            None if malware_detection.get('family') is None else str(malware_detection.get('family')),
-                            None if malware_detection.get('signal') is None else str(malware_detection.get('signal')),
-                            None if malware_detection.get('confidence') is None else int(malware_detection.get('confidence')),
-                            None if malware_detection.get('count') is None else int(malware_detection.get('count')),
-                            None if malware_detection.get('signals') is None else ';'.join([
-                                str(signal) for signal in malware_detection.get('signals', [])
-                            ]),
-                            None if shadow_detection.get('type') is None else str(shadow_detection.get('type')),
-                            None if shadow_detection.get('confidence') is None else int(shadow_detection.get('confidence')),
-                            None if shadow_detection.get('reason') is None else str(shadow_detection.get('reason')),
-                            None if shadow_detection.get('base_url') is None else str(shadow_detection.get('base_url')),
-                            None if shadow_detection.get('variant') is None else str(shadow_detection.get('variant')),
-                            None if shadow_detection.get('similarity') is None else float(shadow_detection.get('similarity')),
-                            None if shadow_detection.get('base_size') is None else int(shadow_detection.get('base_size')),
-                            None if shadow_detection.get('shadow_size') is None else int(shadow_detection.get('shadow_size')),
-                            None if openredirect_detection.get('type') is None else str(openredirect_detection.get('type')),
-                            None if openredirect_detection.get('confidence') is None else int(openredirect_detection.get('confidence')),
-                            None if openredirect_detection.get('parameter') is None else str(openredirect_detection.get('parameter')),
-                            None if openredirect_detection.get('variant') is None else str(openredirect_detection.get('variant')),
-                            None if openredirect_detection.get('payload') is None else str(openredirect_detection.get('payload')),
-                            None if openredirect_detection.get('location') is None else str(openredirect_detection.get('location')),
-                            None if openredirect_detection.get('source_url') is None else str(openredirect_detection.get('source_url')),
+                            str_or_none(item.get('bypass')),
+                            str_or_none(item.get('bypass_profile')),
+                            str_or_none(item.get('bypass_header')),
+                            str_or_none(item.get('bypass_value')),
+                            str_or_none(item.get('bypass_variant')),
+                            str_or_none(item.get('bypass_url')),
+                            str_or_none(item.get('bypass_from_status')),
+                            str_or_none(item.get('bypass_to_status')),
+                            str_or_none(item.get('bypass_from_code')),
+                            str_or_none(item.get('bypass_to_code')),
+                            int_or_none(item.get('bypass_score')),
+                            joined_or_none(item.get('bypass_reasons')),
+                            str_or_none(stacktrace_detection.get('type')),
+                            str_or_none(stacktrace_detection.get('runtime')),
+                            str_or_none(stacktrace_detection.get('signal')),
+                            int_or_none(stacktrace_detection.get('confidence')),
+                            str_or_none(secret_detection.get('type')),
+                            str_or_none(secret_detection.get('redacted')),
+                            int_or_none(secret_detection.get('confidence')),
+                            int_or_none(secret_detection.get('count')),
+                            joined_or_none(secret_detection.get('types')),
+                            str_or_none(malware_detection.get('type')),
+                            str_or_none(malware_detection.get('subtype')),
+                            str_or_none(malware_detection.get('family')),
+                            str_or_none(malware_detection.get('signal')),
+                            int_or_none(malware_detection.get('confidence')),
+                            int_or_none(malware_detection.get('count')),
+                            joined_or_none(malware_detection.get('signals')),
+                            str_or_none(shadow_detection.get('type')),
+                            int_or_none(shadow_detection.get('confidence')),
+                            str_or_none(shadow_detection.get('reason')),
+                            str_or_none(shadow_detection.get('base_url')),
+                            str_or_none(shadow_detection.get('variant')),
+                            float_or_none(shadow_detection.get('similarity')),
+                            int_or_none(shadow_detection.get('base_size')),
+                            int_or_none(shadow_detection.get('shadow_size')),
+                            str_or_none(openredirect_detection.get('type')),
+                            int_or_none(openredirect_detection.get('confidence')),
+                            str_or_none(openredirect_detection.get('parameter')),
+                            str_or_none(openredirect_detection.get('variant')),
+                            str_or_none(openredirect_detection.get('payload')),
+                            str_or_none(openredirect_detection.get('payload_family')),
+                            str_or_none(openredirect_detection.get('location')),
+                            str_or_none(openredirect_detection.get('source_url')),
+                            str_or_none(redirect_classification.get('type')),
+                            str_or_none(redirect_classification.get('reason')),
+                            str_or_none(redirect_classification.get('location')),
+                            str_or_none(redirect_classification.get('target_scheme')),
+                            str_or_none(redirect_classification.get('target_host')),
+                            str_or_none(redirect_classification.get('target_path')),
+                            bool_int_or_none(redirect_classification.get('same_origin')),
+                            bool_int_or_none(redirect_classification.get('cross_origin')),
+                            str_or_none(redirect_classification.get('confidence')),
+                            str_or_none(passive_finding.get('type')),
+                            str_or_none(passive_finding.get('severity')),
+                            str_or_none(passive_finding.get('reason')),
+                            str_or_none(passive_finding.get('confidence')),
+                            json_or_none(passive_finding.get('source')),
+                            json_or_none(passive_finding.get('evidence')),
                         )
                     )
 
@@ -268,8 +392,11 @@ class SqliteReportPlugin(PluginProvider):
                     'malware_count, malware_signals, shadow_detection, shadow_confidence, shadow_reason, shadow_base_url, shadow_variant, '
                     'shadow_similarity, shadow_base_size, shadow_size, openredirect_detection, '
                     'openredirect_confidence, openredirect_parameter, openredirect_variant, openredirect_payload, '
-                    'openredirect_location, openredirect_source_url'
-                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    'openredirect_payload_family, openredirect_location, openredirect_source_url, redirect_type, redirect_reason, '
+                    'redirect_location, redirect_target_scheme, redirect_target_host, redirect_target_path, '
+                    'redirect_same_origin, redirect_cross_origin, redirect_confidence, finding_type, finding_severity, '
+                    'finding_reason, finding_confidence, finding_source, finding_evidence'
+                    ') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     rows
                 )
 
@@ -287,19 +414,11 @@ class SqliteReportPlugin(PluginProvider):
                     infrastructure_provider = infrastructure.get('provider')
                     infrastructure_confidence = infrastructure.get('confidence')
 
-                security_headers = fingerprint.get('security_headers')
-                if not isinstance(security_headers, dict):
-                    security_headers = {}
-                hsts = security_headers.get('hsts')
-                if not isinstance(hsts, dict):
-                    hsts = {}
+                security_headers = dict_or_empty(fingerprint.get('security_headers'))
+                hsts = dict_or_empty(security_headers.get('hsts'))
 
-                privacy_risks = fingerprint.get('privacy_risks')
-                if not isinstance(privacy_risks, dict):
-                    privacy_risks = {}
-                supercookie = privacy_risks.get('supercookie')
-                if not isinstance(supercookie, dict):
-                    supercookie = {}
+                privacy_risks = dict_or_empty(fingerprint.get('privacy_risks'))
+                supercookie = dict_or_empty(privacy_risks.get('supercookie'))
 
                 cursor.execute(
                     'INSERT INTO fingerprint('
@@ -316,36 +435,26 @@ class SqliteReportPlugin(PluginProvider):
                         str(fingerprint.get('category', 'custom')),
                         str(fingerprint.get('name', 'Unknown custom stack')),
                         int(fingerprint.get('confidence', 0)),
-                        None if runtime_name is None else str(runtime_name),
-                        None if runtime_confidence is None else int(runtime_confidence),
-                        None if infrastructure_provider is None else str(infrastructure_provider),
-                        None if infrastructure_confidence is None else int(infrastructure_confidence),
-                        None if hsts.get('present') is None else int(bool(hsts.get('present'))),
-                        None if hsts.get('grade') is None else str(hsts.get('grade')),
-                        None if hsts.get('max_age') is None else int(hsts.get('max_age')),
-                        None if hsts.get('include_subdomains') is None else int(bool(hsts.get('include_subdomains'))),
-                        None if hsts.get('preload') is None else int(bool(hsts.get('preload'))),
-                        None if hsts.get('preload_ready') is None else int(bool(hsts.get('preload_ready'))),
-                        None if hsts.get('http_to_https_redirect') is None else int(bool(hsts.get('http_to_https_redirect'))),
-                        ';'.join([str(item) for item in hsts.get('warnings', [])]) if isinstance(hsts.get('warnings'), list) else None,
-                        None if supercookie.get('risk') is None else str(supercookie.get('risk')),
-                        None if supercookie.get('score') is None else int(supercookie.get('score')),
-                        None if supercookie.get('hsts_tracking_surface') is None else int(
-                            bool(supercookie.get('hsts_tracking_surface'))
-                        ),
-                        None if supercookie.get('etag_tracking_surface') is None else int(
-                            bool(supercookie.get('etag_tracking_surface'))
-                        ),
-                        None if supercookie.get('cache_tracking_surface') is None else int(
-                            bool(supercookie.get('cache_tracking_surface'))
-                        ),
-                        None if supercookie.get('persistent_cookie_surface') is None else int(
-                            bool(supercookie.get('persistent_cookie_surface'))
-                        ),
-                        ';'.join([str(item) for item in supercookie.get('warnings', [])])
-                        if isinstance(supercookie.get('warnings'), list) else None,
-                        ';'.join([str(item) for item in supercookie.get('signals', [])])
-                        if isinstance(supercookie.get('signals'), list) else None,
+                        str_or_none(runtime_name),
+                        int_or_none(runtime_confidence),
+                        str_or_none(infrastructure_provider),
+                        int_or_none(infrastructure_confidence),
+                        bool_int_or_none(hsts.get('present')),
+                        str_or_none(hsts.get('grade')),
+                        int_or_none(hsts.get('max_age')),
+                        bool_int_or_none(hsts.get('include_subdomains')),
+                        bool_int_or_none(hsts.get('preload')),
+                        bool_int_or_none(hsts.get('preload_ready')),
+                        bool_int_or_none(hsts.get('http_to_https_redirect')),
+                        joined_or_none(hsts.get('warnings')) if isinstance(hsts.get('warnings'), list) else None,
+                        str_or_none(supercookie.get('risk')),
+                        int_or_none(supercookie.get('score')),
+                        bool_int_or_none(supercookie.get('hsts_tracking_surface')),
+                        bool_int_or_none(supercookie.get('etag_tracking_surface')),
+                        bool_int_or_none(supercookie.get('cache_tracking_surface')),
+                        bool_int_or_none(supercookie.get('persistent_cookie_surface')),
+                        joined_or_none(supercookie.get('warnings')) if isinstance(supercookie.get('warnings'), list) else None,
+                        joined_or_none(supercookie.get('signals')) if isinstance(supercookie.get('signals'), list) else None,
                     )
                 )
 
@@ -365,7 +474,14 @@ class SqliteReportPlugin(PluginProvider):
 
                 runtime_signals = runtime.get('signals', []) if isinstance(runtime, dict) else []
                 if isinstance(runtime_signals, list) and len(runtime_signals) > 0:
-                    cursor.executemany('INSERT INTO runtime_signals(type, value) VALUES(?, ?)', [(str(s.get('type', 'unknown')), str(s.get('value', ''))) for s in runtime_signals if isinstance(s, dict)])
+                    cursor.executemany(
+                        'INSERT INTO runtime_signals(type, value) VALUES(?, ?)',
+                        [
+                            (str(signal.get('type', 'unknown')), str(signal.get('value', '')))
+                            for signal in runtime_signals
+                            if isinstance(signal, dict)
+                        ]
+                    )
 
             connection.commit()
             tpl.info(key='report', plugin=self.PLUGIN_NAME, dest=filesystem.getabsname(database_path))

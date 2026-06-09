@@ -75,7 +75,7 @@ opendoor --host https://example.com --reports json
 
 Use JSON for automation, pipelines, post-processing, and CI/CD artifact uploads.
 
-JSON preserves detailed `report_items` metadata, including WAF, fingerprint, calibration, header-bypass, secret, stacktrace, shadow and openredirect fields.
+JSON preserves detailed `report_items` metadata, including WAF, fingerprint, calibration, header-bypass, redirect classification, secret, stacktrace, shadow, endpoint and openredirect fields.
 
 When transport-exhausted directory entries exist, JSON also preserves them in the top-level `transport_failed` list.
 
@@ -109,6 +109,8 @@ Shadow Copy Detection columns:
 | `shadow_base_url` | Original confirmed file used as the probe base |
 | `shadow_variant` | Matched suffix or template variant such as `.bak`, `.old`, `~`, or `tpl:{path}2.{ext}` |
 | `shadow_similarity` | Similarity score used by the detector |
+
+Endpoint detection is stored through the shared structured finding columns (`finding_type`, `finding_severity`, `finding_reason`, `finding_confidence`, `finding_source`, and `finding_evidence`). The nested JSON/HTML/SARIF metadata also preserves `endpoint_detection` with bounded endpoint samples.
 
 Open Redirect Verification columns:
 
@@ -176,9 +178,10 @@ OpenDoor writes SARIF 2.1.0 files with one run per generated report. Result buck
 | `bypass` | `opendoor.finding.bypass` | `warning` |
 | `shadow` | `opendoor.finding.shadow` | `warning` |
 | `openredirect` | `opendoor.finding.openredirect` | `error` |
+| `endpoint` | `opendoor.finding.endpoint` | `note` |
 | fingerprint metadata | `opendoor.fingerprint.detected` | `note` |
 
-SARIF result `properties` preserve OpenDoor-specific evidence: target, URL, bucket, status code, response size, WAF metadata, bypass metadata, secret/stacktrace/shadow/openredirect metadata and fingerprint metadata.
+SARIF result `properties` preserve OpenDoor-specific evidence: target, URL, bucket, status code, response size, WAF metadata, bypass metadata, redirect classification metadata, secret/stacktrace/shadow/endpoint/openredirect metadata and fingerprint metadata.
 
 Example GitHub Code Scanning upload:
 
@@ -213,7 +216,7 @@ opendoor --host https://example.com --reports html
 
 Use HTML for a readable standalone report.
 
-HTML preserves detailed `report_items` metadata, including header-bypass, secret, stacktrace, shadow and openredirect evidence.
+HTML preserves detailed `report_items` metadata, including header-bypass, redirect classification, secret, stacktrace, shadow, endpoint and openredirect evidence.
 
 ---
 
@@ -233,7 +236,7 @@ SQLite is useful for:
 - recurring exposure checks;
 - historical comparison.
 
-SQLite persists Header Injection Bypass, Shadow Copy Detection and Open Redirect Verification metadata in nullable item columns.
+SQLite persists Header Injection Bypass, Redirect Classification, Shadow Copy Detection and Open Redirect Verification metadata in nullable item columns. Endpoint detections use the shared structured finding columns and preserve bounded evidence such as endpoint family, confidence, source signal and endpoint samples.
 
 Header Injection Bypass columns:
 
@@ -315,6 +318,27 @@ Report support:
 
 ---
 
+## Redirect classification metadata
+
+Discovered `3xx` responses are passively classified from their existing `Location` header. This is report enrichment for the normal `redirect` bucket; OpenDoor does not create a separate redirect-classifier report, does not follow redirects by default and does not add requests by default. Explicit `--follow-redirects` can materialize bounded same-host redirect chains and report only meaningful final non-redirect responses while keeping failed or homepage-collapse chains as passive redirect evidence.
+
+| Marker | Meaning |
+|---|---|
+| `canonical` | Same-origin canonical redirect, such as `/api` to `/api/` |
+| `internal` | Same-origin redirect without a stronger class |
+| `login` | Auth/login bounce |
+| `logout` | Logout/session bounce |
+| `external` | Cross-origin redirect target |
+| `scheme` | Scheme change, such as HTTP to HTTPS |
+| `asset` | Static asset/download redirect |
+| `waf` | WAF or challenge redirect |
+| `unknown` | Valid redirect without a confident class |
+| `invalid` | Redirect status without a usable Location target |
+
+Structured reports preserve bounded `redirect_classification` metadata with fields such as `type`, `reason`, `location`, `target_url`, `target_scheme`, `target_host`, `target_path`, `same_origin`, `cross_origin` and `confidence`. Sensitive query values in Location-like fields are redacted and long values are truncated.
+
+`R(external)` is not an open redirect vulnerability claim. Confirmed open redirect vulnerabilities are reported only by `--sniff openredirect`.
+
 ## Open redirect evidence
 
 When `--sniff openredirect` is enabled and a redirect-like parameter is confirmed vulnerable, OpenDoor stores the result in the `openredirect` bucket. Open redirect verification is active but bounded: it uses discovered URLs that already contain redirect-like query parameters and verifies only controlled marker payloads such as `https://opendoor.invalid/` or `//opendoor.invalid/`. OpenDoor does not follow the external redirect.
@@ -386,7 +410,7 @@ opendoor \
 
 In CI/CD, prefer machine-readable formats such as `json`, `sqlite`, `csv`, and `sarif`.
 
-Use the `bypass` bucket when Header Injection Bypass candidates should fail the pipeline. Use the `shadow` bucket when exposed backup/shadow copies should fail the pipeline. Use the `openredirect` bucket when confirmed open redirect vulnerabilities should fail the pipeline.
+Use the `bypass` bucket when Header Injection Bypass candidates should fail the pipeline. Use the `shadow` bucket when exposed backup/shadow copies should fail the pipeline. Use the `endpoint` bucket when client-exposed endpoint references should fail the pipeline. Use the `openredirect` bucket when confirmed open redirect vulnerabilities should fail the pipeline.
 
 ---
 

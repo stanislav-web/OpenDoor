@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import unittest
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 from src.core.http.tls import (
     TLS_LEGACY_CIPHERS,
     describe_tls_transport_error,
+    emit_tls_legacy_policy,
     maybe_build_ssl_context,
+    tls_pool_kwargs,
+    warn_tls_transport_error,
 )
 
 
@@ -74,6 +79,56 @@ class TestTlsHelpers(unittest.TestCase):
         for sample in samples:
             with self.subTest(sample=sample):
                 self.assertIsNone(describe_tls_transport_error(Exception(sample)))
+
+    def test_tls_pool_kwargs_returns_context_only_when_present(self):
+        """tls_pool_kwargs() should preserve urllib3 defaults unless a context exists."""
+
+        context = object()
+
+        self.assertEqual(tls_pool_kwargs(None), {})
+        self.assertEqual(tls_pool_kwargs(context), {'ssl_context': context})
+
+    def test_emit_tls_legacy_policy_only_logs_when_enabled(self):
+        """emit_tls_legacy_policy() should keep legacy-mode debug output centralized."""
+
+        tpl = Mock()
+        emit_tls_legacy_policy(Mock(is_tls_legacy=False), tpl)
+        tpl.debug.assert_not_called()
+
+        emit_tls_legacy_policy(Mock(is_tls_legacy=True), tpl)
+        tpl.debug.assert_called_once()
+        self.assertIn(TLS_LEGACY_CIPHERS, tpl.debug.call_args.kwargs['msg'])
+
+    def test_warn_tls_transport_error_stores_warns_and_finishes_line(self):
+        """warn_tls_transport_error() should centralize TLS warning propagation."""
+
+        cfg = Mock()
+        tpl = Mock()
+        line_finisher = Mock()
+
+        message = warn_tls_transport_error(
+            cfg,
+            tpl,
+            ReasonError('ssl routines: dh key too small'),
+            line_finisher=line_finisher,
+        )
+
+        self.assertIn('DH_KEY_TOO_SMALL', message)
+        self.assertEqual(cfg.last_transport_error, message)
+        line_finisher.assert_called_once_with()
+        tpl.warning.assert_called_once_with(msg=message)
+
+    def test_warn_tls_transport_error_ignores_non_tls_errors(self):
+        """warn_tls_transport_error() should avoid warnings for non-TLS failures."""
+
+        cfg = SimpleNamespace()
+        tpl = Mock()
+        line_finisher = Mock()
+
+        self.assertIsNone(warn_tls_transport_error(cfg, tpl, Exception('connection refused'), line_finisher))
+        self.assertFalse(hasattr(cfg, 'last_transport_error'))
+        line_finisher.assert_not_called()
+        tpl.warning.assert_not_called()
 
 
 if __name__ == '__main__':

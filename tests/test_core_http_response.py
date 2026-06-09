@@ -5,9 +5,11 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from urllib3.response import HTTPResponse
+from urllib.parse import urlparse
 
 from src.core.http.providers.response import ResponseProvider
 from src.core.http.response import Response
+from src.core.http.redirect_classifier import RedirectClassifier
 from src.core.http.plugins.response_plugin import ResponsePlugin
 from src.core.http.plugins.exceptions import ResponsePluginError
 from src.core.http.plugins.response.collation import CollationResponsePlugin
@@ -206,6 +208,149 @@ class TestResponsePluginLoader(unittest.TestCase):
                 ResponsePlugin.load('file')
 
 
+class TestRedirectClassifier(unittest.TestCase):
+    """Passive redirect classifier test cases."""
+
+    def classify(self, source, status=302, location='/login'):
+        """Classify a redirect in tests."""
+
+        return RedirectClassifier.classify(source, status, location)
+
+    def test_classifies_common_redirect_markers(self):
+        """Should classify common redirect shapes conservatively."""
+
+        samples = [
+            ('https://localhost/api', 301, 'https://localhost/api/', 'canonical'),
+            ('https://localhost/old', 302, '/new', 'internal'),
+            ('https://localhost/admin', 302, '/login?next=/admin', 'login'),
+            ('https://localhost/logout', 302, '/login?logged_out=1', 'login'),
+            ('https://localhost/logout', 302, '/logout', 'logout'),
+            ('https://localhost/oauth', 302, 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize', 'external'),
+            ('http://localhost/api', 308, 'https://localhost/api', 'scheme'),
+            ('https://localhost/logo', 302, '/static/logo.png', 'asset'),
+            ('https://localhost/panel', 302, '/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1', 'waf'),
+            ('https://localhost/x', 302, '/y', 'internal'),
+        ]
+
+        for source, status, location, expected in samples:
+            with self.subTest(source=source, location=location):
+                self.assertEqual(self.classify(source, status, location)['type'], expected)
+
+    def test_handles_invalid_missing_and_unsupported_redirects(self):
+        """Should keep invalid or unsupported redirect values bounded."""
+
+        self.assertEqual(self.classify('https://localhost/', 302, '')['type'], 'invalid')
+        self.assertEqual(self.classify('https://localhost/', 200, '/login'), {})
+        self.assertEqual(self.classify('', 302, '/login')['type'], 'invalid')
+
+    def test_normalizes_scheme_relative_and_redacts_sensitive_query_values(self):
+        """Should normalize protocol-relative targets and redact sensitive query values."""
+
+        external = self.classify('https://localhost/', 302, '//cdn.example.com/app')
+        self.assertEqual(external['type'], 'external')
+        self.assertEqual(external['target_url'], 'https://cdn.example.com/app')
+        self.assertEqual(external['target_host'], 'cdn.example.com')
+        self.assertEqual(external['display'], 'https://cdn.example.com/app')
+
+        redacted = self.classify(
+            'https://localhost/admin',
+            302,
+            '/login?token=abcdef123456&next=/admin&state=xyz987654',
+        )
+        self.assertEqual(redacted['type'], 'login')
+        self.assertIn('token=abcd****', redacted['location'])
+        self.assertIn('state=xyz9****', redacted['location'])
+        self.assertIn('next=/admin', redacted['location'])
+
+    def test_external_redirect_display_preserves_scheme_without_changing_scheme_redirects(self):
+        """External redirect runtime display should include protocol while scheme redirects stay unchanged."""
+
+        external = self.classify(
+            'https://www.uralopera.ru/?view=phpinfo',
+            302,
+            'https://uralopera.ru',
+        )
+        self.assertEqual(external['type'], 'external')
+        self.assertEqual(external['display'], 'https://uralopera.ru')
+
+        redacted_external = self.classify(
+            'https://localhost/start',
+            302,
+            'https://cdn.example.com/cb?token=abcdef123456&next=/home',
+        )
+        self.assertEqual(redacted_external['type'], 'external')
+        self.assertIn('https://cdn.example.com/cb?token=abcd****', redacted_external['display'])
+        self.assertNotIn('abcdef123456', redacted_external['display'])
+
+        scheme = self.classify('http://localhost/api', 308, 'https://localhost/api')
+        self.assertEqual(scheme['type'], 'scheme')
+        self.assertEqual(scheme['display'], 'https://localhost/api')
+
+    def test_get_location_supports_native_header_fallback_and_invalid_headers(self):
+        """Should extract Location from native response helpers and mapping headers."""
+
+        native = SimpleNamespace(get_redirect_location=MagicMock(return_value=' /native '), headers={})
+        self.assertEqual(RedirectClassifier.get_location(native), '/native')
+
+        broken_native = SimpleNamespace(
+            get_redirect_location=MagicMock(side_effect=AttributeError),
+            headers={'Location': ' /header '},
+        )
+        self.assertEqual(RedirectClassifier.get_location(broken_native), '/header')
+
+        non_mapping = SimpleNamespace(headers=['Location', '/bad'])
+        self.assertEqual(RedirectClassifier.get_location(non_mapping), '')
+
+        missing = SimpleNamespace(get_redirect_location=MagicMock(return_value=False), headers={'X-Test': '1'})
+        self.assertEqual(RedirectClassifier.get_location(missing), '')
+
+    def test_helper_edges_keep_redirect_contract_deterministic(self):
+        """Should cover edge branches for marker, redaction and path helpers."""
+
+        self.assertEqual(RedirectClassifier.classify('https://localhost/', 'bad', '/login'), {})
+        self.assertEqual(RedirectClassifier.marker({'type': 'login'}), 'R(login)')
+        self.assertEqual(RedirectClassifier.marker(None), 'R(unknown)')
+        self.assertEqual(
+            RedirectClassifier.sanitize_location('/cb?code=abc&flag#frag'),
+            '/cb?code=****&flag#frag',
+        )
+        self.assertEqual(RedirectClassifier._host_port(urlparse('/relative')), '')
+        self.assertEqual(RedirectClassifier._host_port(urlparse('https://localhost:8443/a')), 'localhost:8443')
+        self.assertFalse(RedirectClassifier._is_canonical_redirect('/api', '/api'))
+        self.assertEqual(RedirectClassifier._redact_value('abc'), '****')
+
+        oauth = self.classify('https://localhost/start', 302, 'https://idp.example.com/oauth/authorize')
+        self.assertEqual(oauth['type'], 'external')
+        self.assertEqual(oauth['reason'], 'sso_redirect')
+
+        asset = self.classify('https://localhost/download', 302, '/assets/')
+        self.assertEqual(asset['type'], 'asset')
+
+    def test_truncates_long_locations(self):
+        """Should bound stored and displayed Location values."""
+
+        location = '/login?next=/{0}'.format('a' * 400)
+        classification = self.classify('https://localhost/admin', 302, location)
+
+        self.assertLessEqual(len(classification['location']), RedirectClassifier.MAX_LOCATION_LENGTH)
+        self.assertLessEqual(len(classification['display']), RedirectClassifier.MAX_DISPLAY_LENGTH)
+        self.assertTrue(classification['location'].endswith('...'))
+
+    def test_classifies_unusual_netloc_without_hostname_as_unknown(self):
+        """Should keep unusual absolute redirect targets deterministic."""
+
+        classification = self.classify(
+            'https://localhost/start',
+            302,
+            'https://:443/odd',
+        )
+
+        self.assertEqual(classification['type'], 'unknown')
+        self.assertEqual(classification['reason'], 'unclassified_redirect')
+        self.assertFalse(classification['same_origin'])
+        self.assertTrue(classification['cross_origin'])
+
+
 class TestResponseProvider(unittest.TestCase):
     """TestResponseProvider class."""
 
@@ -299,6 +444,32 @@ class TestResponse(unittest.TestCase):
         with self.assertRaises(ResponseError):
             Response(cfg, self.make_debug(), tpl=MagicMock())
 
+    def test_handle_attaches_request_url_for_file_sniffer_db_path_detection(self):
+        """Response.handle() should expose request URL to response sniffers."""
+
+        cfg = self.make_cfg(is_sniff=True, sniffers=['file'], scan='directories')
+        debug = self.make_debug(level=0)
+        response_handler = Response(cfg, debug, tpl=MagicMock())
+        response = self.make_response(
+            status=200,
+            body=b'',
+            headers={'Content-Length': '0'},
+        )
+
+        status, url, size, code = response_handler.handle(
+            response,
+            'http://example.com/assets/custom-cache.db',
+            1,
+            2,
+            [],
+        )
+
+        self.assertEqual(
+            (status, url, size, code),
+            ('file', 'http://example.com/assets/custom-cache.db', '0B', '200')
+        )
+        self.assertEqual(response.opendoor_request_url, 'http://example.com/assets/custom-cache.db')
+
     def test_handle_directory_success_and_redirect(self):
         """Response.handle() should process success and redirect directory responses."""
 
@@ -314,6 +485,10 @@ class TestResponse(unittest.TestCase):
         redirect = self.make_response(status=301, body=b'', headers={'Location': '/next', 'Content-Length': '0'})
         status, url, size, code = response_handler.handle(redirect, 'http://example.com/path', 1, 2, [])
         self.assertEqual((status, url, size, code), ('redirect', 'http://example.com/next', '0B', '301'))
+        classification = getattr(redirect, 'opendoor_redirect_classification')
+        self.assertEqual(classification['type'], 'internal')
+        self.assertEqual(classification['display'], '/next')
+        self.assertEqual(debug.debug_request_uri.call_args.kwargs['redirect_classification']['type'], 'internal')
 
     def test_handle_redirect_becomes_failed_when_ignored(self):
         """Response.handle() should downgrade redirects to failed when target path is ignored."""
@@ -326,6 +501,105 @@ class TestResponse(unittest.TestCase):
         status, url, size, code = response_handler.handle(redirect, 'http://example.com/path', 1, 2, ['admin'])
 
         self.assertEqual((status, url, size, code), ('failed', 'http://example.com/admin', '0B', '301'))
+
+    def test_handle_redirect_continues_when_classification_metadata_cannot_be_attached(self):
+        """Response.handle() should tolerate frozen response objects."""
+
+        class FrozenRedirectResponse(object):
+            __slots__ = ('status', 'headers', 'data')
+
+            def __init__(self):
+                self.status = 302
+                self.headers = {'Location': '/login', 'Content-Length': '0'}
+                self.data = b''
+
+            def get_redirect_location(self):
+                return self.headers.get('Location')
+
+        cfg = self.make_cfg(scan='directories')
+        debug = self.make_debug(level=0)
+        response_handler = Response(cfg, debug, tpl=MagicMock())
+        redirect = FrozenRedirectResponse()
+
+        status, url, size, code = response_handler.handle(
+            redirect,
+            'http://example.com/admin',
+            1,
+            2,
+            [],
+        )
+
+        self.assertEqual((status, url, size, code), ('redirect', 'http://example.com/login', '0B', '302'))
+        self.assertFalse(hasattr(redirect, 'opendoor_redirect_classification'))
+
+    def test_handle_redirect_allows_empty_classifier_result(self):
+        """Response.handle() should keep redirects when classifier returns no metadata."""
+
+        cfg = self.make_cfg(scan='directories')
+        debug = self.make_debug(level=0)
+        response_handler = Response(cfg, debug, tpl=MagicMock())
+        redirect = self.make_response(status=302, body=b'', headers={'Location': '/next', 'Content-Length': '0'})
+
+        with patch('src.core.http.response.RedirectClassifier.classify', return_value={}):
+            status, url, size, code = response_handler.handle(
+                redirect,
+                'http://example.com/start',
+                1,
+                2,
+                [],
+            )
+
+        self.assertEqual((status, url, size, code), ('redirect', 'http://example.com/next', '0B', '302'))
+        self.assertFalse(hasattr(redirect, 'opendoor_redirect_classification'))
+
+    def test_debug_response_data_forwards_redirect_malware_and_endpoint_metadata(self):
+        """Deferred runtime rendering should preserve new and existing metadata."""
+
+        cfg = self.make_cfg(scan='directories')
+        debug = self.make_debug(level=0)
+        response_handler = Response(cfg, debug, tpl=MagicMock())
+
+        redirect = self.make_response(status=302, headers={'Location': '/login'})
+        redirect.opendoor_redirect_classification = {'type': 'login'}
+        response_handler.debug_response_data(
+            ('redirect', 'http://example.com/login', '0B', '302'),
+            'http://example.com/admin',
+            1,
+            2,
+            redirect,
+        )
+        self.assertEqual(
+            debug.debug_request_uri.call_args.kwargs['redirect_classification'],
+            {'type': 'login'},
+        )
+
+        malware = self.make_response(status=200)
+        malware.opendoor_malware_detection = {'type': 'webshell'}
+        response_handler.debug_response_data(
+            ('malware', 'http://example.com/shell.php', '1KB', '200'),
+            'http://example.com/shell.php',
+            1,
+            2,
+            malware,
+        )
+        self.assertEqual(
+            debug.debug_request_uri.call_args.kwargs['malware_detection'],
+            {'type': 'webshell'},
+        )
+
+        endpoint = self.make_response(status=200)
+        endpoint.opendoor_endpoint_detection = {'type': 'ajax'}
+        response_handler.debug_response_data(
+            ('endpoint', 'http://example.com/app.js', '1KB', '200'),
+            'http://example.com/app.js',
+            1,
+            2,
+            endpoint,
+        )
+        self.assertEqual(
+            debug.debug_request_uri.call_args.kwargs['endpoint_detection'],
+            {'type': 'ajax'},
+        )
 
     def test_get_subdomain_ips_should_initialize_missing_cache(self):
         """Response._get_subdomain_ips() should recreate cache when instance state is missing."""

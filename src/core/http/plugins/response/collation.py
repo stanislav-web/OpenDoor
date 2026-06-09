@@ -74,6 +74,8 @@ class CollationResponsePlugin(ResponsePluginProvider):
 
     TEMPLATE_THRESHOLD = 3
     BODY_SAMPLE_SIZE = 512
+    TEMPLATE_SOURCE_LIMIT = 65536
+    MAX_RATIO_BODY_CHARS = 65536
 
     def __init__(self, _void):
         """
@@ -84,21 +86,6 @@ class CollationResponsePlugin(ResponsePluginProvider):
         self.previous_item = {}
         self.current_item = {}
         self._signatures = {}
-
-    @staticmethod
-    def _contains_any(patterns, value):
-        """
-        Check whether any regex pattern exists in the given text.
-
-        :param tuple patterns: regex patterns
-        :param str value: input text
-        :return: bool
-        """
-
-        for pattern in patterns:
-            if re.search(pattern, value, re.IGNORECASE | re.DOTALL):
-                return True
-        return False
 
     def _extract_title(self, body):
         """
@@ -122,7 +109,11 @@ class CollationResponsePlugin(ResponsePluginProvider):
         :return: str
         """
 
-        normalized = body.lower()
+        source = body
+        if len(source) > self.TEMPLATE_SOURCE_LIMIT:
+            source = source[:self.TEMPLATE_SOURCE_LIMIT]
+
+        normalized = source.lower()
         normalized = self.URL_RE.sub(' URL ', normalized)
         normalized = self.UUID_RE.sub(' UUID ', normalized)
         normalized = self.LONG_HEX_RE.sub(' HEX ', normalized)
@@ -237,6 +228,9 @@ class CollationResponsePlugin(ResponsePluginProvider):
         :param str second_body: second body
         :return: bool
         """
+
+        if len(first_body) > self.MAX_RATIO_BODY_CHARS or len(second_body) > self.MAX_RATIO_BODY_CHARS:
+            return False
 
         return SequenceMatcher(None, first_body, second_body).ratio() >= self.RATIO_THRESHOLD
 

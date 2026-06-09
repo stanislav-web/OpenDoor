@@ -51,6 +51,7 @@ The heuristic WAF detection engine currently recognizes probable signals for:
 - BitNinja
 - Bluedon WAF
 - BlockDoS
+- BunkerWeb
 - ChinaCache
 - Cisco ACE XML Gateway
 - CityHost

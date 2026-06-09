@@ -285,6 +285,30 @@ class TestBrowserSession(unittest.TestCase):
         with self.assertRaises(SessionError):
             SessionManager.validate_snapshot(broken)
 
+    def test_save_wraps_replace_errors_when_tmp_file_is_already_missing(self):
+        """SessionManager.save() should tolerate missing tmp files while wrapping replace errors."""
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, 'session.json')
+            manager = SessionManager(path)
+            snapshot = self.make_snapshot()
+
+            real_exists = os.path.exists
+
+            def fake_exists(candidate):
+                if str(candidate).endswith('.tmp'):
+                    return False
+                return real_exists(candidate)
+
+            with patch.object(SessionManager, 'app_version', return_value='5.8.0'), \
+                    patch('src.lib.browser.session.os.replace', side_effect=OSError('replace failed')), \
+                    patch('src.lib.browser.session.os.path.exists', side_effect=fake_exists), \
+                    patch('src.lib.browser.session.os.unlink') as unlink_mock:
+                with self.assertRaises(SessionError):
+                    manager.save(snapshot)
+
+            unlink_mock.assert_not_called()
+
     def test_save_wraps_replace_errors_even_when_tmp_cleanup_also_fails(self):
         """SessionManager.save() should still raise SessionError when tmp cleanup also fails."""
 

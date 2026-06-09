@@ -17,6 +17,7 @@
 """
 
 import csv
+import json
 import os
 
 from .provider import PluginProvider
@@ -81,8 +82,22 @@ class CsvReportPlugin(PluginProvider):
         'openredirect_parameter',
         'openredirect_variant',
         'openredirect_payload',
+        'openredirect_payload_family',
         'openredirect_location',
         'openredirect_source_url',
+        'redirect_type',
+        'redirect_reason',
+        'redirect_location',
+        'redirect_target_host',
+        'redirect_same_origin',
+        'redirect_cross_origin',
+        'redirect_confidence',
+        'finding_type',
+        'finding_severity',
+        'finding_reason',
+        'finding_confidence',
+        'finding_source',
+        'finding_evidence',
         'fingerprint_category',
         'fingerprint_name',
         'fingerprint_confidence',
@@ -125,6 +140,22 @@ class CsvReportPlugin(PluginProvider):
             self.__target_dir = filesystem.makedir(os.path.join(directory, self._target))
         except FileSystemError as error:
             raise Exception(error)
+
+    @staticmethod
+    def __format_mapping(value):
+        """
+        Convert dict/list values into a stable compact CSV cell.
+
+        :param dict | list | mixed value: source value
+        :return: JSON string for structured values or scalar string
+        :rtype: str
+        """
+
+        if isinstance(value, (dict, list, tuple)):
+            return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+        if value is None:
+            return ''
+        return str(value)
 
     @staticmethod
     def __format_list(value):
@@ -208,14 +239,14 @@ class CsvReportPlugin(PluginProvider):
             'infrastructure_confidence': str(infrastructure.get('confidence', '')),
             'hsts_present': str(hsts.get('present', '')),
             'hsts_grade': str(hsts.get('grade', '')),
-            'hsts_max_age': '' if hsts.get('max_age') is None else str(hsts.get('max_age')),
+            'hsts_max_age': self.__format_mapping(hsts.get('max_age')),
             'hsts_include_subdomains': str(hsts.get('include_subdomains', '')),
             'hsts_preload': str(hsts.get('preload', '')),
             'hsts_preload_ready': str(hsts.get('preload_ready', '')),
             'hsts_http_to_https_redirect': str(hsts.get('http_to_https_redirect', '')),
             'hsts_warnings': self.__format_list(hsts.get('warnings', [])),
             'supercookie_risk': str(supercookie.get('risk', '')),
-            'supercookie_score': '' if supercookie.get('score') is None else str(supercookie.get('score')),
+            'supercookie_score': self.__format_mapping(supercookie.get('score')),
             'supercookie_hsts_tracking_surface': str(supercookie.get('hsts_tracking_surface', '')),
             'supercookie_etag_tracking_surface': str(supercookie.get('etag_tracking_surface', '')),
             'supercookie_cache_tracking_surface': str(supercookie.get('cache_tracking_surface', '')),
@@ -249,7 +280,7 @@ class CsvReportPlugin(PluginProvider):
                     'code': str(item.get('code', '-')),
                     'size': str(item.get('size', '0B')),
                     'waf': str(item.get('waf', '')),
-                    'waf_confidence': '' if item.get('waf_confidence') is None else str(item.get('waf_confidence')),
+                    'waf_confidence': self.__format_mapping(item.get('waf_confidence')),
                     'waf_signals': self.__format_list(item.get('waf_signals', [])),
                     'bypass': str(item.get('bypass', '')),
                     'bypass_profile': str(item.get('bypass_profile', '')),
@@ -259,11 +290,9 @@ class CsvReportPlugin(PluginProvider):
                     'bypass_url': str(item.get('bypass_url', '')),
                     'bypass_from_status': str(item.get('bypass_from_status', '')),
                     'bypass_to_status': str(item.get('bypass_to_status', '')),
-                    'bypass_from_code': '' if item.get('bypass_from_code') is None else str(
-                        item.get('bypass_from_code')
-                    ),
-                    'bypass_to_code': '' if item.get('bypass_to_code') is None else str(item.get('bypass_to_code')),
-                    'bypass_score': '' if item.get('bypass_score') is None else str(item.get('bypass_score')),
+                    'bypass_from_code': self.__format_mapping(item.get('bypass_from_code')),
+                    'bypass_to_code': self.__format_mapping(item.get('bypass_to_code')),
+                    'bypass_score': self.__format_mapping(item.get('bypass_score')),
                     'bypass_reasons': self.__format_list(item.get('bypass_reasons', [])),
                     'stacktrace_detection': '',
                     'stacktrace_runtime': '',
@@ -294,8 +323,22 @@ class CsvReportPlugin(PluginProvider):
                     'openredirect_parameter': '',
                     'openredirect_variant': '',
                     'openredirect_payload': '',
+                    'openredirect_payload_family': '',
                     'openredirect_location': '',
                     'openredirect_source_url': '',
+                    'redirect_type': '',
+                    'redirect_reason': '',
+                    'redirect_location': '',
+                    'redirect_target_host': '',
+                    'redirect_same_origin': '',
+                    'redirect_cross_origin': '',
+                    'redirect_confidence': '',
+                    'finding_type': '',
+                    'finding_severity': '',
+                    'finding_reason': '',
+                    'finding_confidence': '',
+                    'finding_source': '',
+                    'finding_evidence': '',
                 }
                 stacktrace_detection = item.get('stacktrace_detection')
                 if isinstance(stacktrace_detection, dict):
@@ -303,19 +346,15 @@ class CsvReportPlugin(PluginProvider):
                         'stacktrace_detection': str(stacktrace_detection.get('type', '')),
                         'stacktrace_runtime': str(stacktrace_detection.get('runtime', '')),
                         'stacktrace_signal': str(stacktrace_detection.get('signal', '')),
-                        'stacktrace_confidence': '' if stacktrace_detection.get('confidence') is None else str(
-                            stacktrace_detection.get('confidence')
-                        ),
+                        'stacktrace_confidence': self.__format_mapping(stacktrace_detection.get('confidence')),
                     })
                 secret_detection = item.get('secret_detection')
                 if isinstance(secret_detection, dict):
                     row.update({
                         'secret_detection': str(secret_detection.get('type', '')),
                         'secret_redacted': str(secret_detection.get('redacted', '')),
-                        'secret_confidence': '' if secret_detection.get('confidence') is None else str(
-                            secret_detection.get('confidence')
-                        ),
-                        'secret_count': '' if secret_detection.get('count') is None else str(secret_detection.get('count')),
+                        'secret_confidence': self.__format_mapping(secret_detection.get('confidence')),
+                        'secret_count': self.__format_mapping(secret_detection.get('count')),
                         'secret_types': self.__format_list(secret_detection.get('types', [])),
                     })
                 malware_detection = item.get('malware_detection')
@@ -325,46 +364,54 @@ class CsvReportPlugin(PluginProvider):
                         'malware_subtype': str(malware_detection.get('subtype', '')),
                         'malware_family': str(malware_detection.get('family', '')),
                         'malware_signal': str(malware_detection.get('signal', '')),
-                        'malware_confidence': '' if malware_detection.get('confidence') is None else str(
-                            malware_detection.get('confidence')
-                        ),
-                        'malware_count': '' if malware_detection.get('count') is None else str(
-                            malware_detection.get('count')
-                        ),
+                        'malware_confidence': self.__format_mapping(malware_detection.get('confidence')),
+                        'malware_count': self.__format_mapping(malware_detection.get('count')),
                         'malware_signals': self.__format_list(malware_detection.get('signals', [])),
                     })
                 shadow_detection = item.get('shadow_detection')
                 if isinstance(shadow_detection, dict):
                     row.update({
                         'shadow_detection': str(shadow_detection.get('type', '')),
-                        'shadow_confidence': '' if shadow_detection.get('confidence') is None else str(
-                            shadow_detection.get('confidence')
-                        ),
+                        'shadow_confidence': self.__format_mapping(shadow_detection.get('confidence')),
                         'shadow_reason': str(shadow_detection.get('reason', '')),
                         'shadow_base_url': str(shadow_detection.get('base_url', '')),
                         'shadow_variant': str(shadow_detection.get('variant', '')),
-                        'shadow_similarity': '' if shadow_detection.get('similarity') is None else str(
-                            shadow_detection.get('similarity')
-                        ),
-                        'shadow_base_size': '' if shadow_detection.get('base_size') is None else str(
-                            shadow_detection.get('base_size')
-                        ),
-                        'shadow_size': '' if shadow_detection.get('shadow_size') is None else str(
-                            shadow_detection.get('shadow_size')
-                        ),
+                        'shadow_similarity': self.__format_mapping(shadow_detection.get('similarity')),
+                        'shadow_base_size': self.__format_mapping(shadow_detection.get('base_size')),
+                        'shadow_size': self.__format_mapping(shadow_detection.get('shadow_size')),
                     })
                 openredirect_detection = item.get('openredirect_detection')
                 if isinstance(openredirect_detection, dict):
                     row.update({
                         'openredirect_detection': str(openredirect_detection.get('type', '')),
-                        'openredirect_confidence': '' if openredirect_detection.get('confidence') is None else str(
-                            openredirect_detection.get('confidence')
-                        ),
+                        'openredirect_confidence': self.__format_mapping(openredirect_detection.get('confidence')),
                         'openredirect_parameter': str(openredirect_detection.get('parameter', '')),
                         'openredirect_variant': str(openredirect_detection.get('variant', '')),
                         'openredirect_payload': str(openredirect_detection.get('payload', '')),
+                        'openredirect_payload_family': str(openredirect_detection.get('payload_family', '')),
                         'openredirect_location': str(openredirect_detection.get('location', '')),
                         'openredirect_source_url': str(openredirect_detection.get('source_url', '')),
+                    })
+                redirect_classification = item.get('redirect_classification')
+                if isinstance(redirect_classification, dict):
+                    row.update({
+                        'redirect_type': str(redirect_classification.get('type', '')),
+                        'redirect_reason': str(redirect_classification.get('reason', '')),
+                        'redirect_location': str(redirect_classification.get('location', '')),
+                        'redirect_target_host': str(redirect_classification.get('target_host', '')),
+                        'redirect_same_origin': str(redirect_classification.get('same_origin', '')),
+                        'redirect_cross_origin': str(redirect_classification.get('cross_origin', '')),
+                        'redirect_confidence': str(redirect_classification.get('confidence', '')),
+                    })
+                passive_finding = item.get('passive_finding')
+                if isinstance(passive_finding, dict):
+                    row.update({
+                        'finding_type': str(passive_finding.get('type', '')),
+                        'finding_severity': str(passive_finding.get('severity', '')),
+                        'finding_reason': str(passive_finding.get('reason', '')),
+                        'finding_confidence': str(passive_finding.get('confidence', '')),
+                        'finding_source': self.__format_mapping(passive_finding.get('source', {})),
+                        'finding_evidence': self.__format_mapping(passive_finding.get('evidence', {})),
                     })
                 row.update(fingerprint_fields)
                 rows.append(row)

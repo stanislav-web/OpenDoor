@@ -330,3 +330,39 @@ class TestSarifReportPlugin(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestSarifRedirectClassification(unittest.TestCase):
+    """SARIF redirect classification report tests."""
+
+    def test_sarif_result_preserves_redirect_classification_properties(self):
+        """SARIF redirect results should preserve redirect classification metadata."""
+
+        data = {
+            'items': {'redirect': ['https://example.com/login']},
+            'report_items': {
+                'redirect': [{
+                    'url': 'https://example.com/login',
+                    'code': '302',
+                    'size': '0B',
+                    'redirect_classification': {
+                        'type': 'login',
+                        'reason': 'auth_gate_redirect',
+                        'location': '/login?next=/admin',
+                        'target_host': 'example.com',
+                        'same_origin': True,
+                        'cross_origin': False,
+                        'confidence': 'high',
+                    },
+                }]
+            },
+            'total': {'redirect': 1},
+        }
+        plugin = SarifReportPlugin('example.com', data, directory=tempfile.gettempdir() + os.path.sep)
+        results = plugin.build_sarif_log()['runs'][0]['results']
+        redirect = next(result for result in results if result['ruleId'] == 'opendoor.finding.redirect')
+
+        self.assertEqual(redirect['level'], 'note')
+        self.assertIn('classified redirect', redirect['message']['text'])
+        self.assertEqual(redirect['properties']['redirectClassification']['type'], 'login')
+        self.assertEqual(redirect['properties']['redirectClassification']['reason'], 'auth_gate_redirect')

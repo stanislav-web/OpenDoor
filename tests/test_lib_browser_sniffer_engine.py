@@ -224,6 +224,7 @@ class TestSnifferCatalog(unittest.TestCase):
                 'indexof',
                 'stacktrace',
                 'malware',
+                'endpoint',
                 'skipempty',
                 'skipsizes',
                 'collation',
@@ -236,9 +237,9 @@ class TestSnifferCatalog(unittest.TestCase):
         """Catalog should expose stable sniffer kind groupings."""
 
         catalog = SnifferCatalog.builtin()
-        enabled = ['openredirect', 'secret', 'malware', 'skipempty', 'shadow', 'file']
+        enabled = ['openredirect', 'secret', 'malware', 'endpoint', 'skipempty', 'shadow', 'file']
 
-        self.assertEqual([item.name for item in catalog.detectors(enabled)], ['file', 'secret', 'malware'])
+        self.assertEqual([item.name for item in catalog.detectors(enabled)], ['file', 'secret', 'malware', 'endpoint'])
         self.assertEqual([item.name for item in catalog.suppressors(enabled)], ['skipempty'])
         self.assertEqual([item.name for item in catalog.active(enabled)], ['shadow', 'openredirect'])
 
@@ -250,16 +251,17 @@ class TestSnifferCatalog(unittest.TestCase):
         self.assertFalse(catalog.requires_body(['file', 'openredirect']))
         self.assertTrue(catalog.requires_body(['file', 'secret']))
         self.assertTrue(catalog.requires_body(['malware']))
+        self.assertTrue(catalog.requires_body(['endpoint']))
         self.assertTrue(catalog.requires_body(['shadow']))
 
     def test_engine_returns_enabled_descriptors_from_config(self):
         """SnifferEngine descriptor helpers should use configured sniffer aliases."""
 
-        config = SimpleNamespace(sniffers=['secret', 'malware', 'openredirect', 'shadow'])
+        config = SimpleNamespace(sniffers=['secret', 'malware', 'endpoint', 'openredirect', 'shadow'])
 
         self.assertEqual(
             [item.name for item in SnifferEngine.descriptors_from_config(config)],
-            ['secret', 'malware', 'shadow', 'openredirect'],
+            ['secret', 'malware', 'endpoint', 'shadow', 'openredirect'],
         )
         self.assertEqual(
             [item.name for item in SnifferEngine.active_descriptors_from_config(config)],
