@@ -10,8 +10,8 @@ raw secrets, bearer tokens, private keys or credentials in reports.
 import base64
 import json
 import re
+import time
 
-from src.core import helper
 from .provider import ResponsePluginProvider
 
 
@@ -33,6 +33,8 @@ class SecretResponsePlugin(ResponsePluginProvider):
 
     MAX_BODY_BYTES = 1024 * 1024
     MAX_FINDINGS = 8
+    JWT_MAX_PART_BYTES = 8192
+    JWT_LONG_LIVED_SECONDS = 30 * 24 * 60 * 60
     TEXTUAL_CONTENT_TYPES = (
         '',
         'text/html',
@@ -72,7 +74,9 @@ class SecretResponsePlugin(ResponsePluginProvider):
     GOOGLE_API_KEY_RE = re.compile(r'\bAIza[0-9A-Za-z_-]{35}\b')
     GITHUB_TOKEN_RE = re.compile(r'\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,255}\b')
     GITHUB_FINE_GRAINED_TOKEN_RE = re.compile(r'\bgithub_pat_[A-Za-z0-9_]{40,255}\b')
-    SLACK_TOKEN_RE = re.compile(r'\bxox[baprs]-[A-Za-z0-9-]{10,}\b')
+    SLACK_TOKEN_RE = re.compile(
+        r'\bxox[baprs]-(?:\d-)?(?:\d{8,15}-){1,3}[A-Za-z0-9]{20,}\b'
+    )
     STRIPE_KEY_RE = re.compile(r'\b(?:sk|rk)_(?:live|test)_[0-9A-Za-z]{16,}\b')
     SQUARE_TOKEN_RE = re.compile(r'\bsq0(?:csp|scp|atp)-[0-9A-Za-z_-]{20,}\b')
     AUTHORIZATION_BEARER_RE = re.compile(
@@ -91,9 +95,24 @@ class SecretResponsePlugin(ResponsePluginProvider):
     DETECTION_TYPE_GENERIC_ASSIGNMENT = (
         'generic_assignment'  # nosec B105 - detector type id, not a credential.
     )
+    DETECTION_TYPE_SLACK_TOKEN = 'slack_token'  # nosec B105 - detector type id, not a credential.
     DETECTION_TYPE_AUTHORIZATION_BEARER = (
         'authorization_bearer'  # nosec B105 - detector type id, not a credential.
     )
+    CKEDITOR_ADVANCED_DIALOG_FIELD_NAMES = frozenset((
+        'advId',
+        'advLangDir',
+        'advAccessKey',
+        'advName',
+        'advLangCode',
+        'advTabIndex',
+        'advTitle',
+        'advContentType',
+        'advCSSClasses',
+        'advCharset',
+        'advStyles',
+        'advRel',
+    ))
     CAPTURE_GROUP_RULES = (
         DETECTION_TYPE_GENERIC_ASSIGNMENT,
         DETECTION_TYPE_AUTHORIZATION_BEARER,
@@ -106,7 +125,7 @@ class SecretResponsePlugin(ResponsePluginProvider):
         ('google_api_key', GOOGLE_API_KEY_RE, 90),
         ('github_token', GITHUB_TOKEN_RE, 95),
         ('github_fine_grained_token', GITHUB_FINE_GRAINED_TOKEN_RE, 95),
-        ('slack_token', SLACK_TOKEN_RE, 95),
+        (DETECTION_TYPE_SLACK_TOKEN, SLACK_TOKEN_RE, 95),
         ('stripe_key', STRIPE_KEY_RE, 95),
         ('square_token', SQUARE_TOKEN_RE, 92),
         (DETECTION_TYPE_AUTHORIZATION_BEARER, AUTHORIZATION_BEARER_RE, 88),
@@ -173,12 +192,19 @@ class SecretResponsePlugin(ResponsePluginProvider):
                     continue
 
                 seen.add(key)
-                findings.append({
+                finding = {
                     'type': secret_type,
                     'redacted': cls.redact(value),
                     'confidence': confidence,
                     'position': int(match.start()),
-                })
+                }
+
+                if secret_type == cls.DETECTION_TYPE_JWT:
+                    jwt_claims = cls._extract_jwt_claims_metadata(value)
+                    if jwt_claims:
+                        finding['jwt_claims'] = jwt_claims
+
+                findings.append(finding)
 
                 if len(findings) >= cls.MAX_FINDINGS:
                     return cls._build_detection(findings)
@@ -201,7 +227,7 @@ class SecretResponsePlugin(ResponsePluginProvider):
         top = max(findings, key=lambda item: item.get('confidence', 0))
         types = sorted({item.get('type') for item in findings if item.get('type')})
 
-        return {
+        detection = {
             'type': top.get('type'),
             'redacted': top.get('redacted'),
             'confidence': int(top.get('confidence', 0)),
@@ -209,6 +235,11 @@ class SecretResponsePlugin(ResponsePluginProvider):
             'types': types,
             'matches': findings[:cls.MAX_FINDINGS],
         }
+
+        if isinstance(top.get('jwt_claims'), dict) and top.get('jwt_claims'):
+            detection['jwt_claims'] = dict(top.get('jwt_claims'))
+
+        return detection
 
     @classmethod
     def _is_supported_status(cls, response):
@@ -220,10 +251,7 @@ class SecretResponsePlugin(ResponsePluginProvider):
         :rtype: bool
         """
 
-        try:
-            return int(getattr(response, 'status', 0)) == 200
-        except (TypeError, ValueError):
-            return False
+        return cls._is_response_status_in(response, (200,))
 
     @classmethod
     def _get_header(cls, response, name):
@@ -235,16 +263,7 @@ class SecretResponsePlugin(ResponsePluginProvider):
         :return: header value or None
         """
 
-        headers = getattr(response, 'headers', {}) or {}
-        if name in headers:
-            return headers[name]
-
-        target = str(name).lower()
-        for key, value in headers.items():
-            if str(key).lower() == target:
-                return value
-
-        return None
+        return cls._get_response_header(response, name)
 
     @classmethod
     def _extract_content_type(cls, response):
@@ -256,11 +275,7 @@ class SecretResponsePlugin(ResponsePluginProvider):
         :rtype: str
         """
 
-        value = cls._get_header(response, 'Content-Type')
-        if value is None:
-            return ''
-
-        return str(value).split(';', 1)[0].strip().lower()
+        return cls._extract_response_content_type(response)
 
     @classmethod
     def _is_textual_response(cls, response):
@@ -296,15 +311,7 @@ class SecretResponsePlugin(ResponsePluginProvider):
         :rtype: str
         """
 
-        data = getattr(response, 'data', b'')
-        if data is None:
-            return ''
-
-        if isinstance(data, bytes):
-            data = data[:cls.MAX_BODY_BYTES]
-            return helper.decode(data, errors='ignore')
-
-        return str(data)[:cls.MAX_BODY_BYTES]
+        return cls._extract_response_body(response, cls.MAX_BODY_BYTES)
 
     @staticmethod
     def redact(value):
@@ -357,11 +364,57 @@ class SecretResponsePlugin(ResponsePluginProvider):
         if secret_type == cls.DETECTION_TYPE_JWT:
             return cls._looks_like_unsigned_or_placeholder_jwt(value)
 
+        if secret_type == cls.DETECTION_TYPE_SLACK_TOKEN:
+            return cls._looks_like_slack_token(value) is not True
+
         if secret_type == cls.DETECTION_TYPE_GENERIC_ASSIGNMENT:
             if len(set(str(value))) <= 4:
                 return True
 
+            if str(value or '') in cls.CKEDITOR_ADVANCED_DIALOG_FIELD_NAMES:
+                return True
+
         return False
+
+
+    @classmethod
+    def _looks_like_slack_token(cls, value):
+        """
+        Validate the structural shape of a Slack token candidate.
+
+        This secondary check protects XML sitemaps and article URL slugs such as
+        ``xoxa-v-priamure-nasli-smesnye-geograficeskie-obieekty`` from being
+        promoted to high-confidence secret findings when a broader token-like
+        matcher sees the ``xox*`` prefix.
+
+        :param str value: candidate Slack token value
+        :return: True when the value has Slack token structure
+        :rtype: bool
+        """
+
+        parts = str(value or '').split('-')
+        if len(parts) < 3:
+            return False
+
+        prefix = parts[0].lower()
+        if prefix not in ('xoxb', 'xoxa', 'xoxp', 'xoxr', 'xoxs'):
+            return False
+
+        token_part = parts[-1]
+        if re.fullmatch(r'[A-Za-z0-9]{20,}', token_part) is None:
+            return False
+
+        numeric_parts = parts[1:-1]
+        if numeric_parts and numeric_parts[0] in ('1', '2'):
+            numeric_parts = numeric_parts[1:]
+
+        if not numeric_parts:
+            return False
+
+        return all(
+            re.fullmatch(r'\d{8,15}', item or '') is not None
+            for item in numeric_parts
+        )
 
     @staticmethod
     def _looks_like_unsigned_or_placeholder_jwt(value):
@@ -385,3 +438,177 @@ class SecretResponsePlugin(ResponsePluginProvider):
             return False
 
         return str(parsed.get('alg', '')).lower() == 'none'
+
+    @classmethod
+    def _extract_jwt_claims_metadata(cls, value, now=None):
+        """
+        Extract bounded, non-verifying JWT metadata.
+
+        :param str value: raw JWT-like token
+        :param int|float|None now: optional timestamp for deterministic tests
+        :return: bounded JWT metadata or empty dict
+        :rtype: dict
+        """
+
+        parts = str(value or '').split('.')
+        if len(parts) != 3:
+            return {}
+
+        header = cls._decode_jwt_json_part(parts[0])
+        payload = cls._decode_jwt_json_part(parts[1])
+        if not header and not payload:
+            return {}
+
+        metadata = {}
+
+        for key in ('alg', 'typ', 'kid'):
+            if key in header:
+                safe_value = cls._bounded_jwt_string(header.get(key), 128)
+                if safe_value:
+                    metadata[key] = safe_value
+
+        for key in ('iss',):
+            if key in payload:
+                safe_value = cls._bounded_jwt_string(payload.get(key), 256)
+                if safe_value:
+                    metadata[key] = safe_value
+
+        if 'aud' in payload:
+            audience = cls._bounded_jwt_audience(payload.get('aud'))
+            if audience:
+                metadata['aud'] = audience
+
+        for key in ('exp', 'nbf', 'iat'):
+            numeric_value = cls._jwt_numeric_date(payload.get(key))
+            if numeric_value is not None:
+                metadata[key] = numeric_value
+
+        risk_flags = cls._jwt_risk_flags(header, payload, now=now)
+        if risk_flags:
+            metadata['risk_flags'] = risk_flags
+
+        return metadata
+
+    @classmethod
+    def _decode_jwt_json_part(cls, part):
+        """
+        Decode one bounded JWT JSON segment without verification.
+
+        :param str part: base64url encoded JWT segment
+        :return: decoded JSON object or empty dict
+        :rtype: dict
+        """
+
+        value = str(part or '')
+        if not value or len(value) > cls.JWT_MAX_PART_BYTES:
+            return {}
+
+        try:
+            padded = value + ('=' * (-len(value) % 4))
+            decoded = base64.urlsafe_b64decode(padded.encode('ascii')).decode(
+                'utf-8',
+                'ignore',
+            )
+            parsed = json.loads(decoded)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return {}
+
+        return parsed if isinstance(parsed, dict) else {}
+
+    @staticmethod
+    def _bounded_jwt_string(value, limit):
+        """
+        Return a bounded JWT metadata string.
+
+        :param mixed value: candidate value
+        :param int limit: maximum length
+        :return: bounded string or None
+        :rtype: str|None
+        """
+
+        if not isinstance(value, str):
+            return None
+
+        value = value.strip()
+        if not value:
+            return None
+
+        return value[:limit]
+
+    @classmethod
+    def _bounded_jwt_audience(cls, value):
+        """
+        Return a bounded JWT audience value.
+
+        :param mixed value: JWT aud claim
+        :return: bounded audience metadata
+        :rtype: str|list|None
+        """
+
+        if isinstance(value, str):
+            return cls._bounded_jwt_string(value, 128)
+
+        if isinstance(value, list):
+            items = []
+            for item in value[:5]:
+                safe_value = cls._bounded_jwt_string(item, 128)
+                if safe_value:
+                    items.append(safe_value)
+
+            return items or None
+
+        return None
+
+    @staticmethod
+    def _jwt_numeric_date(value):
+        """
+        Normalize a JWT numeric date value.
+
+        :param mixed value: claim value
+        :return: integer timestamp or None
+        :rtype: int|None
+        """
+
+        if isinstance(value, bool):
+            return None
+
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    @classmethod
+    def _jwt_risk_flags(cls, header, payload, now=None):
+        """
+        Build conservative JWT metadata risk flags.
+
+        :param dict header: decoded JWT header
+        :param dict payload: decoded JWT payload
+        :param int|float|None now: optional timestamp for deterministic tests
+        :return: sorted risk flag list
+        :rtype: list
+        """
+
+        flags = []
+        current_time = int(time.time() if now is None else now)
+
+        if str(header.get('alg', '')).lower() == 'none':
+            flags.append('alg_none')
+
+        exp = cls._jwt_numeric_date(payload.get('exp'))
+        nbf = cls._jwt_numeric_date(payload.get('nbf'))
+        iat = cls._jwt_numeric_date(payload.get('iat'))
+
+        if exp is None:
+            flags.append('missing_exp')
+        elif exp < current_time:
+            flags.append('expired')
+
+        if nbf is not None and nbf > current_time:
+            flags.append('not_yet_valid')
+
+        if exp is not None and iat is not None:
+            if exp - iat > cls.JWT_LONG_LIVED_SECONDS:
+                flags.append('long_lived')
+
+        return flags

@@ -1201,6 +1201,34 @@ class TestController(unittest.TestCase):
         self.assertEqual(passed_params['proxy_list'], '/tmp/cli-proxies.txt')
         self.assertEqual(passed_params['proxy_rotation'], 'sequential')
 
+    def test_collect_proxy_cli_overrides_should_preserve_proxy_list_rotation(self):
+        """Controller._collect_proxy_cli_overrides() should keep explicit proxy-list rotation."""
+
+        actual = Controller._collect_proxy_cli_overrides({
+            'proxy_list': '/tmp/proxies.txt',
+            'proxy_rotation': 'sequential',
+        })
+
+        self.assertEqual(actual, {
+            'proxy': None,
+            'proxy_pool': False,
+            'proxy_list': '/tmp/proxies.txt',
+            'proxy_rotation': 'sequential',
+        })
+
+    def test_collect_proxy_cli_overrides_should_preserve_proxy_list_without_rotation(self):
+        """Controller._collect_proxy_cli_overrides() should not invent proxy-list rotation."""
+
+        actual = Controller._collect_proxy_cli_overrides({
+            'proxy_list': '/tmp/proxies.txt',
+        })
+
+        self.assertEqual(actual, {
+            'proxy': None,
+            'proxy_pool': False,
+            'proxy_list': '/tmp/proxies.txt',
+        })
+
     def test_scan_action_should_emit_transport_debug_when_enabled(self):
         """Controller.scan_action() should expose transport lifecycle in debug mode."""
 
@@ -1400,6 +1428,19 @@ class TestController(unittest.TestCase):
             with open(output_path, encoding='utf-8') as handler:
                 self.assertIn('"added": 1', handler.read())
             info_mock.assert_called_once_with(msg='JsonDiffReport : {0}'.format(output_path))
+
+    def test_diff_reports_dir_should_fallback_for_missing_or_empty_list_values(self):
+        """Controller._diff_reports_dir() should fallback to cwd for missing and empty list values."""
+
+        with patch('src.controller.os.getcwd', return_value='/tmp/opendoor-cwd'):
+            self.assertEqual(
+                Controller._diff_reports_dir({'reports_dir': []}),
+                os.path.abspath('/tmp/opendoor-cwd')
+            )
+            self.assertEqual(
+                Controller._diff_reports_dir({}),
+                os.path.abspath('/tmp/opendoor-cwd')
+            )
 
     def test_diff_action_wraps_validation_errors(self):
         """Controller.diff_action() should expose graceful diff validation errors."""
@@ -1715,6 +1756,34 @@ class TestController(unittest.TestCase):
 
         workspace.cleanup.assert_called_once_with()
 
+    def test_scan_action_cleans_remote_wordlist_workspace_on_keyboard_interrupt(self):
+        """Controller.scan_action() should cleanup downloaded wordlists after abort."""
+
+        workspace = MagicMock()
+        transport = MagicMock()
+        transport.rotate_mode = 'none'
+        params = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'reports': 'std',
+            'wordlist': 'https://example.test/list.txt',
+        }
+        resolved = dict(params, wordlist_resolved_path='/tmp/opendoor-scan/list.tmp')
+
+        with patch.object(Controller, '_prepare_remote_wordlist', return_value=(resolved, workspace)), \
+                patch.object(Controller, '_resolve_scan_targets', return_value=[{'host': 'example.com'}]), \
+                patch.object(Controller, '_scan_target', side_effect=KeyboardInterrupt()), \
+                patch('src.controller.NetworkTransportManager', return_value=transport), \
+                patch('src.controller.tpl.cancel') as cancel_mock:
+            exit_code = Controller.scan_action(params)
+
+        self.assertEqual(exit_code, 0)
+        transport.start.assert_called_once_with()
+        transport.stop.assert_called_once_with()
+        workspace.cleanup.assert_called_once_with()
+        cancel_mock.assert_called_once_with(key='abort')
+
+
     def test_remote_wordlist_progress_handles_invalid_values_without_total(self):
         """Progress renderer should tolerate defensive invalid values and unknown totals."""
 
@@ -1947,6 +2016,92 @@ class TestController(unittest.TestCase):
         passed_params = browser_mock.call_args[0][0]
         self.assertEqual(passed_params['method'], 'OPTIONS')
 
+
+    def test_scan_action_should_preserve_crawl_cli_override_for_wizard(self):
+        """Controller.scan_action() should preserve explicit --crawl overrides for wizard flow."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+        wizard_params = {
+            'host': 'example.com',
+            'scheme': 'http://',
+            'ssl': False,
+            'port': 80,
+            'reports': 'std',
+            'crawl': False,
+        }
+
+        with patch('src.controller.package.wizard', return_value=wizard_params), \
+                patch('src.controller.browser', return_value=browser_instance) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'wizard': 'opendoor.conf',
+                'crawl': True,
+            })
+
+        browser_mock.assert_called_once()
+        passed_params = browser_mock.call_args[0][0]
+        self.assertTrue(passed_params['crawl'])
+
+    def test_scan_action_should_preserve_crawl_cli_override_for_session_load(self):
+        """Controller.scan_action() should preserve explicit --crawl overrides for session resume."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+        snapshot = {
+            'params': {
+                'host': 'example.com',
+                'scheme': 'http://',
+                'ssl': False,
+                'port': 80,
+                'reports': 'std',
+                'crawl': False,
+            }
+        }
+
+        with patch('src.controller.SessionManager.load', return_value=snapshot), \
+                patch('src.controller.browser', return_value=browser_instance) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'session_load': '/tmp/session.json',
+                'crawl': True,
+            })
+
+        browser_mock.assert_called_once()
+        passed_params = browser_mock.call_args[0][0]
+        self.assertTrue(passed_params['crawl'])
+
+    def test_scan_action_should_preserve_tls_legacy_cli_override_for_wizard(self):
+        """Controller.scan_action() should preserve explicit --tls-legacy override for wizard flow."""
+
+        browser_instance = MagicMock()
+        browser_instance.result = {'total': {'success': 0}}
+        wizard_params = {
+            'host': 'example.com',
+            'scheme': 'https://',
+            'ssl': True,
+            'port': 443,
+            'reports': 'std',
+            'tls_legacy': False,
+        }
+
+        with patch('src.controller.package.wizard', return_value=wizard_params), \
+                patch('src.controller.browser', return_value=browser_instance) as browser_mock, \
+                patch('src.controller.reporter.is_reported', return_value=False), \
+                patch('src.controller.tpl.info'), \
+                patch('src.controller.reporter.default', 'std'):
+            Controller.scan_action({
+                'wizard': 'opendoor.conf',
+                'tls_legacy': True,
+            })
+
+        browser_mock.assert_called_once()
+        passed_params = browser_mock.call_args[0][0]
+        self.assertTrue(passed_params['tls_legacy'])
 
     def test_scan_action_should_preserve_threads_cli_overrides_for_wizard(self):
         """Controller.scan_action() should preserve explicit --threads overrides for wizard flow."""
@@ -2255,7 +2410,6 @@ class TestController(unittest.TestCase):
         self.assertTrue(passed_params['waf_guard'])
         self.assertTrue(passed_params['waf_detect'])
         self.assertFalse(passed_params['waf_safe_mode'])
-
 
 
 if __name__ == '__main__':

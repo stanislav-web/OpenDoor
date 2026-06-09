@@ -440,6 +440,49 @@ class TestWafRecognition(unittest.TestCase):
         self.assertEqual(provider.detect('https://example.com', response), 'blocked')
         self.assertEqual(provider.waf_detection['name'], 'BinarySec')
 
+    def test_should_detect_bunkerweb_from_explicit_block_page_body(self):
+        """ResponseProvider should detect BunkerWeb from explicit block-page body markers."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=403,
+            headers={
+                'Content-Type': 'text/html; charset=utf-8',
+                'Content-Length': '512',
+            },
+            body=(
+                b'<html><title>403 | Forbidden</title>'
+                b'<div class="caption">Your Client</div><p class="status-text"> Forbidden</p>'
+                b'<div class="caption">BunkerWeb</div><p class="status-text">Working</p>'
+                b'<a href="https://www.bunkerweb.io/" class="bunker-svg">BunkerWeb</a>'
+                b'<path class="bunker-cls-2" d="M0 0" />'
+                b'<linearGradient id="bw_error_gradient_29"></linearGradient>'
+                b'<footer>This website is protected with&nbsp;<a href="https://www.bunkerweb.io/">BunkerWeb</a></footer>'
+                b'</html>'
+            ),
+        )
+
+        self.assertEqual(provider.detect('https://example.com', response), 'blocked')
+        self.assertEqual(provider.waf_detection['name'], 'BunkerWeb')
+        self.assertEqual(provider.waf_detection['confidence'], 88)
+        self.assertIn('body:bunkerweb', provider.waf_detection['signals'])
+
+    def test_should_not_detect_bunkerweb_markers_on_success_response(self):
+        """ResponseProvider should not classify BunkerWeb body markers on normal success pages."""
+
+        provider = ResponseProvider(self.make_config())
+        response = DummyResponse(
+            status=200,
+            headers={
+                'Content-Type': 'text/html; charset=utf-8',
+                'Content-Length': '128',
+            },
+            body=b'<html><body>BunkerWeb status page bunkerweb.io</body></html>',
+        )
+
+        self.assertEqual(provider.detect('https://example.com', response), 'success')
+        self.assertIsNone(provider.waf_detection)
+
     def test_should_detect_dotdefender_from_denied_header(self):
         """ResponseProvider should detect DotDefender block evidence."""
 

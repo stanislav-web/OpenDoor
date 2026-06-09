@@ -18,6 +18,7 @@ class SnifferCatalog:
         SnifferDescriptor('indexof', kind=DETECTOR, display_name='IndexOf', requires_body=True, priority=30),
         SnifferDescriptor('stacktrace', kind=DETECTOR, display_name='StackTrace', requires_body=True, priority=40),
         SnifferDescriptor('malware', kind=DETECTOR, display_name='Malware', requires_body=True, priority=50),
+        SnifferDescriptor('endpoint', kind=DETECTOR, display_name='Endpoint', requires_body=True, priority=60),
         SnifferDescriptor(
             'skipempty',
             bucket='skip',

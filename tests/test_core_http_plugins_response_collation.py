@@ -142,3 +142,43 @@ class TestCollationResponsePlugin(unittest.TestCase):
         self.assertIsNone(plugin.process(response1))
         self.assertIsNone(plugin.process(response2))
         self.assertEqual(plugin.process(response3), 'failed')
+
+    def test_skips_expensive_ratio_matching_for_large_success_bodies(self):
+        """Large successful bodies should not be compared with full-body SequenceMatcher."""
+
+        plugin = self.make_plugin()
+        body1 = '<urlset>{0}</urlset>'.format('a' * (plugin.MAX_RATIO_BODY_CHARS + 100))
+        body2 = '<urlset>{0}</urlset>'.format('a' * (plugin.MAX_RATIO_BODY_CHARS + 101))
+
+        self.assertIsNone(plugin.process(FakeResponse(
+            200,
+            body1,
+            {'Content-Type': 'application/xml', 'Content-Length': str(len(body1))}
+        )))
+        self.assertIsNone(plugin.process(FakeResponse(
+            200,
+            body2,
+            {'Content-Type': 'application/xml', 'Content-Length': str(len(body2))}
+        )))
+
+    def test_large_repeated_templates_still_fail_by_signature_threshold(self):
+        """Large repeated soft404 templates should still fail by bounded signature matching."""
+
+        plugin = self.make_plugin()
+        base = '<html><head><title>Oops</title></head><body>{0}</body></html>'
+
+        self.assertIsNone(plugin.process(FakeResponse(
+            200,
+            base.format('template ' + ('a' * (plugin.MAX_RATIO_BODY_CHARS + 10))),
+            {'Content-Type': 'text/html'}
+        )))
+        self.assertIsNone(plugin.process(FakeResponse(
+            200,
+            base.format('template ' + ('a' * (plugin.MAX_RATIO_BODY_CHARS + 11))),
+            {'Content-Type': 'text/html'}
+        )))
+        self.assertEqual(plugin.process(FakeResponse(
+            200,
+            base.format('template ' + ('a' * (plugin.MAX_RATIO_BODY_CHARS + 12))),
+            {'Content-Type': 'text/html'}
+        )), 'failed')

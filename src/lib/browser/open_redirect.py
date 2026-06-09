@@ -4,6 +4,8 @@
 
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
+from src.core.http.redirect_classifier import RedirectClassifier
+
 
 class OpenRedirectProbe(object):
     """Verify redirect-like parameters with safe external marker payloads."""
@@ -36,6 +38,11 @@ class OpenRedirectProbe(object):
         ('absolute-external-url', 'https://redirect.invalid/'),
         ('protocol-relative-url', '//redirect.invalid/'),
     )
+    PAYLOAD_FAMILIES = {
+        'absolute-external-url': 'external_url',
+        'protocol-relative-url': 'protocol_relative_external',
+    }
+    CLASSIFICATION_BASE_URL = 'https://opendoor.invalid/'
 
     def __init__(self):
         """Create open redirect probe instance."""
@@ -108,6 +115,7 @@ class OpenRedirectProbe(object):
                     'param': name,
                     'payload': payload,
                     'variant': variant_name,
+                    'payload_family': cls.payload_family(variant_name),
                 })
 
         return variants
@@ -174,24 +182,49 @@ class OpenRedirectProbe(object):
         return str(parsed.hostname or '').strip().lower()
 
     @classmethod
-    def is_confirmed(cls, response):
+    def payload_family(cls, variant_name):
+        """Return stable payload-family metadata for a variant.
+
+        :param str variant_name: payload variant name
+        :return: payload family name
+        :rtype: str
+        """
+
+        return cls.PAYLOAD_FAMILIES.get(str(variant_name or ''), 'external_url')
+
+    @classmethod
+    def classify_response(cls, response, source_url=None):
+        """Classify the probe redirect target with the shared redirect classifier.
+
+        :param object response: HTTP response-like object
+        :param str|None source_url: probe URL used as the redirect source
+        :return: redirect classification metadata
+        :rtype: dict
+        """
+
+        status = getattr(response, 'status', 0)
+        location = cls.get_redirect_location(response)
+        return RedirectClassifier.classify(
+            source_url or cls.CLASSIFICATION_BASE_URL,
+            status,
+            location,
+        )
+
+    @classmethod
+    def is_confirmed(cls, response, source_url=None):
         """Return True when response redirects to the controlled marker host.
 
         :param object response: HTTP response-like object
+        :param str|None source_url: probe URL used as the redirect source
         :return: whether this response confirms open redirect
         :rtype: bool
         """
 
-        try:
-            status = int(getattr(response, 'status', 0))
-        except (TypeError, ValueError):
+        classification = cls.classify_response(response, source_url=source_url)
+        if classification.get('type') != 'external':
             return False
 
-        if status not in cls.REDIRECT_STATUSES:
-            return False
-
-        location = cls.get_redirect_location(response)
-        return cls.location_host(location) == cls.MARKER_HOST
+        return str(classification.get('target_host') or '').lower() == cls.MARKER_HOST
 
     @classmethod
     def metadata(cls, source_url, variant, response):
@@ -213,6 +246,7 @@ class OpenRedirectProbe(object):
                 'parameter': str(variant.get('param') or ''),
                 'payload': str(variant.get('payload') or ''),
                 'variant': str(variant.get('variant') or ''),
+                'payload_family': str(variant.get('payload_family') or cls.payload_family(variant.get('variant'))),
                 'location': cls.get_redirect_location(response),
                 'marker_host': cls.MARKER_HOST,
             }

@@ -21,6 +21,7 @@ extend-exclude = [
     "examples",
     "htmlcov",
     "site",
+    "chocolatey",
 ]
 
 [tool.ruff.lint]

@@ -11,6 +11,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 from src.core import CoreConfig
 from src.core import helper
+from .cookie_gate import is_js_cookie_gate_response
 
 
 class ShadowProbe(object):
@@ -300,6 +301,9 @@ class ShadowProbe(object):
         """
 
         if cls.is_supported_response(response) is not True:
+            return None
+
+        if is_js_cookie_gate_response(response) is True:
             return None
 
         data = getattr(response, 'data', b'')

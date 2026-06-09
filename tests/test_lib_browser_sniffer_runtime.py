@@ -161,6 +161,64 @@ class TestBrowserPassiveSnifferMultiFinding(unittest.TestCase):
         self.assertTrue(findings[0].suppress_normal)
         self.assertEqual(findings[0].evidence_key, 'file')
 
+
+    def test_collects_stacktrace_with_structured_passive_finding_metadata(self):
+        """Stacktrace additive findings should include the shared passive finding contract."""
+
+        browser = self.make_browser_with_plugins(['stacktrace'])
+        browser._Browser__config = SimpleNamespace(requested_method='GET')
+        response = self.make_response(
+            status=500,
+            body=b'Traceback (most recent call last):\n  File "app.py", line 10',
+            headers={'Content-Type': 'text/plain; charset=utf-8'},
+        )
+        response_data = ('success', 'https://example.com/debug', '1KB', '500')
+
+        findings = browser._Browser__collect_passive_sniffer_findings(response, response_data)
+
+        self.assertEqual([finding.bucket for finding in findings], ['stacktrace'])
+        passive_finding = findings[0].metadata['passive_finding']
+        self.assertEqual(passive_finding['bucket'], 'stacktrace')
+        self.assertEqual(passive_finding['type'], 'stacktrace')
+        self.assertEqual(passive_finding['severity'], 'medium')
+        self.assertEqual(passive_finding['reason'], 'stacktrace_exposed')
+        self.assertEqual(passive_finding['confidence'], 'high')
+        self.assertEqual(passive_finding['source']['signal'], 'response_body')
+        self.assertEqual(passive_finding['source']['request_method'], 'GET')
+        self.assertEqual(passive_finding['source']['status'], 500)
+        self.assertEqual(passive_finding['evidence']['runtime'], 'python')
+        self.assertEqual(passive_finding['evidence']['signal'], 'python-traceback')
+
+
+    def test_collects_endpoint_with_structured_passive_finding_metadata(self):
+        """Endpoint additive findings should include bounded structured metadata."""
+
+        browser = self.make_browser_with_plugins(['endpoint'])
+        browser._Browser__config = SimpleNamespace(requested_method='GET')
+        response = self.make_response(
+            status=200,
+            body=b'const api = fetch("/api/users");',
+            headers={'Content-Type': 'application/javascript'},
+        )
+        response_data = ('success', 'https://example.com/app.js', '1KB', '200')
+
+        findings = browser._Browser__collect_passive_sniffer_findings(response, response_data)
+
+        self.assertEqual([finding.bucket for finding in findings], ['endpoint'])
+        metadata = findings[0].metadata
+        self.assertEqual(metadata['endpoint_detection']['type'], 'ajax')
+        self.assertEqual(metadata['endpoint_detection']['count'], 1)
+        passive_finding = metadata['passive_finding']
+        self.assertEqual(passive_finding['bucket'], 'endpoint')
+        self.assertEqual(passive_finding['type'], 'ajax')
+        self.assertEqual(passive_finding['severity'], 'info')
+        self.assertEqual(passive_finding['reason'], 'client_endpoint_reference')
+        self.assertEqual(passive_finding['confidence'], 'high')
+        self.assertEqual(passive_finding['source']['signal'], 'response_body')
+        self.assertEqual(passive_finding['source']['request_method'], 'GET')
+        self.assertEqual(passive_finding['source']['status'], 200)
+        self.assertEqual(passive_finding['evidence']['endpoints'][0]['endpoint'], '/api/users')
+
     def test_emit_passive_sniffer_findings_renders_and_persists_each_bucket(self):
         """Each passive finding should render and persist independently."""
 
@@ -719,12 +777,35 @@ class TestBrowserRemainingCoverageGaps(unittest.TestCase):
             is_response_filtering=False,
             is_auto_calibrate=False,
             is_sniff=True,
+            is_crawl=False,
         )
 
         with patch('src.lib.browser.browser.tpl.warning') as warning:
             browser._Browser__warn_filtered_progress_mode()
 
         warning.assert_called_once_with(key='filtered_progress_notice')
+
+    def test_warn_crawl_mode_emits_when_crawl_is_enabled(self):
+        """Crawl warning should emit once when same-origin queue enrichment is enabled."""
+
+        browser = self.make_browser()
+        browser._Browser__config = SimpleNamespace(is_crawl=True)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning:
+            browser._Browser__warn_crawl_mode()
+
+        warning.assert_called_once_with(key='crawl_mode_notice')
+
+    def test_warn_crawl_mode_is_silent_when_crawl_is_disabled(self):
+        """Crawl warning should stay silent for regular dictionary scans."""
+
+        browser = self.make_browser()
+        browser._Browser__config = SimpleNamespace(is_crawl=False)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning:
+            browser._Browser__warn_crawl_mode()
+
+        warning.assert_not_called()
 
     def test_destructor_records_cleanup_errors_without_raising(self):
         """Browser destructor should keep cleanup best-effort and record cleanup failures."""

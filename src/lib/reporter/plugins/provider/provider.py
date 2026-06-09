@@ -68,7 +68,97 @@ class PluginProvider(object):
         return copy.deepcopy(items)
 
     @staticmethod
-    def format_report_item(item):
+    def __join_detail_list(values):
+        """
+        Join a report detail list while preserving legacy string conversion.
+
+        :param list values: raw detail values
+        :return: compact semicolon-separated value
+        """
+
+        return ';'.join([str(value) for value in values])
+
+    @staticmethod
+    def __append_detail(details, key, value):
+        """
+        Append a truthy ``key=value`` detail.
+
+        :param list details: mutable report details
+        :param str key: detail key
+        :param mixed value: detail value
+        :return: None
+        """
+
+        if value:
+            details.append('{0}={1}'.format(key, value))
+
+    @staticmethod
+    def __append_optional_detail(details, key, value, suffix=''):
+        """
+        Append a ``key=value`` detail when value is not None.
+
+        :param list details: mutable report details
+        :param str key: detail key
+        :param mixed value: detail value
+        :param str suffix: optional value suffix
+        :return: None
+        """
+
+        if value is not None:
+            details.append('{0}={1}{2}'.format(key, value, suffix))
+
+    @classmethod
+    def __append_list_detail(cls, details, key, values):
+        """
+        Append a truthy semicolon-joined list detail.
+
+        :param list details: mutable report details
+        :param str key: detail key
+        :param list values: raw detail values
+        :return: None
+        """
+
+        if values:
+            details.append('{0}={1}'.format(key, cls.__join_detail_list(values)))
+
+    @staticmethod
+    def __append_detail_block(value, details):
+        """
+        Append a formatted report detail block to a base value.
+
+        :param str value: base report item value
+        :param list details: formatted detail entries
+        :return: formatted report item value
+        """
+
+        return '{0} | {1}'.format(value, ', '.join(details))
+
+    @staticmethod
+    def __endpoint_samples(endpoint_detection):
+        """
+        Return up to three endpoint samples for text report output.
+
+        :param dict endpoint_detection: endpoint detection metadata
+        :return: list
+        """
+
+        samples = []
+        for endpoint in endpoint_detection.get('endpoints', []) or []:
+            if not isinstance(endpoint, dict) or not endpoint.get('endpoint'):
+                continue
+
+            sample = str(endpoint.get('endpoint'))
+            if endpoint.get('method'):
+                sample = '{0} {1}'.format(endpoint.get('method'), sample)
+
+            samples.append(sample)
+            if len(samples) >= 3:
+                break
+
+        return samples
+
+    @classmethod
+    def format_report_item(cls, item):
         """
         Format one report item for plain text reports.
 
@@ -94,135 +184,91 @@ class PluginProvider(object):
             value = '{0} - {1}'.format(value, waf_value)
 
         if item.get('bypass'):
-            details = [
-                'bypass={0}'.format(item.get('bypass')),
-            ]
-
-            if item.get('bypass_profile'):
-                details.append('profile={0}'.format(item.get('bypass_profile')))
-
-            if item.get('bypass_header'):
-                details.append('header={0}'.format(item.get('bypass_header')))
-
-            if item.get('bypass_variant'):
-                details.append('variant={0}'.format(item.get('bypass_variant')))
-
-            if item.get('bypass_value'):
-                details.append('value={0}'.format(item.get('bypass_value')))
+            details = ['bypass={0}'.format(item.get('bypass'))]
+            cls.__append_detail(details, 'profile', item.get('bypass_profile'))
+            cls.__append_detail(details, 'header', item.get('bypass_header'))
+            cls.__append_detail(details, 'variant', item.get('bypass_variant'))
+            cls.__append_detail(details, 'value', item.get('bypass_value'))
 
             if item.get('bypass_from_code') is not None and item.get('bypass_to_code') is not None:
-                details.append('{0}->{1}'.format(
-                    item.get('bypass_from_code'),
-                    item.get('bypass_to_code')
-                ))
+                details.append('{0}->{1}'.format(item.get('bypass_from_code'), item.get('bypass_to_code')))
 
-            if item.get('bypass_score') is not None:
-                details.append('score={0}'.format(item.get('bypass_score')))
-
-            if item.get('bypass_reasons'):
-                details.append('reasons={0}'.format(';'.join([
-                    str(reason) for reason in item.get('bypass_reasons', [])
-                ])))
-
-            value = '{0} | {1}'.format(value, ', '.join(details))
+            cls.__append_optional_detail(details, 'score', item.get('bypass_score'))
+            cls.__append_list_detail(details, 'reasons', item.get('bypass_reasons'))
+            value = cls.__append_detail_block(value, details)
 
         stacktrace_detection = item.get('stacktrace_detection')
         if isinstance(stacktrace_detection, dict):
             details = ['stacktrace={0}'.format(stacktrace_detection.get('type', 'stacktrace'))]
-
-            if stacktrace_detection.get('runtime'):
-                details.append('runtime={0}'.format(stacktrace_detection.get('runtime')))
-
-            if stacktrace_detection.get('signal'):
-                details.append('signal={0}'.format(stacktrace_detection.get('signal')))
-
-            if stacktrace_detection.get('confidence') is not None:
-                details.append('confidence={0}%'.format(stacktrace_detection.get('confidence')))
-
-            value = '{0} | {1}'.format(value, ', '.join(details))
+            cls.__append_detail(details, 'runtime', stacktrace_detection.get('runtime'))
+            cls.__append_detail(details, 'signal', stacktrace_detection.get('signal'))
+            cls.__append_optional_detail(details, 'confidence', stacktrace_detection.get('confidence'), '%')
+            value = cls.__append_detail_block(value, details)
 
         secret_detection = item.get('secret_detection')
         if isinstance(secret_detection, dict):
             details = ['secret={0}'.format(secret_detection.get('type', 'secret'))]
-
-            if secret_detection.get('redacted'):
-                details.append('redacted={0}'.format(secret_detection.get('redacted')))
-
-            if secret_detection.get('confidence') is not None:
-                details.append('confidence={0}%'.format(secret_detection.get('confidence')))
-
-            if secret_detection.get('count') is not None:
-                details.append('count={0}'.format(secret_detection.get('count')))
-
-            if secret_detection.get('types'):
-                details.append('types={0}'.format(';'.join([
-                    str(secret_type) for secret_type in secret_detection.get('types', [])
-                ])))
-
-            value = '{0} | {1}'.format(value, ', '.join(details))
+            cls.__append_detail(details, 'redacted', secret_detection.get('redacted'))
+            cls.__append_optional_detail(details, 'confidence', secret_detection.get('confidence'), '%')
+            cls.__append_optional_detail(details, 'count', secret_detection.get('count'))
+            cls.__append_list_detail(details, 'types', secret_detection.get('types'))
+            value = cls.__append_detail_block(value, details)
 
         malware_detection = item.get('malware_detection')
         if isinstance(malware_detection, dict):
             details = ['malware={0}'.format(malware_detection.get('type', 'malware'))]
-
-            if malware_detection.get('subtype'):
-                details.append('subtype={0}'.format(malware_detection.get('subtype')))
-
-            if malware_detection.get('family'):
-                details.append('family={0}'.format(malware_detection.get('family')))
-
-            if malware_detection.get('signal'):
-                details.append('signal={0}'.format(malware_detection.get('signal')))
-
-            if malware_detection.get('confidence') is not None:
-                details.append('confidence={0}%'.format(malware_detection.get('confidence')))
-
-            if malware_detection.get('count') is not None:
-                details.append('count={0}'.format(malware_detection.get('count')))
-
-            if malware_detection.get('signals'):
-                details.append('signals={0}'.format(';'.join([
-                    str(signal) for signal in malware_detection.get('signals', [])
-                ])))
-
-            value = '{0} | {1}'.format(value, ', '.join(details))
+            cls.__append_detail(details, 'subtype', malware_detection.get('subtype'))
+            cls.__append_detail(details, 'family', malware_detection.get('family'))
+            cls.__append_detail(details, 'signal', malware_detection.get('signal'))
+            cls.__append_optional_detail(details, 'confidence', malware_detection.get('confidence'), '%')
+            cls.__append_optional_detail(details, 'count', malware_detection.get('count'))
+            cls.__append_list_detail(details, 'signals', malware_detection.get('signals'))
+            value = cls.__append_detail_block(value, details)
 
         shadow_detection = item.get('shadow_detection')
         if isinstance(shadow_detection, dict):
             details = ['shadow={0}'.format(shadow_detection.get('type', 'backup_copy'))]
+            cls.__append_detail(details, 'variant', shadow_detection.get('variant'))
+            cls.__append_detail(details, 'base', shadow_detection.get('base_url'))
+            cls.__append_optional_detail(details, 'confidence', shadow_detection.get('confidence'), '%')
+            cls.__append_optional_detail(details, 'similarity', shadow_detection.get('similarity'))
+            value = cls.__append_detail_block(value, details)
 
-            if shadow_detection.get('variant'):
-                details.append('variant={0}'.format(shadow_detection.get('variant')))
+        endpoint_detection = item.get('endpoint_detection')
+        if isinstance(endpoint_detection, dict):
+            details = ['endpoint={0}'.format(endpoint_detection.get('type', 'endpoint'))]
+            cls.__append_optional_detail(details, 'confidence', endpoint_detection.get('confidence'), '%')
+            cls.__append_optional_detail(details, 'count', endpoint_detection.get('count'))
+            cls.__append_list_detail(details, 'types', endpoint_detection.get('types'))
+            cls.__append_list_detail(details, 'samples', cls.__endpoint_samples(endpoint_detection))
+            value = cls.__append_detail_block(value, details)
 
-            if shadow_detection.get('base_url'):
-                details.append('base={0}'.format(shadow_detection.get('base_url')))
-
-            if shadow_detection.get('confidence') is not None:
-                details.append('confidence={0}%'.format(shadow_detection.get('confidence')))
-
-            if shadow_detection.get('similarity') is not None:
-                details.append('similarity={0}'.format(shadow_detection.get('similarity')))
-
-            value = '{0} | {1}'.format(value, ', '.join(details))
-
+        redirect_classification = item.get('redirect_classification')
+        if isinstance(redirect_classification, dict):
+            details = ['redirect={0}'.format(redirect_classification.get('type', 'unknown'))]
+            cls.__append_detail(details, 'reason', redirect_classification.get('reason'))
+            cls.__append_detail(details, 'location', redirect_classification.get('location'))
+            cls.__append_detail(details, 'target_host', redirect_classification.get('target_host'))
+            cls.__append_detail(details, 'confidence', redirect_classification.get('confidence'))
+            value = cls.__append_detail_block(value, details)
 
         openredirect_detection = item.get('openredirect_detection')
         if isinstance(openredirect_detection, dict):
             details = ['openredirect={0}'.format(openredirect_detection.get('type', 'open_redirect'))]
+            cls.__append_detail(details, 'param', openredirect_detection.get('parameter'))
+            cls.__append_detail(details, 'variant', openredirect_detection.get('variant'))
+            cls.__append_detail(details, 'family', openredirect_detection.get('payload_family'))
+            cls.__append_detail(details, 'location', openredirect_detection.get('location'))
+            cls.__append_optional_detail(details, 'confidence', openredirect_detection.get('confidence'), '%')
+            value = cls.__append_detail_block(value, details)
 
-            if openredirect_detection.get('parameter'):
-                details.append('param={0}'.format(openredirect_detection.get('parameter')))
-
-            if openredirect_detection.get('variant'):
-                details.append('variant={0}'.format(openredirect_detection.get('variant')))
-
-            if openredirect_detection.get('location'):
-                details.append('location={0}'.format(openredirect_detection.get('location')))
-
-            if openredirect_detection.get('confidence') is not None:
-                details.append('confidence={0}%'.format(openredirect_detection.get('confidence')))
-
-            value = '{0} | {1}'.format(value, ', '.join(details))
+        passive_finding = item.get('passive_finding')
+        if isinstance(passive_finding, dict):
+            details = ['finding={0}'.format(passive_finding.get('type', 'finding'))]
+            cls.__append_detail(details, 'severity', passive_finding.get('severity'))
+            cls.__append_detail(details, 'reason', passive_finding.get('reason'))
+            cls.__append_detail(details, 'confidence', passive_finding.get('confidence'))
+            value = cls.__append_detail_block(value, details)
 
         return value
 

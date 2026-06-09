@@ -16,6 +16,8 @@
     Development: Stanislav WEB
 """
 
+from urllib.parse import unquote, urlsplit
+
 from .provider import ResponsePluginProvider
 
 
@@ -26,6 +28,8 @@ class FileResponsePlugin(ResponsePluginProvider):
     RESPONSE_INDEX = 'file'
     DEFAULT_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
+    OLE_COMPOUND_FILE_MAGIC = b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1'
+    DATABASE_FILE_EXTENSIONS = ('.db',)
 
     BINARY_CONTENT_TYPES = (
         'application/octet-stream',
@@ -70,52 +74,87 @@ class FileResponsePlugin(ResponsePluginProvider):
 
         ResponsePluginProvider.__init__(self)
 
-    def _get_header(self, name):
+    @classmethod
+    def _has_ole_compound_file_magic(cls, response):
         """
-        Return a header value using case-insensitive lookup.
+        Determine whether the response body starts with the OLE CFB magic.
 
-        :param str name: header name
-        :return: str | None
-        """
+        Windows thumbnail caches and other legacy database-like binary files can
+        be small enough to avoid size-based detection.
 
-        if name in self._headers:
-            return self._headers[name]
-
-        target = str(name).lower()
-        for key, value in self._headers.items():
-            if str(key).lower() == target:
-                return value
-
-        return None
-
-    def _extract_content_length(self):
-        """
-        Extract Content-Length as int if possible.
-
-        :return: int | None
+        :param response: HTTP response
+        :return: bool
         """
 
-        raw_length = self._get_header('Content-Length')
-        if raw_length is None:
-            return None
+        data = getattr(response, 'data', b'')
+        if not isinstance(data, (bytes, bytearray)):
+            return False
 
-        try:
-            return int(raw_length)
-        except Exception:
-            return None
+        return bytes(data).startswith(cls.OLE_COMPOUND_FILE_MAGIC)
 
-    def _extract_content_type(self):
+    @classmethod
+    def _extract_request_filename(cls, response):
         """
-        Extract normalized Content-Type without parameters.
+        Extract the lowercase basename from the request URL attached by Response.
 
-        :return: str
+        :param response: HTTP response
+        :return: URL path basename
+        :rtype: str
         """
 
-        value = self._get_header('Content-Type')
-        if value is None:
+        request_url = getattr(response, 'opendoor_request_url', '')
+        if request_url is None:
             return ''
 
-        return str(value).split(';', 1)[0].strip().lower()
+        try:
+            path = urlsplit(str(request_url).split()[0]).path
+        except Exception:
+            return ''
+
+        if len(path) <= 0:
+            return ''
+
+        return unquote(path.rsplit('/', 1)[-1]).strip().lower()
+
+    def _has_database_file_extension(self, response):
+        """
+        Detect generic database-like file paths by extension.
+
+        The rule intentionally uses the extension rather than exact filenames so
+        Windows thumbnail caches and custom database files such as `cache.db`,
+        `catalog.db`, or `assets.db` are classified consistently.
+
+        :param response: HTTP response
+        :return: bool
+        """
+
+        filename = self._extract_request_filename(response)
+        if len(filename) <= 0:
+            return False
+
+        return any(filename.endswith(extension) for extension in self.DATABASE_FILE_EXTENSIONS)
+
+    def _looks_like_textual_fallback(self, content_type, body_length, content_length):
+        """
+        Return True when an extension hit likely resolved to a soft-200 page.
+
+        Extension-based classification is useful for small or HEAD-only file
+        responses, but it must not turn ordinary HTML catch-all pages into file
+        findings.
+
+        :param str content_type: normalized content type
+        :param int body_length: decoded body length
+        :param int | None content_length: parsed Content-Length
+        :return: bool
+        """
+
+        if self._is_textual_content_type(content_type) is not True:
+            return False
+
+        if content_type in ('text/html', 'application/xhtml+xml'):
+            return True
+
+        return 0 < body_length or (content_length is not None and 0 < content_length)
 
     def _is_textual_content_type(self, content_type):
         """
@@ -176,7 +215,14 @@ class FileResponsePlugin(ResponsePluginProvider):
         content_disposition = str(self._get_header('Content-Disposition') or '').lower()
         has_content = (content_length is not None and 0 < content_length) or 0 < body_length
 
+        if self._has_ole_compound_file_magic(response) is True:
+            return self.RESPONSE_INDEX
+
         if 'attachment' in content_disposition and has_content:
+            return self.RESPONSE_INDEX
+
+        if self._has_database_file_extension(response) is True \
+                and self._looks_like_textual_fallback(content_type, body_length, content_length) is not True:
             return self.RESPONSE_INDEX
 
         if self._is_binary_content_type(content_type) and has_content:

@@ -42,6 +42,26 @@ class RequestProvider(CookiesProvider, HeaderProvider, UserAgentHeaderProvider, 
         self._apply_custom_headers(config)
         self._apply_custom_cookies(config)
 
+    def _initialize_request_backend(self, config, agent_list=None):
+        """Initialize shared request provider state for request backends.
+
+        HTTP, HTTPS and proxy backends all need the same base request
+        providers, effective headers, explicit User-Agent state and
+        Connection header policy. Keeping that contract here prevents
+        backend-specific drift.
+
+        :param src.lib.browser.config.Config config: configurations
+        :param dict | list | None agent_list: list of user agents
+        :return: effective headers, managed User-Agent flag and Connection header value
+        :rtype: tuple[dict, bool, str]
+        """
+
+        RequestProvider.__init__(self, config, agent_list=agent_list)
+        headers = self._headers
+        connection_header = self._keep_alive if True is config.keep_alive else 'default'
+
+        return headers, headers.get('User-Agent') is None, connection_header
+
     def _apply_custom_headers(self, config):
         """
         Apply custom request headers from cli/config.
@@ -149,6 +169,47 @@ class RequestProvider(CookiesProvider, HeaderProvider, UserAgentHeaderProvider, 
 
         return headers
 
+    def _prepare_request_headers(
+            self,
+            config,
+            debug,
+            base_headers,
+            is_user_agent_managed,
+            connection_header,
+            url,
+            extra_headers=None
+    ):
+        """Build effective request headers and emit request diagnostics.
+
+        HTTP, HTTPS and proxy backends share the same User-Agent,
+        temporary-header, Connection-header and request-debug contract.
+        Keeping it here prevents backend-specific drift.
+
+        :param src.lib.browser.config.Config config: configurations
+        :param DebugProvider debug: debugger
+        :param dict base_headers: shared request headers
+        :param bool is_user_agent_managed: whether OpenDoor owns User-Agent updates
+        :param str connection_header: configured Connection header policy
+        :param str url: request uri
+        :param dict | list | tuple | None extra_headers: temporary per-request headers
+        :return: request headers and updated managed User-Agent state
+        :rtype: tuple[dict, bool]
+        """
+
+        if True is config.is_random_user_agent and True is is_user_agent_managed:
+            base_headers.update({'User-Agent': self._user_agent})
+        elif base_headers.get('User-Agent') is None:
+            base_headers.update({'User-Agent': self._user_agent})
+            is_user_agent_managed = True
+
+        request_headers = self._build_request_headers(base_headers, extra_headers)
+        if connection_header != 'default' and request_headers.get('Connection') is None:
+            request_headers.update({'Connection': connection_header})
+
+        getattr(debug, 'debug_cookie_attached', lambda *args, **kwargs: True)(request_headers)
+        getattr(debug, 'debug_request', lambda *args, **kwargs: True)(request_headers, url, config.method)
+
+        return request_headers, is_user_agent_managed
 
     @staticmethod
     def _build_response_debug_headers(response):
@@ -191,6 +252,53 @@ class RequestProvider(CookiesProvider, HeaderProvider, UserAgentHeaderProvider, 
             )
 
         return True
+
+    def _debug_cookie_middleware(self, debug, accept_cookies, response):
+        """Route response cookies and emit request-level cookie diagnostics.
+
+        :param DebugProvider debug: debugger
+        :param bool accept_cookies: whether response cookies should be accepted
+        :param urllib3.response.BaseHTTPResponse response: response object
+        :return: None
+        """
+
+        if True is accept_cookies:
+            getattr(debug, 'debug_cookie_accept_enabled', lambda *args, **kwargs: True)()
+
+        self.cookies_middleware(is_accept=accept_cookies, response=response)
+
+        if True is accept_cookies and True is self._is_cookie_fetched:
+            getattr(debug, 'debug_cookie_accepted', lambda *args, **kwargs: True)(self._push_cookies())
+
+
+    @staticmethod
+    def _close_connection_resource(resource):
+        """Release urllib3 connection pools/managers when a backend is closed.
+
+        urllib3 connection pools expose ``close()``, while pool/proxy managers
+        expose ``clear()``. Centralizing that small compatibility contract keeps
+        HTTP, HTTPS and proxy backends aligned and avoids leaking idle sockets
+        across repeated scans in one Python process.
+
+        :param object resource: urllib3 pool or manager instance
+        :return: whether a cleanup method was called
+        :rtype: bool
+        """
+
+        if resource is None:
+            return False
+
+        close = getattr(resource, 'close', None)
+        if callable(close):
+            close()
+            return True
+
+        clear = getattr(resource, 'clear', None)
+        if callable(clear):
+            clear()
+            return True
+
+        return False
 
     def request(self, url, extra_headers=None):
         """

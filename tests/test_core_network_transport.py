@@ -860,6 +860,22 @@ class TestNetworkTransport(unittest.TestCase):
             os.path.join("C:\\Program Files (x86)", "OpenVPN", "bin", "openvpn.exe"),
         ])
 
+    def test_openvpn_transport_should_skip_empty_windows_program_files_env(self):
+        """OpenVpnTransport should ignore empty Windows ProgramFiles values."""
+
+        transport = OpenVpnTransport({})
+
+        with patch("src.core.network.adapters.openvpn.os.name", "nt"), \
+                patch.dict("src.core.network.adapters.openvpn.os.environ", {
+                    "ProgramFiles": "",
+                    "ProgramFiles(x86)": "C:\\Program Files (x86)",
+                }, clear=True):
+            candidates = transport.executable_candidates()
+
+        self.assertEqual(candidates, [
+            os.path.join("C:\\Program Files (x86)", "OpenVPN", "bin", "openvpn.exe"),
+        ])
+
     def test_openvpn_transport_should_report_missing_executable(self):
         """OpenVpnTransport should return actionable error when executable is missing."""
 

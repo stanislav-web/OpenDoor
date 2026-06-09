@@ -54,6 +54,24 @@ class TestBrowserDebug(unittest.TestCase):
             self.assertTrue(debug.debug_user_agents())
         debug_mock.assert_called_with(key='random_browser')
 
+    def test_debug_user_agents_logs_custom_user_agent_header_before_random_mode(self):
+        """Debug.debug_user_agents() should report an explicit User-Agent header."""
+
+        config = Config({
+            'debug': 1,
+            'method': 'HEAD',
+            'random_agent': True,
+            'header': ['User-Agent: Custom-UA'],
+            'reports': 'std',
+        })
+        with patch('sys.stdout', new=StringIO()):
+            debug = Debug(config)
+
+        with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
+            self.assertTrue(debug.debug_user_agents())
+
+        debug_mock.assert_called_with(key='custom_browser', browser='Custom-UA')
+
     def test_debug_list_logs_random_and_extension_modes(self):
         """Debug.debug_list() should log scan-list mode details."""
 
@@ -228,6 +246,104 @@ class TestBrowserDebug(unittest.TestCase):
 
         info_mock.assert_called_once()
         writels_mock.assert_called()
+
+
+    def test_debug_request_uri_renders_crawl_progress_and_source_marker(self):
+        """Debug.debug_request_uri() should render crawl progress delta and source marker."""
+
+        with patch('src.lib.browser.debug.tpl.info') as info_mock, \
+                patch('src.lib.browser.debug.tpl.line', side_effect=lambda *args, **kwargs: kwargs.get('msg') or kwargs.get('url') or 'line'), \
+                patch('src.lib.browser.debug.sys.writels') as writels_mock:
+            self.assertTrue(
+                self.debug.debug_request_uri(
+                    'success',
+                    'http://test.local/admin',
+                    items_size=21,
+                    total_size=108,
+                    base_total_size=100,
+                    crawl_enqueued_size=8,
+                    crawl_processed_size=0,
+                    request_source='crawl',
+                    content_size='4KB',
+                    response_code='200',
+                )
+            )
+
+        info_mock.assert_called_once_with(
+            key='get_item',
+            clear=False,
+            percent='21.0%',
+            current='21+8',
+            total=100,
+            item='[crawl] /admin',
+            size='4KB',
+            code='200',
+        )
+        writels_mock.assert_called_once_with('', flush=True)
+
+    def test_debug_request_uri_keeps_crawl_out_of_wordlist_percentage(self):
+        """Debug.debug_request_uri() should keep crawl requests out of baseline percentage."""
+
+        with patch('src.lib.browser.debug.tpl.info') as info_mock, \
+                patch('src.lib.browser.debug.tpl.line', side_effect=lambda *args, **kwargs: kwargs.get('msg') or kwargs.get('url') or 'line'), \
+                patch('src.lib.browser.debug.sys.writels'):
+            self.assertTrue(
+                self.debug.debug_request_uri(
+                    'success',
+                    'http://test.local/tmp/',
+                    items_size=19,
+                    total_size=23,
+                    base_total_size=2,
+                    crawl_enqueued_size=21,
+                    crawl_processed_size=17,
+                    request_source='crawl',
+                    content_size='2KB',
+                    response_code='200',
+                )
+            )
+
+        info_mock.assert_called_once_with(
+            key='get_item',
+            clear=False,
+            percent='100.0%',
+            current='2+21',
+            total=2,
+            item='[crawl] /tmp/',
+            size='2KB',
+            code='200',
+        )
+
+    def test_debug_request_uri_preserves_query_string_for_directory_scan(self):
+        """Debug.debug_request_uri() should keep query strings in directory-scan output."""
+
+        with patch('src.lib.browser.debug.tpl.info') as info_mock, \
+                patch('src.lib.browser.debug.tpl.line', side_effect=lambda *args, **kwargs: kwargs.get('msg') or kwargs.get('url') or 'line'), \
+                patch('src.lib.browser.debug.sys.writels'):
+            self.assertTrue(
+                self.debug.debug_request_uri(
+                    'success',
+                    'http://test.local/search?q=admin',
+                    items_size=2,
+                    total_size=2,
+                    base_total_size=2,
+                    crawl_enqueued_size=1,
+                    crawl_processed_size=0,
+                    request_source='crawl',
+                    content_size='10B',
+                    response_code='200',
+                )
+            )
+
+        info_mock.assert_called_once_with(
+            key='get_item',
+            clear=False,
+            percent='100.0%',
+            current='2+1',
+            total=2,
+            item='[crawl] /search?q=admin',
+            size='10B',
+            code='200',
+        )
 
     def test_debug_request_uri_logs_unhandled_statuses_as_scan_items(self):
         """Debug.debug_request_uri() should keep dictionary scan URI visible for unhandled statuses."""

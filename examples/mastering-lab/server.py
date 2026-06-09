@@ -71,6 +71,8 @@ ROUTES: Final[dict[str, Route]] = {
     <a href="/login">Login</a>
     <a href="/api/users">API users</a>
     <a href="/uploads/">Uploads</a>
+    <a href="/client-app">Client app</a>
+    <a href="/old-dashboard">Old dashboard redirect</a>
   </body>
 </html>
 """,
@@ -117,6 +119,95 @@ ROUTES: Final[dict[str, Route]] = {
             indent=2,
         ),
         "application/json; charset=utf-8",
+    ),
+
+    "/client-app": Route(
+        HTTPStatus.OK,
+        """<!doctype html>
+<html>
+  <head>
+    <title>OpenDoor Client App</title>
+    <script src="/static/app.js"></script>
+  </head>
+  <body>
+    <h1>OpenDoor Client App</h1>
+    <a href="/linked-admin">Linked admin area</a>
+    <a href="/old-dashboard">Legacy dashboard</a>
+    <a href="/canonical">Canonical login redirect</a>
+    <form action="/api/search" method="get">
+      <input name="q" value="demo">
+      <button type="submit">Search</button>
+    </form>
+  </body>
+</html>
+""",
+        "text/html; charset=utf-8",
+    ),
+    "/static/app.js": Route(
+        HTTPStatus.OK,
+        """fetch("/api/profile", { credentials: "same-origin" });
+
+const xhr = new XMLHttpRequest();
+xhr.open("GET", "/api/internal/status");
+xhr.send();
+
+const socket = new WebSocket("ws://127.0.0.1:8080/ws");
+const events = new EventSource("/events");
+const socketIoPath = "/socket.io/?EIO=4&transport=polling";
+""",
+        "application/javascript; charset=utf-8",
+    ),
+    "/linked-admin": Route(
+        HTTPStatus.OK,
+        """<!doctype html>
+<html>
+  <head><title>Linked Admin Area</title></head>
+  <body><h1>Linked Admin Area</h1><p>Discovered through bounded same-origin crawl.</p></body>
+</html>
+""",
+        "text/html; charset=utf-8",
+    ),
+    "/api/profile": Route(
+        HTTPStatus.OK,
+        json.dumps({"id": 7, "role": "demo", "source": "client-side fetch"}, indent=2),
+        "application/json; charset=utf-8",
+    ),
+    "/api/internal/status": Route(
+        HTTPStatus.OK,
+        json.dumps({"status": "ok", "internal": True, "source": "xhr"}, indent=2),
+        "application/json; charset=utf-8",
+    ),
+    "/api/search": Route(
+        HTTPStatus.OK,
+        json.dumps({"query": "demo", "results": []}, indent=2),
+        "application/json; charset=utf-8",
+    ),
+    "/ws": Route(
+        HTTPStatus.BAD_REQUEST,
+        "WebSocket upgrade required\n",
+        "text/plain; charset=utf-8",
+    ),
+    "/socket.io/": Route(
+        HTTPStatus.OK,
+        '0{"sid":"demo","upgrades":[],"pingInterval":25000,"pingTimeout":20000}\n',
+        "text/plain; charset=utf-8",
+    ),
+    "/events": Route(
+        HTTPStatus.OK,
+        "event: ready\ndata: demo\n\n",
+        "text/event-stream; charset=utf-8",
+    ),
+    "/old-dashboard": Route(
+        HTTPStatus.MOVED_PERMANENTLY,
+        "Moved\n",
+        "text/plain; charset=utf-8",
+        {"Location": "/admin"},
+    ),
+    "/canonical": Route(
+        HTTPStatus.FOUND,
+        "Found\n",
+        "text/plain; charset=utf-8",
+        {"Location": "/login"},
     ),
     "/uploads/": Route(
         HTTPStatus.OK,

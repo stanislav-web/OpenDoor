@@ -292,6 +292,17 @@ class TestSocketExtra(unittest.TestCase):
         with patch('src.core.http.socks.socket.gethostbyname_ex', side_effect=py_socket.gaierror(-2, 'fail')):
             self.assertEqual(Socket.get_ips_addresses('example.com'), '')
 
+    def test_ping_error_path_does_not_close_missing_socket(self):
+        """Socket.ping() should not try to close a socket when connection creation failed."""
+
+        with patch('src.core.http.socks.socket.create_connection', side_effect=ValueError('bad port')), \
+                patch('src.core.http.socks.socket.getaddrinfo', side_effect=py_socket.gaierror(-2, 'fail')):
+            with self.assertRaises(SocketError) as context:
+                Socket.ping('example.com', 'bad', timeout=1)
+
+        self.assertIn('Resolved addresses: unresolved', str(context.exception))
+
+
 
 if __name__ == '__main__':
     unittest.main()

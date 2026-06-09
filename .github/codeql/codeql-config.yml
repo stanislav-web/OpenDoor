@@ -2,6 +2,7 @@ name: "OpenDoor CodeQL config"
 
 paths-ignore:
   - "tests/**"
+  - "chocolatey/**"
 
 query-filters:
   - exclude:

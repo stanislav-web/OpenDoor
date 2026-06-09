@@ -94,6 +94,48 @@ class TestHttpRequestLowCoverage(unittest.TestCase):
         self.assertEqual(pool.request.call_args.args[1], '/admin')
         cookies_mock.assert_called_once_with(is_accept=True, response=response)
 
+    def test_http_request_absolute_uses_poolmanager_in_directory_scan(self):
+        """HttpRequest.request(absolute=True) should bypass the host-bound directory pool."""
+
+        cfg = self.make_cfg()
+        debug = self.make_debug(level=99)
+        requester = HttpRequest(cfg, debug, tpl=MagicMock(), agent_list=['UA'])
+
+        response = HTTPResponse(status=200, body=b'ok', headers={})
+        pool = MagicMock()
+        manager = MagicMock()
+        manager.request.return_value = response
+        requester._HttpRequest__pool = pool
+        requester._HttpRequest__manager = manager
+
+        actual = requester.request('https://example.com/cms/', absolute=True)
+
+        self.assertEqual(actual.status, 200)
+        pool.request.assert_not_called()
+        manager.request.assert_called_once()
+        self.assertEqual(manager.request.call_args.args[1], 'https://example.com/cms/')
+
+    def test_http_request_directory_absolute_uses_lazy_poolmanager(self):
+        """HttpRequest.request(..., absolute=True) should use an absolute PoolManager request."""
+
+        cfg = self.make_cfg()
+        debug = self.make_debug(level=99)
+        requester = HttpRequest(cfg, debug, tpl=MagicMock(), agent_list=['UA'])
+
+        response = HTTPResponse(status=200, body=b'ok', headers={})
+        manager = MagicMock()
+        manager.request.return_value = response
+        requester._HttpRequest__manager = None
+        requester._HttpRequest__pool = MagicMock()
+
+        with patch.object(requester, '_HttpRequest__pool_manager', return_value=manager):
+            actual = requester.request('https://example.com/cms/', absolute=True)
+
+        self.assertEqual(actual.status, 200)
+        manager.request.assert_called_once()
+        self.assertEqual(manager.request.call_args.args[:2], ('HEAD', 'https://example.com/cms/'))
+        self.assertFalse(requester._HttpRequest__pool.request.called)
+
     def test_http_request_subdomain_uses_poolmanager_with_timeout(self):
         """HttpRequest.request() should use PoolManager for non-default scan mode."""
 
@@ -271,6 +313,49 @@ class TestHttpsRequestLowCoverage(unittest.TestCase):
         self.assertEqual(kwargs['headers']['Connection'], 'keep-alive')
         self.assertEqual(pool.request.call_args.args[1], '/admin')
         cookies_mock.assert_called_once_with(is_accept=True, response=response)
+
+    def test_https_request_absolute_uses_poolmanager_in_directory_scan(self):
+        """HttpsRequest.request(absolute=True) should bypass the host-bound directory pool."""
+
+        cfg = self.make_cfg()
+        debug = self.make_debug(level=99)
+        requester = HttpsRequest(cfg, debug, tpl=MagicMock(), agent_list=['UA'])
+
+        response = HTTPResponse(status=200, body=b'ok', headers={})
+        pool = MagicMock()
+        manager = MagicMock()
+        manager.request.return_value = response
+        requester._HttpsRequest__pool = pool
+        requester._HttpsRequest__manager = manager
+
+        with patch('src.core.http.https.disable_warnings'):
+            actual = requester.request('https://example.com/cms/', absolute=True)
+
+        self.assertEqual(actual.status, 200)
+        pool.request.assert_not_called()
+        manager.request.assert_called_once()
+        self.assertEqual(manager.request.call_args.args[1], 'https://example.com/cms/')
+
+    def test_https_request_directory_absolute_uses_lazy_poolmanager(self):
+        """HttpsRequest.request(..., absolute=True) should use an absolute PoolManager request."""
+
+        cfg = self.make_cfg()
+        debug = self.make_debug(level=99)
+        response = HTTPResponse(status=200, body=b'ok', headers={})
+        manager = MagicMock()
+        manager.request.return_value = response
+
+        with patch('src.core.http.https.disable_warnings'):
+            requester = HttpsRequest(cfg, debug, tpl=MagicMock(), agent_list=['UA'])
+            requester._HttpsRequest__manager = None
+            requester._HttpsRequest__pool = MagicMock()
+            with patch.object(requester, '_HttpsRequest__pool_manager', return_value=manager):
+                actual = requester.request('https://example.com/cms/', absolute=True)
+
+        self.assertEqual(actual.status, 200)
+        manager.request.assert_called_once()
+        self.assertEqual(manager.request.call_args.args[:2], ('HEAD', 'https://example.com/cms/'))
+        self.assertFalse(requester._HttpsRequest__pool.request.called)
 
     def test_https_request_subdomain_uses_poolmanager(self):
         """HttpsRequest.request() should use PoolManager for non-default scan mode."""

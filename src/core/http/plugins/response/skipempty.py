@@ -75,68 +75,6 @@ class SkipemptyResponsePlugin(ResponsePluginProvider):
 
         ResponsePluginProvider.__init__(self)
 
-    def _get_header(self, name):
-        """
-        Return a header value using case-insensitive lookup.
-
-        :param str name: header name
-        :return: str | None
-        """
-
-        if name in self._headers:
-            return self._headers[name]
-
-        target = str(name).lower()
-        for key, value in self._headers.items():
-            if str(key).lower() == target:
-                return value
-
-        return None
-
-    def _extract_content_length(self):
-        """
-        Extract Content-Length as int if possible.
-
-        :return: int | None
-        """
-
-        raw_length = self._get_header('Content-Length')
-        if raw_length is None:
-            return None
-
-        try:
-            return int(raw_length)
-        except Exception:
-            return None
-
-    def _extract_content_type(self):
-        """
-        Extract normalized Content-Type without parameters.
-
-        :return: str
-        """
-
-        value = self._get_header('Content-Type')
-        if value is None:
-            return ''
-
-        return str(value).split(';', 1)[0].strip().lower()
-
-    @staticmethod
-    def _contains_any(patterns, value):
-        """
-        Check whether any regex pattern exists in the given text.
-
-        :param tuple patterns: regex patterns
-        :param str value: input text
-        :return: bool
-        """
-
-        for pattern in patterns:
-            if re.search(pattern, value, re.IGNORECASE | re.DOTALL):
-                return True
-        return False
-
     def _is_binary_content_type(self, content_type):
         """
         Determine whether a Content-Type looks like a real binary/file response.

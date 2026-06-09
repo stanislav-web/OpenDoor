@@ -10,6 +10,67 @@ from src.lib.browser.browser import Browser
 from src.lib.browser.session import SessionError
 
 
+class RecordingLock:
+    """Small context manager that exposes whether code is inside the critical section."""
+
+    def __init__(self):
+        self.depth = 0
+        self.entries = 0
+
+    @property
+    def locked(self):
+        return self.depth > 0
+
+    def __enter__(self):
+        self.depth += 1
+        self.entries += 1
+        return self
+
+    def __exit__(self, exc_type, exc, _tb):
+        self.depth -= 1
+        return False
+
+
+class LockAwareSet(set):
+    """Set that fails when dedup operations happen outside the expected lock."""
+
+    def __init__(self, lock, values=None):
+        super().__init__(values or [])
+        self.lock = lock
+
+    def _assert_locked(self):
+        if self.lock.locked is not True:
+            raise AssertionError('dedup set accessed outside request-state lock')
+
+    def __contains__(self, item):
+        self._assert_locked()
+        return super().__contains__(item)
+
+    def add(self, item):
+        self._assert_locked()
+        return super().add(item)
+
+
+class LockAwareDict(dict):
+    """Dict that fails when pending request dedup happens outside the expected lock."""
+
+    def __init__(self, lock, values=None):
+        super().__init__(values or {})
+        self.lock = lock
+
+    def _assert_locked(self):
+        if self.lock.locked is not True:
+            raise AssertionError('pending dict accessed outside request-state lock')
+
+    def __contains__(self, key):
+        self._assert_locked()
+        return super().__contains__(key)
+
+    def __setitem__(self, key, value):
+        self._assert_locked()
+        return super().__setitem__(key, value)
+
+
 class TestBrowserSessionRuntimeExtra(unittest.TestCase):
     """High-impact coverage tests for Browser session runtime hooks."""
 
@@ -78,6 +139,7 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
             'is_external_reports_dir': False,
             'is_extension_filter': False,
             'is_ignore_extension_filter': False,
+            'is_crawl': False,
         }
         base.update(overrides)
         return SimpleNamespace(**base)
@@ -169,6 +231,21 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
         self.assertTrue(params['waf_detect'])
         self.assertEqual(params['retries_fail_streak'], 10)
 
+
+    def test_build_session_snapshot_exports_crawl_state(self):
+        """Browser session snapshot should preserve requested crawl state."""
+
+        br = self.make_browser(is_crawl=True)
+
+        snapshot = br._Browser__build_session_snapshot(reason='test')
+
+        self.assertTrue(snapshot['params']['crawl'])
+
+        br = self.make_browser(is_crawl=False)
+
+        snapshot = br._Browser__build_session_snapshot(reason='test')
+
+        self.assertFalse(snapshot['params']['crawl'])
 
     def test_build_session_snapshot_exports_fingerprint_state(self):
         """Browser session snapshot should preserve requested fingerprint state."""
@@ -296,7 +373,7 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
         self.assertEqual(getattr(br, '_Browser__pool').add.call_count, 2)
 
     def test_finalize_processed_request_is_noop_when_session_is_disabled(self):
-        """Browser should not mutate session state when session mode is disabled."""
+        """Browser should not mutate checkpoint state when session mode is disabled."""
 
         br = self.make_browser(session_save=None, is_session_enabled=False)
 
@@ -306,6 +383,42 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
 
         complete_mock.assert_not_called()
         save_mock.assert_not_called()
+
+    def test_register_pending_request_skips_checkpoint_state_when_session_is_disabled(self):
+        """Normal scans should not retain every queued URL in session containers."""
+
+        br = self.make_browser(session_save=None, is_session_enabled=False)
+
+        self.assertTrue(br._Browser__register_pending_request('http://example.com/admin', 0))
+        self.assertFalse(br._Browser__register_pending_request('http://example.com/admin', 0))
+        self.assertEqual(getattr(br, '_Browser__pending_requests'), {})
+        self.assertEqual(getattr(br, '_Browser__completed_requests'), set())
+        self.assertEqual(getattr(br, '_Browser__transient_request_keys'), {'0::http://example.com/admin'})
+
+    def test_should_guard_transient_pending_request_dedup_with_request_state_lock(self):
+        """Normal non-session dedup should keep check/add inside one critical section."""
+
+        br = self.make_browser(session_save=None, is_session_enabled=False)
+        lock = RecordingLock()
+        setattr(br, '_Browser__request_state_lock', lock)
+        setattr(br, '_Browser__transient_request_keys', LockAwareSet(lock))
+
+        self.assertTrue(br._Browser__register_pending_request('http://example.com/admin', 0))
+        self.assertFalse(br._Browser__register_pending_request('http://example.com/admin', 0))
+        self.assertEqual(lock.entries, 2)
+
+    def test_should_guard_session_pending_request_dedup_with_request_state_lock(self):
+        """Session dedup should keep completed/pending check and pending add atomic."""
+
+        br = self.make_browser()
+        lock = RecordingLock()
+        setattr(br, '_Browser__request_state_lock', lock)
+        setattr(br, '_Browser__completed_requests', LockAwareSet(lock))
+        setattr(br, '_Browser__pending_requests', LockAwareDict(lock))
+
+        self.assertTrue(br._Browser__register_pending_request('http://example.com/admin', 0))
+        self.assertFalse(br._Browser__register_pending_request('http://example.com/admin', 0))
+        self.assertEqual(lock.entries, 2)
 
     def test_finalize_processed_request_enabled_calls_complete_and_save(self):
         """Browser should complete and maybe save when session mode is enabled."""
@@ -318,6 +431,19 @@ class TestBrowserSessionRuntimeExtra(unittest.TestCase):
 
         complete_mock.assert_called_once_with('http://example.com/admin', 0)
         save_mock.assert_called_once_with(reason='items', force=False)
+
+    def test_finalize_processed_request_loaded_session_without_save_updates_memory_only(self):
+        """Loaded checkpoints should clear pending state even without saving a new file."""
+
+        br = self.make_browser(session_save=None, is_session_enabled=False)
+        setattr(br, '_Browser__session_snapshot', {'createdAt': 1})
+
+        with patch.object(br, '_Browser__complete_request') as complete_mock, \
+                patch.object(br, '_Browser__save_session') as save_mock:
+            br._Browser__finalize_processed_request('http://example.com/admin', 0)
+
+        complete_mock.assert_called_once_with('http://example.com/admin', 0)
+        save_mock.assert_not_called()
 
     def test_scan_restores_pending_requests_when_session_snapshot_is_loaded(self):
         """Browser.scan() should restore pending queue instead of reading dictionary lines."""

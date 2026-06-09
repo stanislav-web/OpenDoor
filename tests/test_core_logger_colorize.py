@@ -176,5 +176,26 @@ class TestColorizingStreamHandler(unittest.TestCase):
         fake_kernel32.GetStdHandle.assert_not_called()
         fake_kernel32.SetConsoleTextAttribute.assert_not_called()
 
+    def test_windows_output_colorized_handles_stream_without_fileno(self):
+        """Windows output_colorized() should write text when stream has no fileno method."""
+
+        path = Path(__file__).resolve().parents[1] / 'src' / 'core' / 'logger' / 'colorize.py'
+        spec = importlib.util.spec_from_file_location('colorize_win_cov_test_no_fd', path)
+        module = importlib.util.module_from_spec(spec)
+
+        with patch('os.name', 'nt'):
+            spec.loader.exec_module(module)
+
+        stream = types.SimpleNamespace(write=MagicMock())
+        fake_kernel32 = MagicMock()
+        module.ctypes.windll = types.SimpleNamespace(kernel32=fake_kernel32)
+
+        handler = module.ColorizingStreamHandler(stream)
+        handler.output_colorized('A\x1b[31mB')
+
+        self.assertEqual([call.args[0] for call in stream.write.call_args_list], ['A', 'B'])
+        fake_kernel32.GetStdHandle.assert_not_called()
+
+
 if __name__ == '__main__':
     unittest.main()

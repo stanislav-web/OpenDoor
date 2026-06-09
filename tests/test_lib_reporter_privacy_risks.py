@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import csv
-import json
 import os
-import sqlite3
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -15,6 +12,7 @@ from src.lib.reporter.plugins.sarif import SarifReportPlugin
 from src.lib.reporter.plugins.sqlite import SqliteReportPlugin
 from src.lib.reporter.plugins.std import StdReportPlugin
 from src.lib.reporter.plugins.txt import TextReportPlugin
+from tests.reporting_helpers import fetch_sqlite_row, read_csv_report, read_json_report, report_file_path
 
 
 class TestReporterPrivacyRisks(unittest.TestCase):
@@ -104,9 +102,7 @@ class TestReporterPrivacyRisks(unittest.TestCase):
         plugin = CsvReportPlugin(self.target, self.data, directory=self.base_dir + os.path.sep)
         plugin.process()
 
-        report_file = os.path.join(self.base_dir, self.target, self.target + '.csv')
-        with open(report_file, 'r', encoding='utf-8') as handler:
-            rows = list(csv.DictReader(handler))
+        rows = read_csv_report(self.base_dir, self.target)
 
         self.assertEqual(rows[0]['supercookie_risk'], 'medium')
         self.assertEqual(rows[0]['supercookie_score'], '45')
@@ -122,9 +118,7 @@ class TestReporterPrivacyRisks(unittest.TestCase):
         plugin = JsonReportPlugin(self.target, self.data, directory=self.base_dir + os.path.sep)
         plugin.process()
 
-        report_file = os.path.join(self.base_dir, self.target, self.target + '.json')
-        with open(report_file, 'r', encoding='utf-8') as handler:
-            payload = json.load(handler)
+        payload = read_json_report(self.base_dir, self.target)
 
         self.assertEqual(payload['fingerprint']['privacy_risks']['supercookie']['risk'], 'medium')
         self.assertTrue(payload['fingerprint']['privacy_risks']['supercookie']['etag_tracking_surface'])
@@ -146,7 +140,7 @@ class TestReporterPrivacyRisks(unittest.TestCase):
 
         plugin = HtmlReportPlugin(self.target, self.data, directory=self.base_dir + os.path.sep)
         plugin.process()
-        report_file = os.path.join(self.base_dir, self.target, self.target + '.html')
+        report_file = report_file_path(self.base_dir, self.target, 'html')
         self.assertTrue(os.path.isfile(report_file))
 
     def test_sqlite_report_writes_privacy_risk_columns(self):
@@ -155,15 +149,13 @@ class TestReporterPrivacyRisks(unittest.TestCase):
         plugin = SqliteReportPlugin(self.target, self.data, directory=self.base_dir + os.path.sep)
         plugin.process()
 
-        database_path = os.path.join(self.base_dir, self.target, self.target + '.sqlite')
-        connection = sqlite3.connect(database_path)
-        cursor = connection.cursor()
-        row = cursor.execute(
+        row = fetch_sqlite_row(
+            self.base_dir,
+            self.target,
             'SELECT supercookie_risk, supercookie_score, '
             'supercookie_etag_tracking_surface, privacy_supercookie_warnings, '
-            'supercookie_signals FROM fingerprint'
-        ).fetchone()
-        connection.close()
+            'supercookie_signals FROM fingerprint',
+        )
 
         self.assertEqual(
             row,

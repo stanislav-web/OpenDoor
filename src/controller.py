@@ -271,6 +271,7 @@ class Controller(object):
             cli_method = params.get('method')
             cli_threads = params.get('threads')
             cli_tls_legacy = params.get('tls_legacy')
+            cli_crawl = params.get('crawl')
 
             if 'wizard' in params:
                 tpl.info(key='load_wizard', config=params['wizard'])
@@ -305,6 +306,9 @@ class Controller(object):
 
                 if cli_tls_legacy is True:
                     params['tls_legacy'] = True
+
+                if cli_crawl is not None:
+                    params['crawl'] = cli_crawl
 
                 params.update(cli_response_filter_overrides)
                 params.update(cli_transport_overrides)
@@ -355,6 +359,9 @@ class Controller(object):
 
                 if cli_tls_legacy is True:
                     restored['tls_legacy'] = True
+
+                if cli_crawl is not None:
+                    restored['crawl'] = cli_crawl
 
                 restored.update(cli_response_filter_overrides)
                 restored.update(cli_transport_overrides)

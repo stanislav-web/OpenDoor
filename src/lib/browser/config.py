@@ -19,12 +19,14 @@
 import os
 import re
 
+from .header_bypass import HeaderBypassProbe
+
 
 class Config(object):
 
     """Config class"""
 
-    BODY_REQUIRED_SNIFFERS = ('indexof', 'collation', 'stacktrace', 'secret', 'malware', 'shadow')
+    BODY_REQUIRED_SNIFFERS = ('indexof', 'collation', 'stacktrace', 'secret', 'malware', 'endpoint', 'shadow')
     DEFAULT_SOCKET_TIMEOUT = 10
     DEFAULT_MIN_THREADS = 1
     DEFAULT_MAX_THREADS = 50
@@ -88,6 +90,8 @@ class Config(object):
         self._is_fingerprint = self._normalize_bool(params.get('fingerprint'), 'fingerprint')
         self._is_waf_safe_mode = self._normalize_bool(params.get('waf_safe_mode'), 'waf_safe_mode')
         self._is_waf_guard = self._normalize_bool(params.get('waf_guard'), 'waf_guard')
+        self._is_crawl = self._normalize_bool(params.get('crawl'), 'crawl')
+        self._is_follow_redirects = self._normalize_bool(params.get('follow_redirects'), 'follow_redirects')
         self._waf_guard_after = 50 if params.get('waf_guard_after') is None else int(
             params.get('waf_guard_after'))
         self._waf_guard_threshold = 0.95 if params.get('waf_guard_threshold') is None else float(
@@ -156,6 +160,7 @@ class Config(object):
         self._match_regex_compiled = self._compile_regex_values(self._match_regex, 'match_regex')
         self._exclude_regex_compiled = self._compile_regex_values(self._exclude_regex, 'exclude_regex')
         self._validate_response_filters()
+        self._validate_crawl()
 
     @classmethod
     def _normalize_scheme(cls, scheme, ssl=False):
@@ -545,6 +550,21 @@ class Config(object):
             if start < 0 or end < 0 or start > end:
                 raise ValueError('{0} range start must be less than or equal to end'.format(name))
 
+    def _validate_crawl(self):
+        """Validate crawl configuration restored from CLI, wizard, or session.
+
+        :raise ValueError: when crawl is combined with explicit HEAD.
+        """
+
+        if self._is_crawl is not True:
+            return
+
+        if self._method is not None and str(self._method).strip().upper() == 'HEAD':
+            raise ValueError('crawl requires response bodies; use method GET or omit method')
+
+        if self.scan != self.DEFAULT_SCAN:
+            raise ValueError('crawl can be used only with scan directories')
+
     def _validate_response_filters(self):
         """Validate response filters for CLI, wizard and session-loaded params.
 
@@ -730,7 +750,7 @@ class Config(object):
 
     @property
     def method_override_items(self):
-        """List body-dependent sniffers and filters that force GET."""
+        """List body-dependent features that force GET."""
 
         items = list(self.selected_body_required_sniffers)
 
@@ -740,6 +760,9 @@ class Config(object):
 
         if self.is_auto_calibrate is True and '--auto-calibrate' not in items:
             items.append('--auto-calibrate')
+
+        if self.is_crawl is True and '--crawl' not in items:
+            items.append('--crawl')
 
         return items
 
@@ -770,6 +793,9 @@ class Config(object):
             return self.requested_method
 
         if self.is_auto_calibrate is True:
+            return 'GET'
+
+        if self.is_crawl is True:
             return 'GET'
 
         if self.is_body_required_response_filtering is True:
@@ -868,6 +894,27 @@ class Config(object):
         return self._is_waf_guard
 
     @property
+    def is_memory_monitor(self):
+        """If runtime memory diagnostics are enabled."""
+
+        try:
+            return int(self._debug) > 0
+        except (TypeError, ValueError):
+            return False
+
+    @property
+    def is_crawl(self):
+        """If same-origin crawl queue enrichment is enabled."""
+
+        return self._is_crawl
+
+    @property
+    def is_follow_redirects(self):
+        """If bounded same-host redirect following is enabled."""
+
+        return self._is_follow_redirects
+
+    @property
     def waf_guard_after(self):
         """Minimum classified responses before WAF guard can stop the scan."""
 
@@ -895,8 +942,6 @@ class Config(object):
     def header_bypass_profile(self):
         """Header-bypass probe profile."""
 
-        from .header_bypass import HeaderBypassProbe
-
         if self._header_bypass_profile not in HeaderBypassProbe.PROFILES:
             return HeaderBypassProbe.SAFE_PROFILE
 
@@ -907,13 +952,13 @@ class Config(object):
         """Header names used by header-injection bypass probes."""
 
         if self._header_bypass_headers is None:
-            from .header_bypass import HeaderBypassProbe
             headers = list(HeaderBypassProbe.DEFAULT_HEADERS)
 
             if self.header_bypass_profile == HeaderBypassProbe.OFFENSIVE_PROFILE:
+                known_headers = {item.lower() for item in headers}
                 headers.extend([
                     header for header in HeaderBypassProbe.OFFENSIVE_HEADERS
-                    if header.lower() not in {item.lower() for item in headers}
+                    if header.lower() not in known_headers
                 ])
 
             return headers
@@ -925,8 +970,6 @@ class Config(object):
         """Trusted IP values used by header-injection bypass probes."""
 
         if self._header_bypass_ips is None:
-            from .header_bypass import HeaderBypassProbe
-
             if self.header_bypass_profile == HeaderBypassProbe.OFFENSIVE_PROFILE:
                 return list(HeaderBypassProbe.OFFENSIVE_IP_VALUES)
 
@@ -939,7 +982,6 @@ class Config(object):
         """HTTP status codes that trigger header-injection bypass probes."""
 
         if self._header_bypass_status is None:
-            from .header_bypass import HeaderBypassProbe
             return list(HeaderBypassProbe.DEFAULT_STATUS_CODES)
 
         return [int(item) for item in self._expand_numeric_tokens(self._header_bypass_status)]

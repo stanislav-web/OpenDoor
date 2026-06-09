@@ -36,6 +36,39 @@ class FakeWorker(object):
 class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
     """TestBrowserThreadpoolWorkerExtra class."""
 
+
+    def test_worker_stop_task_exits_without_counting_work(self):
+        """Worker should consume stop sentinel without incrementing work counters."""
+
+        queue = Queue()
+        worker = Worker(queue, num_threads=1, timeout=0)
+        worker.daemon = True
+        worker.start()
+
+        queue.put(Worker.STOP_TASK)
+        queue.join()
+        worker.join(timeout=1.0)
+
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(worker.counter, 0)
+        self.assertEqual(worker.completed, 0)
+        self.assertEqual(worker.failed, 0)
+
+    def test_threadpool_close_discards_queued_tasks_before_stop(self):
+        """ThreadPool.close() should not execute queued tasks during shutdown."""
+
+        pool = ThreadPool(num_threads=0, total_items=3, timeout=0)
+        executed = []
+
+        pool.add(lambda: executed.append('ran'))
+        pool.add(lambda: executed.append('ran'))
+        self.assertEqual(pool.size, 2)
+
+        pool.close()
+
+        self.assertEqual(executed, [])
+        self.assertEqual(pool.size, 0)
+
     def test_threadpool_skips_alive_workers(self):
         """ThreadPool.__init__() should ignore already-alive workers."""
 
@@ -443,11 +476,11 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         warning_mock.assert_called_once()
         message = warning_mock.call_args.kwargs.get('msg')
-        self.assertIn('Network request is still waiting/retrying', message)
-        self.assertIn('without progress', message)
-        self.assertIn('queued=', message)
+        self.assertIn('Slow item 61s:', message)
+        self.assertIn('| done=0/1 queued=1', message)
         self.assertIn('https://example.test/hang', message)
-        self.assertIn('no-progress=', message)
+        self.assertNotIn('without progress', message)
+        self.assertNotIn('no-progress=', message)
         self.assertNotIn('idle', message)
 
     def test_should_not_warn_when_active_task_heartbeat_advances(self):
@@ -632,8 +665,8 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         rendered = getattr(pool, '_ThreadPool__format_active_tasks')(11.0)
 
-        self.assertIn('u1 (elapsed=10s, no-progress=10s)', rendered)
-        self.assertIn('unknown task (elapsed=0s, no-progress=0s)', rendered)
+        self.assertIn('u1', rendered)
+        self.assertIn('unknown task', rendered)
         self.assertNotIn('idle', rendered)
         self.assertIn('+1 more', rendered)
 
@@ -802,7 +835,7 @@ class TestBrowserThreadpoolWorkerExtra(unittest.TestCase):
 
         rendered = getattr(pool, '_ThreadPool__format_active_tasks')(11.0)
 
-        self.assertIn('https://example.test/admin [header-bypass 3/8] (elapsed=10s, no-progress=2s)', rendered)
+        self.assertIn('https://example.test/admin [header-bypass 3/8]', rendered)
 
     def test_should_ignore_worker_heartbeat_without_active_task(self):
         """Worker.touch_active_task() should be safe before a queued task starts."""

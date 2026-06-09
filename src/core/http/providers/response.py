@@ -929,6 +929,24 @@ class ResponseProvider(object):
             ],
         },
         {
+            'name': 'BunkerWeb',
+            'confidence': 88,
+            'strong_header_markers': [],
+            'header_markers': [],
+            'strong_body_markers': [],
+            'body_markers': [
+                'this website is protected with',
+                'bunkerweb',
+                'bunkerweb.io',
+                'bunker-svg',
+                'bunker-cls-',
+                'bw_error_gradient_',
+                'your client</div><p class="status-text"> forbidden',
+                'bunkerweb</div><p class="status-text">working',
+                'web server</div><p class="status-text"> working',
+            ],
+        },
+        {
             'name': 'ChinaCache',
             'confidence': 81,
             'strong_header_markers': [
@@ -1462,7 +1480,7 @@ class ResponseProvider(object):
 
     DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     DEFAULT_HTTP_REDIRECT_STATUSES = [300, 301, 302, 303, 304, 307, 308]
-    DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 410, 409, 411, 412, 424, 425, 429, 440, 477, 500, 501, 502, 503, 504, 509, 511, 520, 522, 523]
+    DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 410, 408, 409, 411, 412, 424, 425, 429, 440, 477, 500, 501, 502, 503, 504, 507, 509, 511, 520, 522, 523]
     DEFAULT_SSL_CERT_REQUIRED_STATUSES = [423, 496, 525]
     DEFAULT_HTTP_FORBIDDEN_STATUSES = [403, 405]
     DEFAULT_HTTP_AUTH_STATUSES = [401]
@@ -1522,6 +1540,11 @@ class ResponseProvider(object):
 
         status = None
         self._last_waf_detection = None
+
+        try:
+            setattr(response, 'opendoor_request_url', request_url)
+        except (AttributeError, TypeError):
+            pass
 
         if True is getattr(self._cfg, 'is_waf_detect', False):
             waf_detection = self.__detect_waf(response)

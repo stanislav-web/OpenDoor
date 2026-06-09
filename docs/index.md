@@ -4,7 +4,7 @@
 
 It helps security researchers, penetration testers, bug bounty hunters, DevSecOps engineers, and developers identify exposed paths, login panels, directory listings, restricted resources, backup files, web shells, subdomains, and other potentially sensitive web assets.
 
-OpenDoor supports single-target and batch scanning, custom wordlists, response filtering, recursive discovery, fingerprint detection, passive WAF detection, controlled Header Injection Bypass probes, smart auto-calibration, resumable sessions, CI/CD fail-on rules, multiple report formats, and optional network transport profiles for proxy, OpenVPN, and WireGuard workflows.
+OpenDoor supports single-target and batch scanning, custom wordlists, response filtering, recursive discovery, bounded same-origin crawl, opt-in same-host redirect following, fingerprint detection, passive WAF detection, controlled Header Injection Bypass probes, smart auto-calibration, resumable sessions, CI/CD fail-on rules, multiple report formats, and optional network transport profiles for proxy, OpenVPN, and WireGuard workflows.
 
 > Use OpenDoor only on systems you own or have explicit permission to test.
 
@@ -41,7 +41,7 @@ This makes OpenDoor usable both as an interactive scanner and as a batch-oriente
 
 ## 🔎 Discovery
 
-OpenDoor supports directory discovery and subdomain discovery.
+OpenDoor supports directory discovery, bounded same-origin crawl, opt-in same-host redirect following, and subdomain discovery.
 
 ```shell
 opendoor --host https://example.com --scan directories
