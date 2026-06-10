@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>opendoor</id>
-    <version>5.16.2</version>
+    <version>5.17.0</version>
     <title>OpenDoor</title>
     <authors>stanislav-web</authors>
     <owners>stanislav-web</owners>
@@ -19,7 +19,7 @@ OpenDoor is an open-source CLI recon platform for authorized web reconnaissance,
 
 Use OpenDoor only on systems you own or have explicit permission to test.
     </description>
-    <releaseNotes>https://github.com/stanislav-web/OpenDoor/releases/tag/v5.16.2</releaseNotes>
+    <releaseNotes>https://github.com/stanislav-web/OpenDoor/releases/tag/v5.17.0</releaseNotes>
     <tags>opendoor security recon directory-scanner subdomain-scanner web-recon pentesting owasp cli python</tags>
     <dependencies>
       <dependency id="python313" version="[3.13.0,3.14.0)" />

@@ -1,0 +1,63 @@
+name: Publish Chocolatey package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'OpenDoor version to publish'
+        required: true
+        default: '5.17.0'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Verify Chocolatey metadata version
+        shell: pwsh
+        run: |
+          $version = "${{ inputs.version }}"
+          $nuspec = Get-Content chocolatey/opendoor.nuspec -Raw
+
+          if ($nuspec -notmatch "<version>$version</version>") {
+            throw "chocolatey/opendoor.nuspec does not contain version $version"
+          }
+
+          if ($nuspec -match "5\.16\.2") {
+            throw "Found stale 5.16.2 metadata in chocolatey/opendoor.nuspec"
+          }
+
+      - name: Pack Chocolatey package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist-choco | Out-Null
+          choco pack chocolatey/opendoor.nuspec --out dist-choco
+          Get-ChildItem dist-choco
+
+      - name: Inspect package
+        shell: pwsh
+        run: |
+          $pkg = "dist-choco/opendoor.${{ inputs.version }}.nupkg"
+
+          if (!(Test-Path $pkg)) {
+            throw "Package not found: $pkg"
+          }
+
+          7z l $pkg
+
+      - name: Push Chocolatey package
+        shell: pwsh
+        env:
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+        run: |
+          $pkg = "dist-choco/opendoor.${{ inputs.version }}.nupkg"
+
+          choco push $pkg `
+            --source https://push.chocolatey.org/ `
+            --api-key "$env:CHOCOLATEY_API_KEY"
