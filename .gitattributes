@@ -1,0 +1,3 @@
+# Keep package-manager-specific metadata out of generated source archives.
+/chocolatey export-ignore
+*.nupkg export-ignore

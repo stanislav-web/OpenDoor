@@ -120,6 +120,15 @@ class Filter(object):
             if args.get('waf_guard') is not None:
                 filtered['waf_guard'] = Filter.bool_option(args.get('waf_guard'), key='--waf-guard')
 
+            if args.get('crawl') is not None:
+                filtered['crawl'] = Filter.bool_option(args.get('crawl'), key='--crawl')
+
+            if args.get('follow_redirects') is not None:
+                filtered['follow_redirects'] = Filter.bool_option(
+                    args.get('follow_redirects'),
+                    key='--follow-redirects'
+                )
+
             if args.get('waf_guard_after') is not None:
                 filtered['waf_guard_after'] = Filter.positive_int(
                     args.get('waf_guard_after'),
@@ -222,6 +231,9 @@ class Filter(object):
             if args.get('auto_calibrate') is True:
                 filtered['auto_calibrate'] = True
 
+            if args.get('follow_redirects') is True:
+                filtered['follow_redirects'] = True
+
             if args.get('calibration_samples') is not None:
                 filtered['calibration_samples'] = Filter.positive_int(
                     args.get('calibration_samples'),
@@ -282,6 +294,7 @@ class Filter(object):
             if filtered.get('waf_safe_mode') is True or filtered.get('waf_guard') is True:
                 filtered['waf_detect'] = True
 
+            Filter.validate_crawl_options(filtered)
             Filter.validate_proxy_options(filtered)
             Filter.validate_transport_options(filtered)
 
@@ -343,7 +356,7 @@ class Filter(object):
                 filtered[key] = Filter.debug_level(value, key='--debug')
             elif key in ['delay']:
                 filtered[key] = Filter.non_negative_float(value, key='--delay')
-            elif key in ['fingerprint', 'waf_detect', 'waf_safe_mode', 'waf_guard']:
+            elif key in ['fingerprint', 'waf_detect', 'waf_safe_mode', 'waf_guard', 'crawl', 'follow_redirects']:
                 filtered[key] = Filter.bool_option(value, key='--{0}'.format(key.replace('_', '-')))
             elif key in ['waf_guard_after']:
                 filtered[key] = Filter.positive_int(value, key='--{0}'.format(key.replace('_', '-')))
@@ -424,6 +437,7 @@ class Filter(object):
         if filtered.get('waf_safe_mode') is True or filtered.get('waf_guard') is True:
             filtered['waf_detect'] = True
 
+        Filter.validate_crawl_options(filtered)
         Filter.validate_proxy_options(filtered)
         Filter.validate_transport_options(filtered)
 
@@ -870,11 +884,9 @@ class Filter(object):
         :return: str
         """
 
-        if not re.search('http', hostname, re.IGNORECASE):
-            if re.search('https', hostname, re.IGNORECASE):
-                hostname = "https://" + hostname
-            else:
-                hostname = "http://" + hostname
+        hostname = str(hostname).strip()
+        if not re.match(r'^https?://', hostname, re.IGNORECASE):
+            hostname = "http://" + hostname
 
         hostname = helper.parse_url(hostname).netloc
         regex = re.compile(Filter.URL_REGEX, re.UNICODE)
@@ -1581,6 +1593,24 @@ class Filter(object):
 
         if filtered.get('proxy_rotation') is not None and not filtered.get('proxy_list'):
             raise FilterError('--proxy-rotation can be used only with --proxy-list')
+
+    @staticmethod
+    def validate_crawl_options(filtered):
+        """Validate crawl option combinations.
+
+        :param dict filtered: normalized options
+        :raise FilterError:
+        """
+
+        if filtered.get('crawl') is not True:
+            return
+
+        if filtered.get('method') == 'HEAD':
+            raise FilterError('--crawl requires response bodies; use --method GET or omit --method')
+
+        scan = filtered.get('scan')
+        if scan is not None and scan != 'directories':
+            raise FilterError('--crawl can be used only with --scan directories')
 
     @staticmethod
     def validate_transport_options(filtered):

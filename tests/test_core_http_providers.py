@@ -2,7 +2,7 @@
 
 import unittest
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from src.core.http.providers.accept import AcceptHeaderProvider
 from src.core.http.providers.cache import CacheControlProvider
@@ -129,6 +129,20 @@ class TestHttpProviders(unittest.TestCase):
         provider = UserAgentHeaderProvider(random_cfg, ['A\n', 'B\n'])
         with patch('src.core.http.providers.user_agent.random.randrange', return_value=1):
             self.assertEqual(provider._user_agent, 'B')
+
+    def test_request_provider_close_connection_resource_prefers_pool_close_then_manager_clear(self):
+        """RequestProvider should release urllib3 pools and managers through one contract."""
+
+        pool = MagicMock()
+        self.assertTrue(RequestProvider._close_connection_resource(pool))
+        pool.close.assert_called_once_with()
+
+        manager = SimpleNamespace(clear=MagicMock())
+        self.assertTrue(RequestProvider._close_connection_resource(manager))
+        manager.clear.assert_called_once_with()
+
+        self.assertFalse(RequestProvider._close_connection_resource(None))
+        self.assertFalse(RequestProvider._close_connection_resource(object()))
 
     def test_request_provider_cookies_middleware(self):
         """RequestProvider.cookies_middleware() should propagate cookies only when enabled."""

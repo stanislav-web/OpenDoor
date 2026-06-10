@@ -20,13 +20,23 @@ Use this when you want to discover exposed paths, files, panels, backups, and re
 
 ---
 
+## Same-origin crawl
+
+```shell
+opendoor --host https://example.com --crawl
+```
+
+Use `--crawl` when you want OpenDoor to add unique same-origin URLs discovered from already scanned HTML responses. It is one-hop, directory-scan only, reports crawled URLs through normal result buckets.
+
+---
+
 ## Subdomain discovery
 
 ```shell
 opendoor --host example.com --scan subdomains
 ```
 
-Use a domain name instead of a full URL.
+Use a domain name instead of a full URL. `--crawl` is intentionally not compatible with subdomain scans.
 
 ---
 

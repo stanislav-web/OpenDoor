@@ -83,10 +83,38 @@ class TestBrowserDebugExtra(unittest.TestCase):
                 patch('src.lib.browser.debug.tpl.line', side_effect=lambda *args, **kwargs: kwargs.get('url') or kwargs.get('msg') or 'line'), \
                 patch('src.lib.browser.debug.sys.writels') as writels_mock:
             dbg.debug_request_uri('forbidden', 'http://test.local/path', items_size=1, total_size=2, content_size='0B', response_code='403')
-            dbg.debug_request_uri('redirect', 'http://test.local/path', redirect_uri='http://test.local/next', items_size=1, total_size=2, content_size='0B', response_code='301')
+            dbg.debug_request_uri(
+                'redirect',
+                'http://test.local/path',
+                redirect_uri='http://test.local/next',
+                redirect_classification={'type': 'internal', 'display': '/next'},
+                items_size=1,
+                total_size=2,
+                content_size='0B',
+                response_code='301'
+            )
 
         self.assertEqual(info_mock.call_count, 2)
+        self.assertIn('R(internal)', info_mock.call_args.kwargs.get('item'))
+        self.assertIn('/next', info_mock.call_args.kwargs.get('item'))
         self.assertTrue(writels_mock.called)
+
+        with patch('src.lib.browser.debug.tpl.info') as info_mock, \
+                patch('src.lib.browser.debug.tpl.line', side_effect=lambda *args, **kwargs: kwargs.get('url') or kwargs.get('msg') or 'line'), \
+                patch('src.lib.browser.debug.sys.writels'):
+            dbg.debug_request_uri(
+                'redirect',
+                'http://test.local/legacy',
+                redirect_uri='http://test.local/target',
+                redirect_classification={},
+                items_size=1,
+                total_size=2,
+                content_size='0B',
+                response_code='302'
+            )
+
+        self.assertIn('R ', info_mock.call_args.kwargs.get('item'))
+        self.assertIn('http://test.local/target', info_mock.call_args.kwargs.get('item'))
 
         hidden = self.make_debug({'debug': -1, 'reports': 'std'})
         with patch('src.lib.browser.debug.tpl.line_log') as line_log_mock, \
@@ -339,7 +367,7 @@ class TestBrowserDebugCoverageOnly(unittest.TestCase):
 
         debug_mock.assert_called_once_with(key='waf_guard_enabled', after=7, threshold='80.0')
 
-    def test_should_render_indexof_secret_malware_stacktrace_shadow_and_openredirect_progress(self):
+    def test_should_render_file_indexof_secret_malware_stacktrace_shadow_and_openredirect_progress(self):
         """Debug.debug_request_uri() should render special finding buckets."""
 
         dbg = self.make_debug({'debug': 1, 'reports': 'std'})
@@ -347,18 +375,19 @@ class TestBrowserDebugCoverageOnly(unittest.TestCase):
         with patch('src.lib.browser.debug.tpl.info') as info_mock, \
                 patch('src.lib.browser.debug.tpl.line', side_effect=lambda *args, **kwargs: kwargs.get('msg') or kwargs.get('url') or 'line'), \
                 patch('src.lib.browser.debug.sys.writels'):
-            for status in ('indexof', 'secret', 'malware', 'stacktrace', 'shadow', 'openredirect'):
+            for status in ('file', 'indexof', 'secret', 'malware', 'stacktrace', 'shadow', 'openredirect'):
                 self.assertTrue(dbg.debug_request_uri(
                     status,
                     'http://test.local/path',
                     items_size=1,
-                    total_size=4,
+                    total_size=7,
                     content_size='1KB',
                     response_code='200',
                 ))
 
-        self.assertEqual(info_mock.call_count, 6)
+        self.assertEqual(info_mock.call_count, 7)
         rendered = ' '.join(str(call.kwargs.get('item')) for call in info_mock.call_args_list)
+        self.assertIn('File', rendered)
         self.assertIn('IndexOf', rendered)
         self.assertIn('Secret', rendered)
         self.assertIn('Malware', rendered)
@@ -395,6 +424,51 @@ class TestBrowserDebugCoverageOnly(unittest.TestCase):
         self.assertIn('Secret detection: type=api-key; redacted=sk-***; confidence=95; count=2', messages)
         self.assertIn('Malware detection: subtype=webshell; family=php; signal=eval; confidence=90; count=1', messages)
 
+
+    def test_debug_classification_accepts_additive_metadata_without_debug_spam(self):
+        """Runtime classification debug should tolerate additive metadata at scan-debug level."""
+
+        dbg = self.make_debug({'debug': 1, 'reports': 'std'})
+
+        with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
+            self.assertTrue(dbg.debug_classification(
+                'redirect',
+                code=301,
+                size='352B',
+                redirect_uri='https://test.local/logs./',
+                redirect_classification={
+                    'type': 'canonical',
+                    'display': 'https://test.local/logs./',
+                },
+                endpoint_detection={'type': 'ajax'},
+                future_metadata={'ignored': True},
+            ))
+
+        debug_mock.assert_not_called()
+
+    def test_debug_classification_ignores_additive_metadata_at_response_debug_level(self):
+        """Additive metadata accepted by debug_classification() should not add noisy detail lines."""
+
+        dbg = self.make_debug({'debug': 3, 'reports': 'std'})
+
+        with patch('src.lib.browser.debug.tpl.debug') as debug_mock:
+            self.assertTrue(dbg.debug_classification(
+                'redirect',
+                code=301,
+                size='352B',
+                redirect_uri='https://test.local/logs./',
+                redirect_classification={'type': 'canonical'},
+                endpoint_detection={'type': 'websocket'},
+            ))
+
+        messages = [call.kwargs.get('msg', '') for call in debug_mock.call_args_list]
+        self.assertIn(
+            'Classification: redirect; code=301; size=352B; redirect=https://test.local/logs./',
+            messages,
+        )
+        self.assertFalse(any('redirect_classification' in message for message in messages))
+        self.assertFalse(any('Endpoint detection' in message for message in messages))
+
     def test_proxy_mask_helper_covers_empty_invalid_ipv6_and_username_only_urls(self):
         """Proxy mask helper should cover defensive URL parsing branches."""
 
@@ -430,3 +504,43 @@ class TestBrowserDebugCoverageOnly(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestBrowserDebugRemainingCoverage(unittest.TestCase):
+    """Additional debug helper branch coverage."""
+
+    def tearDown(self):
+        logger = Logger.log()
+        for handler in list(logger.handlers):
+            logger.removeHandler(handler)
+
+    def make_debug(self, params):
+        """Create Debug with isolated stdout."""
+
+        with patch('sys.stdout', new=StringIO()):
+            return Debug(Config(params))
+
+    def test_extract_custom_user_agent_ignores_malformed_and_empty_values(self):
+        """User-Agent extraction should ignore malformed and empty custom headers."""
+
+        self.assertIsNone(Debug._extract_custom_user_agent(['BrokenHeader', 'User-Agent:   ']))
+        self.assertEqual(Debug._extract_custom_user_agent(['X-Test: 1', 'User-Agent: custom']), 'custom')
+
+    def test_debug_request_uri_renders_endpoint_label(self):
+        """Endpoint sniffer hits should keep the compact OK (Endpoint) label."""
+
+        dbg = self.make_debug({'debug': 1, 'reports': 'std'})
+        with patch('src.lib.browser.debug.tpl.info') as info_mock, \
+                patch('src.lib.browser.debug.tpl.line', side_effect=lambda *args, **kwargs: kwargs.get('url') or kwargs.get('msg') or 'line'), \
+                patch('src.lib.browser.debug.sys.writels'):
+            dbg.debug_request_uri(
+                'endpoint',
+                'http://test.local/app.js',
+                items_size=1,
+                total_size=1,
+                content_size='4KB',
+                response_code='200',
+            )
+
+        rendered_item = info_mock.call_args.kwargs.get('item')
+        self.assertIn('OK (Endpoint)', rendered_item)

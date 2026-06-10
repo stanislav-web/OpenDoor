@@ -310,6 +310,9 @@ Do not replace the repository style with an unrelated template.
 - When touching old tests, keep their intent unchanged unless the existing behavior is invalid under the new Python baseline.
 - When fixing test fragility, prefer precise patches over broad rewrites.
 - Keep normal correctness tests and performance measurements separate.
+- Prefer extending existing test modules that already cover the affected component or behavior. Do not create new test files only to raise coverage unless there is no suitable existing module, the new behavior represents a distinct subsystem, or the maintainer explicitly approves a new test module.
+- Coverage-only tests must still protect meaningful behavior, branch contracts, or regression scenarios. Do not add artificial tests that only execute lines without validating observable behavior.
+- When adding coverage for a new feature after its initial test module exists, place additional edge-case coverage into that feature's existing test modules first.
 
 ---
 

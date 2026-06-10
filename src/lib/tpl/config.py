@@ -37,6 +37,7 @@ class Config(object):
         'debug': 'Starting debug level {level}. Using scan method: {method} ...',
         'randomizing': 'Randomizing scan list ...',
         'browser': 'Fetching user-agent: {browser}',
+        'custom_browser': 'Using custom user-agent from headers: {browser}',
         'directories': 'Read {total} directories list by line',
         'ext_filter': 'Read {total} directories list required only: {ext}',
         'ext_ignore_filter': 'Read {total} directories list exclude only: {ext}',
@@ -95,4 +96,5 @@ class Config(object):
             'Progress shows processed requests, not only reported findings. '
             'Response filters, auto-calibration or sniffers may ignore many responses.'
         ),
+        'crawl_mode_notice': 'Crawl mode enabled: discovered same-origin links may add extra requests.',
     }

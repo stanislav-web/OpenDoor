@@ -54,6 +54,7 @@ class SarifReportPlugin(PluginProvider):
         'malware': 'error',
         'shadow': 'warning',
         'openredirect': 'error',
+        'endpoint': 'note',
     }
     SECURITY_SEVERITY_BY_STATUS = {
         'success': '5.0',
@@ -73,6 +74,7 @@ class SarifReportPlugin(PluginProvider):
         'malware': '8.0',
         'shadow': '6.5',
         'openredirect': '7.0',
+        'endpoint': '0.1',
     }
     RULE_NAMES = {
         'success': 'Exposed HTTP resource',
@@ -92,6 +94,7 @@ class SarifReportPlugin(PluginProvider):
         'malware': 'Possible web malware or webshell content',
         'shadow': 'Exposed shadow copy',
         'openredirect': 'Verified open redirect',
+        'endpoint': 'Client-exposed endpoint reference',
     }
 
     def __init__(self, target, data, directory=None):
@@ -333,6 +336,9 @@ class SarifReportPlugin(PluginProvider):
             'malwareDetection': item.get('malware_detection'),
             'shadowDetection': item.get('shadow_detection'),
             'openRedirectDetection': item.get('openredirect_detection'),
+            'endpointDetection': item.get('endpoint_detection'),
+            'redirectClassification': item.get('redirect_classification'),
+            'passiveFinding': item.get('passive_finding'),
         }
         properties.update(self.fingerprint_properties())
         return self.clean_properties(properties)
@@ -366,6 +372,13 @@ class SarifReportPlugin(PluginProvider):
             return 'OpenDoor detected an exposed shadow copy at {0}'.format(url)
         if normalized_status == 'openredirect':
             return 'OpenDoor verified an open redirect vulnerability at {0}'.format(url)
+        if normalized_status == 'endpoint':
+            return 'OpenDoor detected client-exposed endpoint references at {0}'.format(url)
+        if normalized_status == 'redirect' and isinstance(item.get('redirect_classification'), dict):
+            return 'OpenDoor classified redirect at {0} as {1}'.format(
+                url,
+                item.get('redirect_classification').get('type', 'unknown')
+            )
         if normalized_status == 'indexof':
             return 'OpenDoor detected a directory listing candidate at {0}'.format(url)
         return 'OpenDoor classified {0} as {1}'.format(url, normalized_status)

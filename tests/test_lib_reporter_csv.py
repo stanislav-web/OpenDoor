@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import csv
 import os
 import tempfile
 import unittest
@@ -9,6 +8,7 @@ from unittest.mock import patch
 from src.core import FileSystemError
 from src.lib.reporter import Reporter
 from src.lib.reporter.plugins.csv import CsvReportPlugin
+from tests.reporting_helpers import read_csv_report, report_file_path
 
 
 class TestCsvReportPlugin(unittest.TestCase):
@@ -107,9 +107,7 @@ class TestCsvReportPlugin(unittest.TestCase):
         :return: list
         """
 
-        report_file = os.path.join(self.base_dir, self.target, self.target + '.csv')
-        with open(report_file, 'r', newline='', encoding='utf-8') as handler:
-            return list(csv.DictReader(handler))
+        return read_csv_report(self.base_dir, self.target)
 
     def test_reporter_load_returns_csv_plugin(self):
         """Reporter.load() should resolve the csv report plugin."""
@@ -175,8 +173,7 @@ class TestCsvReportPlugin(unittest.TestCase):
         plugin = CsvReportPlugin(self.target, {'items': {}}, directory=self.base_dir + os.path.sep)
         plugin.process()
 
-        report_file = os.path.join(self.base_dir, self.target, self.target + '.csv')
-        with open(report_file, 'r', encoding='utf-8') as handler:
+        with open(report_file_path(self.base_dir, self.target, 'csv'), encoding='utf-8') as handler:
             content = handler.read()
 
         self.assertIn(
@@ -300,3 +297,44 @@ class TestCsvReportPlugin(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestCsvReportRedirectClassification(unittest.TestCase):
+    """CSV redirect classification report tests."""
+
+    def test_csv_plugin_preserves_redirect_classification_columns(self):
+        """CSV rows should expose redirect classification as nullable columns."""
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data = {
+                'items': {'redirect': ['https://example.com/login']},
+                'report_items': {
+                    'redirect': [{
+                        'url': 'https://example.com/login',
+                        'code': '302',
+                        'size': '0B',
+                        'redirect_classification': {
+                            'type': 'login',
+                            'reason': 'auth_gate_redirect',
+                            'location': '/login?next=/admin',
+                            'target_host': 'example.com',
+                            'same_origin': True,
+                            'cross_origin': False,
+                            'confidence': 'high',
+                        },
+                    }]
+                },
+                'total': {'redirect': 1},
+            }
+            plugin = CsvReportPlugin('example.com', data, directory=temp_dir + os.path.sep)
+            plugin.process()
+
+            rows = read_csv_report(temp_dir, 'example.com')
+
+        self.assertEqual(rows[0]['redirect_type'], 'login')
+        self.assertEqual(rows[0]['redirect_reason'], 'auth_gate_redirect')
+        self.assertEqual(rows[0]['redirect_location'], '/login?next=/admin')
+        self.assertEqual(rows[0]['redirect_target_host'], 'example.com')
+        self.assertEqual(rows[0]['redirect_same_origin'], 'True')
+        self.assertEqual(rows[0]['redirect_cross_origin'], 'False')
+        self.assertEqual(rows[0]['redirect_confidence'], 'high')

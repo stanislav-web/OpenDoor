@@ -30,7 +30,6 @@ for _ in ['urllib3', 'importlib', 'packaging']:
 if __name__ == "__main__":
 
     from src import Controller, SrcError
-    import sys
 
     try:
         bootstrap = Controller()

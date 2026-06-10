@@ -160,6 +160,7 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 - Liferay
 - Microsoft SharePoint
 - Mura CMS
+- Nubex CMS
 - OpenCms
 - Orchard CMS
 - Percussion CMS
@@ -186,6 +187,7 @@ The heuristic fingerprint engine currently recognizes the following platform fam
 - e107
 - eZ Publish
 - sNews
+- UNA CMS
 
 ### E-commerce
 

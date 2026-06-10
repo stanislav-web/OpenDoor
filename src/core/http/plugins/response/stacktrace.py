@@ -158,38 +158,6 @@ class StacktraceResponsePlugin(ResponsePluginProvider):
 
         ResponsePluginProvider.__init__(self)
 
-    def _get_header(self, name):
-        """
-        Return a header value using case-insensitive lookup.
-
-        :param str name: header name
-        :return: str | None
-        """
-
-        if name in self._headers:
-            return self._headers[name]
-
-        target = str(name).lower()
-        for key, value in self._headers.items():
-            if str(key).lower() == target:
-                return value
-
-        return None
-
-    def _extract_content_type(self):
-        """
-        Extract normalized Content-Type without parameters.
-
-        :return: normalized content type
-        :rtype: str
-        """
-
-        value = self._get_header('Content-Type')
-        if value is None:
-            return ''
-
-        return str(value).split(';', 1)[0].strip().lower()
-
     def _is_textual_response(self):
         """
         Decide whether the response body is safe and useful for text scanning.

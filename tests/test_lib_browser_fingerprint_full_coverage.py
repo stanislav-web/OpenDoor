@@ -1404,6 +1404,180 @@ class TestFingerprintFullCoverage(unittest.TestCase):
                 self.assertNotIn(case['forbidden'], top_names)
 
 
+    def test_generator_extractor_skips_generator_meta_without_content(self):
+        """Generator extraction should continue past incomplete generator meta tags."""
+
+        body = '<meta name="generator"><meta name="generator" content="Grav CMS">'
+
+        self.assertEqual(Fingerprint._extract_generator(body), 'Grav CMS')
+
+    def test_melbis_shop_collects_lower_confidence_cookie_route_signal(self):
+        """Melbis Shop should accept cookie plus route corroboration without strong branding."""
+
+        detector, _, _ = self.make_detector()
+
+        detector._apply_melbis_shop_rules(
+            'plain link goods.php?id=42',
+            ['MS_MSS'],
+            '',
+        )
+
+        signals = getattr(detector, '_Fingerprint__signals')['Melbis Shop Platform']
+        self.assertEqual(signals[0]['type'], 'cookie+route')
+        self.assertIn('MS_MSS+dir/goods/news.php?id', signals[0]['value'])
+
+    def test_melbis_shop_collects_source_and_quoted_route_markers(self):
+        """Melbis Shop collector should capture source markers and quoted route URLs."""
+
+        signals = Fingerprint._collect_melbis_shop_signals(
+            '<script>DefineSession("MELBIS_SHOP")</script><a href="/news.php?id=7">',
+            [],
+            'Melbis Shop 6',
+        )
+
+        signal_values = [value for _, value in signals]
+        self.assertIn('generator=Melbis Shop', signal_values)
+        self.assertIn('DefineSession("MELBIS_SHOP")', signal_values)
+        self.assertIn('dir/goods/news.php?id', signal_values)
+
+    def test_camaleon_cookie_only_pair_is_lower_confidence_signal(self):
+        """Camaleon CMS should require paired cookies for cookie-only detection."""
+
+        detector, _, _ = self.make_detector()
+
+        detector._apply_camaleon_cms_rules('', ['auth_token', '_cms_session'], '')
+
+        signals = getattr(detector, '_Fingerprint__signals')['Camaleon CMS']
+        self.assertEqual(signals[0]['type'], 'cookie')
+        self.assertEqual(signals[0]['value'], 'auth_token+_cms_session')
+
+    def test_camaleon_repeated_brand_with_rails_csrf_is_markup_signal(self):
+        """Camaleon CMS should accept repeated branding when Rails CSRF is present."""
+
+        body = (
+            '<meta name="csrf-token" content="abc">'
+            '<meta name="csrf-param" content="authenticity_token">'
+            '<p>Camaleon CMS</p><p>camaleoncms</p>'
+        ).lower()
+
+        signals = Fingerprint._collect_camaleon_cms_signals(body, [], '')
+
+        self.assertIn(('markup', 'Camaleon CMS repeated+Rails CSRF'), signals)
+
+    def test_una_cms_collects_asset_fallbacks_and_structural_rule(self):
+        """UNA CMS should cover weaker asset fallbacks and structural corroboration."""
+
+        weak_signals = Fingerprint._collect_una_cms_root_signals(
+            'gzip_loader.php image_transcoder.php bx-main bx-toolbar-content',
+            '',
+        )
+        self.assertIn(('asset', 'gzip_loader.php'), weak_signals)
+        self.assertIn(('asset', 'image_transcoder.php'), weak_signals)
+
+        detector, _, _ = self.make_detector()
+        detector._apply_una_cms_rules(
+            'gzip_loader.php?file=bx_ image_transcoder.php?o=1 bx-main bx-toolbar-content',
+            '',
+        )
+
+        signals = getattr(detector, '_Fingerprint__signals')['UNA CMS']
+        self.assertEqual(signals[0]['type'], 'markup')
+        self.assertIn('gzip_loader.php?file=bx_', signals[0]['value'])
+
+    def test_datalife_engine_covers_brand_corroborated_script_and_min_asset(self):
+        """DataLife Engine should cover brand-corroborated weak runtime branches."""
+
+        detector, _, _ = self.make_detector()
+
+        detector._apply_datalife_engine_rules(
+            'DataLife Engine window.dle_root engine/classes/min/index.php dle_root+"engine/ajax/"',
+            '',
+        )
+
+        signal_types = [signal['type'] for signal in getattr(detector, '_Fingerprint__signals')['DataLife Engine']]
+        self.assertIn('script+brand', signal_types)
+        self.assertIn('asset+script', signal_types)
+        self.assertIn('ajax', signal_types)
+
+    def test_grav_single_asset_is_accepted_with_generator_corroboration(self):
+        """GravCMS should accept a single public asset marker when generator corroborates it."""
+
+        candidates, _ = self.apply_case(
+            body='<link href="/user/themes/quark/css/theme.css">',
+            generator='Grav CMS',
+        )
+
+        self.assertTrue(any(candidate['name'] == 'GravCMS' for candidate in candidates))
+        detector, _, _ = self.make_detector()
+        detector._apply_detection_rules(
+            body='<link href="/user/themes/quark/css/theme.css">',
+            body_lower='<link href="/user/themes/quark/css/theme.css">',
+            headers={},
+            cookies=[],
+            generator='Grav CMS',
+            probe_statuses={},
+            final_root_url='http://example.com/',
+            not_found_status=0,
+            not_found_body='',
+            not_found_headers={},
+        )
+        signal_types = [signal['type'] for signal in getattr(detector, '_Fingerprint__signals')['GravCMS']]
+        self.assertIn('asset', signal_types)
+
+    def test_melbis_shop_strong_signal_without_route_does_not_add_route_signal(self):
+        """Melbis Shop strong evidence should not add optional route metadata when absent."""
+
+        detector, _, _ = self.make_detector()
+
+        detector._apply_melbis_shop_rules('powered by Melbis Shop', [], '')
+
+        signal_types = [signal['type'] for signal in getattr(detector, '_Fingerprint__signals')['Melbis Shop Platform']]
+        self.assertEqual(signal_types, ['markup'])
+
+    def test_camaleon_meta_signal_and_single_cookie_negative_branch(self):
+        """Camaleon should cover generator evidence and avoid single-cookie-only detection."""
+
+        signals = Fingerprint._collect_camaleon_cms_signals('', [], 'CamaleonCMS')
+        self.assertIn(('meta', 'generator=Camaleon CMS'), signals)
+
+        detector, _, _ = self.make_detector()
+        detector._apply_camaleon_cms_rules('', ['auth_token'], '')
+
+        self.assertNotIn('Camaleon CMS', getattr(detector, '_Fingerprint__signals'))
+
+    def test_una_cms_meta_generator_is_standalone_signal(self):
+        """UNA CMS generator evidence should produce a standalone meta signal."""
+
+        detector, _, _ = self.make_detector()
+
+        detector._apply_una_cms_rules('', 'UNA Platform')
+
+        signals = getattr(detector, '_Fingerprint__signals')['UNA CMS']
+        self.assertEqual(signals[0]['type'], 'meta')
+        self.assertEqual(signals[0]['value'], 'generator=UNA')
+
+    def test_cms_s3_structural_signal_without_vendor_stays_markup_only(self):
+        """CMS.S3 structural evidence should not add vendor metadata when vendor markers are absent."""
+
+        detector, _, _ = self.make_detector()
+
+        detector._apply_cms_s3_rules('/my/s3/ $ite.start')
+
+        signal_types = [signal['type'] for signal in getattr(detector, '_Fingerprint__signals')['CMS.S3 / Megagroup']]
+        self.assertEqual(signal_types, ['markup'])
+
+    def test_wordpress_probe_evidence_rejects_invalid_status_values(self):
+        """WordPress probe evidence should ignore non-numeric probe statuses defensively."""
+
+        self.assertFalse(Fingerprint._is_wordpress_probe_up(
+            {'/wp-json/': object()},
+            '/wp-json/',
+            404,
+            True,
+            [200],
+            [401, 403],
+        ))
+
     def test_detect_reports_progress_events(self):
         """
         Fingerprint.detect() should report deterministic progress steps.

@@ -595,6 +595,20 @@ class TestBrowserExtra(unittest.TestCase):
 
         warning_mock.assert_not_called()
 
+    def test_warn_if_scan_finished_early_counts_crawl_enqueued_items(self):
+        """Crawl-extended totals should not look like a truncated active wordlist."""
+
+        br = self.make_browser(is_crawl=True)
+        br._Browser__pool.submitted_size = 96696
+        br._Browser__pool.total_items_size = 96772
+        br._Browser__streamed_items_count = 96702
+        br._Browser__crawl_state = SimpleNamespace(enqueued=70)
+
+        with patch('src.lib.browser.browser.tpl.warning') as warning_mock:
+            br._Browser__warn_if_scan_finished_early()
+
+        warning_mock.assert_not_called()
+
     def test_warn_if_scan_finished_early_warns_when_consumed_items_are_short(self):
         """Early-finish guard should still warn when streamed and submitted counts are both short."""
 

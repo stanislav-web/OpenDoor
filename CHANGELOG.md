@@ -1,5 +1,41 @@
 CHANGELOG
 =======
+v5.17.0 (10.06.2026)
+---------------------------
+- (critical) avoided expensive collation comparisons on large response bodies, preventing slow classification of valid large 200 OK pages while preserving normal success reporting and small-template soft404 detection.
+- (fix) responseError: Unknown response status : `507 (Insufficient storage)` so scans no longer abort on unexpected HTTP status codes.
+- (fix) responseError: Unknown response status : `408 (Request Timeout)` so scans no longer abort on unexpected HTTP status codes.
+- (fix) preserved explicit `--header "User-Agent: ..."` precedence across proxy/proxy-pool requests and aligned debug output with the effective custom User-Agent.
+- (fix) expanded JavaScript cookie-gate suppression preventing bootstrap pages from being reported as `OK` or `OK (Shadow)` findings.
+- (fix) reduced `--sniff secret` false positives by requiring Slack token structural validation.
+- (fix) reduced `--sniff malware` false positives by ignoring `document.write(unescape(...))` loaders inside inactive HTML comments, while preserving detection for active script loaders.
+- (fix) `--sniff file` now classifies exposed `.db` files such as `Thumbs.db`, `cache.db`, and other database-like paths as `OK (File)` even when MIME metadata is missing or the response is HEAD-like, while avoiding soft-200 textual fallback pages.
+- (fix) fixed host normalization so plain hostnames containing `http` or `https` in the label are no longer misdetected as already having a URL scheme.
+- (fix) made Browser pending request deduplication thread-safe across session, transient, crawl and recursive queue paths.
+- (feature) added `--sniff endpoint` to passively detect exposed WebSocket, Socket.IO, SSE/EventSource and AJAX endpoints from already-fetched responses without active connections, JavaScript execution or queue expansion.
+- (feature) added built-in passive redirect classification for discovered 3xx responses, adding concise `R(...)` CLI markers and bounded redirect metadata to existing reports without following redirects or increasing request volume.
+- (feature) added opt-in `--crawl` mode for bounded same-origin one-hop queue enrichment from HTML links/forms with normal report classification, crawl-aware progress output, and runtime crawl diagnostics.
+- (feature) added explicit `--follow-redirects` support for bounded same-host redirects so canonical redirect chains can be materialized and classified by their final response without changing default passive redirect behavior.
+- (enhancement) hardened `--sniff openredirect` marker verification with shared redirect-target normalization, explicit false-positive controls and additive payload-family report metadata without changing the public command or expanding payload volume.
+- (enhancement) hardened GravCMS fingerprint detection with a stronger passive generator.
+- (enhancement) added BunkerWeb passive WAF detection.
+- (enhancement) added UNA CMS fingerprint detection from UNA branding.
+- (enhancement) added conservative passive Nubex CMS detection.
+- (enhancement) enriched redacted JWT secret findings with bounded, non-verifying claims metadata without storing raw tokens or changing scan behavior.
+- (enhancement) added per-bucket report item deduplication to prevent duplicate findings from dirty wordlists, repeated scan inputs, resumed sessions, and future crawl-discovered URLs while preserving distinct findings across different buckets.
+- (enhancement) added memory usage to terminal Runtime diagnostics automatically when `--debug` output is enabled, without a separate CLI flag or any change to request volume/report schemas.
+- (core) added additive structured `passive_finding` metadata for `secret`, `malware`, `stacktrace`, `shadow` and `openredirect` reports while preserving existing detection behavior, buckets, labels and legacy metadata.
+- (ux) `--sniff file` scan output now labels file sniffer hits as `OK (File)` like other sniffer findings without changing report buckets or detection semantics.
+- (ux) added Runtime diagnostics traffic counters for response bodies, response headers and logical request attempts, preserved across session checkpoints.
+- (ux) shortened slow-item watchdog warnings and added processing phase labels for clearer scan diagnostics.
+- (performance) improved scan resource cleanup by closing worker pools, request connection pools, memory monitor tracing state, and temporary scan resources during browser shutdown.
+- (performance) reduced memory pressure for scans without session checkpoints by avoiding persistent session bookkeeping when `--session-save` is disabled.
+- (build) added Chocolatey package metadata for Windows distribution.
+- (build) added package manager validation workflow.
+- (dictionary) cleaned and normalized the internal directories list (+481 potential interesting paths).
+- (deps-dev) [PR#119](https://github.com/stanislav-web/OpenDoor/pull/119) bump the python-runtime-dependencies group with 2 updates.
+- (deps-dev) [PR#120](https://github.com/stanislav-web/OpenDoor/pull/120) bump codecov/codecov-action from 6 to 7 in the github-actions group.
+
 v5.16.2 (31.05.2026)
 ---------------------------
 - (critical) fixed scan crashes caused by corrupted gzip/encoded HTTP responses by handling `DecodeError` as a recoverable transport failure instead of aborting worker threads.
@@ -26,8 +62,8 @@ v5.16.2 (31.05.2026)
 - (enhancement) added Ruby on Rails fingerprint detection with conservative passive CSRF, Rails UJS/Turbo, asset-pipeline and Rails error markers while avoiding standalone Rack.
 - (enhancement) reduced `--sniff malware` false positives for standard Bitrix admin login pages by allowlisting the built-in hidden `auth_frame` iframe only when strong Bitrix login markers are present.
 - (enhancement) `--sniff secret` now detects additional low-noise token patterns, including GitHub fine-grained tokens, Square-style tokens, leaked bearer headers and expanded credential assignments.
-- (ui) clarified Runtime Diagnostics queue accounting by showing consumed items, submitted HTTP jobs, and pre-request skipped items separately.
-- (ui) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt visible after in-flight worker output drains and by documenting Enter/C continue and E/Q abort semantics.
+- (ux) clarified Runtime Diagnostics queue accounting by showing consumed items, submitted HTTP jobs, and pre-request skipped items separately.
+- (ux) clarified runtime pause/resume behavior by making the Ctrl+C pause prompt visible after in-flight worker output drains and by documenting Enter/C continue and E/Q abort semantics.
 - (dictionary) cleaned and normalized the internal directories list (+1247 potential interesting paths).
 - (docs) added a `Mastering OpenDoor` companion documentation page for the upcoming article series.
 - (deps-dev) [PR#115](https://github.com/stanislav-web/OpenDoor/pull/115) bump ruff from 0.15.13 to 0.15.14 in the python-runtime-dependencies group.

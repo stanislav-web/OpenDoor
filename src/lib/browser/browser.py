@@ -17,13 +17,16 @@
 """
 
 import copy
+import shutil
+import sys
 import re
 import socket as net_socket
 import threading
 import time
 import uuid
-from urllib.parse import unquote, urlsplit, urlunsplit
+from datetime import datetime
 from html.parser import HTMLParser
+from urllib.parse import unquote, urljoin, urlsplit, urlunsplit
 from .session import SessionManager, SessionError
 from src.core import HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError
 from src.core import FileSystemError
@@ -41,13 +44,17 @@ from src.lib.tpl import Tpl as tpl
 from .config import Config
 from .debug import Debug
 from .calibration import Calibration
+from .cookie_gate import match_js_cookie_gate_response
+from .crawl import CrawlState, extract_crawl_candidates
 from .exceptions import BrowserError
 from .fingerprint import Fingerprint
 from .filter import Filter
 from .header_bypass import HeaderBypassProbe
 from .open_redirect import OpenRedirectProbe
 from .shadow import ShadowProbe
-from .sniffers import SnifferEngine, SnifferResult
+from .memory import MemoryMonitor
+from .sniffers import PassiveFinding, SnifferEngine, SnifferResult
+from .sniffers.result import passive_finding_source
 from .threadpool import ThreadPool
 from .workspace import ScanTempWorkspace
 
@@ -118,6 +125,7 @@ class Browser(Filter):
         'indexof',
         'stacktrace',
         'malware',
+        'endpoint',
     )
     BASE_SUPPRESSOR_BUCKETS = (
         'skip',
@@ -149,6 +157,7 @@ class Browser(Filter):
     TRANSPORT_OUTAGE_PAUSE_MIN_STREAK = 5
     TRANSPORT_OUTAGE_PAUSE_MAX_STREAK = 10
     WAF_SAFE_RECOVERY_STATUSES = ('success', 'redirect', 'auth', 'forbidden', 'bad', 'certificate')
+    FOLLOW_REDIRECTS_MAX_HOPS = 5
 
     def __init__(self, params):
         """
@@ -164,10 +173,12 @@ class Browser(Filter):
             self.__config = Config(params)
             self.__debug = Debug(self.__config)
             self.__session_lock = threading.RLock()
+            self.__request_state_lock = threading.RLock()
             self.__session = None
             self.__session_dirty = False
             self.__completed_requests = set()
             self.__pending_requests = {}
+            self.__transient_request_keys = set()
             self.__seen_scan_urls = set()
             self.__processed_offset = 0
             self.__session_snapshot = params.get('session_snapshot')
@@ -189,15 +200,22 @@ class Browser(Filter):
             self.__transport_failures_skipped = 0
             self.__transport_failure_summary_emitted = False
             self.__pre_request_skipped = 0
+            self.__traffic_lock = threading.RLock()
+            self.__traffic_response_body_bytes = 0
+            self.__traffic_response_header_bytes = 0
+            self.__traffic_requests = 0
             self.__runtime_started_at = None
             self.__runtime_finished_at = None
             self.__runtime_active_seconds_offset = 0.0
             self.__runtime_diagnostics_emitted = False
+            self.__memory_monitor = MemoryMonitor(enabled=self.__is_scan_debug_enabled())
+            self.__memory_monitor.start()
             self.__calibration = None
             self.__header_bypass = HeaderBypassProbe(self.__config)
             self.__active_sniffer_names = SnifferEngine.active_names_from_config(self.__config)
             self.__open_redirect_probe = OpenRedirectProbe() if self.__is_active_sniffer_enabled('openredirect') is True else None
             self.__shadow_probe = None
+            self.__crawl_state = CrawlState() if getattr(self.__config, 'is_crawl', False) is True else None
 
             requested_method = str(getattr(self.__config, '_method', '') or '').upper()
             effective_method = str(getattr(self.__config, 'method', '') or '').upper()
@@ -217,6 +235,8 @@ class Browser(Filter):
                 'filtered_items': [],
                 'transport_failed': [],
             }
+            self.__report_item_keys = {}
+            self.__report_item_keys_result_id = id(self.__result)
             self.__visited_recursive = set()
             self.__queued_recursive = set()
             runtime_paths = self.__prepare_runtime_paths()
@@ -331,12 +351,41 @@ class Browser(Filter):
         :return: None
         """
 
-        workspace = getattr(self, '_Browser__temp_workspace', None)
-        if workspace is None:
-            return
+        pool = getattr(self, '_Browser__pool', None)
+        if pool is not None and hasattr(pool, 'close'):
+            pool.close()
 
-        workspace.cleanup()
-        self.__temp_workspace = None
+        client = getattr(self, '_Browser__client', None)
+        if client is not None and hasattr(client, 'close'):
+            client.close()
+            self.__client = None
+
+        memory_monitor = getattr(self, '_Browser__memory_monitor', None)
+        if memory_monitor is not None and hasattr(memory_monitor, 'close'):
+            memory_monitor.close()
+
+        request_state_lock = getattr(self, '_Browser__request_state_lock', None)
+        transient_request_keys = getattr(self, '_Browser__transient_request_keys', None)
+        if isinstance(transient_request_keys, set):
+            if request_state_lock is not None:
+                with request_state_lock:
+                    transient_request_keys.clear()
+            else:
+                transient_request_keys.clear()
+
+        report_item_keys = getattr(self, '_Browser__report_item_keys', None)
+        if isinstance(report_item_keys, dict):
+            report_item_keys.clear()
+
+        crawl_state = getattr(self, '_Browser__crawl_state', None)
+        if crawl_state is not None and hasattr(crawl_state, 'close'):
+            crawl_state.close()
+            self.__crawl_state = None
+
+        workspace = getattr(self, '_Browser__temp_workspace', None)
+        if workspace is not None:
+            workspace.cleanup()
+            self.__temp_workspace = None
 
     def __del__(self):
         """Best-effort cleanup for instances that never reach scan()."""
@@ -565,6 +614,7 @@ class Browser(Filter):
 
             tpl.info(key='scanning', host=self.__config.host)
             self.__warn_filtered_progress_mode()
+            self.__warn_crawl_mode()
             if (
                 getattr(self.__config, 'is_proxy', False) is not True
                 or getattr(self, '_Browser__client', None) is None
@@ -750,6 +800,171 @@ class Browser(Filter):
         self.__ensure_session_runtime_state()
         self.__pre_request_skipped += 1
 
+    @staticmethod
+    def __safe_traffic_int(value):
+        """Return a non-negative integer for traffic diagnostics.
+
+        :param mixed value: raw value
+        :return: normalized integer
+        :rtype: int
+        """
+
+        try:
+            return max(0, int(value))
+        except (TypeError, ValueError):
+            return 0
+
+    @staticmethod
+    def __response_body_size_bytes(response):
+        """Estimate downloaded response body bytes from one HTTP response.
+
+        ``Content-Length`` is preferred because it describes the transferred
+        response entity size when present. If it is unavailable or invalid, the
+        already-loaded response data length is used as a best-effort fallback.
+
+        :param urllib3.response.HTTPResponse response: response object
+        :return: response body byte count
+        :rtype: int
+        """
+
+        try:
+            headers = getattr(response, 'headers', {})
+            if headers is not None and headers.get('Content-Length') is not None:
+                return Browser.__safe_traffic_int(headers.get('Content-Length'))
+        except (AttributeError, TypeError, ValueError):
+            pass
+
+        try:
+            data = response.data
+        except AttributeError:
+            return 0
+
+        if isinstance(data, bytes):
+            return len(data)
+
+        try:
+            return len(str(data).encode('utf-8'))
+        except (TypeError, ValueError):
+            return 0
+
+    @staticmethod
+    def __response_header_size_bytes(response):
+        """Estimate response header bytes from one HTTP response.
+
+        This is a best-effort HTTP header-section estimate. It counts header
+        field lines and the terminating CRLF, but intentionally does not include
+        request headers, TLS framing, TCP/IP overhead, or urllib3 retry internals.
+
+        :param urllib3.response.HTTPResponse response: response object
+        :return: response header byte count
+        :rtype: int
+        """
+
+        headers = getattr(response, 'headers', None)
+        if headers is None:
+            return 0
+
+        try:
+            iterator = headers.items()
+        except AttributeError:
+            try:
+                iterator = dict(headers).items()
+            except (TypeError, ValueError):
+                return 0
+
+        total = 0
+        for key, value in iterator:
+            try:
+                line = '{0}: {1}\r\n'.format(key, value)
+                total += len(line.encode('utf-8'))
+            except (TypeError, ValueError):
+                continue
+
+        if total > 0:
+            total += 2
+
+        return total
+
+    def __record_traffic_request(self):
+        """Record one logical outbound request attempt.
+
+        :return: None
+        """
+
+        self.__ensure_session_runtime_state()
+        with self.__traffic_lock:
+            self.__traffic_requests += 1
+
+    def __record_traffic_response(self, response):
+        """Record downloaded response body/header bytes.
+
+        :param urllib3.response.HTTPResponse response: response object
+        :return: None
+        """
+
+        if response is None:
+            return
+
+        self.__ensure_session_runtime_state()
+        with self.__traffic_lock:
+            self.__traffic_response_body_bytes += self.__response_body_size_bytes(response)
+            self.__traffic_response_header_bytes += self.__response_header_size_bytes(response)
+
+    def __traffic_diagnostics_payload(self):
+        """Build runtime traffic diagnostics payload.
+
+        :return: traffic counters
+        :rtype: dict
+        """
+
+        self.__ensure_session_runtime_state()
+        with self.__traffic_lock:
+            return {
+                'response_body_bytes': self.__safe_traffic_int(self.__traffic_response_body_bytes),
+                'response_header_bytes': self.__safe_traffic_int(self.__traffic_response_header_bytes),
+                'requests': self.__safe_traffic_int(self.__traffic_requests),
+            }
+
+    @classmethod
+    def __format_traffic_bytes(cls, value):
+        """Format a byte count for terminal traffic diagnostics.
+
+        :param int value: byte count
+        :return: formatted byte count
+        :rtype: str
+        """
+
+        size = float(cls.__safe_traffic_int(value))
+        units = ('B', 'KB', 'MB', 'GB', 'TB')
+        unit_index = 0
+
+        while size >= 1024.0 and unit_index < len(units) - 1:
+            size /= 1024.0
+            unit_index += 1
+
+        if unit_index == 0:
+            return '{0:.0f} {1}'.format(size, units[unit_index])
+
+        return '{0:.1f} {1}'.format(size, units[unit_index])
+
+    @classmethod
+    def __format_traffic_diagnostics(cls, payload):
+        """Format traffic payload for Runtime diagnostics.
+
+        :param dict payload: traffic diagnostics payload
+        :return: formatted traffic row
+        :rtype: str
+        """
+
+        if not isinstance(payload, dict):
+            payload = {}
+
+        return 'response bodies {0}, headers {1}, requests {2}'.format(
+            cls.__format_traffic_bytes(payload.get('response_body_bytes', 0)),
+            cls.__format_traffic_bytes(payload.get('response_header_bytes', 0)),
+            cls.__safe_traffic_int(payload.get('requests', 0)),
+        )
+
     def __runtime_diagnostics_payload(self, status='completed'):
         """Build debug-only terminal runtime diagnostics.
 
@@ -779,7 +994,7 @@ class Browser(Filter):
         if not isinstance(total_counter, dict):
             total_counter = {}
 
-        return {
+        payload = {
             'status': status,
             'processed': processed,
             'total': total,
@@ -795,7 +1010,21 @@ class Browser(Filter):
             'retries_fail_streak_enforced': self.__is_subdomains_scan() is not True,
             'auto_calibration_enabled': getattr(self.__config, 'is_auto_calibrate', False) is True,
             'calibrated_responses': self.__safe_progress_int(total_counter.get('calibrated', 0)),
+            'traffic': self.__traffic_diagnostics_payload(),
         }
+
+        crawl_state = getattr(self, '_Browser__crawl_state', None)
+        if crawl_state is not None:
+            payload['crawl'] = crawl_state.diagnostics_payload()
+
+        memory_monitor = getattr(self, '_Browser__memory_monitor', None)
+        if self.__is_scan_debug_enabled() is True and memory_monitor is not None:
+            payload['memory'] = memory_monitor.payload(
+                processed=processed,
+                active_seconds=active_seconds,
+            )
+
+        return payload
 
     @staticmethod
     def __format_diagnostics_table(title, rows):
@@ -885,7 +1114,30 @@ class Browser(Filter):
                     payload.get('calibrated_responses'),
                 ),
             ),
+            (
+                'traffic',
+                self.__format_traffic_diagnostics(payload.get('traffic')),
+            ),
         ]
+
+        if isinstance(payload.get('crawl'), dict):
+            crawl_payload = payload.get('crawl')
+            discovered = self.__safe_progress_int(crawl_payload.get('discovered', crawl_payload.get('queued', 0)))
+            consumed = self.__safe_progress_int(crawl_payload.get('consumed', crawl_payload.get('processed', 0)))
+            pending = self.__safe_progress_int(crawl_payload.get('pending', max(0, discovered - consumed)))
+            rows.append((
+                'crawl',
+                '{0} discovered, {1} consumed, {2} pending, {3} duplicate, {4} skipped'.format(
+                    discovered,
+                    consumed,
+                    pending,
+                    crawl_payload.get('duplicate', 0),
+                    crawl_payload.get('skipped', 0),
+                ),
+            ))
+
+        if isinstance(payload.get('memory'), dict):
+            rows.append(('memory', MemoryMonitor.format_payload(payload.get('memory'))))
 
         if status not in ('completed', 'finished'):
             rows.append(('status', status))
@@ -925,15 +1177,17 @@ class Browser(Filter):
             planned = int(self.__pool.total_items_size)
             streamed = int(getattr(self, '_Browser__streamed_items_count', 0) or 0)
             processed_offset = int(getattr(self, '_Browser__processed_offset', 0) or 0)
+            crawl_enqueued = int(self.__crawl_progress_enqueued())
         except (AttributeError, TypeError, ValueError):
             return
 
-        consumed = max(
+        base_consumed = max(
             submitted,
             processed_offset + submitted,
             streamed,
             processed_offset + streamed,
         )
+        consumed = base_consumed + max(crawl_enqueued, 0)
 
         if consumed >= planned:
             return
@@ -978,10 +1232,6 @@ class Browser(Filter):
         :param str label: current fingerprint stage
         :return: None
         """
-
-        import shutil
-        import sys
-        from datetime import datetime
 
         try:
             current_value = int(current or 0)
@@ -1694,11 +1944,13 @@ class Browser(Filter):
             :return: urllib3.HTTPResponse | None
             """
 
+            self.__record_traffic_request()
             if extra_headers is None:
                 response = self.__client.request(url)
             else:
                 response = self.__client.request(url, extra_headers=extra_headers)
 
+            self.__record_traffic_response(response)
             self.__sync_shared_cookies_from_client()
             return response
 
@@ -1716,6 +1968,203 @@ class Browser(Filter):
             response = request_once()
             self.__waf_safe_next_at = time.monotonic() + self.__waf_safe_delay
             return response
+
+    def __request_absolute_url(self, url):
+        """Request an absolute URL while preserving backend headers/cookies.
+
+        Default directory scans use host-bound connection pools for dictionary
+        paths. Redirect materialization needs an absolute request path so a
+        same-host redirect can change scheme, port or canonical slash without
+        changing the default scanner path.
+
+        :param str url: absolute URL to request
+        :return: urllib3.HTTPResponse | None
+        """
+
+        try:
+            response = self.__client.request(url, absolute=True)
+        except TypeError:
+            response = self.__client.request(url)
+
+        self.__sync_shared_cookies_from_client()
+        return response
+
+    def __scan_origin_url(self):
+        """Return the configured scan origin URL.
+
+        :return: absolute origin URL with trailing slash
+        :rtype: str
+        """
+
+        host = str(getattr(self.__config, 'host', '') or '').strip()
+        scheme = str(getattr(self.__config, 'scheme', 'http://') or 'http://')
+        port = getattr(self.__config, 'port', None)
+
+        netloc = host
+        if port is not None:
+            try:
+                numeric_port = int(port)
+            except (TypeError, ValueError):
+                numeric_port = None
+
+            if numeric_port is not None:
+                is_default = (scheme == 'http://' and numeric_port == 80) \
+                    or (scheme == 'https://' and numeric_port == 443)
+                if is_default is not True:
+                    netloc = '{0}:{1}'.format(host, numeric_port)
+
+        return '{0}{1}/'.format(scheme, netloc)
+
+    def __absolute_scan_url(self, url):
+        """Resolve a dictionary or redirect URL against the configured scan origin.
+
+        :param str url: raw URL or path
+        :return: absolute URL
+        :rtype: str
+        """
+
+        value = str(url or '').strip()
+        parsed = urlsplit(value)
+        if parsed.scheme and parsed.netloc:
+            return value
+
+        return urljoin(self.__scan_origin_url(), value.lstrip('/'))
+
+    @staticmethod
+    def __normalized_redirect_host(parsed):
+        """Return a normalized redirect hostname.
+
+        :param urllib.parse.SplitResult parsed: parsed URL
+        :return: normalized hostname
+        :rtype: str
+        """
+
+        return str(parsed.hostname or '').strip('.').lower()
+
+    def __is_follow_redirect_target_allowed(self, source_url, target_url):
+        """Return whether one redirect target may be materialized.
+
+        The guard is intentionally host-based, not scheme-based: the explicit
+        --host value controls the scan origin, while --follow-redirects only
+        requires that redirect targets stay on the same hostname. Redirects
+        that collapse a probed path to the homepage are not materialized so
+        soft catch-all redirects do not become success findings.
+
+        :param str source_url: absolute source URL
+        :param str target_url: absolute redirect target URL
+        :return: True when the target is eligible for one follow-up request
+        :rtype: bool
+        """
+
+        try:
+            source = urlsplit(self.__absolute_scan_url(source_url))
+            target = urlsplit(self.__absolute_scan_url(target_url))
+        except ValueError:
+            return False
+
+        if not target.scheme or not target.netloc:
+            return False
+
+        if self.__normalized_redirect_host(source) != self.__normalized_redirect_host(target):
+            return False
+
+        source_path = source.path or '/'
+        target_path = target.path or '/'
+        if source_path not in ('', '/') and target_path in ('', '/'):
+            return False
+
+        return True
+
+    def __should_materialize_follow_redirect_result(self, original_url, final_url, response_data):
+        """Return whether a followed response should replace the original redirect.
+
+        ``--follow-redirects`` enriches redirect findings only when the chain
+        ends in a meaningful report bucket. Dead ends such as 404/5xx ``failed``
+        results keep the original passive redirect evidence instead of becoming
+        failed findings. Homepage collapses from a non-root path are also kept
+        passive so missing paths redirected to ``/`` do not become ``success``.
+
+        :param str original_url: original queue URL
+        :param str final_url: final followed URL
+        :param tuple response_data: classified final response tuple
+        :return: True when final response should be reported
+        :rtype: bool
+        """
+
+        try:
+            status = str(response_data[0])
+        except (TypeError, IndexError):
+            return False
+
+        if status == 'failed':
+            return False
+
+        original_path = urlsplit(self.__absolute_scan_url(original_url)).path or '/'
+        final_path = urlsplit(self.__absolute_scan_url(final_url)).path or '/'
+        if status == 'success' and original_path != '/' and final_path == '/':
+            return False
+
+        return True
+
+    def __materialize_follow_redirects(self, response_object, response_data, request_url, ignore_list):
+        """Materialize a bounded same-host redirect chain when explicitly enabled.
+
+        Only --follow-redirects runs this path. The scanner keeps the original
+        passive redirect unless the chain reaches a final non-redirect response.
+        Intermediate redirects are never reported as findings.
+
+        :param object response_object: initial raw HTTP response
+        :param tuple response_data: initial classified response data
+        :param str request_url: original logical request URL
+        :param list ignore_list: ignored directory names
+        :return: final response tuple or None
+        :rtype: tuple|None
+        """
+
+        if True is not getattr(self.__config, 'is_follow_redirects', False):
+            return None
+
+        if not response_data or response_data[0] != 'redirect':
+            return None
+
+        current_url = self.__absolute_scan_url(request_url)
+        next_url = self.__absolute_scan_url(response_data[1])
+        seen = {current_url}
+
+        for _ in range(self.FOLLOW_REDIRECTS_MAX_HOPS):
+            if next_url in seen:
+                return None
+
+            if self.__is_follow_redirect_target_allowed(current_url, next_url) is not True:
+                return None
+
+            seen.add(next_url)
+            followed = self.__request_absolute_url(next_url)
+            if followed is None:
+                return None
+
+            followed_data = self.__response.handle(
+                followed,
+                request_url=next_url,
+                items_size=self.__pool.items_size,
+                total_size=self.__pool.total_items_size,
+                ignore_list=ignore_list,
+                emit_debug=False,
+            )
+
+            if followed_data is None:
+                return None
+
+            if followed_data[0] != 'redirect':
+                report_url = followed_data[1] if len(followed_data) > 1 else next_url
+                if self.__should_materialize_follow_redirect_result(request_url, report_url, followed_data) is True:
+                    return followed, followed_data, report_url
+                return None
+
+            current_url = next_url
+            next_url = self.__absolute_scan_url(followed_data[1])
+
+        return None
 
     def __is_explicit_waf_safe_activation_detection(self, detection):
         """
@@ -2121,7 +2570,7 @@ class Browser(Filter):
             if response_object is None:
                 continue
 
-            if OpenRedirectProbe.is_confirmed(response_object) is not True:
+            if OpenRedirectProbe.is_confirmed(response_object, source_url=variant.get('url')) is not True:
                 continue
 
             metadata = OpenRedirectProbe.metadata(url, variant, response_object)
@@ -2139,6 +2588,16 @@ class Browser(Filter):
         :return: True
         :rtype: bool
         """
+
+        metadata = dict(metadata) if isinstance(metadata, dict) else {}
+        openredirect_detection = metadata.get('openredirect_detection')
+        if isinstance(openredirect_detection, dict):
+            metadata.update(Browser.__passive_openredirect_metadata(
+                url=str(url),
+                code=getattr(response_object, 'status', None),
+                method=getattr(getattr(self, '_Browser__config', None), 'requested_method', None),
+                detection=openredirect_detection,
+            ))
 
         finding = SnifferResult(
             bucket='openredirect',
@@ -2343,8 +2802,6 @@ class Browser(Filter):
         :return: None
         """
 
-        import sys
-
         with self.__get_progress_output_lock():
             if getattr(self, '_Browser__filtered_progress_active', False) is not True:
                 return
@@ -2368,8 +2825,6 @@ class Browser(Filter):
 
         :return: None
         """
-
-        import sys
 
         with self.__get_progress_output_lock():
             if getattr(self, '_Browser__filtered_progress_active', False) is not True:
@@ -2398,21 +2853,34 @@ class Browser(Filter):
         :rtype: bool
         """
 
-        import shutil
-        import sys
-        from datetime import datetime
-
         items_size = int(getattr(self.__pool, 'items_size', 0) or 0)
         total_size = int(getattr(self.__pool, 'total_items_size', 0) or 0)
+        display_items_size = items_size
+        display_total_size = total_size
+        current_label = None
+
+        crawl_enqueued = self.__crawl_progress_enqueued()
+        if crawl_enqueued > 0:
+            base_total_size = self.__progress_total_items()
+            if base_total_size > 0:
+                crawl_processed = self.__crawl_progress_processed()
+                display_items_size = max(0, items_size - crawl_processed)
+                display_items_size = min(display_items_size, base_total_size)
+                display_total_size = base_total_size
+                current_label = '{0}+{1}'.format(display_items_size, crawl_enqueued)
+
         progress_width = max(
             1,
-            len(str(abs(items_size))),
-            len(str(abs(total_size))),
+            len(str(abs(display_items_size))),
+            len(str(abs(display_total_size))),
         )
 
         percent = 0.0
-        if total_size:
-            percent = (float(items_size) / float(total_size)) * 100.0
+        if display_total_size:
+            percent = (float(display_items_size) / float(display_total_size)) * 100.0
+
+        if current_label is None:
+            current_label = '{0:0{1}d}'.format(display_items_size, progress_width)
 
         response_url = request_url if request_url else (response_data[1] if len(response_data) > 1 else '-')
         content_size = response_data[2] if len(response_data) > 2 else '-'
@@ -2426,12 +2894,11 @@ class Browser(Filter):
                     '{0:.2f}'.format(float(score)) if isinstance(score, (int, float)) else score
                 )
 
-        message = '[{0}] info:    {1:.1f}% [{2:0{3}d}/{4}] - {5} - {6} - {7}{8} {9}'.format(
+        message = '[{0}] info:    {1:.1f}% [{2}/{3}] - {4} - {5} - {6}{7} {8}'.format(
             datetime.now().strftime('%H:%M:%S'),
             percent,
-            items_size,
-            progress_width,
-            total_size,
+            current_label,
+            display_total_size,
             bucket,
             response_code,
             content_size,
@@ -2678,17 +3145,22 @@ class Browser(Filter):
             ).format(streak=streak, url=url, diagnostic_suffix=diagnostic_suffix)
         )
 
-    def __http_request(self, url, depth=0):
+    def __http_request(self, url, depth=0, request_source=None, source_url=None):
         """
         Make HTTP request
         :param str url: received url
         :param int depth: current recursion depth
+        :param str | None request_source: logical queue source, such as crawl
+        :param str | None source_url: parent URL that discovered this request
         :return: None
         """
 
         self.__ensure_session_runtime_state()
+        if request_source == 'crawl':
+            self.__record_crawl_processed_request()
 
         try:
+            self.__touch_worker_task('dns-calibration')
             dns_calibration_match = self.__match_dns_wildcard_response(url)
             if dns_calibration_match is not None:
                 self.__catch_report_data(
@@ -2700,6 +3172,7 @@ class Browser(Filter):
                 )
                 return
 
+            self.__touch_worker_task('request')
             resp = self.__request_with_waf_safe_mode(url)
 
             if resp is None:
@@ -2708,26 +3181,43 @@ class Browser(Filter):
 
             self.__reset_transport_failure_streak()
 
+            effective_url = url
+            ignore_list = self.__reader.get_ignored_list()
+            self.__touch_worker_task('classify')
             response_data = self.__response.handle(
                 resp,
-                request_url=url,
+                request_url=effective_url,
                 items_size=self.__pool.items_size,
                 total_size=self.__pool.total_items_size,
-                ignore_list=self.__reader.get_ignored_list(),
+                ignore_list=ignore_list,
                 emit_debug=False
             )
 
             if None is response_data:
-                self.__catch_report_data('ignored', url)
+                self.__catch_report_data('ignored', effective_url)
                 return
 
+            self.__touch_worker_task('follow-redirects')
+            materialized_redirect = self.__materialize_follow_redirects(
+                resp,
+                response_data,
+                effective_url,
+                ignore_list,
+            )
+            if materialized_redirect is not None:
+                resp, response_data, effective_url = materialized_redirect
+
+            self.__touch_worker_task('passive-sniff')
             passive_sniffer_findings = self.__collect_passive_sniffer_findings(resp, response_data)
 
             waf_detection = None
             stacktrace_detection = getattr(resp, 'opendoor_stacktrace_detection', None)
             secret_detection = getattr(resp, 'opendoor_secret_detection', None)
             malware_detection = getattr(resp, 'opendoor_malware_detection', None)
+            endpoint_detection = getattr(resp, 'opendoor_endpoint_detection', None)
+            redirect_classification = getattr(resp, 'opendoor_redirect_classification', None)
 
+            self.__touch_worker_task('response-policy')
             primary_suppressed = self.__should_suppress_primary_response(
                 resp,
                 response_data,
@@ -2746,12 +3236,14 @@ class Browser(Filter):
                     immediate=True
                 )
 
+            self.__touch_worker_task('active-sniffers')
             self.__update_waf_safe_backoff(resp, response_data)
             waf_guard_triggered = self.__record_waf_guard_response(response_data, waf_detection)
             if waf_guard_triggered is not True:
-                self.__probe_header_bypass(url, response_data)
-            self.__run_inline_active_sniffers(url, response_data, resp)
+                self.__probe_header_bypass(effective_url, response_data)
+            self.__run_inline_active_sniffers(effective_url, response_data, resp)
 
+            self.__touch_worker_task('calibration-match')
             calibration_match = self.__match_calibrated_response(resp, response_data)
             if calibration_match is not None:
                 self.__emit_passive_sniffer_findings(passive_sniffer_findings, resp)
@@ -2781,14 +3273,25 @@ class Browser(Filter):
             debug_response_data = getattr(self.__response, 'debug_response_data', None)
             if callable(debug_response_data) and primary_suppressed is not True:
                 self.__clear_filtered_progress()
+                debug_kwargs = {}
+                crawl_enqueued = self.__crawl_progress_enqueued()
+                if crawl_enqueued > 0:
+                    debug_kwargs['crawl_enqueued_size'] = crawl_enqueued
+                    debug_kwargs['crawl_processed_size'] = self.__crawl_progress_processed()
+                    debug_kwargs['base_total_size'] = self.__progress_total_items()
+                if request_source == 'crawl':
+                    debug_kwargs['request_source'] = 'crawl'
+
                 debug_response_data(
                     response_data,
-                    request_url=url,
+                    request_url=effective_url,
                     items_size=self.__pool.items_size,
                     total_size=self.__pool.total_items_size,
-                    response=resp
+                    response=resp,
+                    **debug_kwargs
                 )
 
+            self.__touch_worker_task('response-filter')
             if False is self.__is_response_allowed(resp, response_data):
                 self.__emit_passive_sniffer_findings(passive_sniffer_findings, resp)
                 if primary_suppressed is not True:
@@ -2801,8 +3304,30 @@ class Browser(Filter):
                     metadata['stacktrace_detection'] = dict(stacktrace_detection)
                 if isinstance(secret_detection, dict):
                     metadata['secret_detection'] = dict(secret_detection)
+                    metadata.update(Browser.__passive_secret_metadata(
+                        url=response_data[1],
+                        code=response_data[3],
+                        method=getattr(getattr(self, '_Browser__config', None), 'requested_method', None),
+                        detection=secret_detection,
+                    ))
                 if isinstance(malware_detection, dict):
                     metadata['malware_detection'] = dict(malware_detection)
+                    metadata.update(Browser.__passive_malware_metadata(
+                        url=response_data[1],
+                        code=response_data[3],
+                        method=getattr(getattr(self, '_Browser__config', None), 'requested_method', None),
+                        detection=malware_detection,
+                    ))
+                if isinstance(endpoint_detection, dict):
+                    metadata['endpoint_detection'] = dict(endpoint_detection)
+                    metadata.update(Browser.__passive_endpoint_metadata(
+                        url=response_data[1],
+                        code=response_data[3],
+                        method=getattr(getattr(self, '_Browser__config', None), 'requested_method', None),
+                        detection=endpoint_detection,
+                    ))
+                if response_data[0] == 'redirect' and isinstance(redirect_classification, dict):
+                    metadata['redirect_classification'] = dict(redirect_classification)
                 if len(metadata) == 0:
                     metadata = None
 
@@ -2817,17 +3342,27 @@ class Browser(Filter):
 
                 self.__emit_passive_sniffer_findings(passive_sniffer_findings, resp)
 
+                self.__touch_worker_task('deferred-active-sniffers')
                 self.__run_deferred_active_sniffers(response_data, resp)
+
+                self.__touch_worker_task('queue-enrichment')
+                if primary_suppressed is not True:
+                    self.__enqueue_crawl_candidates(resp, response_data, request_source=request_source)
 
                 if False is self.__should_suspend_recursive_expansion(response_data[0]):
                     if self.__should_expand_recursively(response_data[3], response_data[1], depth):
-                        if response_data[1] not in self.__visited_recursive:
-                            self.__visited_recursive.add(response_data[1])
+                        should_enqueue_recursive = False
+                        with self.__request_state_lock:
+                            if response_data[1] not in self.__visited_recursive:
+                                self.__visited_recursive.add(response_data[1])
+                                should_enqueue_recursive = True
+                        if should_enqueue_recursive is True:
                             self.__enqueue_recursive_children(response_data[1], depth)
 
         except (HttpRequestError, HttpsRequestError, ProxyRequestError, ResponseError) as error:
             raise BrowserError(error)
         finally:
+            self.__touch_worker_task('finalize')
             self.__finalize_processed_request(url, depth)
 
     def __should_suppress_primary_response(self, response_object, response_data, passive_findings):
@@ -2869,11 +3404,8 @@ class Browser(Filter):
         """
         Match JavaScript cookie bootstrap pages emitted as 2xx responses.
 
-        Some hosting frontends return a small 200 HTML page that only sets a
-        browser cookie and reloads the current URL. Browsers execute the script
-        and then receive the real origin response, but raw scanners see the
-        bootstrap page as a false positive success. Treat only script-only
-        cookie+reload gates as filtered scan noise.
+        The shared cookie-gate guard covers legacy cookie+reload pages and
+        navigation redirects such as document.location.href.
 
         :param object response_object: raw response object
         :param tuple response_data: legacy classified response tuple
@@ -2881,80 +3413,7 @@ class Browser(Filter):
         :rtype: dict|None
         """
 
-        code = cls.__extract_response_code(response_object, response_data)
-        if code is None or code < 200 or code >= 300:
-            return None
-
-        body = cls.__response_body_text(response_object)
-        if not body:
-            return None
-
-        if len(body) > 2048:
-            return None
-
-        content_type = str(cls.__get_header_value(response_object, 'content-type') or '').lower()
-        if content_type and 'html' not in content_type:
-            return None
-
-        lowered = body.lower()
-        compact = re.sub(r'\s+', '', lowered)
-
-        if 'document.cookie' not in compact:
-            return None
-
-        if 'location.reload(' not in compact and 'window.location.reload(' not in compact:
-            return None
-
-        if cls.__has_useful_html_controls(lowered) is True:
-            return None
-
-        if cls.__visible_text_without_scripts(body):
-            return None
-
-        known_cookie_gate = any(marker in compact for marker in (
-            'beget=begetok',
-            '__js_p_=',
-        ))
-        if known_cookie_gate is not True:
-            script_only = compact.startswith('<html><head><script') or compact.startswith('<script')
-            if script_only is not True:
-                return None
-
-        return {
-            'calibration_score': 1.0,
-            'calibration_reason': 'js-cookie-reload-challenge',
-        }
-
-    @staticmethod
-    def __response_body_text(response_object):
-        """
-        Decode response body defensively for lightweight response guards.
-
-        :param object response_object: raw response object
-        :return: decoded response body
-        :rtype: str
-        """
-
-        try:
-            return helper.decode(response_object.data)
-        except (AttributeError, TypeError, UnicodeError):
-            return ''
-
-    @staticmethod
-    def __has_useful_html_controls(body):
-        """
-        Return True when HTML contains user-facing controls or content containers.
-
-        :param str body: decoded lower-case response body
-        :return: whether the page looks like useful content
-        :rtype: bool
-        """
-
-        return re.search(
-            r'<\s*(?:form|input|textarea|select|button|table|main|article|section|pre|code)\b',
-            str(body or ''),
-            flags=re.IGNORECASE,
-        ) is not None
+        return match_js_cookie_gate_response(response_object, response_data)
 
     @staticmethod
     def __visible_text_without_scripts(body):
@@ -3055,7 +3514,13 @@ class Browser(Filter):
                     url=request_url,
                     code=response_code,
                     size=content_size,
-                    metadata=self.__metadata_for_sniffer_bucket(bucket, response_object),
+                    metadata=self.__metadata_for_sniffer_bucket(
+                        bucket,
+                        response_object,
+                        url=request_url,
+                        code=response_code,
+                        method=getattr(getattr(self, '_Browser__config', None), 'requested_method', None),
+                    ),
                     suppress_normal=True,
                     evidence_key=bucket,
                 ))
@@ -3093,31 +3558,363 @@ class Browser(Filter):
         return str(getattr(plugin, 'RESPONSE_INDEX', '')).lower()
 
     @staticmethod
-    def __metadata_for_sniffer_bucket(bucket, response_object):
+    def __metadata_for_sniffer_bucket(bucket, response_object, url=None, code=None, method=None):
         """
         Build report metadata for a passive sniffer finding.
 
         :param str bucket: sniffer bucket name
         :param object response_object: raw HTTP response object
+        :param str | None url: source URL for structured finding metadata
+        :param str | int | None code: HTTP status code for structured finding metadata
+        :param str | None method: request method for structured finding metadata
         :return: dict
         """
 
         if bucket == 'secret':
             detection = getattr(response_object, 'opendoor_secret_detection', None)
             if isinstance(detection, dict):
-                return {'secret_detection': dict(detection)}
+                metadata = {'secret_detection': dict(detection)}
+                metadata.update(Browser.__passive_secret_metadata(
+                    url=url,
+                    code=code if code is not None else getattr(response_object, 'status', None),
+                    method=method,
+                    detection=detection,
+                ))
+                return metadata
 
         if bucket == 'stacktrace':
             detection = getattr(response_object, 'opendoor_stacktrace_detection', None)
             if isinstance(detection, dict):
-                return {'stacktrace_detection': dict(detection)}
+                metadata = {'stacktrace_detection': dict(detection)}
+                metadata.update(Browser.__passive_stacktrace_metadata(
+                    url=url,
+                    code=code if code is not None else getattr(response_object, 'status', None),
+                    method=method,
+                    detection=detection,
+                ))
+                return metadata
 
         if bucket == 'malware':
             detection = getattr(response_object, 'opendoor_malware_detection', None)
             if isinstance(detection, dict):
-                return {'malware_detection': dict(detection)}
+                metadata = {'malware_detection': dict(detection)}
+                metadata.update(Browser.__passive_malware_metadata(
+                    url=url,
+                    code=code if code is not None else getattr(response_object, 'status', None),
+                    method=method,
+                    detection=detection,
+                ))
+                return metadata
+
+        if bucket == 'endpoint':
+            detection = getattr(response_object, 'opendoor_endpoint_detection', None)
+            if isinstance(detection, dict):
+                metadata = {'endpoint_detection': dict(detection)}
+                metadata.update(Browser.__passive_endpoint_metadata(
+                    url=url,
+                    code=code if code is not None else getattr(response_object, 'status', None),
+                    method=method,
+                    detection=detection,
+                ))
+                return metadata
 
         return {}
+
+
+
+    @staticmethod
+    def __safe_int(value, default=0):
+        """Return int value or a safe default.
+
+        :param mixed value: source value
+        :param int default: fallback value
+        :return: integer value
+        :rtype: int
+        """
+
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return int(default)
+
+
+    @staticmethod
+    def __passive_secret_metadata(url, code, method, detection):
+        """Build normalized passive finding metadata for secret findings.
+
+        :param str | None url: source URL
+        :param str | int | None code: HTTP status code
+        :param str | None method: request method
+        :param dict detection: existing redacted secret detection metadata
+        :return: passive finding metadata wrapper
+        :rtype: dict
+        """
+
+        if not isinstance(detection, dict) or not url:
+            return {}
+
+        confidence_score = detection.get('confidence')
+        confidence_value = Browser.__safe_int(confidence_score)
+        if confidence_value >= 85:
+            confidence = 'high'
+        elif confidence_value >= 70:
+            confidence = 'medium'
+        else:
+            confidence = 'low'
+
+        secret_type = detection.get('type') or 'secret'
+        severity = 'critical' if str(secret_type).lower() == 'private_key' else 'high'
+        redacted_matches = []
+        for match in detection.get('matches', []) or []:
+            if not isinstance(match, dict):
+                continue
+            redacted_matches.append({
+                'type': match.get('type'),
+                'redacted': match.get('redacted'),
+                'confidence_score': match.get('confidence'),
+                'position': match.get('position'),
+            })
+
+        finding = PassiveFinding(
+            bucket='secret',
+            finding_type=secret_type,
+            url=url or '',
+            severity=severity,
+            reason='secret_exposed',
+            confidence=confidence,
+            evidence={
+                'secret_type': secret_type,
+                'redacted': detection.get('redacted'),
+                'confidence_score': confidence_score,
+                'count': detection.get('count'),
+                'types': detection.get('types'),
+                'matches': redacted_matches,
+            },
+            source=passive_finding_source('response_body', request_method=method, status=code),
+        )
+
+        return {'passive_finding': finding.to_dict()}
+
+    @staticmethod
+    def __passive_malware_metadata(url, code, method, detection):
+        """Build normalized passive finding metadata for malware findings.
+
+        :param str | None url: source URL
+        :param str | int | None code: HTTP status code
+        :param str | None method: request method
+        :param dict detection: existing malware detection metadata
+        :return: passive finding metadata wrapper
+        :rtype: dict
+        """
+
+        if not isinstance(detection, dict) or not url:
+            return {}
+
+        confidence_score = detection.get('confidence')
+        confidence_value = Browser.__safe_int(confidence_score)
+        if confidence_value >= 85:
+            confidence = 'high'
+        elif confidence_value >= 70:
+            confidence = 'medium'
+        else:
+            confidence = 'low'
+
+        subtype = detection.get('subtype') or detection.get('type') or 'malware'
+        severity = 'critical' if str(subtype).lower() == 'webshell' else 'high'
+        finding = PassiveFinding(
+            bucket='malware',
+            finding_type=subtype,
+            url=url or '',
+            severity=severity,
+            reason='malware_indicator_detected',
+            confidence=confidence,
+            evidence={
+                'subtype': detection.get('subtype'),
+                'family': detection.get('family'),
+                'signal': detection.get('signal'),
+                'confidence_score': confidence_score,
+                'count': detection.get('count'),
+                'signals': detection.get('signals'),
+                'families': detection.get('families'),
+            },
+            source=passive_finding_source('response_body', request_method=method, status=code),
+        )
+
+        return {'passive_finding': finding.to_dict()}
+
+    @staticmethod
+    def __passive_endpoint_metadata(url, code, method, detection):
+        """Build normalized passive finding metadata for endpoint findings.
+
+        :param str | None url: source URL
+        :param str | int | None code: HTTP status code
+        :param str | None method: request method
+        :param dict detection: existing endpoint detection metadata
+        :return: passive finding metadata wrapper
+        :rtype: dict
+        """
+
+        if not isinstance(detection, dict) or not url:
+            return {}
+
+        confidence_score = detection.get('confidence')
+        confidence_value = Browser.__safe_int(confidence_score)
+        if confidence_value >= 90:
+            confidence = 'high'
+        elif confidence_value >= 70:
+            confidence = 'medium'
+        else:
+            confidence = 'low'
+
+        finding = PassiveFinding(
+            bucket='endpoint',
+            finding_type=detection.get('type') or 'endpoint',
+            url=url or '',
+            severity='info',
+            reason='client_endpoint_reference',
+            confidence=confidence,
+            evidence={
+                'endpoint_type': detection.get('type'),
+                'confidence_score': confidence_score,
+                'count': detection.get('count'),
+                'types': detection.get('types'),
+                'endpoints': detection.get('endpoints'),
+            },
+            source=passive_finding_source('response_body', request_method=method, status=code),
+        )
+
+        return {'passive_finding': finding.to_dict()}
+
+
+    @staticmethod
+    def __passive_shadow_metadata(url, code, method, detection):
+        """Build normalized passive finding metadata for shadow-copy findings.
+
+        :param str | None url: source URL
+        :param str | int | None code: HTTP status code
+        :param str | None method: request method
+        :param dict detection: existing shadow detection metadata
+        :return: passive finding metadata wrapper
+        :rtype: dict
+        """
+
+        if not isinstance(detection, dict) or not url:
+            return {}
+
+        confidence_score = detection.get('confidence')
+        confidence_value = Browser.__safe_int(confidence_score)
+        if confidence_value >= 85:
+            confidence = 'high'
+        elif confidence_value >= 70:
+            confidence = 'medium'
+        else:
+            confidence = 'low'
+
+        finding = PassiveFinding(
+            bucket='shadow',
+            finding_type=detection.get('type') or 'backup_copy',
+            url=url or '',
+            severity='high',
+            reason='backup_copy_exposed',
+            confidence=confidence,
+            evidence={
+                'shadow_type': detection.get('type'),
+                'detection_reason': detection.get('reason'),
+                'base_url': detection.get('base_url'),
+                'candidate_url': detection.get('url') or url,
+                'variant': detection.get('variant'),
+                'variant_type': detection.get('variant_type'),
+                'similarity': detection.get('similarity'),
+                'confidence_score': confidence_score,
+                'base_size': detection.get('base_size'),
+                'shadow_size': detection.get('shadow_size'),
+                'content_type': detection.get('content_type'),
+            },
+            source=passive_finding_source('active_followup_response', request_method=method, status=code),
+        )
+
+        return {'passive_finding': finding.to_dict()}
+
+    @staticmethod
+    def __passive_openredirect_metadata(url, code, method, detection):
+        """Build normalized passive finding metadata for open redirect findings.
+
+        :param str | None url: confirmed probe URL
+        :param str | int | None code: HTTP status code
+        :param str | None method: request method
+        :param dict detection: existing open redirect detection metadata
+        :return: passive finding metadata wrapper
+        :rtype: dict
+        """
+
+        if not isinstance(detection, dict) or not url:
+            return {}
+
+        confidence_score = detection.get('confidence')
+        confidence_value = Browser.__safe_int(confidence_score)
+        if confidence_value >= 85:
+            confidence = 'high'
+        elif confidence_value >= 70:
+            confidence = 'medium'
+        else:
+            confidence = 'low'
+
+        finding = PassiveFinding(
+            bucket='openredirect',
+            finding_type=detection.get('type') or 'open_redirect',
+            url=url or '',
+            severity='medium',
+            reason='external_redirect_confirmed',
+            confidence=confidence,
+            evidence={
+                'source_url': detection.get('source_url'),
+                'probe_url': detection.get('probe_url') or url,
+                'parameter': detection.get('parameter'),
+                'payload': detection.get('payload'),
+                'variant': detection.get('variant'),
+                'payload_family': detection.get('payload_family'),
+                'location': detection.get('location'),
+                'marker_host': detection.get('marker_host'),
+                'confidence_score': confidence_score,
+            },
+            source=passive_finding_source('redirect_location', request_method=method, status=code),
+        )
+
+        return {'passive_finding': finding.to_dict()}
+
+    @staticmethod
+    def __passive_stacktrace_metadata(url, code, method, detection):
+        """Build normalized passive finding metadata for stacktrace findings.
+
+        :param str | None url: source URL
+        :param str | int | None code: HTTP status code
+        :param str | None method: request method
+        :param dict detection: existing stacktrace detection metadata
+        :return: passive finding metadata wrapper
+        :rtype: dict
+        """
+
+        if not isinstance(detection, dict) or not url:
+            return {}
+
+        confidence_score = detection.get('confidence')
+        confidence = 'high' if Browser.__safe_int(confidence_score) >= 85 else 'medium'
+        finding = PassiveFinding(
+            bucket='stacktrace',
+            finding_type=detection.get('type') or 'stacktrace',
+            url=url or '',
+            severity='medium',
+            reason='stacktrace_exposed',
+            confidence=confidence,
+            evidence={
+                'runtime': detection.get('runtime'),
+                'signal': detection.get('signal'),
+                'confidence_score': confidence_score,
+            },
+            source=passive_finding_source('response_body', request_method=method, status=code),
+        )
+
+        return {'passive_finding': finding.to_dict()}
 
     def __emit_passive_sniffer_findings(self, findings, response_object):
         """
@@ -3212,6 +4009,16 @@ class Browser(Filter):
 
     def __handle_shadow_match(self, url, response_object, metadata):
         """Persist and render one confirmed shadow-copy finding."""
+
+        metadata = dict(metadata) if isinstance(metadata, dict) else {}
+        shadow_detection = metadata.get('shadow_detection')
+        if isinstance(shadow_detection, dict):
+            metadata.update(Browser.__passive_shadow_metadata(
+                url=str(url),
+                code=getattr(response_object, 'status', None),
+                method=getattr(getattr(self, '_Browser__config', None), 'requested_method', None),
+                detection=shadow_detection,
+            ))
 
         finding = SnifferResult(
             bucket='shadow',
@@ -3388,6 +4195,8 @@ class Browser(Filter):
         :return: None
         """
 
+        self.__ensure_session_runtime_state()
+
         if depth >= self.__config.recursive_depth:
             return
 
@@ -3405,10 +4214,11 @@ class Browser(Filter):
                 if child_url is None:
                     continue
 
-                if child_url in self.__queued_recursive:
-                    continue
+                with self.__request_state_lock:
+                    if child_url in self.__queued_recursive:
+                        continue
 
-                self.__queued_recursive.add(child_url)
+                    self.__queued_recursive.add(child_url)
                 child_urls.append((child_url, depth + 1))
 
         self.__reader.get_lines(
@@ -3426,6 +4236,163 @@ class Browser(Filter):
             for child_url, child_depth in child_urls:
                 if self.__register_pending_request(child_url, child_depth):
                     self.__pool.add(self.__http_request, child_url, child_depth)
+
+    def __crawl_ignore_extensions(self):
+        """Return ignore extensions that should suppress crawl-discovered static assets."""
+
+        if True is not getattr(self.__config, 'is_ignore_extension_filter', False):
+            return []
+
+        return list(getattr(self.__config, 'ignore_extensions', []) or [])
+
+    def __response_header(self, response_object, name):
+        """Return a response header value using case-insensitive lookup."""
+
+        headers = getattr(response_object, 'headers', {}) or {}
+        wanted = str(name).lower()
+
+        try:
+            items = headers.items()
+        except AttributeError:
+            try:
+                items = dict(headers).items()
+            except (TypeError, ValueError):
+                return None
+
+        for key, value in items:
+            if str(key).lower() == wanted:
+                return value
+
+        return None
+
+    def __is_crawl_enabled(self):
+        """Return True when one-hop crawl queue enrichment is enabled."""
+
+        return getattr(self, '_Browser__crawl_state', None) is not None
+
+    def __enqueue_crawl_candidates(self, response_object, response_data, request_source=None):
+        """Extract and enqueue bounded same-origin crawl candidates.
+
+        Crawl is intentionally one-hop for the MVP: crawl-owned requests do not
+        recursively enrich the queue again. Each candidate still passes through
+        the same global pending/transient request deduplication used by the
+        dictionary and session paths.
+
+        :param object response_object: raw HTTP response
+        :param tuple response_data: classified response tuple
+        :param str | None request_source: source of the processed request
+        :return int: number of unique crawl URLs queued
+        """
+
+        crawl_state = getattr(self, '_Browser__crawl_state', None)
+        if crawl_state is None or request_source == 'crawl':
+            return 0
+
+        if self.__is_crawl_source_response(response_data) is not True:
+            return 0
+
+        try:
+            source_url = response_data[1]
+        except (TypeError, IndexError):
+            return 0
+
+        result = extract_crawl_candidates(
+            source_url=source_url,
+            body=getattr(response_object, 'data', b''),
+            content_type=self.__response_header(response_object, 'Content-Type'),
+            ignore_extensions=self.__crawl_ignore_extensions(),
+        )
+        crawl_state.record_extraction_result(result)
+
+        queued = []
+        for candidate in result.candidates:
+            status = crawl_state.status(candidate.url)
+            if status == 'duplicate':
+                crawl_state.skip_duplicate(candidate.url)
+                continue
+            if status == 'limit':
+                crawl_state.skip_limit()
+                continue
+
+            if self.__register_pending_request(
+                    candidate.url,
+                    0,
+                    source='crawl',
+                    source_url=candidate.source_url,
+            ) is not True:
+                crawl_state.skip_duplicate(candidate.url)
+                continue
+
+            crawl_state.reserve(candidate.url)
+            queued.append(candidate)
+
+        if len(queued) <= 0:
+            return 0
+
+        self.__pool.extend_total_items(len(queued))
+        for candidate in queued:
+            self.__pool.add(
+                self.__http_request,
+                candidate.url,
+                0,
+                'crawl',
+                candidate.source_url,
+            )
+
+        self.__mark_session_dirty()
+        return len(queued)
+
+    @staticmethod
+    def __is_crawl_source_response(response_data):
+        """Return True when a response is safe enough to enrich the crawl queue.
+
+        Error, auth, forbidden, blocked and redirect templates often contain
+        shared navigation or defensive/challenge markup. Crawling them creates
+        noisy low-value requests, so queue enrichment is limited to successful
+        2xx primary responses.
+
+        :param tuple response_data: classified response tuple
+        :return bool: True when crawl extraction may enqueue candidates
+        """
+
+        try:
+            bucket = response_data[0]
+            code = int(str(response_data[3]).strip())
+        except (TypeError, ValueError, IndexError):
+            return False
+
+        return bucket == 'success' and 200 <= code < 300
+
+    def __crawl_progress_enqueued(self):
+        """Return accepted crawl URL count for progress rendering."""
+
+        crawl_state = getattr(self, '_Browser__crawl_state', None)
+        if crawl_state is None:
+            return 0
+
+        return int(getattr(crawl_state, 'enqueued', 0) or 0)
+
+    def __crawl_progress_processed(self):
+        """Return processed crawl-owned request count for progress rendering."""
+
+        crawl_state = getattr(self, '_Browser__crawl_state', None)
+        if crawl_state is None:
+            return 0
+
+        return int(getattr(crawl_state, 'processed', 0) or 0)
+
+    def __record_crawl_processed_request(self):
+        """Record one processed crawl-owned request for progress accounting."""
+
+        crawl_state = getattr(self, '_Browser__crawl_state', None)
+        if crawl_state is None:
+            return 0
+
+        record_processed = getattr(crawl_state, 'record_processed', None)
+        if callable(record_processed):
+            return record_processed()
+
+        return 0
 
     def __is_ignored(self, url):
         """
@@ -3472,15 +4439,23 @@ class Browser(Filter):
         :return: bool
         """
 
+        self.__ensure_session_runtime_state()
+
         if self.__is_subdomains_scan() is not True:
             return True
 
         key = str(url).strip()
-        if key in self.__seen_scan_urls:
+        with self.__request_state_lock:
+            if key in self.__seen_scan_urls:
+                should_shrink_total = True
+            else:
+                self.__seen_scan_urls.add(key)
+                should_shrink_total = False
+
+        if should_shrink_total is True:
             self.__shrink_planned_total_for_deduplicated_url()
             return False
 
-        self.__seen_scan_urls.add(key)
         return True
 
     @staticmethod
@@ -3729,6 +4704,7 @@ class Browser(Filter):
             ('shadow_detection', 'opendoor_shadow_detection'),
             ('openredirect_detection', 'opendoor_openredirect_detection'),
             ('malware_detection', 'opendoor_malware_detection'),
+            ('endpoint_detection', 'opendoor_endpoint_detection'),
         )
 
         applied = False
@@ -3768,6 +4744,134 @@ class Browser(Filter):
             'reason': 'response_filter',
         })
 
+    def __ensure_report_dedup_state(self):
+        """Ensure report item deduplication state is initialized.
+
+        Report deduplication is a bucket-local output invariant. It is not
+        specific to crawl mode: every report item producer must go through the
+        same bucket-level guard so CSV, JSON, SQLite, HTML, TXT and SARIF
+        receive a consistent result set.
+
+        :return: None
+        """
+
+        result = getattr(self, '_Browser__result', None)
+        result_id = id(result) if isinstance(result, dict) else None
+
+        if not hasattr(self, '_Browser__report_item_keys') \
+                or not isinstance(self.__report_item_keys, dict) \
+                or getattr(self, '_Browser__report_item_keys_result_id', None) != result_id:
+            self.__report_item_keys = {}
+            self.__report_item_keys_result_id = result_id
+            self.__rebuild_report_dedup_keys()
+
+    @classmethod
+    def __normalized_report_url(cls, url):
+        """Build a stable report identity URL without a fragment.
+
+        :param str url: report URL
+        :return: normalized URL used for per-bucket deduplication
+        :rtype: str
+        """
+
+        value = str(url)
+
+        try:
+            parsed = urlsplit(value)
+        except ValueError:
+            return value
+
+        if not parsed.scheme or not parsed.netloc:
+            return value.split('#', 1)[0]
+
+        scheme = parsed.scheme.lower()
+        hostname = (parsed.hostname or '').lower()
+        port = parsed.port
+        netloc = hostname
+
+        if port is not None and not ((scheme == 'http' and port == 80) or (scheme == 'https' and port == 443)):
+            netloc = '{0}:{1}'.format(hostname, port)
+
+        return urlunsplit((scheme, netloc, parsed.path or '', parsed.query or '', ''))
+
+    @classmethod
+    def __stable_report_value(cls, value):
+        """Convert a report value to a hashable stable representation.
+
+        :param mixed value: report item value
+        :return: hashable value
+        """
+
+        if isinstance(value, dict):
+            return tuple(
+                (str(key), cls.__stable_report_value(value[key]))
+                for key in sorted(value.keys(), key=str)
+            )
+
+        if isinstance(value, (list, tuple)):
+            return tuple(cls.__stable_report_value(item) for item in value)
+
+        if isinstance(value, set):
+            return tuple(sorted([cls.__stable_report_value(item) for item in value], key=str))
+
+        return value
+
+    @classmethod
+    def __report_item_key(cls, status, item):
+        """Build a bucket-local report deduplication key.
+
+        Size and source metadata are intentionally excluded: they should not
+        create duplicate report rows for the same bucket/result URL. Detection
+        metadata remains part of the signature so different findings on the same
+        URL stay reportable inside their own bucket.
+
+        :param str status: report bucket
+        :param dict item: report item
+        :return: hashable report key
+        """
+
+        signature = {
+            key: value
+            for key, value in item.items()
+            if key not in ('url', 'size', 'source', 'source_url', 'crawl_source_url')
+        }
+
+        return (
+            str(status),
+            cls.__normalized_report_url(item.get('url', '')),
+            cls.__stable_report_value(signature),
+        )
+
+    def __rebuild_report_dedup_keys(self):
+        """Rebuild bucket-local report dedup keys from current results.
+
+        This keeps session-loaded reports and legacy test fixtures protected
+        before new items are appended.
+
+        :return: None
+        """
+
+        result = getattr(self, '_Browser__result', {})
+        if not isinstance(result, dict):
+            return
+
+        report_items = result.get('report_items', {})
+        if isinstance(report_items, dict):
+            for status, items in report_items.items():
+                for item in items or []:
+                    if isinstance(item, dict):
+                        self.__report_item_keys.setdefault(status, set()).add(self.__report_item_key(status, item))
+                    else:
+                        legacy_item = {'url': item, 'code': '-'}
+                        self.__report_item_keys.setdefault(status, set()).add(self.__report_item_key(status, legacy_item))
+
+        items = result.get('items', {})
+        if isinstance(items, dict):
+            for status, urls in items.items():
+                for url in urls or []:
+                    legacy_item = {'url': url, 'code': '-'}
+                    self.__report_item_keys.setdefault(status, set()).add(self.__report_item_key(status, legacy_item))
+
     def __catch_report_data(self, status, url, size='0B', code='-', metadata=None):
         """
         Add to basket report pool.
@@ -3781,6 +4885,8 @@ class Browser(Filter):
 
         if 'report_items' not in self.__result:
             self.__result['report_items'] = helper.list()
+
+        self.__ensure_report_dedup_state()
 
         item = {'url': url, 'size': size, 'code': str(code)}
 
@@ -3833,7 +4939,18 @@ class Browser(Filter):
                 item['openredirect_detection'] = dict(metadata.get('openredirect_detection'))
             if isinstance(metadata.get('malware_detection'), dict):
                 item['malware_detection'] = dict(metadata.get('malware_detection'))
+            if isinstance(metadata.get('endpoint_detection'), dict):
+                item['endpoint_detection'] = dict(metadata.get('endpoint_detection'))
+            if isinstance(metadata.get('redirect_classification'), dict):
+                item['redirect_classification'] = dict(metadata.get('redirect_classification'))
+            if isinstance(metadata.get('passive_finding'), dict):
+                item['passive_finding'] = dict(metadata.get('passive_finding'))
 
+        report_key = self.__report_item_key(status, item)
+        if report_key in self.__report_item_keys.setdefault(status, set()):
+            return
+
+        self.__report_item_keys.setdefault(status, set()).add(report_key)
         self.__result['total'].update((status,))
         self.__result['items'][status] += [url]
         self.__result['report_items'][status] += [item]
@@ -3881,9 +4998,13 @@ class Browser(Filter):
     def __is_loaded_session_complete(self):
         """Return True when a loaded checkpoint has no remaining work."""
 
+        self.__ensure_session_runtime_state()
+
         if self.__session_snapshot is None:
             return False
-        if len(self.__pending_requests) > 0:
+        with self.__request_state_lock:
+            has_pending_requests = len(self.__pending_requests) > 0
+        if has_pending_requests is True:
             return False
 
         try:
@@ -3904,20 +5025,61 @@ class Browser(Filter):
 
         self.__session_dirty = True
 
-    def __register_pending_request(self, url, depth):
-        """Register a queued request in persistent state."""
+    def __is_session_tracking_enabled(self):
+        """Return True when request checkpoint state is required.
+
+        Persistent pending/completed request bookkeeping is needed only for
+        active session checkpoints or while replaying a loaded checkpoint. Normal
+        scans must not retain every submitted URL in checkpoint containers,
+        otherwise large wordlists keep an unnecessary in-memory task index until
+        process exit.
+
+        :return: True when checkpoint state should be maintained
+        :rtype: bool
+        """
+
+        config = getattr(self, '_Browser__config', None)
+        if getattr(config, 'is_session_enabled', False) is True:
+            return True
+
+        return getattr(self, '_Browser__session_snapshot', None) is not None
+
+    def __register_pending_request(self, url, depth, source=None, source_url=None):
+        """Register a queued request in persistent state when needed.
+
+        :param str url: request URL
+        :param int depth: recursive depth
+        :param str | None source: logical request source
+        :param str | None source_url: parent URL that discovered this request
+        :return: True when the request may be queued
+        :rtype: bool
+        """
 
         self.__ensure_session_runtime_state()
 
         key = self.__task_key(url, depth)
-        if key in self.__completed_requests:
-            return False
-        if key in self.__pending_requests:
-            return False
 
-        self.__pending_requests[key] = {'url': url, 'depth': int(depth)}
-        self.__mark_session_dirty()
-        return True
+        with self.__request_state_lock:
+            if self.__is_session_tracking_enabled() is not True:
+                if key in self.__transient_request_keys:
+                    return False
+                self.__transient_request_keys.add(key)
+                return True
+
+            if key in self.__completed_requests:
+                return False
+            if key in self.__pending_requests:
+                return False
+
+            item = {'url': url, 'depth': int(depth)}
+            if source:
+                item['source'] = str(source)
+            if source_url:
+                item['source_url'] = str(source_url)
+
+            self.__pending_requests[key] = item
+            self.__mark_session_dirty()
+            return True
 
     def __complete_request(self, url, depth):
         """Finalize a processed request in persistent state."""
@@ -3925,9 +5087,10 @@ class Browser(Filter):
         self.__ensure_session_runtime_state()
 
         key = self.__task_key(url, depth)
-        self.__pending_requests.pop(key, None)
-        self.__completed_requests.add(key)
-        self.__mark_session_dirty()
+        with self.__request_state_lock:
+            self.__pending_requests.pop(key, None)
+            self.__completed_requests.add(key)
+            self.__mark_session_dirty()
 
     def __warn_filtered_progress_mode(self):
         """
@@ -3943,20 +5106,38 @@ class Browser(Filter):
 
         tpl.warning(key='filtered_progress_notice')
 
+    def __warn_crawl_mode(self):
+        """
+        Warn that crawl mode can add extra same-origin requests.
+
+        :return: None
+        """
+
+        if True is not getattr(self.__config, 'is_crawl', False):
+            return
+
+        tpl.warning(key='crawl_mode_notice')
+
     def __build_session_snapshot(self, reason='periodic'):
         """Build a serializable checkpoint snapshot."""
 
         self.__ensure_session_runtime_state()
+
+        with self.__request_state_lock:
+            pending_requests = list(self.__pending_requests.values())
+            completed_requests = sorted(self.__completed_requests)
+            queued_recursive = sorted(self.__queued_recursive)
+            visited_recursive = sorted(self.__visited_recursive)
 
         return {
             'createdAt': self.__session_snapshot.get('createdAt') if isinstance(self.__session_snapshot, dict) else SessionManager.now(),
             'updatedAt': SessionManager.now(),
             'params': self.__export_session_params(),
             'targets': self.__export_targets(),
-            'pending': list(self.__pending_requests.values()),
-            'seen': sorted(self.__completed_requests),
-            'queuedRecursive': sorted(self.__queued_recursive),
-            'visitedRecursive': sorted(self.__visited_recursive),
+            'pending': pending_requests,
+            'seen': completed_requests,
+            'queuedRecursive': queued_recursive,
+            'visitedRecursive': visited_recursive,
             'result': copy.deepcopy(self.__result),
             'stats': {
                 'processed': self.__processed_offset + self.__pool.items_size,
@@ -3964,6 +5145,9 @@ class Browser(Filter):
                 'pre_request_skipped': self.__pre_request_skipped,
                 'transport_failures_skipped': self.__transport_failures_skipped_count(),
                 'active_time_seconds': self.__active_runtime_seconds(),
+                'traffic_response_body_bytes': self.__traffic_response_body_bytes,
+                'traffic_response_header_bytes': self.__traffic_response_header_bytes,
+                'traffic_requests': self.__traffic_requests,
             },
             'checkpointReason': reason,
             'calibration': self.__calibration.to_dict() if self.__calibration is not None else None,
@@ -3994,6 +5178,8 @@ class Browser(Filter):
             'accept_cookies': self.__config.accept_cookies,
             'keep_alive': self.__config.keep_alive,
             'tls_legacy': getattr(self.__config, 'is_tls_legacy', False),
+            'crawl': getattr(self.__config, 'is_crawl', False),
+            'follow_redirects': getattr(self.__config, 'is_follow_redirects', False),
             'fingerprint': getattr(self.__config, 'is_fingerprint', False),
             'waf_detect': getattr(self.__config, 'is_waf_detect', False),
             'waf_safe_mode': getattr(self.__config, 'is_waf_safe_mode', False),
@@ -4074,6 +5260,7 @@ class Browser(Filter):
     def __restore_session_state(self, snapshot):
         """Hydrate browser state from loaded checkpoint."""
 
+        self.__ensure_session_runtime_state()
         self.__session_snapshot = snapshot
         self.__result = snapshot.get('result') or {
             'total': helper.counter(),
@@ -4085,30 +5272,43 @@ class Browser(Filter):
             self.__result['report_items'] = helper.list()
         if 'filtered_items' not in self.__result or not isinstance(self.__result.get('filtered_items'), list):
             self.__result['filtered_items'] = []
+        self.__report_item_keys = {}
+        self.__report_item_keys_result_id = id(self.__result)
+        self.__rebuild_report_dedup_keys()
 
-        self.__visited_recursive = set(snapshot.get('visitedRecursive', []))
-        self.__queued_recursive = set(snapshot.get('queuedRecursive', []))
-        self.__completed_requests = set(snapshot.get('seen', []))
-        self.__pending_requests = {}
-        self.__seen_scan_urls = {
-            str(item).split('::', 1)[1]
-            for item in self.__completed_requests
-            if '::' in str(item)
-        }
-
-        for item in snapshot.get('pending', []):
-            self.__pending_requests[self.__task_key(item.get('url'), item.get('depth', 0))] = {
-                'url': item.get('url'),
-                'depth': int(item.get('depth', 0))
+        with self.__request_state_lock:
+            self.__visited_recursive = set(snapshot.get('visitedRecursive', []))
+            self.__queued_recursive = set(snapshot.get('queuedRecursive', []))
+            self.__completed_requests = set(snapshot.get('seen', []))
+            self.__pending_requests = {}
+            self.__seen_scan_urls = {
+                str(item).split('::', 1)[1]
+                for item in self.__completed_requests
+                if '::' in str(item)
             }
-            if item.get('url') is not None:
-                self.__seen_scan_urls.add(str(item.get('url')))
+
+            for item in snapshot.get('pending', []):
+                pending_item = {
+                    'url': item.get('url'),
+                    'depth': int(item.get('depth', 0))
+                }
+                if item.get('source'):
+                    pending_item['source'] = item.get('source')
+                if item.get('source_url'):
+                    pending_item['source_url'] = item.get('source_url')
+
+                self.__pending_requests[self.__task_key(item.get('url'), item.get('depth', 0))] = pending_item
+                if item.get('url') is not None:
+                    self.__seen_scan_urls.add(str(item.get('url')))
 
         stats = snapshot.get('stats', {})
         self.__processed_offset = int(stats.get('processed', 0))
         self.__pre_request_skipped = int(stats.get('pre_request_skipped', 0))
         self.__transport_failures_skipped = int(stats.get('transport_failures_skipped', 0))
         self.__runtime_active_seconds_offset = float(stats.get('active_time_seconds', 0.0) or 0.0)
+        self.__traffic_response_body_bytes = self.__safe_traffic_int(stats.get('traffic_response_body_bytes', 0))
+        self.__traffic_response_header_bytes = self.__safe_traffic_int(stats.get('traffic_response_header_bytes', 0))
+        self.__traffic_requests = self.__safe_traffic_int(stats.get('traffic_requests', 0))
         saved_total = int(stats.get('total_items', self.__pool.total_items_size))
         if saved_total > self.__pool.total_items_size:
             self.__pool.total_items_size = saved_total
@@ -4149,28 +5349,49 @@ class Browser(Filter):
 
         self.__ensure_session_runtime_state()
 
-        if len(self.__pending_requests) <= 0:
+        with self.__request_state_lock:
+            pending_items = list(self.__pending_requests.values())
+
+        if len(pending_items) <= 0:
             return
 
-        tpl.info(msg='Restoring {0} pending requests from session checkpoint ...'.format(len(self.__pending_requests)))
+        tpl.info(msg='Restoring {0} pending requests from session checkpoint ...'.format(len(pending_items)))
 
-        if self.__pool.total_items_size < (self.__processed_offset + len(self.__pending_requests)):
-            self.__pool.total_items_size = self.__processed_offset + len(self.__pending_requests)
+        if self.__pool.total_items_size < (self.__processed_offset + len(pending_items)):
+            self.__pool.total_items_size = self.__processed_offset + len(pending_items)
 
-        for item in list(self.__pending_requests.values()):
-            self.__pool.add(self.__http_request, item['url'], item['depth'])
+        for item in pending_items:
+            self.__pool.add(
+                self.__http_request,
+                item['url'],
+                item['depth'],
+                item.get('source'),
+                item.get('source_url'),
+            )
 
     def __finalize_processed_request(self, url, depth):
-        """Mark request as processed and maybe save session."""
+        """Mark request as processed and maybe save session.
+
+        Loaded sessions still need in-memory pending/completed state to be
+        finalized even when the user did not request a new checkpoint file.
+        New snapshots are persisted only when session saving is enabled.
+
+        :param str url: request URL
+        :param int depth: recursive depth
+        :param str | None source: logical request source
+        :param str | None source_url: parent URL that discovered this request
+        :return: None
+        """
 
         self.__ensure_session_runtime_state()
 
-        if True is not getattr(self.__config, 'is_session_enabled', False):
+        if self.__is_session_tracking_enabled() is not True:
             return
 
         with self.__session_lock:
             self.__complete_request(url, depth)
-            self.__save_session(reason='items', force=False)
+            if getattr(self.__config, 'is_session_enabled', False) is True:
+                self.__save_session(reason='items', force=False)
 
     def __ensure_session_runtime_state(self):
         """
@@ -4186,6 +5407,9 @@ class Browser(Filter):
         if not hasattr(self, '_Browser__session_lock'):
             self.__session_lock = threading.RLock()
 
+        if not hasattr(self, '_Browser__request_state_lock'):
+            self.__request_state_lock = threading.RLock()
+
         if not hasattr(self, '_Browser__session'):
             self.__session = None
 
@@ -4197,6 +5421,9 @@ class Browser(Filter):
 
         if not hasattr(self, '_Browser__pending_requests'):
             self.__pending_requests = {}
+
+        if not hasattr(self, '_Browser__transient_request_keys'):
+            self.__transient_request_keys = set()
 
         if not hasattr(self, '_Browser__seen_scan_urls'):
             self.__seen_scan_urls = set()
@@ -4223,6 +5450,17 @@ class Browser(Filter):
 
         if isinstance(self.__result, dict) and not isinstance(self.__result.get('transport_failed'), list):
             self.__result['transport_failed'] = []
+
+        result = getattr(self, '_Browser__result', None)
+        result_id = id(result) if isinstance(result, dict) else None
+
+        if not hasattr(self, '_Browser__report_item_keys') \
+                or not isinstance(self.__report_item_keys, dict) \
+                or getattr(self, '_Browser__report_item_keys_result_id', None) != result_id:
+            self.__report_item_keys = {}
+            self.__report_item_keys_result_id = result_id
+            self.__rebuild_report_dedup_keys()
+
         if not hasattr(self, '_Browser__waf_safe_lock'):
             self.__waf_safe_lock = threading.RLock()
 
@@ -4243,6 +5481,18 @@ class Browser(Filter):
 
         if not hasattr(self, '_Browser__pre_request_skipped'):
             self.__pre_request_skipped = 0
+
+        if not hasattr(self, '_Browser__traffic_lock'):
+            self.__traffic_lock = threading.RLock()
+
+        if not hasattr(self, '_Browser__traffic_response_body_bytes'):
+            self.__traffic_response_body_bytes = 0
+
+        if not hasattr(self, '_Browser__traffic_response_header_bytes'):
+            self.__traffic_response_header_bytes = 0
+
+        if not hasattr(self, '_Browser__traffic_requests'):
+            self.__traffic_requests = 0
 
         if not hasattr(self, '_Browser__runtime_started_at'):
             self.__runtime_started_at = None

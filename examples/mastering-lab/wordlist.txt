@@ -1,6 +1,9 @@
 admin
 login
 api/users
+client-app
+old-dashboard
+canonical
 uploads/
 backup.zip
 .git/HEAD

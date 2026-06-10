@@ -41,3 +41,6 @@ from .openredirect import OpenredirectResponsePlugin as openredirect
 
 # noinspection PyPep8Naming
 from .malware import MalwareResponsePlugin as malware
+
+# noinspection PyPep8Naming
+from .endpoint import EndpointResponsePlugin as endpoint

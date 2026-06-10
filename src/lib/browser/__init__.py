@@ -18,3 +18,4 @@
 
 from .browser import Browser
 from .exceptions import BrowserError
+from .response_body_view import ResponseBodyView

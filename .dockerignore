@@ -44,7 +44,6 @@ reports
 syslog
 site
 *.log
-debug.log
 
 # Local binaries / keys
 opendoor
@@ -72,6 +71,10 @@ e2e-server.log
 scripts
 release.sh
 debug.sh
+
+# Windows package metadata is not needed in runtime Docker images
+chocolatey
+*.nupkg
 
 # Debian/Kali packaging build artifacts
 .pybuild

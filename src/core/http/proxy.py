@@ -28,7 +28,7 @@ from urllib3.exceptions import DecodeError, DependencyWarning, MaxRetryError, Pr
 
 from src.core import helper
 from .exceptions import ProxyRequestError
-from .tls import TLS_LEGACY_CIPHERS, describe_tls_transport_error, maybe_build_ssl_context
+from .tls import emit_tls_legacy_policy, maybe_build_ssl_context, tls_pool_kwargs, warn_tls_transport_error
 from .providers import DebugProvider
 from .providers import RequestProvider
 
@@ -46,11 +46,10 @@ class Proxy(RequestProvider, DebugProvider):
         try:
             self.__tpl = kwargs.get('tpl')
             self.__proxylist = kwargs.get('proxy_list')
-            RequestProvider.__init__(self, config, agent_list=kwargs.get('agent_list'))
-            self.__headers = self._headers
-            self.__connection_header = 'default'
-            if True is config.keep_alive:
-                self.__connection_header = self._keep_alive
+            self.__headers, self.__is_user_agent_managed, self.__connection_header = self._initialize_request_backend(
+                config,
+                kwargs.get('agent_list'),
+            )
             self.__server = None
             self.__pm = None
             self.__proxy_pools = {}
@@ -72,10 +71,7 @@ class Proxy(RequestProvider, DebugProvider):
     def __debug_tls_policy(self):
         """Emit debug output for opt-in legacy TLS compatibility."""
 
-        if getattr(self.__cfg, 'is_tls_legacy', False) is True:
-            getattr(self.__tpl, 'debug', lambda *args, **kwargs: True)(
-                msg='TLS legacy compatibility enabled: ciphers={0}'.format(TLS_LEGACY_CIPHERS)
-            )
+        emit_tls_legacy_policy(self.__cfg, self.__tpl)
 
 
     def __pool_tls_kwargs(self):
@@ -85,10 +81,7 @@ class Proxy(RequestProvider, DebugProvider):
         :rtype: dict
         """
 
-        if self.__ssl_context is None:
-            return {}
-
-        return {'ssl_context': self.__ssl_context}
+        return tls_pool_kwargs(self.__ssl_context)
 
     def __record_tls_transport_error(self, error):
         """Store and print a helpful TLS transport diagnostic when possible.
@@ -97,13 +90,12 @@ class Proxy(RequestProvider, DebugProvider):
         :return: None
         """
 
-        message = describe_tls_transport_error(error)
-        if not message:
-            return
-
-        setattr(self.__cfg, 'last_transport_error', message)
-        self.__finish_active_terminal_line()
-        self.__tpl.warning(msg=message)
+        warn_tls_transport_error(
+            self.__cfg,
+            self.__tpl,
+            error,
+            line_finisher=self.__finish_active_terminal_line,
+        )
 
     @classmethod
     def __build_proxy_headers(cls, server):
@@ -217,6 +209,17 @@ class Proxy(RequestProvider, DebugProvider):
                 ) from error
             raise ProxyRequestError(error)
 
+    def close(self):
+        """Release proxy managers cached during this scan runtime.
+
+        :return: None
+        """
+
+        for pool in list(getattr(self, '_Proxy__proxy_pools', {}).values()):
+            self._close_connection_resource(pool)
+
+        self.__proxy_pools.clear()
+
     def prepare_connection_pool(self):
         """Create the first rotating proxy pool before transient progress starts.
 
@@ -237,17 +240,6 @@ class Proxy(RequestProvider, DebugProvider):
         self.__proxy_pool()
         return True
 
-    def __debug_cookie_middleware(self, response):
-        """Route response cookies and emit request-level cookie diagnostics."""
-
-        if True is self.__cfg.accept_cookies:
-            getattr(self.__debug, 'debug_cookie_accept_enabled', lambda *args, **kwargs: True)()
-
-        self.cookies_middleware(is_accept=self.__cfg.accept_cookies, response=response)
-
-        if True is self.__cfg.accept_cookies and True is self._is_cookie_fetched:
-            getattr(self.__debug, 'debug_cookie_accepted', lambda *args, **kwargs: True)(self._push_cookies())
-
     def __is_directory_like_scan(self):
         """Return True for directory scans and their runtime filtered variants.
 
@@ -262,7 +254,7 @@ class Proxy(RequestProvider, DebugProvider):
 
         return self.__cfg.scan in (self.__cfg.DEFAULT_SCAN, 'extensionlist', 'ignore_extensionlist')
 
-    def request(self, url, extra_headers=None):
+    def request(self, url, extra_headers=None, absolute=False):
         """
         Client request using Proxy
 
@@ -271,14 +263,15 @@ class Proxy(RequestProvider, DebugProvider):
         :return: urllib3.HTTPResponse
         """
 
-        self.__headers.update({'User-Agent': self._user_agent})
-        request_headers = self._build_request_headers(self.__headers, extra_headers)
-
-        if self.__connection_header != 'default' and request_headers.get('Connection') is None:
-            request_headers.update({'Connection': self.__connection_header})
-
-        getattr(self.__debug, 'debug_cookie_attached', lambda *args, **kwargs: True)(request_headers)
-        getattr(self.__debug, 'debug_request', lambda *args, **kwargs: True)(request_headers, url, self.__cfg.method)
+        request_headers, self.__is_user_agent_managed = self._prepare_request_headers(
+            self.__cfg,
+            self.__debug,
+            self.__headers,
+            self.__is_user_agent_managed,
+            self.__connection_header,
+            url,
+            extra_headers,
+        )
 
         try:
             response = self.__pool_request(url, headers=request_headers)
@@ -415,7 +408,7 @@ class Proxy(RequestProvider, DebugProvider):
         setattr(self.__cfg, 'last_transport_error', None)
         self.__mark_proxy_alive(self.__server)
         self._debug_response_received(self.__debug, response)
-        self.__debug_cookie_middleware(response)
+        self._debug_cookie_middleware(self.__debug, self.__cfg.accept_cookies, response)
         return response
 
     def __mark_proxy_dead(self, server):

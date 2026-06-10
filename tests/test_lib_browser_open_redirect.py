@@ -50,6 +50,8 @@ class TestOpenRedirectProbe(unittest.TestCase):
         self.assertEqual(len(variants), 2)
         self.assertEqual(variants[0]['param'], 'returnUrl')
         self.assertEqual(variants[0]['payload'], 'https://redirect.invalid/')
+        self.assertEqual(variants[0]['payload_family'], 'external_url')
+        self.assertEqual(variants[1]['payload_family'], 'protocol_relative_external')
         self.assertIn('returnUrl=https%3A%2F%2Fredirect.invalid%2F', variants[0]['url'])
         self.assertIn('safe=1', variants[0]['url'])
         self.assertIn('returnUrl=%2F%2Fredirect.invalid%2F', variants[1]['url'])
@@ -122,6 +124,13 @@ class TestOpenRedirectProbe(unittest.TestCase):
 
         self.assertEqual(OpenRedirectProbe.get_redirect_location(response), '')
 
+    def test_location_host_normalizes_absolute_and_protocol_relative_locations(self):
+        """Should normalize Location hosts for legacy helper callers."""
+
+        self.assertEqual(OpenRedirectProbe.location_host(' https://Redirect.Invalid/path '), 'redirect.invalid')
+        self.assertEqual(OpenRedirectProbe.location_host('//Redirect.Invalid/path'), 'redirect.invalid')
+        self.assertEqual(OpenRedirectProbe.location_host('/relative/path'), '')
+
     def test_is_confirmed_rejects_invalid_status_values(self):
         """Should avoid confirmations when response status cannot be parsed."""
 
@@ -152,10 +161,66 @@ class TestOpenRedirectProbe(unittest.TestCase):
         self.assertFalse(self.OpenRedirectProbe_is_confirmed(status=200, location='https://redirect.invalid/path'))
         self.assertFalse(self.OpenRedirectProbe_is_confirmed(status=302, location='https://trusted.example.com/'))
 
-    def OpenRedirectProbe_is_confirmed(self, status, location):
+    def test_is_confirmed_rejects_relative_same_origin_login_waf_and_body_reflection(self):
+        """Should keep marker confirmation strict to controlled external Location targets."""
+
+        source_url = 'https://api.example.com/login?next=https%3A%2F%2Fredirect.invalid%2F'
+
+        self.assertFalse(self.OpenRedirectProbe_is_confirmed(status=302, location='/login?next=https://redirect.invalid/', source_url=source_url))
+        self.assertFalse(self.OpenRedirectProbe_is_confirmed(status=302, location='https://api.example.com/login', source_url=source_url))
+        self.assertFalse(self.OpenRedirectProbe_is_confirmed(status=302, location='//api.example.com/login', source_url=source_url))
+        self.assertFalse(self.OpenRedirectProbe_is_confirmed(status=302, location='/cdn-cgi/challenge-platform/h/b', source_url=source_url))
+
+        reflected = HTTPResponse(
+            status=200,
+            body=b'https://redirect.invalid/',
+            headers={'Content-Type': 'text/html'},
+        )
+        self.assertFalse(OpenRedirectProbe.is_confirmed(reflected, source_url=source_url))
+
+    def test_is_confirmed_rejects_unsafe_schemes_and_internal_targets(self):
+        """Should not treat unsafe schemes or internal hosts as marker confirmations."""
+
+        source_url = 'https://api.example.com/login?next=/home'
+        locations = [
+            'javascript:alert(1)',
+            'data:text/html,https://redirect.invalid/',
+            'file:///etc/passwd',
+            'http://127.0.0.1/',
+            'http://localhost/',
+            'http://10.0.0.1/',
+            'https://redirect.invalid.evil.example/',
+        ]
+
+        for location in locations:
+            with self.subTest(location=location):
+                self.assertFalse(
+                    self.OpenRedirectProbe_is_confirmed(
+                        status=302,
+                        location=location,
+                        source_url=source_url,
+                    )
+                )
+
+    def test_classify_response_uses_shared_redirect_classifier_metadata(self):
+        """Should expose shared redirect classification for probe responses."""
+
+        classification = OpenRedirectProbe.classify_response(
+            self.make_response(location='//redirect.invalid/ok'),
+            source_url='https://api.example.com/login?next=%2F%2Fredirect.invalid%2F',
+        )
+
+        self.assertEqual(classification['type'], 'external')
+        self.assertEqual(classification['target_host'], 'redirect.invalid')
+        self.assertFalse(classification['same_origin'])
+
+    def OpenRedirectProbe_is_confirmed(self, status, location, source_url=None):
         """Proxy to keep assertion calls compact."""
 
-        return OpenRedirectProbe.is_confirmed(self.make_response(status=status, location=location))
+        return OpenRedirectProbe.is_confirmed(
+            self.make_response(status=status, location=location),
+            source_url=source_url,
+        )
 
     def test_metadata_contains_verified_evidence(self):
         """Should preserve source URL, payload and Location evidence for reports."""
@@ -165,6 +230,7 @@ class TestOpenRedirectProbe(unittest.TestCase):
             'param': 'next',
             'payload': 'https://redirect.invalid/',
             'variant': 'absolute-external-url',
+            'payload_family': 'external_url',
         }
         metadata = OpenRedirectProbe.metadata(
             'https://api.example.com/login?next=/home',
@@ -176,6 +242,7 @@ class TestOpenRedirectProbe(unittest.TestCase):
         self.assertEqual(detection['type'], 'open_redirect')
         self.assertEqual(detection['parameter'], 'next')
         self.assertEqual(detection['confidence'], 100)
+        self.assertEqual(detection['payload_family'], 'external_url')
         self.assertEqual(detection['location'], 'https://redirect.invalid/landing')
 
 
@@ -231,7 +298,55 @@ class TestOpenRedirectRuntime(unittest.TestCase):
         finding = result['report_items']['openredirect'][0]
         self.assertEqual(finding['openredirect_detection']['parameter'], 'returnUrl')
         self.assertEqual(finding['openredirect_detection']['location'], 'https://redirect.invalid/ok')
+        self.assertEqual(finding['openredirect_detection']['payload_family'], 'external_url')
+        passive = finding['passive_finding']
+        self.assertEqual(passive['bucket'], 'openredirect')
+        self.assertEqual(passive['type'], 'open_redirect')
+        self.assertEqual(passive['severity'], 'medium')
+        self.assertEqual(passive['reason'], 'external_redirect_confirmed')
+        self.assertEqual(passive['confidence'], 'high')
+        self.assertEqual(passive['evidence']['parameter'], 'returnUrl')
+        self.assertEqual(passive['evidence']['payload_family'], 'external_url')
+        self.assertEqual(passive['evidence']['location'], 'https://redirect.invalid/ok')
+        self.assertEqual(passive['source']['signal'], 'redirect_location')
+        self.assertEqual(passive['source']['status'], 302)
         getattr(br, '_Browser__response').debug_response_data.assert_called_once()
+
+    def test_inline_active_sniffers_do_not_probe_when_openredirect_is_disabled(self):
+        """Should not add active openredirect requests unless --sniff openredirect is enabled."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', SimpleNamespace(
+            is_sniff=True,
+            sniffers=['secret'],
+            is_waf_safe_mode=False,
+            is_session_enabled=False,
+            accept_cookies=False,
+        ))
+        setattr(br, '_Browser__open_redirect_probe', OpenRedirectProbe())
+        setattr(br, '_Browser__request_with_waf_safe_mode', MagicMock())
+
+        emitted = br._Browser__run_inline_active_sniffers(
+            'https://api.example.com/login?next=/home',
+            ('redirect', 'https://api.example.com/login?next=/home', '0B', '302'),
+            self.make_response(location='/login'),
+        )
+
+        self.assertEqual(emitted, 0)
+        getattr(br, '_Browser__request_with_waf_safe_mode').assert_not_called()
+
+    def test_browser_probe_stops_after_first_confirmed_source_url(self):
+        """Should preserve bounded request volume by stopping after first confirmed probe."""
+
+        br = self.make_browser()
+        client = getattr(br, '_Browser__client')
+        client.request.return_value = self.make_response(location='https://redirect.invalid/ok')
+
+        actual = br._Browser__probe_open_redirect('https://api.example.com/go?next=/a&returnUrl=/b')
+
+        self.assertTrue(actual)
+        self.assertEqual(client.request.call_count, 1)
+        self.assertEqual(br.result['total']['openredirect'], 1)
 
     def test_browser_probe_does_not_report_when_redirect_is_not_controlled_marker(self):
         """Should avoid false positives for legitimate allowlisted external redirects."""
@@ -245,6 +360,36 @@ class TestOpenRedirectRuntime(unittest.TestCase):
         self.assertFalse(actual)
         self.assertEqual(client.request.call_count, 2)
         self.assertEqual(br.result['total']['openredirect'], 0)
+
+    def test_passive_openredirect_metadata_handles_edge_values(self):
+        """Structured metadata helper should safely normalize partial openredirect evidence."""
+
+        metadata = Browser._Browser__passive_openredirect_metadata(
+            url='https://api.example.com/login?next=//redirect.invalid/',
+            code='redirect',
+            method='POST',
+            detection={
+                'type': 'open_redirect',
+                'confidence': 72,
+                'parameter': 'next',
+                'variant': 'protocol-relative-url',
+                'payload_family': 'protocol_relative_external',
+                'location': '//redirect.invalid/',
+            },
+        )
+
+        finding = metadata['passive_finding']
+        self.assertEqual(finding['confidence'], 'medium')
+        self.assertEqual(finding['source']['status'], 'redirect')
+        self.assertEqual(finding['source']['request_method'], 'POST')
+        self.assertEqual(finding['evidence']['payload_family'], 'protocol_relative_external')
+        self.assertEqual(finding['evidence']['probe_url'], 'https://api.example.com/login?next=//redirect.invalid/')
+
+    def test_passive_openredirect_metadata_returns_empty_for_invalid_input(self):
+        """Structured metadata helper should not create findings without confirmed evidence."""
+
+        self.assertEqual(Browser._Browser__passive_openredirect_metadata('', 302, 'GET', {'confidence': 100}), {})
+        self.assertEqual(Browser._Browser__passive_openredirect_metadata('https://x/', 302, 'GET', None), {})
 
     def test_response_debug_data_passes_openredirect_detection_to_runtime_debug(self):
         """Response.debug_response_data() should route openredirect metadata to Debug."""

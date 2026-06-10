@@ -200,6 +200,41 @@ This prevents static assets and binary files from becoming recursive scan roots.
 
 ---
 
+## 🕸️ Same-origin crawl
+
+`--crawl` enriches a directory scan by extracting conservative same-origin links from already scanned HTML responses and adding unique URLs to the existing scan queue.
+
+```shell
+opendoor --host https://example.com --crawl
+```
+
+Rules:
+
+- disabled by default;
+- directory-scan only; incompatible with `--scan subdomains`;
+- uses `GET` when no explicit method is provided;
+- explicit `--method HEAD --crawl` is rejected because crawl needs response bodies;
+- one-hop only: crawl-discovered responses do not recursively enqueue more crawl URLs;
+- same-origin only by scheme, host, and port;
+- preserves query strings and removes fragments;
+- respects `--ignore-extensions`;
+- skips external origins, non-HTTP schemes, static assets filtered by extension, and POST/PUT/PATCH/DELETE forms;
+- does not execute JavaScript, render pages, submit forms, or use a separate HTTP client.
+
+Crawl-discovered URLs are classified through the normal result buckets. There is no separate `crawl` report bucket. Runtime progress shows the original baseline plus accepted crawl additions:
+
+```text
+100.0% [2+3/2] - 200 - 10B - OK [crawl] /search?q=admin
+```
+
+Runtime diagnostics include crawl counters when `--crawl` is enabled:
+
+```text
+| crawl | 3 queued, 3 processed, 1 duplicate, 3 skipped |
+```
+
+---
+
 ## 🌐 Request options
 
 ### Port
@@ -324,6 +359,14 @@ opendoor --host https://example.com --keep-alive
 opendoor --host https://example.com --header "X-Test: 1"
 opendoor --host https://example.com --header "Authorization: Bearer TOKEN"
 ```
+
+### Random User-Agent
+
+```shell
+opendoor --host https://example.com --random-agent
+```
+
+`--random-agent` selects a bundled browser User-Agent per request unless an explicit `--header "User-Agent: ..."` override is provided.
 
 ### Cookies
 
@@ -1095,12 +1138,13 @@ opendoor --host https://example.com --sniff stacktrace
 opendoor --host https://example.com --sniff secret
 opendoor --host https://example.com --sniff shadow
 opendoor --host https://example.com --sniff openredirect
+opendoor --host https://example.com --sniff endpoint
 ```
 
 Multiple sniffers can be combined:
 
 ```shell
-opendoor --host https://example.com --sniff secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof,skipsizes=24:41:50
+opendoor --host https://example.com --sniff endpoint,secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof,skipsizes=24:41:50
 ```
 
 For details, see [Sniffers](Sniffers.md).
@@ -1128,6 +1172,52 @@ Supported values:
 | `3` | Incoming HTTP response diagnostics, including response headers and classification summaries |
 
 Use debug output when validating filters, transport behavior, request headers, response classification, or report generation.
+
+### Slow item diagnostics
+
+When a worker keeps processing the same item without completed-item progress, OpenDoor prints a compact slow-item warning. The warning does not mean that the scanner is retrying; it identifies the currently active item, its processing phase, completed progress, and queued work.
+
+```text
+warning: Slow item 15s: https://example.com/sitemap1.xml [classify] | done=3/8 queued=4
+```
+
+Slow-item phase labels:
+
+| Phase | Meaning |
+|---|---|
+| `request` | Fetching the HTTP response. |
+| `classify` | Running response handling, classification, and response plugins. |
+| `follow-redirects` | Materializing an explicit opt-in same-host redirect chain. |
+| `passive-sniff` | Running additive passive sniffer checks. |
+| `header-bypass` | Running controlled header-bypass probes. |
+| `inline-active-sniffers` | Running inline active checks, such as open redirect verification. |
+| `calibration` | Matching the response against the auto-calibration baseline. |
+| `response-filter` | Applying status, body, size, text, and regex response filters. |
+| `deferred-active-sniffers` | Running deferred active probes, such as shadow-copy checks. |
+| `crawl` | Extracting and enqueueing crawl candidates. |
+| `recursive` | Expanding recursive directory candidates. |
+
+These diagnostics are observational only. They do not change request volume, retry behavior, response classification, or reports.
+
+### Runtime memory diagnostics
+
+When debug output is enabled, OpenDoor adds process memory usage to the terminal Runtime diagnostics block.
+
+```shell
+opendoor --host https://example.com --debug 1
+```
+
+Memory diagnostics are intended for long-running scans, large wordlists, recursive scans, proxy rotation, crawl validation, and development regression checks. They observe OpenDoor's own process memory usage; they do not inspect or infer memory usage of the target application.
+
+Memory diagnostics do not change request volume, scan scheduling, response classification, sessions, or reports. They only add a compact `memory` row to terminal Runtime diagnostics when debug output is active.
+
+Example output:
+
+```text
+| memory | RSS 128.0 MB (+32.0 MB); trace 10.0 MB (+5.0 MB), peak 12.0 MB |
+```
+
+RSS is reported only when the current platform exposes it. Python allocation tracking is reported through runtime tracing.
 
 ---
 
@@ -1269,3 +1359,15 @@ opendoor \
   --reports json,sqlite,csv \
   --fail-on-bucket success,auth,forbidden,bypass
 ```
+
+### Passive redirect classification
+
+OpenDoor classifies discovered `3xx` responses automatically. No extra flag is required and no extra requests are sent. Runtime output stays on one line and adds a compact `R(...)` marker, for example:
+
+```text
+[11:38:35] info:    6.3% [06221/98412] - 301 - 178B - R(canonical) https://localhost/api -> https://localhost/api/
+[11:38:36] info:    6.3% [06222/98412] - 302 - 0B - R(login) https://localhost/admin -> /login?next=/admin
+[11:38:37] info:    6.3% [06223/98412] - 302 - 0B - R(external) https://localhost/oauth -> login.microsoftonline.com
+```
+
+Markers are informational and enrich existing redirect report items. By default, they do not follow redirects and do not verify open redirect vulnerabilities. When explicit `--follow-redirects` is enabled, OpenDoor can materialize bounded same-host redirect chains and classify only meaningful final non-redirect responses while keeping failed or homepage-collapse chains as passive redirect evidence.

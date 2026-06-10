@@ -13,6 +13,7 @@ from src.lib import BrowserError, ReporterError, browser
 from src.lib.browser.browser import Browser
 from src.lib.browser.calibration import Calibration
 from src.lib.browser.config import Config
+from src.lib.browser.crawl import CrawlState
 from src.lib.browser.debug import Debug
 from src.lib.browser.threadpool import ThreadPool
 from src.lib.reader.reader import Reader, ReaderError
@@ -83,8 +84,17 @@ class TestBrowser(unittest.TestCase):
         self.assertIsInstance(getattr(br, '_Browser__debug'), Debug)
         self.assertIsInstance(getattr(br, '_Browser__result'), dict)
         self.assertIsInstance(getattr(br, '_Browser__reader'), Reader)
+        self.assertIsNone(getattr(br, '_Browser__crawl_state'))
         self.assertIsInstance(getattr(br, '_Browser__pool'), ThreadPool)
         self.assertIsInstance(getattr(br, '_Browser__response'), Response)
+
+    def test_init_creates_crawl_state_when_crawl_enabled(self):
+        """Browser.__init__() should allocate crawl runtime state only for --crawl."""
+
+        br = self.browser_init({'host': 'test.local', 'port': 80, 'crawl': True})
+
+        self.assertIsInstance(getattr(br, '_Browser__crawl_state'), CrawlState)
+        br.close()
 
     def test_init_exception(self):
         """Browser.__init__() should wrap reader/response setup errors into BrowserError."""
@@ -941,6 +951,399 @@ class TestBrowser(unittest.TestCase):
         self.assertIn('| retries     | subdomain misses 4, fail-fast disabled', rendered)
         self.assertNotIn('fail streak', rendered)
 
+    def test_http_request_keeps_redirect_passive_without_follow_flag(self):
+        """Browser.__http_request() should not follow redirects unless explicitly requested."""
+
+        br = self.make_browser()
+        client = MagicMock()
+        client.request.return_value = 'redirect-response'
+        pool = SimpleNamespace(items_size=1, total_items_size=4)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+        response_handler._response_plugins = []
+        response_handler.handle.return_value = (
+            'redirect',
+            'https://example.com/admin',
+            '0B',
+            '301',
+        )
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+
+        br._Browser__http_request('http://example.com/admin')
+
+        client.request.assert_called_once_with('http://example.com/admin')
+        self.assertEqual(response_handler.handle.call_count, 1)
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['redirect'], 1)
+        self.assertEqual(result['items']['redirect'], ['https://example.com/admin'])
+        self.assertNotIn('success', result['total'])
+
+    def test_follow_redirects_absolute_request_legacy_client_fallback(self):
+        """Browser.__request_absolute_url() should support older request clients without absolute kwarg."""
+
+        br = self.make_browser()
+        client = MagicMock()
+
+        def request(url, **kwargs):
+            if kwargs.get('absolute') is True:
+                raise TypeError('legacy client')
+            return 'legacy-response'
+
+        client.request.side_effect = request
+        setattr(br, '_Browser__client', client)
+
+        self.assertEqual(br._Browser__request_absolute_url('https://example.com/cms/'), 'legacy-response')
+        self.assertEqual(client.request.call_args_list[0].kwargs, {'absolute': True})
+        self.assertEqual(client.request.call_args_list[1].args, ('https://example.com/cms/',))
+        self.assertEqual(client.request.call_args_list[1].kwargs, {})
+
+    def test_follow_redirects_origin_and_target_guards_cover_edge_values(self):
+        """Follow-redirects URL helpers should normalize ports and reject unsafe targets."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'scheme': 'http://',
+            'port': 8080,
+            'follow_redirects': True,
+        }))
+
+        self.assertEqual(br._Browser__scan_origin_url(), 'http://example.com:8080/')
+
+        setattr(br, '_Browser__config', SimpleNamespace(
+            host='example.com',
+            scheme='http://',
+            port=None,
+        ))
+        self.assertEqual(br._Browser__scan_origin_url(), 'http://example.com/')
+
+        setattr(br, '_Browser__config', SimpleNamespace(
+            host='example.com',
+            scheme='http://',
+            port='bad',
+        ))
+
+        self.assertEqual(br._Browser__scan_origin_url(), 'http://example.com/')
+
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'scheme': 'http://',
+            'port': 80,
+            'follow_redirects': True,
+        }))
+        self.assertFalse(br._Browser__is_follow_redirect_target_allowed('http://[bad', 'http://example.com/cms'))
+        self.assertFalse(br._Browser__is_follow_redirect_target_allowed('http://example.com/cms', 'http://other.example.com/cms'))
+
+        setattr(br, '_Browser__config', SimpleNamespace(
+            host='',
+            scheme='http://',
+            port=None,
+        ))
+        self.assertFalse(br._Browser__is_follow_redirect_target_allowed('/source', '/target'))
+
+    def test_follow_redirects_materialization_stops_on_loop_and_hop_limit(self):
+        """Follow-redirects should keep looping or over-limit chains passive."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'scheme': 'http://',
+            'port': 80,
+            'follow_redirects': True,
+        }))
+        setattr(br, '_Browser__pool', SimpleNamespace(items_size=1, total_items_size=1))
+        response_handler = MagicMock()
+        setattr(br, '_Browser__response', response_handler)
+
+        self.assertIsNone(
+            br._Browser__materialize_follow_redirects('response', ('redirect', 'http://example.com/cms'), '/cms', [])
+        )
+
+        response_handler.handle.return_value = ('redirect', 'https://example.com/cms-2', '0B', '301')
+        with patch.object(br, '_Browser__request_absolute_url', return_value='followed-response'), \
+                patch.object(type(br), 'FOLLOW_REDIRECTS_MAX_HOPS', 1):
+            self.assertIsNone(
+                br._Browser__materialize_follow_redirects(
+                    'response',
+                    ('redirect', 'https://example.com/cms-1'),
+                    '/cms',
+                    [],
+                )
+            )
+
+    def test_follow_redirects_materialization_defensive_branches(self):
+        """Follow-redirects helpers should keep malformed or incomplete chains passive."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'scheme': 'http://',
+            'port': 80,
+        }))
+        setattr(br, '_Browser__pool', SimpleNamespace(items_size=1, total_items_size=1))
+        response_handler = MagicMock()
+        setattr(br, '_Browser__response', response_handler)
+
+        self.assertFalse(
+            br._Browser__should_materialize_follow_redirect_result('/cms', '/cms', ())
+        )
+        self.assertIsNone(
+            br._Browser__materialize_follow_redirects('response', ('redirect', 'https://example.com/cms'), '/cms', [])
+        )
+
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'scheme': 'http://',
+            'port': 80,
+            'follow_redirects': True,
+        }))
+
+        self.assertIsNone(
+            br._Browser__materialize_follow_redirects('response', ('success', 'https://example.com/cms'), '/cms', [])
+        )
+
+        with patch.object(br, '_Browser__request_absolute_url', return_value=None):
+            self.assertIsNone(
+                br._Browser__materialize_follow_redirects('response', ('redirect', 'https://example.com/cms'), '/cms', [])
+            )
+
+        response_handler.handle.return_value = None
+        with patch.object(br, '_Browser__request_absolute_url', return_value='followed-response'):
+            self.assertIsNone(
+                br._Browser__materialize_follow_redirects('response', ('redirect', 'https://example.com/cms'), '/cms', [])
+            )
+
+    def test_http_request_follow_redirects_materializes_same_host_final_response(self):
+        """--follow-redirects should report the final same-host non-redirect response."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'scheme': 'http://',
+            'port': 80,
+            'follow_redirects': True,
+        }))
+
+        client = MagicMock()
+        client.request.side_effect = ['first-redirect', 'second-redirect', 'final-response']
+        pool = SimpleNamespace(items_size=3, total_items_size=4)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+        response_handler._response_plugins = []
+        response_handler.handle.side_effect = [
+            ('redirect', 'https://example.com/cms', '0B', '301'),
+            ('redirect', 'https://example.com/cms/', '0B', '301'),
+            ('success', 'https://example.com/cms/', '2179B', '200'),
+        ]
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+
+        br._Browser__http_request('http://example.com/cms')
+
+        self.assertEqual([call.args[0] for call in client.request.call_args_list], [
+            'http://example.com/cms',
+            'https://example.com/cms',
+            'https://example.com/cms/',
+        ])
+        self.assertEqual(client.request.call_args_list[1].kwargs, {'absolute': True})
+        self.assertEqual(client.request.call_args_list[2].kwargs, {'absolute': True})
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['success'], 1)
+        self.assertEqual(result['items']['success'], ['https://example.com/cms/'])
+        self.assertNotIn('redirect', result['total'])
+        response_handler.debug_response_data.assert_called_once_with(
+            ('success', 'https://example.com/cms/', '2179B', '200'),
+            request_url='https://example.com/cms/',
+            items_size=3,
+            total_size=4,
+            response='final-response',
+        )
+
+    def test_http_request_follow_redirects_keeps_failed_final_response_passive(self):
+        """--follow-redirects should keep dead-end 404 chains as redirect evidence."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'scheme': 'http://',
+            'port': 80,
+            'follow_redirects': True,
+        }))
+
+        client = MagicMock()
+        client.request.side_effect = ['first-redirect', 'final-404']
+        pool = SimpleNamespace(items_size=1, total_items_size=4)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+        response_handler._response_plugins = []
+        response_handler.handle.side_effect = [
+            ('redirect', 'https://example.com/missing', '0B', '301'),
+            ('failed', 'https://example.com/missing', '512B', '404'),
+        ]
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+
+        br._Browser__http_request('http://example.com/missing')
+
+        self.assertEqual([call.args[0] for call in client.request.call_args_list], [
+            'http://example.com/missing',
+            'https://example.com/missing',
+        ])
+        self.assertEqual(client.request.call_args_list[1].kwargs, {'absolute': True})
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['redirect'], 1)
+        self.assertEqual(result['items']['redirect'], ['https://example.com/missing'])
+        self.assertNotIn('failed', result['total'])
+        self.assertNotIn('success', result['total'])
+        response_handler.debug_response_data.assert_called_once_with(
+            ('redirect', 'https://example.com/missing', '0B', '301'),
+            request_url='http://example.com/missing',
+            items_size=1,
+            total_size=4,
+            response='first-redirect',
+        )
+
+    def test_http_request_follow_redirects_keeps_root_success_collapse_passive(self):
+        """--follow-redirects should not report root success for a missing path."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'scheme': 'http://',
+            'port': 80,
+            'follow_redirects': True,
+        }))
+
+        client = MagicMock()
+        client.request.side_effect = ['first-redirect', 'homepage-response']
+        pool = SimpleNamespace(items_size=1, total_items_size=4)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+        response_handler._response_plugins = []
+        response_handler.handle.side_effect = [
+            ('redirect', 'https://example.com/homepage-copy', '0B', '301'),
+            ('success', 'https://example.com/', '2KB', '200'),
+        ]
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+
+        br._Browser__http_request('http://example.com/missing')
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['redirect'], 1)
+        self.assertEqual(result['items']['redirect'], ['https://example.com/homepage-copy'])
+        self.assertNotIn('success', result['total'])
+
+    def test_http_request_follow_redirects_keeps_homepage_collapse_passive(self):
+        """--follow-redirects should not turn catch-all homepage redirects into success."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'scheme': 'http://',
+            'port': 80,
+            'follow_redirects': True,
+        }))
+
+        client = MagicMock()
+        client.request.return_value = 'redirect-response'
+        pool = SimpleNamespace(items_size=1, total_items_size=4)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+        response_handler._response_plugins = []
+        response_handler.handle.return_value = (
+            'redirect',
+            'https://example.com/',
+            '0B',
+            '301',
+        )
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+
+        br._Browser__http_request('http://example.com/failed1')
+
+        client.request.assert_called_once_with('http://example.com/failed1')
+        self.assertEqual(response_handler.handle.call_count, 1)
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['redirect'], 1)
+        self.assertEqual(result['items']['redirect'], ['https://example.com/'])
+        self.assertNotIn('success', result['total'])
+
+    def test_http_request_follow_redirects_keeps_cross_host_redirect_passive(self):
+        """--follow-redirects should not follow redirects outside the configured hostname."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__config', self.browser_configuration({
+            'reports': 'std',
+            'host': 'example.com',
+            'scheme': 'http://',
+            'port': 80,
+            'follow_redirects': True,
+        }))
+
+        client = MagicMock()
+        client.request.return_value = 'redirect-response'
+        pool = SimpleNamespace(items_size=1, total_items_size=4)
+        reader = MagicMock()
+        reader.get_ignored_list.return_value = []
+        response_handler = MagicMock()
+        response_handler._response_plugins = []
+        response_handler.handle.return_value = (
+            'redirect',
+            'https://other.example.com/cms',
+            '0B',
+            '301',
+        )
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__response', response_handler)
+
+        br._Browser__http_request('http://example.com/cms')
+
+        client.request.assert_called_once_with('http://example.com/cms')
+        self.assertEqual(response_handler.handle.call_count, 1)
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['redirect'], 1)
+        self.assertEqual(result['items']['redirect'], ['https://other.example.com/cms'])
+        self.assertNotIn('success', result['total'])
+
     def test_http_request_records_status_from_response_handler(self):
         """Browser.__http_request() should record the tuple returned by the response handler."""
 
@@ -1484,7 +1887,32 @@ class TestBrowser(unittest.TestCase):
         warning_mock.assert_called_with(msg='Active scan list size mismatch: planned 93661 item(s), active runtime list has 4167. Aborting to avoid a partial scan.')
         reader.get_lines.assert_not_called()
 
+    def test_close_stops_threadpool_and_cleans_temp_workspace(self):
+        """Browser.close() should release both worker pool and managed temp workspace."""
 
+        br = Browser.__new__(Browser)
+        pool = MagicMock()
+        client = MagicMock()
+        memory_monitor = MagicMock()
+        crawl_state = MagicMock()
+        workspace = MagicMock()
+
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__memory_monitor', memory_monitor)
+        setattr(br, '_Browser__crawl_state', crawl_state)
+        setattr(br, '_Browser__temp_workspace', workspace)
+
+        br.close()
+
+        pool.close.assert_called_once_with()
+        client.close.assert_called_once_with()
+        memory_monitor.close.assert_called_once_with()
+        crawl_state.close.assert_called_once_with()
+        workspace.cleanup.assert_called_once_with()
+        self.assertIsNone(getattr(br, '_Browser__client'))
+        self.assertIsNone(getattr(br, '_Browser__crawl_state'))
+        self.assertIsNone(getattr(br, '_Browser__temp_workspace'))
 
     def test_prepare_runtime_paths_skips_workspace_without_temp_outputs(self):
         """Browser should not allocate a temp workspace when no runtime wordlist is generated."""
@@ -1588,6 +2016,43 @@ class TestBrowser(unittest.TestCase):
         workspace.cleanup.assert_called_once_with()
         self.assertIsNone(getattr(br, '_Browser__temp_workspace'))
 
+    def test_scan_cleans_temp_workspace_on_keyboard_interrupt(self):
+        """Browser.scan() should cleanup its managed workspace after interactive abort."""
+
+        br = self.make_browser()
+        workspace = MagicMock()
+        config = SimpleNamespace(
+            is_random_list=False,
+            scan='directories',
+            DEFAULT_SCAN='directories',
+            is_extension_filter=False,
+            is_ignore_extension_filter=False,
+            host='example.com',
+            port=80,
+            scheme='http://',
+            is_session_enabled=False,
+        )
+        debug = MagicMock()
+        debug.is_scan_debug.return_value = False
+        pool = SimpleNamespace(total_items_size=10, is_started=True)
+        reader = MagicMock()
+        reader.get_lines.side_effect = KeyboardInterrupt()
+
+        setattr(br, '_Browser__config', config)
+        setattr(br, '_Browser__debug', debug)
+        setattr(br, '_Browser__pool', pool)
+        setattr(br, '_Browser__reader', reader)
+        setattr(br, '_Browser__temp_workspace', workspace)
+
+        with patch.object(br, '_Browser__start_request_provider'), \
+                patch('src.lib.browser.browser.tpl.info'):
+            with self.assertRaises(KeyboardInterrupt):
+                br.scan()
+
+        workspace.cleanup.assert_called_once_with()
+        self.assertIsNone(getattr(br, '_Browser__temp_workspace'))
+
+
     def test_done_warns_when_streaming_finishes_before_all_planned_items_are_submitted(self):
         """Browser.done() should explain early EOF instead of only printing the final summary."""
 
@@ -1625,6 +2090,87 @@ class TestBrowser(unittest.TestCase):
         result = getattr(br, '_Browser__result')
         self.assertEqual(result['items']['success'], ['http://example.com/admin'])
         self.assertEqual(result['report_items']['success'], [{'url': 'http://example.com/admin', 'size': '5B', 'code': '200'}])
+
+    def test_catch_report_data_deduplicates_same_item_inside_bucket(self):
+        """Browser.__catch_report_data() should emit one item for the same bucket result."""
+
+        br = browser.__new__(browser)
+        setattr(br, '_Browser__result', {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()})
+
+        br._Browser__catch_report_data('success', 'https://EXAMPLE.com:443/admin#top', '5B', '200')
+        br._Browser__catch_report_data('success', 'https://example.com/admin', '9B', '200')
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['success'], 1)
+        self.assertEqual(result['items']['success'], ['https://EXAMPLE.com:443/admin#top'])
+        self.assertEqual(
+            result['report_items']['success'],
+            [{'url': 'https://EXAMPLE.com:443/admin#top', 'size': '5B', 'code': '200'}]
+        )
+
+    def test_catch_report_data_preserves_same_url_across_different_buckets(self):
+        """Report deduplication should be scoped to one bucket only."""
+
+        br = browser.__new__(browser)
+        setattr(br, '_Browser__result', {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()})
+
+        br._Browser__catch_report_data('success', 'https://example.com/admin', '5B', '200')
+        br._Browser__catch_report_data(
+            'secret',
+            'https://example.com/admin',
+            '5B',
+            '200',
+            metadata={'secret_detection': {'type': 'secret', 'types': ['google_api_key']}}
+        )
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['success'], 1)
+        self.assertEqual(result['total']['secret'], 1)
+        self.assertEqual(result['items']['success'], ['https://example.com/admin'])
+        self.assertEqual(result['items']['secret'], ['https://example.com/admin'])
+
+    def test_catch_report_data_preserves_distinct_findings_inside_bucket(self):
+        """Different finding signatures inside one bucket should remain reportable."""
+
+        br = browser.__new__(browser)
+        setattr(br, '_Browser__result', {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()})
+
+        br._Browser__catch_report_data(
+            'secret',
+            'https://example.com/admin',
+            '5B',
+            '200',
+            metadata={'secret_detection': {'type': 'secret', 'types': ['google_api_key']}}
+        )
+        br._Browser__catch_report_data(
+            'secret',
+            'https://example.com/admin',
+            '5B',
+            '200',
+            metadata={'secret_detection': {'type': 'secret', 'types': ['slack_token']}}
+        )
+
+        result = getattr(br, '_Browser__result')
+        self.assertEqual(result['total']['secret'], 2)
+        self.assertEqual(len(result['report_items']['secret']), 2)
+        self.assertEqual(result['report_items']['secret'][0]['secret_detection']['types'], ['google_api_key'])
+        self.assertEqual(result['report_items']['secret'][1]['secret_detection']['types'], ['slack_token'])
+
+    def test_catch_report_data_rebuilds_dedup_keys_from_existing_result(self):
+        """Browser.__catch_report_data() should protect legacy/restored report payloads."""
+
+        br = browser.__new__(browser)
+        result = {'total': helper.counter(), 'items': helper.list(), 'report_items': helper.list()}
+        result['total'].update(('success',))
+        result['items']['success'] += ['https://example.com/admin']
+        result['report_items']['success'] += [{'url': 'https://example.com/admin', 'size': '5B', 'code': '200'}]
+        setattr(br, '_Browser__result', result)
+
+        br._Browser__catch_report_data('success', 'https://example.com/admin#fragment', '9B', '200')
+
+        self.assertEqual(result['total']['success'], 1)
+        self.assertEqual(result['items']['success'], ['https://example.com/admin'])
+        self.assertEqual(result['report_items']['success'], [{'url': 'https://example.com/admin', 'size': '5B', 'code': '200'}])
 
     def test_catch_report_data_keeps_waf_metadata_for_blocked_items(self):
         """Browser.__catch_report_data() should persist WAF metadata into detailed report items."""
@@ -1770,6 +2316,210 @@ class TestBrowser(unittest.TestCase):
         self.assertNotIn('WAF detection:', rendered)
         self.assertNotIn('WAF safe mode:', rendered)
         self.assertNotIn('| status', rendered)
+
+
+    def test_memory_monitor_adds_runtime_diagnostics_row_when_debug_enabled(self):
+        """Runtime diagnostics should include memory row when debug output is enabled."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=10,
+            submitted_size=10,
+            workers_size=1,
+            size=0,
+            items_size=10,
+            completed_size=10,
+        ))
+        setattr(br, '_Browser__config', SimpleNamespace(
+            retries_fail_streak=10,
+            is_auto_calibrate=False,
+        ))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
+        setattr(br, '_Browser__memory_monitor', SimpleNamespace(
+            payload=lambda processed, active_seconds: {
+                'enabled': True,
+                'available': True,
+                'rss_current_mb': 128.0,
+                'rss_delta_mb': 32.0,
+                'tracemalloc_current_mb': 10.0,
+                'tracemalloc_delta_mb': 5.0,
+                'tracemalloc_peak_mb': 12.0,
+                'growth_per_1000_items_mb': 500.0,
+            }
+        ))
+
+        rendered = br._Browser__format_runtime_diagnostics(status='completed')
+
+        self.assertIn('| memory', rendered)
+        self.assertIn('RSS 128.0 MB (+32.0 MB)', rendered)
+        self.assertIn('trace 10.0 MB (+5.0 MB), peak 12.0 MB', rendered)
+        self.assertIn('+500.0 MB/1000 items', rendered)
+
+    def test_crawl_runtime_diagnostics_row_is_shown_when_crawl_is_enabled(self):
+        """Runtime diagnostics should summarize crawl queue enrichment counters."""
+
+        br = self.make_browser()
+        crawl_state = CrawlState(max_enqueued=10)
+        crawl_state.reserve('http://example.com/login')
+        crawl_state.reserve('http://example.com/search?q=admin')
+        crawl_state.reserve('http://example.com/form-search')
+        crawl_state.record_processed()
+        crawl_state.record_processed()
+        crawl_state.record_processed()
+        crawl_state.skip_duplicate('http://example.com/admin')
+        crawl_state.record_extraction_result(SimpleNamespace(
+            skipped_content_type=0,
+            skipped_body_size=0,
+            skipped_invalid=1,
+            skipped_external=1,
+            skipped_extension=1,
+            skipped_duplicate=0,
+            skipped_limit=0,
+        ))
+
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=2,
+            submitted_size=5,
+            workers_size=1,
+            size=0,
+            items_size=5,
+            completed_size=5,
+        ))
+        setattr(br, '_Browser__config', SimpleNamespace(
+            retries_fail_streak=10,
+            is_auto_calibrate=False,
+        ))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
+        setattr(br, '_Browser__crawl_state', crawl_state)
+
+        rendered = br._Browser__format_runtime_diagnostics(status='completed')
+
+        self.assertIn('| crawl', rendered)
+        self.assertIn('3 discovered, 3 consumed, 0 pending, 1 duplicate, 3 skipped', rendered)
+
+    def test_traffic_runtime_diagnostics_row_is_shown(self):
+        """Runtime diagnostics should include accumulated response traffic counters."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=98145,
+            submitted_size=98071,
+            workers_size=1,
+            size=0,
+            items_size=98145,
+            completed_size=98145,
+        ))
+        setattr(br, '_Browser__config', SimpleNamespace(
+            retries_fail_streak=10,
+            is_auto_calibrate=True,
+        ))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: True))
+        setattr(br, '_Browser__traffic_response_body_bytes', int(842.7 * 1024 * 1024))
+        setattr(br, '_Browser__traffic_response_header_bytes', int(91.4 * 1024 * 1024))
+        setattr(br, '_Browser__traffic_requests', 98071)
+
+        rendered = br._Browser__format_runtime_diagnostics(status='completed')
+
+        self.assertIn('| traffic', rendered)
+        self.assertIn(
+            'response bodies 842.7 MB, headers 91.4 MB, requests 98071',
+            rendered
+        )
+
+    def test_traffic_accounting_records_attempts_and_response_bytes(self):
+        """Traffic accounting should include attempts and successful response bytes."""
+
+        br = self.make_browser()
+        response = SimpleNamespace(
+            headers={
+                'Content-Length': '1024',
+                'Server': 'unit-test',
+            },
+            data=b'fallback-body',
+        )
+        client = SimpleNamespace(request=MagicMock(side_effect=[response, None]))
+
+        setattr(br, '_Browser__client', client)
+        setattr(br, '_Browser__config', SimpleNamespace(
+            is_waf_safe_mode=False,
+            accept_cookies=False,
+        ))
+
+        self.assertIs(br._Browser__request_with_waf_safe_mode('http://example.com/'), response)
+        self.assertIsNone(br._Browser__request_with_waf_safe_mode('http://example.com/missing'))
+
+        payload = br._Browser__traffic_diagnostics_payload()
+        self.assertEqual(payload['requests'], 2)
+        self.assertEqual(payload['response_body_bytes'], 1024)
+        self.assertEqual(
+            payload['response_header_bytes'],
+            len('Content-Length: 1024\r\nServer: unit-test\r\n\r\n'.encode('utf-8'))
+        )
+
+    def test_traffic_counters_are_preserved_in_session_snapshots(self):
+        """Traffic counters should survive session save/load after interruption."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=10,
+            items_size=4,
+        ))
+        setattr(br, '_Browser__processed_offset', 2)
+        setattr(br, '_Browser__traffic_response_body_bytes', 4096)
+        setattr(br, '_Browser__traffic_response_header_bytes', 512)
+        setattr(br, '_Browser__traffic_requests', 7)
+
+        snapshot = br._Browser__build_session_snapshot(reason='signal')
+
+        self.assertEqual(snapshot['stats']['traffic_response_body_bytes'], 4096)
+        self.assertEqual(snapshot['stats']['traffic_response_header_bytes'], 512)
+        self.assertEqual(snapshot['stats']['traffic_requests'], 7)
+
+        restored = self.make_browser()
+        setattr(restored, '_Browser__pool', SimpleNamespace(total_items_size=1))
+        restored._Browser__restore_session_state(snapshot)
+
+        payload = restored._Browser__traffic_diagnostics_payload()
+        self.assertEqual(payload['response_body_bytes'], 4096)
+        self.assertEqual(payload['response_header_bytes'], 512)
+        self.assertEqual(payload['requests'], 7)
+
+    def test_memory_monitor_does_not_emit_runtime_diagnostics_without_debug(self):
+        """Runtime diagnostics should stay hidden when debug output is disabled."""
+
+        br = self.make_browser()
+        setattr(br, '_Browser__pool', SimpleNamespace(
+            total_items_size=1,
+            submitted_size=1,
+            workers_size=1,
+            size=0,
+            items_size=1,
+            completed_size=1,
+        ))
+        setattr(br, '_Browser__config', SimpleNamespace(
+            retries_fail_streak=10,
+            is_auto_calibrate=False,
+        ))
+        setattr(br, '_Browser__debug', SimpleNamespace(is_scan_debug=lambda: False))
+        setattr(br, '_Browser__runtime_diagnostics_emitted', False)
+        setattr(br, '_Browser__memory_monitor', SimpleNamespace(
+            payload=lambda processed, active_seconds: {
+                'enabled': True,
+                'available': True,
+                'rss_current_mb': None,
+                'rss_delta_mb': None,
+                'tracemalloc_current_mb': 3.0,
+                'tracemalloc_delta_mb': 1.0,
+                'tracemalloc_peak_mb': 4.0,
+                'growth_per_1000_items_mb': None,
+            }
+        ))
+
+        with patch('src.lib.browser.browser.output.writeln') as info_mock:
+            emitted = br._Browser__emit_runtime_diagnostics(status='completed')
+
+        self.assertFalse(emitted)
+        info_mock.assert_not_called()
 
     def test_runtime_diagnostics_table_uses_dynamic_width_for_longest_cells(self):
         """Runtime diagnostics table should expand to the longest label/value."""
@@ -2709,10 +3459,8 @@ class TestBrowser(unittest.TestCase):
         actual = br._Browser__register_pending_request('http://example.com/admin', 0)
 
         self.assertTrue(actual)
-        self.assertIn(
-            '0::http://example.com/admin',
-            getattr(br, '_Browser__pending_requests')
-        )
+        self.assertEqual({}, getattr(br, '_Browser__pending_requests'))
+        self.assertEqual({'0::http://example.com/admin'}, getattr(br, '_Browser__transient_request_keys'))
 
     def test_http_request_legacy_objects_do_not_fail_on_session_finalize_paths(self):
         """Browser.__http_request() should remain safe for legacy objects without session attributes."""
@@ -2864,6 +3612,27 @@ class TestBrowser(unittest.TestCase):
         actual = Browser._Browser__match_js_cookie_reload_challenge(
             response,
             ('success', 'http://example.com/adminer-4.2.3-sk.php', '120B', '200'),
+        )
+
+        self.assertIsNotNone(actual)
+        self.assertEqual(actual['calibration_reason'], 'js-cookie-reload-challenge')
+
+    def test_js_cookie_reload_challenge_helper_handles_navigation_redirect_body_script(self):
+        """JS cookie challenge guard should catch document.location.href bootstrap pages."""
+
+        response = SimpleNamespace(
+            status=200,
+            headers={'Content-Type': 'text/html'},
+            data=(
+                '<html><body><script>document.cookie="bpc=abc;Domain=www.familytree.ru;Path=/";'
+                'document.location.href="http://www.familytree.ru/wp-login.php.tmp";'
+                '</script></body></html>'
+            ).encode('utf-8'),
+        )
+
+        actual = Browser._Browser__match_js_cookie_reload_challenge(
+            response,
+            ('success', 'https://www.familytree.ru/wp-login.php.tmp', '197B', '200'),
         )
 
         self.assertIsNotNone(actual)

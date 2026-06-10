@@ -1199,6 +1199,9 @@ class TestCalibration(unittest.TestCase):
         self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
             dict(base, content_kind='html'), dict(candidate, content_kind='json')
         ))
+        self.assertTrue(Calibration._is_compact_cross_status_soft_error_shape_match(
+            dict(base, content_kind=None), dict(candidate, content_kind=None)
+        ))
         self.assertFalse(Calibration._is_compact_cross_status_soft_error_shape_match(
             dict(base, size=31), dict(candidate, size=31)
         ))

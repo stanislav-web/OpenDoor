@@ -11,7 +11,7 @@ opendoor --host https://example.com --sniff <plugins>
 Multiple sniffers can be combined with commas:
 
 ```shell
-opendoor --host https://example.com --sniff malware,secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
+opendoor --host https://example.com --sniff endpoint,malware,secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
 ```
 
 Some sniffers accept parameters:
@@ -39,6 +39,7 @@ Common cases:
 | Exposed backup or shadow copies near confirmed files | `shadow` |
 | Exposed debug stack traces or verbose error details | `stacktrace` |
 | Redirect parameters that may accept arbitrary external targets | `openredirect` |
+| Client-exposed WebSocket, Socket.IO, SSE/EventSource or AJAX endpoints | `endpoint` |
 | Redirect-like or duplicated fallback responses | `collation` |
 
 Sniffers are especially useful when combined with response filters and auto-calibration.
@@ -64,7 +65,7 @@ opendoor \
   --auto-calibrate \
   --exclude-status 404,429,500-599 \
   --exclude-size-range 0-256 \
-  --sniff malware,secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
+  --sniff endpoint,malware,secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
 ```
 
 ---
@@ -198,7 +199,7 @@ Example:
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff malware,secret,shadow,stacktrace,indexof,file \
+  --sniff endpoint,malware,secret,shadow,stacktrace,indexof,file \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
@@ -208,7 +209,7 @@ If the requested method is `HEAD`, OpenDoor overrides it to `GET` when `secret` 
 opendoor \
   --host https://example.com \
   --auto-calibrate \
-  --sniff malware,secret,shadow,stacktrace,skipempty,collation,indexof,file
+  --sniff endpoint,malware,secret,shadow,stacktrace,skipempty,collation,indexof,file
 ```
 
 ---
@@ -237,7 +238,7 @@ Example:
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff malware,secret,shadow,stacktrace,indexof,file \
+  --sniff endpoint,malware,secret,shadow,stacktrace,indexof,file \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
@@ -247,7 +248,7 @@ If the requested method is `HEAD`, OpenDoor overrides it to `GET` when `malware`
 opendoor \
   --host https://example.com \
   --auto-calibrate \
-  --sniff malware,secret,shadow,stacktrace,skipempty,collation,indexof,file
+  --sniff endpoint,malware,secret,shadow,stacktrace,skipempty,collation,indexof,file
 ```
 
 ---
@@ -271,13 +272,34 @@ Example:
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff shadow,malware,secret,stacktrace,indexof,file \
+  --sniff endpoint,shadow,malware,secret,stacktrace,indexof,file \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
 Use `shadow` when developers may accidentally deploy old, backup or editor-created copies of application files across PHP, Python, Node.js or mixed stacks.
 
 ---
+
+## ↪️ Redirect classification
+
+OpenDoor passively classifies already discovered `3xx` responses by reading the existing `Location` header. This is built into normal redirect handling: it does not require a `--sniff` value, does not follow redirects by default, does not add requests by default, and does not create a separate report file. Explicit `--follow-redirects` can materialize bounded same-host redirect chains outside the sniffer system.
+
+Runtime output keeps one compact line and adds a short marker:
+
+```text
+R(canonical)  /api -> /api/
+R(internal)   /old -> /new
+R(login)      /admin -> /login?next=/admin
+R(logout)     /logout -> /login?logged_out=1
+R(external)   /oauth -> login.microsoftonline.com
+R(scheme)     http://example.com/api -> https://example.com/api
+R(asset)      /logo -> /static/logo.png
+R(waf)        /panel -> /cdn-cgi/challenge-platform/...
+R(unknown)    /x -> /y
+R(invalid)    redirect without a usable Location target
+```
+
+The marker is informational. `R(external)` does not mean open redirect vulnerability. Use `--sniff openredirect` for bounded active verification of redirect-like parameters.
 
 ## 🔁 `openredirect`
 
@@ -317,9 +339,44 @@ Example:
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff openredirect,malware,secret,stacktrace,indexof,file \
+  --sniff endpoint,openredirect,malware,secret,stacktrace,indexof,file \
   --reports std,json,csv,html,sqlite,sarif
 ```
+
+---
+
+## 🔌 `endpoint`
+
+Passively detects client-exposed endpoint references in already-fetched successful textual responses.
+
+```shell
+opendoor --host https://example.com --method GET --sniff endpoint
+```
+
+The `endpoint` sniffer classifies matching responses into the `endpoint` bucket and attaches bounded `endpoint_detection` metadata to detailed reports. Runtime output stays compact and uses `OK (Endpoint)` without printing individual endpoint details.
+
+It currently looks for strong client-side endpoint signals such as:
+
+- `WebSocket`, `ws://` and `wss://` references;
+- Socket.IO calls and Engine.IO transport URLs;
+- `EventSource` and `text/event-stream` responses;
+- AJAX call targets from `fetch`, `XMLHttpRequest`, `axios` and `$.ajax`.
+
+The sniffer does not open WebSocket/SSE connections, execute JavaScript, render pages, validate endpoints, or add extracted paths to the scan queue. It only analyzes responses OpenDoor has already fetched.
+
+To reduce false positives, generic links, static assets, CDN Socket.IO scripts, ordinary URL literals, dynamic template paths, external HTTP(S) AJAX targets, and binary/non-success responses are ignored.
+
+Example:
+
+```shell
+opendoor \
+  --host https://example.com \
+  --method GET \
+  --sniff endpoint,malware,secret,shadow,stacktrace,indexof,file \
+  --reports std,json,csv,html,sqlite,sarif
+```
+
+If the requested method is `HEAD`, OpenDoor overrides it to `GET` when `endpoint` is selected because this sniffer needs response body analysis.
 
 ---
 
@@ -340,7 +397,7 @@ Example:
 opendoor \
   --host https://example.com \
   --method GET \
-  --sniff malware,secret,shadow,stacktrace,indexof,file \
+  --sniff endpoint,malware,secret,shadow,stacktrace,indexof,file \
   --reports std,json,csv,html,sqlite,sarif
 ```
 
@@ -350,7 +407,7 @@ If the requested method is `HEAD`, OpenDoor overrides it to `GET` when `stacktra
 opendoor \
   --host https://example.com \
   --auto-calibrate \
-  --sniff malware,secret,shadow,stacktrace,skipempty,collation,indexof,file
+  --sniff endpoint,malware,secret,shadow,stacktrace,skipempty,collation,indexof,file
 ```
 
 ---
@@ -395,7 +452,7 @@ opendoor \
   --host https://example.com \
   --method GET \
   --auto-calibrate \
-  --sniff malware,secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
+  --sniff endpoint,malware,secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
 ```
 
 ### Known false-positive sizes
@@ -438,7 +495,7 @@ opendoor \
   --host https://example.com \
   --method GET \
   --auto-calibrate \
-  --sniff malware,secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
+  --sniff endpoint,malware,secret,shadow,openredirect,stacktrace,skipempty,file,collation,indexof
 ```
 
 For fast scans where response body analysis is not required, keep the default request method and use status/size filters instead.
@@ -501,3 +558,4 @@ opendoor --host https://example.com --exclude-size-range 1000-2000
 | `malware`              | Detect possible malware, webshell and injected payload indicators |
 | `shadow`               | Detect possible archive or backuped files                        |
 | `openredirect`         | Verify redirect parameters for confirmed open redirect issues     |
+| `endpoint`             | Detect client-exposed WebSocket, Socket.IO, SSE/EventSource and AJAX endpoints |

@@ -5,6 +5,7 @@ from argparse import Namespace
 from unittest.mock import MagicMock, patch
 
 from src.core.options import Options
+from src.core.options.filter import Filter
 from src.core.options.exceptions import (
     ArgumentParserError,
     FilterError,
@@ -62,6 +63,15 @@ class TestOptions(unittest.TestCase):
             with self.assertRaises(OptionsError):
                 Options()
 
+    def test_init_rejects_removed_memory_monitor_option(self):
+        """Options.__init__() should reject removed --memory-monitor CLI flag."""
+
+        with patch('src.core.options.options.sys.argv', ['opendoor.py', '--memory-monitor']):
+            with self.assertRaises(OptionsError) as context:
+                Options()
+
+        self.assertIn('memory-monitor', str(context.exception))
+
     def test_get_arg_values_returns_first_standalone_flag_only(self):
         """Options.get_arg_values() should return only the first enabled standalone flag."""
 
@@ -78,6 +88,54 @@ class TestOptions(unittest.TestCase):
         option = self.make_options(namespace)
 
         self.assertEqual(option.get_arg_values(), {'version': True})
+
+    def test_get_arg_values_wraps_filter_errors(self):
+        """Options.get_arg_values() should expose filter validation failures as OptionsError."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            crawl=True,
+            method='HEAD',
+        )
+        option = self.make_options(namespace)
+
+        with self.assertRaises(OptionsError) as context:
+            option.get_arg_values()
+
+        self.assertIn('--crawl requires response bodies', str(context.exception))
+
+    def test_get_arg_values_should_enable_waf_detect_for_waf_guard(self):
+        """Options.get_arg_values() should normalize WAF guard into WAF detection."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            diff=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            waf_guard=True,
+            waf_safe_mode=False,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'waf_guard': True}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'waf_guard': True, 'waf_detect': True})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'waf_guard': True, 'waf_safe_mode': False})
 
     def test_get_arg_values_should_preserve_debug_zero(self):
         """Options.get_arg_values() should keep --debug 0 instead of dropping it as falsy."""
@@ -376,8 +434,8 @@ class TestOptions(unittest.TestCase):
 
         option.parser.print_help.assert_called_once_with()
 
-    def test_get_arg_values_wraps_filter_errors(self):
-        """Options.get_arg_values() should wrap filter failures into OptionsError."""
+    def test_get_arg_values_wraps_runtime_filter_errors(self):
+        """Options.get_arg_values() should wrap runtime filter failures into OptionsError."""
 
         namespace = Namespace(
             host='example.com',
@@ -1292,6 +1350,118 @@ class TestOptions(unittest.TestCase):
             'waf_safe_mode': True,
             'waf_guard': True,
         })
+
+
+    def test_get_arg_values_should_not_emit_default_crawl(self):
+        """Options.get_arg_values() should not emit unset crawl flag default."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            crawl=None,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com'})
+        filter_mock.assert_called_once_with({'host': 'example.com'})
+
+    def test_get_arg_values_should_pass_explicit_follow_redirects(self):
+        """Options.get_arg_values() should pass explicit --follow-redirects through Filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            follow_redirects=True,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={
+            'host': 'example.com',
+            'follow_redirects': True,
+        }) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'follow_redirects': True})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'follow_redirects': True})
+
+    def test_get_arg_values_should_pass_explicit_crawl(self):
+        """Options.get_arg_values() should pass explicit --crawl through Filter."""
+
+        namespace = Namespace(
+            host='example.com',
+            hostlist=None,
+            stdin=False,
+            raw_request=None,
+            session_load=None,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            crawl=True,
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'host': 'example.com', 'crawl': True}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'host': 'example.com', 'crawl': True})
+        filter_mock.assert_called_once_with({'host': 'example.com', 'crawl': True})
+
+    def test_filter_should_reject_crawl_with_explicit_head_method(self):
+        """Filter.filter() should reject explicit HEAD when --crawl is enabled."""
+
+        with self.assertRaises(FilterError) as context:
+            Filter.filter({
+                'host': 'example.com',
+                'crawl': True,
+                'method': 'HEAD',
+            })
+
+        self.assertIn('--crawl requires response bodies', str(context.exception))
+
+    def test_filter_should_reject_crawl_with_subdomain_scan(self):
+        """Filter.filter() should keep --crawl limited to directory scans."""
+
+        with self.assertRaises(FilterError) as context:
+            Filter.filter({
+                'host': 'example.com',
+                'scan': 'subdomains',
+                'crawl': True,
+                'reports': 'std',
+            })
+
+        self.assertIn('--crawl can be used only with --scan directories', str(context.exception))
+
+    def test_filter_should_allow_crawl_without_explicit_method(self):
+        """Filter.filter() should allow --crawl to use BrowserConfig's GET runtime default."""
+
+        filtered = Filter.filter({
+            'host': 'example.com',
+            'crawl': True,
+        })
+
+        self.assertTrue(filtered['crawl'])
+        self.assertNotIn('method', filtered)
 
     def test_init_should_parse_fail_on_bucket_argument(self):
         """Options.__init__() should parse CI/CD fail-on bucket argument."""

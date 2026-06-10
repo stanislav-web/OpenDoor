@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import csv
-import json
-import os
-import sqlite3
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -17,6 +13,7 @@ from src.lib.reporter.plugins.provider.provider import PluginProvider
 from src.lib.reporter.plugins.sarif import SarifReportPlugin
 from src.lib.reporter.plugins.sqlite import SqliteReportPlugin
 from src.lib.reporter.plugins.txt import TextReportPlugin
+from tests.reporting_helpers import fetch_sqlite_row, read_csv_report, read_json_report
 
 
 class TestStacktraceReportMetadata(unittest.TestCase):
@@ -32,6 +29,24 @@ class TestStacktraceReportMetadata(unittest.TestCase):
             'signal': 'python-traceback',
             'confidence': 95,
         }
+        self.passive_finding = {
+            'bucket': 'stacktrace',
+            'type': 'stacktrace',
+            'url': 'https://debug.local/error',
+            'severity': 'medium',
+            'reason': 'stacktrace_exposed',
+            'confidence': 'high',
+            'evidence': {
+                'runtime': 'python',
+                'signal': 'python-traceback',
+                'confidence_score': 95,
+            },
+            'source': {
+                'signal': 'response_body',
+                'request_method': 'GET',
+                'status': 500,
+            },
+        }
         self.data = {
             'items': {
                 'stacktrace': ['https://debug.local/error'],
@@ -43,6 +58,7 @@ class TestStacktraceReportMetadata(unittest.TestCase):
                         'code': '500',
                         'size': '2KB',
                         'stacktrace_detection': dict(self.stacktrace_detection),
+                        'passive_finding': dict(self.passive_finding),
                     }
                 ],
             },
@@ -63,13 +79,17 @@ class TestStacktraceReportMetadata(unittest.TestCase):
             'https://debug.local/error',
             '2KB',
             '500',
-            metadata={'stacktrace_detection': dict(self.stacktrace_detection)},
+            metadata={
+                'stacktrace_detection': dict(self.stacktrace_detection),
+                'passive_finding': dict(self.passive_finding),
+            },
         )
 
         result = getattr(br, '_Browser__result')
         self.assertEqual(result['total']['stacktrace'], 1)
         self.assertEqual(result['items']['stacktrace'], ['https://debug.local/error'])
         self.assertEqual(result['report_items']['stacktrace'][0]['stacktrace_detection'], self.stacktrace_detection)
+        self.assertEqual(result['report_items']['stacktrace'][0]['passive_finding'], self.passive_finding)
 
     def test_txt_format_includes_compact_stacktrace_detection_summary(self):
         """Plain text item formatting should expose stacktrace evidence."""
@@ -79,24 +99,28 @@ class TestStacktraceReportMetadata(unittest.TestCase):
         self.assertEqual(
             actual,
             'https://debug.local/error - 500 - 2KB | '
-            'stacktrace=stacktrace, runtime=python, signal=python-traceback, confidence=95%'
+            'stacktrace=stacktrace, runtime=python, signal=python-traceback, confidence=95% | '
+            'finding=stacktrace, severity=medium, reason=stacktrace_exposed, confidence=high'
         )
 
     def test_csv_report_exposes_queryable_stacktrace_columns(self):
         """CSV report should flatten stacktrace_detection into stable columns."""
 
-        plugin = CsvReportPlugin(self.target, self.data, directory=self.base_dir + os.path.sep)
+        plugin = CsvReportPlugin(self.target, self.data, directory=self.base_dir)
         plugin.process()
-
-        report_file = os.path.join(self.base_dir, self.target, self.target + '.csv')
-        with open(report_file, 'r', newline='', encoding='utf-8') as handler:
-            rows = list(csv.DictReader(handler))
+        rows = read_csv_report(self.base_dir, self.target)
 
         self.assertEqual(rows[0]['status'], 'stacktrace')
         self.assertEqual(rows[0]['stacktrace_detection'], 'stacktrace')
         self.assertEqual(rows[0]['stacktrace_runtime'], 'python')
         self.assertEqual(rows[0]['stacktrace_signal'], 'python-traceback')
         self.assertEqual(rows[0]['stacktrace_confidence'], '95')
+        self.assertEqual(rows[0]['finding_type'], 'stacktrace')
+        self.assertEqual(rows[0]['finding_severity'], 'medium')
+        self.assertEqual(rows[0]['finding_reason'], 'stacktrace_exposed')
+        self.assertEqual(rows[0]['finding_confidence'], 'high')
+        self.assertIn('response_body', rows[0]['finding_source'])
+        self.assertIn('python-traceback', rows[0]['finding_evidence'])
 
     def test_sqlite_report_exposes_queryable_stacktrace_columns(self):
         """SQLite report should flatten stacktrace_detection into queryable columns."""
@@ -104,25 +128,28 @@ class TestStacktraceReportMetadata(unittest.TestCase):
         plugin = SqliteReportPlugin(self.target, self.data, directory=self.base_dir)
         plugin.process()
 
-        database_path = os.path.join(self.base_dir, self.target, self.target + '.sqlite')
-        connection = sqlite3.connect(database_path)
-        row = connection.execute(
-            'SELECT status, stacktrace_detection, stacktrace_runtime, stacktrace_signal, stacktrace_confidence FROM items'
-        ).fetchone()
-        connection.close()
+        row = fetch_sqlite_row(
+            self.base_dir,
+            self.target,
+            'SELECT status, stacktrace_detection, stacktrace_runtime, stacktrace_signal, stacktrace_confidence, '
+            'finding_type, finding_severity, finding_reason, finding_confidence, finding_source, finding_evidence FROM items',
+        )
 
-        self.assertEqual(row, ('stacktrace', 'stacktrace', 'python', 'python-traceback', 95))
+        self.assertEqual(row[:9], (
+            'stacktrace', 'stacktrace', 'python', 'python-traceback', 95,
+            'stacktrace', 'medium', 'stacktrace_exposed', 'high',
+        ))
+        self.assertIn('response_body', row[9])
+        self.assertIn('python-traceback', row[10])
 
     def test_json_report_preserves_nested_stacktrace_detection_object(self):
         """JSON report should serialize the original nested stacktrace_detection object."""
 
-        with patch('src.lib.reporter.plugins.json.filesystem.clear'), \
-                patch('src.lib.reporter.plugins.json.JsonReportPlugin.record') as record_mock:
-            plugin = JsonReportPlugin(self.target, self.data, directory=self.base_dir)
-            plugin.process()
-
-        payload = json.loads(record_mock.call_args.args[2])
+        plugin = JsonReportPlugin(self.target, self.data, directory=self.base_dir)
+        plugin.process()
+        payload = read_json_report(self.base_dir, self.target)
         self.assertEqual(payload['report_items']['stacktrace'][0]['stacktrace_detection'], self.stacktrace_detection)
+        self.assertEqual(payload['report_items']['stacktrace'][0]['passive_finding'], self.passive_finding)
 
     def test_html_report_renders_nested_stacktrace_detection_object(self):
         """HTML report should render nested stacktrace_detection details."""
@@ -130,6 +157,8 @@ class TestStacktraceReportMetadata(unittest.TestCase):
         html = render_html_report(self.target, self.data)
 
         self.assertIn('stacktrace_detection', html)
+        self.assertIn('passive_finding', html)
+        self.assertIn('stacktrace_exposed', html)
         self.assertIn('python-traceback', html)
         self.assertIn('stacktrace', html)
 
@@ -147,7 +176,8 @@ class TestStacktraceReportMetadata(unittest.TestCase):
             'stacktrace',
             [
                 'https://debug.local/error - 500 - 2KB | '
-                'stacktrace=stacktrace, runtime=python, signal=python-traceback, confidence=95%'
+                'stacktrace=stacktrace, runtime=python, signal=python-traceback, confidence=95% | '
+                'finding=stacktrace, severity=medium, reason=stacktrace_exposed, confidence=high'
             ],
             '\n'
         )
@@ -177,6 +207,82 @@ class TestStacktraceReportMetadata(unittest.TestCase):
         self.assertEqual(result['level'], 'warning')
         self.assertIn('exposed stacktrace details', result['message']['text'])
         self.assertEqual(result['properties']['stacktraceDetection'], self.stacktrace_detection)
+        self.assertEqual(result['properties']['passiveFinding'], self.passive_finding)
+
+    def test_txt_format_handles_minimal_passive_finding_metadata(self):
+        """Plain text formatter should tolerate missing optional passive finding fields."""
+
+        actual = PluginProvider.format_report_item({
+            'url': 'https://debug.local/error',
+            'code': '500',
+            'size': '2KB',
+            'passive_finding': {'type': 'stacktrace'},
+        })
+
+        self.assertEqual(actual, 'https://debug.local/error - 500 - 2KB | finding=stacktrace')
+
+    def test_csv_report_handles_scalar_and_empty_passive_finding_metadata(self):
+        """CSV passive finding formatter should safely flatten scalar and empty metadata values."""
+
+        data = {
+            'items': {'stacktrace': ['https://debug.local/error']},
+            'report_items': {
+                'stacktrace': [
+                    {
+                        'url': 'https://debug.local/error',
+                        'code': '500',
+                        'size': '2KB',
+                        'passive_finding': {
+                            'type': 'stacktrace',
+                            'source': None,
+                            'evidence': 'python-traceback',
+                        },
+                    }
+                ],
+            },
+            'total': {'stacktrace': 1},
+        }
+
+        plugin = CsvReportPlugin(self.target, data, directory=self.base_dir)
+        plugin.process()
+        rows = read_csv_report(self.base_dir, self.target)
+
+        self.assertEqual(rows[0]['finding_type'], 'stacktrace')
+        self.assertEqual(rows[0]['finding_source'], '')
+        self.assertEqual(rows[0]['finding_evidence'], 'python-traceback')
+
+    def test_sqlite_report_handles_scalar_passive_finding_source_and_evidence(self):
+        """SQLite passive finding serializer should preserve scalar metadata safely."""
+
+        data = {
+            'items': {'stacktrace': ['https://debug.local/error']},
+            'report_items': {
+                'stacktrace': [
+                    {
+                        'url': 'https://debug.local/error',
+                        'code': '500',
+                        'size': '2KB',
+                        'passive_finding': {
+                            'type': 'stacktrace',
+                            'source': 'response_body',
+                            'evidence': 'python-traceback',
+                        },
+                    }
+                ],
+            },
+            'total': {'stacktrace': 1},
+        }
+
+        plugin = SqliteReportPlugin(self.target, data, directory=self.base_dir)
+        plugin.process()
+
+        row = fetch_sqlite_row(
+            self.base_dir,
+            self.target,
+            'SELECT finding_type, finding_source, finding_evidence FROM items',
+        )
+
+        self.assertEqual(row, ('stacktrace', 'response_body', 'python-traceback'))
 
 
 class TestStacktraceMysqlDetection(unittest.TestCase):
@@ -226,12 +332,9 @@ class TestStacktraceMysqlDetection(unittest.TestCase):
     def test_csv_report_exposes_mysql_stacktrace_columns(self):
         """CSV should flatten mysql stacktrace_detection."""
 
-        plugin = CsvReportPlugin(self.target, self.data, directory=self.base_dir + os.path.sep)
+        plugin = CsvReportPlugin(self.target, self.data, directory=self.base_dir)
         plugin.process()
-
-        report_file = os.path.join(self.base_dir, self.target, self.target + '.csv')
-        with open(report_file, 'r', newline='', encoding='utf-8') as handler:
-            rows = list(csv.DictReader(handler))
+        rows = read_csv_report(self.base_dir, self.target)
 
         self.assertEqual(rows[0]['status'], 'stacktrace')
         self.assertEqual(rows[0]['stacktrace_detection'], 'stacktrace')
@@ -245,24 +348,20 @@ class TestStacktraceMysqlDetection(unittest.TestCase):
         plugin = SqliteReportPlugin(self.target, self.data, directory=self.base_dir)
         plugin.process()
 
-        database_path = os.path.join(self.base_dir, self.target, self.target + '.sqlite')
-        connection = sqlite3.connect(database_path)
-        row = connection.execute(
-            'SELECT status, stacktrace_detection, stacktrace_runtime, stacktrace_signal, stacktrace_confidence FROM items'
-        ).fetchone()
-        connection.close()
+        row = fetch_sqlite_row(
+            self.base_dir,
+            self.target,
+            'SELECT status, stacktrace_detection, stacktrace_runtime, stacktrace_signal, stacktrace_confidence FROM items',
+        )
 
         self.assertEqual(row, ('stacktrace', 'stacktrace', 'mysql', 'mysql-error', 90))
 
     def test_json_report_preserves_mysql_nested_object(self):
         """JSON should keep nested mysql stacktrace_detection."""
 
-        with patch('src.lib.reporter.plugins.json.filesystem.clear'), \
-                patch('src.lib.reporter.plugins.json.JsonReportPlugin.record') as record_mock:
-            plugin = JsonReportPlugin(self.target, self.data, directory=self.base_dir)
-            plugin.process()
-
-        payload = json.loads(record_mock.call_args.args[2])
+        plugin = JsonReportPlugin(self.target, self.data, directory=self.base_dir)
+        plugin.process()
+        payload = read_json_report(self.base_dir, self.target)
         self.assertEqual(
             payload['report_items']['stacktrace'][0]['stacktrace_detection'],
             self.mysql_detection
@@ -326,12 +425,9 @@ class TestStacktracePdoDetection(unittest.TestCase):
     def test_csv_report_exposes_pdo_stacktrace_columns(self):
         """CSV should flatten PDO stacktrace_detection."""
 
-        plugin = CsvReportPlugin(self.target, self.data, directory=self.base_dir + os.path.sep)
+        plugin = CsvReportPlugin(self.target, self.data, directory=self.base_dir)
         plugin.process()
-
-        report_file = os.path.join(self.base_dir, self.target, self.target + '.csv')
-        with open(report_file, 'r', newline='', encoding='utf-8') as handler:
-            rows = list(csv.DictReader(handler))
+        rows = read_csv_report(self.base_dir, self.target)
 
         self.assertEqual(rows[0]['status'], 'stacktrace')
         self.assertEqual(rows[0]['stacktrace_detection'], 'stacktrace')
@@ -345,24 +441,20 @@ class TestStacktracePdoDetection(unittest.TestCase):
         plugin = SqliteReportPlugin(self.target, self.data, directory=self.base_dir)
         plugin.process()
 
-        database_path = os.path.join(self.base_dir, self.target, self.target + '.sqlite')
-        connection = sqlite3.connect(database_path)
-        row = connection.execute(
-            'SELECT status, stacktrace_detection, stacktrace_runtime, stacktrace_signal, stacktrace_confidence FROM items'
-        ).fetchone()
-        connection.close()
+        row = fetch_sqlite_row(
+            self.base_dir,
+            self.target,
+            'SELECT status, stacktrace_detection, stacktrace_runtime, stacktrace_signal, stacktrace_confidence FROM items',
+        )
 
         self.assertEqual(row, ('stacktrace', 'stacktrace', 'pdo', 'pdo-exception', 90))
 
     def test_json_report_preserves_pdo_nested_object(self):
         """JSON should keep nested PDO stacktrace_detection."""
 
-        with patch('src.lib.reporter.plugins.json.filesystem.clear'), \
-                patch('src.lib.reporter.plugins.json.JsonReportPlugin.record') as record_mock:
-            plugin = JsonReportPlugin(self.target, self.data, directory=self.base_dir)
-            plugin.process()
-
-        payload = json.loads(record_mock.call_args.args[2])
+        plugin = JsonReportPlugin(self.target, self.data, directory=self.base_dir)
+        plugin.process()
+        payload = read_json_report(self.base_dir, self.target)
         self.assertEqual(
             payload['report_items']['stacktrace'][0]['stacktrace_detection'],
             self.pdo_detection

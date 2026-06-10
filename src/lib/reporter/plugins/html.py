@@ -1448,6 +1448,7 @@ def _get_columns(items):
         'size',
         'title',
         'redirect',
+        'redirect_classification',
         'content_type',
         'waf',
         'waf_confidence',
@@ -1467,6 +1468,9 @@ def _get_columns(items):
         'secret_detection',
         'malware_detection',
         'shadow_detection',
+        'openredirect_detection',
+        'endpoint_detection',
+        'passive_finding',
     ]
 
     existing = []

@@ -321,6 +321,20 @@ ignore_extensions = aspx,jsp,do
 
 ---
 
+## 🕸️ Same-origin crawl
+
+Enable bounded same-origin queue enrichment from already fetched HTML responses:
+
+```ini
+crawl = True
+method = GET
+scan = directories
+```
+
+Use crawl only when you want one-hop discovery of same-origin links/forms through the normal directory-scan pipeline. It is disabled by default, requires response bodies, skips external origins and POST forms, and does not create a separate report bucket.
+
+---
+
 ## 🔁 Recursive scan
 
 Enable recursive directory discovery:
@@ -343,7 +357,7 @@ Keep recursion depth controlled to avoid overly large scans.
 Sniffers are built-in response analysis plugins.
 
 ```ini
-sniff = skipempty,collation,indexof,file,openredirect
+sniff = endpoint,skipempty,collation,indexof,file,openredirect
 ```
 
 Known false-positive response sizes:
@@ -362,6 +376,7 @@ Common values:
 | `file` | Detect downloadable or interesting files |
 | `collation` | Detect repeated fallback responses |
 | `openredirect` | Verify redirect-like parameters for confirmed open redirect issues |
+| `endpoint` | Detect client-exposed WebSocket, Socket.IO, SSE/EventSource and AJAX endpoints |
 
 For details, see [Sniffers](Sniffers.md).
 
@@ -786,3 +801,9 @@ transport_bin = /opt/homebrew/sbin/openvpn
 ```
 
 On Windows, point it to `openvpn.exe` when the OpenVPN installer did not add it to `PATH`. If the VPN is managed by a GUI app or a corporate agent, keep `transport = direct` and start the VPN outside OpenDoor.
+
+## Passive redirect classification
+
+Redirect classification is built into normal `3xx` handling and does not require a wizard option. OpenDoor reads the already received `Location` header and adds a compact runtime marker such as `R(canonical)`, `R(internal)`, `R(login)`, `R(logout)`, `R(external)`, `R(scheme)`, `R(asset)`, `R(waf)`, `R(unknown)` or `R(invalid)`.
+
+This does not follow redirects by default, does not add requests by default, and does not verify open redirect vulnerabilities. Explicit `--follow-redirects` can materialize bounded same-host redirect chains during scan runtime. Use `sniff = openredirect` only when you want bounded active verification of redirect-like parameters.

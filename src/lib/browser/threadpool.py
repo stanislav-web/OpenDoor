@@ -18,7 +18,7 @@
 
 import threading
 import time
-from queue import Queue
+from queue import Empty as QueueEmptyError, Queue
 
 # noinspection PyPep8Naming
 from src.lib.tpl import Tpl as tpl
@@ -49,6 +49,7 @@ class ThreadPool(object):
         self.__worker_error = None
         self.__pause_requested = False
         self.__pause_lock = threading.RLock()
+        self.__closed = False
         self.total_items_size = total_items
         self.is_started = True
         self.__stall_warning_interval = self.__normalize_stall_warning_interval(stall_warning_interval)
@@ -150,7 +151,7 @@ class ThreadPool(object):
         :return: None
         """
 
-        if True is not self.is_started:
+        if True is not self.is_started or self.__closed is True:
             return
 
         if self.__submitted >= self.total_items_size:
@@ -158,7 +159,7 @@ class ThreadPool(object):
 
         self.__pause_if_requested()
 
-        if True is not self.is_started:
+        if True is not self.is_started or self.__closed is True:
             return
 
         self.__enqueue_with_pause_resume(func, args, kargs)
@@ -272,14 +273,13 @@ class ThreadPool(object):
                 if (now - last_activity_at >= self.__stall_warning_interval
                         and now - last_warning_at >= self.__stall_warning_interval):
                     tpl.warning(
-                        msg='Network request is still waiting/retrying for {0:.0f}s without progress. '
-                            'submitted={1}, completed={2}, queued={3}, active={4}'.format(
-                                now - last_activity_at,
-                                self.submitted_size,
-                                completed,
-                                queue_size,
-                                self.__format_active_tasks(now)
-                            )
+                        msg='Slow item {0:.0f}s: {1} | done={2}/{3} queued={4}'.format(
+                            now - last_activity_at,
+                            self.__format_active_tasks(now),
+                            completed,
+                            self.submitted_size,
+                            queue_size
+                        )
                     )
                     last_warning_at = now
 
@@ -310,6 +310,46 @@ class ThreadPool(object):
 
         if self.__worker_error is not None:
             raise self.__worker_error
+
+    def close(self, join_timeout=1.0):
+        """Stop worker threads and discard queued-but-not-started tasks.
+
+        The CLI normally exits after a scan, but OpenDoor can also be used from
+        tests or long-running Python processes. Worker threads block on the queue
+        after work is drained, so they must receive explicit stop sentinels during
+        cleanup.
+
+        :param int|float join_timeout: maximum seconds to wait for each worker
+        :return: None
+        """
+
+        if self.__closed is True:
+            return
+
+        self.__closed = True
+        self.is_started = False
+        self.__discard_pending_tasks()
+
+        for worker in self.__workers:
+            worker.resume()
+            self.__queue.put(Worker.STOP_TASK)
+
+        for worker in self.__workers:
+            worker.join(timeout=float(join_timeout))
+
+    def __discard_pending_tasks(self):
+        """Drop queued tasks that have not started before pool shutdown.
+
+        :return: None
+        """
+
+        while True:
+            try:
+                self.__queue.get_nowait()
+            except QueueEmptyError:
+                return
+            else:
+                self.__queue.task_done()
 
     @classmethod
     def __normalize_stall_warning_interval(cls, value):
@@ -385,15 +425,11 @@ class ThreadPool(object):
         for task in tasks[:3]:
             label = str(task.get('label') or 'unknown task')
             detail = str(task.get('detail') or '').strip()
-            started_at = float(task.get('started_at') or now)
-            last_activity_at = float(task.get('last_activity_at') or started_at)
-            age = max(0.0, now - started_at)
-            idle = max(0.0, now - last_activity_at)
 
             if detail:
-                items.append('{0} [{1}] (elapsed={2:.0f}s, no-progress={3:.0f}s)'.format(label, detail, age, idle))
+                items.append('{0} [{1}]'.format(label, detail))
             else:
-                items.append('{0} (elapsed={1:.0f}s, no-progress={2:.0f}s)'.format(label, age, idle))
+                items.append(label)
 
         if len(tasks) > 3:
             items.append('+{0} more'.format(len(tasks) - 3))

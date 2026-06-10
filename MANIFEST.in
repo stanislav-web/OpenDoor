@@ -8,5 +8,10 @@ include opendoor.conf
 include pyproject.toml
 
 recursive-include data *.dat
+recursive-include data/openvpn-profiles *.ovpn
+recursive-include data/wireguard-profiles *.conf
 recursive-include src *.py
 recursive-include tests *.py
+
+# Keep Windows package metadata out of source distributions.
+prune chocolatey

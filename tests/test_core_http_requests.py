@@ -177,6 +177,20 @@ class TestHttpRequest(unittest.TestCase):
             self.assertIsNone(req.request('http://example.com/x'))
             self.assertTrue(tpl.warning.called)
 
+    def test_close_releases_http_pool_resources(self):
+        """HttpRequest.close() should release owned pool resources."""
+
+        req = HttpRequest(self.make_cfg(), SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+        pool = MagicMock()
+        manager = MagicMock()
+        req._HttpRequest__pool = pool
+        req._HttpRequest__manager = manager
+
+        req.close()
+
+        pool.close.assert_called_once_with()
+        manager.close.assert_called_once_with()
+
     def test_init_wraps_errors(self):
         """HttpRequest.__init__() should wrap provider setup failures."""
 
@@ -390,6 +404,20 @@ class TestHttpsRequest(unittest.TestCase):
             self.assertIsNone(req.request('https://example.com/x'))
             self.assertTrue(tpl.warning.called)
 
+    def test_close_releases_https_pool_resources(self):
+        """HttpsRequest.close() should release owned pool resources."""
+
+        req = HttpsRequest(self.make_cfg(), SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+        pool = MagicMock()
+        manager = MagicMock()
+        req._HttpsRequest__pool = pool
+        req._HttpsRequest__manager = manager
+
+        req.close()
+
+        pool.close.assert_called_once_with()
+        manager.close.assert_called_once_with()
+
     def test_init_wraps_errors(self):
         """HttpsRequest.__init__() should wrap provider setup failures."""
 
@@ -540,6 +568,29 @@ class TestProxy(unittest.TestCase):
         with patch('src.core.http.proxy.random.randrange', return_value=0):
             self.assertEqual(proxy._Proxy__get_random_proxy(), 'http://127.0.0.1:8080')
 
+
+    def test_close_releases_cached_proxy_pools(self):
+        """Proxy.close() should clear all cached proxy pool resources."""
+
+        proxy = Proxy(
+            self.make_cfg(),
+            SimpleNamespace(level=0, debug_proxy_pool=lambda: None),
+            tpl=MagicMock(),
+            proxy_list=['http://127.0.0.1:8080'],
+            agent_list=['UA'],
+        )
+        pool_a = MagicMock()
+        pool_b = MagicMock()
+        proxy._Proxy__proxy_pools = {
+            'http://127.0.0.1:8080': pool_a,
+            'http://127.0.0.1:8081': pool_b,
+        }
+
+        proxy.close()
+
+        pool_a.close.assert_called_once_with()
+        pool_b.close.assert_called_once_with()
+        self.assertEqual(proxy._Proxy__proxy_pools, {})
 
     def test_proxy_request_handles_decode_error_without_crashing(self):
         """Proxy.request() should skip corrupted encoded responses without raising worker-fatal errors."""

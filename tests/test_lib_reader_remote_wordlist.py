@@ -222,7 +222,8 @@ class TestRemoteWordlistDownloader(unittest.TestCase):
         """HTTPError resources should be closed before converting the error."""
 
         error = HTTPError('https://example.test/list.txt', 500, 'boom', hdrs=None, fp=None)
-        error.close = MagicMock()
+        original_close = error.close
+        error.close = MagicMock(side_effect=original_close)
 
         def opener(_request, timeout=None):
             raise error
