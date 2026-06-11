@@ -493,6 +493,7 @@ Hands-on article series for learning OpenDoor through reproducible, authorized w
 ![OpenDoor](https://raw.githubusercontent.com/stanislav-web/OpenDoor/master/examples/screenshots/cli.png)
 
 - [Part 1 — Context-Aware Web Recon Beyond Directory Brute Force](https://medium.com/@stanisov/mastering-opendoor-context-aware-web-recon-beyond-directory-brute-force-part-1-cc13eda8cd3d)
+- [Part 2 — Low-Noise Recon with Redirects, Endpoint Sniffing, and Bounded Crawl](https://medium.com/@stanisov/mastering-opendoor-low-noise-recon-with-redirects-endpoint-sniffing-and-bounded-crawl-part-2-411b92675d6d)
 - [Series companion page](https://opendoor.readthedocs.io/guides/mastering-opendoor/)
 
 ## 📚 Documentation
