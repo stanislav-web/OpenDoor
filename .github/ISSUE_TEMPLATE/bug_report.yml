@@ -73,28 +73,6 @@ body:
     validations:
       required: true
 
-  - type: dropdown
-    id: component
-    attributes:
-      label: Affected area
-      options:
-        - CLI options / argument parsing
-        - Scanner process / enumeration
-        - HTTP requests / response handling
-        - Fingerprinting
-        - WAF detection / safe mode
-        - Header injection bypass
-        - Auto-calibration / filtering
-        - Reports / SQLite / CSV / stdout
-        - Sessions
-        - Proxy / OpenVPN / WireGuard transports
-        - Docker / packaging / installation
-        - Documentation
-        - Tests / CI
-        - Other
-    validations:
-      required: true
-
   - type: textarea
     id: command
     attributes:
