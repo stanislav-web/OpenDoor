@@ -1,5 +1,10 @@
 CHANGELOG
 =======
+
+v5.18.0 (TBD)
+---------------------------
+- (performance) browser runtime cleanup lifecycle to preserve scan results and crawl diagnostics until reports are finalized, while releasing heavy in-memory request/cache state after result consumption.
+
 v5.17.0 (10.06.2026)
 ---------------------------
 - (critical) avoided expensive collation comparisons on large response bodies, preventing slow classification of valid large 200 OK pages while preserving normal success reporting and small-template soft404 detection.

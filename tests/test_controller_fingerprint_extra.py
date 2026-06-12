@@ -33,6 +33,7 @@ class TestControllerFingerprintExtra(unittest.TestCase):
                 call.scan(),
                 call.done(),
                 call.close(),
+                call.release_runtime_state(),
             ]
         )
 

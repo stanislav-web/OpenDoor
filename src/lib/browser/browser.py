@@ -346,8 +346,9 @@ class Browser(Filter):
 
     def close(self):
         """
-        Cleanup managed runtime resources owned by this browser instance.
-
+        Cleanup managed external runtime resources.
+        This method must not destroy scan results or diagnostic state because
+        the public lifecycle is scan() -> done() -> result.
         :return: None
         """
 
@@ -364,14 +365,44 @@ class Browser(Filter):
         if memory_monitor is not None and hasattr(memory_monitor, 'close'):
             memory_monitor.close()
 
+        workspace = getattr(self, '_Browser__temp_workspace', None)
+        if workspace is not None:
+            workspace.cleanup()
+            self.__temp_workspace = None
+
+    def release_runtime_state(self):
+        """
+        Release heavy in-memory scan state after reports/result have been consumed.
+        :return: None
+        """
+
         request_state_lock = getattr(self, '_Browser__request_state_lock', None)
         transient_request_keys = getattr(self, '_Browser__transient_request_keys', None)
-        if isinstance(transient_request_keys, set):
-            if request_state_lock is not None:
-                with request_state_lock:
-                    transient_request_keys.clear()
-            else:
+        seen_scan_urls = getattr(self, '_Browser__seen_scan_urls', None)
+        visited_recursive = getattr(self, '_Browser__visited_recursive', None)
+        queued_recursive = getattr(self, '_Browser__queued_recursive', None)
+        completed_requests = getattr(self, '_Browser__completed_requests', None)
+        pending_requests = getattr(self, '_Browser__pending_requests', None)
+
+        def clear_request_states():
+            if isinstance(transient_request_keys, set):
                 transient_request_keys.clear()
+            if isinstance(seen_scan_urls, set):
+                seen_scan_urls.clear()
+            if isinstance(visited_recursive, set):
+                visited_recursive.clear()
+            if isinstance(queued_recursive, set):
+                queued_recursive.clear()
+            if isinstance(completed_requests, set):
+                completed_requests.clear()
+            if isinstance(pending_requests, dict):
+                pending_requests.clear()
+
+        if request_state_lock is not None:
+            with request_state_lock:
+                clear_request_states()
+        else:
+            clear_request_states()
 
         report_item_keys = getattr(self, '_Browser__report_item_keys', None)
         if isinstance(report_item_keys, dict):
@@ -381,11 +412,6 @@ class Browser(Filter):
         if crawl_state is not None and hasattr(crawl_state, 'close'):
             crawl_state.close()
             self.__crawl_state = None
-
-        workspace = getattr(self, '_Browser__temp_workspace', None)
-        if workspace is not None:
-            workspace.cleanup()
-            self.__temp_workspace = None
 
     def __del__(self):
         """Best-effort cleanup for instances that never reach scan()."""

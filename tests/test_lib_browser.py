@@ -1888,19 +1888,17 @@ class TestBrowser(unittest.TestCase):
         reader.get_lines.assert_not_called()
 
     def test_close_stops_threadpool_and_cleans_temp_workspace(self):
-        """Browser.close() should release both worker pool and managed temp workspace."""
+        """Browser.close() should release worker pool and managed temp workspace."""
 
         br = Browser.__new__(Browser)
         pool = MagicMock()
         client = MagicMock()
         memory_monitor = MagicMock()
-        crawl_state = MagicMock()
         workspace = MagicMock()
 
         setattr(br, '_Browser__pool', pool)
         setattr(br, '_Browser__client', client)
         setattr(br, '_Browser__memory_monitor', memory_monitor)
-        setattr(br, '_Browser__crawl_state', crawl_state)
         setattr(br, '_Browser__temp_workspace', workspace)
 
         br.close()
@@ -1908,11 +1906,21 @@ class TestBrowser(unittest.TestCase):
         pool.close.assert_called_once_with()
         client.close.assert_called_once_with()
         memory_monitor.close.assert_called_once_with()
-        crawl_state.close.assert_called_once_with()
         workspace.cleanup.assert_called_once_with()
         self.assertIsNone(getattr(br, '_Browser__client'))
-        self.assertIsNone(getattr(br, '_Browser__crawl_state'))
         self.assertIsNone(getattr(br, '_Browser__temp_workspace'))
+
+    def test_release_runtime_state_closes_crawl_state(self):
+        """Browser.release_runtime_state() should close crawl_state."""
+
+        br = Browser.__new__(Browser)
+        crawl_state = MagicMock()
+        setattr(br, '_Browser__crawl_state', crawl_state)
+
+        br.release_runtime_state()
+
+        crawl_state.close.assert_called_once_with()
+        self.assertIsNone(getattr(br, '_Browser__crawl_state'))
 
     def test_prepare_runtime_paths_skips_workspace_without_temp_outputs(self):
         """Browser should not allocate a temp workspace when no runtime wordlist is generated."""

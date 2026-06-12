@@ -709,6 +709,9 @@ class Controller(object):
             close = getattr(brows, 'close', None)
             if callable(close):
                 close()
+            release = getattr(brows, 'release_runtime_state', None)
+            if callable(release):
+                release()
 
     @staticmethod
     def _collect_response_filter_cli_overrides(params):
