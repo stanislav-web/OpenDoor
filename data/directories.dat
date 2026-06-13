@@ -20445,6 +20445,7 @@ apache/logsaccess.log
 apache/logsaccess_log
 apache/logserror.log
 apache/logserror_log
+apache_stat
 apacheAccess.log
 apacheError.log
 apacheerrorsize.php
@@ -33178,6 +33179,7 @@ chronicle
 chronik
 chrono24
 chronograf
+chronology.php
 chs
 CHS
 cht
@@ -50255,10 +50257,7 @@ facefiles
 faces
 faces/admin
 faces/index.xhtml
-faces/javax.faces.resource/web.xml?ln=../WEB-INF
-faces/javax.faces.resource/web.xml?ln=..\\WEB-INF
-faces/javax.faces.resource/web.xml?ln=..WEB-INF
-faces/javax.faces.resourceweb.xml?ln=..\\WEB-INF
+faces/javax.faces.resource/web.xml
 faces/login.xhtml
 facestones
 facetalkonline.php
@@ -55425,6 +55424,7 @@ globalfit
 globalid
 globallib.php
 globalma
+globalmsg.js
 globalmx
 globalmy
 globalnav
@@ -57118,8 +57118,8 @@ guestbook.cfm
 guestbook.cgi
 guestbook.htm
 guestbook.html
-Guestbook.php
 guestbook.php
+Guestbook.php
 guestbook.shtml
 guestbook.txt
 guestbook/guestbookdat
@@ -79606,6 +79606,7 @@ oldpages
 oldpass
 oldPassword
 oldpassword
+oldprice
 oldprice.fil
 oldprint.php
 oldprod.fil
@@ -84465,6 +84466,7 @@ php-inc
 php-include-w-shell.php
 php-includes
 php-info.php
+php-js.php
 php-lib
 php-my-admin
 php-my-admin.php
@@ -102805,8 +102807,8 @@ stats.htm
 stats.html
 stats.json
 stats.old
-Stats.php
 stats.php
+Stats.php
 stats.shtml
 stats.txt
 stats.xml
@@ -106483,6 +106485,7 @@ temperature2.php
 temperature3.php
 temperature4.php
 temperature.log
+tempfile
 tempfiles
 tempfiles.php
 tempfolder
