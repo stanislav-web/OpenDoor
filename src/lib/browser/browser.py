@@ -200,6 +200,7 @@ class Browser(Filter):
             self.__transport_failures_skipped = 0
             self.__transport_failure_summary_emitted = False
             self.__pre_request_skipped = 0
+            self.__deduplicated_requests = 0
             self.__traffic_lock = threading.RLock()
             self.__traffic_response_body_bytes = 0
             self.__traffic_response_header_bytes = 0
@@ -826,6 +827,15 @@ class Browser(Filter):
         self.__ensure_session_runtime_state()
         self.__pre_request_skipped += 1
 
+    def __record_deduplicated_request(self):
+        """Record one consumed dictionary item dropped before worker submission as duplicate.
+
+        :return: None
+        """
+
+        self.__ensure_session_runtime_state()
+        self.__deduplicated_requests += 1
+
     @staticmethod
     def __safe_traffic_int(value):
         """Return a non-negative integer for traffic diagnostics.
@@ -1005,6 +1015,7 @@ class Browser(Filter):
         processed = self.__current_scan_progress_items()
         submitted = self.__safe_progress_int(getattr(self.__pool, 'submitted_size', 0))
         skipped_before_request = self.__safe_progress_int(getattr(self, '_Browser__pre_request_skipped', 0))
+        deduplicated_requests = self.__safe_progress_int(getattr(self, '_Browser__deduplicated_requests', 0))
         transport_skipped = self.__transport_failures_skipped_count()
         active_seconds = self.__active_runtime_seconds()
         average_rate = 0.0
@@ -1026,6 +1037,7 @@ class Browser(Filter):
             'total': total,
             'submitted': submitted,
             'skipped_before_request': skipped_before_request,
+            'deduplicated_requests': deduplicated_requests,
             'transport_skipped': transport_skipped,
             'threads': self.__safe_progress_int(getattr(self.__pool, 'workers_size', 0)),
             'active_seconds': active_seconds,
@@ -1093,6 +1105,27 @@ class Browser(Filter):
 
         return '\n'.join(lines)
 
+    @staticmethod
+    def __format_queue_diagnostics(payload):
+        """Format queue accounting diagnostics for Runtime diagnostics.
+
+        :param dict payload: runtime diagnostics payload
+        :return: formatted queue diagnostics
+        :rtype: str
+        """
+
+        message = '{0} consumed, {1} submitted, {2} pre-request skipped'.format(
+            payload.get('processed'),
+            payload.get('submitted'),
+            payload.get('skipped_before_request'),
+        )
+
+        deduplicated = Browser.__safe_progress_int(payload.get('deduplicated_requests', 0))
+        if deduplicated > 0:
+            message = '{0}, {1} deduplicated'.format(message, deduplicated)
+
+        return message
+
     def __format_runtime_diagnostics(self, status='completed'):
         """Format debug runtime diagnostics as a terminal table.
 
@@ -1114,11 +1147,7 @@ class Browser(Filter):
             ('progress', '{0}/{1} ({2})'.format(processed, total, progress)),
             (
                 'queue',
-                '{0} consumed, {1} submitted, {2} pre-request skipped'.format(
-                    payload.get('processed'),
-                    payload.get('submitted'),
-                    payload.get('skipped_before_request'),
-                ),
+                self.__format_queue_diagnostics(payload),
             ),
             ('rate', '{0:.1f}/s average'.format(payload.get('average_rate', 0.0))),
             (
@@ -4586,6 +4615,8 @@ class Browser(Filter):
                 if False is self.__is_ignored(url):
                     if self.__register_pending_request(url, 0):
                         self.__pool.add(self.__http_request, url, 0)
+                    else:
+                        self.__record_deduplicated_request()
                 else:
                     self.__record_pre_request_skip()
                     self.__catch_report_data('ignored', url)
@@ -4628,6 +4659,8 @@ class Browser(Filter):
                     if self.__register_pending_request(url, 0):
                         self.__pool.add(self.__http_request, url, 0)
                         window_submitted += 1
+                    else:
+                        self.__record_deduplicated_request()
                 else:
                     self.__record_pre_request_skip()
                     self.__catch_report_data('ignored', url)
@@ -5169,6 +5202,7 @@ class Browser(Filter):
                 'processed': self.__processed_offset + self.__pool.items_size,
                 'total_items': self.__pool.total_items_size,
                 'pre_request_skipped': self.__pre_request_skipped,
+                'deduplicated_requests': self.__deduplicated_requests,
                 'transport_failures_skipped': self.__transport_failures_skipped_count(),
                 'active_time_seconds': self.__active_runtime_seconds(),
                 'traffic_response_body_bytes': self.__traffic_response_body_bytes,
@@ -5330,6 +5364,7 @@ class Browser(Filter):
         stats = snapshot.get('stats', {})
         self.__processed_offset = int(stats.get('processed', 0))
         self.__pre_request_skipped = int(stats.get('pre_request_skipped', 0))
+        self.__deduplicated_requests = int(stats.get('deduplicated_requests', 0))
         self.__transport_failures_skipped = int(stats.get('transport_failures_skipped', 0))
         self.__runtime_active_seconds_offset = float(stats.get('active_time_seconds', 0.0) or 0.0)
         self.__traffic_response_body_bytes = self.__safe_traffic_int(stats.get('traffic_response_body_bytes', 0))
@@ -5507,6 +5542,9 @@ class Browser(Filter):
 
         if not hasattr(self, '_Browser__pre_request_skipped'):
             self.__pre_request_skipped = 0
+
+        if not hasattr(self, '_Browser__deduplicated_requests'):
+            self.__deduplicated_requests = 0
 
         if not hasattr(self, '_Browser__traffic_lock'):
             self.__traffic_lock = threading.RLock()

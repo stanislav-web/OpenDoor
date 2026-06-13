@@ -570,6 +570,50 @@ class TestBrowserExtra(unittest.TestCase):
         warning_mock.assert_called_once()
         self.assertIn('Unable to verify active scan list size', warning_mock.call_args.kwargs['msg'])
 
+
+    def test_runtime_diagnostics_explains_deduplicated_consumed_items(self):
+        """Runtime diagnostics should explain consumed dictionary entries that were not submitted."""
+
+        br = self.make_browser()
+        br._Browser__pool.submitted_size = 96696
+        br._Browser__pool.total_items_size = 96771
+        br._Browser__pool.workers_size = 1
+        br._Browser__pool.size = 0
+        br._Browser__streamed_items_count = 96709
+        br._Browser__reader.total_lines = 96709
+        br._Browser__deduplicated_requests = 13
+
+        rendered = br._Browser__format_runtime_diagnostics(status='completed')
+
+        self.assertIn(
+            '| queue       | 96709 consumed, 96696 submitted, 0 pre-request skipped, 13 deduplicated',
+            rendered,
+        )
+
+    def test_add_urls_records_deduplicated_consumed_items(self):
+        """Duplicate consumed URLs should be visible in runtime queue accounting."""
+
+        br = self.make_browser()
+        br._Browser__pool.submitted_size = 0
+        br._Browser__pool.total_items_size = 3
+        br._Browser__reader.total_lines = 3
+        br._Browser__transient_request_keys = set()
+        br._Browser__pool.add.side_effect = lambda *args, **kwargs: setattr(
+            br._Browser__pool,
+            'submitted_size',
+            br._Browser__pool.submitted_size + 1,
+        )
+
+        br._add_urls([
+            'http://example.com/admin',
+            'http://example.com/admin',
+            'http://example.com/login',
+        ])
+
+        self.assertEqual(br._Browser__streamed_items_count, 3)
+        self.assertEqual(br._Browser__pool.submitted_size, 2)
+        self.assertEqual(br._Browser__deduplicated_requests, 1)
+
     def test_warn_if_scan_finished_early_returns_when_all_items_were_submitted(self):
         """Early-finish guard should stay silent when submitted count reaches the planned count."""
 

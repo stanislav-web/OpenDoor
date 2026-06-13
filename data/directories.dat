@@ -22004,7 +22004,7 @@ api/v1/statistics
 api/v1/stats
 api/v1/status/active_queries
 api/v1/status/config
-api/v1/status/label/<label_name>
+api/v1/status/label
 api/v1/status/metadata
 api/v1/status/rules
 api/v1/status/top_queries
@@ -26578,6 +26578,7 @@ banners.php
 banners.swf
 banners.txt
 banners.xml
+banners/app.js
 banners_signup.php
 banners_stat.php
 banners_test.asp
@@ -56956,6 +56957,7 @@ groups/globalAuthenticatedUsers
 groups/s3LogDelivery
 groups_home.php
 groupspersonalized
+grouptest
 groupware
 groupware-crm
 groupwise
@@ -58458,6 +58460,7 @@ home.unsubscribe
 home.xml
 home.zip
 home/.env
+home/indexold
 home_30june10.php
 home_050410.php
 home_250110.php
@@ -60118,6 +60121,7 @@ images//vb.sql
 images/abuhlail.php
 images/admin
 images/admin1
+images/admin.js
 images/admin.php
 images/admin.phtml
 images/asp.aspx
@@ -107386,6 +107390,7 @@ teste.aspx
 teste.html
 teste.php
 teste_nagios.php
+testedit
 TesteIP.php
 testemail
 testemail.asp
@@ -107546,6 +107551,7 @@ testrobot
 testrobots
 testrobotsdisal
 testrobotsnoindex
+testrun
 tests
 TESTS
 Tests
