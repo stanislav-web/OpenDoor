@@ -3,6 +3,7 @@ CHANGELOG
 
 v5.18.0 (TBD)
 ---------------------------
+- (fix) avoid `--sniff file` false positives for `.db` URLs that resolve to textual soft-404 or fallback pages, while preserving real database/file and secret findings.
 - (fix) runtime diagnostics queue accounting by reporting post-consume deduplicated requests separately from submitted and pre-request skipped items.
 - (enhancement) improve `--sniff malware` detection for exposed PHP source by correlating decoder chains with dangerous dynamic execution/include sinks without adding probes or CLI options.
 - (performance) browser runtime cleanup lifecycle to preserve scan results and crawl diagnostics until reports are finalized, while releasing heavy in-memory request/cache state after result consumption.

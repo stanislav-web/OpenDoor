@@ -34763,6 +34763,7 @@ cms/enter
 cms/kernel
 cms/kerneladmin.php
 cms/login
+cms/Login
 cms/login.html
 cms/login.php
 cms/logs
@@ -37382,6 +37383,7 @@ control
 Control
 control2
 control-panel
+control-panel.php
 control-panel/2fa
 control-panel/about
 control-panel/access
@@ -64701,6 +64703,7 @@ js/preprod.js
 js/prod.js
 js/qa.js
 js/routing
+js/script.js
 js/swfupload/swfupload.swf
 js/swfupload/swfupload_f9.swf
 js/swfuploadswfupload.swf
@@ -65705,6 +65708,7 @@ klick.cgi
 klick.php
 kliegl
 klient
+klient.php
 klik.php
 klingon
 klinza
@@ -69003,6 +69007,7 @@ logisphere
 logistics
 logistics.aspx
 logistics.php
+logistics/signin
 logistics_alert_table.php
 logistics_create_table.php
 logistics_data_ajax.php
@@ -83104,6 +83109,7 @@ pass_hash
 pass_recover.php
 pass_w
 pass_word
+passager.php
 passat
 passcheck.cfm
 passdb
@@ -88227,6 +88233,9 @@ problems.html
 problems.php
 problemtracker
 proc
+proc-service/cnt-pinblock.php
+proc-service/cnt-recover.php
+proc-service/us-ratingplus.php
 proc.jsp
 proc.php
 proc/.env
@@ -92051,6 +92060,7 @@ reg_pw.php
 reg_save.asp
 reg_upload.asp
 reg_user
+reg_user.php
 reg_users
 regadmin
 regadmin.php
@@ -95310,6 +95320,7 @@ save_data.asp
 save_gallery.phtml
 save_order.php
 save_pairing.php
+save_phone_click.php
 save_property.php
 save_rack.php
 save_search.asp

@@ -134,27 +134,73 @@ class FileResponsePlugin(ResponsePluginProvider):
 
         return any(filename.endswith(extension) for extension in self.DATABASE_FILE_EXTENSIONS)
 
-    def _looks_like_textual_fallback(self, content_type, body_length, content_length):
+    def _looks_like_textual_fallback(self, content_type, body_length, content_length, body=''):
         """
         Return True when an extension hit likely resolved to a soft-200 page.
 
         Extension-based classification is useful for small or HEAD-only file
         responses, but it must not turn ordinary HTML catch-all pages into file
-        findings.
+        findings. Some targets omit or mislabel Content-Type on catch-all pages,
+        so use a bounded body heuristic before trusting the path extension.
 
         :param str content_type: normalized content type
         :param int body_length: decoded body length
         :param int | None content_length: parsed Content-Length
+        :param str body: decoded bounded response body
         :return: bool
         """
 
-        if self._is_textual_content_type(content_type) is not True:
-            return False
+        if self._is_textual_content_type(content_type) is True:
+            if content_type in ('text/html', 'application/xhtml+xml'):
+                return True
 
-        if content_type in ('text/html', 'application/xhtml+xml'):
+            return 0 < body_length or (content_length is not None and 0 < content_length)
+
+        if self._body_looks_like_textual_fallback(body) is True:
             return True
 
-        return 0 < body_length or (content_length is not None and 0 < content_length)
+        return False
+
+    @classmethod
+    def _body_looks_like_textual_fallback(cls, body):
+        """
+        Detect common HTML/API/text fallback bodies without trusting headers.
+
+        :param str body: decoded bounded response body
+        :return: True when body is visibly a web fallback page
+        :rtype: bool
+        """
+
+        sample = str(body or '').lstrip()[:4096].lower()
+        if len(sample) <= 0:
+            return False
+
+        html_markers = (
+            '<!doctype html',
+            '<html',
+            '<head',
+            '<body',
+            '<title',
+            '<meta ',
+            '<script',
+            '<link ',
+        )
+        if any(marker in sample for marker in html_markers):
+            return True
+
+        if sample.startswith(('{', '[')) and any(marker in sample for marker in (
+                '"error"', '"message"', '"status"', '"title"')):
+            return True
+
+        text_markers = (
+            '404 not found',
+            'not found',
+            'page not found',
+            'access denied',
+            'forbidden',
+            'requested url was not found',
+        )
+        return any(marker in sample for marker in text_markers)
 
     def _is_textual_content_type(self, content_type):
         """
@@ -222,7 +268,12 @@ class FileResponsePlugin(ResponsePluginProvider):
             return self.RESPONSE_INDEX
 
         if self._has_database_file_extension(response) is True \
-                and self._looks_like_textual_fallback(content_type, body_length, content_length) is not True:
+                and self._looks_like_textual_fallback(
+                    content_type,
+                    body_length,
+                    content_length,
+                    self._body,
+                ) is not True:
             return self.RESPONSE_INDEX
 
         if self._is_binary_content_type(content_type) and has_content:
