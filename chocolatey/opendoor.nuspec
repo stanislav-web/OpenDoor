@@ -6,25 +6,32 @@
     <title>OpenDoor</title>
     <authors>stanislav-web</authors>
     <owners>stanislav-web</owners>
-    <licenseUrl>https://github.com/stanislav-web/OpenDoor/blob/master/LICENSE</licenseUrl>
+
+    <licenseUrl>https://github.com/stanislav-web/OpenDoor/blob/v5.17.0/LICENSE</licenseUrl>
     <projectUrl>https://github.com/stanislav-web/OpenDoor</projectUrl>
     <projectSourceUrl>https://github.com/stanislav-web/OpenDoor</projectSourceUrl>
     <docsUrl>https://opendoor.readthedocs.io/</docsUrl>
     <bugTrackerUrl>https://github.com/stanislav-web/OpenDoor/issues</bugTrackerUrl>
-    <packageSourceUrl>https://github.com/stanislav-web/OpenDoor</packageSourceUrl>
+    <packageSourceUrl>https://github.com/stanislav-web/OpenDoor/tree/v5.17.0/chocolatey</packageSourceUrl>
+    <iconUrl>https://cdn.jsdelivr.net/gh/stanislav-web/OpenDoor@v5.17.0/logo.png</iconUrl>
+
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
+
     <summary>CLI scanner for authorized web reconnaissance, directory discovery, and exposure assessment.</summary>
     <description>
 OpenDoor is an open-source CLI recon platform for authorized web reconnaissance, directory discovery, subdomain enumeration, fingerprint detection, WAF detection, controlled header-bypass probing, response filtering, reporting, verified open-redirect checks, and transport-based scanning workflows.
 
 Use OpenDoor only on systems you own or have explicit permission to test.
     </description>
+
     <releaseNotes>https://github.com/stanislav-web/OpenDoor/releases/tag/v5.17.0</releaseNotes>
     <tags>opendoor security recon directory-scanner subdomain-scanner web-recon pentesting owasp cli python</tags>
+
     <dependencies>
       <dependency id="python313" version="[3.13.0,3.14.0)" />
     </dependencies>
   </metadata>
+
   <files>
     <file src="tools\**" target="tools" />
   </files>
