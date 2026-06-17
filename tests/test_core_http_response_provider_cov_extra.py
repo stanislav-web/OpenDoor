@@ -127,6 +127,83 @@ class TestResponseProviderCoverageExtra(unittest.TestCase):
 
         self.assertIn('Unknown response status', str(context.exception))
 
+    def test_match_status_markers_detects_explicit_waf_status(self):
+        """ResponseProvider should expose status-code WAF fingerprints as normalized signals."""
+
+        response = DummyResponse(status=222, headers={}, body=b'')
+        actual = ResponseProvider._ResponseProvider__match_status_markers(response, [222, '403'])
+
+        self.assertEqual(actual, ['status:222'])
+
+    def test_detect_returns_forbidden_for_nemesida_nonstandard_status_without_waf_detect(self):
+        """ResponseProvider.detect() should not crash on NemesidaWAF 222 responses when WAF detection is off."""
+
+        provider = self.make_provider(is_waf_detect=False)
+        response = self.make_http_response(
+            status=222,
+            body=b'',
+            headers={'NemesidaWAF-BT': '2'},
+        )
+
+        self.assertEqual(provider.detect('https://example.com/0-root0.htpasswd', response), 'forbidden')
+
+    def test_detect_returns_blocked_for_nemesida_status_only_with_waf_detect(self):
+        """ResponseProvider.detect() should follow WAFW00F-style Nemesida 222 status detection."""
+
+        provider = self.make_provider(is_waf_detect=True)
+        response = self.make_http_response(status=222, body=b'', headers={})
+
+        self.assertEqual(provider.detect('https://example.com/nwaftest', response), 'blocked')
+        self.assertEqual(provider.waf_detection['name'], 'NemesidaWAF')
+        self.assertEqual(provider.waf_detection['confidence'], 95)
+        self.assertEqual(provider.waf_detection['signals'], ['status:222'])
+
+    def test_detect_returns_blocked_for_nemesida_headers_and_custom_page(self):
+        """ResponseProvider.detect() should classify Nemesida custom block pages as blocked."""
+
+        provider = self.make_provider(is_waf_detect=True)
+        response = self.make_http_response(
+            status=222,
+            body='''
+            <title>403 Доступ запрещен</title>
+            <p>Подозрительная активность.</p>
+            <p>Suspicious activity. If blocked by mistake, try again in 10 minutes.</p>
+            '''.encode('utf-8'),
+            headers={
+                'NemesidaWAF-BT': '2',
+                'X-Request-ID': '4340803435b9d5b4d08e32d839c6e432',
+                'Content-Type': 'text/html; charset=utf-8',
+            },
+        )
+
+        self.assertEqual(provider.detect('https://example.com/0-root0.htpasswd', response), 'blocked')
+        self.assertEqual(provider.waf_detection['name'], 'NemesidaWAF')
+        self.assertIn('status:222', provider.waf_detection['signals'])
+        self.assertIn('header:nemesidawaf-bt', provider.waf_detection['signals'])
+
+    def test_detect_waf_matches_nemesida_body_signature_without_status_marker(self):
+        """ResponseProvider should recognize Nemesida body fingerprints even when the status is a plain 403."""
+
+        provider = self.make_provider(is_waf_detect=True)
+        response = DummyResponse(
+            status=403,
+            headers={},
+            body=b'Suspicious activity detected. Access to the site is blocked.',
+        )
+
+        actual = provider._ResponseProvider__detect_waf(response)
+
+        self.assertEqual(actual['name'], 'NemesidaWAF')
+        self.assertIn('body:suspicious activity detected', actual['signals'])
+
+    def test_looks_like_blocked_status_accepts_nemesida_nonstandard_status(self):
+        """ResponseProvider blocked-status helper should treat 222 as block-like for WAF scoring."""
+
+        response = DummyResponse(status=222, headers={}, body=b'')
+        actual = ResponseProvider._ResponseProvider__looks_like_blocked_status(response)
+
+        self.assertTrue(actual)
+
     def test_detect_waf_matches_score_only_header_branch(self):
         """ResponseProvider should match vendor signatures from non-strong header markers via score threshold."""
 

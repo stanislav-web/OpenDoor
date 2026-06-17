@@ -79,6 +79,7 @@ The heuristic WAF detection engine currently recognizes probable signals for:
 - Kasada
 - ModSecurity
 - NAXSI
+- NemesidaWAF
 - NetScaler / Citrix WAF
 - NinjaFirewall
 - PerimeterX / HUMAN

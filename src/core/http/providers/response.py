@@ -28,7 +28,7 @@ class ResponseProvider(object):
     DEFAULT_WAF_STATUS = 'blocked'
 
     DEFAULT_WAF_BLOCK_STATUSES = [
-        401, 403, 405, 406, 409, 412, 415, 418, 423, 429, 430, 451,
+        222, 401, 403, 405, 406, 409, 412, 415, 418, 423, 429, 430, 451,
         493, 494, 495, 496, 497, 499, 500, 501, 502, 503, 511,
         520, 521, 522, 523, 524, 525, 526, 527, 530
     ]
@@ -1257,6 +1257,33 @@ class ResponseProvider(object):
                 'webknight',
             ],
         },
+        {
+            'name': 'NemesidaWAF',
+            'confidence': 95,
+            'status_markers': [222],
+            'strong_header_markers': [
+                'nemesidawaf-bt',
+                'nemesidawaf-cc',
+            ],
+            'header_markers': [
+                'x-request-id',
+                'x-remote-ip',
+            ],
+            'strong_body_markers': [
+                'suspicious activity detected',
+                'access to the site is blocked',
+                'подозрительная активность',
+                'доступ запрещен',
+            ],
+            'body_markers': [
+                '@nemesida.com',
+                'nemesida-security.com',
+                'nwaf@',
+                'suspicious activity',
+                'request id',
+                'try again in 10 minutes',
+            ],
+        },
     ]
 
     DEFAULT_WAF_HEADER_MARKERS = [
@@ -1338,6 +1365,9 @@ class ResponseProvider(object):
         'plbsid',
         'server: webknight/',
         'webknight',
+        'nemesidawaf-bt',
+        'nemesidawaf-cc',
+        'nemesidawaf',
     ]
 
     DEFAULT_WAF_PASSIVE_HEADER_MARKERS_REQUIRE_BLOCKED_STATUS = [
@@ -1476,13 +1506,18 @@ class ResponseProvider(object):
         'ninjafirewall: 403 forbidden',
         'for security reasons, it was blocked and logged',
         'webknight application firewall alert',
+        'suspicious activity detected',
+        'access to the site is blocked',
+        'suspicious activity',
+        'подозрительная активность',
+        'доступ запрещен',
     ]
 
     DEFAULT_HTTP_SUCCESS_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     DEFAULT_HTTP_REDIRECT_STATUSES = [300, 301, 302, 303, 304, 307, 308]
     DEFAULT_HTTP_FAILED_STATUSES = [404, 406, 410, 408, 409, 411, 412, 424, 425, 429, 440, 477, 500, 501, 502, 503, 504, 507, 509, 511, 520, 522, 523]
     DEFAULT_SSL_CERT_REQUIRED_STATUSES = [423, 496, 525]
-    DEFAULT_HTTP_FORBIDDEN_STATUSES = [403, 405]
+    DEFAULT_HTTP_FORBIDDEN_STATUSES = [222, 403, 405]
     DEFAULT_HTTP_AUTH_STATUSES = [401]
     DEFAULT_HTTP_BAD_REQUEST_STATUSES = [400, 415, 505, 508]
 
@@ -1723,6 +1758,36 @@ class ResponseProvider(object):
         )
 
     @staticmethod
+    def __match_status_markers(response, markers):
+        """
+        Match explicit WAF status-code fingerprints.
+
+        Some WAF deployments use non-standard status codes for internal block
+        pages. NemesidaWAF custom pages commonly map 403 blocks to 222.
+
+        :param urllib3.response.HTTPResponse response: response object
+        :param list markers: status codes treated as vendor fingerprints
+        :return: list[str]
+        """
+
+        try:
+            status = int(response.status)
+        except (AttributeError, TypeError, ValueError):
+            return []
+
+        result = []
+        for marker in markers:
+            try:
+                marker_status = int(marker)
+            except (TypeError, ValueError):
+                continue
+
+            if status == marker_status:
+                result.append('status:{0}'.format(marker_status))
+
+        return result
+
+    @staticmethod
     def __dedupe_signals(signals):
         """
         Preserve signal order while removing duplicate evidence markers.
@@ -1889,6 +1954,10 @@ class ResponseProvider(object):
         blocked_like_status = self.__looks_like_blocked_status(response)
 
         for signature in self.DEFAULT_WAF_SIGNATURES:
+            status_signals = self.__match_status_markers(
+                response,
+                signature.get('status_markers', [])
+            )
             strong_header_signals = self.__match_markers(
                 'header',
                 header_blob,
@@ -1932,6 +2001,12 @@ class ResponseProvider(object):
                     body_signals
             ):
                 continue
+
+            if len(status_signals) > 0:
+                return self.__build_waf_result(
+                    signature,
+                    status_signals + strong_header_signals + header_signals + strong_body_signals + body_signals
+                )
 
             if len(strong_header_signals) > 0:
                 return self.__build_waf_result(
