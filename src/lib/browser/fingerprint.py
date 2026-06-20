@@ -138,7 +138,7 @@ class Fingerprint(object):
     STATIC_CATEGORY = 'static'
     RUNTIME_CATEGORY = 'runtime'
     TECHNOLOGY_RUNTIME_MAP = {
-        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'GravCMS': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'UNA CMS': 'PHP', 'MogutaCMS': 'PHP', 'Nubex CMS': 'PHP', 'CMS.S3 / Megagroup': 'PHP', 'Camaleon CMS': 'Ruby', 'Melbis Shop Platform': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
+        'WordPress': 'PHP', 'WooCommerce': 'PHP', 'Drupal': 'PHP', 'Joomla': 'PHP', 'Magento': 'PHP', 'Bitrix': 'PHP', 'OpenCart': 'PHP', 'PrestaShop': 'PHP', 'TYPO3': 'PHP', 'GravCMS': 'PHP', 'Nextcloud': 'PHP', 'ownCloud': 'PHP', 'Matomo': 'PHP', 'phpMyAdmin': 'PHP', 'phpBB': 'PHP', 'Moodle': 'PHP', 'Open Journal Systems': 'PHP', 'Evolution CMS': 'PHP', 'MODX': 'PHP', 'UNA CMS': 'PHP', 'MogutaCMS': 'PHP', 'Nubex CMS': 'PHP', 'CMS.S3 / Megagroup': 'PHP', 'Camaleon CMS': 'Ruby', 'Melbis Shop Platform': 'PHP', 'InstantCMS': 'PHP', 'DiafanCMS': 'PHP', 'Laravel': 'PHP', 'Symfony': 'PHP', 'Craft CMS': 'PHP', 'Bolt CMS': 'PHP', 'RoundCube Webmail': 'PHP', 'WHMCS': 'PHP', 'CS-Cart': 'PHP', 'CubeCart': 'PHP', 'DataLife Engine': 'PHP', 'Discuz!': 'PHP', 'SilverStripe': 'PHP', 'Webasyst / Shop-Script': 'PHP', 'XOOPS': 'PHP', 'Zen Cart CMS': 'PHP', 'e107': 'PHP', 'phpWind': 'PHP', 'phpCMS': 'PHP',
         'Express': 'Node.js', 'NestJS': 'Node.js', 'Fastify': 'Node.js', 'Koa': 'Node.js', 'Hapi': 'Node.js', 'Strapi': 'Node.js', 'Directus': 'Node.js', 'Ghost': 'Node.js', 'Next.js': 'Node.js', 'Nuxt': 'Node.js', 'Gatsby': 'Node.js', 'Astro': 'Node.js', 'Remix': 'Node.js', 'SvelteKit': 'Node.js', 'Docusaurus': 'Node.js', 'VitePress': 'Node.js', 'PencilBlue': 'Node.js',
         'React': 'JavaScript', 'Vue': 'JavaScript', 'Angular': 'JavaScript', 'Django': 'Python', 'Flask': 'Python', 'FastAPI': 'Python', 'Ruby on Rails': 'Ruby', 'Spree': 'Ruby', 'Spring': 'Java/JVM', 'Liferay': 'Java/JVM', 'OpenCms': 'Java/JVM', 'Hippo CMS': 'Java/JVM', 'dotCMS': 'Java/JVM', 'ASP.NET': '.NET', 'Microsoft SharePoint': '.NET', 'DNN Platform': '.NET', 'Orchard CMS': '.NET', 'Sitecore': '.NET', 'Sitefinity': '.NET', 'Umbraco': '.NET', 'Phoenix': 'Elixir', 'MkDocs': 'Static site', 'Jekyll': 'Static site', 'Hugo': 'Static site', 'AsciiDoc': 'Static site',
     }
@@ -3156,14 +3156,18 @@ class Fingerprint(object):
         )
 
         # MODX
+        modx_header_hint = 'modx' in x_powered_by
         modx_hint = (
             'modx' in generator_lower
+            or modx_header_hint
             or 'modx revolution' in body_lower
             or '>modx<' in body_lower
         )
 
         if 'modx' in generator_lower:
             self._add_signal('MODX', self.CMS_CATEGORY, 'meta', 'generator={0}'.format(generator), 7)
+        if modx_header_hint:
+            self._add_signal('MODX', self.CMS_CATEGORY, 'header', 'x-powered-by={0}'.format(headers.get('x-powered-by')), 8)
         if '/assets/components/' in body_lower and modx_hint:
             self._add_signal('MODX', self.CMS_CATEGORY, 'asset', '/assets/components/', 7)
         if ('/manager/' in body_lower or 'modx revolution' in body_lower or '>modx<' in body_lower) and modx_hint:

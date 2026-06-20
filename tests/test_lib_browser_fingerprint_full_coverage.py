@@ -1404,6 +1404,32 @@ class TestFingerprintFullCoverage(unittest.TestCase):
                 self.assertNotIn(case['forbidden'], top_names)
 
 
+    def test_modx_revolution_header_detects_modx(self):
+        """MODX Revolution X-Powered-By header should be strong passive CMS evidence."""
+
+        detector, _, _ = self.make_detector()
+        detector._apply_detection_rules(
+            body='',
+            body_lower='',
+            headers={'x-powered-by': 'MODX Revolution'},
+            cookies=[],
+            generator='',
+            probe_statuses={},
+            final_root_url='https://example.com/',
+        )
+
+        candidates = detector._build_candidates()
+        runtime = detector._build_runtime_result(detector._build_runtime_candidates())
+
+        self.assertEqual(candidates[0]['name'], 'MODX')
+        self.assertEqual(candidates[0]['category'], 'cms')
+        self.assertEqual(candidates[0]['score'], 8.0)
+        self.assertEqual(runtime['name'], 'PHP')
+        self.assertEqual(
+            detector._Fingerprint__signals['MODX'][0]['value'],
+            'x-powered-by=MODX Revolution',
+        )
+
     def test_generator_extractor_skips_generator_meta_without_content(self):
         """Generator extraction should continue past incomplete generator meta tags."""
 
