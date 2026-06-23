@@ -1100,6 +1100,13 @@ class TestFingerprintFullCoverage(unittest.TestCase):
                 },
             },
             {
+                'provider': 'Plesk',
+                'headers': {
+                    'server': 'nginx',
+                    'x-powered-by': 'PleskLin',
+                },
+            },
+            {
                 'provider': 'Cloudflare',
                 'headers': {
                     'server': 'cloudflare',

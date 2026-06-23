@@ -2622,8 +2622,6 @@ class Fingerprint(object):
         not_found_body_lower = str(not_found_body).lower()
         not_found_powered_by = str(not_found_headers.get('x-powered-by', '')).lower()
         not_found_server = str(not_found_headers.get('server', '')).lower()
-        plesk_powered_by = 'plesklin' in x_powered_by or 'pleskwin' in x_powered_by
-        plesk_not_found_powered_by = 'plesklin' in not_found_powered_by or 'pleskwin' in not_found_powered_by
         php_route_marker = self._has_php_route_marker(body_lower, final_root_lower)
         express_not_found = self._looks_like_express_not_found(not_found_status, not_found_body_lower)
         nest_not_found = self._looks_like_nest_not_found(not_found_status, not_found_body_lower)
@@ -3483,15 +3481,6 @@ class Fingerprint(object):
             self._add_signal('Phoenix', self.FRAMEWORK_CATEGORY, 'markup', '_csrf_token + phoenix', 7)
         if '_app_key' in cookies:
             self._add_signal('Phoenix', self.FRAMEWORK_CATEGORY, 'cookie', '_app_key', 5)
-
-        # Infrastructure: Plesk hosting control panel
-        if plesk_powered_by or plesk_not_found_powered_by:
-            self._add_infrastructure_signal(
-                'Plesk',
-                'header',
-                'x-powered-by=PleskLin|PleskWin',
-                9,
-            )
 
         # Infrastructure: Qrator Labs security edge / reverse proxy
         self._apply_qrator_infrastructure_rules(

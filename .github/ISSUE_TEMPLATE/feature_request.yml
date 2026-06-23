@@ -67,15 +67,6 @@ body:
     validations:
       required: true
 
-  - type: textarea
-    id: alternatives
-    attributes:
-      label: Alternatives considered
-      description: What workaround or alternative design did you consider?
-      placeholder: "Currently this can be approximated by..., but it is limited because..."
-    validations:
-      required: false
-
   - type: dropdown
     id: compatibility
     attributes:
@@ -110,29 +101,5 @@ body:
       render: shell
       placeholder: |
         opendoor --host https://example.test --example-flag value
-    validations:
-      required: false
-
-  - type: textarea
-    id: tests-docs
-    attributes:
-      label: Tests and documentation expectations
-      description: Suggest what should be covered by tests/docs.
-      placeholder: |
-        Tests:
-        - unittest for ...
-        - report regression for ...
-
-        Docs:
-        - README option table
-        - docs/Usage.md example
-    validations:
-      required: false
-
-  - type: textarea
-    id: extra-context
-    attributes:
-      label: Additional context
-      description: Add links, prior art, or screenshots if helpful. Avoid sensitive targets and secrets.
     validations:
       required: false
