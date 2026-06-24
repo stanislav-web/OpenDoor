@@ -29,7 +29,12 @@ class FileResponsePlugin(ResponsePluginProvider):
     DEFAULT_STATUSES = [100, 101, 200, 201, 202, 203, 204, 205, 206, 207, 208]
     DEFAULT_SOURCE_DETECT_MIN_SIZE = 1000000
     OLE_COMPOUND_FILE_MAGIC = b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1'
+    ZIP_FILE_MAGIC_PREFIXES = (b'PK\x03\x04', b'PK\x05\x06', b'PK\x07\x08')
     DATABASE_FILE_EXTENSIONS = ('.db',)
+    DOWNLOAD_FILE_EXTENSIONS = (
+        '.7z', '.bz2', '.cab', '.doc', '.docx', '.gz', '.iso', '.jar', '.rar',
+        '.tar', '.tgz', '.xls', '.xlsx', '.zip',
+    )
 
     BINARY_CONTENT_TYPES = (
         'application/octet-stream',
@@ -93,6 +98,25 @@ class FileResponsePlugin(ResponsePluginProvider):
         return bytes(data).startswith(cls.OLE_COMPOUND_FILE_MAGIC)
 
     @classmethod
+    def _has_zip_file_magic(cls, response):
+        """
+        Determine whether the response body starts with a ZIP container magic.
+
+        Some servers expose real archives with missing or misleading
+        Content-Type headers. ZIP magic is a stronger file signal than the
+        response MIME type and keeps small archives visible to the file sniffer.
+
+        :param response: HTTP response
+        :return: bool
+        """
+
+        data = getattr(response, 'data', b'')
+        if not isinstance(data, (bytes, bytearray)):
+            return False
+
+        return bytes(data).startswith(cls.ZIP_FILE_MAGIC_PREFIXES)
+
+    @classmethod
     def _extract_request_filename(cls, response):
         """
         Extract the lowercase basename from the request URL attached by Response.
@@ -133,6 +157,25 @@ class FileResponsePlugin(ResponsePluginProvider):
             return False
 
         return any(filename.endswith(extension) for extension in self.DATABASE_FILE_EXTENSIONS)
+
+    def _has_download_file_extension(self, response):
+        """
+        Detect explicit archive/document download paths by extension.
+
+        The rule is intentionally extension-based but still goes through the
+        textual fallback guard before a finding is emitted. This keeps real
+        small downloads such as `Archive.zip` visible without turning ordinary
+        soft-200 HTML pages into file findings.
+
+        :param response: HTTP response
+        :return: bool
+        """
+
+        filename = self._extract_request_filename(response)
+        if len(filename) <= 0:
+            return False
+
+        return any(filename.endswith(extension) for extension in self.DOWNLOAD_FILE_EXTENSIONS)
 
     def _looks_like_textual_fallback(self, content_type, body_length, content_length, body=''):
         """
@@ -264,10 +307,14 @@ class FileResponsePlugin(ResponsePluginProvider):
         if self._has_ole_compound_file_magic(response) is True:
             return self.RESPONSE_INDEX
 
+        if self._has_zip_file_magic(response) is True:
+            return self.RESPONSE_INDEX
+
         if 'attachment' in content_disposition and has_content:
             return self.RESPONSE_INDEX
 
-        if self._has_database_file_extension(response) is True \
+        if (self._has_database_file_extension(response) is True
+                or self._has_download_file_extension(response) is True) \
                 and self._looks_like_textual_fallback(
                     content_type,
                     body_length,

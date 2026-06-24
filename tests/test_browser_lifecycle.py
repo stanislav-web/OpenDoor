@@ -147,9 +147,9 @@ class TestBrowserLifecycle(unittest.TestCase):
         brows._Browser__config.reports = []
         # Mock __is_scan_debug_enabled to True to trigger __emit_runtime_diagnostics
         brows._Browser__is_scan_debug_enabled = unittest.mock.MagicMock(return_value=True)
-        # Mock __emit_runtime_diagnostics and related to avoid real output
-        brows._Browser__finish_filtered_progress_line = unittest.mock.MagicMock()
-        brows._Browser__format_runtime_diagnostics = unittest.mock.MagicMock()
+        # Mock __emit_runtime_diagnostics itself to avoid leaking diagnostic
+        # formatting test doubles into unittest output.
+        brows._Browser__emit_runtime_diagnostics = unittest.mock.MagicMock()
 
         mock_crawl = unittest.mock.MagicMock()
         mock_crawl.diagnostics_payload.return_value = {'stats': 'ok'}

@@ -47,10 +47,6 @@
 - [ ] `python opendoor.py --version`
 - [ ] `python opendoor.py --help`
 
-## Tests added or updated
-
-<!-- Describe tests added/updated. If no tests were added, explain why. -->
-
 ## Documentation
 
 <!-- Select all that apply. -->

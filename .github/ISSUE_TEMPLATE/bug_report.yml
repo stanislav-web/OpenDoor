@@ -32,7 +32,7 @@ body:
     attributes:
       label: OpenDoor version
       description: Run `opendoor --version` or `python opendoor.py --version`.
-      placeholder: "5.14.0"
+      placeholder: "5.18.0"
     validations:
       required: true
 

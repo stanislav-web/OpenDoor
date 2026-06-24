@@ -4,6 +4,7 @@ CHANGELOG
 v5.18.0 (TBD)
 ---------------------------
 - (fix) avoid `--sniff file` false positives for `.db` URLs that resolve to textual soft-404 or fallback pages, while preserving real database/file and secret findings.
+- (fix) classify small explicit archive/download paths such as `*.zip` as `OK (File)` even when MIME metadata is missing or misleading, while preserving soft-200 HTML fallback suppression.
 - (fix) CLI `Runtime diagnostics` queue accounting by reporting post-consume deduplicated requests separately from submitted and pre-request skipped items.
 - (fix) `--sniff malware` false positive where benign hidden iframes used as local form targets on legacy login pages were reported as hidden iframe injection.
 - (enhancement) improve `--sniff malware` detection for exposed PHP source by correlating decoder chains with dangerous dynamic execution/include sinks without adding probes or CLI options.

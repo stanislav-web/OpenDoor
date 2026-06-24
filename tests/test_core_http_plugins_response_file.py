@@ -169,6 +169,51 @@ class TestFileResponsePlugin(unittest.TestCase):
 
         self.assertEqual(plugin.process(response), 'file')
 
+    def test_detects_small_zip_file_by_magic_even_when_mislabelled(self):
+        """Should classify real small ZIP archives even with bad MIME headers."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(
+            body=b'PK\x03\x04' + (b'\x00' * 128),
+            headers={
+                'Content-Type': 'text/html; charset=utf-8',
+                'Content-Length': '132',
+            }
+        )
+        response.opendoor_request_url = 'https://example.com/Archive.zip'
+
+        self.assertEqual(plugin.process(response), 'file')
+
+    def test_detects_small_archive_path_with_unknown_content_type(self):
+        """Should classify explicit small archive paths as file findings."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(
+            body=b'\x00\x01\x02' * 20000,
+            headers={
+                'Content-Type': 'application/x-custom',
+                'Content-Length': '60000',
+            }
+        )
+        response.opendoor_request_url = 'https://example.com/Archive.zip'
+
+        self.assertEqual(plugin.process(response), 'file')
+
+    def test_archive_path_does_not_override_html_fallback(self):
+        """Should not classify soft-200 HTML catch-all pages as archive files."""
+
+        plugin = FileResponsePlugin(None)
+        response = self.make_response(
+            body=b'<html><body>Not found</body></html>',
+            headers={
+                'Content-Type': 'text/html; charset=utf-8',
+                'Content-Length': '35',
+            }
+        )
+        response.opendoor_request_url = 'https://example.com/Archive.zip'
+
+        self.assertIsNone(plugin.process(response))
+
     def test_db_path_does_not_override_html_fallback(self):
         """Should not classify soft-200 HTML catch-all pages as files by path alone."""
 
