@@ -4,7 +4,7 @@
 # but allows modern tools like `pip`, `build`, and PyPI backends
 # to treat the project as a standard PEP 517/518 package.
 requires = [
-    "setuptools>=82.0.1",
+    "setuptools>=83.0.0",
     "wheel>=0.47.0"
 ]
 build-backend = "setuptools.build_meta"
