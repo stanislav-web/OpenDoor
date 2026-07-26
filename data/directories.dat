@@ -20913,6 +20913,7 @@ api/backups
 api/BasmaPlusGlobal
 api/batch
 api/beta
+api/booking.php
 api/campaigns
 api/card
 api/case
@@ -21299,6 +21300,7 @@ api/index.html
 api/index.php
 api/index/life/lycx
 api/info
+api/instagram.php
 api/instance
 api/instance/log/category
 api/instance/log/source
@@ -22360,7 +22362,7 @@ api/v3/apidocs
 api/v3/character/recommend/tag/coll/list
 api/v3/chat/msg/edit
 api/v3/chat/regen
-api/v3/chat/suggestions*
+api/v3/chat/suggestions
 api/v3/chat/suggestions/buy
 api/v3/core/applications
 api/v3/core/tokens
@@ -22964,6 +22966,7 @@ app_master
 App_Master/Telerik.Web.UI.DialogHandler.aspx?dp=1
 app_masterpages
 app_masters
+app_medicine.php
 app_nginx_static_path/.env
 app_offline.
 app_offline.htm
@@ -24033,7 +24036,6 @@ asdfghj
 asdfghjk
 asdfghjkl
 asdfjkl
-asdfjkl;
 ase
 asearch
 asearch.asp
@@ -28414,14 +28416,15 @@ blog.tpl
 blog.xml
 blog.zip
 blog/.env
-blog/?p=
 Blog/Adm
 Blog/Admin
 Blog/Administrator
 blog/error_log
 blog/fckeditor
 blog/index.asp?idBlog=
+blog/mob.php
 blog/phpmyadmin
+blog/v5.php
 blog/wp-admin
 blog/wp-content/backup-db
 blog/wp-content/backups
@@ -34000,7 +34003,7 @@ clickad.php
 clickandbuild
 clickbank
 clickbank.php
-clickblog!
+clickblog
 clickboard.htm
 clickcess
 clickcount.cfm
@@ -36432,6 +36435,7 @@ config/cache.php
 config/config.go
 config/config.inc
 config/config.ini
+config/config.php
 config/config.toml
 config/config.yaml
 config/config.yml
@@ -38319,7 +38323,6 @@ cookiewarningtest
 cooking
 cooks
 cool
-cool!
 cool.html
 cool.php
 coolcat
@@ -44107,7 +44110,8 @@ discussions/9/6/?CategoryID=
 discussions/10/9/?CategoryID=
 discusware
 discuz
-discuz!
+discuz.js
+discuz.php
 discuz_version.php
 discuzfaq.php
 disdls
@@ -49011,10 +49015,15 @@ eroticos.zip
 erotika
 erp
 erp.sql
+erp/access.php
 erp/admin
+erp/admin.php
+erp/analysis_and_planning_of_enterprise_resources.php
 erp/api
 erp/login
 erp/login.php
+erp/sign.php
+erp/signin.php
 erp_api.php
 erp_client.php
 erp_function.php
@@ -53255,7 +53264,6 @@ forums
 forums1
 forums2
 forums3
-forums!
 forums-search.html
 forums.asp
 forums.aspx
@@ -56054,6 +56062,7 @@ googiespell
 google
 google-analytics
 google-analytics.comanalytics.js
+google-api-php-client
 google-api-private-key.json
 google-feed.aspx
 google-search
@@ -63598,7 +63607,7 @@ irccommands.php
 ircd
 ircd-hybrid
 ircd-ratbox
-ircd-ru!
+ircd-ru
 ircii
 irclogs
 ircnet
@@ -68736,7 +68745,9 @@ location.aspx
 location.cfm
 location.htm
 location.html
+location.js
 location.php
+location.txt
 locationlookup.asp
 locationName
 locations
@@ -68747,14 +68758,16 @@ locations.htm
 locations.html
 locations.jsp
 locations.php
+locations.txt
 locations.xml
+locations.zip
 locationsdtl.cfm
 locationsearch
 locator
 locator.aspx
 locator.php
 locaweb
-locazo!
+locazo
 lochp
 lock
 lock.php
@@ -73177,7 +73190,6 @@ menu_2.html
 menu_27.html
 menu_banner.php
 menu_bt
-menu_columnas(old).php
 menu_columnas.php
 menu_com.js
 menu_commenti.php
@@ -85183,7 +85195,6 @@ phpmyadmin2023
 phpmyadmin2024
 phpmyadmin2025
 phpmyadmin2026
-phpmyadmin!!
 phpMyAdmin-2
 phpMyAdmin-2.2.3
 phpmyadmin-2.2.3
@@ -90672,6 +90683,7 @@ qinetiq
 qinetix
 qiqiim-server
 qita
+qiwi_platezh.php
 qjforum
 qjso6p5g.php
 qjxxs999.php
@@ -91382,6 +91394,7 @@ rascal
 rashad
 rasmp
 rasmus
+rassylka_whatsapp.php
 rasta
 rastaman
 rat.asp
@@ -106712,6 +106725,9 @@ telefonia
 telefonica
 telefono
 telegraf
+telegram
+telegram.js
+telegram.php
 telegram/api
 telegram/bot
 telekom
@@ -115081,6 +115097,9 @@ viart
 viatge.php
 viatoradmin
 vibechild
+viber
+viber.js
+viber.php
 vic
 vic.html
 vice
@@ -118077,6 +118096,7 @@ whats_new
 whats_new.htm
 whats_new.php
 whatsapp-api.php
+whatsapp.php
 whatshot.asp
 whatsitworth.aspx
 whatsnew
@@ -121997,7 +122017,6 @@ zx.asp
 zx.jsp
 zxcvb
 zxcvbnm
-zxcvbnm,.
 zxfw
 zxgwxt.html
 zxns.html
