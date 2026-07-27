@@ -191,6 +191,33 @@ class Options(object):
             {
                 "group": "request",
                 "args": None,
+                "argl": "--client-cert",
+                "default": None,
+                "action": "store",
+                "help": "Client certificate path for mutual TLS; may be a combined PEM",
+                "type": str
+            },
+            {
+                "group": "request",
+                "args": None,
+                "argl": "--client-key",
+                "default": None,
+                "action": "store",
+                "help": "Client private key path for mutual TLS when separate from --client-cert",
+                "type": str
+            },
+            {
+                "group": "request",
+                "args": None,
+                "argl": "--client-key-password-env",
+                "default": None,
+                "action": "store",
+                "help": "Environment variable name containing the encrypted client key password",
+                "type": str
+            },
+            {
+                "group": "request",
+                "args": None,
                 "argl": "--header",
                 "default": None,
                 "action": "append",
@@ -843,6 +870,7 @@ class Options(object):
                             or (arg == 'delay' and value is not None) \
                             or (arg == 'port' and value is not None) \
                             or (arg == 'method' and value is not None) \
+                            or (arg in ['client_cert', 'client_key', 'client_key_password_env'] and value is not None) \
                             or (arg == 'crawl' and value is not None) \
                             or (arg == 'follow_redirects' and value is not None) \
                             or (arg == 'threads' and value is not None) \

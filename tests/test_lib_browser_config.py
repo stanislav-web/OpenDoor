@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import tempfile
 import unittest
+from unittest.mock import patch
 
 from src.lib.browser.config import Config
 
@@ -342,6 +344,45 @@ class TestBrowserConfig(unittest.TestCase):
 
         self.assertFalse(Config({'reports': 'std'}).is_tls_legacy)
         self.assertTrue(Config({'reports': 'std', 'tls_legacy': True}).is_tls_legacy)
+
+    def test_client_cert_config_is_normalized_and_privacy_safe(self):
+        """Config should store mTLS paths and env names, never env password values."""
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cert_path = os.path.join(tmpdir, 'client.crt')
+            key_path = os.path.join(tmpdir, 'client.key')
+            with open(cert_path, 'w', encoding='utf-8') as handle:
+                handle.write('cert')
+            with open(key_path, 'w', encoding='utf-8') as handle:
+                handle.write('key')
+
+            with patch.dict(os.environ, {'OPENDOOR_CLIENT_KEY_PASSWORD': 'secret-value'}):
+                cfg = Config({
+                    'reports': 'std',
+                    'client_cert': cert_path,
+                    'client_key': key_path,
+                    'client_key_password_env': 'OPENDOOR_CLIENT_KEY_PASSWORD',
+                })
+
+        self.assertTrue(cfg.is_client_cert_enabled)
+        self.assertEqual(cfg.client_cert, os.path.abspath(cert_path))
+        self.assertEqual(cfg.client_key, os.path.abspath(key_path))
+        self.assertEqual(cfg.client_key_password_env, 'OPENDOOR_CLIENT_KEY_PASSWORD')
+        self.assertNotEqual(cfg.client_key_password_env, 'secret-value')
+
+    def test_client_cert_config_rejects_invalid_combinations(self):
+        """Config should revalidate session/wizard mTLS values."""
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            key_path = os.path.join(tmpdir, 'client.key')
+            with open(key_path, 'w', encoding='utf-8') as handle:
+                handle.write('key')
+
+            with self.assertRaises(ValueError):
+                Config({'reports': 'std', 'client_key': key_path})
+
+            with self.assertRaises(ValueError):
+                Config({'reports': 'std', 'client_key_password_env': 'OPENDOOR_MISSING_PASSWORD'})
 
     def test_headers_are_normalized(self):
         """Config should normalize custom request headers."""

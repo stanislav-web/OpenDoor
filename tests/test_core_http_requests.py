@@ -318,6 +318,47 @@ class TestHttpsRequest(unittest.TestCase):
         self.assertEqual(pool.request.call_count, 2)
 
 
+
+    def test_https_request_passes_client_cert_to_tls_factory(self):
+        """HttpsRequest should build target TLS context with mTLS config."""
+
+        cfg = self.make_cfg(
+            client_cert='/tmp/client.crt',
+            client_key='/tmp/client.key',
+            client_key_password_env='OPENDOOR_CLIENT_KEY_PASSWORD',
+        )
+        context = object()
+
+        with patch('src.core.http.https.build_target_ssl_context', return_value=context) as tls_factory, \
+                patch('src.core.http.https.HTTPSConnectionPool') as pool_cls:
+            HttpsRequest(cfg, SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+
+        tls_factory.assert_called_once_with(
+            tls_legacy=False,
+            client_cert='/tmp/client.crt',
+            client_key='/tmp/client.key',
+            client_key_password_env='OPENDOOR_CLIENT_KEY_PASSWORD',
+        )
+        self.assertIs(pool_cls.call_args.kwargs.get('ssl_context'), context)
+
+
+    def test_https_request_passes_client_cert_context_to_pool_manager(self):
+        """HttpsRequest should pass mTLS context to non-default scan PoolManager."""
+
+        cfg = self.make_cfg(
+            scan='subdomains',
+            client_cert='/tmp/client.crt',
+            client_key='/tmp/client.key',
+            client_key_password_env='OPENDOOR_CLIENT_KEY_PASSWORD',
+        )
+        context = object()
+
+        with patch('src.core.http.https.build_target_ssl_context', return_value=context), \
+                patch('src.core.http.https.PoolManager') as manager_cls:
+            HttpsRequest(cfg, SimpleNamespace(level=0), tpl=MagicMock(), agent_list=['UA'])
+
+        self.assertIs(manager_cls.call_args.kwargs.get('ssl_context'), context)
+
     def test_tls_legacy_builds_ssl_context_and_logs_policy(self):
         """HttpsRequest should pass an opt-in legacy SSL context to urllib3."""
 
@@ -472,6 +513,59 @@ class TestProxy(unittest.TestCase):
 
         self.assertEqual(out.status, 200)
 
+
+
+    def test_proxy_passes_client_cert_to_tls_factory(self):
+        """Proxy should build target TLS context with mTLS config for CONNECT/SOCKS managers."""
+
+        debug = SimpleNamespace(level=0, debug_proxy_pool=lambda: None)
+        cfg = self.make_cfg(
+            client_cert='/tmp/client.crt',
+            client_key='/tmp/client.key',
+            client_key_password_env='OPENDOOR_CLIENT_KEY_PASSWORD',
+        )
+        context = object()
+
+        with patch('src.core.http.proxy.build_target_ssl_context', return_value=context) as tls_factory:
+            proxy = Proxy(cfg, debug, tpl=MagicMock(), proxy_list=['http://127.0.0.1:8080'], agent_list=['UA'])
+
+        tls_factory.assert_called_once_with(
+            tls_legacy=False,
+            client_cert='/tmp/client.crt',
+            client_key='/tmp/client.key',
+            client_key_password_env='OPENDOOR_CLIENT_KEY_PASSWORD',
+        )
+
+        with patch('src.core.http.proxy.ProxyManager') as pm_cls:
+            pm_cls.return_value.request.return_value = HTTPResponse(status=200, body=b'ok', headers={})
+            proxy.request('https://example.com/x')
+
+        self.assertIs(pm_cls.call_args.kwargs.get('ssl_context'), context)
+
+
+    def test_proxy_passes_client_cert_context_to_socks_manager(self):
+        """Proxy should pass the mTLS context to SOCKS proxy managers."""
+
+        debug = SimpleNamespace(level=0, debug_proxy_pool=lambda: None)
+        cfg = self.make_cfg(
+            client_cert='/tmp/client.crt',
+            client_key='/tmp/client.key',
+            client_key_password_env='OPENDOOR_CLIENT_KEY_PASSWORD',
+        )
+        context = object()
+        fake_pool = MagicMock()
+        fake_pool.request.return_value = HTTPResponse(status=200, body=b'ok', headers={})
+        socks_manager = MagicMock(return_value=fake_pool)
+
+        with patch('src.core.http.proxy.build_target_ssl_context', return_value=context):
+            proxy = Proxy(cfg, debug, tpl=MagicMock(), proxy_list=['socks5://127.0.0.1:9050'], agent_list=['UA'])
+
+        with patch('src.core.http.proxy.importlib.import_module') as import_mod:
+            import_mod.return_value = SimpleNamespace(SOCKSProxyManager=socks_manager)
+            out = proxy.request('https://example.com/x')
+
+        self.assertEqual(out.status, 200)
+        self.assertIs(socks_manager.call_args.kwargs.get('ssl_context'), context)
 
     def test_proxy_tls_legacy_passes_ssl_context_to_proxy_manager(self):
         """Proxy should pass legacy TLS context to urllib3 when --tls-legacy is enabled."""

@@ -2,12 +2,14 @@
 
 import unittest
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from src.core.http.tls import (
     TLS_LEGACY_CIPHERS,
+    build_target_ssl_context,
     describe_tls_transport_error,
     emit_tls_legacy_policy,
+    emit_target_tls_policy,
     maybe_build_ssl_context,
     tls_pool_kwargs,
     warn_tls_transport_error,
@@ -27,20 +29,105 @@ class ReasonError(Exception):
 class TestTlsHelpers(unittest.TestCase):
     """Test TLS helper behavior."""
 
+    def test_build_target_ssl_context_defaults_to_none(self):
+        """build_target_ssl_context() should preserve default TLS policy when disabled."""
+
+        self.assertIsNone(build_target_ssl_context())
+        self.assertIsNone(build_target_ssl_context(tls_legacy=False))
+        self.assertIsNone(build_target_ssl_context(tls_legacy=None))
+
     def test_maybe_build_ssl_context_defaults_to_none(self):
         """maybe_build_ssl_context() should preserve default TLS policy when disabled."""
 
         self.assertIsNone(maybe_build_ssl_context(False))
         self.assertIsNone(maybe_build_ssl_context(None))
 
+    def test_build_target_ssl_context_excludes_dhe_when_legacy_enabled(self):
+        """build_target_ssl_context() should build a legacy context when enabled."""
+
+        context = build_target_ssl_context(tls_legacy=True)
+
+        self.assertIsNotNone(context)
+        self.assertIn('!DHE', TLS_LEGACY_CIPHERS)
+        self.assertFalse(context.check_hostname)
+
     def test_maybe_build_ssl_context_excludes_dhe_when_enabled(self):
-        """maybe_build_ssl_context() should build a legacy context when enabled."""
+        """maybe_build_ssl_context() should keep compatibility with the old helper name."""
 
         context = maybe_build_ssl_context(True)
 
         self.assertIsNotNone(context)
         self.assertIn('!DHE', TLS_LEGACY_CIPHERS)
         self.assertFalse(context.check_hostname)
+
+
+    def test_build_target_ssl_context_loads_combined_client_pem(self):
+        """build_target_ssl_context() should load a combined client PEM when configured."""
+
+        context = Mock()
+        with patch('src.core.http.tls.ssl.create_default_context', return_value=context):
+            actual = build_target_ssl_context(client_cert='/tmp/client.pem')
+
+        self.assertIs(actual, context)
+        context.load_cert_chain.assert_called_once_with(
+            certfile='/tmp/client.pem',
+            keyfile=None,
+            password=None,
+        )
+
+    def test_build_target_ssl_context_loads_client_cert_key_and_env_password(self):
+        """Encrypted mTLS keys should resolve password values only from env vars."""
+
+        context = Mock()
+        with patch('src.core.http.tls.ssl.create_default_context', return_value=context), \
+                patch.dict('src.core.http.tls.os.environ', {'OPENDOOR_TEST_KEY_PASSWORD': 'secret-value'}):
+            actual = build_target_ssl_context(
+                client_cert='/tmp/client.crt',
+                client_key='/tmp/client.key',
+                client_key_password_env='OPENDOOR_TEST_KEY_PASSWORD',
+            )
+
+        self.assertIs(actual, context)
+        context.load_cert_chain.assert_called_once_with(
+            certfile='/tmp/client.crt',
+            keyfile='/tmp/client.key',
+            password='secret-value',
+        )
+
+    def test_build_target_ssl_context_missing_password_env_does_not_leak_secret(self):
+        """Missing password env diagnostics should include only the variable name."""
+
+        context = Mock()
+        with patch('src.core.http.tls.ssl.create_default_context', return_value=context), \
+                patch.dict('src.core.http.tls.os.environ', {}, clear=True):
+            with self.assertRaises(ValueError) as raised:
+                build_target_ssl_context(
+                    client_cert='/tmp/client.crt',
+                    client_key='/tmp/client.key',
+                    client_key_password_env='OPENDOOR_TEST_KEY_PASSWORD',
+                )
+
+        self.assertIn('OPENDOOR_TEST_KEY_PASSWORD', str(raised.exception))
+        self.assertNotIn('secret-value', str(raised.exception))
+        context.load_cert_chain.assert_not_called()
+
+    def test_build_target_ssl_context_combines_legacy_tls_and_client_cert(self):
+        """Legacy TLS mode should not drop mTLS certificate settings."""
+
+        context = Mock()
+        with patch('src.core.http.tls.build_legacy_ssl_context', return_value=context):
+            actual = build_target_ssl_context(
+                tls_legacy=True,
+                client_cert='/tmp/client.crt',
+                client_key='/tmp/client.key',
+            )
+
+        self.assertIs(actual, context)
+        context.load_cert_chain.assert_called_once_with(
+            certfile='/tmp/client.crt',
+            keyfile='/tmp/client.key',
+            password=None,
+        )
 
     def test_describe_tls_transport_error_detects_weak_dh(self):
         """describe_tls_transport_error() should detect weak-DH OpenSSL failures."""
@@ -98,6 +185,27 @@ class TestTlsHelpers(unittest.TestCase):
         emit_tls_legacy_policy(Mock(is_tls_legacy=True), tpl)
         tpl.debug.assert_called_once()
         self.assertIn(TLS_LEGACY_CIPHERS, tpl.debug.call_args.kwargs['msg'])
+
+
+    def test_emit_target_tls_policy_logs_client_cert_without_private_details(self):
+        """mTLS debug policy output should not expose cert/key paths or env names."""
+
+        tpl = Mock()
+        cfg = SimpleNamespace(
+            is_tls_legacy=False,
+            is_client_cert_enabled=True,
+            client_cert='/tmp/client.crt',
+            client_key='/tmp/client.key',
+            client_key_password_env='OPENDOOR_CLIENT_KEY_PASSWORD',
+        )
+
+        emit_target_tls_policy(cfg, tpl)
+
+        tpl.debug.assert_called_once_with(msg='TLS client certificate authentication enabled')
+        message = tpl.debug.call_args.kwargs['msg']
+        self.assertNotIn('/tmp/client.crt', message)
+        self.assertNotIn('/tmp/client.key', message)
+        self.assertNotIn('OPENDOOR_CLIENT_KEY_PASSWORD', message)
 
     def test_warn_tls_transport_error_stores_warns_and_finishes_line(self):
         """warn_tls_transport_error() should centralize TLS warning propagation."""

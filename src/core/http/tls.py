@@ -3,16 +3,38 @@
 """
     TLS helpers for OpenDoor request providers.
 
-    Legacy compatibility is opt-in only. The default scanner transport keeps the
-    platform/Python OpenSSL policy unchanged.
+    Legacy compatibility and client certificate authentication are opt-in only.
+    The default scanner transport keeps the platform/Python OpenSSL policy
+    unchanged unless a custom target TLS option is supplied.
 """
 
+import os
 import re
 import ssl
+from dataclasses import dataclass
 
 
 TLS_LEGACY_CIPHERS = 'DEFAULT:!DHE'
 TLS_LEGACY_HINT = 'Retry with --tls-legacy or fix server TLS configuration.'
+
+
+@dataclass(frozen=True)
+class TLSClientAuthConfig:
+    """Privacy-safe client certificate configuration for target TLS."""
+
+    client_cert: str | None = None
+    client_key: str | None = None
+    client_key_password_env: str | None = None
+
+    @property
+    def is_enabled(self):
+        """Return whether client certificate authentication is configured.
+
+        :return: True when a client certificate path is present.
+        :rtype: bool
+        """
+
+        return bool(self.client_cert)
 
 
 def build_legacy_ssl_context():
@@ -34,21 +56,122 @@ def build_legacy_ssl_context():
     return context
 
 
-def maybe_build_ssl_context(is_tls_legacy):
+def build_target_ssl_context(
+        *,
+        tls_legacy=False,
+        client_cert=None,
+        client_key=None,
+        client_key_password_env=None,
+):
     """
-    Return an SSL context only when legacy TLS compatibility is enabled.
+    Build the target HTTPS SSL context for OpenDoor request providers.
 
-    :param bool is_tls_legacy: Whether the opt-in legacy TLS mode is enabled.
-    :return: SSL context or None
+    The default HTTPS path intentionally returns None so urllib3 keeps the
+    existing OpenDoor transport behavior. A custom context is created only for
+    opt-in TLS compatibility or client certificate authentication.
+
+    :param bool tls_legacy: Whether opt-in legacy TLS compatibility is enabled.
+    :param str | None client_cert: Client certificate path or combined PEM path.
+    :param str | None client_key: Separate private key path.
+    :param str | None client_key_password_env: Environment variable containing
+        the encrypted private key password.
+    :raise ValueError: when the password environment variable is missing.
+    :return: SSL context or None.
     :rtype: ssl.SSLContext | None
     """
 
-    if is_tls_legacy is True:
-        return build_legacy_ssl_context()
+    client_auth = TLSClientAuthConfig(
+        client_cert=client_cert,
+        client_key=client_key,
+        client_key_password_env=client_key_password_env,
+    )
 
-    return None
+    if tls_legacy is not True and client_auth.is_enabled is not True:
+        return None
+
+    if tls_legacy is True:
+        context = build_legacy_ssl_context()
+    else:
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+
+    if client_auth.is_enabled is True:
+        context.load_cert_chain(
+            certfile=client_auth.client_cert,
+            keyfile=client_auth.client_key,
+            password=_resolve_client_key_password(client_auth.client_key_password_env),
+        )
+
+    return context
 
 
+def maybe_build_ssl_context(
+        is_tls_legacy,
+        client_cert=None,
+        client_key=None,
+        client_key_password_env=None,
+):
+    """
+    Return an SSL context only when custom target TLS is configured.
+
+    This compatibility wrapper preserves the existing internal helper name while
+    request providers migrate to build_target_ssl_context().
+
+    :param bool is_tls_legacy: Whether the opt-in legacy TLS mode is enabled.
+    :param str | None client_cert: Client certificate path or combined PEM path.
+    :param str | None client_key: Separate private key path.
+    :param str | None client_key_password_env: Environment variable containing
+        the encrypted private key password.
+    :return: SSL context or None.
+    :rtype: ssl.SSLContext | None
+    """
+
+    return build_target_ssl_context(
+        tls_legacy=is_tls_legacy,
+        client_cert=client_cert,
+        client_key=client_key,
+        client_key_password_env=client_key_password_env,
+    )
+
+
+def _resolve_client_key_password(client_key_password_env):
+    """Resolve an encrypted-key password from an environment variable.
+
+    :param str | None client_key_password_env: Environment variable name.
+    :raise ValueError: when the configured variable is missing.
+    :return: Password value or None.
+    :rtype: str | None
+    """
+
+    if not client_key_password_env:
+        return None
+
+    env_name = str(client_key_password_env).strip()
+    if not env_name:
+        return None
+
+    if env_name not in os.environ:
+        raise ValueError('Client key password environment variable `{0}` is not set'.format(env_name))
+
+    return os.environ.get(env_name)
+
+
+def emit_target_tls_policy(config, tpl):
+    """Emit privacy-safe debug output for opt-in target TLS modes.
+
+    :param object config: Runtime configuration object.
+    :param object tpl: Terminal/output provider.
+    :return: None
+    """
+
+    debug = getattr(tpl, 'debug', lambda *args, **kwargs: True)
+
+    if getattr(config, 'is_tls_legacy', False) is True:
+        debug(msg='TLS legacy compatibility enabled: ciphers={0}'.format(TLS_LEGACY_CIPHERS))
+
+    if getattr(config, 'is_client_cert_enabled', False) is True:
+        debug(msg='TLS client certificate authentication enabled')
 
 
 def emit_tls_legacy_policy(config, tpl):
@@ -59,10 +182,7 @@ def emit_tls_legacy_policy(config, tpl):
     :return: None
     """
 
-    if getattr(config, 'is_tls_legacy', False) is True:
-        getattr(tpl, 'debug', lambda *args, **kwargs: True)(
-            msg='TLS legacy compatibility enabled: ciphers={0}'.format(TLS_LEGACY_CIPHERS)
-        )
+    emit_target_tls_policy(config, tpl)
 
 
 def tls_pool_kwargs(ssl_context):

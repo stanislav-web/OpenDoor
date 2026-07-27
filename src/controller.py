@@ -271,6 +271,9 @@ class Controller(object):
             cli_method = params.get('method')
             cli_threads = params.get('threads')
             cli_tls_legacy = params.get('tls_legacy')
+            cli_client_cert = params.get('client_cert')
+            cli_client_key = params.get('client_key')
+            cli_client_key_password_env = params.get('client_key_password_env')
             cli_crawl = params.get('crawl')
 
             if 'wizard' in params:
@@ -306,6 +309,15 @@ class Controller(object):
 
                 if cli_tls_legacy is True:
                     params['tls_legacy'] = True
+
+                if cli_client_cert is not None:
+                    params['client_cert'] = cli_client_cert
+
+                if cli_client_key is not None:
+                    params['client_key'] = cli_client_key
+
+                if cli_client_key_password_env is not None:
+                    params['client_key_password_env'] = cli_client_key_password_env
 
                 if cli_crawl is not None:
                     params['crawl'] = cli_crawl
@@ -359,6 +371,15 @@ class Controller(object):
 
                 if cli_tls_legacy is True:
                     restored['tls_legacy'] = True
+
+                if cli_client_cert is not None:
+                    restored['client_cert'] = cli_client_cert
+
+                if cli_client_key is not None:
+                    restored['client_key'] = cli_client_key
+
+                if cli_client_key_password_env is not None:
+                    restored['client_key_password_env'] = cli_client_key_password_env
 
                 if cli_crawl is not None:
                     restored['crawl'] = cli_crawl

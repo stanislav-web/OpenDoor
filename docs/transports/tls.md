@@ -92,9 +92,45 @@ opendoor --host https://legacy.example.com --tls-legacy
 
 ---
 
+
+## Mutual TLS / client certificate authentication
+
+Use mTLS only for authorized internal or client-certificate protected targets. OpenDoor reads certificate and key files from local disk and sends them only as part of the target HTTPS TLS handshake. It does not generate certificates, intercept TLS, impersonate browser TLS fingerprints, or store certificate/private-key contents in reports, logs, or sessions.
+
+Combined PEM:
+
+```shell
+opendoor \
+  --host https://internal.example.com \
+  --client-cert ./client.pem
+```
+
+Separate certificate and key:
+
+```shell
+opendoor \
+  --host https://internal.example.com \
+  --client-cert ./client.crt \
+  --client-key ./client.key
+```
+
+Encrypted key password through an environment variable reference:
+
+```shell
+OPENDOOR_CLIENT_KEY_PASSWORD='...' opendoor \
+  --host https://internal.example.com \
+  --client-cert ./client.crt \
+  --client-key ./client.key \
+  --client-key-password-env OPENDOOR_CLIENT_KEY_PASSWORD
+```
+
+`--client-key-password-env` stores and resumes only the environment variable name. The resolved password value is never written to session checkpoints, reports, or debug output. Missing files, directories instead of files, unreadable files, `--client-key` without `--client-cert`, and missing password environment variables fail during option/config validation.
+
+mTLS composes with direct HTTPS, HTTP CONNECT proxy HTTPS, SOCKS HTTPS, and `--tls-legacy` when both are explicitly required by the target environment.
+
 ## Sessions
 
-`--tls-legacy` is stored in session checkpoints. A resumed scan keeps the same TLS compatibility mode that was active when the session was saved.
+`--tls-legacy` and mTLS file paths/environment-variable names are stored in session checkpoints. A resumed scan keeps the same TLS compatibility mode and client certificate configuration that were active when the session was saved. Secret values and certificate/private-key contents are not stored.
 
 ```shell
 opendoor \

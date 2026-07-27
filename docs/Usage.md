@@ -347,6 +347,18 @@ Use this only for legacy HTTPS targets that fail during TLS handshake with weak-
 
 For details and diagnostic commands, see [TLS compatibility](transports/tls.md).
 
+### Mutual TLS client certificate
+
+```shell
+opendoor --host https://internal.example.com --client-cert ./client.pem
+opendoor --host https://internal.example.com --client-cert ./client.crt --client-key ./client.key
+OPENDOOR_CLIENT_KEY_PASSWORD='...' opendoor --host https://internal.example.com --client-cert ./client.crt --client-key ./client.key --client-key-password-env OPENDOOR_CLIENT_KEY_PASSWORD
+```
+
+Use mTLS only for authorized client-certificate protected targets. OpenDoor stores certificate/key paths and the password environment variable name in config/session contexts, but never stores password values, private key contents, or certificate bodies.
+
+For details, see [TLS compatibility](transports/tls.md).
+
 ### Keep-alive
 
 ```shell
@@ -948,6 +960,13 @@ Legacy TLS compatibility is independent from the selected network transport. It 
 ```shell
 opendoor --host https://legacy.example.com --tls-legacy
 opendoor --host https://legacy.example.com --transport proxy --proxy socks5://127.0.0.1:9050 --tls-legacy
+```
+
+mTLS client certificate authentication uses the same target TLS context and can be combined with direct HTTPS, HTTP CONNECT proxies, SOCKS proxies, and `--tls-legacy` when explicitly configured.
+
+```shell
+opendoor --host https://internal.example.com --client-cert ./client.pem
+opendoor --host https://internal.example.com --transport proxy --proxy socks5://127.0.0.1:9050 --client-cert ./client.crt --client-key ./client.key
 ```
 
 See [TLS compatibility](transports/tls.md).

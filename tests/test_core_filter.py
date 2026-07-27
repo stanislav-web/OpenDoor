@@ -1955,6 +1955,49 @@ class TestFilter(unittest.TestCase):
         with self.assertRaises(FilterError):
             Filter.filter({'session_load': '/tmp/session.json', 'crawl': 'maybe'})
 
+    def test_filter_should_validate_client_cert_options(self):
+        """Filter.filter() should normalize mTLS file paths and env references."""
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cert_path = os.path.join(tmpdir, 'client.crt')
+            key_path = os.path.join(tmpdir, 'client.key')
+            with open(cert_path, 'w', encoding='utf-8') as handle:
+                handle.write('cert')
+            with open(key_path, 'w', encoding='utf-8') as handle:
+                handle.write('key')
+
+            with patch.dict(os.environ, {'OPENDOOR_CLIENT_KEY_PASSWORD': 'secret'}):
+                actual = Filter.filter({
+                    'host': 'https://example.com',
+                    'client_cert': cert_path,
+                    'client_key': key_path,
+                    'client_key_password_env': 'OPENDOOR_CLIENT_KEY_PASSWORD',
+                })
+
+        self.assertEqual(actual['client_cert'], os.path.abspath(cert_path))
+        self.assertEqual(actual['client_key'], os.path.abspath(key_path))
+        self.assertEqual(actual['client_key_password_env'], 'OPENDOOR_CLIENT_KEY_PASSWORD')
+
+    def test_filter_should_reject_invalid_client_cert_combinations(self):
+        """Filter.filter() should fail early for invalid mTLS option combinations."""
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            key_path = os.path.join(tmpdir, 'client.key')
+            with open(key_path, 'w', encoding='utf-8') as handle:
+                handle.write('key')
+
+            with self.assertRaises(FilterError) as missing_cert:
+                Filter.filter({'host': 'https://example.com', 'client_key': key_path})
+
+            with self.assertRaises(FilterError) as missing_env:
+                Filter.filter({
+                    'host': 'https://example.com',
+                    'client_key_password_env': 'OPENDOOR_MISSING_PASSWORD',
+                })
+
+        self.assertIn('--client-key requires --client-cert', str(missing_cert.exception))
+        self.assertIn('--client-key-password-env environment variable is not set', str(missing_env.exception))
+
 
 if __name__ == '__main__':
     unittest.main()

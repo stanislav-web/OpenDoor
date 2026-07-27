@@ -28,7 +28,7 @@ from urllib3.exceptions import DecodeError, DependencyWarning, MaxRetryError, Pr
 
 from src.core import helper
 from .exceptions import ProxyRequestError
-from .tls import emit_tls_legacy_policy, maybe_build_ssl_context, tls_pool_kwargs, warn_tls_transport_error
+from .tls import emit_tls_legacy_policy, build_target_ssl_context, tls_pool_kwargs, warn_tls_transport_error
 from .providers import DebugProvider
 from .providers import RequestProvider
 
@@ -57,7 +57,12 @@ class Proxy(RequestProvider, DebugProvider):
             self.__proxy_sequence_index = 0
             self.__cfg = config
             self.__debug = debug
-            self.__ssl_context = maybe_build_ssl_context(getattr(self.__cfg, 'is_tls_legacy', False))
+            self.__ssl_context = build_target_ssl_context(
+                tls_legacy=getattr(self.__cfg, 'is_tls_legacy', False),
+                client_cert=getattr(self.__cfg, 'client_cert', None),
+                client_key=getattr(self.__cfg, 'client_key', None),
+                client_key_password_env=getattr(self.__cfg, 'client_key_password_env', None),
+            )
             self.__debug.debug_proxy_pool()
             self.__debug_tls_policy()
 

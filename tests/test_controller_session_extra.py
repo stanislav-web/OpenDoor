@@ -107,6 +107,49 @@ class TestControllerSessionExtra(unittest.TestCase):
 
         self.assertTrue(browser_factory.call_args[0][0]['tls_legacy'])
 
+
+    def test_scan_action_session_load_preserves_and_overrides_client_cert_params(self):
+        """Controller should preserve mTLS session params and allow explicit CLI overrides."""
+
+        snapshot = {
+            'params': {
+                'host': 'example.com',
+                'scheme': 'https://',
+                'ssl': True,
+                'port': 443,
+                'reports': 'std',
+                'client_cert': '/old/client.crt',
+                'client_key': '/old/client.key',
+                'client_key_password_env': 'OLD_PASSWORD_ENV',
+            }
+        }
+        brows = MagicMock()
+
+        with patch('src.controller.SessionManager.load', return_value=snapshot), \
+                patch('src.controller.browser', return_value=brows) as browser_factory, \
+                patch('src.controller.reporter.is_reported', return_value=False):
+            Controller.scan_action({'session_load': '/tmp/session.json'})
+
+        params = browser_factory.call_args[0][0]
+        self.assertEqual(params['client_cert'], '/old/client.crt')
+        self.assertEqual(params['client_key'], '/old/client.key')
+        self.assertEqual(params['client_key_password_env'], 'OLD_PASSWORD_ENV')
+
+        with patch('src.controller.SessionManager.load', return_value=snapshot), \
+                patch('src.controller.browser', return_value=brows) as browser_factory, \
+                patch('src.controller.reporter.is_reported', return_value=False):
+            Controller.scan_action({
+                'session_load': '/tmp/session.json',
+                'client_cert': '/new/client.crt',
+                'client_key': '/new/client.key',
+                'client_key_password_env': 'NEW_PASSWORD_ENV',
+            })
+
+        params = browser_factory.call_args[0][0]
+        self.assertEqual(params['client_cert'], '/new/client.crt')
+        self.assertEqual(params['client_key'], '/new/client.key')
+        self.assertEqual(params['client_key_password_env'], 'NEW_PASSWORD_ENV')
+
     def test_scan_action_rejects_multi_target_persistent_sessions(self):
         """Controller should reject persistent sessions for multi-target runs."""
 

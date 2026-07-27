@@ -1,18 +1,19 @@
 CHANGELOG
 =======
 
-v5.18.0 (TBD)
+v5.18.0 (01.08.2026)
 ---------------------------
 - (fix) avoid `--sniff file` false positives for `.db` URLs that resolve to textual soft-404 or fallback pages, while preserving real database/file and secret findings.
 - (fix) classify small explicit archive/download paths such as `*.zip` as `OK (File)` even when MIME metadata is missing or misleading, while preserving soft-200 HTML fallback suppression.
 - (fix) CLI `Runtime diagnostics` queue accounting by reporting post-consume deduplicated requests separately from submitted and pre-request skipped items.
 - (fix) `--sniff malware` false positive where benign hidden iframes used as local form targets on legacy login pages were reported as hidden iframe injection.
-- (enhancement) improve `--sniff malware` detection for exposed PHP source by correlating decoder chains with dangerous dynamic execution/include sinks without adding probes or CLI options.
+- (feature) added target TLS context foundation with opt-in mTLS client certificate support via `--client-cert`, `--client-key`, and `--client-key-password-env`, covering direct HTTPS, HTTP CONNECT proxy HTTPS, SOCKS HTTPS, and `--tls-legacy` composition without changing default HTTPS behavior or persisting secret values.
+- (enhancement) improve `--sniff malware` detection for an exposed PHP source by correlating decoder chains with dangerous dynamic execution/include sinks without adding probes or CLI options.
 - (enhancement) added NemesidaWAF custom and handle custom`222` block responses without scan aborts, including status/header/body-based WAF fingerprinting and safe fallback classification.
-- (enhancement) detect Plesk hosting platform without affecting WAF blocked-response semantics or request volume.
+- (enhancement) detect a Plesk hosting platform without affecting WAF blocked-response semantics or request volume.
 - (enhancement) MODX CMS detection improvements for fingerprinting
 - (performance) browser runtime cleanup lifecycle to preserve scan results and crawl diagnostics until reports are finalized, while releasing heavy in-memory request/cache state after result consumption.
-- (dictionary) cleaned and normalized the internal directories list (+TBD potential interesting paths).
+- (dictionary) cleaned and normalized the internal directories list (+374 potential interesting paths).
 
 v5.17.0 (10.06.2026)
 ---------------------------

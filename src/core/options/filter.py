@@ -228,6 +228,18 @@ class Filter(object):
             if args.get('tls_legacy') is True:
                 filtered['tls_legacy'] = True
 
+            if args.get('client_cert') is not None:
+                filtered['client_cert'] = Filter.readable_file(args.get('client_cert'), key='--client-cert')
+
+            if args.get('client_key') is not None:
+                filtered['client_key'] = Filter.readable_file(args.get('client_key'), key='--client-key')
+
+            if args.get('client_key_password_env') is not None:
+                filtered['client_key_password_env'] = Filter.client_key_password_env(
+                    args.get('client_key_password_env'),
+                    key='--client-key-password-env'
+                )
+
             if args.get('auto_calibrate') is True:
                 filtered['auto_calibrate'] = True
 
@@ -297,6 +309,7 @@ class Filter(object):
             Filter.validate_crawl_options(filtered)
             Filter.validate_proxy_options(filtered)
             Filter.validate_transport_options(filtered)
+            Filter.validate_client_cert_options(filtered)
 
             return filtered
 
@@ -336,6 +349,10 @@ class Filter(object):
                 filtered[key] = Filter.proxy_rotation(value, key='--proxy-rotation')
             elif key in ['tls_legacy']:
                 filtered[key] = value is True
+            elif key in ['client_cert', 'client_key']:
+                filtered[key] = Filter.readable_file(value, key='--{0}'.format(key.replace('_', '-')))
+            elif key in ['client_key_password_env']:
+                filtered[key] = Filter.client_key_password_env(value, key='--client-key-password-env')
             elif 'scheme' == key:
                 filtered[key] = Filter.explicit_scheme(value, key='--scheme')
             elif key in ['include_status', 'exclude_status']:
@@ -440,6 +457,7 @@ class Filter(object):
         Filter.validate_crawl_options(filtered)
         Filter.validate_proxy_options(filtered)
         Filter.validate_transport_options(filtered)
+        Filter.validate_client_cert_options(filtered)
 
         return filtered
 
@@ -1484,6 +1502,68 @@ class Filter(object):
             raise FilterError('{0} must be a positive integer'.format(key))
 
         return value
+
+    @staticmethod
+    def readable_file(value, key='--file'):
+        """Normalize and validate a readable local file path.
+
+        :param value: File path value.
+        :param str key: Option name for diagnostics.
+        :raise FilterError: when the path is missing, not a file or unreadable.
+        :return: Absolute file path.
+        :rtype: str
+        """
+
+        filepath = Filter.optional_path(value, key=key)
+        if filepath is None:
+            raise FilterError('{0} requires a non-empty file path'.format(key))
+
+        if os.path.isdir(filepath):
+            raise FilterError('{0} must point to a file, not a directory'.format(key))
+
+        if not os.path.isfile(filepath):
+            raise FilterError('{0} file does not exist: {1}'.format(key, filepath))
+
+        if not os.access(filepath, os.R_OK):
+            raise FilterError('{0} file is not readable: {1}'.format(key, filepath))
+
+        return filepath
+
+    @staticmethod
+    def client_key_password_env(value, key='--client-key-password-env'):
+        """Validate a client key password environment variable reference.
+
+        :param value: Environment variable name.
+        :param str key: Option name for diagnostics.
+        :raise FilterError: when the variable name or value is missing.
+        :return: Environment variable name.
+        :rtype: str
+        """
+
+        env_name = Filter.optional_text(value, key=key)
+        if env_name is None:
+            raise FilterError('{0} requires an environment variable name'.format(key))
+
+        if env_name not in os.environ:
+            raise FilterError('{0} environment variable is not set: {1}'.format(key, env_name))
+
+        return env_name
+
+    @staticmethod
+    def validate_client_cert_options(filtered):
+        """Validate mutual TLS client certificate option combinations.
+
+        :param dict filtered: Filtered option dictionary.
+        :raise FilterError: when mTLS option combinations are invalid.
+        :return: None
+        """
+
+        if filtered.get('client_key') is not None and filtered.get('client_cert') is None:
+            raise FilterError('--client-key requires --client-cert')
+
+        if filtered.get('client_key_password_env') is not None and filtered.get('client_cert') is None:
+            raise FilterError('--client-key-password-env requires --client-cert')
+
 
     @staticmethod
     def optional_text(value, key='--value'):

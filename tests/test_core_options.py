@@ -497,6 +497,54 @@ class TestOptions(unittest.TestCase):
         self.assertEqual(actual, {'tls_legacy': True})
         self.assertEqual(filter_mock.call_args[0][0]['tls_legacy'], True)
 
+
+    def test_init_should_parse_client_cert_flags(self):
+        """Options.__init__() should parse mutual TLS client certificate flags."""
+
+        with patch('src.core.options.options.sys.argv', [
+            'opendoor.py',
+            '--host',
+            'https://example.com',
+            '--client-cert',
+            '/tmp/client.crt',
+            '--client-key',
+            '/tmp/client.key',
+            '--client-key-password-env',
+            'OPENDOOR_CLIENT_KEY_PASSWORD',
+        ]):
+            option = Options()
+
+        self.assertEqual(option.args.client_cert, '/tmp/client.crt')
+        self.assertEqual(option.args.client_key, '/tmp/client.key')
+        self.assertEqual(option.args.client_key_password_env, 'OPENDOOR_CLIENT_KEY_PASSWORD')
+
+    def test_get_arg_values_should_pass_client_cert_flags_through_filter(self):
+        """Options.get_arg_values() should preserve mTLS values for filtering."""
+
+        namespace = Namespace(
+            host='https://example.com',
+            hostlist=None,
+            stdin=False,
+            version=False,
+            update=False,
+            examples=False,
+            docs=False,
+            wizard=None,
+            client_cert='/tmp/client.crt',
+            client_key='/tmp/client.key',
+            client_key_password_env='OPENDOOR_CLIENT_KEY_PASSWORD',
+        )
+        option = self.make_options(namespace)
+
+        with patch('src.core.options.options.Filter.filter', return_value={'client_cert': '/tmp/client.crt'}) as filter_mock:
+            actual = option.get_arg_values()
+
+        self.assertEqual(actual, {'client_cert': '/tmp/client.crt'})
+        filtered_input = filter_mock.call_args[0][0]
+        self.assertEqual(filtered_input['client_cert'], '/tmp/client.crt')
+        self.assertEqual(filtered_input['client_key'], '/tmp/client.key')
+        self.assertEqual(filtered_input['client_key_password_env'], 'OPENDOOR_CLIENT_KEY_PASSWORD')
+
     def test_init_should_parse_recursive_arguments(self):
         """Options.__init__() should parse recursive scan arguments."""
 

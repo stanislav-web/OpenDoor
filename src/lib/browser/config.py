@@ -73,6 +73,15 @@ class Config(object):
         self._transport_healthcheck_url = params.get('transport_healthcheck_url')
         self._transport_bin = params.get('transport_bin')
         self._is_tls_legacy = params.get('tls_legacy') is True
+        self._client_cert = self._normalize_client_auth_path(params.get('client_cert'), 'client_cert')
+        self._client_key = self._normalize_client_auth_path(params.get('client_key'), 'client_key')
+        self._client_key_password_env = self._normalize_client_key_password_env(
+            params.get('client_key_password_env')
+        )
+        if self._client_key is not None and self._client_cert is None:
+            raise ValueError('client_key requires client_cert')
+        if self._client_key_password_env is not None and self._client_cert is None:
+            raise ValueError('client_key_password_env requires client_cert')
         self._last_transport_error = None
         self._openvpn_auth = params.get('openvpn_auth')
         self._headers = params.get('header')
@@ -161,6 +170,59 @@ class Config(object):
         self._exclude_regex_compiled = self._compile_regex_values(self._exclude_regex, 'exclude_regex')
         self._validate_response_filters()
         self._validate_crawl()
+
+    @staticmethod
+    def _normalize_client_auth_path(value, name):
+        """Normalize and validate a local client TLS authentication file path.
+
+        :param value: File path value.
+        :param str name: Runtime option name for diagnostics.
+        :raise ValueError: when the path is invalid or unreadable.
+        :return: Absolute path or None.
+        :rtype: str | None
+        """
+
+        if value is None:
+            return None
+
+        filepath = str(value).strip()
+        if not filepath:
+            return None
+
+        filepath = os.path.abspath(filepath)
+        if os.path.isdir(filepath):
+            raise ValueError('{0} must point to a file, not a directory'.format(name))
+
+        if not os.path.isfile(filepath):
+            raise ValueError('{0} file does not exist: {1}'.format(name, filepath))
+
+        if not os.access(filepath, os.R_OK):
+            raise ValueError('{0} file is not readable: {1}'.format(name, filepath))
+
+        return filepath
+
+    @staticmethod
+    def _normalize_client_key_password_env(value):
+        """Normalize and validate a client key password environment reference.
+
+        :param value: Environment variable name.
+        :raise ValueError: when the configured variable is missing.
+        :return: Environment variable name or None.
+        :rtype: str | None
+        """
+
+        if value is None:
+            return None
+
+        env_name = str(value).strip()
+        if not env_name:
+            return None
+
+        if env_name not in os.environ:
+            raise ValueError('client_key_password_env environment variable is not set: {0}'.format(env_name))
+
+        return env_name
+
 
     @classmethod
     def _normalize_scheme(cls, scheme, ssl=False):
@@ -1199,6 +1261,31 @@ class Config(object):
         """Whether opt-in legacy TLS compatibility is enabled."""
 
         return self._is_tls_legacy
+
+    @property
+    def client_cert(self):
+        """Client certificate path for mutual TLS, when configured."""
+
+        return self._client_cert
+
+    @property
+    def client_key(self):
+        """Client private key path for mutual TLS, when configured."""
+
+        return self._client_key
+
+    @property
+    def client_key_password_env(self):
+        """Environment variable name for encrypted client key password."""
+
+        return self._client_key_password_env
+
+    @property
+    def is_client_cert_enabled(self):
+        """Whether mutual TLS client certificate authentication is enabled."""
+
+        return self._client_cert is not None
+
 
     @property
     def last_transport_error(self):
