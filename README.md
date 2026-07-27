@@ -72,10 +72,10 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 - CI/CD fail-on result bucket rules;
 - differential report comparison for previous/current JSON or SQLite reports;
 - reports in terminal, text, JSON, CSV, HTML, SARIF and SQLite formats;
-- proxy, OpenVPN, and WireGuard transport profiles;
+- proxy, OpenVPN, WireGuard, legacy TLS, and mTLS client-certificate transport support;
 - sequential per-target transport rotation for batch workflows;
 - configuration wizard for repeatable scan profiles;
-- built-in wordlists (upd. 2026-06)
+- built-in wordlists (upd. 2026-08)
 
 ---
 
@@ -512,6 +512,7 @@ The full documentation is available on ReadTheDocs:
 - [Header Injection Bypass](https://opendoor.readthedocs.io/detection/header-bypass/)
 - [Auto-calibration](https://opendoor.readthedocs.io/detection/auto-calibration/)
 - [Network transports](https://opendoor.readthedocs.io/transports/overview/)
+- [TLS compatibility and mTLS](https://opendoor.readthedocs.io/transports/tls/)
 - [OpenVPN transport](https://opendoor.readthedocs.io/transports/openvpn/)
 - [WireGuard transport](https://opendoor.readthedocs.io/transports/wireguard/)
 - [Practical examples](https://opendoor.readthedocs.io/examples/basic-scans/)
@@ -573,6 +574,7 @@ Never publish:
 
 - real OpenVPN profiles;
 - WireGuard private keys;
+- mTLS client certificates and private keys;
 - auth-user-pass files;
 - cookies;
 - bearer tokens;
