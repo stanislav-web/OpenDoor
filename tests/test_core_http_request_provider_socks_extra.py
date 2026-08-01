@@ -304,5 +304,14 @@ class TestSocketExtra(unittest.TestCase):
 
 
 
+    def test_ping_allows_none_connection_result_without_close(self):
+        """Socket.ping() should tolerate a defensive None connection result."""
+
+        with patch('src.core.http.socks.socket.create_connection', return_value=None) as connect_mock:
+            Socket.ping('example.com', 80, timeout=1)
+
+        connect_mock.assert_called_once_with(('example.com', 80), timeout=1)
+
+
 if __name__ == '__main__':
     unittest.main()

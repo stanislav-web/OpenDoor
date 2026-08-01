@@ -1999,5 +1999,80 @@ class TestFilter(unittest.TestCase):
         self.assertIn('--client-key-password-env environment variable is not set', str(missing_env.exception))
 
 
+    def test_filter_should_preserve_mtls_overrides_with_session_load(self):
+        """Session resume should accept explicit mTLS and redirect CLI overrides."""
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            session_path = os.path.join(tmpdir, 'session.json')
+            cert_path = os.path.join(tmpdir, 'client.crt')
+            key_path = os.path.join(tmpdir, 'client.key')
+            for filepath in (session_path, cert_path, key_path):
+                with open(filepath, 'w', encoding='utf-8') as handle:
+                    handle.write('data')
+
+            with patch.dict(os.environ, {'OPENDOOR_CLIENT_KEY_PASSWORD': 'secret'}):
+                actual = Filter.filter({
+                    'session_load': session_path,
+                    'client_cert': cert_path,
+                    'client_key': key_path,
+                    'client_key_password_env': 'OPENDOOR_CLIENT_KEY_PASSWORD',
+                    'follow_redirects': True,
+                })
+
+        self.assertEqual(actual['session_load'], os.path.abspath(session_path))
+        self.assertEqual(actual['client_cert'], os.path.abspath(cert_path))
+        self.assertEqual(actual['client_key'], os.path.abspath(key_path))
+        self.assertEqual(actual['client_key_password_env'], 'OPENDOOR_CLIENT_KEY_PASSWORD')
+        self.assertTrue(actual['follow_redirects'])
+
+    def test_bucket_values_should_skip_defensive_empty_split_items(self):
+        """Bucket parser should ignore empty items even if a caller passes them through."""
+
+        with patch.object(Filter, '_split_csv', return_value=['', 'success', 'blocked']):
+            self.assertEqual(Filter.bucket_values('ignored'), ['success', 'blocked'])
+
+    def test_readable_file_should_reject_empty_directory_missing_and_unreadable_paths(self):
+        """readable_file() should expose focused diagnostics for invalid file paths."""
+
+        with self.assertRaises(FilterError) as empty_path:
+            Filter.readable_file('   ', key='--client-cert')
+        self.assertIn('requires a non-empty file path', str(empty_path.exception))
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with self.assertRaises(FilterError) as directory_path:
+                Filter.readable_file(tmpdir, key='--client-cert')
+            self.assertIn('must point to a file', str(directory_path.exception))
+
+            missing_path = os.path.join(tmpdir, 'missing.crt')
+            with self.assertRaises(FilterError) as missing_file:
+                Filter.readable_file(missing_path, key='--client-cert')
+            self.assertIn('file does not exist', str(missing_file.exception))
+
+            cert_path = os.path.join(tmpdir, 'client.crt')
+            with open(cert_path, 'w', encoding='utf-8') as handle:
+                handle.write('cert')
+
+            with patch('src.core.options.filter.os.access', return_value=False):
+                with self.assertRaises(FilterError) as unreadable_file:
+                    Filter.readable_file(cert_path, key='--client-cert')
+            self.assertIn('file is not readable', str(unreadable_file.exception))
+
+    def test_client_key_password_env_should_reject_empty_value(self):
+        """client_key_password_env() should reject blank environment variable names."""
+
+        with self.assertRaises(FilterError) as context:
+            Filter.client_key_password_env('   ', key='--client-key-password-env')
+
+        self.assertIn('requires an environment variable name', str(context.exception))
+
+    def test_validate_client_cert_options_rejects_password_env_without_cert(self):
+        """mTLS cross-field validation should require a certificate for password env refs."""
+
+        with self.assertRaises(FilterError) as context:
+            Filter.validate_client_cert_options({'client_key_password_env': 'OPENDOOR_CLIENT_KEY_PASSWORD'})
+
+        self.assertIn('--client-key-password-env requires --client-cert', str(context.exception))
+
+
 if __name__ == '__main__':
     unittest.main()

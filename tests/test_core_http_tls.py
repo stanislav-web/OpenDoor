@@ -207,6 +207,25 @@ class TestTlsHelpers(unittest.TestCase):
         self.assertNotIn('/tmp/client.key', message)
         self.assertNotIn('OPENDOOR_CLIENT_KEY_PASSWORD', message)
 
+
+    def test_build_target_ssl_context_ignores_blank_password_env_name(self):
+        """Blank encrypted-key env references should behave like no password."""
+
+        context = Mock()
+        with patch('src.core.http.tls.ssl.create_default_context', return_value=context):
+            actual = build_target_ssl_context(
+                client_cert='/tmp/client.crt',
+                client_key='/tmp/client.key',
+                client_key_password_env='   ',
+            )
+
+        self.assertIs(actual, context)
+        context.load_cert_chain.assert_called_once_with(
+            certfile='/tmp/client.crt',
+            keyfile='/tmp/client.key',
+            password=None,
+        )
+
     def test_warn_tls_transport_error_stores_warns_and_finishes_line(self):
         """warn_tls_transport_error() should centralize TLS warning propagation."""
 
