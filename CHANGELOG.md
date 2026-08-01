@@ -9,9 +9,9 @@ v5.18.0 (01.08.2026)
 - (fix) `--sniff malware` false positive where benign hidden iframes used as local form targets on legacy login pages were reported as hidden iframe injection.
 - (feature) added target TLS context foundation with opt-in mTLS client certificate support via `--client-cert`, `--client-key`, and `--client-key-password-env`, covering direct HTTPS, HTTP CONNECT proxy HTTPS, SOCKS HTTPS, and `--tls-legacy` composition without changing default HTTPS behavior or persisting secret values.
 - (enhancement) improve `--sniff malware` detection for an exposed PHP source by correlating decoder chains with dangerous dynamic execution/include sinks without adding probes or CLI options.
-- (enhancement) added NemesidaWAF custom and handle custom`222` block responses without scan aborts, including status/header/body-based WAF fingerprinting and safe fallback classification.
+- (enhancement) detect NemesidaWAF custom `222` block responses without scan aborts, including status/header/body-based WAF fingerprinting and safe fallback classification.
 - (enhancement) detect a Plesk hosting platform without affecting WAF blocked-response semantics or request volume.
-- (enhancement) MODX CMS detection improvements for fingerprinting
+- (enhancement) improve MODX CMS detection from `X-Powered-By` headers.
 - (performance) browser runtime cleanup lifecycle to preserve scan results and crawl diagnostics until reports are finalized, while releasing heavy in-memory request/cache state after result consumption.
 - (dictionary) cleaned and normalized the internal directories list (+374 potential interesting paths).
 - (build) added Chocolatey package metadata for Windows distribution.
