@@ -15,6 +15,7 @@ v5.18.0 (01.08.2026)
 - (performance) browser runtime cleanup lifecycle to preserve scan results and crawl diagnostics until reports are finalized, while releasing heavy in-memory request/cache state after result consumption.
 - (dictionary) cleaned and normalized the internal directories list (+374 potential interesting paths).
 - (build) added Chocolatey package metadata for Windows distribution.
+- (deps-dev) [PR#127](https://github.com/stanislav-web/OpenDoor/pull/127) bump the python-runtime-dependencies group across 1 directory with 3 updates
 
 v5.17.0 (10.06.2026)
 ---------------------------
