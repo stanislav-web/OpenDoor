@@ -1,63 +1,94 @@
 name: Publish Chocolatey package
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       version:
-        description: 'OpenDoor version to publish'
+        description: "Release tag to publish, for example v5.18.0"
         required: true
-        default: '5.17.0'
+        type: string
 
 permissions:
   contents: read
 
 jobs:
-  publish:
+  publish-chocolatey:
+    name: Publish Chocolatey package
     runs-on: windows-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.version }}
 
-      - name: Verify Chocolatey metadata version
+    steps:
+      - name: Resolve release version
         shell: pwsh
         run: |
-          $version = "${{ inputs.version }}"
-          $nuspec = Get-Content chocolatey/opendoor.nuspec -Raw
-
-          if ($nuspec -notmatch "<version>$version</version>") {
-            throw "chocolatey/opendoor.nuspec does not contain version $version"
+          if ([string]::IsNullOrWhiteSpace($env:RELEASE_TAG)) {
+            throw "Release tag is empty. Use a tag like v5.18.0."
           }
 
-          if ($nuspec -match "5\.16\.2") {
-            throw "Found stale 5.16.2 metadata in chocolatey/opendoor.nuspec"
+          if ($env:RELEASE_TAG -notmatch '^v\d+\.\d+\.\d+$') {
+            throw "Release tag must look like v5.18.0. Got: $env:RELEASE_TAG"
           }
+
+          $packageVersion = $env:RELEASE_TAG.Substring(1)
+          "PACKAGE_VERSION=$packageVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+          Write-Host "Release tag: $env:RELEASE_TAG"
+          Write-Host "Package version: $packageVersion"
+
+      - name: Checkout release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.version }}
+
+      - name: Verify Chocolatey metadata
+        shell: pwsh
+        run: |
+          $nuspecPath = ".\chocolatey\opendoor.nuspec"
+
+          if (-not (Test-Path $nuspecPath)) {
+            throw "Chocolatey nuspec not found: $nuspecPath"
+          }
+
+          [xml]$nuspec = Get-Content $nuspecPath
+          $actualVersion = $nuspec.package.metadata.version
+
+          if ($actualVersion -ne $env:PACKAGE_VERSION) {
+            throw "Nuspec version mismatch. Expected $env:PACKAGE_VERSION, got $actualVersion."
+          }
+
+          Select-String -Path $nuspecPath -Pattern $env:RELEASE_TAG -SimpleMatch
+
+      - name: Show Chocolatey version
+        shell: pwsh
+        run: choco --version
 
       - name: Pack Chocolatey package
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force dist-choco | Out-Null
-          choco pack chocolatey/opendoor.nuspec --out dist-choco
-          Get-ChildItem dist-choco
+          New-Item -ItemType Directory -Force .\chocolatey\dist | Out-Null
 
-      - name: Inspect package
-        shell: pwsh
-        run: |
-          $pkg = "dist-choco/opendoor.${{ inputs.version }}.nupkg"
+          choco pack .\chocolatey\opendoor.nuspec --outputdirectory .\chocolatey\dist
 
-          if (!(Test-Path $pkg)) {
-            throw "Package not found: $pkg"
+          $packagePath = ".\chocolatey\dist\opendoor.$env:PACKAGE_VERSION.nupkg"
+
+          if (-not (Test-Path $packagePath)) {
+            throw "Expected package was not created: $packagePath"
           }
 
-          7z l $pkg
+          Get-ChildItem .\chocolatey\dist
+          "PACKAGE_PATH=$packagePath" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Push Chocolatey package
         shell: pwsh
         env:
           CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
         run: |
-          $pkg = "dist-choco/opendoor.${{ inputs.version }}.nupkg"
+          if ([string]::IsNullOrWhiteSpace($env:CHOCOLATEY_API_KEY)) {
+            throw "Missing CHOCOLATEY_API_KEY repository secret."
+          }
 
-          choco push $pkg `
-            --source https://push.chocolatey.org/ `
-            --api-key "$env:CHOCOLATEY_API_KEY"
+          choco push $env:PACKAGE_PATH --source="'https://push.chocolatey.org/'" --api-key="'$env:CHOCOLATEY_API_KEY'"
