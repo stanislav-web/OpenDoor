@@ -13,6 +13,7 @@ It helps security researchers, penetration testers, bug bounty hunters, DevSecOp
 
 [![PyPI version](https://img.shields.io/pypi/v/opendoor)](https://pypi.org/project/opendoor/)
 [![Homebrew](https://img.shields.io/homebrew/v/opendoor?label=homebrew)](https://formulae.brew.sh/formula/opendoor)
+![Chocolatey Version](https://img.shields.io/chocolatey/v/opendoor)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-green.svg)](https://www.python.org/)
 [![Docker Image](https://github.com/stanislav-web/OpenDoor/actions/workflows/docker-image.yml/badge.svg?branch=master)](https://github.com/stanislav-web/OpenDoor/actions/workflows/docker-image.yml)
 
@@ -159,6 +160,16 @@ pipx install opendoor
 ```bash
 python3 -m pip install --upgrade opendoor
 ```
+
+### Windows / Chocolatey
+
+OpenDoor is available from the Chocolatey Community Package Repository:
+
+```powershell
+choco install opendoor -y
+```
+
+Chocolatey packages can lag the latest GitHub/PyPI release while community moderation completes.
 
 ### Arch Linux / AUR
 

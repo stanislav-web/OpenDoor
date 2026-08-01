@@ -24,6 +24,12 @@ On macOS, OpenDoor can also be installed with Homebrew:
 brew install opendoor
 ```
 
+On Windows, OpenDoor can also be installed with Chocolatey:
+
+```powershell
+choco install opendoor -y
+```
+
 Verify the installation:
 
 ```shell

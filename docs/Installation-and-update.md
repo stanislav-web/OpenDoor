@@ -1,6 +1,6 @@
 # 📦 Installation and update
 
-OpenDoor is distributed as a Python CLI application and as an official project Docker image. It can be installed with Arch Linux AUR, BlackArch Linux, Homebrew, pipx, pip, Docker, or run directly from a source checkout.
+OpenDoor is distributed as a Python CLI application and as an official project Docker image. It can be installed with Arch Linux AUR, BlackArch Linux, Homebrew, Chocolatey for Windows, pipx, pip, Docker, or run directly from a source checkout.
 
 For most users, the recommended installation methods are:
 
@@ -9,6 +9,7 @@ For most users, the recommended installation methods are:
 | Arch Linux | AUR |
 | BlackArch Linux | pacman |
 | macOS | Homebrew |
+| Windows | Chocolatey or pipx |
 | Containerized usage | Docker / GHCR |
 | General CLI usage | pipx |
 | Existing Python environment | pip |
@@ -119,6 +120,40 @@ brew install stanislav-web/opendoor/opendoor
 ```
 
 ![Homebrew Formula Downloads](https://img.shields.io/homebrew/installs/dy/opendoor)
+
+---
+
+## 🪟 Windows / Chocolatey
+
+OpenDoor is available from the Chocolatey Community Package Repository.
+
+Install from an elevated PowerShell prompt:
+
+```powershell
+choco install opendoor -y
+```
+
+Verify the installation:
+
+```powershell
+opendoor --version
+opendoor --help
+```
+
+Update OpenDoor with Chocolatey:
+
+```powershell
+choco upgrade opendoor -y
+```
+
+Uninstall OpenDoor:
+
+```powershell
+choco uninstall opendoor -y
+```
+
+Chocolatey packages may lag the latest GitHub/PyPI release while community moderation completes. Package page: <https://community.chocolatey.org/packages/opendoor>.
+
 ---
 
 ## 🐳 Docker / GitHub Container Registry
@@ -436,6 +471,7 @@ opendoor --update
 | BlackArch / pacman | `sudo pacman -Syu opendoor` |
 | Debian / Kali package | `sudo apt update && sudo apt install --only-upgrade opendoor` |
 | Homebrew | `brew update && brew upgrade opendoor` |
+| Chocolatey | `choco upgrade opendoor -y` |
 | Docker / GHCR | `docker pull ghcr.io/stanislav-web/opendoor:latest` |
 | pipx | `pipx upgrade opendoor` |
 | pip | `python -m pip install --upgrade opendoor` from the same Python environment |
