@@ -4,7 +4,7 @@ ddt==1.7.2
 packaging==26.2
 urllib3==2.7.0
 PySocks==1.7.1
-ruff==0.15.22
+ruff==0.16.1
 coverage==7.15.2
 vulture==2.16
-twine==6.2.0
+twine==7.0.0
