@@ -1,4 +1,4 @@
 # requirements.txt
-packaging==26.2
+packaging==26.3
 urllib3==2.7.0
 PySocks==1.7.1
