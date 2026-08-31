@@ -1,10 +1,10 @@
 # requirements-dev.txt
-build==1.5.0
+build==1.6.0
 ddt==1.7.2
-packaging==26.2
+packaging==26.3
 urllib3==2.7.0
 PySocks==1.7.1
-ruff==0.15.22
-coverage==7.15.2
+ruff==0.16.5
+coverage==7.15.4
 vulture==2.16
-twine==6.2.0
+twine==7.0.0
