@@ -2,7 +2,7 @@
 build==1.5.0
 ddt==1.7.2
 packaging==26.2
-urllib3==2.7.0
+urllib3==2.8.0
 PySocks==1.7.1
 ruff==0.15.22
 coverage==7.15.2
