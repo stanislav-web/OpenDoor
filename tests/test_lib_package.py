@@ -40,6 +40,22 @@ class TestPackage(unittest.TestCase):
 
         self.assertEqual(result, {'status': False, 'actual': '3.11', 'expected': '3.12 -> 3.14'})
 
+    def test_check_interpreter_uses_actual_supported_python_range(self):
+        """The application configuration should accept Python 3.12 through 3.15 only."""
+
+        for minor in (12, 13, 14, 15):
+            with self.subTest(minor=minor), \
+                    patch('src.lib.package.package.py_sys.version_info', new=SimpleNamespace(major=3, minor=minor)):
+                self.assertIs(Package.check_interpreter(), True)
+
+        for minor in (11, 16):
+            with self.subTest(minor=minor), \
+                    patch('src.lib.package.package.py_sys.version_info', new=SimpleNamespace(major=3, minor=minor)):
+                self.assertEqual(
+                    Package.check_interpreter(),
+                    {'status': False, 'actual': f'3.{minor}', 'expected': '3.12 -> 3.15'},
+                )
+
     def test_examples_returns_core_config_examples(self):
         """Package.examples() should proxy the configured examples string."""
 

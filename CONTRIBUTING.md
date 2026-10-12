@@ -95,6 +95,7 @@ The active OpenDoor 5.x line targets:
 - Python 3.12
 - Python 3.13
 - Python 3.14
+- Python 3.15
 
 Do not add code that depends on unsupported Python versions below 3.12.
 

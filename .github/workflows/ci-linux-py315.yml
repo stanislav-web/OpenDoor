@@ -1,0 +1,19 @@
+name: CI Linux Python 3.15
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/reusable-python-ci.yml
+    with:
+      runner: ubuntu-latest
+      python-version: "3.15"
+    secrets: inherit

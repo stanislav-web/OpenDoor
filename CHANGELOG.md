@@ -1,6 +1,10 @@
 CHANGELOG
 =======
 
+Unreleased
+---------------------------
+- (enhancement) added Python `3.15` support and Linux, macOS, and Windows CI coverage while retaining Python `3.12`–`3.14` support.
+
 v5.18.0 (01.08.2026)
 ---------------------------
 - (fix) avoid `--sniff file` false positives for `.db` URLs that resolve to textual soft-404 or fallback pages, while preserving real database/file and secret findings.

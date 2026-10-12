@@ -28,6 +28,7 @@ Target Python baseline:
 - **3.12**
 - **3.13**
 - **3.14**
+- **3.15**
 
 Do not add new code that depends on unsupported Python versions below 3.12.
 

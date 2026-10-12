@@ -53,7 +53,7 @@ class Package(object):
         The configured version boundaries are interpreted as inclusive
         major.minor versions. For example:
         - minimum `3.12` allows `3.12.x` and higher
-        - maximum `3.14` allows `3.14.x`
+        - maximum `3.15` allows `3.15.x`
 
         :return: True when the interpreter is supported, otherwise a dict with
                  mismatch details.
