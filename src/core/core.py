@@ -82,7 +82,7 @@ CoreConfig = {
         'documentation': 'https://opendoor.readthedocs.io',
         'required_versions': {
             'minor': '3.12',
-            'major': '3.14'
+            'major': '3.15'
         },
     },
     'data': {
