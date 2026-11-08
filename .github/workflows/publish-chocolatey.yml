@@ -40,7 +40,7 @@ jobs:
           Write-Host "Package version: $packageVersion"
 
       - name: Checkout release tag
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.release.tag_name || inputs.version }}
 
